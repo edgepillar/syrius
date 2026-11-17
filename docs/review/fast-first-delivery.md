@@ -1,6 +1,19 @@
 # First delivery and deferred acceptance
 
-Current source: Source837 restores legacy available-button feedback timing and repeats
+Current source: Source838 supplies the two owned Fuse result fixtures with a
+scoped recording notification service, checks the exact error and localized
+title, and restores the preceding dependency scope after fixture teardown.
+All existing assertions, declarations and product bytes remain. Both owning
+Fuse/Stake files also run in the existing early compact command; all fourteen
+stages and complete directory discovery remain. Selected Windows totals stay
+1521/1523, Python 1230. Source837 passes twelve stages and the actual
+twenty-two-command Git gate. Its complete directory reports 5109 passed,
+one missing-service fixture failure and one skip; generation is skipped.
+The original log is retained once in a closed successful task and all outputs
+are consumed. Fresh Linux/native qualification and 76/80 acceptance remain.
+[Scope](source838-scoped-fuse-notification-fixture.md).
+
+Earlier source: Source837 restores legacy available-button feedback timing and repeats
 while retaining the explicit original-owner result path. Two new fixture
 clocks cross the SDK completion boundary and initialize the post-frame
 ticker; every paint expectation and declaration remains. Selected totals

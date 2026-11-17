@@ -75,6 +75,8 @@ jobs:
           flutter test test/sheen/primary_pill_test.dart
           test/frost/frosted_surface_test.dart
           test/send/widgets/send_confirmation_flow_test.dart
+          test/staking/view/create_stake_card_test.dart
+          test/plasma_fuse_redesign/fuse_plasma_card_test.dart
           test/rearchitecture/utils/widgets/ltr_test.dart
           test/sheen/sheen_test.dart test/staking/view/staking_page_test.dart
           test/settings_apps_redesign/apps_settings_view_test.dart

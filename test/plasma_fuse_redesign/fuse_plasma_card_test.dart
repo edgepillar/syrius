@@ -7,8 +7,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:logging/logging.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/fuse_plasma/fuse_plasma.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/fuse_plasma/view/fuse_plasma_disclosure.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/fuse_plasma/view/fuse_plasma_form.dart';
@@ -37,6 +39,15 @@ class _Balances extends MockBloc<MultipleBalanceEvent, MultipleBalanceState>
     implements MultipleBalanceBloc {}
 
 class _Zenon extends Mock implements Zenon {}
+
+class _Notifications extends Mock implements NotificationsBloc {
+  final List<(Object, String)> errors = <(Object, String)>[];
+
+  @override
+  Future<void> addErrorNotification(Object error, String title) async {
+    errors.add((error, title));
+  }
+}
 
 class _QuietBalances extends ZenonAddressUtils {
   @override
@@ -460,6 +471,10 @@ void main() {
     testWidgets('owned Fuse feedback follows its original result $succeeds', (
       WidgetTester tester,
     ) async {
+      final _Notifications notifications = _Notifications();
+      app.sl.pushNewScope();
+      app.sl.registerSingleton<NotificationsBloc>(notifications);
+      addTearDown(app.sl.popScope);
       final _CardFixture fixture = await _prepare(tester);
       await tester.enterText(find.byKey(_amount), '100.00000001');
       await tester.pump();
@@ -501,6 +516,18 @@ void main() {
       } else {
         expect(original.result.error, same(error));
         expect(fixture.outcomes, 0);
+      }
+      expect(notifications.errors, hasLength(succeeds ? 0 : 1));
+      if (!succeeds) {
+        if (fixture.bloc.state case FusePlasmaFailure(:final exception)) {
+          expect(notifications.errors.single.$1, same(exception));
+        } else {
+          fail('The original Fuse failure must own its error notification');
+        }
+        expect(
+          notifications.errors.single.$2,
+          tester.element(find.byKey(_submit)).l10n.errorGeneratingPlasma,
+        );
       }
       await tester.pump(const Duration(milliseconds: 300));
       if (succeeds) {
