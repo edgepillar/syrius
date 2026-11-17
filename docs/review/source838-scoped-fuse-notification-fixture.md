@@ -36,3 +36,19 @@ Acceptance remains 76/80. V01/V02/V05/V06, all 94 current literal pairs,
 the full running motion review, original P06 launch/page/disclosure
 comparisons, comparison page, independent final review and end audit
 remain open. Source730's two Ready matches stay source-bound.
+
+## Source839 analysis follow-up
+
+[Source838 Linux](https://github.com/edgepillar/syrius/actions/runs/44150031596)
+passes seven stages and the actual twenty-two-command P06 Git gate, then
+application analysis reports one `undefined_getter`: the test has not
+imported the existing `BuildContext.l10n` extension. The error pattern also
+has one new `always_specify_types` info. Six later stages are skipped;
+neither the notification fixtures nor the early owning-card addition run.
+
+The original 321853-byte log is retained once in a closed successful managed
+task. All owned outputs are consumed; the analysis failure and skips remain.
+Source839 imports the existing extension and explicitly types the same
+mapped exception. All 254 expectation expressions, test declarations,
+product bytes, workflows and selected totals remain. Fresh fourteen-stage
+Linux and native qualification are pending; acceptance stays 76/80.

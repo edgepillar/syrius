@@ -19,6 +19,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/plasma_owner
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/plasma_owner/plasma_session.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
@@ -519,7 +520,9 @@ void main() {
       }
       expect(notifications.errors, hasLength(succeeds ? 0 : 1));
       if (!succeeds) {
-        if (fixture.bloc.state case FusePlasmaFailure(:final exception)) {
+        if (fixture.bloc.state case FusePlasmaFailure(
+          exception: final SyriusException exception,
+        )) {
           expect(notifications.errors.single.$1, same(exception));
         } else {
           fail('The original Fuse failure must own its error notification');

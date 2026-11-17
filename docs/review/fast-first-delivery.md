@@ -1,6 +1,17 @@
 # First delivery and deferred acceptance
 
-Current source: Source838 supplies the two owned Fuse result fixtures with a
+Current source: Source839 imports the existing localization extension and
+explicitly types the same mapped error pattern in the owned Fuse fixture.
+All 254 expectation expressions and declarations, product bytes, workflows
+and selected 1521/1523 Windows totals remain; Python stays 1230. Source838
+passes seven Linux stages and the actual twenty-two-command Git gate, then
+application analysis reports one undefined_getter and one new type info.
+Six stages are skipped and no widget or Windows job executes. The original
+log is retained once in a closed successful task; all outputs are consumed
+and the failure remains. Fresh Linux/native and 76/80 acceptance remain.
+[Scope](source838-scoped-fuse-notification-fixture.md#source839-analysis-follow-up).
+
+Earlier source: Source838 supplies the two owned Fuse result fixtures with a
 scoped recording notification service, checks the exact error and localized
 title, and restores the preceding dependency scope after fixture teardown.
 All existing assertions, declarations and product bytes remain. Both owning
