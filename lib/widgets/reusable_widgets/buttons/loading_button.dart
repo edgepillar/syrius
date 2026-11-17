@@ -302,14 +302,20 @@ class LoadingButtonState extends State<LoadingButton>
   /// failure as well as a success, so the caller that knows which it was
   /// says so here.
   void landed({bool Function()? isCurrent}) {
-    if (!mounted || _landedOperation == _operation) return;
+    if (!mounted) return;
+    if (isCurrent == null) {
+      if (btnState == ButtonState.idle) _sheen.pass();
+      return;
+    }
+    if (_landedOperation == _operation) return;
     final int operation = _operation;
+    final bool Function() owner = isCurrent;
     _landedOperation = operation;
     _pendingCompletion = () =>
         mounted &&
         operation == _operation &&
         btnState == ButtonState.idle &&
-        (isCurrent?.call() ?? true);
+        owner();
     _deliverCompletion();
   }
 

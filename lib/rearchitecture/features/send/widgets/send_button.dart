@@ -47,17 +47,25 @@ class SendButtonState extends State<SendButton> {
 
   /// Plays accepted-result feedback after the idle child has rebuilt.
   void landed({bool Function()? isCurrent}) {
-    if (!mounted || _busy || _landedOperation == _operation) return;
+    if (!mounted || _busy) return;
     final int operation = _operation;
-    _landedOperation = operation;
+    final bool Function()? owner = isCurrent;
+    if (owner != null) {
+      if (_landedOperation == operation) return;
+      _landedOperation = operation;
+    }
     bool current() =>
         mounted &&
         !_busy &&
         operation == _operation &&
-        (isCurrent?.call() ?? true);
+        (owner?.call() ?? true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && !_busy && operation == _operation) {
-        _sheen.landed(isCurrent: current);
+        if (owner == null) {
+          if (widget.onPressed != null) _sheen.pass();
+        } else {
+          _sheen.landed(isCurrent: current);
+        }
       }
     });
     WidgetsBinding.instance.ensureVisualUpdate();

@@ -1,6 +1,18 @@
 # First delivery and deferred acceptance
 
-Current source: Source836 separates original accepted-result feedback from input
+Current source: Source837 restores legacy available-button feedback timing and repeats
+while retaining the explicit original-owner result path. Two new fixture
+clocks cross the SDK completion boundary and initialize the post-frame
+ticker; every paint expectation and declaration remains. Selected totals
+stay 1521/1523 and Python stays 1230. Source836 passes eleven Linux stages
+and the actual twenty-two-command Git gate, then five compact paint
+expectations fail. Four new standalone cases and the real Send extension
+pass; broad and generation are skipped. Its complete original log is
+retained once in a closed successful task and all outputs are consumed.
+Fresh Linux/native qualification and 76/80 acceptance remain.
+[Scope](source837-feedback-compatibility-and-test-clocks.md).
+
+Earlier source: Source836 separates original accepted-result feedback from input
 availability. Send, Stake and Fuse retain their original owner predicates;
 busy buttons deliver once after idle, hover overlap queues one pass and
 stale operations retire. Eight broad widget cases and existing real

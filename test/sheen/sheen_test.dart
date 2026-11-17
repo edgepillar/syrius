@@ -361,6 +361,8 @@ void main() {
     expect(_paint, paints..clipRRect()..rect());
     await tester.pump(const Duration(milliseconds: 1));
     expect(_paint, isNot(paints..clipRRect()));
+    // The visual endpoint precedes the SDK's completed status by a tick.
+    await tester.pump(const Duration(microseconds: 1));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(_paint, paints..clipRRect()..rect());
@@ -500,6 +502,8 @@ void main() {
     expect(_paint, isNot(paints..clipRRect()));
     action.currentState!.animateReverse();
     action.currentState!.landed(isCurrent: () => current);
+    await tester.pump();
+    // Rebuild the idle face, then initialize the post-frame ticker.
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(_paint, paints..clipRRect()..rect());
