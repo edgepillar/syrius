@@ -1,5 +1,11 @@
 # First delivery and deferred acceptance
 
+Source841 delivers the asynchronous plasma completion before pumping the
+existing status strip test. The strip and pulse suites now run early in the
+Linux workflow. Source840 passes the pulse cases but fails the plasma fixture
+in the full test directory. Fresh Linux and paired Windows results remain
+open. [Fixture follow-up](source840-status-pulse-idle.md#plasma-fixture-follow-up).
+
 Source840 stops the status halo's frame requests during its transparent hold.
 Source839 passes fourteen Linux stages and completes the paired Windows
 measurement and independent read. Both interactive windows fail the 16 ms

@@ -1,6 +1,11 @@
 # Redesign validation index
 
-Current work covers [the status halo's idle interval](source840-status-pulse-idle.md).
+Source841 [awaits the test fixture's plasma completion](source840-status-pulse-idle.md#plasma-fixture-follow-up).
+Source840 passes the pulse cases and strict analysis. Its full Linux run
+reports 5,109 passed, one plasma fixture failure and one skip. Generation
+is skipped. Fresh Linux and Windows results remain open.
+
+Earlier work covers [the status halo's idle interval](source840-status-pulse-idle.md).
 Source839 passes the fourteen Linux stages and completes the original paired
 Windows measurement. Independent inspection confirms the 16 ms raster
 criterion fails for both interactive windows. Original acceptance is 76/80.

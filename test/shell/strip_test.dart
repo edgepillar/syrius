@@ -234,6 +234,8 @@ void main() {
     expect(tester.widget<Text>(find.byKey(_elapsed)).data, '14 s');
 
     rig.finishWork();
+    // Deliver the completion even while the status halo requests no frame.
+    await tester.idle();
     await tester.pump();
     expect(find.byKey(_plasma), findsNothing);
     expect(find.byKey(_elapsed), findsNothing);
