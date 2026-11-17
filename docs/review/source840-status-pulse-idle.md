@@ -61,3 +61,35 @@ await each start or completion before pumping. The test still requires the
 second run to start from zero and show the first run's 14-second duration.
 The early strip and pulse suites and complete Linux pass will verify this
 revision. The Windows comparison remains open.
+
+## Executed Source842 result
+
+At `d7ba1cd56ee5b228932b2354519ddd2bde22b79e`, the fourteen Linux stages
+pass. The Windows Release build completes both interactive samples and the
+independent reader validates the original manifests.
+[Linux](https://github.com/edgepillar/syrius/actions/runs/44178587454),
+[Windows](https://github.com/edgepillar/syrius/actions/runs/44180857029),
+[reader](https://github.com/edgepillar/syrius/actions/runs/44185500081).
+
+The original 16 ms comparison fails for raster and distinct frame durations
+in both windows. The longest end-to-end spans are 282.791 ms for the page
+change and 136.125 ms for the disclosure. The corresponding P06 spans are
+163.031 ms and 64.617 ms. All retained build durations are at or below
+16 ms. Both builds report frame-number gaps in both windows.
+
+The pinned Flutter engine assigns a new number at the vsync callback.
+When the layer-tree pipeline is full, the animator schedules another frame
+before building one for that number. This provides one mechanism for skipped
+numbers. Attributing these specific gaps requires a trace of the runs.
+[Frame numbering](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/flow/frame_timings.cc#L41-L45),
+[vsync callback](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/vsync_waiter.cc#L136-L141),
+[full pipeline](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/animator.cc#L95-L108).
+
+## About disclosure paint
+
+The About section scrolls its cards in one viewport. The version strip now
+has its own repaint boundary so its recorded paint can survive the changing
+height of an opening disclosure. The existing test checks that the
+Licences panel grows while the strip retains its paint at an intermediate
+frame and at the end. It also checks the original late version update.
+Hosted execution and a fresh native measurement are pending.

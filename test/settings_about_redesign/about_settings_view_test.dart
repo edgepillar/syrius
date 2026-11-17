@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart'
+    show Layer, OffsetLayer, RenderRepaintBoundary;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -427,13 +429,36 @@ void main() {
         ),
       );
       expect(reads, 0);
-      await _toggle(tester, 'about_licences_toggle');
+      final Finder toggle = find.byKey(const Key('about_licences_toggle'));
+      final Finder panel = find.byKey(const Key('about_licences'));
+      final double closedHeight = tester.getSize(panel).height;
+      await tester.ensureVisible(toggle);
+      await tester.tap(toggle);
+      await tester.pump();
+      final RenderRepaintBoundary strip = tester.renderObject(
+        find
+            .ancestor(
+              of: find.byKey(const Key('about_strip')),
+              matching: find.byType(RepaintBoundary),
+            )
+            .first,
+      );
+      final OffsetLayer stripLayer = strip.debugLayer! as OffsetLayer;
+      final Layer? stripPaint = stripLayer.firstChild;
+      expect(stripPaint, isNotNull);
+      await tester.pump(const Duration(milliseconds: 80));
+      expect(tester.getSize(panel).height, greaterThan(closedHeight));
+      expect(stripLayer.firstChild, same(stripPaint));
+      await tester.pump(const Duration(milliseconds: 160));
+      expect(stripLayer.firstChild, same(stripPaint));
+
       await tester.pump();
       expect(reads, 1);
       expect(find.text('Fixture end hook'), findsOneWidget);
       final Element originalList = tester.element(find.byType(Licences));
       information.complete(AboutInformation(version: 'late-package-info'));
       await tester.pump();
+      expect(_text(tester, 'about_version').data, 'late-package-info');
       expect(
         identical(originalList, tester.element(find.byType(Licences))),
         isTrue,

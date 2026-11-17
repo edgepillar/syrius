@@ -139,7 +139,8 @@ class _AboutCardState extends State<AboutCard> {
         return SettingsSection(
           key: const Key('about_page'),
           children: <Widget>[
-            _buildStrip(tokens),
+            // Retain the version strip's paint as the groups change height.
+            RepaintBoundary(child: _buildStrip(tokens)),
             CommunityCard(openLink: _openLink),
             Panel(
               key: const Key('about_computer'),
