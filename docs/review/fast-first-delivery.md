@@ -1,6 +1,15 @@
 # First delivery and deferred acceptance
 
-Current source: Source830 adds the missing dart:async import to the current
+Current source: Source831 corrects four strict-analysis infos in the
+existing Welcome regressions. Test declarations, assertions and expected
+1520/1522 counts remain. Source830 passes application analysis and the
+strict Git overlay gate, then fails on three long lines and only_throw_errors.
+Five later required stages are skipped. All owned outputs are consumed.
+The P06 patch, production code and original limits remain. Fresh fourteen-stage
+Linux/native qualification is required; acceptance stays 76/80.
+[Scope](source831-welcome-regression-analysis.md).
+
+Earlier source: Source830 adds the missing dart:async import to the current
 and P06 recipes. All other applied Dart code and the collector remain.
 The 16355-byte patch stays within the existing cap. All 39 selected mocked
 Python methods pass; test declarations and 1520/1522 expected Dart totals

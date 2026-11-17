@@ -762,7 +762,10 @@ void main() {
       (const WalletRecipeRefused('wallet-recipe-stage-unsettled'),
           'wallet-recipe-stage-unsettled'),
       (TimeoutException('synthetic private timeout'), 'wallet-recipe-deadline'),
-      (StateError('synthetic private failure'), 'wallet-recipe-command-uncertain'),
+      (
+        StateError('synthetic private failure'),
+        'wallet-recipe-command-uncertain',
+      ),
     ]) {
       int reads = 0;
       int gates = 0;
@@ -776,13 +779,21 @@ void main() {
       Future<void> run() => recipe.importWallet(
         chain: '321', mnemonic: List<String>.filled(12, 'synthetic').join(' '),
         password: 'Synthetic fixture A1!',
-        beforeWelcome: (Duration _) async {
+        beforeWelcome: (Duration _) {
           gates++;
-          throw failure.$1;
+          return Future<void>.error(failure.$1);
         },
       );
-      await expectLater(run(), throwsA(isA<WalletRecipeRefused>()
-          .having((WalletRecipeRefused value) => value.code, 'code', failure.$2)));
+      await expectLater(
+        run(),
+        throwsA(
+          isA<WalletRecipeRefused>().having(
+            (WalletRecipeRefused value) => value.code,
+            'code',
+            failure.$2,
+          ),
+        ),
+      );
       final int originalReads = reads;
       await expectLater(run(), throwsA(isA<WalletRecipeRefused>()));
       expect(reads, originalReads);
@@ -813,8 +824,16 @@ void main() {
         elapsed = const Duration(seconds: 3);
       },
     );
-    await expectLater(run(), throwsA(isA<WalletRecipeRefused>().having(
-        (WalletRecipeRefused value) => value.code, 'code', 'wallet-recipe-deadline')));
+    await expectLater(
+      run(),
+      throwsA(
+        isA<WalletRecipeRefused>().having(
+          (WalletRecipeRefused value) => value.code,
+          'code',
+          'wallet-recipe-deadline',
+        ),
+      ),
+    );
     expect(offered, const Duration(seconds: 2));
     final int originalReads = reads;
     await expectLater(run(), throwsA(isA<WalletRecipeRefused>()));
