@@ -1,7 +1,9 @@
-"""Memory controls for the paired interactive frame manifest."""
+"""Memory and source controls for the paired interactive frame manifest."""
 
 from copy import deepcopy
+import hashlib
 import json
+from pathlib import Path
 from types import SimpleNamespace
 import unittest
 from unittest import mock
@@ -55,6 +57,16 @@ def package(value, **options):
 
 
 class InteractiveFramePairTests(unittest.TestCase):
+    def test_current_entry_bytes_match_preparation_source_pin(self):
+        repo = Path(__file__).resolve().parents[2]
+        entry = repo / pair.profile.ENTRY
+        self.assertFalse(entry.is_symlink())
+        data = entry.read_bytes()
+        self.assertGreater(len(data), 0)
+        self.assertLessEqual(len(data), 16384)
+        self.assertEqual(hashlib.sha256(data).hexdigest(),
+                         pair.profile.ENTRY_SHA256)
+
     def project(self, value, **options):
         raw, item, lab = package(value, **options)
         return inspect.project(raw, item, head=HEAD, tree=TREE, run_id=RUN, lab=lab,

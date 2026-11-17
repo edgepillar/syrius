@@ -1,6 +1,17 @@
 # First delivery and deferred acceptance
 
-Current source: Source831 corrects four strict-analysis infos in the
+Current source: Source832 updates the paired entry's stale SHA-256 and adds
+a source-coupling check to existing pre-SDK controller discovery. Dart code,
+1520/1522 expected cases, selections, limits and the P06 patch remain.
+Python totals become 1230 with eighteen Windows skips. Source831 Linux
+passes fourteen stages; Windows passes its tests and Release but refuses
+the stale pin before wallet or timing-window startup. The original chain
+archive and five normal node exits verify independently. All owned outputs
+are consumed; original failure and false lab input-immutability remain.
+Fresh Linux/native qualification is required; acceptance stays 76/80.
+[Scope](source832-paired-entry-source-binding.md).
+
+Earlier source: Source831 corrects four strict-analysis infos in the
 existing Welcome regressions. Test declarations, assertions and expected
 1520/1522 counts remain. Source830 passes application analysis and the
 strict Git overlay gate, then fails on three long lines and only_throw_errors.
