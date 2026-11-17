@@ -13,6 +13,8 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_wid
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/wallet_connect_widgets/wallet_connect_camera_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/wallet_connect_widgets/wallet_connect_qr_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/wallet_connect_widgets/wallet_connect_uri_card.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show buildShellSymbol;
 
 /// Presentation accepts only captured facts and guarded original actions.
 class AppsSettingsView extends StatefulWidget {
@@ -262,7 +264,7 @@ class _AppsSettingsViewState extends State<AppsSettingsView>
                   _AppsButton(
                     key: const Key('apps_settings_connect'),
                     label: context.l10n.appsSettingsConnectByLink,
-                    icon: Icons.add,
+                    icon: 'plus',
                     onPressed:
                         current &&
                             snapshot.walletConnectAvailable &&
@@ -790,7 +792,7 @@ class _AppsButton extends StatelessWidget {
   });
   final String label;
   final VoidCallback? onPressed;
-  final IconData? icon;
+  final String? icon;
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
@@ -816,7 +818,12 @@ class _AppsButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           if (icon != null) ...<Widget>[
-            Icon(icon, size: 14),
+            buildShellSymbol(
+              context,
+              icon!,
+              size: tokens.settingsCompactButtonIconSize,
+              color: onPressed == null ? tokens.faint : tokens.foreground,
+            ),
             SizedBox(width: tokens.fieldLabelGap),
           ],
           Flexible(child: Text(label)),

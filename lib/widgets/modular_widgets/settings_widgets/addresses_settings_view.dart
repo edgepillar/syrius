@@ -860,6 +860,7 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
                 dim: true,
               ),
             ),
+            SizedBox(width: tokens.addressesBalanceActionGap),
             SizedBox(
               width: tokens.addressesActionsWidth,
               child: Row(

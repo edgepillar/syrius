@@ -1,6 +1,20 @@
 # First delivery and deferred acceptance
 
-Current source: Source821 compares startup control map contents with nested
+Current source: Source822 restores the address table's 32-pixel separation
+before trailing actions and uses the original plus/zap SVG paths for Apps
+and Fuse. Actual balances, selection, hit areas, callbacks and the animated
+Plasma well remain. Source821 full Linux passes thirteen stages. Its image
+producer and independent reader verify 42 PNGs; all 38 general/Settings
+originals are reviewed with zero complete matches. Required actors exit
+normally, while auxiliary MSVC telemetry is forcibly stopped. The owned
+local review closes successfully and all five named runs' outputs are
+consumed without retry. P06 preparation and paired performance remain
+unqualified. Fresh Source822 qualification is required; counts remain
+1517/1519 Dart, 1229 Python, 113/114 suites and 291 strict paths. Acceptance
+and Source730 Ready matches stay 76/80 and 2/94. See
+[reference action spacing and symbols](source822-reference-action-spacing.md).
+
+Earlier source: Source821 compares startup control map contents with nested
 equals matchers in both existing positive and refusal observations. Original
 values, methods, commands and input/effect assertions remain. Both startup
 files enter the early compact Linux step once; the complete non-chain test

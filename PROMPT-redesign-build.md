@@ -385,6 +385,8 @@ repository; `features/` is `lib/rearchitecture/features/`, `tabs/` is
 
 ## Progress
 
+- Source822 restores the reference cell separation before anchored address actions and the original plus/zap paths in Apps and Fuse, preserving genuine values and guarded actions. Source821 full Linux passes thirteen stages; Windows images and independent reading verify 42 PNGs. All 38 general/Settings originals are reviewed with no complete match; the owned local review closes successfully and all five named runs' outputs are consumed without retry. Required actors exit normally, auxiliary MSVC telemetry is forcibly stopped, and P06 preparation/paired performance remain unqualified. Fresh Source822 hosted/native comparison is required. Counts stay 1517/1519 Dart, 1229 Python, 113/114 suites and 291 strict paths. Acceptance stays 76/80; two Ready matches belong to Source730 only. [Reference action spacing and symbols](docs/review/source822-reference-action-spacing.md).
+
 Written by the coordinator and its agents as the work goes; see "Keeping
 the Progress section" for how. Local foundation preparation has begun on
 macOS; Windows provision and acceptance remain pending. See

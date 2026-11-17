@@ -861,6 +861,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The glyph beside a Settings section name.
   double get settingsIconSize => 14;
 
+  /// The original small symbol inside a compact Settings button.
+  double get settingsCompactButtonIconSize => 12;
+
   /// The space between a compact form label and its field.
   double get fieldLabelGap => 6;
 
@@ -955,6 +958,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// One complete asset balance column in the address table.
   double get addressesBalanceWidth => 168;
+
+  /// The two table-cell insets between account balances and actions.
+  double get addressesBalanceActionGap => 32;
 
   /// Compact account row actions.
   double get addressesActionsWidth => 112;

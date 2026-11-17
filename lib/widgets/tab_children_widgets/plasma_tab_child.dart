@@ -16,6 +16,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_action_context.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show buildShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Beneficiary Plasma at the left, owned fusions and their aggregate at right.
@@ -301,9 +303,11 @@ class _PlasmaStrip extends StatelessWidget {
                     PrimaryPill(
                       key: const Key('plasma_open_fuse'),
                       onPressed: form.open,
-                      icon: Icon(
-                        Icons.bolt_outlined,
+                      icon: buildShellSymbol(
+                        context,
+                        'zap',
                         size: tokens.heroIconSize,
+                        color: tokens.primaryButtonForeground,
                       ),
                       child: Text(context.l10n.fuse),
                     ),
