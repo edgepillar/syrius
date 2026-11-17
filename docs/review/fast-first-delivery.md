@@ -1,6 +1,20 @@
 # First delivery and deferred acceptance
 
-Current source: Source828 refreshes the original P06 index entries and
+Current source: Source829 adds authenticated Welcome readiness before the
+ordinary recipe lookup, after the original Skip handoff. It consumes the
+remaining recipe budget and keeps original limits, pre-tap checks, film,
+clock, inputs and timing criteria. The P06 patch remains within 16 KiB.
+Three Dart regressions are added; engine execution is pending. All 39
+selected mocked Python methods pass. Expected Dart totals are 1520/1522;
+all 113/114 suites and 1229 Python methods remain. Source828 full Linux
+passes fourteen stages; Windows reaches P06 preparation, where Skip is
+received but the original film is not done and Welcome is absent. The
+SDK-free reader binds both archives, two normal wallets and five normal
+nodes; the P06 entry fails and lab input-immutability remains false.
+All outputs are consumed. Source829 qualification remains pending; 76/80.
+[Scope and limits](source829-welcome-readiness-before-lookup.md).
+
+Earlier source: Source828 refreshes the original P06 index entries and
 verifies the unchanged tree before strict patch checks. Complete Git reports
 use bounded summary/ledger annotations with source/run pins and both digests.
 The 16002-byte patch, applied files and collector remain. All 25 selected

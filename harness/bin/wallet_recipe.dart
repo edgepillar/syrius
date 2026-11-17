@@ -690,6 +690,7 @@ class WalletRecipe {
     required String? mnemonic,
     required String? password,
     String? node,
+    Future<void> Function(Duration remaining)? beforeWelcome,
   }) async {
     final int requested = walletRecipeChain(chain);
     if (_inspectionPid != null &&
@@ -706,6 +707,20 @@ class WalletRecipe {
       _refuse('wallet-recipe-import-input-refused');
     }
     await _prepareWelcome();
+    if (beforeWelcome != null) {
+      final Duration remaining = _remaining;
+      if (remaining <= Duration.zero) _refuse('wallet-recipe-deadline');
+      try {
+        await beforeWelcome(remaining).timeout(remaining);
+      } on WalletRecipeRefused {
+        _retired = true;
+        rethrow;
+      } on TimeoutException {
+        _refuse('wallet-recipe-deadline');
+      } on Object {
+        _refuse('wallet-recipe-command-uncertain');
+      }
+    }
     await _act('welcome_import');
     await _act('import_words_${words.length}');
     await _act('import_seed_field', value: words.join(' '));

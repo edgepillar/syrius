@@ -352,6 +352,13 @@ Future<void> main(List<String> args) async {
       mnemonic: offered['mnemonic'] as String,
       password: offered['password'] as String,
       node: _node,
+      beforeWelcome: (Duration remaining) => pairedFrameWaitForWelcome(
+        (Map<String, Object?> command, Duration timeout) =>
+            instance.send(command, timeout: timeout),
+        budget: remaining < const Duration(seconds: 90)
+            ? remaining
+            : const Duration(seconds: 90),
+      ),
     );
     phase = _PreparationPhase.ownerAfter;
     await _owner(instance, pid);

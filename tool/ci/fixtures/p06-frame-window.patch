@@ -390,12 +390,27 @@
 +              }.contains(view['entryPhase']);
 +        },
          waitingFor: key,
-@@ -294,4 +297,2 @@
+@@ -277,1 +280,2 @@
++    Future<void> Function(Duration remaining)? beforeWelcome,
+   }) async {
+@@ -294,3 +298,15 @@
 -    if (start['entryPhase'] == 'startup-before-initialization') {
 -      await _act('launch_skip_hint');
--    }
 +    await _act('launch_skip_hint');
-     await _act('welcome_import');
++    if (beforeWelcome != null) {
++      final Duration remaining = _remaining;
++      if (remaining <= Duration.zero) _refuse('wallet-recipe-deadline');
++      try {
++        await beforeWelcome(remaining).timeout(remaining);
++      } on WalletRecipeRefused {
++        _retired = true;
++        rethrow;
++      } on TimeoutException {
++        _refuse('wallet-recipe-deadline');
++      } on Object {
++        _refuse('wallet-recipe-command-uncertain');
++      }
+     }
 --- a/harness/wallet_recipe_failure.dart
 +++ b/harness/wallet_recipe_failure.dart
 @@ -22,3 +22,5 @@
@@ -406,15 +421,12 @@
    'wallet-recipe-original-owner-changed',
 --- a/lib/widgets/reusable_widgets/launch_film.dart
 +++ b/lib/widgets/reusable_widgets/launch_film.dart
-@@ -125,2 +125,11 @@
+@@ -125,2 +125,8 @@
 +
-+  /// Whether the original attached film received a skip request.
 +  bool get skipRequested => _state?._skipping ?? false;
 +
-+  /// Whether the original film has a decoded frame waiting to be shown.
 +  bool get framePending => _state?._next != null;
 +
-+  /// Whether the original film's ticker is receiving callbacks.
 +  bool get clockTicking => _state?._ticker.isTicking ?? false;
 
    /// Plays from frame [from] to the end, in place of any run under way.

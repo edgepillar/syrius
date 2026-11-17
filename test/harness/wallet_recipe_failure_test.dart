@@ -672,6 +672,155 @@ void main() {
     },
   );
 
+  test('paired readiness precedes the finite Welcome control search', () async {
+    for (final bool gated in <bool>[false, true]) {
+      Duration elapsed = Duration.zero;
+      bool skipped = false;
+      int afterSkipReads = 0;
+      int keys = 0;
+      int taps = 0;
+      int ownerChecks = 0;
+      Future<Map<String, dynamic>> send(
+        Map<String, Object?> command,
+        Duration timeout,
+      ) async {
+        expect(timeout, greaterThan(Duration.zero));
+        expect(timeout, lessThanOrEqualTo(const Duration(seconds: 10)));
+        if (command['action'] == 'observe') {
+          if (skipped) afterSkipReads++;
+          final bool ready = skipped && afterSkipReads > 250;
+          return _pairedWelcomeView(
+            phase: ready ? 'welcome' : 'startup-before-initialization',
+            control: ready ? 'welcome_import' : 'launch_skip_hint',
+          );
+        }
+        expect(command.containsKey('value'), isFalse);
+        if (command['action'] == 'key') {
+          expect(command['key'], 'launch_skip_hint');
+          keys++;
+          skipped = true;
+          return <String, dynamic>{'ok': true, 'acted': true};
+        }
+        expect(command['action'], 'tap');
+        expect(command['key'], 'welcome_import');
+        expect(afterSkipReads, greaterThan(250));
+        expect(ownerChecks, 1);
+        taps++;
+        // Stop before any import data is admitted by this transport fixture.
+        return <String, dynamic>{
+          'ok': false, 'error': 'wallet-recipe-control-disabled',
+        };
+      }
+
+      Future<void> pause(Duration duration) async { elapsed += duration; }
+      final WalletRecipe recipe = WalletRecipe(
+        elapsed: () => elapsed,
+        wait: pause,
+        send: pairedFrameWelcomeSend(
+          send, wait: pause, elapsed: () => elapsed,
+          beforeTap: (void Function() requireCurrent) async {
+            requireCurrent();
+            ownerChecks++;
+          },
+        ),
+      );
+      Future<void> run() => recipe.importWallet(
+        chain: '321', mnemonic: List<String>.filled(12, 'synthetic').join(' '),
+        password: 'Synthetic fixture A1!',
+        beforeWelcome: gated ? (Duration remaining) {
+          final Duration origin = elapsed;
+          return pairedFrameWaitForWelcome(
+            send, wait: pause, elapsed: () => elapsed - origin,
+            budget: remaining < const Duration(seconds: 90)
+                ? remaining : const Duration(seconds: 90),
+          );
+        } : null,
+      );
+      WalletRecipeRefused? failure;
+      try {
+        await run();
+      } on WalletRecipeRefused catch (error) {
+        failure = error;
+      }
+      expect(failure?.code, gated
+          ? 'wallet-recipe-command-refused' : 'wallet-recipe-stage-unsettled');
+      expect(keys, 1);
+      expect(taps, gated ? 1 : 0);
+      expect(ownerChecks, gated ? 1 : 0);
+      expect(elapsed, lessThan(const Duration(seconds: 90)));
+      final int originalReads = afterSkipReads;
+      await expectLater(run(), throwsA(isA<WalletRecipeRefused>()));
+      expect(afterSkipReads, originalReads);
+      expect(keys, 1);
+      expect(taps, gated ? 1 : 0);
+    }
+  });
+
+  test('a failed pre-Welcome gate retires the recipe without an action',
+      () async {
+    for (final (Object, String) failure in <(Object, String)>[
+      (const WalletRecipeRefused('wallet-recipe-stage-unsettled'),
+          'wallet-recipe-stage-unsettled'),
+      (TimeoutException('synthetic private timeout'), 'wallet-recipe-deadline'),
+      (StateError('synthetic private failure'), 'wallet-recipe-command-uncertain'),
+    ]) {
+      int reads = 0;
+      int gates = 0;
+      final WalletRecipe recipe = WalletRecipe(
+        send: (Map<String, Object?> command, Duration timeout) async {
+          expect(command['action'], 'observe');
+          reads++;
+          return _pairedWelcomeView();
+        },
+      );
+      Future<void> run() => recipe.importWallet(
+        chain: '321', mnemonic: List<String>.filled(12, 'synthetic').join(' '),
+        password: 'Synthetic fixture A1!',
+        beforeWelcome: (Duration _) async {
+          gates++;
+          throw failure.$1;
+        },
+      );
+      await expectLater(run(), throwsA(isA<WalletRecipeRefused>()
+          .having((WalletRecipeRefused value) => value.code, 'code', failure.$2)));
+      final int originalReads = reads;
+      await expectLater(run(), throwsA(isA<WalletRecipeRefused>()));
+      expect(reads, originalReads);
+      expect(gates, 1);
+    }
+  });
+
+  test('pre-Welcome waiting consumes the same original recipe deadline',
+      () async {
+    Duration elapsed = Duration.zero;
+    int reads = 0;
+    Duration? offered;
+    final WalletRecipe recipe = WalletRecipe(
+      elapsed: () => elapsed,
+      budget: const Duration(seconds: 2),
+      send: (Map<String, Object?> command, Duration timeout) async {
+        expect(command['action'], 'observe');
+        expect(timeout, lessThanOrEqualTo(const Duration(seconds: 2)));
+        reads++;
+        return _pairedWelcomeView();
+      },
+    );
+    Future<void> run() => recipe.importWallet(
+      chain: '321', mnemonic: List<String>.filled(12, 'synthetic').join(' '),
+      password: 'Synthetic fixture A1!',
+      beforeWelcome: (Duration remaining) async {
+        offered = remaining;
+        elapsed = const Duration(seconds: 3);
+      },
+    );
+    await expectLater(run(), throwsA(isA<WalletRecipeRefused>().having(
+        (WalletRecipeRefused value) => value.code, 'code', 'wallet-recipe-deadline')));
+    expect(offered, const Duration(seconds: 2));
+    final int originalReads = reads;
+    await expectLater(run(), throwsA(isA<WalletRecipeRefused>()));
+    expect(reads, originalReads);
+  });
+
   for (final bool disabled in <bool>[false, true]) {
     test('wait labels identify the unavailable control $disabled', () async {
       int calls = 0;
