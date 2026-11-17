@@ -1,6 +1,19 @@
 # First delivery and deferred acceptance
 
-Current source: Source826 reads the original P06 page and scroll clocks
+Current source: Source827 preserves trailing context in the 16002-byte P06
+patch without changing its five applied files or overlay tree. The new
+SDK-free Git preflight runs before Flutter on the owned manual lane. It
+requires the previous patch's complete refusal and unchanged fixture, then
+strict application of the corrected patch and its exact final tree.
+All thirteen existing Linux stages remain, with a fourteenth gate added.
+All 25 selected mocked methods pass. Actual hosted Git application and
+fresh Source827 qualification remain pending. Source826's Windows patch
+failure occurs before a P06 runner exists; its independent reader and
+all three named outputs are complete. Acceptance stays 76/80 and the two
+Ready matches remain Source730-only. See
+[P06 strict Git preflight](source827-p06-strict-git-preflight.md).
+
+Earlier source: Source826 reads the original P06 page and scroll clocks
 before admitting the three chain controls. Pointer cancellation, exact
 geometry, the 50 ms hold and existing deadlines remain. Replaced controls
 have a distinct fixed label; changed centers keep the original refusal.

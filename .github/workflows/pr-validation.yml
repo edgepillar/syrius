@@ -24,6 +24,11 @@ jobs:
           python3 --version
           python3 -B -m unittest discover -s test/ci
 
+      - name: Verify the P06 overlay before SDK allocation
+        if: github.repository == 'edgepillar/syrius' && github.ref == 'refs/heads/redesign' && github.event_name == 'workflow_dispatch' && github.run_attempt == '1'
+        timeout-minutes: 3
+        run: python3 -B -m tool.ci.p06_overlay_preflight
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
