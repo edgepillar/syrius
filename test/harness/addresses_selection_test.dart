@@ -173,6 +173,7 @@ void main() {
     final SendDraftCubit draft = SendDraftCubit();
     late StateSetter navigate;
     int page = 0;
+    bool focusable = true;
     addTearDown(() async {
       await tester.pumpWidget(const SizedBox.shrink());
       await presenter.close();
@@ -183,13 +184,17 @@ void main() {
         child: StatefulBuilder(
           builder: (BuildContext context, StateSetter update) {
             navigate = update;
-            return RiseSwitcher(child: KeyedSubtree(
-              key: ValueKey<int>(page),
-              child: page == 0 ? const SizedBox.expand() : RiseSwitcher(
-                child: AddressesSettingsView(presenter: presenter, draft: draft,
-                  isCurrent: () => page == 1),
-              ),
-            ));
+            return Focus(
+              descendantsAreFocusable: focusable,
+              child: RiseSwitcher(child: KeyedSubtree(
+                key: ValueKey<int>(page),
+                child: page == 0 ? const SizedBox.expand() : RiseSwitcher(
+                  child: AddressesSettingsView(
+                    presenter: presenter, draft: draft,
+                    isCurrent: () => page == 1),
+                ),
+              )),
+            );
           },
         ),
       )),
@@ -200,10 +205,25 @@ void main() {
     final Object original = tester.state(view);
     final AddressesInputSource snapshot = original as AddressesInputSource;
     final Finder add = find.byKey(const Key('settings_add_address'));
-    expect(snapshot.paintedInputGate, AddressesInputGate.focus);
+    expect(snapshot.paintedInputGate, AddressesInputGate.ticker);
     expect(tester.widget<OutlinedButton>(add).onPressed, isNull);
     expect(captures, 0);
     await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump();
+    expect(tester.state(view), same(original));
+    expect(presenter.binding, same(binding));
+    expect(snapshot.paintedInputGate, AddressesInputGate.ready);
+    expect(tester.widget<OutlinedButton>(add).onPressed, isNotNull);
+
+    navigate(() => focusable = false);
+    await tester.pump();
+    await tester.pump();
+    expect(snapshot.paintedInputGate, AddressesInputGate.focus);
+    expect(tester.widget<OutlinedButton>(add).onPressed, isNull);
+    expect(captures, 0);
+
+    navigate(() => focusable = true);
+    await tester.pump();
     await tester.pump();
     expect(tester.state(view), same(original));
     expect(presenter.binding, same(binding));

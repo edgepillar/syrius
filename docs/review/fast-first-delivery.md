@@ -1,6 +1,18 @@
 # First delivery and deferred acceptance
 
-Current source: Source834 replaces the nullable reservation cast with an explicitly typed
+Current source: Source835 retains the hidden arrival's exact ticker hold and moves the
+original focus assertion into an explicit visible-page focus hold.
+All original assertions and declarations remain; expected selected totals
+stay 1521/1523 and Python stays 1230. Product and measurement code remain.
+Source834 passes twelve Linux stages and all three Source833 regressions,
+then one existing broad widget case reports ticker instead of its old
+focus expectation. Generation is skipped and no Windows job starts.
+The complete original log is retained once in a closed successful task;
+all owned outputs are consumed and the failure remains. Fresh Linux and
+native qualification and 76/80 acceptance remain.
+[Scope](source835-nested-input-gates.md).
+
+Earlier source: Source834 replaces the nullable reservation cast with an explicitly typed
 admitted key and rebinds the entry digest. Source833's shader clock gate,
 checkout dependency, one-second settlement and three Dart regressions remain.
 Expected selected totals stay 1521/1523, with unchanged suites, strict paths
