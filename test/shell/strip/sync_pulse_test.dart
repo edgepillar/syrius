@@ -80,15 +80,22 @@ void main() {
           final double halfway = cssEase.transform(0.5);
           expect(_halo(tester).spreadRadius, closeTo(7 * halfway, 0.001));
           expect(_halo(tester).color.a, closeTo(0.6 * (1 - halfway), 0.001));
+          expect(tester.binding.transientCallbackCount, greaterThan(0));
           await tester.pump(const Duration(milliseconds: 840));
           expect(_halo(tester).spreadRadius, closeTo(7, 0.001));
           expect(_halo(tester).color.a, closeTo(0, 0.001));
+          expect(tester.binding.transientCallbackCount, 0);
           await tester.pump(const Duration(milliseconds: 420));
           expect(_halo(tester).spreadRadius, closeTo(7, 0.001));
           expect(_halo(tester).color.a, closeTo(0, 0.001));
+          expect(tester.binding.transientCallbackCount, 0);
           await tester.pump(const Duration(milliseconds: 300));
           expect(_halo(tester).spreadRadius, closeTo(0, 0.001));
           expect(_halo(tester).color.a, closeTo(0.6, 0.001));
+          expect(tester.binding.transientCallbackCount, greaterThan(0));
+          // Unmount with the next cycle's wake-up still pending.
+          await tester.pump(const Duration(milliseconds: 1680));
+          expect(tester.binding.transientCallbackCount, 0);
         } finally {
           await tester.pumpWidget(const SizedBox.shrink());
           tester.platformDispatcher.clearAccessibilityFeaturesTestValue();

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/scheduler.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 
@@ -17,27 +20,62 @@ class StatusDot extends StatefulWidget {
   State<StatusDot> createState() => _StatusDotState();
 }
 
-class _StatusDotState extends State<StatusDot>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _clock = AnimationController(
-    vsync: this,
-    // Motion communicates current work even when the OS disables animation.
-    animationBehavior: AnimationBehavior.preserve,
-  );
+class _StatusDotState extends State<StatusDot> {
+  late final Ticker _clock = Ticker(_tick, debugLabel: 'status pulse');
+  final ValueNotifier<double> _pulse = ValueNotifier<double>(0);
+  late TickerModeData _mode;
+  int _cycleUs = 0;
+  int _visibleUs = 0;
+  Timer? _hold;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final Duration duration = AppTokens.of(context).statusPulseDuration;
-    if (_clock.duration != duration) {
-      _clock.duration = duration;
-      _clock.repeat();
+    _mode = TickerMode.valuesOf(context);
+    final int cycleUs =
+        AppTokens.of(context).statusPulseDuration.inMicroseconds;
+    if (_cycleUs != cycleUs) {
+      _hold?.cancel();
+      _hold = null;
+      _clock.stop();
+      _cycleUs = cycleUs;
+      _visibleUs = (cycleUs * 0.7).round();
+      _pulse.value = 0;
     }
+    _syncClock();
+    if (!_clock.isActive) _clock.start();
+  }
+
+  void _syncClock() {
+    _clock
+      ..forceFrames = _mode.forceFrames
+      ..muted = !_mode.enabled || _hold != null;
+  }
+
+  void _tick(Duration elapsed) {
+    final int phaseUs = elapsed.inMicroseconds % _cycleUs;
+    if (phaseUs < _visibleUs) {
+      _pulse.value = phaseUs / _visibleUs;
+      return;
+    }
+    _pulse.value = 1;
+    // Muting keeps the ticker's epoch. A late frame or timer still resumes at
+    // the right phase of the original cycle, including after a visibility hold.
+    _hold = Timer(
+      Duration(microseconds: ((_cycleUs - phaseUs) * timeDilation).ceil()),
+      () {
+        _hold = null;
+        _syncClock();
+      },
+    );
+    _syncClock();
   }
 
   @override
   void dispose() {
+    _hold?.cancel();
     _clock.dispose();
+    _pulse.dispose();
     super.dispose();
   }
 
@@ -45,12 +83,10 @@ class _StatusDotState extends State<StatusDot>
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
     return RepaintBoundary(
-      child: AnimatedBuilder(
-        animation: _clock,
-        builder: (BuildContext context, Widget? child) {
-          final double progress = tokens.ease.transform(
-            (_clock.value / 0.7).clamp(0.0, 1.0),
-          );
+      child: ValueListenableBuilder<double>(
+        valueListenable: _pulse,
+        builder: (BuildContext context, double phase, Widget? child) {
+          final double progress = tokens.ease.transform(phase);
           return DecoratedBox(
             decoration: BoxDecoration(
               shape: BoxShape.circle,

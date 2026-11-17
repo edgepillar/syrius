@@ -1,6 +1,12 @@
 # First delivery and deferred acceptance
 
-Current source: Source839 imports the existing localization extension and
+Source840 stops the status halo's frame requests during its transparent hold.
+Source839 passes fourteen Linux stages and completes the paired Windows
+measurement and independent read. Both interactive windows fail the 16 ms
+raster comparison. Fresh hosted and native checks remain for the pulse change;
+original acceptance is 76/80. [Evidence](source840-status-pulse-idle.md).
+
+Source839 imports the existing localization extension and
 explicitly types the same mapped error pattern in the owned Fuse fixture.
 All 254 expectation expressions and declarations, product bytes, workflows
 and selected 1521/1523 Windows totals remain; Python stays 1230. Source838
