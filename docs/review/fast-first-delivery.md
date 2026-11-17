@@ -1,6 +1,19 @@
 # First delivery and deferred acceptance
 
-Current source: Source825 admits P06's exact three-field unconfirmed-key
+Current source: Source826 reads the original P06 page and scroll clocks
+before admitting the three chain controls. Pointer cancellation, exact
+geometry, the 50 ms hold and existing deadlines remain. Replaced controls
+have a distinct fixed label; changed centers keep the original refusal.
+The 16129-byte overlay stays below 16384 bytes. All 25 selected mocked
+Python methods pass. Source825 full Linux passes thirteen stages; its Windows
+producer reaches a later P06 node-control refusal and its independent reader
+verifies both archives and normal required actor exits. The failed P06 entry
+and false lab input-immutability check remain. All three outputs are consumed.
+Fresh Source826 hosted/native qualification is required. Acceptance stays
+76/80 and Source730-only Ready matches stay 2/94. See
+[P06 chain page admission](source826-p06-chain-page-admission.md).
+
+Earlier source: Source825 admits P06's exact three-field unconfirmed-key
 marker alongside the newer four-field form. The copied entry script imports
 the original legacy encoder, which has no startup label. All 25 selected
 mocked Python methods pass against the exact files applied. The 14999-byte
