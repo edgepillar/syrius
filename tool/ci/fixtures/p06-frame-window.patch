@@ -1,15 +1,15 @@
 --- a/harness/app/agent.dart
 +++ b/harness/app/agent.dart
-@@ -11,1 +11,2 @@
+@@ -11 +11,2 @@
 +import 'dart:developer' as dev;
  import 'dart:io';
-@@ -14,1 +15,2 @@
+@@ -14 +15,2 @@
 +import 'package:animations/animations.dart' show FadeThroughTransition;
  import 'package:flutter/foundation.dart';
-@@ -28,1 +30,2 @@
+@@ -28 +30,2 @@
 +import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/rise_switcher.dart';
  import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_wallet_seed_choice_screen.dart';
-@@ -60,1 +63,2 @@
+@@ -60 +63,2 @@
 +import 'frame_window.dart';
  import 'logical_capture.dart';
 @@ -359,2 +363,3 @@
@@ -17,7 +17,7 @@
 +    : _waitForInputFrame = _bindingInputFrame,
 +      _captureFrames = CaptureFrameGate(
          waitForFrame: () => WidgetsBinding.instance.endOfFrame,
-@@ -368,1 +373,2 @@
+@@ -368 +373,2 @@
 +    Future<void> Function()? waitForInputFrame,
      Future<void> Function()? waitForCaptureFrame,
 @@ -371,2 +377,3 @@
@@ -25,22 +25,22 @@
 +  }) : _waitForInputFrame = waitForInputFrame ?? _bindingInputFrame,
 +       _captureFrames = CaptureFrameGate(
           waitForFrame: waitForCaptureFrame ?? _refuseTestCaptureFrame,
-@@ -376,1 +383,4 @@
+@@ -376 +383,4 @@
 +
 +  static Future<void> _bindingInputFrame() =>
 +      WidgetsBinding.instance.endOfFrame;
 
-@@ -420,1 +430,2 @@
+@@ -420 +430,2 @@
 +  final Future<void> Function() _waitForInputFrame;
    final CaptureFrameGate _captureFrames;
-@@ -749,1 +760,6 @@
+@@ -749 +760,6 @@
 +      case 'navigation-state':
 +        if (c.keys.any((String key) => key != 'cmd')) {
 +          throw HarnessError('navigation observation input refused');
 +        }
 +        return _navigationState();
        case 'wallet-recipe':
-@@ -796,1 +812,2 @@
+@@ -796 +812,2 @@
 +        if (c.containsKey('frameWindow')) return _frameWindowCmd(c);
          return _stallsCmd(c);
 @@ -1053,3 +1070,38 @@
@@ -84,7 +84,7 @@
 +  }
 +
 
-@@ -1101,1 +1153,32 @@
+@@ -1101 +1153,32 @@
 +  Map<String, Object?>? _recipeStartupFilmFrame() {
 +    final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
 +    final EntryStartupReceipt? startup = registry.startup;
@@ -121,12 +121,12 @@
 -            widget.focusNode?.hasPrimaryFocus == true) {
 +            widget.focusNode?.canRequestFocus == true) {
            found = ancestor;
-@@ -1252,1 +1335,4 @@
+@@ -1252 +1335,4 @@
 +    final Map<String, Object?>? filmFrame = command['action'] == 'observe'
 +        ? _recipeStartupFilmFrame()
 +        : null;
      final Set<String> entryPhases = <String>{};
-@@ -1268,1 +1354,2 @@
+@@ -1268 +1354,2 @@
 +      if (filmFrame != null) 'startupFilmFrame': filmFrame,
        'owner': _recipeOwner,
 @@ -1466,3 +1553,5 @@
@@ -156,13 +156,13 @@
 +          throw HarnessError('wallet-recipe-original-owner-changed');
 +        }
          final Map<String, Object?> reply = await _key(
-@@ -1493,1 +1598,5 @@
+@@ -1493 +1598,5 @@
 +        }
 +        if (!owner.film.skipRequested && !owner.film.isDone &&
 +            startup?.initializationStarted != true) {
 +          throw HarnessError('wallet-recipe-startup-key-unconfirmed');
          }
-@@ -1536,1 +1645,28 @@
+@@ -1536 +1645,28 @@
 +
 +  List<Map<String, Object?>>? _navigationProbe;
 +  bool _navigationProbeOverflow = false;
@@ -234,7 +234,7 @@
 +        }
 +      }
      }
-@@ -2030,1 +2205,9 @@
+@@ -2030 +2205,9 @@
 +
 +  Future<void> _inputFrame() async {
 +    try {
@@ -264,7 +264,7 @@
 +    final bool focusHandled = h?.call(KeyMessage(<KeyEvent>[e], null)) ?? false;
 +    return handled || focusHandled;
    }
-@@ -2461,1 +2644,7 @@
+@@ -2461 +2644,7 @@
 +    final bool launchReady =
 +        !gone &&
 +        _isLaunchTiming &&
@@ -280,7 +280,7 @@
 +          : hits.isNotEmpty;
 +      if (gone ? hits.isEmpty : found) {
          return <String, Object?>{
-@@ -2727,1 +2920,59 @@
+@@ -2727 +2920,59 @@
 +  static const String _pairedLaunchTiming = 'paired-launch';
 +  static String? get _frameTimingMode =>
 +      Platform.environment['SYRIUS_HARNESS_FRAME_TIMING'];
@@ -340,7 +340,7 @@
 +  }
 +
    final Stopwatch _stallClock = Stopwatch();
-@@ -2740,1 +2991,7 @@
+@@ -2740 +2991,7 @@
 +    if (_isLaunchTiming) {
 +      _frameWindow = HarnessFrameWindow(
 +        dev.Timeline.now,
@@ -348,15 +348,15 @@
 +      );
 +    }
      void record(String kind, int ms) {
-@@ -2759,1 +3016,2 @@
+@@ -2759 +3016,2 @@
 +      _frameWindow?.observe(ts);
        for (final ui.FrameTiming t in ts) {
 --- a/harness/bin/harness.dart
 +++ b/harness/bin/harness.dart
-@@ -64,1 +64,2 @@
+@@ -64 +64,2 @@
 +    'frame-window',
      'out',
-@@ -719,1 +720,14 @@
+@@ -719 +720,14 @@
 +      final String? operation = a['frame-window'];
 +      if (operation != null) {
 +        if ((operation != 'begin' && operation != 'end') ||
@@ -373,7 +373,11 @@
        final Map<String, dynamic> out = await call(inst, <String, Object?>{
 --- a/harness/bin/wallet_recipe.dart
 +++ b/harness/bin/wallet_recipe.dart
-@@ -200,7 +200,10 @@
+@@ -1 +1,3 @@
++import 'dart:async';
++
+ import '../wallet_recipe_failure.dart';
+@@ -200,7 +202,10 @@
 -        (Map<String, dynamic> view) =>
 -            _control(view, key)?['enabled'] == true ||
 -            key == 'launch_skip_hint' &&
@@ -390,10 +394,10 @@
 +              }.contains(view['entryPhase']);
 +        },
          waitingFor: key,
-@@ -277,1 +280,2 @@
+@@ -277 +282,2 @@
 +    Future<void> Function(Duration remaining)? beforeWelcome,
    }) async {
-@@ -294,3 +298,15 @@
+@@ -294,3 +300,15 @@
 -    if (start['entryPhase'] == 'startup-before-initialization') {
 -      await _act('launch_skip_hint');
 +    await _act('launch_skip_hint');

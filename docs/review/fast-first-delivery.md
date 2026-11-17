@@ -1,6 +1,16 @@
 # First delivery and deferred acceptance
 
-Current source: Source829 adds authenticated Welcome readiness before the
+Current source: Source830 adds the missing dart:async import to the current
+and P06 recipes. All other applied Dart code and the collector remain.
+The 16355-byte patch stays within the existing cap. All 39 selected mocked
+Python methods pass; test declarations and 1520/1522 expected Dart totals
+remain. Source829's strict Git gate passes, but application analysis fails
+with one type error and its dependent warning. Six required stages are
+skipped; no Windows job starts and no artifacts exist. All owned outputs
+are consumed. Fresh fourteen-stage Linux/native qualification remains;
+acceptance stays 76/80. [Scope](source830-recipe-async-import.md).
+
+Earlier source: Source829 adds authenticated Welcome readiness before the
 ordinary recipe lookup, after the original Skip handoff. It consumes the
 remaining recipe budget and keeps original limits, pre-tap checks, film,
 clock, inputs and timing criteria. The P06 patch remains within 16 KiB.

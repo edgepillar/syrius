@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../app/fixtures/seed_policy.dart' show seedHash;
 import '../app/readonly_native_mode.dart'
     show harnessReadonlyNativeLaunchMatches;
