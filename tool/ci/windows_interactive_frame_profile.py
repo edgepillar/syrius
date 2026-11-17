@@ -230,6 +230,9 @@ def startup_failure(value):
                 reason='wallet-recipe-control-absent')),
             dict(code='PREPARATION_REFUSED', phase='importWallet', recipe=dict(
                 action='key', control='launch_skip_hint',
+                reason='wallet-recipe-startup-key-unconfirmed')),
+            dict(code='PREPARATION_REFUSED', phase='importWallet', recipe=dict(
+                action='key', control='launch_skip_hint',
                 reason='wallet-recipe-startup-key-unconfirmed', startup='key-sent'))))
 
 

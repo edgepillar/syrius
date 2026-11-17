@@ -1,6 +1,16 @@
 # First delivery and deferred acceptance
 
-Current source: Source824 requires the original P06 film's skip, completion
+Current source: Source825 admits P06's exact three-field unconfirmed-key
+marker alongside the newer four-field form. The copied entry script imports
+the original legacy encoder, which has no startup label. All 25 selected
+mocked Python methods pass against the exact files applied. The 14999-byte
+overlay, clock, actions, limits and timing criteria remain. Source824 full
+Linux passes all thirteen stages and its zero-artifact outputs are consumed;
+no Source824 Windows job starts. Fresh Source825 hosted/native qualification
+is required. Acceptance and Source730-only Ready matches stay 76/80 and 2/94.
+See [legacy P06 startup-key marker](source825-legacy-p06-key-marker.md).
+
+Earlier source: Source824 requires the original P06 film's skip, completion
 or initialization effect after handled Space. Passive original-film flags
 join versioned failure snapshots without changing its decoder or clock.
 The 14999-byte overlay stays below the unchanged 16 KiB cap. All 25 methods

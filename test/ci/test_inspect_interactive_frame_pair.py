@@ -425,6 +425,15 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(result['startup_observations'], dict(p06=progress))
         self.assertFalse(result['artifact_reported_success'])
         self.assertFalse(result['timing_criterion_passed'])
+        legacy = deepcopy(unconfirmed)
+        legacy_failure = legacy['samples']['p06']['observation']['preparation_failure']
+        del legacy_failure['recipe']['startup']
+        legacy['samples']['p06']['observation']['entry']['output_bytes'] = len(
+            pair.profile.preparation_failure_marker(legacy_failure)) + 1
+        legacy_result = self.project(legacy)
+        self.assertEqual(legacy_result['startup_observations'], dict(p06=progress))
+        self.assertFalse(legacy_result['artifact_reported_success'])
+        self.assertFalse(legacy_result['timing_criterion_passed'])
         for change in (
             {'reason': 'wallet-recipe-control-refused'},
             {'startup': 'key-confirmed'}, {'control': 'welcome_import'},
@@ -754,6 +763,13 @@ class InteractiveFramePairTests(unittest.TestCase):
             self.assertEqual(diagnostic, dict(progress, **flags))
             actor._rpc.assert_called_once()
             self.assertTrue(profile.valid_startup_observation(diagnostic))
+            legacy = deepcopy(unconfirmed)
+            del legacy['preparation_failure']['recipe']['startup']
+            legacy_actor, legacy_diagnostic = session(dict(body,
+                startupFilmFrame=dict(progress_frame, **flags))), {}
+            profile._observe_startup_failure(legacy_actor, legacy, legacy_diagnostic)
+            self.assertEqual(legacy_diagnostic, dict(progress, **flags))
+            legacy_actor._rpc.assert_called_once()
         for wrong in ({}, observation, None, dict(phase='complete')):
             actor, diagnostic = session(body), {}
             profile._observe_startup_failure(actor, wrong, diagnostic)
