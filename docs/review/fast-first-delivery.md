@@ -1,6 +1,19 @@
 # First delivery and deferred acceptance
 
-Current source: Source833 stops hidden incoming shader clocks, restores the chain reader's
+Current source: Source834 replaces the nullable reservation cast with an explicitly typed
+admitted key and rebinds the entry digest. Source833's shader clock gate,
+checkout dependency, one-second settlement and three Dart regressions remain.
+Expected selected totals stay 1521/1523, with unchanged suites, strict paths
+and 1230 Python methods. All 42 local source/mocked controls pass. Source833
+Linux passes eight stages and its actual twenty-two-command Git gate, then
+strict selected analysis fails on one cast_nullable_to_non_nullable info;
+five stages are skipped and the new Dart regressions do not execute.
+The complete original log is read once in a closed managed task. All owned
+outputs are consumed and the original failure remains. Fresh qualification
+is required; acceptance stays 76/80.
+[Scope](source834-typed-preparation-reservation.md).
+
+Earlier source: Source833 stops hidden incoming shader clocks, restores the chain reader's
 entry source dependency and settles the original signing toggle inside its
 existing command deadline. Two broad shader widget cases and one selected
 Dart deadline matrix are added; expected selected totals become 1521/1523,

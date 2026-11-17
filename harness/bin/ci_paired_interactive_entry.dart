@@ -200,7 +200,10 @@ WalletRecipeSend pairedFrameWelcomeSend(
           command['key'] != 'welcome_import' && !signing) {
         return await send(command, timeout).timeout(timeout);
       }
-      if (!reserved.add(command['key'] as String)) {
+      final String key = signing
+          ? 'node_settings_chain_toggle'
+          : 'welcome_import';
+      if (!reserved.add(key)) {
         throw const WalletRecipeRefused('wallet-recipe-retired');
       }
       final Stopwatch clock = Stopwatch()..start();
