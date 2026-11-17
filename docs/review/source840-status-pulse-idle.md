@@ -93,3 +93,17 @@ height of an opening disclosure. The existing test checks that the
 Licences panel grows while the strip retains its paint at an intermediate
 frame and at the end. It also checks the original late version update.
 Hosted execution and a fresh native measurement are pending.
+
+## First-open update
+
+[Source843 Linux](https://github.com/edgepillar/syrius/actions/runs/44188242255)
+passes eleven stages through the Lock checks, including strict analysis and
+the original twenty-two P06 Git commands. The compact test sees the Licences
+panel grow at 80 ms and then sees a replacement version strip PictureLayer.
+The full test directory and generation steps are skipped.
+
+The first registry open now rebuilds the Licences disclosure through its
+local builder. The version strip and adjacent groups are outside that
+state update. The same test still checks retained paint at 80 ms and 240 ms,
+the late version update and the original registry lifecycle. Hosted
+execution is pending.

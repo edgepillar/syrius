@@ -164,26 +164,30 @@ class _AboutCardState extends State<AboutCard> {
                 children: <Widget>[
                   Panel(
                     key: const Key('about_licences'),
-                    child: Disclosure(
-                      title: context.l10n.aboutLicences,
-                      keyPrefix: 'about_licences',
-                      keepAlive: true,
-                      onChanged: (bool open) {
-                        if (open && !_licencesOpened) {
-                          setState(() => _licencesOpened = true);
-                        }
+                    child: StatefulBuilder(
+                      builder: (BuildContext context, StateSetter update) {
+                        return Disclosure(
+                          title: context.l10n.aboutLicences,
+                          keyPrefix: 'about_licences',
+                          keepAlive: true,
+                          onChanged: (bool open) {
+                            if (open && !_licencesOpened) {
+                              update(() => _licencesOpened = true);
+                            }
+                          },
+                          child: _licencesOpened
+                              ? SizedBox(
+                                  height: licencesHeight,
+                                  child: Licences(
+                                    loadLicences: widget.loadLicences,
+                                    trailingBuilder:
+                                        widget.licencesTrailingBuilder,
+                                    preserveEndOnReveal: revealed,
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                        );
                       },
-                      child: _licencesOpened
-                          ? SizedBox(
-                              height: licencesHeight,
-                              child: Licences(
-                                loadLicences: widget.loadLicences,
-                                trailingBuilder:
-                                    widget.licencesTrailingBuilder,
-                                preserveEndOnReveal: revealed,
-                              ),
-                            )
-                          : const SizedBox.shrink(),
                     ),
                   ),
                   if (widget.afterLicences != null) ...<Widget>[

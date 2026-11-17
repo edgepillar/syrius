@@ -385,6 +385,8 @@ repository; `features/` is `lib/rearchitecture/features/`, `tabs/` is
 
 ## Progress
 
+- The first Licences open now rebuilds its own panel. Source843 passed strict analysis and the original P06 Git check, then the compact test observed the version strip repaint at 80 ms. The same assertions remain for the localized update. The full test directory and generation were skipped on Source843. Acceptance stays at 76/80. [First-open update](docs/review/source840-status-pulse-idle.md#first-open-update).
+
 - The About version strip now retains its own paint during disclosure layout. The existing Licences test checks the retained layer and the late version update. Source842 passes Linux and Windows Release, and the independent reader verifies both native samples. Both 16 ms comparisons fail. A fresh hosted run is required for the strip change. Acceptance stays at 76/80. [About disclosure paint and Source842 measurements](docs/review/source840-status-pulse-idle.md#about-disclosure-paint).
 
 - Source842 awaits status delivery in both plasma fixture helpers. Source841 verified completion but its early stage caught the same scheduling assumption on restart. The original failure is retained. Fresh Linux and paired Windows results remain open. Acceptance stays at 76/80. [Restart fixture follow-up](docs/review/source840-status-pulse-idle.md#restart-fixture-follow-up).
