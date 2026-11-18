@@ -186,10 +186,18 @@ void main() {
           );
           expect(quorum.data, 'Unknown');
           expect(find.text('Your vote'), findsNWidgets(2));
-          expect(
-            tester.getSize(find.byKey(const Key('accelerator_sort'))).height,
-            30,
+          final Finder sort = find.byKey(const Key('accelerator_sort'));
+          final Rect sortBounds = tester.getRect(sort);
+          expect(sortBounds.height, 26);
+          expect(sortBounds.left - tester.getRect(search).right, 8);
+          final Finder sortLabel = find.descendant(
+            of: sort,
+            matching: find.text('Newest'),
           );
+          final TextStyle sortText =
+              DefaultTextStyle.of(tester.element(sortLabel)).style;
+          expect(sortText.fontSize, 12);
+          expect(sortText.color, AppTokens.of(tester.element(sort)).dim);
           expect(find.text('28 of 33'), findsNothing);
           expect(tester.takeException(), isNull);
         } finally {

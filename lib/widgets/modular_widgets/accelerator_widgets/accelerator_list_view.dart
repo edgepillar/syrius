@@ -285,15 +285,30 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
         ),
       ),
     );
-    final Widget sort = TextButton.icon(
+    final Widget sort = OutlinedButton(
       key: const Key('accelerator_sort'),
-      style: accToolbarButtonStyle(context),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: tokens.dim,
+        side: BorderSide(color: tokens.line),
+        shape: const StadiumBorder(),
+        minimumSize: Size(0, tokens.smallButtonHeight),
+        padding: const EdgeInsets.symmetric(horizontal: 11),
+        textStyle: tokens.captionText,
+        visualDensity: VisualDensity.standard,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
       onPressed: model.toggleSort,
-      icon: ShellSymbol('sort', size: tokens.inlineGlyphSize),
-      label: Text(
-        model.newestFirst
-            ? context.l10n.acceleratorNewest
-            : context.l10n.acceleratorOldest,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          ShellSymbol('sort', size: tokens.inlineGlyphSize),
+          const SizedBox(width: 6),
+          Text(
+            model.newestFirst
+                ? context.l10n.acceleratorNewest
+                : context.l10n.acceleratorOldest,
+          ),
+        ],
       ),
     );
     return ConstrainedBox(
@@ -453,17 +468,3 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
     );
   }
 }
-
-/// Shared compact secondary action style for the Accelerator ledger toolbar.
-ButtonStyle accToolbarButtonStyle(BuildContext context) =>
-    secondaryButtonStyle(context).copyWith(
-      minimumSize: WidgetStatePropertyAll<Size>(
-        Size(0, AppTokens.of(context).compactButtonHeight),
-      ),
-      padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
-        EdgeInsets.symmetric(horizontal: 10),
-      ),
-      textStyle: WidgetStatePropertyAll<TextStyle>(
-        AppTokens.of(context).compactText,
-      ),
-    );
