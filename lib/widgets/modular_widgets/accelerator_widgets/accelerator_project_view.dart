@@ -574,6 +574,7 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
   ) {
     final AppTokens tokens = AppTokens.of(context);
     final String id = phase.id.toString();
+    final String title = '${index + 1} · ${phase.name}';
     final bool latest =
         project.phaseIds.isNotEmpty && project.phaseIds.last.toString() == id;
     return InkWell(
@@ -594,11 +595,15 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(
-                      '${index + 1} · ${phase.name}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: tokens.bodyText,
+                    Tooltip(
+                      message: title,
+                      excludeFromSemantics: true,
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: tokens.bodyText,
+                      ),
                     ),
                     if (phase.url.isNotEmpty)
                       Tooltip(

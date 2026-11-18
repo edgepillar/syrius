@@ -8,11 +8,17 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_view.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_frame.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import 'support.dart';
 
-Widget host(Widget child, {bool light = false, double scale = 1}) =>
+Widget host(
+  Widget child, {
+  bool light = false,
+  double scale = 1,
+  EdgeInsets padding = const EdgeInsets.all(12),
+}) =>
     MaterialApp(
       theme: (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
         visualDensity: VisualDensity.compact,
@@ -26,7 +32,7 @@ Widget host(Widget child, {bool light = false, double scale = 1}) =>
           disableAnimations: true,
         ),
         child: Scaffold(
-          body: Padding(padding: const EdgeInsets.all(12), child: child),
+          body: Padding(padding: padding, child: child),
         ),
       ),
     );
@@ -50,18 +56,16 @@ void main() {
               actions: AcceleratorActionController(),
             );
         await presenter.load(source);
+        final ValueNotifier<bool> locked = ValueNotifier<bool>(false);
+        final Widget detail = AcceleratorProjectView(
+          presenter: presenter,
+          title: 'Original project',
+          onBack: () => backs++,
+          onRefresh: () {},
+          onUpdatePhase: (_, _) {},
+        );
         try {
-          await tester.pumpWidget(
-            host(
-              AcceleratorProjectView(
-                presenter: presenter,
-                title: 'Original project',
-                onBack: () => backs++,
-                onRefresh: () {},
-              ),
-              light: light,
-            ),
-          );
+          await tester.pumpWidget(host(detail, light: light));
           await tester.pump(const Duration(milliseconds: 400));
           expect(find.text('Synthetic project'), findsOneWidget);
           expect(
@@ -130,11 +134,59 @@ void main() {
           );
           await tester.tap(find.byKey(const Key('project_details_back')));
           expect(backs, 1);
+
+          await tester.binding.setSurfaceSize(const Size(1200, 600));
+          await tester.pumpWidget(
+            host(
+              Builder(
+                builder: (BuildContext context) => ShellFrame(
+                  locked: locked,
+                  rail: SizedBox(
+                    width: AppTokens.of(context).railExpandedWidth,
+                  ),
+                  page: detail,
+                  status: const SizedBox(height: 36),
+                ),
+              ),
+              light: light,
+              padding: EdgeInsets.zero,
+            ),
+          );
+          await tester.pump(const Duration(milliseconds: 400));
+          final Rect panel = tester.getRect(
+            find.byKey(const Key('accelerator_project_detail')),
+          );
+          final Rect aside = tester.getRect(
+            find.byKey(const Key('accelerator_vote_aside')),
+          );
+          expect(panel.width, 980);
+          expect(aside.width, 320);
+          expect(aside.right, closeTo(panel.right, 0.01));
+          expect(
+            find.byKey(const Key('accelerator_detail_vote_yes')).hitTestable(),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const Key('accelerator_detail_vote_no')).hitTestable(),
+            findsOneWidget,
+          );
+          expect(
+            find
+                .byKey(const Key('accelerator_detail_vote_abstain'))
+                .hitTestable(),
+            findsOneWidget,
+          );
+          expect(
+            find.byTooltip('Update phase').hitTestable(),
+            findsOneWidget,
+          );
+          expect(find.byTooltip('2 · Phase 3').hitTestable(), findsOneWidget);
           expect(source.publications, 0);
           expect(tester.takeException(), isNull);
         } finally {
           await tester.pumpWidget(const SizedBox.shrink());
           await tester.pump(const Duration(seconds: 1));
+          locked.dispose();
           presenter.dispose();
           await tester.binding.setSurfaceSize(null);
         }

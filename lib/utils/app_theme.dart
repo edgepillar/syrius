@@ -1253,14 +1253,14 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Native-coin budgets in a phase row.
   double get acceleratorPhaseBudgetWidth => 140;
 
-  /// Exact vote tallies within a phase row.
-  double get acceleratorPhaseVotesWidth => 300;
+  /// The phase row pairs its 140-pixel vote bar with a compact tally.
+  double get acceleratorPhaseVotesWidth => 220;
 
   /// Status text within a phase row.
   double get acceleratorPhaseStatusWidth => 108;
 
-  /// Project facts, phase columns and voting aside share one scrollable width.
-  double get acceleratorDetailMinWidth => 1140;
+  /// The detail fits a 1200-pixel window with the expanded rail and page inset.
+  double get acceleratorDetailMinWidth => 980;
 
   /// Width of the original Start and Join dialog.
   double get swapActionWidth => 480;
