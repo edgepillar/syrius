@@ -172,6 +172,13 @@ void main() {
             )
             .style!;
         expect(deleteStyle.textStyle!.resolve(<WidgetState>{})!.fontSize, 13);
+        expect(
+          find.text(
+            'Clears network cache and closes Syrius. Labels, contacts and '
+            'favorites stay.',
+          ),
+          findsOneWidget,
+        );
         expect(find.text('Preferences'), findsNothing);
         expect(_switch(tester, _auto).value, isTrue);
         expect(_switch(tester, _notifications).value, isFalse);

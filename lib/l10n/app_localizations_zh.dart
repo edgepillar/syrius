@@ -3751,7 +3751,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get walletSettingsCacheHint =>
-      'Clears network cache and closes the app';
+      'Clears network cache and closes Syrius. Labels, contacts and favorites stay.';
 
   @override
   String get securitySettingsVaultExportUncertain =>

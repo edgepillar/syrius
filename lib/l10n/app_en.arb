@@ -2326,7 +2326,7 @@
   "walletSettingsApplyFailed": "Saved. Could not apply.",
   "walletSettingsUnavailable": "Unavailable",
   "walletSettingsDelete": "Delete",
-  "walletSettingsCacheHint": "Clears network cache and closes the app",
+  "walletSettingsCacheHint": "Clears network cache and closes Syrius. Labels, contacts and favorites stay.",
   "securitySettingsVaultExportUncertain": "Export result unknown. Check the selected file.",
   "securitySettingsPolicyUnavailable": "Setting unavailable",
   "appsSettingsWebApps": "Web apps",
