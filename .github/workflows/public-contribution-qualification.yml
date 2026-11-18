@@ -489,12 +489,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: ubuntu-24.04
-            target: linux
-          - runner: macos-26
+          - runner: macos-26-intel
             target: macos
-          - runner: windows-latest
-            target: windows
     defaults:
       run:
         shell: bash
