@@ -415,6 +415,36 @@ class _StartupStageState extends State<_StartupStage>
     }
   }
 
+  Rect _stageRect(Rect full, double progress, AppTokens tokens) {
+    final Rect? destination = _destination;
+    if (destination == null) return full;
+
+    final ({double progress, Size body, Size stage, double verticalAnchor})
+    reference = tokens.launchSettleReference;
+    // Scale the authored checkpoint to this body and respect the real well
+    // when the window is narrower or shorter than the reference.
+    final double width = (reference.stage.width *
+            full.width / reference.body.width)
+        .clamp(destination.width.clamp(0.0, full.width), full.width);
+    final double height = (reference.stage.height *
+            full.height / reference.body.height)
+        .clamp(destination.height.clamp(0.0, full.height), full.height);
+    final Rect authored = Rect.fromLTWH(
+      full.center.dx - width / 2,
+      (full.center.dy - height * reference.verticalAnchor)
+          .clamp(full.top, full.bottom - height),
+      width,
+      height,
+    );
+    if (progress <= reference.progress) {
+      return Rect.lerp(full, authored, progress / reference.progress)!;
+    }
+    return Rect.lerp(
+      authored, destination,
+      (progress - reference.progress) / (1 - reference.progress),
+    )!;
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
@@ -464,11 +494,7 @@ class _StartupStageState extends State<_StartupStage>
                               full.height +
                               (tokens.lockFilmHeight - full.height) * progress;
                           return Positioned.fromRect(
-                            rect: Rect.lerp(
-                              full,
-                              _destination ?? full,
-                              progress,
-                            )!,
+                            rect: _stageRect(full, progress, tokens),
                             child: ClipRRect(
                               key: const ValueKey<String>('startup_stage_rect'),
                               borderRadius: BorderRadius.circular(

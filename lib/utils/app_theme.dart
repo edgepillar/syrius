@@ -560,6 +560,15 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Matches the entry container transform in the original mockup.
   Curve get launchSettleCurve => Easing.emphasizedDecelerate;
 
+  /// The authored mid-transition view, relative to the Windows client body.
+  ({double progress, Size body, Size stage, double verticalAnchor})
+  get launchSettleReference => (
+    progress: 0.4,
+    body: Size(1280, 780 - windowCaptionHeight),
+    stage: const Size(780, 330),
+    verticalAnchor: 0.78,
+  );
+
   /// The genuine lock card rises as the black movie stage shrinks.
   double get launchLockRise => 12;
 
