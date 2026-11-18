@@ -103,7 +103,7 @@ class Client:
         self.calls.append(path)
         if path == '/actions/runs/' + str(RUN):
             return dict(id=RUN, head_sha=HEAD, run_attempt=1, workflow_id=381413107,
-                        event='workflow_dispatch', status='completed',
+                        event='workflow_dispatch', status='completed', head_branch='redesign',
                         repository=dict(full_name='edgepillar/syrius'))
         if path == '/git/commits/' + HEAD:
             return dict(sha=HEAD, tree=dict(sha=TREE))
@@ -452,3 +452,26 @@ class PairInspectionTests(unittest.TestCase):
                 self.assertEqual(status, 1)
                 self.assertEqual(result['phase'], 'job_metadata')
                 self.assertEqual(len(offered.calls), 3)
+
+    def test_startup_batch_preserves_a_parallel_windows_inspection_failure(self):
+        for inspection_outcome in ('failure', 'success'):
+            offered = Client(read_old_evidence=True)
+            other = offered.jobs.pop(1)
+            self.assertEqual(other['name'], 'Inspect retained chain-321 evidence')
+            offered.job.update(name=reader.startup_reader.BATCH_JOB_NAME, steps=[])
+            companion = offered.jobs[1]
+            companion['conclusion'] = 'failure'
+            companion['steps'][3]['conclusion'] = inspection_outcome
+            batch = dict(scope='retained_windows_startup_catalog_batch', complete=True)
+            with self.subTest(inspection_outcome=inspection_outcome), mock.patch.object(
+                    windows.startup, 'inspect_catalog_batch', return_value=(batch, [])) as read:
+                status, result = self.read_original_run(offered)
+                if inspection_outcome == 'failure':
+                    self.assertEqual(status, 0)
+                    self.assertEqual(result['parallel_windows_reader'],
+                                     dict(id=companion['id'], conclusion='failure'))
+                    self.assertIs(read.call_args.kwargs['job'], offered.job)
+                else:
+                    self.assertEqual(status, 1)
+                    self.assertEqual(result['phase'], 'job_metadata')
+                    read.assert_not_called()

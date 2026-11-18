@@ -26,12 +26,13 @@ PRODUCERS = ('windows_baseline.py', 'windows_entry_capture_smoke.py',
 SKIPPED_BASELINE_JOB = (
     "inputs.windows_inventory_only && 'Hosted Windows inventory' "
     "|| 'Hosted Windows baseline'")
-PAIRED_TIMING_READER_STEPS = {
+WINDOWS_READER_NAME = 'Inspect retained Windows qualification'
+READONLY_INSPECTOR_STEPS = {
     'Inspect retained chain-321 evidence': (
         'Test archive and credential boundaries in memory',
         'Inspect only the original finite manifests',
     ),
-    'Inspect retained Windows qualification': (
+    WINDOWS_READER_NAME: (
         'Test retained Windows receipt controls in memory',
         'Inspect original baseline log and entry archive in memory',
     ),
@@ -414,24 +415,31 @@ def require_startup_job_set(jobs, producer, head, run_id):
         and job['status'] == 'completed' for job in others))
     executed = [job for job in others if job['conclusion'] != 'skipped']
     if not executed:
-        return
-    # A paired cold timing run can read older evidence in parallel. Those jobs
-    # have no capture step. The paired reader still requires exactly one artifact.
-    archive.need(producer['name'] == startup.JOB_NAME
-        and any(step['name'] == paired_timing.pair.JOB_STEP
-                and step['status'] == 'completed'
-                and step['conclusion'] in ('success', 'failure') for step in producer['steps'])
-        and len({job['name'] for job in executed}) == len(executed)
+        return []
+    # These explicitly selected readers can share a run with Windows captures.
+    # Each artifact inspector still checks the exact set from the capture steps.
+    batch = producer['name'] == startup.BATCH_JOB_NAME
+    if batch:
+        archive.need([job['name'] for job in executed] == [WINDOWS_READER_NAME])
+    else:
+        archive.need(producer['name'] == startup.JOB_NAME
+            and any(step['name'] == paired_timing.pair.JOB_STEP
+                    and step['status'] == 'completed'
+                    and step['conclusion'] in ('success', 'failure') for step in producer['steps']))
+    archive.need(len({job['name'] for job in executed}) == len(executed)
         and len({job['id'] for job in [producer, *executed]}) == len(executed) + 1)
     for job in executed:
-        archive.need(job['name'] in PAIRED_TIMING_READER_STEPS
-            and job['labels'] == ['ubuntu-24.04'] and job['conclusion'] == 'success')
-        controls, inspection = PAIRED_TIMING_READER_STEPS[job['name']]
+        archive.need(job['name'] in READONLY_INSPECTOR_STEPS
+            and job['labels'] == ['ubuntu-24.04']
+            and (job['conclusion'] == 'success' or (batch and job['conclusion'] == 'failure')))
+        controls, inspection = READONLY_INSPECTOR_STEPS[job['name']]
+        expected = ['success', 'success', 'success', job['conclusion'], 'success', 'success']
         archive.need([step['name'] for step in job['steps']] == [
             'Set up job', 'Checkout the dispatched inspector source', controls, inspection,
             'Post Checkout the dispatched inspector source', 'Complete job']
-            and all(step['status'] == 'completed' and step['conclusion'] == 'success'
-                    for step in job['steps']))
+            and [step['conclusion'] for step in job['steps']] == expected
+            and all(step['status'] == 'completed' for step in job['steps']))
+    return executed
 
 
 def main():
@@ -463,13 +471,16 @@ def main():
         archive.need(len(startup_jobs) <= 1)
         if startup_jobs and startup_jobs[0]['conclusion'] != 'skipped':
             job = startup_jobs[0]
-            require_startup_job_set(listing['jobs'], job, head, run_id)
+            readers = require_startup_job_set(listing['jobs'], job, head, run_id)
             PHASE = 'startup_artifacts'
             if job['name'] == startup.BATCH_JOB_NAME:
                 archive.need(run['head_branch'] == 'redesign')
                 batch_client = archive.Client(parent.get('GH_TOKEN'), max_calls=startup.BATCH_REQUESTS)
                 batch, results = startup.inspect_catalog_batch(
                     batch_client, head=head, tree=tree, run_id=run_id, job=job)
+                if readers:
+                    batch['parallel_windows_reader'] = {
+                        key: readers[0][key] for key in ('id', 'conclusion')}
                 for summary in results:
                     emit('Hosted original startup catalog inspection', summary)
                 emit('Hosted shared Windows startup catalog inspection', batch)
