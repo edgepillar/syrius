@@ -403,6 +403,25 @@ class HarnessAdmissionTests(unittest.TestCase):
             with self.subTest(clock=(started, now)), self.assertRaises(harness.debug.ProcessRefused):
                 harness.group_command_timeout(started, now)
 
+    def test_startup_asset_suite_gives_each_group_its_full_command_window(self):
+        for first, second, elapsed, outcome in (
+                (250, 260, 510, 0), (300, 300, 600, 0),
+                (300, 300, 601, 1), (250, 301, 551, 1)):
+            with self.subTest(first=first, second=second, elapsed=elapsed):
+                code, report, _, _ = self.run_case(
+                    passed=ASSET_CASES, asset_fidelity=True,
+                    command_clock=[0, 0, first, first, elapsed],
+                    command_seconds=(first, second))
+                self.assertEqual(code, outcome)
+                self.assertEqual(report['total_command_limit_seconds'], 600)
+                self.assertEqual([call.kwargs['timeout'] for call in self.command_groups],
+                                 [300, 300])
+                if outcome == 0:
+                    self.assertEqual(report['counts']['passed'], ASSET_CASES)
+                else:
+                    self.assertEqual(report['code'], 'TESTS_FAILED')
+                    self.assertIsNone(report['counts'])
+
     def test_missing_or_replayed_groups_cannot_borrow_the_aggregate_count(self):
         _, report, _, _ = self.run_case()
         paths = list(self.selected_paths)
