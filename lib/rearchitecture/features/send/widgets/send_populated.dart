@@ -432,7 +432,7 @@ class _SendPopulatedState extends State<SendPopulated>
           fillColor: tokens.card2,
           isDense: true,
           constraints: BoxConstraints(minHeight: tokens.fieldHeight),
-          contentPadding: tokens.transferFieldPadding,
+          contentPadding: tokens.sendFieldPadding,
           border: border,
           enabledBorder: border,
           disabledBorder: border,
@@ -585,6 +585,12 @@ class _SendPopulatedState extends State<SendPopulated>
 
   Widget _buildRecipientField(LookAlike? finding) {
     final AppTokens tokens = AppTokens.of(context);
+    final ButtonStyle actionStyle = IconButton.styleFrom(
+      minimumSize: Size(22, tokens.fieldHeight),
+      padding: EdgeInsets.zero,
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.standard,
+    );
     final Color? outline = finding != null
         ? tokens.transferWarningLine
         : _recipient.isNotEmpty
@@ -601,31 +607,37 @@ class _SendPopulatedState extends State<SendPopulated>
         errorText: _recipientErrorText,
         hintText: context.l10n.recipientAddress,
         enabledBorder: outline == null ? null : _fieldOutline(tokens, outline),
-        suffixIcon: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            IconButton(
-              key: const Key('send_address_book'),
-              tooltip: context.l10n.sendAddressBook,
-              iconSize: tokens.smallActionGlyphSize,
-              onPressed: _busy ? null : _openContacts,
-              icon: buildShellSymbol(
-                context, 'book', size: tokens.smallActionGlyphSize,
-                color: tokens.dim,
-              ),
-            ),
-            if (_recipient.isNotEmpty)
+        suffixIconConstraints: BoxConstraints(minHeight: tokens.fieldHeight),
+        suffixIcon: Padding(
+          padding: const EdgeInsetsDirectional.only(end: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
               IconButton(
-                key: const Key('send_clear_recipient'),
-                tooltip: context.l10n.sendClearRecipient,
+                key: const Key('send_address_book'),
+                tooltip: context.l10n.sendAddressBook,
                 iconSize: tokens.smallActionGlyphSize,
-                onPressed: _busy ? null : _recipientController.clear,
+                style: actionStyle,
+                onPressed: _busy ? null : _openContacts,
                 icon: buildShellSymbol(
-                  context, 'x', size: tokens.smallActionGlyphSize,
+                  context, 'book', size: tokens.smallActionGlyphSize,
                   color: tokens.dim,
                 ),
               ),
-          ],
+              if (_recipient.isNotEmpty)
+                IconButton(
+                  key: const Key('send_clear_recipient'),
+                  tooltip: context.l10n.sendClearRecipient,
+                  iconSize: tokens.smallActionGlyphSize,
+                  style: actionStyle,
+                  onPressed: _busy ? null : _recipientController.clear,
+                  icon: buildShellSymbol(
+                    context, 'x', size: tokens.smallActionGlyphSize,
+                    color: tokens.dim,
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
       focusNode: _recipientFocusNode,
@@ -635,7 +647,7 @@ class _SendPopulatedState extends State<SendPopulated>
 
   Widget _buildAmountField(AppTokens tokens) => AmountRefusalScope(
     controller: _amountController,
-    builder: (_, String? refusal) => TextField(
+    builder: (BuildContext context, String? refusal) => TextField(
       key: const Key('send_amount_field'),
       controller: _amountController,
       enabled: !_busy,
@@ -648,9 +660,15 @@ class _SendPopulatedState extends State<SendPopulated>
         enabledBorder: _amount.isEmpty
             ? null
             : _fieldOutline(tokens, tokens.faint),
-        suffixIcon: CardFieldAction(
-          label: context.l10n.max,
-          onPressed: _busy ? null : () => _onMaxPressed(_accountInfo),
+        suffixIconConstraints: BoxConstraints(minHeight: tokens.fieldHeight),
+        suffixIcon: Theme(
+          data: Theme.of(context).copyWith(
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: CardFieldAction(
+            label: context.l10n.max,
+            onPressed: _busy ? null : () => _onMaxPressed(_accountInfo),
+          ),
         ),
       ),
       focusNode: _amountFocusNode,

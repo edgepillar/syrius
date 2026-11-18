@@ -1742,6 +1742,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   EdgeInsetsDirectional get transferFieldPadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 10);
 
+  /// Send's 42-pixel fields give 20-pixel amounts room to center.
+  EdgeInsetsDirectional get sendFieldPadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 6);
+
   /// Recent-recipient chips keep their compact line height.
   EdgeInsetsDirectional get transferChipPadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 3);
