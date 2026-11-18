@@ -458,6 +458,7 @@ class _Strip extends StatelessWidget {
                 key: const Key('staking_to_collect_value'),
                 symbol: kQsrCoin.symbol,
                 ink: tokens.qsrInk,
+                flashChanges: !hidden,
               ),
               trailing: toCollect == null || toCollect == BigInt.zero
                   ? null
@@ -558,6 +559,7 @@ class _StripAmount extends StatelessWidget {
     this.ink,
     this.dim = false,
     this.showPositiveSign = false,
+    this.flashChanges = false,
     super.key,
   });
 
@@ -573,24 +575,28 @@ class _StripAmount extends StatelessWidget {
   /// Whether a positive amount is presented as a gain.
   final bool showPositiveSign;
 
+  /// Highlights changes while the amount is visible.
+  final bool flashChanges;
+
   @override
   Widget build(BuildContext context) {
     final BigInt? raw = this.raw;
     if (raw == null) return const Text('');
     final bool quiet = dim || raw == BigInt.zero;
     final Color? dimColor = Theme.of(context).textTheme.titleMedium?.color;
+    final Widget amount = AmountText(
+      raw,
+      decimals: coinDecimals,
+      style: stripValueStyle(context).copyWith(color: quiet ? dimColor : null),
+      symbol: symbol,
+      symbolColor: quiet ? null : ink,
+      showPositiveSign: showPositiveSign,
+    );
     return HiddenAmount(
       child: Ltr(
-        child: AmountText(
-          raw,
-          decimals: coinDecimals,
-          style: stripValueStyle(context).copyWith(
-            color: quiet ? dimColor : null,
-          ),
-          symbol: symbol,
-          symbolColor: quiet ? null : ink,
-          showPositiveSign: showPositiveSign,
-        ),
+        child: flashChanges
+            ? ValueFlash(value: raw, color: ink, child: amount)
+            : amount,
       ),
     );
   }

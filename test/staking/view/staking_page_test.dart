@@ -502,6 +502,16 @@ void main() {
     WidgetTester tester,
   ) async {
     populate();
+    final StreamController<FetchState<UncollectedReward>> rewardUpdates =
+        StreamController<FetchState<UncollectedReward>>(sync: true);
+    addTearDown(rewardUpdates.close);
+    whenListen(rewards, rewardUpdates.stream, initialState: rewards.state);
+    void updateReward(String amount) {
+      final _Uncollected reward = _Uncollected();
+      when(() => reward.qsrAmount).thenReturn(_coins(amount));
+      rewardUpdates.add(FetchPopulated<UncollectedReward>(data: reward));
+    }
+
     await show(tester);
     await tester.pump();
     expect(find.text(r'$930.00'), findsOneWidget);
@@ -529,7 +539,7 @@ void main() {
     final Rect collect = tester.getRect(
       find.byKey(const Key('staking_collect_button')),
     );
-    final Rect rewards = tester.getRect(
+    final Rect rewardsButton = tester.getRect(
       find.byKey(const Key('staking_chart_button')),
     );
     expect(collect.left - week.right, inInclusiveRange(19, 21));
@@ -538,23 +548,49 @@ void main() {
       collect.width,
       closeTo(tester.getSize(find.text('Collect')).width + 26, 0.01),
     );
-    expect(collect.right, lessThan(rewards.left));
+    expect(collect.right, lessThan(rewardsButton.left));
     expectMockupSymbol(
       tester,
       within: find.byKey(const Key('staking_chart_button')),
       symbol: 'chart',
       size: 14,
     );
+    final Finder rewardFlash = find.descendant(
+      of: find.byKey(const Key('staking_to_collect_value')),
+      matching: find.byType(ValueFlash),
+    );
+    final Finder rewardPaint = find.descendant(
+      of: rewardFlash,
+      matching: find.byType(CustomPaint),
+    );
+    expect(rewardPaint, isNot(paints..rrect()));
+    updateReward('20');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('20 QSR'), findsOneWidget);
+    expect(rewardPaint, paints..rrect());
+    await tester.pump(const Duration(milliseconds: 1200));
+    expect(rewardPaint, isNot(paints..rrect()));
+    expect(find.text(r'$0.6200'), findsOneWidget);
+
     final SemanticsHandle semantics = tester.ensureSemantics();
     try {
       BalanceVisibility.instance.set(true);
       await tester.pump();
       expect(find.text(r'$930.00'), findsNothing);
-      expect(find.text(r'$0.5704'), findsNothing);
+      expect(find.text(r'$0.6200'), findsNothing);
       expect(
-        find.semantics.byLabel(RegExp(r'1,500|18\.4|41\.2|\$930')),
+        find.semantics.byLabel(RegExp(r'1,500|20 QSR|41\.2|\$930|\$0\.6200')),
         findsNothing,
       );
+      updateReward('21');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(rewardFlash, findsNothing);
+      BalanceVisibility.instance.set(false);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('21 QSR'), findsOneWidget);
+      expect(rewardPaint, isNot(paints..rrect()));
     } finally {
       semantics.dispose();
     }
