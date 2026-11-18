@@ -68,6 +68,7 @@ Future<Map<String, Object>> captureReadonlySettingsDefaults({
   }
   final _SettingsInstance instance = _SettingsInstance(session);
   bool contactSaved = false;
+  bool englishSelected = false;
   bool capturesAddresses(List<String> words) => switch (words) {
     ['assert', '--key', 'addresses_account_chain_toggle'] => true,
     _ => false,
@@ -85,6 +86,22 @@ Future<Map<String, Object>> captureReadonlySettingsDefaults({
           'cmd': 'scroll', 'dy': -1000000,
         });
         contactSaved = true;
+      }
+      if (words case ['tap', '--key', 'settings_display']
+          when !englishSelected) {
+        await cli.call(instance, <String, Object?>{
+          'cmd': 'wait', 'key': 'display_language_menu', 'timeoutMs': 5000,
+        });
+        await cli.call(instance, <String, Object?>{
+          'cmd': 'tap', 'key': 'display_language_menu',
+        });
+        await cli.call(instance, <String, Object?>{
+          'cmd': 'wait', 'text': 'English', 'exact': true, 'timeoutMs': 5000,
+        });
+        await cli.call(instance, <String, Object?>{
+          'cmd': 'tap', 'text': 'English', 'exact': true,
+        });
+        englishSelected = true;
       }
       if (capturesAddresses(words)) {
         await cli.call(instance, <String, Object?>{

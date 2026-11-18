@@ -1215,6 +1215,8 @@ void main() {
       int shots = 0;
       int returned = 0;
       int contactSaves = 0;
+      int englishPicks = 0;
+      bool languageMenuOpen = false;
       final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
       final List<ScreenCaptureObservation> progress =
           <ScreenCaptureObservation>[];
@@ -1239,6 +1241,10 @@ void main() {
             if (keys.contains(targetKey)) {
               if (fault == 'first') return negative;
               selected = screens[keys.indexOf(targetKey as String)];
+            } else if (targetKey == 'display_language_menu') {
+              expect(selected, 'set-display');
+              expect(languageMenuOpen, isFalse);
+              languageMenuOpen = true;
             } else {
               expect(selected, 'set-addresses');
               expect(targetKey, isIn(<String>{
@@ -1246,6 +1252,13 @@ void main() {
               }));
               if (targetKey == 'addresses_save_contact') contactSaves++;
             }
+          }
+          if (name == 'tap' && command['text'] == 'English') {
+            expect(selected, 'set-display');
+            expect(languageMenuOpen, isTrue);
+            expect(command['exact'], isTrue);
+            languageMenuOpen = false;
+            englishPicks++;
           }
           if (name == 'tap' && targetTab != null) {
             expect(<String>['dashboard', 'settings'], contains(command['tab']));
@@ -1266,6 +1279,10 @@ void main() {
               expect(command['expect'], <String, Object?>{
                 'key': 'node_settings_add', 'exact': true,
               });
+            }
+            if (selected == 'set-display') {
+              expect(englishPicks, 1);
+              expect(languageMenuOpen, isFalse);
             }
             if (selected == 'set-addresses') {
               expect(contactSaves, 1);
