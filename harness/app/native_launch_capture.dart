@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart' as path;
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -58,7 +59,7 @@ typedef _LaunchHandoff = ({
 });
 
 /// Observes one reference state during the original cold launch.
-/// The callback follows existing frames without advancing either clock.
+/// The handoff observes the authored paint on the running settle clock.
 final class NativeLaunchCapture {
   /// Reserves one observation before the original app attaches its root.
   NativeLaunchCapture({
@@ -80,6 +81,7 @@ final class NativeLaunchCapture {
   String? _refusal;
   Uint8List? _png;
   Rect? _stage;
+  StartupStageSession? _referenceOwner;
   _LaunchHandoff? _handoff;
 
   /// The one screen admitted by this process's startup configuration.
@@ -89,11 +91,6 @@ final class NativeLaunchCapture {
   static const int _filmLength = 56;
   // The reference uses floor(totalFrames * 0.42).
   static const int _referenceIndex = 23;
-  // The reference lock card has 0.4 opacity. Admit the first nearby painted
-  // frame, leaving room for the real frame clock to cross that threshold.
-  static const double _settleFrom = .4;
-  static const double _settleThrough = .72;
-
   void _observe(Duration _) {
     final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
     final EntryStartupReceipt? startup = registry.startup;
@@ -127,8 +124,18 @@ final class NativeLaunchCapture {
     }
     final double progress = owner.motion.value;
     if (_settle) {
-      if (progress < _settleFrom) return false;
-      if (progress > _settleThrough || owner.filmInWell) {
+      if (_referenceOwner == null) {
+        if (!startup.isCurrent || !owner.requestHandoffReferenceFrame()) {
+          throw const CaptureRefused('original-launch-handoff-frame-missed');
+        }
+        _referenceOwner = owner;
+      }
+      const double reference = AppTokens.launchSettleReferenceProgress;
+      if (!identical(_referenceOwner, owner) || owner.filmInWell) {
+        throw const CaptureRefused('original-launch-handoff-frame-missed');
+      }
+      if (progress < reference) return false;
+      if (progress != reference) {
         throw const CaptureRefused('original-launch-handoff-frame-missed');
       }
       if (!film.isDone ||

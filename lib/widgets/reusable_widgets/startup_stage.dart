@@ -90,6 +90,7 @@ class StartupStageSession implements Listenable {
   bool _authInShell = false;
   bool _filmInWell = false;
   bool _settleRequested = false;
+  bool _handoffReferencePending = false;
   bool _waiting = false;
   bool _done = false;
   bool _closed = false;
@@ -163,6 +164,14 @@ class StartupStageSession implements Listenable {
     if (_closed || !_authInShell || !_done || _settleRequested) return;
     _settleRequested = true;
     _changed();
+  }
+
+  /// Samples one authored paint as the original clock crosses its progress.
+  /// The isolated observer must request it before the handoff starts.
+  bool requestHandoffReferenceFrame() {
+    if (_closed || _settleRequested || _handoffReferencePending) return false;
+    _handoffReferencePending = true;
+    return true;
   }
 
   /// Holds the last frame while the existing app initialization is pending.
@@ -397,15 +406,24 @@ class _StartupStageState extends State<_StartupStage>
   }
 
   void _tick() {
-    if (!mounted || widget.session.isClosed) return;
+    final StartupStageSession session = widget.session;
+    if (!mounted || session.isClosed) return;
     final AppTokens tokens = AppTokens.of(context);
-    widget.session.motion.value = tokens.launchSettleCurve.transform(
-      _settle.value,
-    );
+    final double progress = tokens.launchSettleCurve.transform(_settle.value);
+    const double reference = AppTokens.launchSettleReferenceProgress;
+    if (session._handoffReferencePending && progress >= reference) {
+      session._handoffReferencePending = false;
+      // A missed entire handoff must not postpone the original completion.
+      if (_settle.value < 1) {
+        session.motion.value = reference;
+        return;
+      }
+    }
+    session.motion.value = progress;
     if (_settle.value >= 1) {
       // Interpolation's isDone can be reported on a later tick. The paint
       // and input boundary is the complete 400 ms rectangle, exactly.
-      widget.session._finishHandoff();
+      session._finishHandoff();
     }
   }
 
@@ -419,8 +437,7 @@ class _StartupStageState extends State<_StartupStage>
     final Rect? destination = _destination;
     if (destination == null) return full;
 
-    final ({double progress, Size body, Size stage, double verticalAnchor})
-    reference = tokens.launchSettleReference;
+    final LaunchSettleReference reference = tokens.launchSettleReference;
     // Scale the authored checkpoint to this body and respect the real well
     // when the window is narrower or shorter than the reference.
     final double width = (reference.stage.width *
@@ -443,6 +460,65 @@ class _StartupStageState extends State<_StartupStage>
       authored, destination,
       (progress - reference.progress) / (1 - reference.progress),
     )!;
+  }
+
+  Widget _buildStage(
+    Rect full,
+    double progress,
+    AppTokens tokens,
+    Widget? film,
+  ) {
+    final LaunchSettleReference reference = tokens.launchSettleReference;
+    final bool approaching = progress <= reference.progress;
+    final double fraction = approaching
+        ? progress / reference.progress
+        : (progress - reference.progress) / (1 - reference.progress);
+    final double weight = approaching ? fraction : 1 - fraction;
+    final Size referenceArtwork = Size(
+      reference.artwork.width * full.width / reference.body.width,
+      reference.artwork.height * full.height / reference.body.height,
+    );
+    final Size wellArtwork = Size(tokens.lockFilmWidth, tokens.lockFilmHeight);
+    final Size artwork = approaching
+        ? Size.lerp(full.size, referenceArtwork, fraction)!
+        : Size.lerp(referenceArtwork, wellArtwork, fraction)!;
+    final BorderRadius radius = BorderRadius.circular(
+      reference.radius * weight,
+    );
+    final BoxShadow shadow = reference.shadow;
+    return Positioned.fromRect(
+      rect: _stageRect(full, progress, tokens),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          boxShadow: weight > 0
+              ? <BoxShadow>[
+                  BoxShadow(
+                    color: shadow.color.withValues(
+                      alpha: shadow.color.a * weight,
+                    ),
+                    offset: shadow.offset * weight,
+                    blurRadius: shadow.blurRadius * weight,
+                  ),
+                ]
+              : null,
+        ),
+        child: ClipRRect(
+          key: const ValueKey<String>('startup_stage_rect'),
+          borderRadius: radius,
+          child: ColoredBox(
+            color: tokens.launchStageBackground,
+            child: OverflowBox(
+              minWidth: artwork.width,
+              maxWidth: artwork.width,
+              minHeight: artwork.height,
+              maxHeight: artwork.height,
+              child: film,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -486,33 +562,8 @@ class _StartupStageState extends State<_StartupStage>
                       ValueListenableBuilder<double>(
                         valueListenable: widget.session.motion,
                         child: widget.session.buildFilm(),
-                        builder: (_, double progress, Widget? film) {
-                          final double width =
-                              full.width +
-                              (tokens.lockFilmWidth - full.width) * progress;
-                          final double height =
-                              full.height +
-                              (tokens.lockFilmHeight - full.height) * progress;
-                          return Positioned.fromRect(
-                            rect: _stageRect(full, progress, tokens),
-                            child: ClipRRect(
-                              key: const ValueKey<String>('startup_stage_rect'),
-                              borderRadius: BorderRadius.circular(
-                                tokens.dialogRadius * progress,
-                              ),
-                              child: ColoredBox(
-                                color: tokens.launchStageBackground,
-                                child: OverflowBox(
-                                  minWidth: width,
-                                  maxWidth: width,
-                                  minHeight: height,
-                                  maxHeight: height,
-                                  child: film,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
+                        builder: (_, double progress, Widget? film) =>
+                            _buildStage(full, progress, tokens, film),
                       ),
                       if (!widget.session._done)
                         Align(

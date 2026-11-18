@@ -279,6 +279,26 @@ void main() {
       expect(authored.top, closeTo(148.6, 2));
       expect(authored.width, closeTo(780, 3));
       expect(authored.height, closeTo(330, 3));
+      final Finder stage = find.byKey(
+        const ValueKey<String>('startup_stage_rect'),
+      );
+      expect(
+        tester.widget<ClipRRect>(stage).borderRadius
+            .resolve(TextDirection.ltr).topLeft.x,
+        closeTo(14, 0.15),
+      );
+      final DecoratedBox frame = tester.widget<DecoratedBox>(
+        find.ancestor(of: stage, matching: find.byType(DecoratedBox)).first,
+      );
+      final BoxShadow shadow =
+          (frame.decoration as BoxDecoration).boxShadow!.single;
+      expect(shadow.offset.dy, closeTo(30, 0.3));
+      expect(shadow.color.a, closeTo(0.55, 0.01));
+      final OverflowBox artwork = tester.widget<OverflowBox>(
+        find.descendant(of: stage, matching: find.byType(OverflowBox)),
+      );
+      expect(artwork.maxWidth, closeTo(1040, 3));
+      expect(artwork.maxHeight, closeTo(585, 3));
       expect(
         tester.widget<Opacity>(
           find.ancestor(
@@ -434,18 +454,28 @@ void main() {
     );
   }
 
-  testWidgets('a resize retargets the real well without restarting400ms', (
+  testWidgets('the reference paint and resize preserve the handoff clock', (
     WidgetTester tester,
   ) async {
     final StartupStageSession session = _session(() {});
     final GlobalKey<_HarnessState> host = await _show(tester, session);
+    final Rect full = _stageRect(tester);
+    expect(session.requestHandoffReferenceFrame(), isTrue);
+    expect(session.requestHandoffReferenceFrame(), isFalse);
     await _until(tester, () => session.film.isDone);
     await _begin(tester, host);
     await tester.pump(const Duration(milliseconds: 100));
+    expect(session.motion.value, 0.4);
+    expect(_stageRect(tester).width, 780);
+    expect(_stageRect(tester).height, closeTo(330 * full.height / 748, .001));
+    expect(session.interactive, isFalse);
+    expect(session.requestHandoffReferenceFrame(), isFalse);
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(session.motion.value, greaterThan(0.4));
     tester.view.physicalSize = const Size(1200, 600);
     await tester.pump();
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 299));
+    await tester.pump(const Duration(milliseconds: 298));
     expect(session.interactive, isFalse);
     await tester.pump(const Duration(milliseconds: 1));
     expect(session.interactive, isTrue);
