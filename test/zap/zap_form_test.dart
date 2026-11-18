@@ -159,6 +159,26 @@ void main() {
         expect(znn.top, qsr.top);
         expect(znn.width, qsr.width);
         expect(qsr.left - znn.right, 10);
+        final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
+        for (final String key in <String>[
+          'zap_recipient_field',
+          'zap_znn_control',
+          'zap_qsr_control',
+          'zap_message_area',
+        ]) {
+          final BoxDecoration decoration =
+              tester.widget<Container>(_key(key)).decoration! as BoxDecoration;
+          expect(decoration.borderRadius, BorderRadius.circular(8));
+        }
+        for (final (String key, String symbol) in <(String, String)>[
+          ('zap_znn_control', 'ZNN'),
+          ('zap_qsr_control', 'QSR'),
+        ]) {
+          final Text suffix = tester.widget<Text>(
+            find.descendant(of: _key(key), matching: find.text(symbol)),
+          );
+          expect(suffix.style?.color, tokens.dim);
+        }
         expect(
           tester.getSize(_key('zap_message_area')).height,
           greaterThanOrEqualTo(72),

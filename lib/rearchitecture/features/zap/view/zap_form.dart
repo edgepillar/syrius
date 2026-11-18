@@ -383,7 +383,7 @@ class _ZapFormState extends State<ZapForm> {
         ),
         decoration: BoxDecoration(
           color: tokens.card2,
-          borderRadius: BorderRadius.circular(tokens.transferControlRadius),
+          borderRadius: BorderRadius.circular(tokens.transferFieldRadius),
           border: Border.all(color: tokens.faint),
         ),
         child: Row(
@@ -548,7 +548,7 @@ class _ZapFormState extends State<ZapForm> {
       ),
       decoration: BoxDecoration(
         color: tokens.card2,
-        borderRadius: BorderRadius.circular(tokens.transferControlRadius),
+        borderRadius: BorderRadius.circular(tokens.transferFieldRadius),
         border: Border.all(color: line),
       ),
       child: Row(
@@ -596,9 +596,7 @@ class _ZapFormState extends State<ZapForm> {
             child: Ltr(
               child: Text(
                 coin.symbol,
-                style: tokens.dataText.copyWith(
-                  color: znn ? tokens.znnInk : tokens.qsrInk,
-                ),
+                style: tokens.dataText.copyWith(color: tokens.dim),
               ),
             ),
           ),
@@ -627,7 +625,7 @@ class _ZapFormState extends State<ZapForm> {
       padding: tokens.zapMessagePadding,
       decoration: BoxDecoration(
         color: tokens.card2,
-        borderRadius: BorderRadius.circular(tokens.transferControlRadius),
+        borderRadius: BorderRadius.circular(tokens.transferFieldRadius),
         border: Border.all(
           color: bytes > ZapDraft.messageLimit
               ? tokens.error
