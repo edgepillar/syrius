@@ -979,7 +979,7 @@ class ReaderTests(unittest.TestCase):
             def __init__(self, token, *, max_calls=12):
                 self.token = token
                 self.maximum = max_calls
-                if max_calls != 16:
+                if max_calls != 24:
                     raise AssertionError('Unexpected full-reader request budget')
 
             def json(self, path):

@@ -11,6 +11,7 @@ from pathlib import Path
 import re
 import stat
 import zipfile
+from functools import cache
 
 from . import inspect_chain321 as archive
 from . import windows_wallet_inspection as producer
@@ -584,7 +585,9 @@ def main(parent=None):
     text, head = parent.get('WALLET_INSPECT_RUN', ''), parent.get('WALLET_INSPECT_HEAD', '')
     need(type(text) is str and re.fullmatch('[1-9][0-9]{0,19}', text) and digest(head, 40))
     run_id = int(text)
-    client = archive.Client(parent.get('GH_TOKEN'), max_calls=16)
+    # The standard read uses up to 16 requests. Reserve eight more for the
+    # historical blobs, including when both catalogs and parent checks run.
+    client = archive.Client(parent.get('GH_TOKEN'), max_calls=24)
     PHASE = 'producer_metadata'
     run = client.json('/actions/runs/' + text)
     need(type(run.get('id')) is int and run['id'] == run_id and run.get('head_sha') == head
@@ -598,6 +601,7 @@ def main(parent=None):
     repo = Path(parent['GITHUB_WORKSPACE'])
     producer_tree = decode(client.read(
         archive.API + '/git/trees/' + tree + '?recursive=1', cap=MAX_TREE))
+    @cache
     def read_blob(blob):
         return decode(client.read(
             archive.API + '/git/blobs/' + blob, cap=MAX_WORKFLOW_RESPONSE))
