@@ -52,7 +52,7 @@ class ReadyReferenceArtwork {
     sources: _sources,
     requiresReadiness: (ReferenceArtworkSource source) =>
         source.referenceArtworkKind == ReferenceArtworkKind.walletReadyMap,
-    refusal: ReadyReferenceArtworkRefused.new,
+    refusal: (_) => const ReadyReferenceArtworkRefused(),
   );
 
   /// A later positive frame or replacement cannot heal an original refusal.
@@ -140,7 +140,7 @@ class StakingReferenceArtwork {
     current: _current,
     sources: _sources,
     requiresReadiness: (_) => true,
-    refusal: StakingReferenceArtworkRefused.new,
+    refusal: (_) => const StakingReferenceArtworkRefused(),
   );
 
   bool _current() {
@@ -186,10 +186,37 @@ class StakingReferenceArtwork {
   }) => _capture.capture<T>(frames: frames, readback: readback);
 }
 
-/// The original gallery cannot supply its complete set of Lottie frames.
+/// The stage at which the original artwork could no longer be sampled.
+enum ReferenceArtworkFailureStage {
+  /// This capture was already held or active.
+  held,
+
+  /// The original visit cannot admit a capture.
+  owner,
+
+  /// The original renderers are missing or have changed.
+  renderers,
+
+  /// The original assets did not become ready within the preparation budget.
+  readiness,
+
+  /// A renderer refused to select its authored sample.
+  sample,
+
+  /// The selected samples were not observed on the original frame.
+  observation,
+
+  /// The original renderers did not restore after sampling.
+  restoration,
+}
+
+/// The original gallery cannot supply its complete set of artwork frames.
 class OriginalsReferenceArtworkRefused implements Exception {
   /// Reports only the capture scope, without retaining an asset error.
-  const OriginalsReferenceArtworkRefused();
+  const OriginalsReferenceArtworkRefused(this.stage);
+
+  /// The last operation at which the original capture refused.
+  final ReferenceArtworkFailureStage stage;
 }
 
 /// Samples the Launch film, five Lottie tiles and three small gallery marks.
@@ -202,7 +229,11 @@ class OriginalsReferenceArtwork {
     final List<State<OriginalsCard>> owners = <State<OriginalsCard>>[];
     int visited = 0;
     void visit(Element element) {
-      if (++visited > 16384) throw const OriginalsReferenceArtworkRefused();
+      if (++visited > 16384) {
+        throw const OriginalsReferenceArtworkRefused(
+          ReferenceArtworkFailureStage.owner,
+        );
+      }
       if (element is StatefulElement &&
           element.state is State<OriginalsCard> &&
           ModalRoute.of(element)?.isCurrent == true &&
@@ -213,7 +244,11 @@ class OriginalsReferenceArtwork {
     }
 
     if (root != null) visit(root);
-    if (owners.length != 1) throw const OriginalsReferenceArtworkRefused();
+    if (owners.length != 1) {
+      throw const OriginalsReferenceArtworkRefused(
+        ReferenceArtworkFailureStage.owner,
+      );
+    }
     return OriginalsReferenceArtwork._(owners.single, admitted);
   }
 
@@ -228,6 +263,9 @@ class OriginalsReferenceArtwork {
     sources: _sources,
     requiresReadiness: (_) => true,
     refusal: OriginalsReferenceArtworkRefused.new,
+    // The gallery's 56-frame decoder must display frame 23, not just load.
+    // All nine original assets share one preparation deadline.
+    prepareBudget: const Duration(seconds: 4),
   );
 
   bool _current() {
@@ -245,7 +283,11 @@ class OriginalsReferenceArtwork {
     final List<ReferenceArtworkSource> sources = <ReferenceArtworkSource>[];
     int visited = 0;
     void visit(Element element) {
-      if (++visited > 16384) throw const OriginalsReferenceArtworkRefused();
+      if (++visited > 16384) {
+        throw const OriginalsReferenceArtworkRefused(
+          ReferenceArtworkFailureStage.renderers,
+        );
+      }
       if (element is StatefulElement &&
           element.state is ReferenceArtworkSource) {
         final ReferenceArtworkSource source =
@@ -258,14 +300,22 @@ class OriginalsReferenceArtwork {
       if (element.widget case final LaunchFilm film) {
         final ReferenceArtworkSource? source =
             film.controller?.originalsReferenceArtwork;
-        if (source == null) throw const OriginalsReferenceArtworkRefused();
+        if (source == null) {
+          throw const OriginalsReferenceArtworkRefused(
+            ReferenceArtworkFailureStage.renderers,
+          );
+        }
         sources.add(source);
       }
       element.visitChildren(visit);
     }
 
     _owner.context.visitChildElements(visit);
-    if (sources.length != 9) throw const OriginalsReferenceArtworkRefused();
+    if (sources.length != 9) {
+      throw const OriginalsReferenceArtworkRefused(
+        ReferenceArtworkFailureStage.renderers,
+      );
+    }
     return sources;
   }
 
@@ -283,21 +333,23 @@ class _ReferenceArtworkCapture {
     required this._sources,
     required this._requiresReadiness,
     required this._refusal,
+    this._prepareBudget,
   });
 
   final bool Function() _current;
   final List<ReferenceArtworkSource> Function() _sources;
   final bool Function(ReferenceArtworkSource) _requiresReadiness;
-  final Exception Function() _refusal;
+  final Exception Function(ReferenceArtworkFailureStage) _refusal;
+  final Duration? _prepareBudget;
   bool _held = false;
   bool _busy = false;
   CaptureFrameGate? _originalFrames;
 
   bool get held => _held;
 
-  Never _refuse() {
+  Never _refuse(ReferenceArtworkFailureStage stage) {
     _held = true;
-    throw _refusal();
+    throw _refusal(stage);
   }
 
   /// Both sample and restoration use the same existing native frame gate.
@@ -305,9 +357,12 @@ class _ReferenceArtworkCapture {
     required CaptureFrameGate frames,
     required Future<T> Function() readback,
   }) async {
-    if (_held || _busy || !_current()) _refuse();
+    if (_held || _busy) _refuse(ReferenceArtworkFailureStage.held);
+    if (!_current()) _refuse(ReferenceArtworkFailureStage.owner);
     _originalFrames ??= frames;
-    if (!identical(_originalFrames, frames)) _refuse();
+    if (!identical(_originalFrames, frames)) {
+      _refuse(ReferenceArtworkFailureStage.owner);
+    }
     try {
       frames.requireIdle();
     } on CaptureFrameRefused {
@@ -329,47 +384,58 @@ class _ReferenceArtworkCapture {
         for (final ReferenceArtworkSource source in sources)
           source.referenceArtworkReadiness,
       ];
+      ReferenceArtworkFailureStage stage =
+          ReferenceArtworkFailureStage.readiness;
       try {
+        final Duration? budget = _prepareBudget;
+        if (budget != null) {
+          await Future.wait<Object?>(
+            readiness.whereType<Future<Object?>>(),
+            eagerError: true,
+          ).timeout(budget);
+        }
         for (int index = 0; index < sources.length; index++) {
           final Future<Object?>? original = readiness[index];
           if (_requiresReadiness(sources[index]) && original == null) {
-            _refuse();
+            _refuse(stage);
           }
-          if (original != null) {
+          if (original != null && budget == null) {
             await original.timeout(const Duration(seconds: 1));
           }
           if (!_current() ||
               !identical(sources[index].referenceArtworkGeneration,
                 generations[index]) ||
               !identical(sources[index].referenceArtworkReadiness, original)) {
-            _refuse();
+            _refuse(stage);
           }
         }
+        stage = ReferenceArtworkFailureStage.renderers;
         final List<ReferenceArtworkSource> fresh = _sources();
-        if (fresh.length != sources.length) _refuse();
+        if (fresh.length != sources.length) _refuse(stage);
         for (int index = 0; index < sources.length; index++) {
-          if (!identical(fresh[index], sources[index])) _refuse();
+          if (!identical(fresh[index], sources[index])) _refuse(stage);
         }
+        stage = ReferenceArtworkFailureStage.sample;
         for (int index = 0; index < sources.length; index++) {
           final ReferenceArtworkSource source = sources[index];
           final ReferenceArtworkFrame? sample =
               source.captureReferenceArtwork();
-          if (sample == null) _refuse();
+          if (sample == null) _refuse(stage);
           samples.add(sample);
           if (!_current() || !sample.isCurrent ||
               !identical(sample.owner, source) ||
               !identical(sample.generation, generations[index]) ||
               sample.kind != source.referenceArtworkKind) {
-            _refuse();
+            _refuse(stage);
           }
         }
       } on Object {
-        _refuse();
+        _refuse(stage);
       }
       void requireObserved() {
         if (!_current() || samples.length != sources.length ||
             !samples.every((ReferenceArtworkFrame sample) => sample.observed)) {
-          _refuse();
+          _refuse(ReferenceArtworkFailureStage.observation);
         }
       }
       result = await frames.capture<T>(() async {
@@ -393,12 +459,12 @@ class _ReferenceArtworkCapture {
           }
         }
         try {
-          if (!requested) _refuse();
+          if (!requested) _refuse(ReferenceArtworkFailureStage.restoration);
           await frames.capture<void>(() async {
             if (!_current() ||
                 !samples.every((ReferenceArtworkFrame sample) =>
                   sample.restored)) {
-              _refuse();
+              _refuse(ReferenceArtworkFailureStage.restoration);
             }
           });
         } on Object catch (error, stack) {
