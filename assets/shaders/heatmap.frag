@@ -37,8 +37,6 @@ out vec4 fragColor;
 #define TWO_PI 6.28318530718
 #define PI 3.14159265358979323846
 
-const vec4 BACKGROUND_COLOR = vec4(0.0, 0.0, 0.0, 0.0);
-
 float getImgFrame(vec2 uv, float th) {
   float frame = 1.;
   frame *= smoothstep(0., th, uv.y);
@@ -218,7 +216,8 @@ void main() {
   inner = pow(inner, 1.2);
   float heat = clamp(inner + outer, 0., 1.);
 
-  heat += (.005 + .35 * u_noise) * (fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453123) - .5);
+  float coverage = max(1. - shape, outerBlur);
+  heat += coverage * (.005 + .35 * u_noise) * (fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453123) - .5);
 
   float mixer = heat * colorsCount;
   vec4 gradient = colors[0];
@@ -238,11 +237,12 @@ void main() {
   vec3 color = gradient.rgb * outerShape;
   float opacity = gradient.a * outerShape;
 
-  vec3 bgColor = BACKGROUND_COLOR.rgb * BACKGROUND_COLOR.a;
-  color = color + bgColor * (1.0 - opacity);
-  opacity = opacity + BACKGROUND_COLOR.a * (1.0 - opacity);
+  // Keep the bolt visible through the cooler phases of the moving heat.
+  float coreOpacity = (1. - shape) * .72 * (1. - opacity);
+  color += colors[4].rgb * coreOpacity;
+  opacity += coreOpacity;
 
-  color += .02 * (fract(sin(dot(uv + 1., vec2(12.9898, 78.233))) * 43758.5453123) - .5);
-  
-  fragColor = vec4(color, opacity);
+  // Grain follows the mark's coverage. Transparent pixels emit no colour.
+  float grain = .02 * (fract(sin(dot(uv + 1., vec2(12.9898, 78.233))) * 43758.5453123) - .5);
+  fragColor = vec4(clamp(color + grain * opacity, vec3(0.), vec3(opacity)), opacity);
 }

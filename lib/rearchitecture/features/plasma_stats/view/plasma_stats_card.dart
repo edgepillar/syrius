@@ -150,7 +150,7 @@ class _Mark extends StatelessWidget {
             children: <Widget>[
               // The mark paints in its own layer (PlasmaGlow holds the
               // RepaintBoundary), so its frames repaint nothing else here.
-              // The owner's dark well stays as wide as the reference slot;
+              // The halo stays as wide as the reference slot;
               // reducing that slot preserves the heatmap's own proportions.
               Center(
                 child: _WithPlasmaGeneration(
