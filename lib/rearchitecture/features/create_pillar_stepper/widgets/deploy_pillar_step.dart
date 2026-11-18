@@ -4,21 +4,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_pillar_stepper/widgets/pillar_step_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/widgets/amount_text.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/registration_success/registration_confirmation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// Deploy step for registering a pillar: its name, its two addresses, what
-/// it shares with delegators, and under them the review of what Register
-/// sends.
+enum _Stage { details, sharing, review }
+
+/// The retained draft stages after the original Pillar prerequisites.
 class DeployPillarStep extends StatefulWidget {
   /// Creates a [DeployPillarStep].
   const DeployPillarStep({
     required this.onDeployDone,
+    required this.ownerAddress,
+    required this.availableZnn,
     this.onBackPressed,
     this.onPublished,
     this.registrationRun = 0,
@@ -28,6 +31,12 @@ class DeployPillarStep extends StatefulWidget {
 
   /// Called when deployment completes.
   final VoidCallback onDeployDone;
+
+  /// The address captured by the flow before checking plasma and balances.
+  final String ownerAddress;
+
+  /// The balance belonging to that address, from the prerequisite view.
+  final BigInt availableZnn;
 
   /// Retains the original result before the legacy completion callback runs.
   final ValueChanged<RegistrationPublication>? onPublished;
@@ -46,6 +55,7 @@ class DeployPillarStep extends StatefulWidget {
 }
 
 class _DeployPillarStepState extends State<DeployPillarStep> {
+  _Stage _stage = _Stage.details;
   GlobalKey<LoadingButtonState> _registerButtonKey = GlobalKey();
 
   final TextEditingController _pillarNameController = TextEditingController();
@@ -78,6 +88,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
   void didUpdateWidget(DeployPillarStep oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.registrationRun != widget.registrationRun) {
+      _stage = _Stage.details;
       _accepted = false;
       _isSending = false;
       _registerButtonKey = GlobalKey<LoadingButtonState>();
@@ -85,7 +96,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
       _submittedQsrCost = null;
       _pillarNameController.clear();
       _pillarMomentumController.clear();
-      _pillarRewardAddressController.text = kSelectedAddress ?? '';
+      _pillarRewardAddressController.text = widget.ownerAddress;
       _momentumRewardPercentage.value = 0;
       _delegateRewardPercentage.value = 0;
     }
@@ -94,7 +105,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
   @override
   void initState() {
     super.initState();
-    _pillarRewardAddressController.text = kSelectedAddress!;
+    _pillarRewardAddressController.text = widget.ownerAddress;
   }
 
   @override
@@ -119,65 +130,138 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
           _momentumRewardPercentage,
           _delegateRewardPercentage,
         ]),
-        builder: (BuildContext context, _) => _buildBody(context),
+        builder: (BuildContext context, _) =>
+            BlocBuilder<
+              CreatePillarQsrInfoBloc,
+              FetchState<CreatePillarQsrInfoData>
+            >(
+              builder:
+                  (
+                    BuildContext context,
+                    FetchState<CreatePillarQsrInfoData> state,
+                  ) => _buildBody(
+                    context,
+                    state is FetchPopulated<CreatePillarQsrInfoData>
+                        ? state.data.cost
+                        : null,
+                  ),
+            ),
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context) {
+  Widget _buildBody(BuildContext context, BigInt? slotFee) {
     final AppTokens tokens = AppTokens.of(context);
-    final bool valid = _isInputValid();
-    return TokenStepFrame(
-      active: widget.active,
-      busy: _isSending,
-      onBack: widget.onBackPressed,
-      // Enter does not send from here. It is pressed out of habit at the end
-      // of a field, and this step locks 15,000 ZNN and burns the deposit:
-      // that takes the button, under the review.
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          _buildTextFields(context),
-          SizedBox(height: tokens.cardGap),
-          // What is sent stays what the review says while it is on its way.
-          AbsorbPointer(
-            absorbing: _isSending,
-            child: ExcludeFocus(
-              excluding: _isSending,
-              child: PillarRewardSliders(
-                delegateRewardPercentage: _delegateRewardPercentage,
-                momentumRewardPercentage: _momentumRewardPercentage,
+    final bool active = widget.active && StepInteraction.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        _buildRail(context, slotFee),
+        Expanded(
+          child: Align(
+            alignment: AlignmentDirectional.topStart,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: tokens.tokenCreateBodyMaxWidth,
+              ),
+              child: Padding(
+                padding: EdgeInsetsDirectional.symmetric(
+                  horizontal: tokens.registrationBodyInset,
+                  vertical: tokens.tokenCreateVerticalInset,
+                ),
+                child: StepSwitcher.retained(
+                  step: _stage.index,
+                  children: <Widget>[
+                    _buildDetails(context, active),
+                    _buildSharing(context, active),
+                    _buildReview(context, active, slotFee),
+                  ],
+                ),
               ),
             ),
           ),
-          SizedBox(height: tokens.cardGap),
-          Divider(height: 1, color: lineColorOf(context)),
-          SizedBox(height: tokens.cardGap),
-          PillarReview(
-            name: _pillarNameController.text,
-            rewardAddress: _pillarRewardAddressController.text,
-            producerAddress: _pillarMomentumController.text,
-            momentumPercentage: _momentumRewardPercentage.value.toInt(),
-            delegatePercentage: _delegateRewardPercentage.value.toInt(),
-            costs: <Widget>[
-              PillarReviewRow.amount(
-                context: context,
-                label: context.l10n.createPillarCollateralLabel,
-                amount: pillarRegisterZnnAmount,
-                token: kZnnCoin,
-              ),
-              const _SlotFeeRow(),
-            ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDetails(BuildContext context, bool active) {
+    final VoidCallback? next = active && _isInputValid()
+        ? () => _changeStage(_Stage.details, _Stage.sharing)
+        : null;
+    return TokenStepFrame(
+      active: active && _stage == _Stage.details,
+      busy: _isSending,
+      onBack: widget.onBackPressed,
+      onSubmit: next,
+      body: _buildTextFields(context),
+      primary: KeyedSubtree(
+        key: const Key('pillar_details_next_button'),
+        child: PrimaryPill(
+          onPressed: next,
+          child: Text(context.l10n.continueText),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSharing(BuildContext context, bool active) {
+    final VoidCallback? next = active && _isInputValid()
+        ? () => _changeStage(_Stage.sharing, _Stage.review)
+        : null;
+    return TokenStepFrame(
+      active: active && _stage == _Stage.sharing,
+      busy: _isSending,
+      onBack: () => _changeStage(_Stage.sharing, _Stage.details),
+      onSubmit: next,
+      body: PillarRewardSliders(
+        delegateRewardPercentage: _delegateRewardPercentage,
+        momentumRewardPercentage: _momentumRewardPercentage,
+      ),
+      primary: KeyedSubtree(
+        key: const Key('pillar_sharing_next_button'),
+        child: PrimaryPill(
+          onPressed: next,
+          child: Text(context.l10n.continueText),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReview(BuildContext context, bool active, BigInt? slotFee) {
+    return TokenStepFrame(
+      active: active && _stage == _Stage.review,
+      busy: _isSending,
+      onBack: () => _changeStage(_Stage.review, _Stage.sharing),
+      // Review requires deliberately choosing Register, including by keyboard.
+      focusPrimaryOnOpen: false,
+      body: PillarReview(
+        name: _pillarNameController.text,
+        rewardAddress: _pillarRewardAddressController.text,
+        producerAddress: _pillarMomentumController.text,
+        momentumPercentage: _momentumRewardPercentage.value.toInt(),
+        delegatePercentage: _delegateRewardPercentage.value.toInt(),
+        costs: <Widget>[
+          PillarReviewRow.amount(
+            context: context,
+            label: context.l10n.createPillarCollateralLabel,
+            amount: pillarRegisterZnnAmount,
+            token: kZnnCoin,
           ),
+          if (slotFee != null)
+            PillarReviewRow.amount(
+              context: context,
+              label: context.l10n.createPillarSlotFeeLabel,
+              amount: slotFee,
+              token: kQsrCoin,
+            ),
         ],
       ),
-      // The key stays on a wrapper: the button is looked up under it.
       primary: KeyedSubtree(
         key: const Key('pillar_register_button'),
         child: LoadingButton(
           text: context.l10n.register,
-          onPressed: valid && !_isSending && !_accepted
+          onPressed: active && _isInputValid() && !_isSending && !_accepted
               ? _onDeployPressed
               : null,
           circularBorderRadius: kLoadingButtonMinSize.height / 2,
@@ -187,8 +271,113 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
     );
   }
 
+  Widget _buildRail(BuildContext context, BigInt? slotFee) {
+    final AppTokens tokens = AppTokens.of(context);
+    final List<String> labels = pillarRegistrationSteps(context);
+    final int current = _stage.index + 1;
+    return Container(
+      width: tokens.registrationRailWidth,
+      decoration: BoxDecoration(
+        border: BorderDirectional(end: BorderSide(color: tokens.line)),
+      ),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(tokens.registrationInset),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: tokens.registrationActionGap,
+          children: <Widget>[
+            for (int i = 0; i < labels.length; i++)
+              Row(
+                spacing: tokens.inlineGap,
+                children: <Widget>[
+                  ExcludeSemantics(
+                    child: Container(
+                      width: tokens.registrationInset,
+                      height: tokens.registrationInset,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: i <= current ? tokens.znnInk : tokens.line,
+                        ),
+                      ),
+                      child: i < current
+                          ? Icon(Icons.check, color: tokens.znnInk, size: 14)
+                          : Text('${i + 1}', style: tokens.compactText),
+                    ),
+                  ),
+                  Expanded(
+                    child: Semantics(
+                      selected: i == current,
+                      child: Text(
+                        labels[i],
+                        style: i == current
+                            ? tokens.bodyText
+                            : tokens.registrationCaptionText,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            Divider(height: 1, color: tokens.line),
+            if (slotFee != null)
+              _buildRailAmount(
+                tokens,
+                context.l10n.createPillarSlotFeeLabel,
+                slotFee,
+                kQsrCoin,
+              ),
+            _buildRailAmount(
+              tokens,
+              context.l10n.createPillarCollateralLabel,
+              pillarRegisterZnnAmount,
+              kZnnCoin,
+            ),
+            _buildRailAmount(
+              tokens,
+              context.l10n.tokenCreateHave,
+              widget.availableZnn,
+              kZnnCoin,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRailAmount(
+    AppTokens tokens,
+    String label,
+    BigInt amount,
+    Token token,
+  ) => Row(
+    spacing: tokens.inlineGap,
+    children: <Widget>[
+      Expanded(child: Text(label, style: tokens.registrationCaptionText)),
+      Flexible(
+        flex: 2,
+        child: FittedBox(
+          alignment: AlignmentDirectional.centerEnd,
+          fit: BoxFit.scaleDown,
+          child: AmountText(
+            amount,
+            decimals: token.decimals,
+            symbol: token.symbol,
+            style: tokens.dataText,
+          ),
+        ),
+      ),
+    ],
+  );
+
+  void _changeStage(_Stage from, _Stage to) {
+    if (!widget.active || _stage != from || _isSending || _accepted) return;
+    if (to.index > from.index && !_isInputValid()) return;
+    setState(() => _stage = to);
+  }
+
   Widget _buildTextFields(BuildContext context) {
-    final double gap = AppTokens.of(context).cardGap;
+    final AppTokens tokens = AppTokens.of(context);
     final TextStyle text = accFieldTextStyle(context);
     // An address reads left to right in every language.
     final TextStyle address = accFieldTextStyle(context, mono: true);
@@ -196,6 +385,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
+      spacing: tokens.registrationActionGap,
       children: <Widget>[
         AccField(
           label: context.l10n.pillarName,
@@ -205,13 +395,35 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
             readOnly: _isSending,
             style: text,
             decoration: InputDecoration(
+              helperText: context.l10n.createPillarNameHelp,
+              helperMaxLines: 3,
               errorText: _pillarNameController.text.isNotEmpty
                   ? _pillarNameError
                   : null,
             ),
           ),
         ),
-        SizedBox(height: gap),
+        AccField(
+          label: context.l10n.pillarProducerAddress,
+          child: TextField(
+            key: const Key('pillar_producer_address_field'),
+            controller: _pillarMomentumController,
+            readOnly: _isSending,
+            style: address,
+            textDirection: TextDirection.ltr,
+            textAlign: addressAlign,
+            decoration: InputDecoration(
+              helperText: context.l10n.createPillarProducerHelp,
+              helperMaxLines: 3,
+              errorText: _pillarMomentumController.text.isNotEmpty
+                  ? _pillarMomentumError
+                  : null,
+              suffixIcon: FieldSuffixButtons(
+                controller: _pillarMomentumController,
+              ),
+            ),
+          ),
+        ),
         AccField(
           label: context.l10n.pillarRewardAddress,
           help: context.l10n.addressToCollectRewards,
@@ -226,35 +438,37 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
               errorText: _pillarRewardAddressController.text.isNotEmpty
                   ? _pillarRewardAddressError
                   : null,
-              suffixIcon: FieldSuffixButtons(
-                controller: _pillarRewardAddressController,
-              ),
-            ),
-          ),
-        ),
-        SizedBox(height: gap),
-        AccField(
-          label: context.l10n.pillarProducerAddress,
-          help: context.l10n.addressToProduceMomentums,
-          child: TextField(
-            key: const Key('pillar_producer_address_field'),
-            controller: _pillarMomentumController,
-            readOnly: _isSending,
-            style: address,
-            textDirection: TextDirection.ltr,
-            textAlign: addressAlign,
-            decoration: InputDecoration(
-              errorText: _pillarMomentumController.text.isNotEmpty
-                  ? _pillarMomentumError
-                  : null,
-              suffixIcon: FieldSuffixButtons(
-                controller: _pillarMomentumController,
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TextButton(
+                    key: const Key('pillar_use_owner_address'),
+                    onPressed: _canUseOwnerAddress ? _useOwnerAddress : null,
+                    child: Text(context.l10n.tokensThisAddress),
+                  ),
+                  FieldSuffixButtons(
+                    controller: _pillarRewardAddressController,
+                  ),
+                ],
               ),
             ),
           ),
         ),
       ],
     );
+  }
+
+  bool get _canUseOwnerAddress =>
+      widget.active &&
+      _stage == _Stage.details &&
+      !_isSending &&
+      !_accepted &&
+      kSelectedAddress == widget.ownerAddress;
+
+  void _useOwnerAddress() {
+    if (_canUseOwnerAddress) {
+      _pillarRewardAddressController.text = widget.ownerAddress;
+    }
   }
 
   void _onDeployStateChanged(DeployPillarState state) {
@@ -306,7 +520,11 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
       _pillarMomentumError == null;
 
   void _onDeployPressed() {
-    if (_isSending || _accepted || !widget.active) {
+    if (_isSending ||
+        _accepted ||
+        !widget.active ||
+        _stage != _Stage.review ||
+        !_isInputValid()) {
       return;
     }
     _submittedName = _pillarNameController.text;
@@ -331,31 +549,6 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
         giveBlockRewardPercentage: _momentumRewardPercentage.value.toInt(),
         giveDelegateRewardPercentage: _delegateRewardPercentage.value.toInt(),
       ),
-    );
-  }
-}
-
-/// The QSR the slot takes, in the review. It is read from what the QSR step
-/// fetched, and left out until that is known.
-class _SlotFeeRow extends StatelessWidget {
-  const _SlotFeeRow();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<
-      CreatePillarQsrInfoBloc,
-      FetchState<CreatePillarQsrInfoData>
-    >(
-      builder: (BuildContext context, FetchState<CreatePillarQsrInfoData> s) =>
-          switch (s) {
-            FetchPopulated<CreatePillarQsrInfoData>() => PillarReviewRow.amount(
-              context: context,
-              label: context.l10n.createPillarSlotFeeLabel,
-              amount: s.data.cost,
-              token: kQsrCoin,
-            ),
-            _ => const SizedBox.shrink(),
-          },
     );
   }
 }

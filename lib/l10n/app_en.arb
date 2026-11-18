@@ -1231,6 +1231,10 @@
   "@createPillarSlotFeeLabel": {
     "description": "Label of the QSR amount burned for a Pillar slot, in the review before a Pillar is registered. The amount follows on the same line."
   },
+  "createPillarPaneTitle": "Spawn a pillar",
+  "createPillarNameAndAddresses": "Name and addresses",
+  "createPillarNameHelp": "Up to 40 characters. Use letters and numbers, with a hyphen, period or underscore between them.",
+  "createPillarProducerHelp": "Use the node's address from znn-controller, generated from a different seed than this wallet.",
   "createPillarMomentumShareLabel": "Momentum share",
   "@createPillarMomentumShareLabel": {
     "description": "Label in the review before a Pillar is registered or updated: the percentage of its momentum rewards the Pillar gives to its delegators. The percentage follows on the same line."

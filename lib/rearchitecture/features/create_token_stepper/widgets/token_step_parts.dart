@@ -67,6 +67,7 @@ class TokenStepFrame extends StatefulWidget {
     this.onSubmit,
     this.onBack,
     this.busy = false,
+    this.focusPrimaryOnOpen = true,
     super.key,
   });
 
@@ -88,6 +89,9 @@ class TokenStepFrame extends StatefulWidget {
 
   /// Whether the step is sending. Back is disabled meanwhile.
   final bool busy;
+
+  /// Whether a body without focusable controls initially focuses its action.
+  final bool focusPrimaryOnOpen;
 
   @override
   State<TokenStepFrame> createState() => _TokenStepFrameState();
@@ -175,7 +179,10 @@ class _TokenStepFrameState extends State<TokenStepFrame>
         first = node;
       }
     }
-    return first ?? _primary.traversalDescendants.firstOrNull;
+    return first ??
+        (widget.focusPrimaryOnOpen
+            ? _primary.traversalDescendants.firstOrNull
+            : null);
   }
 
   static bool _isBefore(Rect a, Rect b, TextDirection direction) {

@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_pillar_stepper/widgets/pillar_step_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/widgets/amount_text.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/registration_success/registration_confirmation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/registration_success/registration_success_surface.dart';
@@ -40,12 +41,7 @@ class PillarRegisteredSuccess extends StatelessWidget {
           ? context.l10n.pillarRegistered
           : context.l10n.registrationPillarRegistered(name),
       caption: context.l10n.registrationPillarReady,
-      steps: <String>[
-        context.l10n.plasmaCheck,
-        context.l10n.management(kQsrCoin.symbol),
-        context.l10n.management(kZnnCoin.symbol),
-        context.l10n.registerPillar,
-      ],
+      steps: pillarRegistrationSteps(context),
       facts: <Widget>[
         if (qsrCost != null)
           RegistrationReceiptFact(

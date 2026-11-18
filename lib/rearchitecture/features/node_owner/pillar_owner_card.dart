@@ -406,7 +406,7 @@ class _PillarOwnerCardState extends State<PillarOwnerCard> {
         return ShellDetailPane(
           keyPrefix: 'pillar_create',
           breadcrumb: context.l10n.railNodes,
-          title: context.l10n.createPillarTitle,
+          title: context.l10n.createPillarPaneTitle,
           onClose: close,
           child: stepper,
         );

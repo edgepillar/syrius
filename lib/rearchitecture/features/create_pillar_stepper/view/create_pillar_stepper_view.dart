@@ -130,11 +130,30 @@ class _MainPillarState extends State<CreatePillarStepperView> {
           builder: (_, _Step? currentStep, _) {
             return RegistrationRetainedFlow(
               published: currentStep == null,
-              form: ListView(
+              form: StepSwitcher.retained(
+                step: currentStep == _Step.deployPillar ? 1 : 0,
+                showContent: currentStep != null,
+                layoutBuilder: (_, List<Widget> entries) => Stack(
+                  fit: StackFit.expand,
+                  children: entries,
+                ),
                 children: <Widget>[
-                  _buildMaterialStepper(
-                    accountInfo: accountInfo,
-                    currentStep: currentStep,
+                  ListView(
+                    children: <Widget>[
+                      _buildMaterialStepper(
+                        accountInfo: accountInfo,
+                        currentStep: currentStep,
+                      ),
+                    ],
+                  ),
+                  DeployPillarStep(
+                    active: currentStep == _Step.deployPillar,
+                    ownerAddress: _addressController.text,
+                    availableZnn: accountInfo.znn()!,
+                    onBackPressed: _navigateToPreviousStep,
+                    onDeployDone: _onDeployDone,
+                    onPublished: _confirmation.accept,
+                    registrationRun: _registrationRun,
                   ),
                 ],
               ),
@@ -155,7 +174,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
     required AccountInfo accountInfo,
     required _Step? currentStep,
   }) {
-    final int lastStepIndex = _Step.values.last.index;
+    final int lastStepIndex = _Step.znnManagement.index;
     // The one accent of the stepper: its marks, the lines between them and
     // what a finished step says under its title.
     final Color accent = AppTokens.of(context).znnInk;
@@ -172,7 +191,9 @@ class _MainPillarState extends State<CreatePillarStepperView> {
 
     return custom_material_stepper.Stepper(
       activeColor: accent,
-      currentStep: currentStep?.index ?? lastStepIndex,
+      currentStep: currentStep == _Step.deployPillar
+          ? lastStepIndex
+          : currentStep?.index ?? lastStepIndex,
       onStepTapped: (int index) {},
       steps: <custom_material_stepper.Step>[
         StepperUtils.getMaterialStep(
@@ -222,23 +243,6 @@ class _MainPillarState extends State<CreatePillarStepperView> {
           stepSubtitle: context.l10n.locked(kZnnCoin.symbol),
           stepState: getStepState(
             _Step.znnManagement,
-            currentStep,
-          ),
-          context: context,
-          stepSubtitleColor: accent,
-        ),
-        StepperUtils.getMaterialStep(
-          stepTitle: context.l10n.registerPillar,
-          stepContent: DeployPillarStep(
-            active: currentStep == _Step.deployPillar,
-            onBackPressed: _navigateToPreviousStep,
-            onDeployDone: _onDeployDone,
-            onPublished: _confirmation.accept,
-            registrationRun: _registrationRun,
-          ),
-          stepSubtitle: context.l10n.pillarRegistered,
-          stepState: getStepState(
-            _Step.deployPillar,
             currentStep,
           ),
           context: context,

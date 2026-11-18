@@ -1497,8 +1497,8 @@ Future<String> registerPillarCatalog(
   await _tapPillarStep(inst, 'pillar_znn_next_button', requireActor);
   for (final (String key, String value) in <(String, String)>[
     ('pillar_name_field', labPillarRegistrationName),
-    ('pillar_reward_address_field', reward),
     ('pillar_producer_address_field', producer),
+    ('pillar_reward_address_field', reward),
   ]) {
     final Map<String, Object?> selector = <String, Object?>{
       'key': key, 'kind': 'field', 'exact': true,
@@ -1510,6 +1510,8 @@ Future<String> registerPillarCatalog(
     });
     if (typed['value'] != value) throw Fail('Pillar review input refused');
   }
+  await _tapPillarStep(inst, 'pillar_details_next_button', requireActor);
+  await _tapPillarStep(inst, 'pillar_sharing_next_button', requireActor);
   const String register = 'pillar_register_button';
   await reveal(inst, <String, Object?>{
     'key': register, 'kind': 'button', 'exact': true,

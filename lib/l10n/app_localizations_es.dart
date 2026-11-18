@@ -1844,6 +1844,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get createPillarSlotFeeLabel => 'Slot fee';
 
   @override
+  String get createPillarPaneTitle => 'Spawn a pillar';
+
+  @override
+  String get createPillarNameAndAddresses => 'Name and addresses';
+
+  @override
+  String get createPillarNameHelp =>
+      'Up to 40 characters. Use letters and numbers, with a hyphen, period or underscore between them.';
+
+  @override
+  String get createPillarProducerHelp =>
+      'Use the node\'s address from znn-controller, generated from a different seed than this wallet.';
+
+  @override
   String get createPillarMomentumShareLabel => 'Momentum share';
 
   @override

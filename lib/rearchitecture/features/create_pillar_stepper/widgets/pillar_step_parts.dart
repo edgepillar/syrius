@@ -14,6 +14,14 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// The longest, "Pillar producer address", fits in capitals.
 const double _kReviewLabelWidth = 176;
 
+/// The stages shown alongside the live Pillar draft and its receipt.
+List<String> pillarRegistrationSteps(BuildContext context) => <String>[
+  context.l10n.pillarOwnerDepositQsr,
+  context.l10n.createPillarNameAndAddresses,
+  context.l10n.updatePillarRewardsTitle,
+  context.l10n.register,
+];
+
 /// What a Pillar is about to be registered or updated with: its name, both
 /// addresses and both percentages, then whatever [costs] the send has.
 ///

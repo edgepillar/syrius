@@ -3079,6 +3079,30 @@ abstract class AppLocalizations {
   /// **'Slot fee'**
   String get createPillarSlotFeeLabel;
 
+  /// No description provided for @createPillarPaneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spawn a pillar'**
+  String get createPillarPaneTitle;
+
+  /// No description provided for @createPillarNameAndAddresses.
+  ///
+  /// In en, this message translates to:
+  /// **'Name and addresses'**
+  String get createPillarNameAndAddresses;
+
+  /// No description provided for @createPillarNameHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 40 characters. Use letters and numbers, with a hyphen, period or underscore between them.'**
+  String get createPillarNameHelp;
+
+  /// No description provided for @createPillarProducerHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the node\'s address from znn-controller, generated from a different seed than this wallet.'**
+  String get createPillarProducerHelp;
+
   /// Label in the review before a Pillar is registered or updated: the percentage of its momentum rewards the Pillar gives to its delegators. The percentage follows on the same line.
   ///
   /// In en, this message translates to:

@@ -94,6 +94,8 @@ jobs:
           test/tokens_redesign/tokens_view_test.dart
           test/create_token_redesign/token_create_view_test.dart
           test/pillars/view/pillars_card_test.dart
+          test/deploy_pillar/deploy_pillar_step_test.dart
+          test/registration_success/registration_success_surface_test.dart
           test/accelerator_list_redesign/accelerator_list_view_test.dart
           test/accelerator_project_redesign/accelerator_project_view_test.dart
           test/plasma_redesign/plasma_list_test.dart
