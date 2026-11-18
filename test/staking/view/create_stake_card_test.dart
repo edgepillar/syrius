@@ -228,8 +228,29 @@ void main() {
     WidgetTester tester,
   ) async {
     await show(tester, host());
-    final Segment<int> segment = tester.widget<Segment<int>>(
-      find.byType(Segment<int>),
+    final Finder duration = find.byType(Segment<int>);
+    final Segment<int> segment = tester.widget<Segment<int>>(duration);
+    final Finder track = find.descendant(
+      of: duration,
+      matching: find.byType(FocusableActionDetector),
+    );
+    final Finder amount = find.byKey(_amountKey);
+    final AppTokens tokens = AppTokens.of(tester.element(amount));
+    expect(
+      tester.getTopLeft(amount).dx - tester.getTopRight(track).dx,
+      closeTo(tokens.panelGap, 0.01),
+    );
+    final TextButton max = tester.widget<TextButton>(
+      find.byKey(const Key('create_stake_max_button')),
+    );
+    expect(
+      max.style!.backgroundColor!.resolve(<WidgetState>{}),
+      Colors.transparent,
+    );
+    expect(max.style!.foregroundColor!.resolve(<WidgetState>{}), tokens.znnInk);
+    expect(
+      max.style!.textStyle!.resolve(<WidgetState>{})!.fontWeight,
+      FontWeight.w600,
     );
     expect(segment.items.map((SegmentItem<int> item) => item.value), <int>[
       1,

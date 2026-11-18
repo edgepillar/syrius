@@ -18,7 +18,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/she
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_fields/amount_input_field.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-const double _kDurationWidth = 300;
+const double _kDurationMaxWidth = 300;
 const double _kUnlockWidth = 140;
 const double _kButtonMinWidth = 120;
 const double _kInlineFormWidth = 1000;
@@ -249,6 +249,9 @@ class _PopulatedState extends State<_Populated> {
               bloc.state.status == SendTransactionStatus.loading,
         );
     final bool canEdit = _canEdit;
+    final TextStyle availability = tokens.compactText.copyWith(
+      color: tokens.dim,
+    );
     final int? selectedMonths = _selectedStakeDuration == null
         ? null
         : _selectedStakeDuration!.inSeconds ~/ stakeTimeUnitSec;
@@ -340,8 +343,13 @@ class _PopulatedState extends State<_Populated> {
                     TextButton(
                       key: const Key('create_stake_max_button'),
                       style: TextButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        disabledBackgroundColor: Colors.transparent,
                         foregroundColor: tokens.znnInk,
                         disabledForegroundColor: tokens.faint,
+                        textStyle: tokens.compactText.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                         minimumSize: Size(0, tokens.fieldHeight),
                         padding: EdgeInsetsDirectional.symmetric(
                           horizontal: tokens.inlineGap,
@@ -364,7 +372,7 @@ class _PopulatedState extends State<_Populated> {
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
                             child: HiddenAmount(
-                              style: tokens.dataText.copyWith(fontSize: 13),
+                              style: availability,
                               child: Ltr(
                                 child: Text(
                                   context.l10n.stakingAmountOf(
@@ -375,10 +383,7 @@ class _PopulatedState extends State<_Populated> {
                                     ),
                                   ),
                                   maxLines: 1,
-                                  style: tokens.dataText.copyWith(
-                                    fontSize: 13,
-                                    color: tokens.dim,
-                                  ),
+                                  style: availability,
                                 ),
                               ),
                             ),
@@ -468,7 +473,12 @@ class _PopulatedState extends State<_Populated> {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: <Widget>[
-                  SizedBox(width: _kDurationWidth, child: duration),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: _kDurationMaxWidth,
+                    ),
+                    child: duration,
+                  ),
                   SizedBox(width: tokens.panelGap),
                   Expanded(child: amount),
                   SizedBox(width: tokens.panelGap),
@@ -628,7 +638,7 @@ class _Control extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
-    crossAxisAlignment: CrossAxisAlignment.stretch,
+    crossAxisAlignment: CrossAxisAlignment.start,
     children: <Widget>[
       Text(label.toUpperCase(), style: ledgerLabelStyle(context)),
       SizedBox(height: AppTokens.of(context).fieldLabelGap),

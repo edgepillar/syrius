@@ -166,13 +166,13 @@ class _SendRecipientWarning extends StatelessWidget {
               OutlinedButton(
                 key: const Key('send_use_known'),
                 onPressed: onUseKnown,
-                style: secondaryButtonStyle(context).merge(compact),
+                style: compact.merge(secondaryButtonStyle(context)),
                 child: Text(context.l10n.sendUseKnown(name)),
               ),
               TextButton(
                 key: const Key('send_use_typed'),
                 onPressed: onUseTyped,
-                style: quietButtonStyle(context).merge(compact),
+                style: compact.merge(quietButtonStyle(context)),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
