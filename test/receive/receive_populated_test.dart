@@ -724,6 +724,12 @@ void main() {
   ) async {
     await tester.pumpWidget(receiveTestHost(_form()));
     await _toggleRequest(tester);
+    final Finder tokenMark = find.byKey(const Key('receive_token_mark'));
+    expect(
+      find.descendant(of: tokenMark, matching: find.text('Z')),
+      findsOneWidget,
+    );
+    expect(tester.getSize(tokenMark), const Size(22, 22));
     final Finder field = find.byKey(const Key('receive_amount_field'));
     await tester.enterText(field, '100.5');
     tester
@@ -737,6 +743,14 @@ void main() {
         )
         .onSelected!(_second);
     await tester.pump();
+    expect(
+      find.descendant(of: tokenMark, matching: find.text('Q')),
+      findsOneWidget,
+    );
+    expect(
+      (tester.widget<Container>(tokenMark).decoration! as BoxDecoration).color,
+      AppTokens.of(tester.element(tokenMark)).qsr,
+    );
     await _showQr(tester);
     final String request = _payload(tester);
     expect(
@@ -750,6 +764,10 @@ void main() {
     await _showQr(tester);
     await _toggleRequest(tester);
     expect(tester.widget<TextField>(field).controller!.text, '100.5');
+    expect(
+      find.descendant(of: tokenMark, matching: find.text('Q')),
+      findsOneWidget,
+    );
     expect(_payload(tester), request);
     await receiveTestDispose(tester);
   });

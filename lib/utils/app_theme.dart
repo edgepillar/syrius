@@ -1686,7 +1686,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Send's ordinary input outline follows the reference field radius.
   double get transferFieldRadius => cardRadius;
 
-  /// The native token initial inside the Send selector.
+  /// The native token initial inside the Transfer selectors.
   double get transferTokenMarkSize => 22;
 
   /// Compact native-token lettering; ZNN uses its dedicated on-color.
