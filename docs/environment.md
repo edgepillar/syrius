@@ -23,6 +23,14 @@ five normal actor exits. Both windows missed frame numbers, and the unchanged
 verified two PNGs at handoff progress 0.558 and 0.662. The reference checkpoint
 is 0.4. V01 and V02 remain open.
 
+The [updated independent cold lock reader](https://github.com/edgepillar/syrius/actions/runs/44344128001)
+verified 87 redesigned and 1,485 P06 frame records at `83d19043` with
+five normal actor exits. The 16 ms comparison failed on build, raster and
+distinct-frame durations. Both windows still have frame number gaps. The
+current handoff raster maximum was 104.428 ms and the phase after the film
+reached the Lock well peaked at 184.150 ms. The maximum total span was
+218.260 ms in the redesign and 138.554 ms in P06. V02 remains open.
+
 The private 28f9c121 browser report shows 94 reference, actual and difference
 triplets. All 94 difference PNGs decoded at 1280 by 780 with the standard
 maximum-channel RGBA palette. On-demand encoding reused the verified archives
