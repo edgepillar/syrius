@@ -97,6 +97,7 @@ import 'capture_frame.dart';
 import 'capture_protocol.dart' show CaptureRefused;
 import 'client_window.dart';
 import 'entry_caption_observer.dart';
+import 'fixtures/home_goto_contact.dart';
 import 'fixtures/home_zap_preview.dart';
 import 'fixtures/lab_quiescence.dart';
 import 'fixtures/lab_seed_binding.dart';
@@ -4913,8 +4914,9 @@ class HarnessAgent {
         }.contains(key);
     final bool zapPreview = _readonlyHomeZapPreview &&
         key == 'zap_received_card';
+    final bool homeContact = catalog == 'home' && key == homeGotoContactKey;
     if (!pillarDone && !sentinelRegion && !readyRegion && !warningRegion &&
-        !zapPreview &&
+        !zapPreview && !homeContact &&
         !const <String>{
           'home_hero', 'home_znn', 'rail_label_dashboard',
           'bell_panel',
@@ -4978,7 +4980,11 @@ class HarnessAgent {
     if (command.keys.any((String name) => !fields.contains(name))) {
       throw HarnessError('readonly region needs a positive key selector');
     }
-    final List<_Node> nodes = _visibleKeyNodes(key, onRejected: onRejected);
+    final List<_Node> nodes = _visibleKeyNodes(
+      key,
+      expectedKey: homeContact ? ValueKey<Object?>(key) : null,
+      onRejected: onRejected,
+    );
     if (nodes.length == 1 &&
         !_catalogArtworkComplete(
           nodes.single.element,
@@ -5079,6 +5085,7 @@ class HarnessAgent {
   }
 
   List<_Node> _visibleKeyNodes(String key, {
+    Key? expectedKey,
     void Function(String reason)? onRejected,
   }) {
     final Element? root = WidgetsBinding.instance.rootElement;
@@ -5087,6 +5094,7 @@ class HarnessAgent {
       return <_Node>[];
     }
     final List<Element> matches = <Element>[];
+    final Key marker = expectedKey ?? ValueKey<String>(key);
     int visited = 0;
     bool overflow = false;
     void visit(Element element) {
@@ -5098,7 +5106,7 @@ class HarnessAgent {
       final Widget widget = element.widget;
       if (widget is Offstage && widget.offstage) return;
       if (widget is Visibility && !widget.visible) return;
-      if (widget.key == ValueKey<String>(key)) matches.add(element);
+      if (widget.key == marker) matches.add(element);
       element.debugVisitOnstageChildren(visit);
     }
     visit(root);

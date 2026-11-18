@@ -445,6 +445,12 @@ READY_ARTWORK_SOURCES = (
     'lib/screens/onboarding/wallet_ready_surface.dart',
     'lib/utils/wallet_ready_binding.dart',
     'lib/rearchitecture/utils/widgets/entry_field.dart')
+CATALOG_CONTACT_SOURCE = 'harness/bin/readonly_catalog_contact.dart'
+HOME_GOTO_CONTACT_SOURCES = (
+    CATALOG_CONTACT_SOURCE,
+    'harness/app/fixtures/home_goto_contact.dart',
+    'harness/app/fixtures/send_warning_draft.dart',
+    'lib/rearchitecture/utils/widgets/go_to_palette.dart')
 
 
 def ready_artwork_sources(repo, value, tree):
@@ -586,6 +592,8 @@ def main(parent=None):
     source_digests = source_files(repo, producer_tree, tree,
         read_workflow_blob=read_blob, read_versioned_blob=read_blob)
     source_digests.update(ready_artwork_sources(repo, producer_tree, tree))
+    has_catalog_contact = any(item.get('path') == CATALOG_CONTACT_SOURCE
+                              for item in producer_tree['tree'])
     jobs = client.json('/actions/runs/' + text + '/attempts/1/jobs?per_page=50')
     job = selected_job(jobs, head, run_id)
     need((run.get('conclusion') == 'success') is (job['conclusion'] == 'success'))
@@ -606,6 +614,8 @@ def main(parent=None):
         fixture = producer.send_warning_window
         fixture_sources = ('tool/ci/send_warning_window.py',
                            'harness/app/fixtures/send_warning_draft.dart', *fixture.SOURCE_PINS)
+        if has_catalog_contact:
+            fixture_sources += (CATALOG_CONTACT_SOURCE,)
         source_digests.update(source_files(repo, producer_tree, tree, files=fixture_sources))
         need(all(source_digests[name] == pin for name, pin in fixture.SOURCE_PINS.items()))
     PHASE = 'wallet_artifact'
@@ -698,6 +708,10 @@ def main(parent=None):
         else:
             PHASE = 'home_catalog_artifact'
             need(reference is not None)
+            if (has_catalog_contact
+                    and reference['schema'] == producer.HOME_CAPTURE_SCHEMAS['home']):
+                source_digests.update(source_files(
+                    repo, producer_tree, tree, files=HOME_GOTO_CONTACT_SOURCES))
             if reference['schema'] == producer.HOME_BELL_CAPTURE_SCHEMA:
                 source_digests.update(source_files(repo, producer_tree, tree,
                     files=(producer.HOME_BELL_SCRIPT.as_posix(),)))

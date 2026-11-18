@@ -31,6 +31,13 @@ current handoff raster maximum was 104.428 ms and the phase after the film
 reached the Lock well peaked at 184.150 ms. The maximum total span was
 218.260 ms in the redesign and 138.554 ms in P06. V02 remains open.
 
+The [retained-shadow timing reader](https://github.com/edgepillar/syrius/actions/runs/44354315295/job/134978174509)
+verified 85 redesigned and 2,342 P06 frame records at `b6ce87fc` with
+five normal actor exits. Both windows retain frame-number gaps. The 16 ms
+comparison fails on build, raster and distinct-frame durations. The redesign
+reaches 138.226 ms raster during handoff and 230.732 ms after arrival. This
+run measures the changed shadow and retains the failed V02 result.
+
 The private 28f9c121 browser report shows 94 reference, actual and difference
 triplets. All 94 difference PNGs decoded at 1280 by 780 with the standard
 maximum-channel RGBA palette. On-demand encoding reused the verified archives
