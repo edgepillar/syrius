@@ -180,6 +180,7 @@ SELECTED_DART_SOURCES = (
     'test/transfer/view/transfer_page_test.dart',
     'lib/rearchitecture/features/home/view/home_hero.dart',
     'lib/rearchitecture/utils/widgets/hero_field.dart',
+    'lib/rearchitecture/utils/shaders/drift_raster_region.dart',
     'lib/rearchitecture/features/home/view/home_view.dart',
     'lib/rearchitecture/utils/widgets/eye_toggle.dart',
     'test/home/home_hero_test.dart',

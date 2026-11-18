@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/drift_raster_region.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/entry_field.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/entry_card_surface.dart';
@@ -99,6 +101,19 @@ List<ui.Image> _watchEntryRasters() {
 List<int> _rgba(Uint8List pixels, int x, int y) {
   final int offset = (y * _size.width.toInt() + x) * 4;
   return pixels.sublist(offset, offset + 4);
+}
+
+void _expectPaintEquivalent(Uint8List cached, Uint8List analytic) {
+  for (final (int x, int y) in <(int, int)>[
+    (1, 1), (1278, 1), (1, 778), (1278, 778), (120, 120),
+    (380, 330), (640, 390), (900, 580), (1160, 660),
+  ]) {
+    final List<int> cachedPixel = _rgba(cached, x, y);
+    final List<int> analyticPixel = _rgba(analytic, x, y);
+    for (int channel = 0; channel < 4; channel++) {
+      expect(cachedPixel[channel], closeTo(analyticPixel[channel], 2));
+    }
+  }
 }
 
 void _expectBackground(Uint8List pixels, bool light) {
@@ -207,6 +222,39 @@ void main() {
         .setMockMethodCallHandler(_window, null);
   });
 
+  test('the entry raster encloses the body and caption throughout drift', () {
+    const Rect viewport = Rect.fromLTWH(0, -32, 1280, 780);
+    const Rect wash = Rect.fromLTWH(-256, -149.6, 1792, 1047.2);
+    final Offset center = wash.center;
+    for (final double ratio in <double>[1, 1.25, 2]) {
+      final DriftRasterRegion raster = driftRasterRegion(
+        viewport: viewport, field: wash, blurBleed: 180, pixelRatio: ratio,
+      )!;
+      final Rect crop = raster.origin &
+          Size(raster.width / ratio, raster.height / ratio);
+      expect(crop.width * crop.height, lessThan(2152 * 1408 * 0.85));
+      for (int step = 0; step <= 20; step++) {
+        final double progress = step / 20;
+        final double radians = fieldDriftAngle * progress;
+        final Offset shift = Offset(
+          wash.width * fieldDriftX * (2 * progress - 1),
+          wash.height * fieldDriftY * (2 * progress - 1),
+        );
+        for (final Offset corner in <Offset>[
+          viewport.topLeft, viewport.topRight,
+          viewport.bottomLeft, viewport.bottomRight,
+        ]) {
+          final Offset point = corner - center - shift;
+          final Offset sample = center + Offset(
+            point.dx * math.cos(radians) + point.dy * math.sin(radians),
+            -point.dx * math.sin(radians) + point.dy * math.cos(radians),
+          );
+          expect(crop.deflate(179).contains(sample), isTrue);
+        }
+      }
+    }
+  });
+
   for (final bool light in <bool>[false, true]) {
     final String name = light ? 'light' : 'dark';
 
@@ -232,6 +280,10 @@ void main() {
         await tester.pump();
         final Uint8List start = await _pixels(tester);
         expect(rasters, hasLength(1));
+        expect(
+          rasters.single.width * rasters.single.height,
+          lessThan(2152 * 1452 * 0.8),
+        );
         expect(rasters.single.debugDisposed, isFalse);
         await tester.pump(const Duration(seconds: 20));
         final Uint8List end = await _pixels(tester);
@@ -241,6 +293,13 @@ void main() {
         expect(await _pixels(tester), orderedEquals(start));
         expect(rasters, hasLength(1));
         expect(rasters.single.debugDisposed, isFalse);
+        await tester.pumpWidget(_host(light: light, pixelRatio: 100));
+        await tester.pump();
+        expect(rasters, hasLength(1));
+        expect(rasters.single.debugDisposed, isTrue);
+        _expectPaintEquivalent(start, await _pixels(tester));
+        await tester.pump(const Duration(seconds: 20));
+        _expectPaintEquivalent(end, await _pixels(tester));
       },
     );
 
@@ -386,8 +445,8 @@ void main() {
       expect(rasters, hasLength(2));
       expect(rasters.first.debugDisposed, isTrue);
       expect(rasters.last.debugDisposed, isFalse);
-      expect(rasters.last.width, rasters.first.width * 2);
-      expect(rasters.last.height, rasters.first.height * 2);
+      expect(rasters.last.width, closeTo(rasters.first.width * 2, 2));
+      expect(rasters.last.height, closeTo(rasters.first.height * 2, 2));
       await tester.pump(const Duration(seconds: 1));
       expect(rasters, hasLength(2));
       await tester.pumpWidget(const SizedBox.shrink());
@@ -501,21 +560,13 @@ void main() {
         await tester.pump();
         expect(rasters, hasLength(1));
         expect(rasters.single.debugDisposed, isTrue);
-        void expectSamePaint(Uint8List cached, Uint8List analytic) {
-          for (final (int x, int y) in <(int, int)>[
-            (1, 1), (1278, 1), (1, 778), (1278, 778), (120, 120),
-            (380, 330), (640, 390), (900, 580), (1160, 660),
-          ]) {
-            final List<int> cachedPixel = _rgba(cached, x, y);
-            final List<int> analyticPixel = _rgba(analytic, x, y);
-            for (int channel = 0; channel < 4; channel++) {
-              expect(cachedPixel[channel], closeTo(analyticPixel[channel], 2));
-            }
-          }
-        }
-        expectSamePaint(start, await _pixels(tester, surface: surface()));
+        _expectPaintEquivalent(
+          start, await _pixels(tester, surface: surface()),
+        );
         await tester.pump(const Duration(seconds: 18));
-        expectSamePaint(turned, await _pixels(tester, surface: surface()));
+        _expectPaintEquivalent(
+          turned, await _pixels(tester, surface: surface()),
+        );
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pump(const Duration(seconds: 36));
         expect(tester.binding.transientCallbackCount, 0);

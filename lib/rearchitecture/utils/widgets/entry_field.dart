@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/drift_raster_region.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/shader_clock.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
@@ -131,6 +132,7 @@ class _EntryFieldState extends State<EntryField>
           seconds: request.seconds.value, background: request.background,
           green: request.green, blue: request.blue, pink: request.pink,
           raster: _raster, pixelRatio: request.pixelRatio,
+          captionHeight: request.height,
         );
         canvas.restore();
         if (mounted && identical(_captionLease, lease) && lease.isVisible &&
@@ -296,6 +298,9 @@ class _EntryFieldState extends State<EntryField>
                 pink: tokens.pink,
                 raster: _raster,
                 pixelRatio: pixelRatio,
+                captionHeight: _captionFrame?.hasClientCaption == true
+                    ? tokens.windowCaptionHeight
+                    : 0,
               ),
               child: const SizedBox.expand(),
             ),
@@ -308,49 +313,43 @@ class _EntryFieldState extends State<EntryField>
 
 typedef _EntryRasterKey = ({
   Rect field,
+  Rect viewport,
   Color green,
   Color blue,
   Color pink,
   double pixelRatio,
 });
 
+typedef _EntryRasterImage = ({ui.Image image, Offset origin});
+
+const double _entryBlurSigma = 60;
+const double _entryBlurBleed = 3 * _entryBlurSigma;
+
 // One borrowed image serves both original painters. Its owner retires it on
 // geometry/colour/DPR replacement and when the field leaves the tree.
 class _EntryFieldRaster {
-  static const int _maxPixels = 16 * 1024 * 1024;
-  static const int _maxSide = 8192;
   _EntryRasterKey? _key;
-  ui.Image? _image;
+  _EntryRasterImage? _cached;
 
-  ui.Image? imageFor(Rect field, {
+  _EntryRasterImage? imageFor(Rect field, Rect viewport, {
     required Color green, required Color blue, required Color pink,
     required double pixelRatio,
   }) {
-    final Rect bounds = field.inflate(180);
-    final double width = bounds.width * pixelRatio;
-    final double height = bounds.height * pixelRatio;
-    if (!pixelRatio.isFinite || pixelRatio <= 0 ||
-        !width.isFinite || !height.isFinite || width <= 0 || height <= 0 ||
-        width > _maxSide || height > _maxSide) {
-      dispose();
-      return null;
-    }
-    final int pixelsWide = width.ceil();
-    final int pixelsHigh = height.ceil();
-    if (pixelsWide * pixelsHigh > _maxPixels) {
-      dispose();
-      return null;
-    }
     final _EntryRasterKey key = (
-      field: field, green: green, blue: blue, pink: pink,
+      field: field, viewport: viewport,
+      green: green, blue: blue, pink: pink, pixelRatio: pixelRatio,
+    );
+    if (_key == key) return _cached;
+    dispose();
+    final DriftRasterRegion? region = driftRasterRegion(
+      viewport: viewport, field: field, blurBleed: _entryBlurBleed,
       pixelRatio: pixelRatio,
     );
-    if (_key == key) return _image;
-    dispose();
+    if (region == null) return null;
     final ui.PictureRecorder recorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(recorder)
       ..scale(pixelRatio)
-      ..translate(-bounds.left, -bounds.top);
+      ..translate(-region.origin.dx, -region.origin.dy);
     _EntryFieldPainter._paintBlurredField(
       canvas, field, green: green, blue: blue, pink: pink,
     );
@@ -358,18 +357,18 @@ class _EntryFieldRaster {
     try {
       // The engine rasterizes this handle asynchronously. Creation is
       // part of the first original paint, with no extra warm-up or clock.
-      final ui.Image image = picture.toImageSync(pixelsWide, pixelsHigh);
-      _image = image;
+      final ui.Image image = picture.toImageSync(region.width, region.height);
+      _cached = (image: image, origin: region.origin);
       _key = key;
-      return image;
+      return _cached;
     } finally {
       picture.dispose();
     }
   }
 
   void dispose() {
-    _image?.dispose();
-    _image = null;
+    _cached?.image.dispose();
+    _cached = null;
     _key = null;
   }
 }
@@ -383,6 +382,7 @@ class _EntryFieldPainter extends CustomPainter {
     required this.pink,
     required this.raster,
     required this.pixelRatio,
+    required this.captionHeight,
   }) : super(repaint: seconds);
 
   final ValueListenable<double> seconds;
@@ -392,19 +392,21 @@ class _EntryFieldPainter extends CustomPainter {
   final Color pink;
   final _EntryFieldRaster raster;
   final double pixelRatio;
+  final double captionHeight;
 
   @override
   void paint(Canvas canvas, Size size) => _paintViewport(
     canvas, size, Offset.zero & size,
     seconds: seconds.value, background: background,
     green: green, blue: blue, pink: pink,
-    raster: raster, pixelRatio: pixelRatio,
+    raster: raster, pixelRatio: pixelRatio, captionHeight: captionHeight,
   );
 
   static void _paintViewport(Canvas canvas, Size size, Rect viewport, {
     required double seconds, required Color background,
     required Color green, required Color blue, required Color pink,
     required _EntryFieldRaster raster, required double pixelRatio,
+    required double captionHeight,
   }) {
     if (size.isEmpty || viewport.isEmpty) {
       return;
@@ -428,24 +430,29 @@ class _EntryFieldPainter extends CustomPainter {
       ..save()
       ..clipRect(viewport)
       ..translate(
-        center.dx + field.width * (-0.03 + 0.06 * progress),
-        center.dy + field.height * (-0.02 + 0.04 * progress),
+        center.dx + field.width * (-fieldDriftX + 2 * fieldDriftX * progress),
+        center.dy + field.height * (-fieldDriftY + 2 * fieldDriftY * progress),
       )
-      ..rotate(math.pi / 30 * progress)
+      ..rotate(fieldDriftAngle * progress)
       ..translate(-center.dx, -center.dy);
-    final ui.Image? image = raster.imageFor(
-      field, green: green, blue: blue, pink: pink, pixelRatio: pixelRatio,
+    // Both painters use the same crop, including the portion above the body.
+    final Rect visible = Rect.fromLTRB(
+      0, -captionHeight, size.width, size.height,
     );
-    if (image == null) {
+    final _EntryRasterImage? cached = raster.imageFor(
+      field, visible, green: green, blue: blue, pink: pink,
+      pixelRatio: pixelRatio,
+    );
+    if (cached == null) {
       // Oversized surfaces keep the original paint instead of downsampling.
       _paintBlurredField(canvas, field, green: green, blue: blue, pink: pink);
     } else {
-      final Rect bounds = field.inflate(180);
+      final ui.Image image = cached.image;
       canvas.drawImageRect(
         image,
         Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
-        Rect.fromLTWH(bounds.left, bounds.top,
-          image.width / pixelRatio, image.height / pixelRatio),
+        cached.origin &
+            Size(image.width / pixelRatio, image.height / pixelRatio),
         Paint()..filterQuality = FilterQuality.low,
       );
     }
@@ -459,12 +466,12 @@ class _EntryFieldPainter extends CustomPainter {
     // window base is outside this layer. Its 60 logical-pixel sigma and the
     // original 3-sigma bounds are independent of the rigid drift transform.
     canvas.saveLayer(
-      field.inflate(180),
+      field.inflate(_entryBlurBleed),
       Paint()
         ..color = const Color.fromRGBO(255, 255, 255, 0.35)
         ..imageFilter = ui.ImageFilter.blur(
-          sigmaX: 60,
-          sigmaY: 60,
+          sigmaX: _entryBlurSigma,
+          sigmaY: _entryBlurSigma,
           tileMode: ui.TileMode.decal,
         ),
     );
@@ -526,5 +533,6 @@ class _EntryFieldPainter extends CustomPainter {
       old.blue != blue ||
       old.pink != pink ||
       old.raster != raster ||
-      old.pixelRatio != pixelRatio;
+      old.pixelRatio != pixelRatio ||
+      old.captionHeight != captionHeight;
 }

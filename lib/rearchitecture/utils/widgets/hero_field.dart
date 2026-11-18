@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_shaders/flutter_shaders.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/drift_raster_region.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/shader_clock.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
@@ -132,17 +133,12 @@ typedef _HomeRasterKey = ({
 
 typedef _HomeRasterImage = ({ui.Image image, Offset origin});
 
-const double _homeDriftX = 0.03;
-const double _homeDriftY = 0.02;
-const double _homeDriftAngle = math.pi / 30;
 const double _homeBlurSigma = 40;
 const double _homeBlurBleed = 3 * _homeBlurSigma;
 
 // One bounded image holds the Home lights; the original clock moves it.
 // Its owner retires it on geometry/colour/DPR replacement and unmount.
 class _HomeFieldRaster {
-  static const int _maxPixels = 16 * 1024 * 1024;
-  static const int _maxSide = 8192;
   _HomeRasterKey? _key;
   _HomeRasterImage? _cached;
 
@@ -156,38 +152,12 @@ class _HomeFieldRaster {
     );
     if (_key == key) return _cached;
     dispose();
-    final Rect full = field.inflate(_homeBlurBleed);
-    if (!pixelRatio.isFinite || pixelRatio <= 0 ||
-        !(full.width * pixelRatio).isFinite ||
-        !(full.height * pixelRatio).isFinite) {
-      return null;
-    }
-    // Bound the inverse transform at every drift phase. Each projected
-    // half-extent includes maximum translation and the other axis's maximum
-    // rotation contribution. Keep the blur's working margin around that area.
-    final double halfWidth = viewport.width / 2 + field.width * _homeDriftX;
-    final double halfHeight = viewport.height / 2 + field.height * _homeDriftY;
-    final double sine = math.sin(_homeDriftAngle);
-    final Rect crop = Rect.fromCenter(
-      center: field.center,
-      width: 2 * (halfWidth + sine * halfHeight),
-      height: 2 * (halfHeight + sine * halfWidth),
-    ).inflate(_homeBlurBleed).intersect(full);
-    // Align to the original image's device-pixel grid so a cropped image
-    // samples the same raster coordinates as the full field.
-    final int left = ((crop.left - full.left) * pixelRatio).floor();
-    final int top = ((crop.top - full.top) * pixelRatio).floor();
-    final int right = ((crop.right - full.left) * pixelRatio).ceil();
-    final int bottom = ((crop.bottom - full.top) * pixelRatio).ceil();
-    final int pixelsWide = right - left;
-    final int pixelsHigh = bottom - top;
-    if (pixelsWide <= 0 || pixelsHigh <= 0 ||
-        pixelsWide > _maxSide || pixelsHigh > _maxSide ||
-        pixelsWide * pixelsHigh > _maxPixels) {
-      return null;
-    }
-    final Offset origin =
-        full.topLeft + Offset(left / pixelRatio, top / pixelRatio);
+    final DriftRasterRegion? region = driftRasterRegion(
+      viewport: viewport, field: field, blurBleed: _homeBlurBleed,
+      pixelRatio: pixelRatio,
+    );
+    if (region == null) return null;
+    final Offset origin = region.origin;
     final ui.PictureRecorder recorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(recorder)
       ..scale(pixelRatio)
@@ -199,7 +169,7 @@ class _HomeFieldRaster {
     try {
       // The engine rasterizes this handle asynchronously. Creation is
       // part of the first original paint, with no extra warm-up or clock.
-      final ui.Image image = picture.toImageSync(pixelsWide, pixelsHigh);
+      final ui.Image image = picture.toImageSync(region.width, region.height);
       _cached = (image: image, origin: origin);
       _key = key;
       return _cached;
@@ -258,10 +228,10 @@ class _HomeHeroFieldPainter extends CustomPainter {
       ..save()
       ..clipRect(viewport)
       ..translate(
-        center.dx + field.width * (-_homeDriftX + 2 * _homeDriftX * progress),
-        center.dy + field.height * (-_homeDriftY + 2 * _homeDriftY * progress),
+        center.dx + field.width * (-fieldDriftX + 2 * fieldDriftX * progress),
+        center.dy + field.height * (-fieldDriftY + 2 * fieldDriftY * progress),
       )
-      ..rotate(_homeDriftAngle * progress)
+      ..rotate(fieldDriftAngle * progress)
       ..translate(-center.dx, -center.dy);
     final _HomeRasterImage? cached = raster.imageFor(
       viewport, field, green: green, blue: blue, pink: pink,
