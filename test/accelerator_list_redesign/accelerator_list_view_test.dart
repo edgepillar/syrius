@@ -305,6 +305,8 @@ void main() {
         ),
       );
       await tester.pump(const Duration(milliseconds: 700));
+      final Finder all = find.byKey(const Key('accelerator_filter_all'));
+      expect(all.hitTestable(), findsOneWidget);
       final OpenContainer<void> transform = tester.widget<OpenContainer<void>>(
         find.byKey(ValueKey<String>('accelerator_transform_${listHash(1)}')),
       );
@@ -332,6 +334,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 301));
       expect(detail, findsNothing);
       expect(find.byKey(const Key('accelerator_list')), findsOneWidget);
+      expect(all.hitTestable(), findsOneWidget);
       expect(root.pushed, hasLength(1));
       expect(tester.takeException(), isNull);
     } finally {

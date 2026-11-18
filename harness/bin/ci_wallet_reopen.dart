@@ -910,7 +910,7 @@ const Set<String> _stakeDraftLines = <String>{
 
 const Set<String> _projectLines = <String>{
   'goto accelerator',
-  'wait --key accelerator_list --timeout 30',
+  'wait --key accelerator_filter_all --ready --timeout 30',
   'tap --key accelerator_filter_all',
   'wait --key @confirmed-project-row --timeout 30',
   'tap --key @confirmed-project-row',
@@ -918,7 +918,7 @@ const Set<String> _projectLines = <String>{
   'assert --key accelerator_project_loaded',
   'tap --key project_details_back',
   'wait --key accelerator_project_loaded --gone --timeout 10',
-  'wait --key accelerator_list --timeout 10',
+  'wait --key accelerator_filter_all --ready --timeout 10',
   'goto dashboard',
   'wait --key home_hero --timeout 5',
 };

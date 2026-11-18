@@ -520,11 +520,19 @@ void main() {
       expect(detail.assertion['key'], 'accelerator_project_loaded');
       expect(detail.lines.map((ScreenLine line) => line.words.join(' ')),
           containsAllInOrder(<String>[
+            'wait --key accelerator_filter_all --ready --timeout 30',
+            'tap --key accelerator_filter_all',
             'wait --key @confirmed-project-row --timeout 30',
             'tap --key @confirmed-project-row',
           ]));
       expect(detail.afterCapture.first.words,
           <String>['tap', '--key', 'project_details_back']);
+      expect(detail.afterCapture.map((ScreenLine line) => line.words.join(' ')),
+          containsAllInOrder(<String>[
+            'wait --key accelerator_project_loaded --gone --timeout 10',
+            'wait --key accelerator_filter_all --ready --timeout 10',
+            'goto dashboard',
+          ]));
       writeScript('spawn',
           File('harness/screens/spawn.txt').readAsStringSync());
       expect(() => capture.preflight('spawn'),
