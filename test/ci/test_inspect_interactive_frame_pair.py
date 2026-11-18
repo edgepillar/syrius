@@ -1089,6 +1089,7 @@ class InteractiveFramePairTests(unittest.TestCase):
                        error_codes=['PROFILE_REFUSED'])
         result = self.project(offered)
         self.assertFalse(result['artifact_reported_success'])
+        self.assertIsNone(result['verified_comparisons'])
         self.assertEqual(result['frame_counts']['p06'], {'page_change': 2, 'disclosure': 2})
 
     def test_pair_refuses_unbound_lab_receipts_and_incomplete_commands(self):
@@ -1125,6 +1126,7 @@ class InteractiveFramePairTests(unittest.TestCase):
         result = self.project(offered)
         self.assertTrue(result['artifact_reported_success'])
         self.assertEqual(result['frame_counts']['p06'], {'page_change': 512, 'disclosure': 512})
+        self.assertEqual(result.pop('verified_comparisons'), offered['comparisons'])
         self.assertLessEqual(len(cold.canonical(result)), 3800)
         self.assertFalse(any(result['no_frame_number_gaps'].values()))
         self.assertFalse(result['timing_criterion_passed'])
@@ -1141,6 +1143,7 @@ class InteractiveFramePairTests(unittest.TestCase):
         result = self.project(offered)
         self.assertTrue(result['artifact_reported_success'])
         self.assertFalse(result['timing_criterion_passed'])
+        self.assertEqual(result['verified_comparisons'], offered['comparisons'])
         self.assertEqual(result['no_added_reported_slow_frames'],
                          {'page_change': False, 'disclosure': True})
         self.assertTrue(all(result['no_frame_number_gaps'].values()))

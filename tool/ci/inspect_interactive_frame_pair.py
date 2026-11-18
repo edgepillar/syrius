@@ -14,6 +14,7 @@ from . import windows_interactive_frame_pair as pair
 JOB_NAME = 'Windows paired interactive timing with owned chain-321'
 ARTIFACT_PREFIX = 'interactive-timing-pair-'
 TITLE = 'Retained paired interactive frame measurements'
+COMPARISON_TITLE = 'Retained paired interactive frame comparisons'
 OBSERVATION_PHASES = frozenset(('lab_before', 'empty_profile', 'prepare_profile',
     'wallet_ready', 'measure', 'verify_after', 'complete'))
 PHASES = frozenset((*cold.COMMAND_STAGES, 'environment', 'storage_admission',
@@ -243,7 +244,8 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         no_added_reported_slow_frames=None if comparisons is None else {
             name: value['no_added_reported_slow_frames'] for name,value in comparisons.items()},
         no_frame_number_gaps=None if comparisons is None else {
-            name: value['no_frame_number_gaps'] for name,value in comparisons.items()})
+            name: value['no_frame_number_gaps'] for name,value in comparisons.items()},
+        verified_comparisons=comparisons)
 
 
 def inspect_run(client, *, head, run_id, lab, lab_summary, listing, run):
