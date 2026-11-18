@@ -585,7 +585,22 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
         keyPrefix: 'receive_request',
         headerPadding: EdgeInsets.zero,
         title: context.l10n.receiveRequestAmount,
-        child: _buildRequestFields(tokens),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            _buildRequestFields(tokens),
+            if (_qrPresent &&
+                _amountController.text.isNotEmpty &&
+                _payload != null) ...<Widget>[
+              SizedBox(height: tokens.receiveMicroGap),
+              Text(
+                context.l10n.receiveRequestAmountHint,
+                style: tokens.captionText,
+              ),
+            ],
+          ],
+        ),
       ),
     ],
   );

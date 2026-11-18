@@ -4807,8 +4807,14 @@ abstract class AppLocalizations {
   /// No description provided for @receiveRequestAmount.
   ///
   /// In en, this message translates to:
-  /// **'Request an amount'**
+  /// **'Request a specific amount'**
   String get receiveRequestAmount;
+
+  /// No description provided for @receiveRequestAmountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The QR carries the amount.'**
+  String get receiveRequestAmountHint;
 
   /// No description provided for @receiveShareImage.
   ///
