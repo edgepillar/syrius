@@ -170,6 +170,7 @@ void main() {
       of: galleryFilm,
       matching: find.byType(RawImage),
     );
+    final Element pictureElement = tester.element(picture);
     final ReferenceArtworkFrame preview = film.captureReferenceArtwork()!;
     expect(preview.observation, <String, Object>{
       'kind': 'originals_launch', 'frame': 3, 'frame_count': 8,
@@ -199,7 +200,7 @@ void main() {
       artwork.capture<List<Lottie>>(
         frames: frames.gate,
         readback: () async {
-          capturedFilm = tester.widget<RawImage>(picture).image;
+          capturedFilm = (pictureElement.widget as RawImage).image;
           return <Lottie>[
             for (final State<StatefulWidget> original in originalStates)
               original.widget as Lottie,
