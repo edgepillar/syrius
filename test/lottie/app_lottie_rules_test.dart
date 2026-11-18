@@ -179,8 +179,9 @@ void main() {
         ),
       ),
     );
-    bool completed() => HarnessAgent.pillarReceiptArtworkComplete(
+    bool completed() => HarnessAgent.nodeArtworkComplete(
       tester.element(find.byKey(marker)),
+      AppLottieAsset.pillar,
     );
 
     expect(completed(), isFalse);
@@ -194,6 +195,13 @@ void main() {
     expect(completed(), isFalse);
     await tester.pump(margin * 2);
     expect(completed(), isTrue);
+    expect(
+      HarnessAgent.nodeArtworkComplete(
+        tester.element(find.byKey(marker)),
+        AppLottieAsset.sentinel,
+      ),
+      isFalse,
+    );
 
     final TestGesture mouse = await tester.createGesture(
       kind: PointerDeviceKind.mouse,

@@ -478,47 +478,78 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
     ];
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        if (constraints.maxWidth < tokens.pillarOwnerActionsWidth * 2) {
-          return _factColumn(context, <(String, Widget)>[...left, ...right]);
-        }
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Expanded(child: _factColumn(context, left)),
-            SizedBox(width: tokens.pillarOwnerFactColumnGap),
-            Expanded(child: _factColumn(context, right)),
-          ],
+        final double labelSize = tokens.ledgerText.fontSize!;
+        final double labelScale =
+            MediaQuery.textScalerOf(context).scale(labelSize) / labelSize;
+        return _buildFactGrid(
+          tokens,
+          left,
+          right,
+          paired:
+              constraints.maxWidth >=
+              tokens.pillarOwnerActionsWidth * 2 * labelScale,
         );
       },
     );
   }
 
-  Widget _factColumn(BuildContext context, List<(String, Widget)> facts) {
-    final AppTokens tokens = AppTokens.of(context);
+  Widget _buildFactGrid(
+    AppTokens tokens,
+    List<(String, Widget)> left,
+    List<(String, Widget)> right, {
+    required bool paired,
+  }) {
     return Table(
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       columnWidths: <int, TableColumnWidth>{
         0: const IntrinsicColumnWidth(),
-        1: FixedColumnWidth(tokens.cardGap),
-        2: const FlexColumnWidth(),
+        1: const FlexColumnWidth(),
+        if (paired) ...<int, TableColumnWidth>{
+          2: FixedColumnWidth(tokens.pillarOwnerFactColumnGap),
+          3: const IntrinsicColumnWidth(),
+          4: const FlexColumnWidth(),
+        },
       },
       children: <TableRow>[
-        for (final (String label, Widget value) in facts)
-          TableRow(
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsetsDirectional.only(bottom: tokens.cardGap),
-                child: Text(label.toUpperCase(), style: tokens.ledgerText),
-              ),
-              const SizedBox.shrink(),
-              Padding(
-                padding: EdgeInsetsDirectional.only(bottom: tokens.cardGap),
-                child: value,
-              ),
-            ],
-          ),
+        if (paired)
+          for (int i = 0; i < right.length; i++)
+            TableRow(
+              children: <Widget>[
+                if (i < left.length)
+                  ..._buildFactCells(tokens, left[i])
+                else ...<Widget>[
+                  const SizedBox.shrink(),
+                  const SizedBox.shrink(),
+                ],
+                const SizedBox.shrink(),
+                ..._buildFactCells(tokens, right[i]),
+              ],
+            )
+        else
+          for (int i = 0; i < right.length; i++) ...<TableRow>[
+            if (i < left.length)
+              TableRow(children: _buildFactCells(tokens, left[i])),
+            TableRow(children: _buildFactCells(tokens, right[i])),
+          ],
       ],
     );
+  }
+
+  List<Widget> _buildFactCells(AppTokens tokens, (String, Widget) fact) {
+    final (String label, Widget value) = fact;
+    return <Widget>[
+      Padding(
+        padding: EdgeInsetsDirectional.only(
+          end: tokens.cardGap,
+          bottom: tokens.pillarOwnerFactRowGap,
+        ),
+        child: Text(label.toUpperCase(), style: tokens.ledgerText),
+      ),
+      Padding(
+        padding: EdgeInsets.only(bottom: tokens.pillarOwnerFactRowGap),
+        child: value,
+      ),
+    ];
   }
 
   Widget _unavailable(BuildContext context) => Text(

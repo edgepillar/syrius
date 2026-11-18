@@ -4889,9 +4889,9 @@ class HarnessAgent {
         key is! String) {
       return null;
     }
-    final bool sentinelRegion =
-        Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'] ==
-            harnessReadonlySentinelCatalog &&
+    final String? catalog =
+        Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'];
+    final bool sentinelRegion = catalog == harnessReadonlySentinelCatalog &&
         const <String>{
           'nodes_sentinels_strip', 'nodes_sentinel_read_scope',
           'nodes_sentinel_active', 'nodes_sentinel_owner_address',
@@ -4974,21 +4974,57 @@ class HarnessAgent {
       throw HarnessError('readonly region needs a positive key selector');
     }
     final List<_Node> nodes = _visibleKeyNodes(key, onRejected: onRejected);
-    if (pillarDone && nodes.length == 1 &&
-        !pillarReceiptArtworkComplete(nodes.single.element)) {
+    if (nodes.length == 1 &&
+        !_catalogArtworkComplete(
+          nodes.single.element,
+          key: key,
+          catalog: catalog,
+          pillarDone: pillarDone,
+        )) {
       onRejected?.call('originalArtworkPending');
       return const <_Node>[];
     }
     return nodes;
   }
 
-  /// Observes the naturally completed Pillar player in the onstage receipt.
+  bool _catalogArtworkComplete(
+    Element target, {
+    required String key,
+    required String? catalog,
+    required bool pillarDone,
+  }) {
+    if (pillarDone) return nodeArtworkComplete(target, AppLottieAsset.pillar);
+    if (catalog == 'earn' && key == 'pillar_owner_panel') {
+      return nodeArtworkComplete(target, AppLottieAsset.pillar) &&
+          _stripArtworkComplete('nodes_pillars_strip', AppLottieAsset.pillar);
+    }
+    if (catalog == harnessReadonlySentinelCatalog) {
+      if (key == 'nodes_sentinels_strip') {
+        return nodeArtworkComplete(target, AppLottieAsset.sentinel);
+      }
+      if (key == 'nodes_sentinel_owner_address') {
+        return _stripArtworkComplete(
+          'nodes_sentinels_strip',
+          AppLottieAsset.sentinel,
+        );
+      }
+    }
+    return true;
+  }
+
+  bool _stripArtworkComplete(String key, AppLottieAsset asset) {
+    final List<_Node> strips = _visibleKeyNodes(key);
+    return strips.length == 1 &&
+        nodeArtworkComplete(strips.single.element, asset);
+  }
+
+  /// Observes the naturally completed player inside an onstage node surface.
   @visibleForTesting
-  static bool pillarReceiptArtworkComplete(Element receipt) {
-    final Element? original = _singleOnstageArtwork<AppLottie>(receipt);
+  static bool nodeArtworkComplete(Element surface, AppLottieAsset asset) {
+    final Element? original = _singleOnstageArtwork<AppLottie>(surface);
     final Widget? player = original?.widget;
     if (original == null || player is! AppLottie ||
-        player.asset != AppLottieAsset.pillar || player.repeat ||
+        player.asset != asset || player.repeat ||
         player.controller != null) {
       return false;
     }

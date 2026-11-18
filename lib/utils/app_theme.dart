@@ -1981,6 +1981,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Owner facts share the detail grid's column spacing.
   double get pillarOwnerFactColumnGap => 20;
 
+  /// The gap between rows of aligned owner facts.
+  double get pillarOwnerFactRowGap => 10;
+
   /// An owner name is a heading rather than an amount.
   TextStyle get pillarOwnerNameText => bodyText.copyWith(fontSize: 17);
 

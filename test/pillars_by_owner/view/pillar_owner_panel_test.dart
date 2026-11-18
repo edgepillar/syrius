@@ -229,6 +229,20 @@ void main() {
           find.byTooltip('z1producer00000000000000000000000000000'),
           findsOneWidget,
         );
+        for (final (String first, String second) in <(String, String)>[
+          ('LOCKED', 'DEPOSITED'),
+          ('PRODUCER', 'REVOCABLE'),
+          ('REWARD', 'SHARING'),
+          ('MOMENTUMS', 'WEIGHT'),
+        ]) {
+          final Offset leading = tester.getCenter(find.text(first));
+          final Offset trailing = tester.getCenter(find.text(second));
+          expect(leading.dy, closeTo(trailing.dy, 0.01));
+          expect(
+            leading.dx,
+            rtl ? greaterThan(trailing.dx) : lessThan(trailing.dx),
+          );
+        }
         expect(tester.takeException(), isNull);
       });
     }
@@ -252,6 +266,16 @@ void main() {
     expect(find.text('0 QSR', findRichText: true), findsOneWidget);
     expect(find.text('150,000 QSR', findRichText: true), findsOneWidget);
     expect(find.textContaining('.00000000'), findsNothing);
+    tester.view.physicalSize = const Size(720, 780);
+    await tester.pump();
+    final double locked = tester.getCenter(find.text('LOCKED')).dy;
+    final double deposited = tester.getCenter(find.text('DEPOSITED')).dy;
+    final double producer = tester.getCenter(find.text('PRODUCER')).dy;
+    expect(locked, lessThan(deposited));
+    expect(deposited, lessThan(producer));
+    expect(find.text('0 QSR', findRichText: true), findsOneWidget);
+    expect(find.text('150,000 QSR', findRichText: true), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('privacy removes monetary text and semantics', (
