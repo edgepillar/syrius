@@ -458,18 +458,35 @@ void main() {
     )).selectedFrom(original, 1), isTrue);
   });
 
-  test('the original controls derive once then select index one once',
+  test('the original controls derive owned members and select index one once',
       () async {
-    final _AddressUi ui = _AddressUi();
-    expect(await ui.driver().selectLabAddress(), <String, Object>{
-      'index': 1, 'members': 2, 'generated': true,
-      'selected': true, 'persisted': true,
-    });
-    expect(ui.taps, <String>['nav_settings', 'settings_addresses',
-      'settings_add_address', 'addresses_select_$_second']);
-    expect(ui.commands.where((Map<String, Object?> value) =>
-      value['action'] != 'observe').every((Map<String, Object?> value) =>
-        value['addressContext'] != null), isTrue);
+    for (final bool settingsCatalog in <bool>[false, true]) {
+      final _AddressUi ui = _AddressUi();
+      final List<String> members = <String>[
+        _first, _second, if (settingsCatalog) ...<String>[_third, _fourth],
+      ];
+      expect(await ui.driver().selectLabAddress(
+        settingsCatalog: settingsCatalog,
+      ), <String, Object>{
+        'index': 1, 'members': members.length, 'generated': true,
+        'selected': true, 'persisted': true,
+      });
+      expect(ui.taps, <String>[
+        'nav_settings', 'settings_addresses',
+        'settings_add_address', 'addresses_select_$_second',
+        if (settingsCatalog) ...<String>[
+          'settings_add_address', 'settings_add_address',
+        ],
+      ]);
+      expect(ui.commands.where((Map<String, Object?> value) =>
+        value['action'] != 'observe').every((Map<String, Object?> value) =>
+          value['addressContext'] != null), isTrue);
+      final WalletAddressContext finalView =
+          WalletAddressContext.parse(ui.context);
+      expect(finalView.members, members);
+      expect(finalView.selected, _second);
+      expect(finalView.saved, _second);
+    }
   });
 
   test('an existing second member is never derived again', () async {

@@ -404,8 +404,11 @@ class WalletRecipe {
   );
 
   /// P09 preparation uses only the original Settings controls on chain 321.
-  /// One missing index is derived once; uncertain writes retire this driver.
-  Future<Map<String, Object>> selectLabAddress() async {
+  /// The Settings catalog also prepares four members in the isolated profile.
+  /// Each derivation must settle before another action is admitted.
+  Future<Map<String, Object>> selectLabAddress({
+    bool settingsCatalog = false,
+  }) async {
     final Map<String, dynamic> start = await _observe();
     _policy(start);
     if (start['walletPresent'] != true ||
@@ -421,12 +424,14 @@ class WalletRecipe {
     _policyNode = start['node'] as String;
     _originalSigningChain = 321;
     WalletAddressContext origin = _addressContext(start);
-    if (!origin.consistent) {
+    if (!origin.consistent || settingsCatalog && origin.members.length > 4) {
       _refuse('wallet-recipe-address-selection-unsettled');
     }
     _addressOrigin = origin;
     bool generated = false;
-    if (origin.members.length < 2 || origin.selected != origin.members[1]) {
+    final bool selectSecond =
+        origin.members.length < 2 || origin.selected != origin.members[1];
+    if (selectSecond || settingsCatalog && origin.members.length < 4) {
       if (start['tab'] != 'settings') {
         await _act('nav_settings');
         await _until((Map<String, dynamic> view) => view['tab'] == 'settings');
@@ -438,41 +443,36 @@ class WalletRecipe {
         (Map<String, dynamic> view) => view['addressesReady'] == true,
       );
       if (origin.members.length == 1) {
-        await _act('settings_add_address');
+        origin = await _deriveInspectionMember(origin);
         generated = true;
-        final Map<String, dynamic> extended = await _until(
+      }
+      if (selectSecond) {
+        await _act('addresses_select_${origin.members[1]}', reveal: true);
+        final Map<String, dynamic> selected = await _until(
           (Map<String, dynamic> view) {
             if (view['addressContext'] == null) return false;
             final WalletAddressContext current = _addressContext(view);
-            if (current.same(origin)) return false;
-            if (!current.derivedFrom(origin)) {
+            if (!current.selectionPending(origin, 1)) {
               _refuse('wallet-recipe-original-address-context-changed');
             }
-            return view['addressesReady'] == true;
+            return current.selectedFrom(origin, 1) &&
+                view['addressesReady'] == true;
           },
         );
-        origin = _addressContext(extended);
+        origin = _addressContext(selected);
         _addressOrigin = origin;
       }
-      await _act('addresses_select_${origin.members[1]}', reveal: true);
-      final Map<String, dynamic> selected = await _until(
-        (Map<String, dynamic> view) {
-          if (view['addressContext'] == null) return false;
-          final WalletAddressContext current = _addressContext(view);
-          if (!current.selectionPending(origin, 1)) {
-            _refuse('wallet-recipe-original-address-context-changed');
-          }
-          return current.selectedFrom(origin, 1) &&
-              view['addressesReady'] == true;
-        },
-      );
-      _addressOrigin = _addressContext(selected);
+      while (settingsCatalog && origin.members.length < 4) {
+        origin = await _deriveInspectionMember(origin);
+        generated = true;
+      }
     }
     final Map<String, dynamic> finalView = await _observe();
     final WalletAddressContext finalContext = _addressContext(finalView);
     _policy(finalView);
     if (!finalContext.same(_addressOrigin!) || !finalContext.consistent ||
         finalContext.members.length < 2 ||
+        settingsCatalog && finalContext.members.length != 4 ||
         finalContext.selected != finalContext.members[1] ||
         finalView['chainId'] != 321 || finalView['signingChainId'] != 321 ||
         finalView['nodeConnected'] != true ||
@@ -485,6 +485,26 @@ class WalletRecipe {
       'generated': generated,
       'selected': true, 'persisted': true,
     };
+  }
+
+  Future<WalletAddressContext> _deriveInspectionMember(
+    WalletAddressContext original,
+  ) async {
+    await _act('settings_add_address');
+    final Map<String, dynamic> extended = await _until(
+      (Map<String, dynamic> view) {
+        if (view['addressContext'] == null) return false;
+        final WalletAddressContext current = _addressContext(view);
+        if (current.same(original)) return false;
+        if (!current.derivedFrom(original)) {
+          _refuse('wallet-recipe-original-address-context-changed');
+        }
+        return view['addressesReady'] == true;
+      },
+    );
+    final WalletAddressContext result = _addressContext(extended);
+    _addressOrigin = result;
+    return result;
   }
 
   /// The first member of the selected original readonly lab profile.

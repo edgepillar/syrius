@@ -320,7 +320,9 @@ Future<void> main() async {
     stage = 'onboarding_logs';
     await instance.requireCleanLogs();
     stage = 'address_selection';
-    final Map<String, Object> selection = await recipe.selectLabAddress();
+    final Map<String, Object> selection = await recipe.selectLabAddress(
+      settingsCatalog: family == 'settings',
+    );
     final String? labRecipient =
         requiresLabRecipient ? recipe.readonlyLabRecipient : null;
     await marker('SYRIUS_INSPECTION_ADDRESS:${jsonEncode(selection)}');
