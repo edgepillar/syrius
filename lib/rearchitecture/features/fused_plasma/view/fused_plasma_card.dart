@@ -21,6 +21,7 @@ class FusedPlasmaCard extends StatefulWidget {
     required this.owner,
     required this.captureSession,
     required this.isCurrent,
+    this.fuseFormOpen = false,
     this.onSubmitted,
     super.key,
   });
@@ -33,6 +34,9 @@ class FusedPlasmaCard extends StatefulWidget {
 
   /// Whether this original page can still authorize preparation.
   final bool Function() isCurrent;
+
+  /// Whether the ledger is shown below the open Fuse form.
+  final bool fuseFormOpen;
 
   /// Requests an owner refresh after at least one exact accepted submission.
   final VoidCallback? onSubmitted;
@@ -106,7 +110,9 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
         final PlasmaCancellationBatch? batch = owner.lastBatch;
         return Panel(
           key: const Key('plasma_fused_list'),
-          headingMinHeight: tokens.panelPlainHeaderHeight,
+          headingMinHeight: owner.selected.isEmpty
+              ? tokens.panelPlainHeaderHeight
+              : tokens.panelHeaderHeight,
           heading: Padding(
             padding: EdgeInsetsDirectional.only(
               start:
@@ -248,6 +254,8 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
     final AppTokens tokens = AppTokens.of(context);
     final double markInset =
         (tokens.plasmaCheckboxWidth - tokens.plasmaCheckboxMarkSize) / 2;
+    final (int amountFlex, int beneficiaryFlex, int expiresFlex) =
+        widget.fuseFormOpen ? (24, 30, 46) : (21, 41, 38);
     return Row(
       children: <Widget>[
         // Align the mark with the cell inset while retaining its hit area.
@@ -266,9 +274,9 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
             ),
           ),
         ),
-        Expanded(flex: 21, child: amount),
-        Expanded(flex: 41, child: beneficiary),
-        Expanded(flex: 38, child: expires),
+        Expanded(flex: amountFlex, child: amount),
+        Expanded(flex: beneficiaryFlex, child: beneficiary),
+        Expanded(flex: expiresFlex, child: expires),
         action,
       ],
     );

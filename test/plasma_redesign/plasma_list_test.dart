@@ -12,7 +12,11 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/fros
 import '../helpers/hydrated_bloc.dart';
 import 'support.dart';
 
-Widget _host(PlasmaFixture fixture, ThemeData theme) => MaterialApp(
+Widget _host(
+  PlasmaFixture fixture,
+  ThemeData theme, {
+  required bool fuseFormOpen,
+}) => MaterialApp(
   theme: theme.copyWith(
     visualDensity: VisualDensity.compact,
     materialTapTargetSize: MaterialTapTargetSize.padded,
@@ -23,12 +27,13 @@ Widget _host(PlasmaFixture fixture, ThemeData theme) => MaterialApp(
   home: Scaffold(
     body: Center(
       child: SizedBox(
-        width: 1000,
+        width: 852,
         height: 650,
         child: FusedPlasmaCard(
           owner: fixture.owner,
           captureSession: fixture.session,
           isCurrent: () => fixture.visible,
+          fuseFormOpen: fuseFormOpen,
         ),
       ),
     ),
@@ -40,6 +45,7 @@ Future<void> _prepare(
   PlasmaFixture fixture,
   ThemeData theme, {
   ValueListenable<bool>? pageVisible,
+  bool fuseFormOpen = false,
 }) async {
   tester.view.physicalSize = const Size(1280, 780);
   tester.view.devicePixelRatio = 1;
@@ -49,7 +55,7 @@ Future<void> _prepare(
     fixture.loadAll,
     operation: 'Plasma fixture load',
   );
-  final Widget host = _host(fixture, theme);
+  final Widget host = _host(fixture, theme, fuseFormOpen: fuseFormOpen);
   await tester.pumpWidget(
     pageVisible == null
         ? host
@@ -198,7 +204,7 @@ void main() {
 
   for (final bool dark in <bool>[false, true]) {
     testWidgets(
-      'strict expiry controls in ${dark ? 'dark' : 'light'}',
+      'ledger alignment and expiry controls in ${dark ? 'dark' : 'light'}',
       (WidgetTester tester) async {
         await _withFixture(tester, (PlasmaFixture fixture) async {
           fixture.rows[1].expirationHeight = 11;
@@ -206,6 +212,7 @@ void main() {
             tester,
             fixture,
             dark ? AppTheme.darkTheme : AppTheme.lightTheme,
+            fuseFormOpen: dark,
           );
           expect(find.byKey(const Key('plasma_fused_count')), findsOneWidget);
           final Finder eligible = find.byKey(
@@ -228,6 +235,16 @@ void main() {
             tester.getTopLeft(find.text('Fused')).dx -
                 tester.getTopLeft(list).dx,
             16,
+          );
+          final double left = tester.getTopLeft(list).dx;
+          expect(tester.getTopLeft(find.text('AMOUNT')).dx - left, 64);
+          expect(
+            tester.getTopLeft(find.text('BENEFICIARY')).dx - left,
+            dark ? 232 : 211,
+          );
+          expect(
+            tester.getTopLeft(find.text('EXPIRES')).dx - left,
+            dark ? 442 : 498,
           );
           for (final int id in <int>[1, 2]) {
             final Finder row = find.byKey(
@@ -267,6 +284,10 @@ void main() {
             findsOneWidget,
           );
           expect(find.text('1 selected'), findsOneWidget);
+          expect(
+            tester.getTopLeft(divider).dy - tester.getTopLeft(list).dy,
+            48,
+          );
           expect(
             tester
                 .getSize(find.byKey(const Key('plasma_cancel_selected')))
