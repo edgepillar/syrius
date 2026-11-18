@@ -6325,7 +6325,7 @@ abstract class AppLocalizations {
   /// No description provided for @walletSettingsCacheHint.
   ///
   /// In en, this message translates to:
-  /// **'Clears network cache and closes the app'**
+  /// **'Clears network cache and closes Syrius. Labels, contacts and favorites stay.'**
   String get walletSettingsCacheHint;
 
   /// No description provided for @securitySettingsVaultExportUncertain.
