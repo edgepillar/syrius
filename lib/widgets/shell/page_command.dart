@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 
 /// Addresses existing page actions without building a second transaction owner.
 class PageCommandController<T extends Object> {
@@ -68,7 +69,7 @@ class _PageCommandActionState<T extends Object>
   bool _run() {
     if (!mounted ||
         !TickerMode.valuesOf(context).enabled ||
-        !(ModalRoute.of(context)?.isCurrent ?? true)) {
+        !ShellPaneNavigation.isCurrentRoute(context)) {
       return false;
     }
     widget.onInvoke(context);

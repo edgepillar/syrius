@@ -19,6 +19,7 @@ class CreatePillarStepperPage extends StatelessWidget {
     this.accountBlockUtils,
     this.client,
     this.sender,
+    this.onViewPillars,
     super.key,
   });
 
@@ -30,6 +31,9 @@ class CreatePillarStepperPage extends StatelessWidget {
 
   /// A route can retain the shell's sender without relying on route ancestry.
   final SendTransactionBloc? sender;
+
+  /// Returns through the original pane route when the shell owns the form.
+  final VoidCallback? onViewPillars;
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +73,10 @@ class CreatePillarStepperPage extends StatelessWidget {
                 ),
               ),
             ],
-            child: CreatePillarStepperView(confirmation: confirmation),
+            child: CreatePillarStepperView(
+              confirmation: confirmation,
+              onViewPillars: onViewPillars,
+            ),
           ),
     );
   }

@@ -462,7 +462,8 @@ void main() {
     ) async {
       _prepare(tester);
       const Color outside = Color(0xFF9B743D);
-      for (final Widget field in const <Widget>[EntryField(), HeroField.home()]) {
+      const List<Widget> fields = <Widget>[EntryField(), HeroField.home()];
+      for (final Widget field in fields) {
         await tester.pumpWidget(
           _host(
             child: RepaintBoundary(

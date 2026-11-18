@@ -18,7 +18,7 @@ wait --key pillar_znn_next_button --ready --timeout 30
 tap --key pillar_znn_next_button
 wait --key pillar_name_field --timeout 30
 assert --key pillar_name_field
-# after-capture: tap Close --kind button --exact
+# after-capture: tap --key pillar_create_close --kind button --exact
 # after-capture: wait --key pillar_name_field --gone --timeout 10
 # after-capture: wait --key nodes_pillar_owner_close --ready --timeout 10
 # after-capture: tap --key nodes_pillar_owner_close

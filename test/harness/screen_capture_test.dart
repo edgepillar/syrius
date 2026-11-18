@@ -552,7 +552,7 @@ void main() {
           ]));
       expect(spawn.afterCapture.map((ScreenLine line) => line.words.join(' ')),
           containsAllInOrder(<String>[
-            'tap Close --kind button --exact',
+            'tap --key pillar_create_close --kind button --exact',
             'tap --key nodes_pillar_owner_close',
             'wait --key nodes_pillar_owner_close --gone --timeout 10',
             'goto dashboard',

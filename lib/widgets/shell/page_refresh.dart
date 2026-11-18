@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 
 /// Runs the read refreshes registered by one mounted page.
 ///
@@ -97,7 +98,7 @@ class _PageRefreshActionState extends State<PageRefreshAction> {
     if (mounted &&
         widget.enabled &&
         TickerMode.valuesOf(context).enabled &&
-        (ModalRoute.of(context)?.isCurrent ?? true)) {
+        ShellPaneNavigation.isCurrentRoute(context)) {
       widget.onRefresh();
     }
   }

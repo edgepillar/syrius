@@ -3,15 +3,27 @@ import 'package:material_ui/material_ui.dart';
 /// Keeps a destination's routes inside its pane of the current shell.
 class ShellPaneNavigation extends StatefulWidget {
   /// Hosts the permanent destination and its local routes.
-  const ShellPaneNavigation({required this.child, super.key});
+  const ShellPaneNavigation({
+    required this.child,
+    this.keepTickersUnderDialogs = false,
+    super.key,
+  });
 
   /// The permanent route beneath this pane's transient routes.
   final Widget child;
+
+  /// Keeps the original destination's confirmation owner live under dialogs.
+  final bool keepTickersUnderDialogs;
 
   /// The outer route stays authoritative while a local route is current.
   static ModalRoute<dynamic>? hostRouteOf(BuildContext context) => context
       .dependOnInheritedWidgetOfExactType<_ShellPaneHost>()
       ?.route;
+
+  /// Checks the local route and the shell route that can cover it.
+  static bool isCurrentRoute(BuildContext context) =>
+      (ModalRoute.of(context)?.isCurrent ?? true) &&
+      (hostRouteOf(context)?.isCurrent ?? true);
 
   @override
   State<ShellPaneNavigation> createState() => _ShellPaneNavigationState();
@@ -40,7 +52,7 @@ class _ShellPaneNavigationState extends State<ShellPaneNavigation> {
       child: _ShellPaneHost(
         route: host,
         child: TickerMode(
-          enabled: visible,
+          enabled: visible || widget.keepTickersUnderDialogs,
           child: HeroControllerScope.none(
             child: Navigator(
               key: _navigator,

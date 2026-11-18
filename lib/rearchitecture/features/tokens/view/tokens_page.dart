@@ -5,7 +5,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/all_tokens/all_tokens.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/create_token_stepper.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_create_pane.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/widgets/amount_text.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/send_transaction/send_transaction_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_balance/token_balance.dart';
@@ -24,6 +23,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_refresh.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_detail_pane.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -268,7 +268,10 @@ class _TokensPageState extends State<_TokenSourcePage> {
             if (canPresent()) navigator.pop<void>();
           }
 
-          return TokenCreatePane(
+          return ShellDetailPane(
+            keyPrefix: 'token_create',
+            breadcrumb: context.l10n.tokens,
+            title: context.l10n.createTokenOpenLabel,
             onClose: close,
             child: CreateTokenStepperPage(
               sender: sender,

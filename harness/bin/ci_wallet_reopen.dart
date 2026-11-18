@@ -941,7 +941,7 @@ const Set<String> _spawnLines = <String>{
   'tap --key pillar_znn_next_button',
   'wait --key pillar_name_field --timeout 30',
   'assert --key pillar_name_field',
-  'tap Close --kind button --exact',
+  'tap --key pillar_create_close --kind button --exact',
   'wait --key pillar_name_field --gone --timeout 10',
   'wait --key nodes_pillar_owner_close --ready --timeout 10',
   'tap --key nodes_pillar_owner_close',

@@ -19,6 +19,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_action_context.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_command.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// The two views of the single Nodes destination.
@@ -97,12 +98,15 @@ class NodesTabChild extends StatelessWidget {
       create: (_) =>
           PillarsBloc(zenon: zenon!)..add(const InfiniteListRequested()),
       child: NodesDelegationScope(
-        child: _bindCommands(
-          _NodesOwnerContent(
-            initialTab: initialTab,
-            sentinelReaders: context.read<NodesSentinelReaders?>(),
-            onStepperNotificationSeeMorePressed:
-                onStepperNotificationSeeMorePressed,
+        child: ShellPaneNavigation(
+          keepTickersUnderDialogs: true,
+          child: _bindCommands(
+            _NodesOwnerContent(
+              initialTab: initialTab,
+              sentinelReaders: context.read<NodesSentinelReaders?>(),
+              onStepperNotificationSeeMorePressed:
+                  onStepperNotificationSeeMorePressed,
+            ),
           ),
         ),
       ),

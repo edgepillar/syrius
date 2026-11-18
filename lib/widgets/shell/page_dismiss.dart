@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 
 /// The open page layers that Escape can close without leaving the wallet.
 class PageDismissController {
@@ -107,7 +108,7 @@ class _PageDismissActionState extends State<PageDismissAction> {
     if (!mounted ||
         !widget.open ||
         !TickerMode.valuesOf(context).enabled ||
-        !(ModalRoute.of(context)?.isCurrent ?? true)) {
+        !ShellPaneNavigation.isCurrentRoute(context)) {
       return false;
     }
     widget.onDismiss();

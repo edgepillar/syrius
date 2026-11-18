@@ -16,6 +16,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_action_context.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_detail_pane.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class _OwnerAuthority {
@@ -265,7 +267,10 @@ class _PillarOwnerCardState extends State<PillarOwnerCard> {
           final NodeOwnerPublisher publisher = _publisher(authority);
           _stepperOpen = true;
           try {
-            await Navigator.of(context).push<void>(
+            await Navigator.of(
+              context,
+              rootNavigator: ShellPaneNavigation.hostRouteOf(context) != null,
+            ).push<void>(
               MaterialPageRoute<void>(
                 builder: (_) => StepperScreen(
                   stepper: UpdatePillarStepperPage(
@@ -336,12 +341,16 @@ class _PillarOwnerCardState extends State<PillarOwnerCard> {
   }
 
   Future<void> _spawn(PillarsByOwnerBloc reader, String address) async {
+    if (!mounted || !_visible || !(ModalRoute.of(context)?.isCurrent ?? true)) {
+      return;
+    }
+    final ModalRoute<dynamic>? host = ShellPaneNavigation.hostRouteOf(context);
     final FetchState<List<PillarInfo>> state = reader.state;
     final Object? read = reader.readOwner;
     final WalletActionContext? owner = WalletActionContext.capture(address);
     final SendTransactionBloc sender = context.read<SendTransactionBloc>();
     if (_deciding ||
-        !_visible ||
+        !(host?.isCurrent ?? true) ||
         read == null ||
         owner == null ||
         sender.busy.value ||
@@ -352,10 +361,13 @@ class _PillarOwnerCardState extends State<PillarOwnerCard> {
     }
     final int epoch = _epoch;
     final Object? page = kCurrentPage;
+    final NavigatorState navigator = Navigator.of(context);
+    late final MaterialPageRoute<void> route;
     bool current() =>
         mounted &&
         epoch == _epoch &&
         (_visible || _stepperOpen) &&
+        (host == null || route.isCurrent) &&
         page == kCurrentPage &&
         owner.isCurrent &&
         reader.ownsRead(read, address);
@@ -370,21 +382,40 @@ class _PillarOwnerCardState extends State<PillarOwnerCard> {
         return current() && rows.isEmpty;
       },
     );
+    void close() {
+      if (navigator.mounted && route.isCurrent && (host?.isCurrent ?? true)) {
+        navigator.pop<void>();
+      }
+    }
+
+    final VoidCallback showNotification =
+        widget.onStepperNotificationSeeMorePressed;
+    route = MaterialPageRoute<void>(
+      builder: (BuildContext context) {
+        final Widget stepper = CreatePillarStepperPage(
+          accountBlockUtils: publisher,
+          client: owner.client,
+          onViewPillars: host == null ? null : close,
+        );
+        if (host == null) {
+          return StepperScreen(
+            stepper: stepper,
+            onStepperNotificationSeeMorePressed: showNotification,
+          );
+        }
+        return ShellDetailPane(
+          keyPrefix: 'pillar_create',
+          breadcrumb: context.l10n.railNodes,
+          title: context.l10n.createPillarTitle,
+          onClose: close,
+          child: stepper,
+        );
+      },
+    );
     setState(() => _deciding = true);
     _stepperOpen = true;
     try {
-      await Navigator.of(context).push<void>(
-        MaterialPageRoute<void>(
-          builder: (_) => StepperScreen(
-            stepper: CreatePillarStepperPage(
-              accountBlockUtils: publisher,
-              client: owner.client,
-            ),
-            onStepperNotificationSeeMorePressed:
-                widget.onStepperNotificationSeeMorePressed,
-          ),
-        ),
-      );
+      await navigator.push<void>(route);
     } finally {
       _stepperOpen = false;
       if (mounted) {

@@ -34,10 +34,17 @@ enum _Step {
 /// allowed to deposit totally.
 class CreatePillarStepperView extends StatefulWidget {
   /// {@macro default_constructor}
-  const CreatePillarStepperView({this.confirmation, super.key});
+  const CreatePillarStepperView({
+    this.confirmation,
+    this.onViewPillars,
+    super.key,
+  });
 
   /// A page-owned confirmation survives every retained step and balance read.
   final RegistrationConfirmation? confirmation;
+
+  /// The original pane owner closes its own route from the receipt.
+  final VoidCallback? onViewPillars;
 
   @override
   State createState() {
@@ -134,7 +141,8 @@ class _MainPillarState extends State<CreatePillarStepperView> {
               receipt: PillarRegisteredSuccess(
                 confirmation: _confirmation,
                 onRegisterAnotherPressed: _onDeployAnotherPillarButtonPressed,
-                onViewPillarsPressed: () => Navigator.pop(context),
+                onViewPillarsPressed:
+                    widget.onViewPillars ?? () => Navigator.pop(context),
               ),
             );
           },

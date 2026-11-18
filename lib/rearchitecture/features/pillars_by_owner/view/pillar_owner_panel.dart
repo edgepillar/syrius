@@ -15,6 +15,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 
 /// Replaces only the questions in an isolated lifecycle test.
 typedef PillarOwnerConfirmation =
@@ -223,7 +224,10 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
         finalConfirmation: finalConfirmation,
       );
     }
-    final NavigatorState navigator = Navigator.of(context);
+    final NavigatorState navigator = Navigator.of(
+      context,
+      rootNavigator: ShellPaneNavigation.hostRouteOf(context) != null,
+    );
     final CapturedThemes themes = InheritedTheme.capture(
       from: context,
       to: navigator.context,

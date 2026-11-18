@@ -4,19 +4,31 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_dismiss.dart';
 
-/// The shell-contained header and surface for the existing token form.
-class TokenCreatePane extends StatelessWidget {
-  /// The route owner supplies dismissal and the already-owned form.
-  const TokenCreatePane({
+/// A detail surface that keeps the current shell rail and status visible.
+class ShellDetailPane extends StatelessWidget {
+  /// Supplies the original route's title, return controls and content.
+  const ShellDetailPane({
+    required this.keyPrefix,
+    required this.breadcrumb,
+    required this.title,
     required this.onClose,
     required this.child,
     super.key,
   });
 
-  /// Returns to the ledger beneath the original pane route.
+  /// Identifies the surface and its two controls within the destination.
+  final String keyPrefix;
+
+  /// The name of the destination beneath this pane.
+  final String breadcrumb;
+
+  /// The heading of the presented pane.
+  final String title;
+
+  /// Returns to the route beneath the original pane.
   final VoidCallback onClose;
 
-  /// The original form and receipt under one registration owner.
+  /// The content under the original route owner.
   final Widget child;
 
   @override
@@ -26,7 +38,7 @@ class TokenCreatePane extends StatelessWidget {
       open: true,
       onDismiss: onClose,
       child: Material(
-        key: const Key('token_create_pane'),
+        key: ValueKey<String>('${keyPrefix}_pane'),
         color: tokens.card,
         borderRadius: BorderRadius.circular(tokens.cardRadius),
         clipBehavior: Clip.antiAlias,
@@ -40,12 +52,12 @@ class TokenCreatePane extends StatelessWidget {
                 child: Row(
                   children: <Widget>[
                     TextButton.icon(
-                      key: const Key('token_create_breadcrumb'),
+                      key: ValueKey<String>('${keyPrefix}_breadcrumb'),
                       style: quietButtonStyle(context).copyWith(
                         minimumSize: WidgetStatePropertyAll<Size>(
                           Size(0, tokens.smallButtonHeight),
                         ),
-                        padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+                        padding: const WidgetStatePropertyAll<EdgeInsets>(
                           EdgeInsets.symmetric(horizontal: 10),
                         ),
                         textStyle: WidgetStatePropertyAll<TextStyle>(
@@ -59,17 +71,17 @@ class TokenCreatePane extends StatelessWidget {
                             : Icons.chevron_left,
                         size: 16,
                       ),
-                      label: Text(context.l10n.tokens),
+                      label: Text(breadcrumb),
                     ),
                     SizedBox(width: tokens.inlineGap),
                     Expanded(
                       child: Text(
-                        context.l10n.createTokenOpenLabel,
+                        title,
                         style: tokens.headingText,
                       ),
                     ),
                     IconButton(
-                      key: const Key('token_create_close'),
+                      key: ValueKey<String>('${keyPrefix}_close'),
                       tooltip: context.l10n.commonClose,
                       iconSize: 16,
                       color: tokens.faint,

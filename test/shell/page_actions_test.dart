@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -9,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_command.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_dismiss.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_refresh.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 
 Widget _app(
   Widget child, {
@@ -52,8 +55,14 @@ void main() {
     ) async {
       final PageCommandController<String> target =
           PageCommandController<String>();
+      final PageRefreshController refresh = PageRefreshController();
+      final PageDismissController dismiss = PageDismissController();
       addTearDown(target.dispose);
+      addTearDown(refresh.dispose);
+      addTearDown(dismiss.dispose);
       int calls = 0;
+      int reads = 0;
+      int closes = 0;
       bool visible = true;
       late StateSetter update;
       expect(target.invoke('delegate'), isFalse);
@@ -64,24 +73,62 @@ void main() {
               update = setState;
               return TickerMode(
                 enabled: visible,
-                child: PageCommandAction<String>(
-                  controller: target,
-                  command: 'delegate',
-                  onInvoke: (_) => calls++,
-                  child: const Text('Page'),
+                child: ShellPaneNavigation(
+                  keepTickersUnderDialogs: true,
+                  child: PageCommandAction<String>(
+                    controller: target,
+                    command: 'delegate',
+                    onInvoke: (_) => calls++,
+                    child: PageRefreshAction(
+                      onRefresh: () => reads++,
+                      child: PageDismissAction(
+                        open: true,
+                        onDismiss: () => closes++,
+                        child: const Text('Page'),
+                      ),
+                    ),
+                  ),
                 ),
               );
             },
           ),
+          refresh: refresh,
+          dismiss: dismiss,
         ),
       );
       expect(target.invoke('delegate'), isTrue);
       expect(calls, 1);
       expect(target.invoke('unknown'), isFalse);
+      final BuildContext page = tester.element(find.text('Page'));
+      final NavigatorState root = Navigator.of(page, rootNavigator: true);
+      unawaited(
+        root.push<void>(
+          DialogRoute<void>(
+            context: page,
+            builder: (_) => const AlertDialog(content: Text('Confirm')),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(TickerMode.valuesOf(page).enabled, isTrue);
+      expect(target.invoke('delegate'), isFalse);
+      refresh.refresh();
+      expect(reads, 0);
+      expect(dismiss.dismissLatest(), isFalse);
+      expect(closes, 0);
+      expect(calls, 1);
+      root.pop<void>();
+      await tester.pumpAndSettle();
+      expect(target.invoke('delegate'), isTrue);
+      expect(calls, 2);
+      refresh.refresh();
+      expect(reads, 1);
+      expect(dismiss.dismissLatest(), isTrue);
+      expect(closes, 1);
       update(() => visible = false);
       await tester.pump();
       expect(target.invoke('delegate'), isFalse);
-      expect(calls, 1);
+      expect(calls, 2);
       await tester.pumpWidget(const SizedBox.shrink());
       expect(target.invoke('delegate'), isFalse);
     },
