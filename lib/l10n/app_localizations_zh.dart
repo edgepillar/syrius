@@ -2968,7 +2968,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get zapNodeNotice =>
-      'Your node can steer the pick. A hardware wallet confirms each block.';
+      'Picked from what your node reports, so the node can steer it. Two blocks, two confirmations on a hardware wallet.';
 
   @override
   String zapAmountLabel(String symbol) {

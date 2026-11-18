@@ -529,7 +529,7 @@ class _SendPopulatedState extends State<SendPopulated>
                     _buildLastSent(),
                   ],
                 ],
-                SizedBox(height: tokens.sendActionGap),
+                SizedBox(height: tokens.transferActionGap),
                 KeyedSubtree(
                   key: const Key('send_submit_button'),
                   child: SendButton(

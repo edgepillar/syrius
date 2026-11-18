@@ -4903,7 +4903,7 @@ abstract class AppLocalizations {
   /// No description provided for @zapNodeNotice.
   ///
   /// In en, this message translates to:
-  /// **'Your node can steer the pick. A hardware wallet confirms each block.'**
+  /// **'Picked from what your node reports, so the node can steer it. Two blocks, two confirmations on a hardware wallet.'**
   String get zapNodeNotice;
 
   /// No description provided for @zapAmountLabel.
