@@ -199,14 +199,16 @@ class AppWindowFrameState extends State<AppWindowFrame> {
             Positioned.fill(
               child: IgnorePointer(
                 child: ExcludeSemantics(
-                  child: CustomPaint(
-                    key: const ValueKey<String>('window-caption-backdrop'),
-                    painter: launch
-                        ? null
-                        : _AppWindowCaptionPainter(
-                            frame: this,
-                            background: tokens.windowCaptionBackground,
-                          ),
+                  child: RepaintBoundary(
+                    child: CustomPaint(
+                      key: const ValueKey<String>('window-caption-backdrop'),
+                      painter: launch
+                          ? null
+                          : _AppWindowCaptionPainter(
+                              frame: this,
+                              background: tokens.windowCaptionBackground,
+                            ),
+                    ),
                   ),
                 ),
               ),
