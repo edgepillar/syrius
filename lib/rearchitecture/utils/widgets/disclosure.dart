@@ -114,6 +114,7 @@ class Disclosure extends StatefulWidget {
     required this.child,
     this.count,
     this.summary,
+    this.summaryColumnPercent,
     this.storeKey,
     this.initiallyOpen = false,
     this.keepAlive = false,
@@ -124,7 +125,11 @@ class Disclosure extends StatefulWidget {
     this.headerMinHeight = _kHeaderHeight,
     this.titleStyle,
     super.key,
-  });
+  }) : assert(
+         summaryColumnPercent == null ||
+             (summaryColumnPercent > 0 && summaryColumnPercent < 100),
+         'The summary column must start inside the header.',
+       );
 
   /// Creates a body with no header, opened and closed only by [controller]:
   /// the form under a strip whose own button is the toggle.
@@ -140,6 +145,7 @@ class Disclosure extends StatefulWidget {
   }) : title = null,
        count = null,
        summary = null,
+       summaryColumnPercent = null,
        keyPrefix = null,
        titleStyle = null,
        headerPadding = _kHeaderPadding;
@@ -153,6 +159,10 @@ class Disclosure extends StatefulWidget {
   /// What the body would say, in a few words, dim at the end of the header
   /// before the chevron.
   final String? summary;
+
+  /// When set, the summary starts at this percentage of the header before
+  /// the chevron. Rows in a table can share the same aligned column.
+  final int? summaryColumnPercent;
 
   /// The body.
   final Widget child;
@@ -358,6 +368,7 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
               padding: widget.headerPadding,
               count: widget.count,
               summary: widget.summary,
+              summaryColumnPercent: widget.summaryColumnPercent,
               turned: _turned,
               open: _open,
               onToggle: () => _setOpen(!_open),
@@ -426,6 +437,7 @@ class _DisclosureHeader extends StatefulWidget {
     required this.padding,
     required this.count,
     required this.summary,
+    required this.summaryColumnPercent,
     required this.turned,
     required this.open,
     required this.onToggle,
@@ -438,6 +450,7 @@ class _DisclosureHeader extends StatefulWidget {
   final TextStyle? titleStyle;
   final int? count;
   final String? summary;
+  final int? summaryColumnPercent;
 
   /// 0 closed, 1 open: what the chevron turns with.
   final Animation<double> turned;
@@ -460,6 +473,7 @@ class _DisclosureHeaderState extends State<_DisclosureHeader> {
     final AppTokens tokens = AppTokens.of(context);
     final int? count = widget.count;
     final String? summary = widget.summary;
+    final int? summaryColumnPercent = widget.summaryColumnPercent;
 
     final Widget heading = Row(
       mainAxisSize: MainAxisSize.min,
@@ -483,6 +497,19 @@ class _DisclosureHeaderState extends State<_DisclosureHeader> {
         ],
       ],
     );
+
+    final Widget? summaryText = summary == null
+        ? null
+        : Padding(
+            padding: EdgeInsetsDirectional.only(start: tokens.cardGap),
+            child: Text(
+              summary,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              // Match the secondary text used beside the header chevron.
+              style: theme.textTheme.titleMedium!.copyWith(fontSize: 12.5),
+            ),
+          );
 
     // The ink needs a Material to draw on, and the disclosure does not know
     // whether the surface it was put in is one.
@@ -525,25 +552,21 @@ class _DisclosureHeaderState extends State<_DisclosureHeader> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          Flexible(child: heading),
-                          if (summary != null)
-                            Flexible(
-                              child: Padding(
-                                padding: EdgeInsetsDirectional.only(
-                                  start: tokens.cardGap,
-                                ),
-                                child: Text(
-                                  summary,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  // The theme's secondary text: a step
-                                  // stronger than faint, the chevron's.
-                                  style: theme.textTheme.titleMedium!.copyWith(
-                                    fontSize: 12.5,
-                                  ),
-                                ),
-                              ),
+                          if (summaryColumnPercent == null ||
+                              summaryText == null) ...<Widget>[
+                            Flexible(child: heading),
+                            if (summaryText != null)
+                              Flexible(child: summaryText),
+                          ] else ...<Widget>[
+                            Expanded(
+                              flex: summaryColumnPercent,
+                              child: heading,
                             ),
+                            Expanded(
+                              flex: 100 - summaryColumnPercent,
+                              child: summaryText,
+                            ),
+                          ],
                         ],
                       ),
                     ),

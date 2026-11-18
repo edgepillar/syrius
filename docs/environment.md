@@ -52,6 +52,12 @@ actor exits. The original windows have 58 and 1,357 frame-number gaps.
 The 16 ms comparison fails on raster and distinct-frame durations. The
 longest total spans are 424.904 ms for the redesign and 257.034 ms for P06.
 
+The [Lock foreground timing reader](https://github.com/edgepillar/syrius/actions/runs/44393857170/job/135118400747)
+verified 84 redesigned and 420 P06 frames at `e0aba266` with five normal
+actor exits. The windows have 36 and 482 frame-number gaps. The 16 ms
+raster and distinct-frame comparisons fail. The longest total spans are
+315.329 ms for the redesign and 310.816 ms for P06.
+
 The private 28f9c121 browser report shows 94 reference, actual and difference
 triplets. All 94 difference PNGs decoded at 1280 by 780 with the standard
 maximum-channel RGBA palette. On-demand encoding reused the verified archives

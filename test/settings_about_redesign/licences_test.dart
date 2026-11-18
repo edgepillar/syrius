@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -43,7 +44,9 @@ void main() {
             'Every word stays available without truncating the legal text.';
         const String secondText =
             'A second independent notice for the same package.';
+        final String verifiedNotice = File('LICENSE').readAsStringSync();
         int reads = 0;
+        int verifiedReads = 0;
         await tester.pumpWidget(
           aboutHost(
             Licences(
@@ -77,6 +80,15 @@ void main() {
                     'Complete raw notice\ntext continues.',
                     () => reads++,
                   ),
+                  _ObservedRawNotice(
+                    <String>['verified-a', 'verified-b', 'mixed'],
+                    '\n  ${verifiedNotice.replaceAll('\n', '\r\n')}  ',
+                    () => verifiedReads++,
+                  ),
+                  LicenseEntryWithLineBreaks(
+                    const <String>['mixed', 'unverified'],
+                    '$verifiedNotice\nA synthetic condition changes the text.',
+                  ),
                 ],
               ),
             ),
@@ -91,7 +103,23 @@ void main() {
         expect(find.text('alpha'), findsOneWidget);
         expect(find.text('zeta'), findsOneWidget);
         expect(find.text('Fixture Font'), findsOneWidget);
-        expect(find.text('MIT'), findsNothing);
+        final Finder known = find.text('MIT');
+        expect(known, findsNWidgets(2));
+        expect(
+          tester.getRect(known.first).left,
+          tester.getRect(known.last).left,
+        );
+        for (final String name in <String>['mixed', 'unverified']) {
+          expect(find.text(name), findsOneWidget);
+          expect(
+            find.descendant(
+              of: find.byKey(ValueKey<String>('about_licence_$name')),
+              matching: known,
+            ),
+            findsNothing,
+          );
+        }
+        expect(verifiedReads, 0);
         expect(reads, 0);
         await _open(tester, 'alpha');
         expect(reads, 1);

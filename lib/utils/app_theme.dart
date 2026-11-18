@@ -1056,6 +1056,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// A package disclosure keeps the reference table row's minimum.
   double get aboutLicenceRowHeight => 40;
 
+  /// The reference licence type column in the full registry.
+  int get aboutLicenceSummaryPercent => 58;
+
+  /// The reference type column for the two rows above Originals.
+  int get aboutOriginalsLicenceSummaryPercent => 43;
+
   /// Two genuine final rows and the existing end hook precede Originals.
   double get aboutOriginalsLicencesHeight =>
       2 * aboutLicenceRowHeight +

@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:cryptography/dart.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hex/hex.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
@@ -9,6 +12,40 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_wid
 
 /// An injectable registry stream, with no package or licence fixture default.
 typedef AboutLicenceLoader = Stream<LicenseEntry> Function();
+
+// Reviewed registry notices keyed by their complete whitespace-normalized
+// text. A package name, a heading or a partial notice gives no identifier.
+const Map<String, String> _reviewedNoticeTypes = <String, String>{
+  // window_manager, xml, yaml, Syrius, znn_ledger_dart and znn_sdk_dart.
+  'f6fd12b9fe4c2537d870eb62dd7838f2f30d190d362e13c982d1693c446a4602': 'MIT',
+  '63ed493e404edc9d6140f12a56495b40a083c108b3d6d090bc246d34795fc082': 'MIT',
+  '3de266935886bc204b4dc4b12e511bcecd7fd7aff3b6b44ed08b87d7a5d8f9e9': 'MIT',
+  '7a1c6b350f199a0774b3244ec6616af832569ad25d7e8eeb12a944b33d31899f': 'MIT',
+  '441207d57c5ad42783aa1a1d0e4d59f7af08d332e3a03ddd2ebbcdf1495f3e53': 'MIT',
+  'ee351ea1c070a33d69c3c6e3354606aa765c73e3dbbdf5bbf2804d99d2b8bc2f': 'MIT',
+  // win32, win32_registry, xdg_directories, yaml_writer and zxing2.
+  '4b526277a9e26ebb309f6f2ca366c02cc339508a0a5da0b4e7b118d63575ac5f':
+      'BSD-3-Clause',
+  'ee5cbcfafc145501b2164419c09881dd6855fb26a946e607846adb86355e8128':
+      'BSD-3-Clause',
+  'b2dfea7ab0058a675a30e3bb36d3a7747546565c370128d10be6d883e117a3a2':
+      'BSD-3-Clause',
+  'd52acfb27ee4838e55fee65254d4ad6f10b24538ae58298645e2fb8cb72cbaf9':
+      'BSD-3-Clause',
+  '1f478d50351c883e515dc1ba2df28b34b6559345e989f7ceb5a4da2ff42fd33e':
+      'BSD-3-Clause',
+  // x25519 and yapf_diff.
+  '0ffddef9e48f8a09aed5caf2d44f7ba1c1be2d9b8e0a6f693b1635b2d5566645':
+      'Apache-2.0',
+  '59d8f0ba87ad9a2f1a431123c8d16646e5b89ba53653e818f16d136d77263c99':
+      'Apache-2.0',
+  // JetBrains Mono, Noto Sans and Space Grotesk.
+  'cf0997ace7773167cefd32109d6b8e652e364f16f114e613b777813556a1b507': 'OFL-1.1',
+  'f52331818a1275859e8895c008e7afc4a6030b3c26f37fe1d467c036fa6e4190': 'OFL-1.1',
+  '630f3d819cb270483178bad6ae05f5a4975eebc5e3ccdc211c833f607bde7095': 'OFL-1.1',
+};
+
+final RegExp _noticeWhitespace = RegExp(r'\s+');
 
 /// The actual licence registry, with one row per package or bundled font.
 class Licences extends StatefulWidget {
@@ -312,6 +349,9 @@ class _LicencesState extends State<Licences> {
             return _LicenceRow(
               key: ValueKey<String>('about_licence_${package.name}'),
               package: package,
+              summaryColumnPercent: widget.preserveEndOnReveal
+                  ? tokens.aboutOriginalsLicenceSummaryPercent
+                  : tokens.aboutLicenceSummaryPercent,
               onReadFailure: () {
                 if (!mounted || !identical(_packages, packages)) return;
                 setState(() {
@@ -339,6 +379,25 @@ class _LicenceText {
 
   LicenseEntryWithLineBreaks? _original;
   List<LicenseParagraph>? _paragraphs;
+  String? _identifier;
+  bool _identifierRead = false;
+
+  String? get identifier {
+    if (!_identifierRead) {
+      _identifierRead = true;
+      final String? text = _original?.text;
+      if (text != null && text.length <= 16 * 1024) {
+        final List<int> normalized = utf8.encode(
+          text.trim().replaceAll(_noticeWhitespace, ' '),
+        );
+        final String digest = HEX.encode(
+          const DartSha256().hashSync(normalized).bytes,
+        );
+        _identifier = _reviewedNoticeTypes[digest];
+      }
+    }
+    return _identifier;
+  }
 
   List<LicenseParagraph> get paragraphs {
     final List<LicenseParagraph> result = _paragraphs ??=
@@ -354,6 +413,16 @@ class _PackageLicence {
   final String name;
   final List<_LicenceText> entries;
   List<List<LicenseParagraph>>? _paragraphs;
+  late final String? identifier = _readIdentifier();
+
+  String? _readIdentifier() {
+    final Set<String?> values = <String?>{
+      for (final _LicenceText entry in entries) entry.identifier,
+    };
+    if (values.contains(null)) return null;
+    final List<String> labels = values.whereType<String>().toList()..sort();
+    return labels.join(', ');
+  }
 
   List<List<LicenseParagraph>> get paragraphs =>
       _paragraphs ?? const <List<LicenseParagraph>>[];
@@ -368,11 +437,13 @@ class _PackageLicence {
 class _LicenceRow extends StatelessWidget {
   const _LicenceRow({
     required this.package,
+    required this.summaryColumnPercent,
     required this.onReadFailure,
     super.key,
   });
 
   final _PackageLicence package;
+  final int summaryColumnPercent;
   final VoidCallback onReadFailure;
 
   @override
@@ -391,6 +462,8 @@ class _LicenceRow extends StatelessWidget {
           title: package.name.isEmpty
               ? context.l10n.aboutUnknown
               : package.name,
+          summary: package.identifier,
+          summaryColumnPercent: summaryColumnPercent,
           keyPrefix: 'about_licence_${package.name}',
           headerMinHeight: tokens.aboutLicenceRowHeight,
           onChanged: (bool open) {
