@@ -19,7 +19,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 from redesign_compare import generate_report, screen_inventory, screen_notes
 
@@ -124,6 +124,23 @@ class CompareTests(unittest.TestCase):
         self.assertFalse((compact / "diffs").exists())
         page = (compact / "index.html").read_text(encoding="utf-8")
         self.assertIn("Difference image omitted for this report", page)
+
+    def test_indexed_diff_preserves_every_heatmap_color(self) -> None:
+        with Image.new("RGBA", (256, 1), (0, 0, 0, 255)) as before:
+            before.save(self.expected / f"{self.stem}.png")
+        with Image.frombytes("L", (256, 1), bytes(range(256))) as levels:
+            with levels.convert("RGBA") as after:
+                after.save(self.actual / f"{self.stem}.png")
+            with ImageOps.colorize(levels, "#000000", "#ff557f") as reference:
+                expected_pixels = reference.tobytes()
+
+        result = generate_report(self.repo, self.actual, self.output, required_size=(256, 1))
+        pair = result["pairs"][0]
+        self.assertEqual(pair["score"]["changed_pixels"], 255)
+        with Image.open(self.output / pair["diff_url"]) as indexed:
+            self.assertEqual(indexed.mode, "P")
+            with indexed.convert("RGB") as decoded:
+                self.assertEqual(decoded.tobytes(), expected_pixels)
 
     def test_stale_review_on_either_image_is_invalidated(self) -> None:
         self.add_actual()

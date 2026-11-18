@@ -58,7 +58,7 @@ import sys
 from urllib.parse import quote
 import warnings
 
-from PIL import Image, ImageChops, ImageOps, ImageStat
+from PIL import Image, ImageChops, ImageStat
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -69,6 +69,11 @@ MAX_IMAGE_BYTES = 16 * 1024 * 1024
 MAX_CAPTURE_MANIFEST_BYTES = 256 * 1024
 MAX_IMAGE_PIXELS = 4096 * 4096
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
+DIFF_PALETTE = bytes(
+    intensity * channel // 255
+    for intensity in range(256)
+    for channel in (0xFF, 0x55, 0x7F)
+)
 
 
 class ReportError(ValueError):
@@ -323,7 +328,10 @@ def compare_pair(
             diff_name = f"{stem}-{expected['sha256'][:16]}-{actual['sha256'][:16]}.png"
             diff_path = output / "diffs" / diff_name
             diff_path.parent.mkdir(parents=True, exist_ok=True)
-            ImageOps.colorize(mask, "#000000", "#ff557f").save(diff_path)
+            # Each intensity has one RGB color. Keep the same heatmap
+            # with one palette index per pixel.
+            mask.putpalette(DIFF_PALETTE)
+            mask.save(diff_path)
             pair["diff_url"] = relative_url(diff_path, output)
         return pair
     finally:
