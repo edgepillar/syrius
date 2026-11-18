@@ -1,12 +1,21 @@
 # Redesign build environment
 
-## Current qualification status (2026-11-13)
+## Current qualification status (2026-11-18)
 
 PR #6 is [Ready for review](https://github.com/sol-znn/syrius/pull/6).
 The owner accepted the executed isolated Windows native CI route for P03/P09.
-Accepted scope is now 76/80 rows; V01, V02, V05 and V06 remain open. The
-original Docker/WSL route stays unqualified. Earlier 74/80 records retain
-their original platform criteria.
+The accepted scope is now 77/80 rows. V01, V02 and V06 remain open. The
+original Docker/WSL route stays unqualified. Earlier records retain their
+original platform criteria.
+
+The [independent review](review/source-28f9c121-independent-visual-review.md)
+closes V05. All 94 Windows/reference pairs for 28f9c121 were viewed and
+findings were logged in X821 through X875. Whole-image acceptance remains
+open under V01, including fixtures and matched animation frames. The
+[paired Windows measurement](https://github.com/edgepillar/syrius/actions/runs/44301199443/job/134791077419)
+preserves the failed 16 ms gate for page change and disclosure under V02.
+
+## Qualification snapshot (2026-11-13)
 
 Source733 full Linux, Windows Lock producer and independent reader pass at
 b1f0567e81a856f2f2d0bbdaef7ed47d39f34084. Windows selected analysis has zero
@@ -18,7 +27,7 @@ remain mismatches. Accepted matches stay 2/94, both Ready pairs at Source730.
 
 F06 remains complete at Source722. Source734 changes documentation only;
 runtime sources, earlier failures and the remaining visual/motion/final gates
-are preserved in the [current record](review/source734-native-ci-scope-and-lock-results.md).
+are preserved in the [Source734 record](review/source734-native-ci-scope-and-lock-results.md).
 
 ## Historical qualification snapshot (2026-11-11)
 
