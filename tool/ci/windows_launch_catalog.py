@@ -40,6 +40,7 @@ MAX_PAIRED_TIMING_US = 120000000
 PAIRED_TIMING_REPLY_CAP = 128 * 1024
 TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frames')
 PACKED_TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frameCount', 'packedFrames')
+STARTUP_PHASE_FIELD = 'startupPhaseUs'
 FRAME_ROW = struct.Struct('<5I')
 TIMING_SOURCE = Path('harness/app/frame_window.dart')
 RECIPE = Path('harness/screens/launch.txt')
@@ -154,7 +155,14 @@ def frame_timing_rows(value, *, allow_packed=False):
     if value['schema'] == 1 and set(value) == set(TIMING_FIELDS):
         rows = value['frames']
         need(type(rows) is list and 0 < len(rows) <= MAX_TIMING_FRAMES)
-    elif allow_packed and value['schema'] == 2 and set(value) == set(PACKED_TIMING_FIELDS):
+    elif allow_packed and value['schema'] == 2:
+        required = set(PACKED_TIMING_FIELDS)
+        need(set(value) in (required, required | {STARTUP_PHASE_FIELD}))
+        if STARTUP_PHASE_FIELD in value:
+            phases = value[STARTUP_PHASE_FIELD]
+            need(type(phases) is list and len(phases) == 4
+                 and all(startup.integer(offset, 1, duration - 1) for offset in phases)
+                 and all(a < b for a, b in zip(phases, phases[1:])))
         rows = _packed_frame_rows(value)
     else:
         raise startup.Failure('STARTUP_OBSERVATION_REFUSED')
@@ -298,6 +306,8 @@ class LaunchProcess(startup.StartupProbe):
         raw = timing_reply('frame_window', *self._exchange(dict(cmd='stalls', frameWindow='end'),
                            until=min(self.deadline, self.started + (100 if paired else 60))))
         fields = PACKED_TIMING_FIELDS if paired else TIMING_FIELDS
+        if paired and STARTUP_PHASE_FIELD in raw:
+            fields = (*fields, STARTUP_PHASE_FIELD)
         need(set(raw) == {'ok', *fields})
         return frame_timing_window({field: raw[field] for field in fields}, allow_packed=paired)
 

@@ -23,6 +23,7 @@ BATCH_JOB_NAME = 'Capture original Windows startup catalog'
 # One listing, fifteen source reads and two requests per archive.
 BATCH_REQUESTS = 24
 PRE_BATCH_LAUNCH_PRODUCER_SHA = '166cd2d6a070c53fef5e41d3e7d65fb7bf7e65cab53148da576f5338fe2d1f74'
+PRE_PHASE_LAUNCH_PRODUCER_SHA = '83e89caefc7b68ad03450013544f98d234d5f01bbd9fa30c77e5c19765a80170'
 # The timing lane preserves earlier launch, lock and quiz producers.
 PRE_TIMING_LAUNCH_PRODUCER_SHA = 'e579d76e178e69189069f5269a0ba8981f3e435a10e0f80f69bb2d559b4761a2'
 FIRST_TIMING_LAUNCH_PRODUCER_SHA = '6880559d501bc59bff26865155af96efe56322a61a587a04edccc37b41a487a5'
@@ -419,7 +420,10 @@ def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=F
                 prior = PRIOR_QUIZ_PRODUCER_SHAS
             if name == 'tool/ci/windows_launch_catalog.py':
                 prior = (*prior, PRE_BATCH_LAUNCH_PRODUCER_SHA)
-            archive.need(body == current or (shared_binaries is None and archive.sha(body) in prior))
+            before_phase_capture = (name == 'tool/ci/windows_launch_catalog.py'
+                                    and archive.sha(body) == PRE_PHASE_LAUNCH_PRODUCER_SHA)
+            archive.need(body == current or before_phase_capture
+                         or (shared_binaries is None and archive.sha(body) in prior))
         else:
             pins[key] = archive.sha(body)
     if item is None:

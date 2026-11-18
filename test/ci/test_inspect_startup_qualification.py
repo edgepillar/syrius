@@ -196,7 +196,8 @@ class StartupInspectionTests(unittest.TestCase):
         packed = zlib.compress(b''.join(struct.pack('<5I', i, 60000000 + i, 10, 5, 20)
                                       for i in range(count)))
         receipt = dict(schema=2, scope='harness_frame_window', windowUs=75000000,
-                       frameCount=count, packedFrames=base64.b64encode(packed).decode('ascii'))
+                       frameCount=count, packedFrames=base64.b64encode(packed).decode('ascii'),
+                       startupPhaseUs=[1000000, 5250000, 6500000, 7000000])
         process._exchange = mock.Mock(side_effect=[
             (200, dict(ok=True, target=lock)),
             (200, dict(ok=True, booted=True, walletUnlocked=False, size=[1280, 780])),

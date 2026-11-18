@@ -304,8 +304,10 @@ class PairInspectionTests(unittest.TestCase):
         with self.assertRaises(pair.launch.startup.Failure):
             pair.launch.frame_timing_window(original)
         value = report(self.pins)
-        for sample in value['samples']:
-            sample['frame_window'] = original
+        phases = [22400000, 44800000, 67200000, 89600000]
+        current = dict(original, startupPhaseUs=phases)
+        value['samples'][0]['frame_window'] = current
+        value['samples'][1]['frame_window'] = original
         value['comparison'] = pair.compare_windows(original, original)
         self.assertLessEqual(len(reader.canonical(value)) + 1, pair.MAX_MANIFEST)
         result = self.project(value, diagnostics=True)
@@ -317,6 +319,15 @@ class PairInspectionTests(unittest.TestCase):
                          [1072, 1071, 1072, 881])
         self.assertEqual(result['window_diagnostics']['windows']['current']['raster_us'],
                          [20000000] * 4)
+        observed = result['window_diagnostics']['windows']['current']
+        self.assertEqual(observed['phase_offsets_us'], phases)
+        self.assertEqual(observed['phase_frames'], [800, 800, 800, 800, 896])
+        self.assertEqual(observed['phase_max_raster_us'], [20000000] * 5)
+        self.assertEqual(observed['phase_max_total_us'], [60000000] * 5)
+        self.assertEqual(result['comparison'], pair.compare_windows(original, current))
+        value['samples'][1]['frame_window'] = current
+        with self.assertRaises(reader.archive.Refused):
+            self.project(value)
         result.update(original_job_id=2**63 - 1, original_job_conclusion='success')
         self.assertLessEqual(len(json.dumps(result, sort_keys=True).encode('ascii')), 3800)
 
@@ -324,6 +335,9 @@ class PairInspectionTests(unittest.TestCase):
                         windowUs=60000001, frames=[[0, 60000000, 10, 5, 20]])
         with self.assertRaises(pair.launch.startup.Failure):
             pair.launch.frame_timing_rows(ordinary, allow_packed=True)
+        ordinary_with_phases = dict(frame((0, 0, 0, 0, 0)), startupPhaseUs=[1, 2, 3, 4])
+        with self.assertRaises(pair.launch.startup.Failure):
+            pair.launch.frame_timing_rows(ordinary_with_phases, allow_packed=True)
         for bad_row in ([0, 120000000, 10, 5, 20], [0, 1, 10, 5, 60000001]):
             corrupt = zlib.compress(struct.pack('<5I', *bad_row))
             invalid = dict(original, frameCount=1,
@@ -336,7 +350,10 @@ class PairInspectionTests(unittest.TestCase):
         oversized = base64.b64encode(zlib.compress(raw + raw)).decode('ascii')
         for change in (dict(windowUs=120000001), dict(frameCount=count - 1), dict(frameCount=count + 1),
                        dict(frameCount=True), dict(packedFrames='!'), dict(packedFrames=trailing),
-                       dict(packedFrames=truncated), dict(packedFrames=oversized)):
+                       dict(packedFrames=truncated), dict(packedFrames=oversized),
+                       dict(startupPhaseUs=[1, 2, 3]), dict(startupPhaseUs=[True, 2, 3, 4]),
+                       dict(startupPhaseUs=[0, 2, 3, 4]), dict(startupPhaseUs=[1, 2, 2, 4]),
+                       dict(startupPhaseUs=[1, 2, 4, 3]), dict(startupPhaseUs=[1, 2, 3, 120000000])):
             with self.subTest(change=tuple(change)), self.assertRaises(pair.launch.startup.Failure):
                 pair.launch.frame_timing_rows(dict(original, **change), allow_packed=True)
 

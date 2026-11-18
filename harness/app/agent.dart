@@ -5811,6 +5811,38 @@ class HarnessAgent {
   static bool get _isLaunchTiming =>
       _frameTimingMode == 'launch' || _frameTimingMode == _pairedLaunchTiming;
   HarnessFrameWindow? _frameWindow;
+  final List<int> _startupPhaseUs = <int>[];
+
+  void _observeStartupPhases(HarnessFrameWindow window, int startUs) {
+    final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
+    final SchedulerBinding binding = SchedulerBinding.instance;
+    void observe(Duration _) {
+      if (!identical(_frameWindow, window) || registry.held) return;
+      final Object? owner = registry.startup?.startupOwner;
+      if (owner is StartupStageSession) {
+        if (owner.isClosed || owner.film.cleanupOwnerReplaced) return;
+        final int phase = switch (owner) {
+          _ when owner.filmInWell => 4,
+          _ when owner.motion.value > 0 => 3,
+          _ when owner.film.isDone => 2,
+          _ when owner.film.frame >= 0 => 1,
+          _ => 0,
+        };
+        // A skipped observation cannot supply a boundary for that phase.
+        if (phase != _startupPhaseUs.length) {
+          if (phase != _startupPhaseUs.length + 1) return;
+          final int elapsed = dev.Timeline.now - startUs;
+          if (elapsed <= (_startupPhaseUs.lastOrNull ?? 0)) return;
+          _startupPhaseUs.add(elapsed);
+          if (phase == 4) return;
+        }
+      }
+      // Wait for the application's next frame without scheduling a new one.
+      binding.addPostFrameCallback(observe);
+    }
+
+    binding.addPostFrameCallback(observe);
+  }
 
   Future<Map<String, Object?>> _frameWindowCmd(
     Map<String, dynamic> command,
@@ -5847,10 +5879,18 @@ class HarnessAgent {
           }
         }
         try {
-          return await window.finish(
+          final List<int>? phases =
+              _startupPhaseUs.length == 4 && !EntryCaptureRegistry.instance.held
+              ? List<int>.of(_startupPhaseUs)
+              : null;
+          final Map<String, Object?> result = await window.finish(
             endUs: dev.Timeline.now,
             requestFrame: SchedulerBinding.instance.scheduleFrame,
           );
+          if (phases != null && !EntryCaptureRegistry.instance.held) {
+            result['startupPhaseUs'] = phases;
+          }
+          return result;
         } on TimeoutException {
           throw refused('deliveryTimeout');
         } on HarnessFrameWindowRefused catch (error) {
@@ -5877,10 +5917,14 @@ class HarnessAgent {
   /// the raster thread, where a large image or a first-use shader costs.
   void _hookStalls() {
     if (_isLaunchTiming) {
-      _frameWindow = HarnessFrameWindow(
-        dev.Timeline.now,
-        packed: _frameTimingMode == _pairedLaunchTiming,
+      final bool paired = _frameTimingMode == _pairedLaunchTiming;
+      final int startUs = dev.Timeline.now;
+      final HarnessFrameWindow window = HarnessFrameWindow(
+        startUs,
+        packed: paired,
       );
+      _frameWindow = window;
+      if (paired) _observeStartupPhases(window, startUs);
     }
     void record(String kind, int ms) {
       _stalls.add(<String, Object?>{

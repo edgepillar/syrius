@@ -1,6 +1,7 @@
 """Verify retained paired cold lock measurements without running Windows."""
 
 import base64
+from bisect import bisect_right
 import io
 import json
 from pathlib import Path
@@ -114,7 +115,9 @@ def samples(rows):
         if row['frame_window'] is not None:
             archive.need(len(row['attempts']) == len(roles)
                 and all(pair.launch.attempt_passed(attempt) for attempt in row['attempts']))
-            windows[name] = pair.launch.frame_timing_window(row['frame_window'], allow_packed=True)
+            window = pair.launch.frame_timing_window(row['frame_window'], allow_packed=True)
+            archive.need(name != 'p06' or pair.launch.STARTUP_PHASE_FIELD not in window)
+            windows[name] = window
     archive.need(len(rows) < 2 or 'current' in windows)
     return windows, closed
 
@@ -146,7 +149,7 @@ def window_diagnostics(window):
         ordered = sorted(row[column] for row in rows)
         return [ordered[(p * count + 99) // 100 - 1]
                 for p in (50, 95, 99, 100)]
-    return dict(window_us=window['windowUs'], samples=count,
+    summary = dict(window_us=window['windowUs'], samples=count,
         frame_key_gaps=rows[-1][0] + 1 - count,
         maximum_frame_key_gap=max(
             (b[0] - a[0] - 1 for a, b in zip(rows, rows[1:])), default=0),
@@ -154,6 +157,19 @@ def window_diagnostics(window):
             (b[1] - a[1] for a, b in zip(rows, rows[1:])), default=0),
         build_us=percentiles(2), raster_us=percentiles(3), total_us=percentiles(4),
         quarter_frames=quarters, quarter_slow_raster=slow_raster)
+    if pair.launch.STARTUP_PHASE_FIELD in window:
+        offsets = window[pair.launch.STARTUP_PHASE_FIELD]
+        frames, raster, total = [0] * 5, [0] * 5, [0] * 5
+        for _, start, _, raster_us, total_us in rows:
+            phase = bisect_right(offsets, start)
+            frames[phase] += 1
+            raster[phase] = max(raster[phase], raster_us)
+            total[phase] = max(total[phase], total_us)
+        # Offsets are post-frame observations of first film frame, film end,
+        # handoff motion and arrival. Groups use each frame's build start.
+        summary.update(phase_offsets_us=offsets, phase_frames=frames,
+                       phase_max_raster_us=raster, phase_max_total_us=total)
+    return summary
 
 
 def project(raw, expected_sha, expected_size, *, head, tree, run_id, pins,
@@ -259,8 +275,10 @@ def inspect_run(client, *, head, tree, run_id, job):
     for name, module in (('windows_launch_timing_pair.py', pair),
                          ('windows_launch_catalog.py', pair.launch)):
         body = source(client, 'tool/ci/' + name, head)
+        prior_launch = (startup_reader.PRE_BATCH_LAUNCH_PRODUCER_SHA,
+                        startup_reader.PRE_PHASE_LAUNCH_PRODUCER_SHA)
         archive.need(body == Path(module.__file__).read_bytes()
-            or (module is pair.launch and archive.sha(body) == startup_reader.PRE_BATCH_LAUNCH_PRODUCER_SHA))
+            or (module is pair.launch and archive.sha(body) in prior_launch))
     pinned = client.json('/git/commits/' + pair.P06_SOURCE)
     archive.need(pinned['sha'] == pair.P06_SOURCE and pinned['tree']['sha'] == pair.P06_TREE)
     pins = {key: archive.sha(source(client, path.as_posix(), head)) for key, path in (
