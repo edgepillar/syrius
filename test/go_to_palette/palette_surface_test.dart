@@ -193,13 +193,13 @@ void main() {
               foundation.debugDefaultTargetPlatformOverride;
           const MethodChannel channel = MethodChannel('window_manager');
           final TestDefaultBinaryMessenger messenger =
-              TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-          messenger.setMockMethodCallHandler(channel, (MethodCall call) async {
-            return switch (call.method) {
-              'isFullScreen' || 'isMaximized' => false,
-              _ => null,
-            };
-          });
+              TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+                ..setMockMethodCallHandler(channel, (MethodCall call) async {
+                  return switch (call.method) {
+                    'isFullScreen' || 'isMaximized' => false,
+                    _ => null,
+                  };
+                });
           try {
             foundation.debugDefaultTargetPlatformOverride =
                 foundation.TargetPlatform.windows;
@@ -212,6 +212,30 @@ void main() {
               find.byKey(const ValueKey<String>('window-caption')),
               findsOneWidget,
             );
+            final Finder captionFrost = find.byKey(
+              const ValueKey<String>('window-caption-frost'),
+            );
+            expect(
+              tester.getRect(captionFrost),
+              const Rect.fromLTWH(0, 0, 1200, 32),
+            );
+            final FrostedBarrier captionBarrier =
+                tester.widget<FrostedBarrier>(captionFrost);
+            final Finder bodyFrost = find.byWidgetPredicate(
+              (Widget widget) => widget is FrostedBarrier && widget.key == null,
+            );
+            expect(
+              captionBarrier.animation,
+              same(tester.widget<FrostedBarrier>(bodyFrost).animation),
+            );
+            expect(
+              tester.widget<BackdropFilter>(_filter(captionFrost)).filter,
+              ImageFilter.blur(sigmaX: kFrostSigma, sigmaY: kFrostSigma),
+            );
+            expect(
+              find.byKey(const ValueKey<String>('window-close')).hitTestable(),
+              findsOneWidget,
+            );
             final Rect framed = tester.getRect(
               find.byKey(const Key('go_to_palette')),
             );
@@ -221,6 +245,9 @@ void main() {
               framed.bottom,
               lessThanOrEqualTo(600 - tokens.goToEdgeInset),
             );
+            await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+            await tester.pumpAndSettle();
+            expect(captionFrost, findsNothing);
             expect(tester.takeException(), isNull);
           } finally {
             await tester.pumpWidget(const SizedBox.shrink());

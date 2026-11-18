@@ -3,6 +3,7 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 
 /// The blur behind a dialog at rest, in logical pixels. The mockup's overlay
 /// is `backdrop-filter: blur(6px)`, and a CSS blur radius is a sigma.
@@ -226,6 +227,7 @@ class FrostedDialogRoute<T> extends RawDialogRoute<T> {
     super.barrierLabel,
     super.barrierColor = null,
     this.sigma = kFrostSigma,
+    this.frostWindowCaption = false,
     super.transitionDuration,
     super.transitionBuilder,
     super.settings,
@@ -237,6 +239,9 @@ class FrostedDialogRoute<T> extends RawDialogRoute<T> {
 
   /// The blur at rest.
   final double sigma;
+
+  /// Paints the same frost over the Windows client caption.
+  final bool frostWindowCaption;
 
   bool _holding = false;
 
@@ -282,8 +287,11 @@ class FrostedDialogRoute<T> extends RawDialogRoute<T> {
 
   @override
   Widget buildModalBarrier() {
-    return FrostedBarrier(
-      animation: animation!.drive(CurveTween(curve: barrierCurve)),
+    final Animation<double> frost = animation!.drive(
+      CurveTween(curve: barrierCurve),
+    );
+    final FrostedBarrier body = FrostedBarrier(
+      animation: frost,
       sigma: sigma,
       tint: barrierColor,
       child: ModalBarrier(
@@ -292,7 +300,53 @@ class FrostedDialogRoute<T> extends RawDialogRoute<T> {
         barrierSemanticsDismissible: semanticsDismissible,
       ),
     );
+    if (!frostWindowCaption ||
+        navigator?.context
+                .findAncestorStateOfType<AppWindowFrameState>()
+                ?.hasClientCaption !=
+            true) {
+      return body;
+    }
+    return _CaptionFrost(body: body);
   }
+}
+
+class _CaptionFrost extends StatefulWidget {
+  const _CaptionFrost({required this.body});
+
+  final FrostedBarrier body;
+
+  @override
+  State<_CaptionFrost> createState() => _CaptionFrostState();
+}
+
+class _CaptionFrostState extends State<_CaptionFrost> {
+  final OverlayPortalController _portal = OverlayPortalController()..show();
+
+  @override
+  Widget build(BuildContext context) => OverlayPortal(
+    controller: _portal,
+    overlayLocation: OverlayChildLocation.rootOverlay,
+    overlayChildBuilder: (BuildContext context) => Align(
+      alignment: Alignment.topCenter,
+      child: SizedBox(
+        width: double.infinity,
+        height: AppTokens.of(context).windowCaptionHeight,
+        // The client caption keeps its native drag and control input.
+        child: IgnorePointer(
+          child: ExcludeSemantics(
+            child: FrostedBarrier(
+              key: const ValueKey<String>('window-caption-frost'),
+              animation: widget.body.animation,
+              sigma: widget.body.sigma,
+              tint: widget.body.tint,
+            ),
+          ),
+        ),
+      ),
+    ),
+    child: widget.body,
+  );
 }
 
 /// `showDialog` with the frost for a barrier: same page, same fade, same
@@ -305,6 +359,7 @@ Future<T?> showFrostedDialog<T>({
   String? barrierLabel,
   bool useSafeArea = true,
   bool useRootNavigator = true,
+  bool frostWindowCaption = false,
   RouteSettings? routeSettings,
   Offset? anchorPoint,
 }) {
@@ -323,6 +378,7 @@ Future<T?> showFrostedDialog<T>({
     FrostedDialogRoute<T>(
       barrierDismissible: barrierDismissible,
       barrierColor: barrierColor,
+      frostWindowCaption: frostWindowCaption,
       barrierLabel:
           barrierLabel ??
           MaterialLocalizations.of(context).modalBarrierDismissLabel,
