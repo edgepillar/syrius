@@ -237,7 +237,8 @@ class _RiseSwitcherState extends State<RiseSwitcher>
               entry.entrance,
               entry.exit,
             ]),
-            child: entry.child,
+            // The enclosing transform and fade can reuse the page's paint.
+            child: RepaintBoundary(child: entry.child),
             builder: (BuildContext context, Widget? child) {
               final bool interactive = entry.interactive;
               return IgnorePointer(

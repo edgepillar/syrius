@@ -152,7 +152,17 @@ void main() {
     ) async {
       final List<bool> changes = <bool>[];
       await tester.pumpWidget(
-        _host(_stacked(_plain(onChanged: changes.add))),
+        _host(
+          _stacked(
+            _plain(
+              onChanged: changes.add,
+              child: const ColoredBox(
+                color: Colors.green,
+                child: SizedBox(key: _body, height: _bodyHeight),
+              ),
+            ),
+          ),
+        ),
       );
 
       await tester.tap(find.byKey(_toggle));
@@ -188,17 +198,30 @@ void main() {
       expect(_turns(tester), greaterThan(-0.25));
       expect(_turns(tester), lessThan(0));
       expect(tester.takeException(), isNull);
+      final RenderRepaintBoundary boundary = tester.renderObject(
+        find
+            .ancestor(
+              of: find.byKey(_body),
+              matching: find.byType(RepaintBoundary),
+            )
+            .first,
+      );
+      final OffsetLayer layer = boundary.debugLayer! as OffsetLayer;
+      final Layer? paint = layer.firstChild;
+      expect(paint, isNotNull);
 
       // The chevron is there 20 ms before the height is.
       await tester.pump(const Duration(milliseconds: 105));
       expect(_turns(tester), 0);
       expect(_clip(tester), Clip.hardEdge);
+      expect(layer.firstChild, same(paint));
 
       await tester.pumpAndSettle();
       expect(_height(tester, _disclosure), _header + _bodyHeight);
       expect(tester.getRect(find.byKey(_body)).top, _header);
       expect(_clip(tester), Clip.none);
       expect(tester.binding.transientCallbackCount, 0);
+      expect(layer.firstChild, same(paint));
 
       // Anywhere on the row, not only on the title or the chevron.
       await tester.tapAt(const Offset(200, _header / 2));

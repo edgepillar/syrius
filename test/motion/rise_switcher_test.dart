@@ -1,6 +1,8 @@
 import 'dart:ui' show SemanticsAction;
 
 import 'package:animations/animations.dart';
+import 'package:flutter/rendering.dart'
+    show Layer, OffsetLayer, RenderRepaintBoundary;
 import 'package:flutter/semantics.dart' show SemanticsNode, SemanticsOwner;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -191,14 +193,38 @@ void main() {
     testWidgets('fade-through separates visibility and finishes at 320 ms', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(_host(0));
-      await tester.pumpWidget(_host(1));
+      Widget paintedPage(int index, Color color) => KeyedSubtree(
+        key: ValueKey<int>(index),
+        child: ColoredBox(
+          key: ValueKey<String>('page_$index'),
+          color: color,
+          child: const SizedBox.expand(),
+        ),
+      );
+      OffsetLayer layerFor(int index) {
+        final RenderRepaintBoundary boundary = tester.renderObject(
+          find
+              .ancestor(
+                of: _page(index),
+                matching: find.byType(RepaintBoundary),
+              )
+              .first,
+        );
+        return boundary.debugLayer! as OffsetLayer;
+      }
+
+      await tester.pumpWidget(_host(0, page: paintedPage(0, Colors.red)));
+      final OffsetLayer leaving = layerFor(0);
+      final Layer? leavingPaint = leaving.firstChild;
+      expect(leavingPaint, isNotNull);
+      await tester.pumpWidget(_host(1, page: paintedPage(1, Colors.green)));
       expect(find.byType(FadeThroughTransition), findsNWidgets(2));
       expect(_opacity(tester, _page(0)), 1);
       expect(_opacity(tester, _page(1)), 0);
       await tester.pump(const Duration(milliseconds: 80));
       expect(_opacity(tester, _page(0)), greaterThan(0));
       expect(_opacity(tester, _page(1)), 0);
+      expect(leaving.firstChild, same(leavingPaint));
       await tester.pump(const Duration(milliseconds: 16));
       expect(_opacity(tester, _page(0)), 0);
       expect(_opacity(tester, _page(1)), closeTo(0, 1e-9));
@@ -209,11 +235,18 @@ void main() {
       await tester.pump(const Duration(microseconds: 63999));
       expect(_opacity(tester, _page(1)), greaterThan(0));
       expect(_opacity(tester, _page(1)), lessThan(1));
+      final OffsetLayer arriving = layerFor(1);
+      final Layer? arrivingPaint = arriving.firstChild;
+      expect(arrivingPaint, isNotNull);
       await tester.pump(const Duration(milliseconds: 160));
       expect(_opacity(tester, _page(1)), 1);
       expect(_rise(tester, _page(1)), 0);
+      expect(arriving.firstChild, same(arrivingPaint));
       await tester.pump(const Duration(microseconds: 1));
       expect(tester.binding.hasScheduledFrame, isFalse);
+
+      await tester.pumpWidget(_host(1, page: paintedPage(1, Colors.blue)));
+      expect(arriving.firstChild, isNot(same(arrivingPaint)));
     });
 
     testWidgets('a slower exit delays a custom entrance without overlap', (

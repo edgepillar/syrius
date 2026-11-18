@@ -385,7 +385,11 @@ class _DisclosureReveal extends StatelessWidget {
       // as the header is.
       child: SizedBox(
         width: double.infinity,
-        child: FadeTransition(opacity: reveal, child: child),
+        child: FadeTransition(
+          opacity: reveal,
+          // The clip, offset and alpha change around an already laid-out body.
+          child: RepaintBoundary(child: child),
+        ),
       ),
       builder: (BuildContext context, Widget? child) {
         final double t = reveal.value;
