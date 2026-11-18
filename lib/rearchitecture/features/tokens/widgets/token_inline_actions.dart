@@ -811,6 +811,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
                   child: TextButton(
                     style: TextButton.styleFrom(
                       minimumSize: Size(0, tokens.tokenActionAddressChipHeight),
+                      visualDensity: VisualDensity.standard,
                       padding: EdgeInsetsDirectional.symmetric(
                         horizontal: tokens.tokenActionGap,
                       ),

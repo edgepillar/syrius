@@ -30,10 +30,11 @@ Widget _host(
   TextDirection direction = TextDirection.ltr,
   double scale = 1,
   double bodyWidth = 1120,
+  VisualDensity? visualDensity,
 }) => MaterialApp(
-  theme: brightness == Brightness.dark
-      ? AppTheme.darkTheme
-      : AppTheme.lightTheme,
+  theme:
+      (brightness == Brightness.dark ? AppTheme.darkTheme : AppTheme.lightTheme)
+          .copyWith(visualDensity: visualDensity),
   localizationsDelegates: appLocalizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
   home: MediaQuery(
@@ -248,6 +249,7 @@ void main() {
                   direction: direction,
                   scale: scale,
                   bodyWidth: 1800,
+                  visualDensity: VisualDensity.compact,
                 ),
               );
               await _ready(tester);
@@ -290,6 +292,14 @@ void main() {
               expect(
                 shortcutStyle.side!.resolve(<WidgetState>{}),
                 BorderSide(color: tokens.line),
+              );
+              final Finder paintedShortcut = find.descendant(
+                of: shortcut,
+                matching: find.byType(Material),
+              );
+              expect(
+                tester.getSize(paintedShortcut).height,
+                scale == 1 ? 22 : greaterThanOrEqualTo(22),
               );
               await _editField(tester, beneficiaryKey, '');
               expect(beneficiary().decoration!.enabledBorder, isNull);
