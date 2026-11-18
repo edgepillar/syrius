@@ -175,6 +175,7 @@ void main() {
       of: galleryFilm,
       matching: find.byType(RawImage),
     );
+    expect(tester.getSize(picture), const Size(420, 236));
     final Element pictureElement = tester.element(picture);
     final ReferenceArtworkFrame preview = film.captureReferenceArtwork()!;
     expect(preview.observation, <String, Object>{

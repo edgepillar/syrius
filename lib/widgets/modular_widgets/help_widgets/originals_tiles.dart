@@ -210,12 +210,19 @@ class _OriginalsTileState extends State<_OriginalsTile>
 
   Widget _buildArt(AppTokens tokens) {
     if (widget.art == OriginalsArt.launch) {
-      return LaunchFilm(
-        asset: 'assets/images/launch_well.webp',
-        autoplay: false,
-        controller: _film,
-        fit: BoxFit.cover,
-        originalsReferenceProgress: 0.42,
+      final Size size = tokens.originalsLaunchArtSize;
+      return OverflowBox(
+        minWidth: size.width,
+        maxWidth: size.width,
+        minHeight: size.height,
+        maxHeight: size.height,
+        child: LaunchFilm(
+          asset: 'assets/images/launch_well.webp',
+          autoplay: false,
+          controller: _film,
+          fit: BoxFit.cover,
+          originalsReferenceProgress: 0.42,
+        ),
       );
     }
     final AppLottieAsset asset = switch (widget.art) {
