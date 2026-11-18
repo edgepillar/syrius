@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +15,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart'
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_ready_binding.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/originals_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 
 import '../../harness/app/capture_frame.dart';
 import '../../harness/app/ready_reference_artwork.dart';
@@ -21,6 +23,11 @@ import '../../harness/app/ready_reference_artwork.dart';
 class _Bundle extends CachingAssetBundle {
   @override
   Future<ByteData> load(String key) async {
+    if (key == 'assets/images/launch_well.webp') {
+      return ByteData.sublistView(
+        File('test/launch_film/fixtures/film.webp').readAsBytesSync(),
+      );
+    }
     if (!key.startsWith('assets/lottie/')) return rootBundle.load(key);
     return ByteData.sublistView(utf8.encode(
       '{"v":"5.7.4","fr":60,"ip":0,"op":120,"w":64,"h":64,'
@@ -114,11 +121,12 @@ void main() {
     addTearDown(() async {
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();
+      AppLottie.debugClear();
       tester.view.reset();
     });
   }
 
-  testWidgets('Originals samples the authored frames of its eight Lotties', (
+  testWidgets('Originals samples the film and its eight Lotties', (
     WidgetTester tester,
   ) async {
     prepare(tester);
@@ -139,8 +147,13 @@ void main() {
             ReferenceArtworkKind.originalsGallery)
         .toList();
     expect(sources, hasLength(8));
+    final Finder galleryFilm = find.byType(LaunchFilm);
+    final LaunchFilmController movie =
+        tester.widget<LaunchFilm>(galleryFilm).controller!;
+    final ReferenceArtworkSource film = movie.originalsReferenceArtwork!;
     final EntryCaptureCompletion loaded = EntryCaptureCompletion(
       Future.wait(<Future<Object?>>[
+        film.referenceArtworkReadiness!,
         for (final ReferenceArtworkSource source in sources)
           source.referenceArtworkReadiness!,
       ]),
@@ -149,10 +162,26 @@ void main() {
         loaded.status == EntryCaptureStatus.pending; frame++) {
       await tester.runAsync<void>(
         () => Future<void>.delayed(const Duration(milliseconds: 5)));
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 16));
     }
     expect(loaded.status, EntryCaptureStatus.succeeded);
     await tester.pump(const Duration(milliseconds: 400));
+    final Finder picture = find.descendant(
+      of: galleryFilm,
+      matching: find.byType(RawImage),
+    );
+    final ReferenceArtworkFrame preview = film.captureReferenceArtwork()!;
+    expect(preview.observation, <String, Object>{
+      'kind': 'originals_launch', 'frame': 3, 'frame_count': 8,
+    });
+    await tester.pump();
+    expect(preview.observed, isTrue);
+    final Object? previewImage = tester.widget<RawImage>(picture).image;
+    expect(previewImage, isNotNull);
+    expect(preview.restore(), isTrue);
+    await tester.pump();
+    expect(preview.restored, isTrue);
+    expect(tester.widget<RawImage>(picture).image, isNot(same(previewImage)));
     final Finder players = find.byType(Lottie);
     final List<State<StatefulWidget>> originalStates =
         tester.stateList(players).toList();
@@ -163,18 +192,24 @@ void main() {
       admitted: () => true,
     );
     final _Frames frames = _Frames();
+    Object? capturedFilm;
     final List<Lottie> sampled = await _finish<List<Lottie>>(
       tester,
       frames,
       artwork.capture<List<Lottie>>(
         frames: frames.gate,
-        readback: () async => <Lottie>[
-          for (final State<StatefulWidget> original in originalStates)
-            original.widget as Lottie,
-        ],
+        readback: () async {
+          capturedFilm = tester.widget<RawImage>(picture).image;
+          return <Lottie>[
+            for (final State<StatefulWidget> original in originalStates)
+              original.widget as Lottie,
+          ];
+        },
       ),
     );
     const List<int> expectedFrames = <int>[48, 60, 118, 118, 118, 54, 48, 24];
+    expect(capturedFilm, same(previewImage));
+    expect(tester.widget<RawImage>(picture).image, isNot(same(previewImage)));
     expect(sampled, hasLength(expectedFrames.length));
     expect(tester.stateList(players), orderedEquals(originalStates));
     for (int index = 0; index < sampled.length; index++) {

@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film_decoder.dart';
 
 /// The original decoder's current wait, without asset or frame payloads.
@@ -74,8 +75,14 @@ class LaunchFilm extends StatefulWidget {
     this.autoplay = true,
     this.onDone,
     this.controller,
+    this.originalsReferenceProgress,
     super.key,
-  });
+  }) : assert(
+         originalsReferenceProgress == null ||
+             (originalsReferenceProgress >= 0 &&
+                 originalsReferenceProgress < 1 && controller != null),
+         'An Originals frame requires a fraction below one and a controller.',
+       );
 
   /// The launch animation as the wallet ships it.
   static const String defaultAsset = 'assets/images/launch.webp';
@@ -123,6 +130,9 @@ class LaunchFilm extends StatefulWidget {
 
   /// Starts it, skips it, and says where it is.
   final LaunchFilmController? controller;
+
+  /// Keeps one decoded gallery frame available for reference capture.
+  final double? originalsReferenceProgress;
 
   @override
   State<LaunchFilm> createState() => _LaunchFilmState();
@@ -181,6 +191,10 @@ class LaunchFilmController extends ChangeNotifier {
   /// Film index whose image is awaited, without requesting another image.
   /// A direct ending decode reports the film's last index.
   int? get decodingFrameIndex => _state?._decodingFrameIndex;
+
+  /// The attached gallery preview's current sampling source, when started.
+  ReferenceArtworkSource? get originalsReferenceArtwork =>
+      _state?._originalsArtwork;
 
   /// Reads an already-created original ticker without creating or starting it.
   bool get clockTicking {
@@ -287,6 +301,83 @@ class _Frame {
   final bool last;
 }
 
+/// Retains a single handle to the frame decoded by the original gallery run.
+class _OriginalsFilmArtwork implements ReferenceArtworkSource {
+  _OriginalsFilmArtwork(this._film, this._progress)
+      : _controller = _film._controller;
+
+  final _LaunchFilmState _film;
+  final double _progress;
+  final LaunchFilmController _controller;
+  final Completer<Object?> _ready = Completer<Object?>();
+  ui.Image? _image;
+  int _frame = -1;
+  int _count = 0;
+  ReferenceArtworkFrame? _sample;
+
+  bool get _isCurrent => _film.mounted &&
+      identical(_film._originalsArtwork, this) &&
+      identical(_film._controller, _controller) &&
+      _film.widget.originalsReferenceProgress == _progress;
+
+  ui.Image? get sampledImage => _isCurrent && _sample != null ? _image : null;
+
+  @override
+  ReferenceArtworkKind get referenceArtworkKind =>
+      ReferenceArtworkKind.originalsGallery;
+
+  @override
+  Object get referenceArtworkGeneration => this;
+
+  @override
+  Future<Object?> get referenceArtworkReadiness => _ready.future;
+
+  void observe(_Frame frame, int count) {
+    if (_ready.isCompleted || count == 0 ||
+        frame.index != (count * _progress).floor()) {
+      return;
+    }
+    _image = frame.image.clone();
+    _frame = frame.index;
+    _count = count;
+    finish();
+  }
+
+  void finish() {
+    if (!_ready.isCompleted) _ready.complete();
+  }
+
+  @override
+  ReferenceArtworkFrame? captureReferenceArtwork() {
+    if (!_isCurrent || _sample != null || _image == null) return null;
+    late final ReferenceArtworkFrame sample;
+    sample = ReferenceArtworkFrame(
+      owner: this,
+      generation: this,
+      kind: referenceArtworkKind,
+      observation: <String, Object>{
+        'kind': 'originals_launch',
+        'frame': _frame,
+        'frame_count': _count,
+      },
+      current: () => _isCurrent && identical(_sample, sample),
+      observed: () => identical(_film._paintedArtwork, this),
+      restore: () => _film._selectOriginalsSample(this, null),
+      restoration: () => _isCurrent &&
+          _sample == null && _film._paintedArtwork == null,
+    );
+    _film._selectOriginalsSample(this, sample);
+    return sample;
+  }
+
+  void dispose() {
+    finish();
+    _image?.dispose();
+    _image = null;
+    _sample = null;
+  }
+}
+
 class _LaunchFilmState extends State<LaunchFilm>
     with SingleTickerProviderStateMixin<LaunchFilm> {
   late final Ticker _ticker = createTicker(_tick);
@@ -301,6 +392,15 @@ class _LaunchFilmState extends State<LaunchFilm>
 
   /// The frame on screen.
   ui.Image? _shown;
+  _OriginalsFilmArtwork? _originalsArtwork;
+  _OriginalsFilmArtwork? _paintedArtwork;
+
+  void _selectOriginalsSample(
+    _OriginalsFilmArtwork artwork,
+    ReferenceArtworkFrame? sample,
+  ) {
+    setState(() => artwork._sample = sample);
+  }
 
   /// The frame decoded and not yet shown. There is never a second: the
   /// decoder waits on [_taken] before it asks the codec for another.
@@ -392,6 +492,13 @@ class _LaunchFilmState extends State<LaunchFilm>
 
   void _play(int from, {bool skip = false}) {
     final int run = _run += 1;
+    final bool clearingSample = _paintedArtwork != null;
+    _originalsArtwork?.dispose();
+    final double? progress = widget.originalsReferenceProgress;
+    _originalsArtwork = progress == null
+        ? null
+        : _OriginalsFilmArtwork(this, progress);
+    if (clearingSample) setState(() {});
     _decodingFrameIndex = null;
     _dropNext();
     _running = true;
@@ -609,6 +716,7 @@ class _LaunchFilmState extends State<LaunchFilm>
         _shown?.dispose();
         _shown = next.image;
       });
+      _originalsArtwork?.observe(next, _controller.frameCount);
       _controller._report(frame: next.index);
       _taken?.complete();
       _taken = null;
@@ -624,6 +732,7 @@ class _LaunchFilmState extends State<LaunchFilm>
     _running = false;
     _onLast = false;
     _ticker.stop();
+    _originalsArtwork?.finish();
     _controller._report(isDone: true);
     widget.onDone?.call();
   }
@@ -653,6 +762,9 @@ class _LaunchFilmState extends State<LaunchFilm>
       _ticker.dispose();
       _shown?.dispose();
       _shown = null;
+      _originalsArtwork?.dispose();
+      _originalsArtwork = null;
+      _paintedArtwork = null;
       _controller._state = null;
       _ownController?.dispose();
       super.dispose();
@@ -667,6 +779,8 @@ class _LaunchFilmState extends State<LaunchFilm>
 
   @override
   Widget build(BuildContext context) {
+    final ui.Image? sample = _originalsArtwork?.sampledImage;
+    _paintedArtwork = sample == null ? null : _originalsArtwork;
     // The frames are drawn on black in both themes, so the box is black
     // before the first of them and round one that does not fill it.
     return RepaintBoundary(
@@ -674,7 +788,7 @@ class _LaunchFilmState extends State<LaunchFilm>
         color: const Color(0xFF000000),
         child: SizedBox.expand(
           child: RawImage(
-            image: _shown,
+            image: sample ?? _shown,
             // Drawn with RawImage's own filter, medium: the one that
             // averages when a frame is drawn smaller than it is.
             fit: widget.fit,

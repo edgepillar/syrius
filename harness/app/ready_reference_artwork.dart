@@ -3,6 +3,7 @@ import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surf
 import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_ready_binding.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/originals_card.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/staking_tab_child.dart'
     show StakingPage;
 
@@ -191,7 +192,7 @@ class OriginalsReferenceArtworkRefused implements Exception {
   const OriginalsReferenceArtworkRefused();
 }
 
-/// Samples the five Lottie tiles and three small marks in the current gallery.
+/// Samples the Launch film, five Lottie tiles and three small gallery marks.
 class OriginalsReferenceArtwork {
   /// Binds the live gallery from the original Settings visit.
   factory OriginalsReferenceArtwork({
@@ -254,11 +255,17 @@ class OriginalsReferenceArtwork {
           sources.add(source);
         }
       }
+      if (element.widget case final LaunchFilm film) {
+        final ReferenceArtworkSource? source =
+            film.controller?.originalsReferenceArtwork;
+        if (source == null) throw const OriginalsReferenceArtworkRefused();
+        sources.add(source);
+      }
       element.visitChildren(visit);
     }
 
     _owner.context.visitChildElements(visit);
-    if (sources.length != 8) throw const OriginalsReferenceArtworkRefused();
+    if (sources.length != 9) throw const OriginalsReferenceArtworkRefused();
     return sources;
   }
 
