@@ -21,9 +21,13 @@ import '../../harness/app/capture_frame.dart';
 import '../../harness/app/ready_reference_artwork.dart';
 
 class _Bundle extends CachingAssetBundle {
+  Future<void>? filmReady;
+
   @override
   Future<ByteData> load(String key) async {
     if (key == 'assets/images/launch_well.webp') {
+      final Future<void>? ready = filmReady;
+      if (ready != null) await ready;
       return ByteData.sublistView(
         File('test/launch_film/fixtures/film.webp').readAsBytesSync(),
       );
@@ -130,8 +134,9 @@ void main() {
     WidgetTester tester,
   ) async {
     prepare(tester);
+    final _Bundle bundle = _Bundle();
     await tester.pumpWidget(DefaultAssetBundle(
-      bundle: _Bundle(),
+      bundle: bundle,
       child: MaterialApp(
         theme: AppTheme.darkTheme,
         locale: const Locale('en'),
@@ -222,6 +227,34 @@ void main() {
       expect((originalStates[index].widget as Lottie).controller,
         same(clocks[index]));
     }
+
+    final Completer<void> delayedDecode = Completer<void>();
+    bundle.filmReady = delayedDecode.future;
+    movie.play();
+    final ReferenceArtworkSource replay = movie.originalsReferenceArtwork!;
+    expect(replay, isNot(same(film)));
+    final int previousFrameRequests = frames.original.length;
+    final Future<bool> replayResult = artwork.capture<bool>(
+      frames: frames.gate,
+      readback: () async => (pictureElement.widget as RawImage).image != null,
+    );
+    final EntryCaptureCompletion capture = EntryCaptureCompletion(replayResult);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1200));
+    expect(capture.status, EntryCaptureStatus.pending);
+    expect(frames.original.length, previousFrameRequests);
+    delayedDecode.complete();
+    final EntryCaptureCompletion replayReady =
+        EntryCaptureCompletion(replay.referenceArtworkReadiness!);
+    for (int frame = 0; frame < 120 &&
+        replayReady.status == EntryCaptureStatus.pending; frame++) {
+      await tester.runAsync<void>(
+        () => Future<void>.delayed(const Duration(milliseconds: 5)),
+      );
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(replayReady.status, EntryCaptureStatus.succeeded);
+    expect(await _finish<bool>(tester, frames, replayResult), isTrue);
     expect(tester.takeException(), isNull);
   });
 

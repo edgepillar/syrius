@@ -912,6 +912,28 @@ void main() {
       }
       for (final MapEntry<String, ScreenCaptureReplyCode> entry in
           <String, ScreenCaptureReplyCode>{
+        'held': ScreenCaptureReplyCode.originalsArtworkHeld,
+        'owner': ScreenCaptureReplyCode.originalsArtworkOwner,
+        'renderers': ScreenCaptureReplyCode.originalsArtworkRenderers,
+        'readiness': ScreenCaptureReplyCode.originalsArtworkReadiness,
+        'sample': ScreenCaptureReplyCode.originalsArtworkSample,
+        'observation': ScreenCaptureReplyCode.originalsArtworkObservation,
+        'restoration': ScreenCaptureReplyCode.originalsArtworkRestoration,
+        'Synthetic private path': ScreenCaptureReplyCode.unknown,
+      }.entries) {
+        final Map<String, Object?> detail = <String, Object?>{
+          'originals_artwork_stage': entry.key,
+        };
+        expect(classifyScreenCaptureReply(
+          'originals artwork frame unavailable', detail,
+        ), entry.value);
+        expect(classifyScreenCaptureReply(
+          'originals artwork frame unavailable',
+          <String, Object?>{...detail, 'raw': opaque},
+        ), ScreenCaptureReplyCode.unknown);
+      }
+      for (final MapEntry<String, ScreenCaptureReplyCode> entry in
+          <String, ScreenCaptureReplyCode>{
         'busy': ScreenCaptureReplyCode.frameBusy,
         'deadline': ScreenCaptureReplyCode.frameDeadlineExceeded,
         'originalFailure': ScreenCaptureReplyCode.frameOriginalFailed,

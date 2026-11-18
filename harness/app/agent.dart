@@ -5667,7 +5667,9 @@ class HarnessAgent {
             assertion['key'] == 'originals_play_launch') {
           try {
             if (_originalsArtworkRefused) {
-              throw const OriginalsReferenceArtworkRefused();
+              throw const OriginalsReferenceArtworkRefused(
+                ReferenceArtworkFailureStage.held,
+              );
             }
             final OriginalsReferenceArtwork artwork = OriginalsReferenceArtwork(
               root: WidgetsBinding.instance.rootElement,
@@ -5677,9 +5679,12 @@ class HarnessAgent {
               frames: _captureFrames,
               readback: () => _readShot(c),
             );
-          } on OriginalsReferenceArtworkRefused {
+          } on OriginalsReferenceArtworkRefused catch (refusal) {
             _originalsArtworkRefused = true;
-            throw HarnessError('originals artwork frame unavailable');
+            throw HarnessError(
+              'originals artwork frame unavailable',
+              <String, Object>{'originals_artwork_stage': refusal.stage.name},
+            );
           }
         }
         final Map<String, Object?> result =

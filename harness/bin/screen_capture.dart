@@ -18,6 +18,9 @@ enum ScreenCaptureReplyCode {
   captureReadbackUnavailable, captureDimensionsMismatch, captureStateChanged,
   frameBusy, frameDeadlineExceeded, frameOriginalFailed, frameAdmissionFailed,
   homeStateInvalid, railTreeInvalid, railGeometryInvalid, railEndpointMissing,
+  originalsArtworkHeld, originalsArtworkOwner, originalsArtworkRenderers,
+  originalsArtworkReadiness, originalsArtworkSample,
+  originalsArtworkObservation, originalsArtworkRestoration,
 }
 
 abstract interface class ScreenCaptureReplyFailure {
@@ -55,6 +58,19 @@ ScreenCaptureReplyCode classifyScreenCaptureReply(
   Object? value, Object? detail,
 ) {
   if (value is! String) return ScreenCaptureReplyCode.unknown;
+  if (value == 'originals artwork frame unavailable' &&
+      detail is Map<Object?, Object?> && detail.length == 1) {
+    return switch (detail['originals_artwork_stage']) {
+      'held' => ScreenCaptureReplyCode.originalsArtworkHeld,
+      'owner' => ScreenCaptureReplyCode.originalsArtworkOwner,
+      'renderers' => ScreenCaptureReplyCode.originalsArtworkRenderers,
+      'readiness' => ScreenCaptureReplyCode.originalsArtworkReadiness,
+      'sample' => ScreenCaptureReplyCode.originalsArtworkSample,
+      'observation' => ScreenCaptureReplyCode.originalsArtworkObservation,
+      'restoration' => ScreenCaptureReplyCode.originalsArtworkRestoration,
+      _ => ScreenCaptureReplyCode.unknown,
+    };
+  }
   if (value == 'nothing matches' && detail is Map<Object?, Object?> &&
       detail.length == 2 &&
       detail['key'] == 'wallet_settings_autoReceive' &&

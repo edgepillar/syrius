@@ -168,6 +168,13 @@ FAILURE_REPLIES = (
 )
 
 
+ORIGINALS_ARTWORK_REPLIES = (
+    'originalsArtworkHeld', 'originalsArtworkOwner', 'originalsArtworkRenderers',
+    'originalsArtworkReadiness', 'originalsArtworkSample',
+    'originalsArtworkObservation', 'originalsArtworkRestoration',
+)
+
+
 def capture_frame_state(value):
     """Retain only the original refusal's closed scheduler facts."""
     need(type(value) is dict and type(value.get('schema')) is int
@@ -201,8 +208,14 @@ def failure_diagnostic(value, *, catalog_schema=1):
     need(type(value) is dict and type(value.get('schema')) is int)
     if value['schema'] in (2, 3):
         required = required | {'reply'}
-        need(type(value.get('reply')) is str
-             and value['reply'] in FAILURE_REPLIES)
+        reply = value.get('reply')
+        need(type(reply) is str)
+        if reply in ORIGINALS_ARTWORK_REPLIES:
+            need(catalog_schema == 1 and value['schema'] == 2
+                 and value.get('screen') == 'set-originals'
+                 and value.get('last_entered_step') == 'shotRequest')
+        else:
+            need(reply in FAILURE_REPLIES)
     else:
         need(value['schema'] == 1)
     if value['schema'] == 3:

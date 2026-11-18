@@ -169,6 +169,16 @@ class DetailsCatalogTests(unittest.TestCase):
             self.assertIs(details.failure_diagnostic(observed), observed)
             self.assertIs(legacy.entry_failure(dict(stage='details_catalog',
                 code=None, diagnostic=observed))['diagnostic'], observed)
+        for reply in details.ORIGINALS_ARTWORK_REPLIES:
+            observed = dict(base, schema=2, last_entered_step='shotRequest',
+                screen='set-originals', theme='dark', reply=reply)
+            self.assertIs(details.failure_diagnostic(observed), observed)
+            self.assertIs(legacy.entry_failure(dict(stage='details_catalog',
+                code=None, diagnostic=observed))['diagnostic'], observed)
+            with self.subTest(reply=reply), self.assertRaises(details.Refused):
+                details.failure_diagnostic(dict(observed, screen='receive-qr'))
+            with self.subTest(reply=reply), self.assertRaises(details.Refused):
+                details.failure_diagnostic(dict(valid, schema=2, reply=reply))
         # These are existing original Dart refusals, including Ready frames.
         for reply in ('targetUnavailable', 'frameBusy',
                       'frameDeadlineExceeded', 'frameOriginalFailed',
