@@ -31,8 +31,12 @@ enum ReadonlyDetailsSelection {
   tokenDraft(2, 'token_draft_catalog', <String>['token-new'], <String>[
     '25-token-new-dark.png', '25-token-new-light.png',
   ]),
-  sendConfirmation(3, 'send_confirm_catalog', <String>['send-confirm'],
-    <String>['12-send-confirm-dark.png', '12-send-confirm-light.png'],
+  sendConfirmation(17, 'send_confirm_catalog',
+    <String>['send-rest', 'send-confirm'],
+    <String>[
+      '07-send-rest-dark.png', '07-send-rest-light.png',
+      '12-send-confirm-dark.png', '12-send-confirm-light.png',
+    ],
   ),
   homeZapPreview(12, 'home_zap_preview_catalog', <String>['home-zap'],
     <String>['06-home-zap-dark.png', '06-home-zap-light.png'],

@@ -21,6 +21,8 @@ TOKEN_DRAFT_SCREENS = ('token-new',)
 TOKEN_DRAFT_FILES = ('25-token-new-dark.png', '25-token-new-light.png')
 SEND_CONFIRM_SCREENS = ('send-confirm',)
 SEND_CONFIRM_FILES = ('12-send-confirm-dark.png', '12-send-confirm-light.png')
+SEND_CONFIRM_SCHEMA = 3
+SEND_CATALOG_SCHEMA = 17
 SWAP_START_SCREENS = ('swap-start',)
 SWAP_START_FILES = ('27-swap-start-dark.png', '27-swap-start-light.png')
 EARN_SCREENS = ('staking-empty', 'pillar-mine')
@@ -62,7 +64,7 @@ RESTORED_FAILURE_KINDS = {
     PILLAR_DONE_SCHEMA: 'restored_pillar_done_capture_failure',
     SWAP_SEEDED_SCHEMA: 'restored_swap_seeded_capture_failure',
 }
-FAMILY_SCHEMAS = {'details': 1, 'token-draft': 2, 'send-confirm': 3, 'earn': 5,
+FAMILY_SCHEMAS = {'details': 1, 'token-draft': 2, 'send-confirm': SEND_CATALOG_SCHEMA, 'earn': 5,
                   'sentinel-fixture': 8, 'swap-start': 9, 'wallet-ready': 10,
                   'send-warn': 11, 'home-zap-preview': 12}
 CATALOG_STAGES = {name.replace('-', '_') + '_catalog': schema
@@ -70,7 +72,9 @@ CATALOG_STAGES = {name.replace('-', '_') + '_catalog': schema
 CATALOGS = {
     1: (SCREENS, FILES),
     2: (TOKEN_DRAFT_SCREENS, TOKEN_DRAFT_FILES),
-    3: (SEND_CONFIRM_SCREENS, SEND_CONFIRM_FILES),
+    SEND_CONFIRM_SCHEMA: (SEND_CONFIRM_SCREENS, SEND_CONFIRM_FILES),
+    SEND_CATALOG_SCHEMA: (('send-rest', *SEND_CONFIRM_SCREENS),
+                          ('07-send-rest-dark.png', '07-send-rest-light.png', *SEND_CONFIRM_FILES)),
     SEEDED_SCHEMA: (SEEDED_SCREENS, SEEDED_FILES),
     FAMILY_SCHEMAS['earn']: (EARN_SCREENS, EARN_FILES),
     FAMILY_SCHEMAS['sentinel-fixture']: (SENTINEL_FIXTURE_SCREENS,
@@ -280,9 +284,15 @@ def _script_field(schema):
 
 
 def catalog_script_name(schema, screen):
-    if schema == PROJECT_CATALOG_SCHEMA and screen == 'az':
-        return 'az-voting-seeded.txt'
+    if (schema, screen) in {(PROJECT_CATALOG_SCHEMA, 'az'),
+                            (SEND_CATALOG_SCHEMA, 'send-rest')}:
+        return 'prepared/' + screen + '.txt'
     return screen + '.txt'
+
+
+def family_matches(family, schema):
+    return schema == FAMILY_SCHEMAS[family] or (
+        family == 'send-confirm' and schema == SEND_CONFIRM_SCHEMA)
 
 
 def _script_pins(repo, schema, read_original):

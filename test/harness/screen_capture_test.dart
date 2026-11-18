@@ -517,8 +517,8 @@ void main() {
       expect(() => project.preflight('token-mine'),
           throwsA(isA<ScreenCaptureError>()));
       writeScript('az', File('harness/screens/az.txt').readAsStringSync());
-      writeScript('az-voting-seeded',
-          File('harness/screens/az-voting-seeded.txt').readAsStringSync());
+      writeScript('prepared/az',
+          File('harness/screens/prepared/az.txt').readAsStringSync());
       expect(seededCapture.preflight('az').single.assertion['key'],
           'accelerator_filter_voting');
       final ScreenScript voting = project.preflight('az').single;

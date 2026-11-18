@@ -905,6 +905,10 @@ class InspectionTests(unittest.TestCase):
             self.assertIs(value[key], False)
         self.assertEqual(value['visual_matches'], 0)
         focused = catalog_only_report(value, 'f' * 64, 'send-confirm')
+        legacy_send = dict(focused, details_catalog=details_reference(
+            'f' * 64, schema=inspection.details.SEND_CONFIRM_SCHEMA))
+        self.assertIs(inspection.public_manifest(legacy_send), legacy_send)
+        self.assertTrue(inspection.completed(legacy_send))
         for family in ('earn', 'sentinel-fixture', 'swap-start', 'wallet-ready', 'send-warn',
                        'home-zap-preview'):
             catalog = catalog_only_report(value, 'f' * 64, family)
@@ -1614,6 +1618,11 @@ class InspectionTests(unittest.TestCase):
         manifest = json.dumps(value).encode()
         output = _Output()
         reads = []
+        details_scripts = {
+            Path('/fixture/harness/screens') /
+            inspection.details.catalog_script_name(details_schema, screen)
+            for screen in inspection.details.catalog_screens(details_schema)
+        }
 
         def read(path, cap):
             reads.append(path)
@@ -1624,8 +1633,7 @@ class InspectionTests(unittest.TestCase):
                         Path('/fixture') / inspection.viewport.PROBE):
                 self.assertEqual(cap, 65536)
                 return script
-            if (path.parent == Path('/fixture/harness/screens')
-                    and path.stem in inspection.details.catalog_screens(details_schema)):
+            if path in details_scripts:
                 self.assertEqual(cap, 65536)
                 return script
             if path.parent == Path('/fixture') / inspection.details.OUTPUT:
@@ -1764,8 +1772,12 @@ class InspectionTests(unittest.TestCase):
         paths, reads, output = self.artifact_case(
             value, pixels=pixels, catalog_only='send-confirm')
         self.assertEqual(paths, ['.harness/ci-wallet-inspection/manifest.json'])
-        self.assertEqual(len(reads), 5)
+        self.assertEqual(len(reads), 8)
         self.assertIn('catalog_family=details-catalog', output)
+        self.assertIn(Path('/fixture/harness/screens/prepared/send-rest.txt'), reads)
+        self.assertNotIn(Path('/fixture/harness/screens/send-rest.txt'), reads)
+        self.assertIn('ci-details-catalog/07-send-rest-dark.png', output)
+        self.assertIn('ci-details-catalog/07-send-rest-light.png', output)
         self.assertIn('ci-details-catalog/12-send-confirm-dark.png', output)
         self.assertIn('ci-details-catalog/12-send-confirm-light.png', output)
         self.assertNotIn('/captures/', output)

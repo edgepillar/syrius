@@ -1695,7 +1695,7 @@ void main() {
     ];
     final Map<String, String> scripts = <String, String>{
       for (final String screen in <String>[
-        ...detailsScreens, 'token-new', 'send-confirm',
+        ...detailsScreens, 'token-new', 'prepared/send-rest', 'send-confirm',
         'swap-start', 'staking-empty', 'pillar-mine', 'sentinels',
       ])
         screen: File('harness/screens/$screen.txt').readAsStringSync(),
@@ -1779,7 +1779,7 @@ void main() {
       };
       final List<String> screens = switch (fault) {
         'token-draft' => const <String>['token-new'],
-        'send-confirm' => const <String>['send-confirm'],
+        'send-confirm' => const <String>['send-rest', 'send-confirm'],
         'swap-start' => const <String>['swap-start'],
         'earn' => const <String>['staking-empty', 'pillar-mine'],
         'sentinel-fixture' => const <String>['sentinels'],
@@ -1787,7 +1787,7 @@ void main() {
       };
       final List<String> routes = switch (fault) {
         'token-draft' => const <String>['tokens'],
-        'send-confirm' => const <String>['transfer'],
+        'send-confirm' => const <String>['transfer', 'transfer'],
         'swap-start' => const <String>['p2pSwap'],
         'earn' => const <String>['staking', 'pillars'],
         'sentinel-fixture' => const <String>['pillars'],
@@ -1797,6 +1797,7 @@ void main() {
         'token-draft' =>
           const <String>['25-token-new-dark.png', '25-token-new-light.png'],
         'send-confirm' => const <String>[
+          '07-send-rest-dark.png', '07-send-rest-light.png',
           '12-send-confirm-dark.png', '12-send-confirm-light.png',
         ],
         'swap-start' => const <String>[
@@ -1925,6 +1926,7 @@ void main() {
                   expect(draft.values.every((Object? v) => v == ''), isTrue);
                   draftReady = false;
                 case 'send_submit_button':
+                  expect(selected, 'send-confirm');
                   expect(draftReady && !draftOpen, isTrue);
                   draftOpen = true;
                 case 'send_confirmation_cancel':
@@ -2017,10 +2019,18 @@ void main() {
               });
             }
             if (sendConfirmation) {
-              expect(draftOpen && draftReady, isTrue);
-              expect(command['expect'], <String, Object?>{
-                'key': 'send_confirmation_marker', 'exact': true,
-              });
+              expect(draftReady, isTrue);
+              if (selected == 'send-rest') {
+                expect(draftOpen, isFalse);
+                expect(command['expect'], <String, Object?>{
+                  'key': 'send_submit_button', 'kind': 'button', 'exact': true,
+                });
+              } else {
+                expect(draftOpen, isTrue);
+                expect(command['expect'], <String, Object?>{
+                  'key': 'send_confirmation_marker', 'exact': true,
+                });
+              }
             }
             if (swapStart) {
               expect(draftOpen && !swapWarningOpen, isTrue);

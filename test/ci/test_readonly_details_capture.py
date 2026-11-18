@@ -334,7 +334,7 @@ class DetailsCatalogTests(unittest.TestCase):
                 ['28-az-dark.png', '28-az-light.png',
                  '29-az-project-dark.png', '29-az-project-light.png']),
         )
-        self.assertEqual(details.catalog_script_name(16, 'az'), 'az-voting-seeded.txt')
+        self.assertEqual(details.catalog_script_name(16, 'az'), 'prepared/az.txt')
         self.assertEqual(details.catalog_script_name(16, 'az-project'), 'az-project.txt')
         self.assertEqual(details.catalog_script_name(7, 'az-project'), 'az-project.txt')
         for schema, screens, files in families:
