@@ -1128,7 +1128,8 @@ void main() {
         ],
       ]);
       final List<Map<String, Object?>> queries = commands.where(
-        (Map<String, Object?> value) => value['cmd'] == 'type',
+        (Map<String, Object?> value) =>
+            value['cmd'] == 'type' && value['key'] == 'go_to_field',
       ).toList();
       final Map<String, Object?> query = <String, Object?>{
         'cmd': 'type', 'key': 'go_to_field', 'value': 'del',
