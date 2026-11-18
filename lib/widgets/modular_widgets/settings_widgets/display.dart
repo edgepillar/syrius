@@ -393,6 +393,8 @@ InputDecorationThemeData _menuDecoration(BuildContext context) {
   final OutlineInputBorder border = OutlineInputBorder(
     borderRadius: BorderRadius.circular(tokens.pillRadius),
     borderSide: BorderSide(color: tokens.line),
+    // These chips have no floating label or notch.
+    gapPadding: 0,
   );
   return InputDecorationThemeData(
     isDense: true,
