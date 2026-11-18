@@ -7,6 +7,18 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets
 
 import 'support.dart';
 
+class _ObservedRawNotice extends LicenseEntryWithLineBreaks {
+  _ObservedRawNotice(super.packages, super.text, this.onRead);
+
+  final VoidCallback onRead;
+
+  @override
+  Iterable<LicenseParagraph> get paragraphs {
+    onRead();
+    return super.paragraphs;
+  }
+}
+
 Future<void> _open(WidgetTester tester, String package) async {
   final Finder toggle = find.byKey(
     ValueKey<String>('about_licence_${package}_toggle'),
@@ -31,6 +43,7 @@ void main() {
             'Every word stays available without truncating the legal text.';
         const String secondText =
             'A second independent notice for the same package.';
+        int reads = 0;
         await tester.pumpWidget(
           aboutHost(
             Licences(
@@ -59,6 +72,11 @@ void main() {
                       ),
                     ],
                   ),
+                  _ObservedRawNotice(
+                    <String>['alpha', 'zeta'],
+                    'Complete raw notice\ntext continues.',
+                    () => reads++,
+                  ),
                 ],
               ),
             ),
@@ -74,7 +92,13 @@ void main() {
         expect(find.text('zeta'), findsOneWidget);
         expect(find.text('Fixture Font'), findsOneWidget);
         expect(find.text('MIT'), findsNothing);
+        expect(reads, 0);
         await _open(tester, 'alpha');
+        expect(reads, 1);
+        expect(
+          find.text('Complete raw notice text continues.'),
+          findsOneWidget,
+        );
         expect(find.text(firstText), findsOneWidget);
         expect(find.text(secondText), findsOneWidget);
         final SelectableText title = tester.widget<SelectableText>(
@@ -93,6 +117,13 @@ void main() {
           ),
         );
         expect(paragraph.maxLines, isNull);
+        await _open(tester, 'alpha');
+        await _open(tester, 'zeta');
+        expect(reads, 1);
+        expect(
+          find.text('Complete raw notice text continues.'),
+          findsOneWidget,
+        );
         expect(tester.takeException(), isNull);
       },
     );
@@ -186,6 +217,15 @@ void main() {
                   StateError('synthetic private diagnostic'),
                 );
               }
+              if (attempts == 2) {
+                return Stream<LicenseEntry>.value(
+                  _ObservedRawNotice(
+                    <String>['unreadable-notice'],
+                    'Synthetic raw notice',
+                    () => throw StateError('synthetic private diagnostic'),
+                  ),
+                );
+              }
               return Stream<LicenseEntry>.value(
                 FixtureLicence(
                   <String>['retried-package'],
@@ -211,6 +251,14 @@ void main() {
       await tester.tap(find.byKey(const Key('about_licences_retry')));
       await tester.pump();
       expect(attempts, 2);
+      expect(find.text('unreadable-notice'), findsOneWidget);
+      await _open(tester, 'unreadable-notice');
+      expect(find.text('Could not load licences. Try again.'), findsOneWidget);
+      expect(find.textContaining('private diagnostic'), findsNothing);
+      expect(find.text('Fixture final hook'), findsNothing);
+      await tester.tap(find.byKey(const Key('about_licences_retry')));
+      await tester.pump();
+      expect(attempts, 3);
       expect(find.text('retried-package'), findsOneWidget);
       expect(find.text('Fixture final hook'), findsOneWidget);
       expect(tester.takeException(), isNull);

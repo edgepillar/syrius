@@ -172,8 +172,8 @@ class _LicencesState extends State<Licences> {
     _subscription = null;
     _packages = null;
     _failed = false;
-    final Map<String, List<List<LicenseParagraph>>> collected =
-        <String, List<List<LicenseParagraph>>>{};
+    final Map<String, List<_LicenceText>> collected =
+        <String, List<_LicenceText>>{};
     void fail(Object _, [StackTrace? _]) {
       if (mounted && epoch == _epoch) {
         setState(() {
@@ -190,15 +190,12 @@ class _LicencesState extends State<Licences> {
         (LicenseEntry entry) {
           if (!mounted || epoch != _epoch || _failed) return;
           try {
-            final List<LicenseParagraph> paragraphs =
-                List<LicenseParagraph>.unmodifiable(entry.paragraphs);
+            final _LicenceText text = _LicenceText(entry);
             final Set<String> packages = entry.packages.toSet();
             // Even an unnamed registry entry keeps its authentic paragraphs.
             for (final String package
                 in packages.isEmpty ? const <String>{''} : packages) {
-              collected
-                  .putIfAbsent(package, () => <List<LicenseParagraph>>[])
-                  .add(paragraphs);
+              collected.putIfAbsent(package, () => <_LicenceText>[]).add(text);
             }
           } on Object catch (error, stack) {
             fail(error, stack);
@@ -219,7 +216,7 @@ class _LicencesState extends State<Licences> {
               for (final String name in names)
                 _PackageLicence(
                   name,
-                  List<List<LicenseParagraph>>.unmodifiable(collected[name]!),
+                  List<_LicenceText>.unmodifiable(collected[name]!),
                 ),
             ];
           });
@@ -315,6 +312,13 @@ class _LicencesState extends State<Licences> {
             return _LicenceRow(
               key: ValueKey<String>('about_licence_${package.name}'),
               package: package,
+              onReadFailure: () {
+                if (!mounted || !identical(_packages, packages)) return;
+                setState(() {
+                  _packages = null;
+                  _failed = true;
+                });
+              },
             );
           },
         ),
@@ -323,17 +327,53 @@ class _LicencesState extends State<Licences> {
   }
 }
 
+class _LicenceText {
+  _LicenceText(LicenseEntry entry) {
+    if (entry is LicenseEntryWithLineBreaks) {
+      // Flutter's bundled notices already own an immutable source string.
+      _original = entry;
+    } else {
+      _paragraphs = List<LicenseParagraph>.unmodifiable(entry.paragraphs);
+    }
+  }
+
+  LicenseEntryWithLineBreaks? _original;
+  List<LicenseParagraph>? _paragraphs;
+
+  List<LicenseParagraph> get paragraphs {
+    final List<LicenseParagraph> result = _paragraphs ??=
+        List<LicenseParagraph>.unmodifiable(_original!.paragraphs);
+    _original = null;
+    return result;
+  }
+}
+
 class _PackageLicence {
-  const _PackageLicence(this.name, this.entries);
+  _PackageLicence(this.name, this.entries);
 
   final String name;
-  final List<List<LicenseParagraph>> entries;
+  final List<_LicenceText> entries;
+  List<List<LicenseParagraph>>? _paragraphs;
+
+  List<List<LicenseParagraph>> get paragraphs =>
+      _paragraphs ?? const <List<LicenseParagraph>>[];
+
+  void readParagraphs() {
+    _paragraphs ??= <List<LicenseParagraph>>[
+      for (final _LicenceText entry in entries) entry.paragraphs,
+    ];
+  }
 }
 
 class _LicenceRow extends StatelessWidget {
-  const _LicenceRow({required this.package, super.key});
+  const _LicenceRow({
+    required this.package,
+    required this.onReadFailure,
+    super.key,
+  });
 
   final _PackageLicence package;
+  final VoidCallback onReadFailure;
 
   @override
   Widget build(BuildContext context) {
@@ -353,41 +393,48 @@ class _LicenceRow extends StatelessWidget {
               : package.name,
           keyPrefix: 'about_licence_${package.name}',
           headerMinHeight: tokens.aboutLicenceRowHeight,
-          child: Padding(
-            padding: tokens.cardPadding,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                for (final List<LicenseParagraph> entry
-                    in package.entries) ...<Widget>[
-                  for (final LicenseParagraph paragraph in entry)
-                    Padding(
-                      padding: EdgeInsetsDirectional.only(
-                        start:
-                            paragraph.indent == LicenseParagraph.centeredIndent
-                            ? 0
-                            : paragraph.indent > 0
-                            ? tokens.cardGap * paragraph.indent
-                            : 0,
-                        bottom: tokens.inlineGap,
-                      ),
-                      child: SelectableText(
-                        paragraph.text,
-                        textAlign:
-                            paragraph.indent == LicenseParagraph.centeredIndent
-                            ? TextAlign.center
-                            : TextAlign.start,
-                        style: tokens.bodyText,
-                      ),
-                    ),
-                  SizedBox(height: tokens.cardGap),
-                ],
-              ],
-            ),
-          ),
+          onChanged: (bool open) {
+            if (open) {
+              try {
+                package.readParagraphs();
+              } on Object {
+                onReadFailure();
+              }
+            }
+          },
+          child: Builder(builder: (_) => _buildParagraphs(tokens)),
         ),
       ),
     );
   }
+
+  Widget _buildParagraphs(AppTokens tokens) => Padding(
+    padding: tokens.cardPadding,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        for (final List<LicenseParagraph> entry
+            in package.paragraphs) ...<Widget>[
+          for (final LicenseParagraph paragraph in entry)
+            Padding(
+              padding: EdgeInsetsDirectional.only(
+                start: paragraph.indent > 0
+                    ? tokens.cardGap * paragraph.indent
+                    : 0,
+                bottom: tokens.inlineGap,
+              ),
+              child: SelectableText(
+                paragraph.text,
+                textAlign: paragraph.indent == LicenseParagraph.centeredIndent
+                    ? TextAlign.center
+                    : TextAlign.start,
+                style: tokens.bodyText,
+              ),
+            ),
+          SizedBox(height: tokens.cardGap),
+        ],
+      ],
+    ),
+  );
 }
