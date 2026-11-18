@@ -59,6 +59,8 @@ class ReadonlyInspectionSession {
     readonlyActivityMessageSeamCommand,
     readonlyAgedFuseFixtureCommand,
   };
+  static const int _collapsedRail = 40;
+  static const int _expandedRail = 184;
 
   /// The same native process must answer every subsequent original command.
   final int processId;
@@ -135,38 +137,55 @@ class ReadonlyInspectionSession {
   /// Reads one completed rail width from the original positive tree reply.
   /// Text is folded into buttons; it is not a separate label-key node.
   Future<bool> railExpanded() async {
+    final int width = await _readRailWidth(const Duration(seconds: 30));
+    if (width != _collapsedRail && width != _expandedRail) {
+      _refuse(ReadonlyInspectionReason.reply,
+        captureReply: ScreenCaptureReplyCode.railGeometryInvalid);
+    }
+    return width == _expandedRail;
+  }
+
+  Future<int> _readRailWidth(Duration timeout) async {
     if (!_walletBound) _refuse(ReadonlyInspectionReason.binding);
     final Map<String, dynamic> reply = await send(
-      <String, Object?>{'cmd': 'tree'}, const Duration(seconds: 30),
+      <String, Object?>{'cmd': 'tree'}, timeout,
     );
     final Object? nodes = reply['nodes'];
     if (reply['ok'] != true || nodes is! List || nodes.length > 16384) {
-      _refuse(ReadonlyInspectionReason.reply);
+      _refuse(ReadonlyInspectionReason.reply,
+        captureReply: ScreenCaptureReplyCode.railTreeInvalid);
     }
     Map<String, dynamic>? toggle;
     for (final Object? node in nodes) {
       if (node is! Map<String, dynamic> || node['kind'] == 'error') {
-        _refuse(ReadonlyInspectionReason.reply);
+        _refuse(ReadonlyInspectionReason.reply,
+          captureReply: ScreenCaptureReplyCode.railTreeInvalid);
       }
       if (node['key'] == 'rail_toggle') {
         if (toggle != null || node['kind'] != 'button' ||
             (node['enabled'] != null && node['enabled'] != true)) {
-          _refuse(ReadonlyInspectionReason.reply);
+          _refuse(ReadonlyInspectionReason.reply,
+            captureReply: ScreenCaptureReplyCode.railTreeInvalid);
         }
         toggle = node;
       }
     }
-    if (toggle == null) _refuse(ReadonlyInspectionReason.reply);
+    if (toggle == null) {
+      _refuse(ReadonlyInspectionReason.reply,
+        captureReply: ScreenCaptureReplyCode.railTreeInvalid);
+    }
     final Object? rect = toggle['rect'];
     // Original AppTokens widths 56/200, minus the two 8-pixel rail insets.
     // The original agent emits logical [left, top, width, height] integers.
     if (rect is! List || rect.length != 4 ||
         rect.any((Object? value) => value is! int ||
             value < 0 || value > 32768) ||
-        rect[3] != 32 || (rect[2] != 40 && rect[2] != 184)) {
-      _refuse(ReadonlyInspectionReason.reply);
+        rect[3] != 32 ||
+        (rect[2] as int) < _collapsedRail || (rect[2] as int) > _expandedRail) {
+      _refuse(ReadonlyInspectionReason.reply,
+        captureReply: ScreenCaptureReplyCode.railGeometryInvalid);
     }
-    return rect[2] == 184;
+    return rect[2] as int;
   }
 
   /// Prepares only the already opened Home in this bound native session.
@@ -177,13 +196,36 @@ class ReadonlyInspectionSession {
   Future<void> restoreScreenRail({required bool expanded}) async {
     await _requireScreenHome();
     if (await railExpanded() != expanded) {
-      await send(<String, Object?>{'cmd': 'tap', 'key': 'rail_toggle'},
-          const Duration(seconds: 30));
-      if (await railExpanded() != expanded) {
-        _refuse(ReadonlyInspectionReason.reply);
-      }
+      await _moveScreenRail(expanded ? _expandedRail : _collapsedRail);
     }
     await _requireScreenHome();
+  }
+
+  Future<void> _moveScreenRail(int target) async {
+    final Map<String, dynamic> reply = await send(
+      <String, Object?>{'cmd': 'tap', 'key': 'rail_toggle'},
+      const Duration(seconds: 30),
+    );
+    if (reply['ok'] != true) _refuse(ReadonlyInspectionReason.reply);
+
+    // A pointer reply may arrive before the original spring paints its last
+    // frame. Observe only the positive tree for this single owned toggle.
+    final Stopwatch elapsed = Stopwatch()..start();
+    const Duration window = Duration(seconds: 2);
+    const Duration interval = Duration(milliseconds: 120);
+    for (int sample = 0; sample < 6; sample++) {
+      final Duration remaining = window - elapsed.elapsed;
+      if (remaining <= Duration.zero) break;
+      if (await _readRailWidth(remaining) == target &&
+          elapsed.elapsed <= window) {
+        return;
+      }
+      if (sample < 5 && elapsed.elapsed + interval < window) {
+        await Future<void>.delayed(interval);
+      }
+    }
+    _refuse(ReadonlyInspectionReason.reply,
+      captureReply: ScreenCaptureReplyCode.railEndpointMissing);
   }
 
   Future<void> _requireScreenHome() async {
@@ -199,7 +241,8 @@ class ReadonlyInspectionSession {
         tabs.isEmpty || tabs.length > 16 ||
         tabs.any((Object? value) => value is! String) ||
         tabs.toSet().length != tabs.length || !tabs.contains('dashboard')) {
-      _refuse(ReadonlyInspectionReason.reply);
+      _refuse(ReadonlyInspectionReason.reply,
+        captureReply: ScreenCaptureReplyCode.homeStateInvalid);
     }
   }
 
@@ -226,10 +269,13 @@ class ReadonlyInspectionSession {
     }
   }
 
-  Never _refuse(ReadonlyInspectionReason reason) {
+  Never _refuse(ReadonlyInspectionReason reason, {
+    ScreenCaptureReplyCode? captureReply,
+  }) {
     _held = true;
     throw ReadonlyInspectionRefused(reason,
-      captureReply: _heldReply, captureFrameState: _heldFrameState,
+      captureReply: _heldReply ?? captureReply,
+      captureFrameState: _heldFrameState,
     );
   }
 }
