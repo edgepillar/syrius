@@ -4747,6 +4747,11 @@ class AppLocalizationsHi extends AppLocalizations {
       'Only your deposit is created. Agree the other side separately.';
 
   @override
+  String swapActionReceiveTo(String address) {
+    return 'to $address';
+  }
+
+  @override
   String swapActionTiming(int initialHours, int counterHours) {
     return '$initialHours h initial · $counterHours h counter';
   }

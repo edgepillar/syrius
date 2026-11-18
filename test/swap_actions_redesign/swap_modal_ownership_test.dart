@@ -171,6 +171,35 @@ void main() {
     );
     expect(fixture.mutations, 0);
     expect(find.byKey(const Key('swap_create_deposit')), findsNothing);
+    expect(find.text('Address 1'), findsOneWidget);
+    expect(find.text('to Address 1'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('swap_action_details_toggle')));
+    await tester.pumpAndSettle();
+    final Finder signer = find.byWidgetPredicate(
+      (Widget widget) => widget is SwapChoice && widget.value == fixture.owner,
+    );
+    final Finder signerButton = find.descendant(
+      of: signer,
+      matching: find.byType(OutlinedButton),
+    );
+    await tester.ensureVisible(signerButton);
+    await tester.tap(signerButton);
+    await tester.pumpAndSettle();
+    final Finder member = find.ancestor(
+      of: find.byWidgetPredicate(
+        (Widget widget) =>
+            widget is SwapIdentifier && widget.value == fixture.member,
+      ),
+      matching: find.byType(MenuItemButton),
+    );
+    await tester.tap(member);
+    await tester.pumpAndSettle();
+    expect(fixture.accountReads, <String>[fixture.owner, fixture.member]);
+    expect(find.text('Address 1'), findsNothing);
+    expect(find.text('Address 2'), findsOneWidget);
+    expect(find.text('to Address 2'), findsOneWidget);
+    expect(fixture.mutations, 0);
   });
 
   testWidgets('a pending Start read cannot fill a replacement source', (
@@ -205,6 +234,8 @@ void main() {
     await swapFrames(tester);
     expect(replacement.accountReads, isEmpty);
     expect(find.byType(SwapAmountPane), findsNothing);
+    expect(find.text('Address 1'), findsNothing);
+    expect(find.text('to Address 1'), findsNothing);
     expect(fixture.mutations + replacement.mutations, 0);
   });
 

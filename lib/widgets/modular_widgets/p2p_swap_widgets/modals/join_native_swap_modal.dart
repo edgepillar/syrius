@@ -224,6 +224,9 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal>
         : !_funded
         ? context.l10n.swapActionNotEnough
         : context.l10n.swapListJoin;
+    final String? signerLabel = current
+        ? swapMemberLabel(context, origin!.members, deposit.funds.address)
+        : null;
     return SwapTransferSurface(
       title: context.l10n.swapListJoin,
       marker: const Key('swap_join_screen_marker'),
@@ -236,6 +239,9 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal>
         visible: current,
         hideBalances: hidden,
         balance: deposit.funds.balance(_from),
+        party: signerLabel == null
+            ? null
+            : Text(signerLabel, style: tokens.captionText),
         choices: _choices,
         dollars: widget.dollars,
         canInteract: () => _editable(lease),

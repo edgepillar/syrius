@@ -8200,6 +8200,12 @@ abstract class AppLocalizations {
   /// **'Only your deposit is created. Agree the other side separately.'**
   String get swapActionDepositOnly;
 
+  /// The selected wallet address in the receive draft of the Start swap dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'to {address}'**
+  String swapActionReceiveTo(String address);
+
   /// No description provided for @swapActionTiming.
   ///
   /// In en, this message translates to:

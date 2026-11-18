@@ -219,6 +219,9 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal>
     }
     final bool current = owns(lease);
     final bool editable = _editable(lease);
+    final String? signerLabel = current
+        ? swapMemberLabel(context, origin!.members, _signer)
+        : null;
     if (current && !_fundsAttempted && _signer != null) {
       _fundsAttempted = true;
       final String signer = _signer!;
@@ -268,6 +271,9 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal>
         controller: _send,
         visible: current,
         balance: _funds?.balance(_from),
+        party: signerLabel == null
+            ? null
+            : Text(signerLabel, style: tokens.captionText),
         hideBalances: hidden,
         dollars: widget.dollars,
         choices: _choices,
@@ -294,6 +300,12 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal>
         token: _to,
         controller: _receive,
         visible: current,
+        party: signerLabel == null
+            ? null
+            : Text(
+                context.l10n.swapActionReceiveTo(signerLabel),
+                style: tokens.captionText,
+              ),
         hideBalances: hidden,
         dollars: widget.dollars,
         choices: _choices,

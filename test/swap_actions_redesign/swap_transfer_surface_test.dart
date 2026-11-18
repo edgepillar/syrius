@@ -30,6 +30,7 @@ Widget _surface(
     controller: amount,
     visible: visible,
     balance: BigInt.from(120450000000),
+    party: const Text('Address 2'),
     dollars: dollars,
     choices: <Token>[kZnnCoin, kQsrCoin],
     onChanged: (_) {},
@@ -139,6 +140,17 @@ void main() {
           ),
         );
         expect(tester.getBottomRight(balance).dy, lessThan(editorRect.top));
+        final Finder party = find.text('Address 2');
+        final Finder token = find.widgetWithText(OutlinedButton, 'ZNN');
+        expect(tester.getCenter(party).dy, tester.getCenter(balance).dy);
+        expect(
+          tester.getTopRight(party).dx,
+          lessThan(tester.getTopLeft(balance).dx),
+        );
+        expect(
+          tester.getTopRight(token).dx,
+          closeTo(tester.getTopRight(balance).dx, 0.01),
+        );
         expect(find.byKey(const Key('fixture_deposit')), findsNothing);
         expect(find.text('Fixture summary'), findsOneWidget);
         await tester.tap(help);

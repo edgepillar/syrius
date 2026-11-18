@@ -2651,6 +2651,11 @@
   "swapActionRefused": "Action refused. Refresh swaps.",
   "swapActionReadFailed": "Deposit unavailable. Refresh swaps.",
   "swapActionDepositOnly": "Only your deposit is created. Agree the other side separately.",
+  "swapActionReceiveTo": "to {address}",
+  "@swapActionReceiveTo": {
+    "description": "The selected wallet address in the receive draft of the Start swap dialog.",
+    "placeholders": {"address": {"type": "String", "example": "Address 2"}}
+  },
   "swapActionTiming": "{initialHours} h initial · {counterHours} h counter",
   "@swapActionTiming": {"placeholders": {"initialHours": {"type": "int"}, "counterHours": {"type": "int"}}},
   "swapActionDiscovery": "{hours} h discovery · {minutes} min completion margin",

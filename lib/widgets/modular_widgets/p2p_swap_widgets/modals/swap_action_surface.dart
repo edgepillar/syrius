@@ -26,6 +26,19 @@ Widget swapLiveDollars(BuildContext context, BigInt amount, Token token) =>
       approx: true,
     );
 
+/// The default label for a member's position in the captured wallet.
+String? swapMemberLabel(
+  BuildContext context,
+  Iterable<String> members,
+  String? address,
+) {
+  if (address == null) return null;
+  for (final (int index, String member) in members.indexed) {
+    if (member == address) return context.l10n.addressDefaultLabel(index + 1);
+  }
+  return null;
+}
+
 /// A transfer-shaped glass dialog. It owns no action, source or wallet.
 class SwapDialogSurface extends StatelessWidget {
   /// Lays out a glass dialog around externally owned content and callbacks.
@@ -497,12 +510,25 @@ class SwapAmountPane extends StatelessWidget {
         children: <Widget>[
           Wrap(
             alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
             spacing: tokens.inlineGap,
             runSpacing: tokens.transferRecentGap,
             children: <Widget>[
               Text(label.toUpperCase(), style: tokens.ledgerText),
-              ?party,
-              ?available,
+              if (party != null || available != null)
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: tokens.transferRecentGap,
+                  children: <Widget>[
+                    ?party,
+                    if (party != null && available != null)
+                      ExcludeSemantics(
+                        child: Text('·', style: tokens.captionText),
+                      ),
+                    ?available,
+                  ],
+                ),
             ],
           ),
           SizedBox(height: tokens.transferRecentGap),
@@ -543,7 +569,12 @@ class SwapAmountPane extends StatelessWidget {
                     max,
                     SizedBox(width: tokens.transferRecentGap),
                   ],
-                  Flexible(child: tokenChoice),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: constraints.maxWidth / 2,
+                    ),
+                    child: tokenChoice,
+                  ),
                 ],
               );
             },
