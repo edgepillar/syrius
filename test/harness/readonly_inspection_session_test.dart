@@ -1907,6 +1907,12 @@ void main() {
             expect(tab, 'dashboard');
             expanded = !expanded;
           }
+          if (name == 'hover') {
+            expect(selected, 'set-licences');
+            expect(command, <String, Object?>{
+              'cmd': 'hover', 'at': <int>[0, 0],
+            });
+          }
           if (name == 'tap' && command['type'] == 'Checkbox') {
             expect(selected, 'plasma-fuse');
             final int row = command['nth']! as int;
@@ -2358,8 +2364,14 @@ void main() {
       ]));
       expect(commands.every((Map<String, Object?> value) => <String>{
         'readonly-wallet-bind', 'state', 'tree', 'tap', 'theme', 'window',
-        'wait', 'assert', 'shot', 'type', 'key', 'scroll',
+        'wait', 'assert', 'shot', 'type', 'key', 'scroll', 'hover',
       }.contains(value['cmd'])), isTrue);
+      if (fault == 'none') {
+        expect(
+          commands.where((Map<String, Object?> row) => row['cmd'] == 'hover'),
+          hasLength(2),
+        );
+      }
       expect(output.lines.every((Object? line) => line is String &&
           line.startsWith('ok') && !line.contains(labRecipient)), isTrue);
     }
