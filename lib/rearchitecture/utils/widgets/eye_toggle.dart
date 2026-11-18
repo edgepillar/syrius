@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/balance_visibility.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart';
 
 /// What stands in for an amount while balances are hidden.
 const String kHiddenAmountDots = '••••';
@@ -26,8 +27,9 @@ const double _kEyePadding = 6;
 /// the eye opens (0 to 30, the lid moving from frame 3 to 20), looks about
 /// and blinks three times (30 to 200), and closes (200 to 232, the lid
 /// moving from 209 to 226, nothing drawn after). So the eye is open while
-/// balances are hidden, as it was on a card whose content was hidden, and a
-/// closed lid while they show.
+/// balances are hidden, as it was on a card whose content was hidden. Once
+/// the lid closes, the static outline identifies the control in the address
+/// row while balances show.
 ///
 /// The file's middle part is three blinks and two glances in under three
 /// seconds, which beside money is a busy loop. A blink here is the opening
@@ -190,23 +192,37 @@ class _EyeToggleState extends State<EyeToggle>
 
     final Widget eye = SizedBox.square(
       dimension: widget.size,
-      child: ClipRect(
-        child: OverflowBox(
-          minWidth: canvas,
-          maxWidth: canvas,
-          minHeight: canvas,
-          maxHeight: canvas,
-          // The file is drawn in the dark theme's green. Its background
-          // layer draws nothing, so the ink can be laid over what it does.
-          child: ColorFiltered(
-            colorFilter: ColorFilter.mode(tokens.znnInk, BlendMode.srcIn),
-            child: AppLottie(
-              AppLottieAsset.eye,
-              size: canvas,
-              controller: _frame,
+      child: AnimatedBuilder(
+        animation: _frame,
+        child: ClipRect(
+          child: OverflowBox(
+            minWidth: canvas,
+            maxWidth: canvas,
+            minHeight: canvas,
+            maxHeight: canvas,
+            // The transparent asset takes the themed ZNN ink.
+            child: ColorFiltered(
+              colorFilter: ColorFilter.mode(tokens.znnInk, BlendMode.srcIn),
+              child: AppLottie(
+                AppLottieAsset.eye,
+                size: canvas,
+                controller: _frame,
+              ),
             ),
           ),
         ),
+        builder: (BuildContext context, Widget? animatedEye) {
+          final bool shownAtRest =
+              !_visibility.hidden && _frame.value == _at(EyeToggle.shownFrame);
+          return Stack(
+            alignment: Alignment.center,
+            children: <Widget>[
+              Opacity(opacity: shownAtRest ? 0 : 1, child: animatedEye),
+              if (shownAtRest)
+                ShellSymbol('eye', size: widget.size, color: tokens.dim),
+            ],
+          );
+        },
       ),
     );
 

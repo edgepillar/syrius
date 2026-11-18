@@ -439,11 +439,13 @@ void main() {
         <String, dynamic>{'cmd': 'tap', 'key': 'receive_qr_toggle'},
       ));
       expect(find.text('Hide QR'), findsOneWidget);
+      expect(find.text('Request a specific amount'), findsOneWidget);
       await _driveReceiveCommand(tester, agent.commandForTest(
         <String, dynamic>{'cmd': 'tap', 'key': 'receive_request_toggle'},
       ));
       expect(find.byKey(const Key('receive_amount_field')).hitTestable(),
         findsOneWidget);
+      expect(find.text('The QR carries the amount.'), findsNothing);
       await _driveReceiveCommand(tester, agent.commandForTest(
         <String, dynamic>{
           'cmd': 'type', 'key': 'receive_amount_field', 'value': '100',
@@ -474,6 +476,7 @@ void main() {
       expect(payload, startsWith('qsr:'));
       expect(payload, contains('zts=${kQsrCoin.tokenStandard}'));
       expect(payload, endsWith('&amount=10000000000'));
+      expect(find.text('The QR carries the amount.'), findsOneWidget);
       expect(find.byKey(const Key('receive_share_image')), findsOneWidget);
       expect(find.byKey(const Key('receive_save_image')), findsOneWidget);
       expect(tester.takeException(), isNull);

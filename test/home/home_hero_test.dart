@@ -29,6 +29,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/balance_visibility.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../harness/app/agent.dart';
@@ -663,6 +664,10 @@ void main() {
         visibility.set(false);
         await show(tester, light: light);
         final Finder eye = find.byType(EyeToggle);
+        final Finder eyeOutline = find.descendant(
+          of: eye,
+          matching: find.byType(ShellSymbol),
+        );
         final Finder control = find.byKey(const Key('home_eye'));
         final Finder amount = find.byKey(const Key('home_znn_value'));
         final Finder symbol = find.byKey(const Key('home_znn_symbol'));
@@ -677,6 +682,7 @@ void main() {
         )..requestFocus();
         await tester.pump();
         expect(focus.hasFocus, isTrue);
+        expect(eyeOutline, findsOneWidget);
         expect(
           tester.getRect(control).bottom,
           lessThan(tester.getRect(amount).top),
@@ -688,6 +694,7 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
         expect(visibility.hidden, isTrue);
+        expect(eyeOutline, findsNothing);
         expect(tester.state<State<EyeToggle>>(eye), same(state));
         expect(
           tester.widget<AppLottie>(find.byType(AppLottie)).controller,
@@ -729,6 +736,7 @@ void main() {
         await tester.sendKeyEvent(LogicalKeyboardKey.space);
         await tester.pump();
         expect(visibility.hidden, isFalse);
+        expect(eyeOutline, findsNothing);
         expect(tester.state<State<EyeToggle>>(eye), same(state));
         expect(focus.hasFocus, isTrue);
         expect(
@@ -742,6 +750,7 @@ void main() {
           controller.value * EyeToggle.frames,
           closeTo(EyeToggle.shownFrame, 1e-6),
         );
+        expect(eyeOutline, findsOneWidget);
 
         visibility.set(true);
         await tester.pumpWidget(

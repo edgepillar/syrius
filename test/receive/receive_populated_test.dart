@@ -320,7 +320,7 @@ void main() {
       final Finder request = find.byKey(const Key('receive_request_toggle'));
       final Finder requestTitle = find.descendant(
         of: request,
-        matching: find.text('Request an amount'),
+        matching: find.text('Request a specific amount'),
       );
       expect(tester.getRect(requestTitle).left, tester.getRect(request).left);
       await _showQr(tester);
@@ -598,6 +598,7 @@ void main() {
       );
       await tester.pump();
       expect(find.byType(ReceiveQrImage), findsNothing, reason: amount);
+      expect(find.text('The QR carries the amount.'), findsNothing);
       expect(find.byKey(const Key('receive_share_image')), findsNothing);
       expect(find.byKey(const Key('receive_save_image')), findsNothing);
     }
