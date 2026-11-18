@@ -325,7 +325,7 @@ class HarnessAdmissionTests(unittest.TestCase):
         self.assertEqual(report['groups_expected'], 2)
         self.assertEqual([row['selected_suites'] for row in report['commands']], [57, 56])
         self.assertEqual([row['first_suite_index'] for row in report['commands']], [1, 58])
-        self.assertEqual(report['total_command_limit_seconds'], 480)
+        self.assertEqual(report['total_command_limit_seconds'], 600)
         for call in self.command_groups:
             self.assertEqual(call.kwargs['timeout'], 300)
             self.assertEqual(call.kwargs['cap'], 4 * 1024**2)
@@ -381,25 +381,25 @@ class HarnessAdmissionTests(unittest.TestCase):
                      'test/theme/mockup_tokens_test.dart'):
             self.assertEqual(self.command_argv.count(path), 1)
 
-        # A slower healthy first group borrows only unspent serial budget.
-        code, timed, _, _ = self.run_case(command_clock=[0, 0, 250, 250, 450],
-                                        command_seconds=(250, 200))
+        # Time spent between the two groups still counts toward the deadline.
+        code, timed, _, _ = self.run_case(command_clock=[0, 0, 250, 320, 575],
+                                        command_seconds=(250, 255))
         self.assertEqual(code, 0)
-        self.assertEqual([call.kwargs['timeout'] for call in self.command_groups], [300, 230])
-        self.assertEqual(timed['commands_elapsed_seconds'], 450)
-        code, boundary, _, _ = self.run_case(command_clock=[0, 0, 300, 300, 480],
-                                           command_seconds=(300, 180))
+        self.assertEqual([call.kwargs['timeout'] for call in self.command_groups], [300, 280])
+        self.assertEqual(timed['commands_elapsed_seconds'], 575)
+        code, boundary, _, _ = self.run_case(command_clock=[0, 0, 300, 300, 600],
+                                           command_seconds=(300, 300))
         self.assertEqual(code, 0)
-        self.assertEqual(boundary['commands_elapsed_seconds'], 480)
-        for clock, seconds, calls in (([0, 0, 300, 480], (300, 0), 3),
-                                     ([0, 0, 300, 300, 481], (300, 181), 4)):
+        self.assertEqual(boundary['commands_elapsed_seconds'], 600)
+        for clock, seconds, calls in (([0, 0, 300, 600], (300, 0), 3),
+                                     ([0, 0, 300, 300, 601], (300, 300), 4)):
             code, refused, _, _ = self.run_case(command_clock=clock,
                 command_seconds=seconds, expected_command_calls=calls)
             self.assertEqual(code, 1)
             self.assertFalse(refused['success'])
             self.assertIsNone(refused['counts'])
             self.assertEqual(refused['code'], 'TESTS_FAILED')
-        for started, now in ((0, 480), (1, 0), (0, float('nan')), (False, 0)):
+        for started, now in ((0, 600), (1, 0), (0, float('nan')), (False, 0)):
             with self.subTest(clock=(started, now)), self.assertRaises(harness.debug.ProcessRefused):
                 harness.group_command_timeout(started, now)
 

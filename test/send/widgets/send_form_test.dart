@@ -423,6 +423,13 @@ void main() {
           of: token, matching: find.byType(InputDecorator),
         ).first;
         expect(tester.getSize(decorated).height, 42);
+        final InputDecoration tokenDecoration =
+            tester.widget<InputDecorator>(decorated).decoration;
+        expect(tokenDecoration.filled, isTrue);
+        expect(
+          tokenDecoration.fillColor,
+          AppTokens.of(tester.element(token)).card2,
+        );
         expect(tester.getSize(find.byKey(const Key('send_token_mark'))),
           const Size(22, 22));
         final InputDecorator recipientDecoration =

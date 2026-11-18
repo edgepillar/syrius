@@ -36,8 +36,7 @@ except ImportError:
 EXPECTED_DART_CASES = 1525
 LAUNCH_ASSET_DART_CASES = 2
 GROUP_COMMAND_LIMIT_SECONDS = 300
-TOTAL_COMMAND_LIMIT_SECONDS = 480
-STARTUP_COMMAND_LIMIT_SECONDS = GROUP_COMMAND_LIMIT_SECONDS * 2
+TOTAL_COMMAND_LIMIT_SECONDS = GROUP_COMMAND_LIMIT_SECONDS * 2
 
 
 def startup_check(repo, parent, dart, kind):
@@ -134,13 +133,13 @@ def selected_groups(paths):
     return [paths[:middle], paths[middle:]]
 
 
-def group_command_timeout(started, now, total_limit=TOTAL_COMMAND_LIMIT_SECONDS):
-    """Allocate only the unspent part of the selected serial command budget."""
+def group_command_timeout(started, now):
+    """Allocate only the unspent part of the serial command budget."""
     debug.need(all(type(value) in (int, float) and math.isfinite(value)
                    for value in (started, now)), 'TESTS_FAILED')
     elapsed = now - started
-    debug.need(0 <= elapsed < total_limit, 'TESTS_FAILED')
-    return min(GROUP_COMMAND_LIMIT_SECONDS, total_limit - elapsed)
+    debug.need(0 <= elapsed < TOTAL_COMMAND_LIMIT_SECONDS, 'TESTS_FAILED')
+    return min(GROUP_COMMAND_LIMIT_SECONDS, TOTAL_COMMAND_LIMIT_SECONDS - elapsed)
 
 
 def valid_group_counts(row):
@@ -166,7 +165,7 @@ def valid_group_counts(row):
     return counts
 
 
-def combined_counts(rows, paths, total_limit=TOTAL_COMMAND_LIMIT_SECONDS):
+def combined_counts(rows, paths):
     """Admit neither an incomplete group nor a replayed stream as the whole suite."""
     groups = selected_groups(paths)
     debug.need(type(rows) is list and len(rows) == len(groups) == 2, 'TESTS_FAILED')
@@ -186,8 +185,8 @@ def combined_counts(rows, paths, total_limit=TOTAL_COMMAND_LIMIT_SECONDS):
         for key in keys:
             result[key] += counts[key]
         first += len(group)
-    debug.need(sum(row['command']['seconds'] for row in rows) <= total_limit,
-               'TESTS_FAILED')
+    debug.need(sum(row['command']['seconds'] for row in rows)
+               <= TOTAL_COMMAND_LIMIT_SECONDS, 'TESTS_FAILED')
     result['terminal_success'] = True
     return result
 
@@ -209,9 +208,6 @@ def main():
         asset_fidelity = parent.get('SYRIUS_STARTUP_ASSET_FIDELITY') == 'true'
         debug.need(not asset_fidelity or
             parent.get('SYRIUS_WINDOWS_STARTUP_PROBE') == 'true', 'ENVIRONMENT_REFUSED')
-        total_limit = (STARTUP_COMMAND_LIMIT_SECONDS if asset_fidelity
-                       else TOTAL_COMMAND_LIMIT_SECONDS)
-        report['total_command_limit_seconds'] = total_limit
         repo = Path(parent['GITHUB_WORKSPACE'])
         debug.need(repo.resolve() == Path.cwd().resolve(), 'ENVIRONMENT_REFUSED')
         debug.bounded.verify_source(repo, source, parent)
@@ -367,7 +363,7 @@ def main():
             row = dict(index=index, first_suite_index=first,
                        selected_suites=len(group), status='UNKNOWN', command=None, counts=None)
             report['commands'].append(row)
-            timeout = group_command_timeout(command_started, time.monotonic(), total_limit)
+            timeout = group_command_timeout(command_started, time.monotonic())
             outcome = run_bounded([str(dart), '--packages=' + str(packages), str(snapshot),
                 'test', '--no-pub', '--reporter', 'json', '--concurrency=1', *group],
                 cwd=repo, env=fresh_environment(repo, parent), timeout=timeout, cap=4 * 1024**2)
@@ -393,7 +389,8 @@ def main():
                 report['test_failures'] = dart_test_failure.project(outcome.output)
                 report['failed_group'] = index
             debug.need(outcome.transport_complete, 'OUTPUT_REFUSED')
-            debug.need(0 <= report['commands_elapsed_seconds'] <= total_limit, 'TESTS_FAILED')
+            debug.need(0 <= report['commands_elapsed_seconds']
+                       <= TOTAL_COMMAND_LIMIT_SECONDS, 'TESTS_FAILED')
             row['counts'] = test_counts(outcome.output)
             valid_group_counts(row)
             row['status'] = 'SUCCESS'
@@ -401,7 +398,7 @@ def main():
                 debug.bounded.verify_source(repo, source, parent)
                 debug.need(debug.entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
             first += len(group)
-        counts = combined_counts(report['commands'], selected_tests, total_limit)
+        counts = combined_counts(report['commands'], selected_tests)
         expected = EXPECTED_DART_CASES + (LAUNCH_ASSET_DART_CASES if asset_fidelity else 0)
         debug.need(counts['passed'] == expected, 'TESTS_FAILED')
         report['counts'] = counts

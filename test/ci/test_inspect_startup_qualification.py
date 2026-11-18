@@ -563,9 +563,9 @@ class StartupInspectionTests(unittest.TestCase):
         def read(value, *, shared_binaries=None):
             buffer = io.BytesIO()
             with zipfile.ZipFile(buffer, 'w') as zipped:
-                zipped.writestr('manifest.json', json.dumps(value))
+                zipped.writestr(zipfile.ZipInfo('manifest.json'), json.dumps(value))
                 for row in value['captures']:
-                    zipped.writestr(row['file'], pixels)
+                    zipped.writestr(zipfile.ZipInfo(row['file']), pixels)
             raw = buffer.getvalue()
             return inspect.launch_archive(raw, inspect.archive.sha(raw), len(raw),
                 HEAD, TREE, RUN, pins, settle=settle, shared_binaries=shared_binaries)

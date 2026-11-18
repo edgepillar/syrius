@@ -1047,6 +1047,8 @@ class _SendPopulatedState extends State<SendPopulated>
     return DropdownMenu<Token>(
       key: const Key('send_token_field'),
       inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: tokens.card2,
         constraints: BoxConstraints.tightFor(height: fieldHeight),
         contentPadding: EdgeInsetsDirectional.symmetric(
           horizontal: tokens.transferFieldPadding.start,
