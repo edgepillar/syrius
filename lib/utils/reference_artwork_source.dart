@@ -11,6 +11,9 @@ enum ReferenceArtworkKind {
 
   /// The native no-data mark at the reference's selected frame.
   noData,
+
+  /// A Lottie renderer in the visit-owned Originals gallery.
+  originalsGallery,
 }
 
 /// Implemented by the actual private State; it creates no alternate surface.

@@ -112,8 +112,14 @@ class AppLottie extends StatelessWidget {
     this.repeat = true,
     this.fit,
     this.onLoaded,
+    this.originalsReferenceProgress,
     super.key,
-  });
+  }) : assert(
+         originalsReferenceProgress == null ||
+             (originalsReferenceProgress >= 0 &&
+                 originalsReferenceProgress < 1 && controller != null),
+         'An Originals frame requires a fraction below one and a controller.',
+       );
 
   /// Which animation.
   final AppLottieAsset asset;
@@ -136,6 +142,9 @@ class AppLottie extends StatelessWidget {
 
   /// Called once, when the animation is ready to draw.
   final ValueChanged<LottieComposition>? onLoaded;
+
+  /// The authored gallery still, applied only during a reference capture.
+  final double? originalsReferenceProgress;
 
   /// Loads, in the background, what the main pages draw: the coin and the
   /// two nodes at their small size, and the eye. A megabyte of files and
@@ -241,12 +250,16 @@ class _PlayerState extends State<_Player>
   int _referenceEpoch = 0;
 
   @override
-  ReferenceArtworkKind get referenceArtworkKind =>
-      switch (_configuration.asset) {
-        AppLottieAsset.map => ReferenceArtworkKind.walletReadyMap,
-        AppLottieAsset.noData => ReferenceArtworkKind.noData,
-        _ => ReferenceArtworkKind.welcomeGlobe,
-      };
+  ReferenceArtworkKind get referenceArtworkKind {
+    if (_configuration.originalsReferenceProgress != null) {
+      return ReferenceArtworkKind.originalsGallery;
+    }
+    return switch (_configuration.asset) {
+      AppLottieAsset.map => ReferenceArtworkKind.walletReadyMap,
+      AppLottieAsset.noData => ReferenceArtworkKind.noData,
+      _ => ReferenceArtworkKind.welcomeGlobe,
+    };
+  }
 
   @override
   Object get referenceArtworkGeneration => _entry ?? this;
@@ -259,18 +272,22 @@ class _PlayerState extends State<_Player>
     final _Entry? entry = _entry;
     final LottieComposition? composition = _composition;
     final AppLottieAsset asset = _configuration.asset;
-    final (String, double)? reference = switch (asset) {
-      AppLottieAsset.globe => ('welcome_globe', 0.4),
-      AppLottieAsset.map => ('wallet_ready_map', 0.5),
-      AppLottieAsset.noData => ('no_data', 0.2),
-      _ => null,
-    };
-    final bool oneShot = asset == AppLottieAsset.noData;
-    if (!mounted || !_active || (!oneShot && !_clock.isAnimating) ||
+    final double? galleryProgress = _configuration.originalsReferenceProgress;
+    final (String, double)? reference = galleryProgress != null
+        ? ('originals_${asset.name}', galleryProgress)
+        : switch (asset) {
+            AppLottieAsset.globe => ('welcome_globe', 0.4),
+            AppLottieAsset.map => ('wallet_ready_map', 0.5),
+            AppLottieAsset.noData => ('no_data', 0.2),
+            _ => null,
+          };
+    final bool requireMotion = galleryProgress == null &&
+        asset != AppLottieAsset.noData;
+    if (!mounted || !_active || (requireMotion && !_clock.isAnimating) ||
         entry == null ||
         composition == null || _referenceFrame != null ||
         reference == null ||
-        _configuration.controller != null) {
+        (galleryProgress == null) != (_configuration.controller == null)) {
       return null;
     }
     // The parser subtracts .01 from op. Match lottie-web's integer frame,
@@ -284,14 +301,15 @@ class _PlayerState extends State<_Player>
         !progress.isFinite || progress < 0 || progress > 1) {
       return null;
     }
-    final AnimationController original = _clock;
+    final Animation<double> original = _configuration.controller ?? _clock;
     final int epoch = _referenceEpoch;
     final Animation<double> sample = AlwaysStoppedAnimation<double>(progress);
     bool originalCurrent() => mounted && _active &&
         _referenceEpoch == epoch &&
         identical(_entry, entry) && identical(_composition, composition) &&
-        identical(_clock, original) && _configuration.controller == null &&
-        _configuration.asset == asset;
+        identical(_configuration.controller ?? _clock, original) &&
+        _configuration.asset == asset &&
+        _configuration.originalsReferenceProgress == galleryProgress;
     late final ReferenceArtworkFrame frame;
     frame = ReferenceArtworkFrame(
       owner: this, generation: entry, kind: referenceArtworkKind,
@@ -299,7 +317,8 @@ class _PlayerState extends State<_Player>
         'kind': reference.$1,
         'frame': index, 'frame_count': count,
       },
-      current: () => originalCurrent() && (oneShot || original.isAnimating) &&
+      current: () => originalCurrent() &&
+          (!requireMotion || _clock.isAnimating) &&
           identical(_referenceFrame, frame) &&
           identical(_referenceProgress, sample),
       observed: () => identical(_paintedController, sample),
@@ -344,11 +363,15 @@ class _PlayerState extends State<_Player>
   void didUpdateWidget(_Player oldWidget) {
     super.didUpdateWidget(oldWidget);
     final AppLottie old = oldWidget.configuration;
-    if (old.asset != _configuration.asset ||
-        !identical(old.controller, _configuration.controller)) {
+    final bool playbackChanged = old.asset != _configuration.asset ||
+        !identical(old.controller, _configuration.controller);
+    if (playbackChanged || old.originalsReferenceProgress !=
+        _configuration.originalsReferenceProgress) {
       _referenceEpoch++;
       _referenceFrame = null;
       _referenceProgress = null;
+    }
+    if (playbackChanged) {
       _clock
         ..stop()
         ..value = 0;

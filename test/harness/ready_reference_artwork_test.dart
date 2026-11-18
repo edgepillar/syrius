@@ -12,6 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_ready_binding.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/originals_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 
 import '../../harness/app/capture_frame.dart';
@@ -116,6 +117,77 @@ void main() {
       tester.view.reset();
     });
   }
+
+  testWidgets('Originals samples the authored frames of its eight Lotties', (
+    WidgetTester tester,
+  ) async {
+    prepare(tester);
+    await tester.pumpWidget(DefaultAssetBundle(
+      bundle: _Bundle(),
+      child: MaterialApp(
+        theme: AppTheme.darkTheme,
+        locale: const Locale('en'),
+        localizationsDelegates: appLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: OriginalsCard(isCurrent: () => true)),
+      ),
+    ));
+    final List<ReferenceArtworkSource> sources = tester.allStates
+        .whereType<ReferenceArtworkSource>()
+        .where((ReferenceArtworkSource source) =>
+            source.referenceArtworkKind ==
+            ReferenceArtworkKind.originalsGallery)
+        .toList();
+    expect(sources, hasLength(8));
+    final EntryCaptureCompletion loaded = EntryCaptureCompletion(
+      Future.wait(<Future<Object?>>[
+        for (final ReferenceArtworkSource source in sources)
+          source.referenceArtworkReadiness!,
+      ]),
+    );
+    for (int frame = 0; frame < 200 &&
+        loaded.status == EntryCaptureStatus.pending; frame++) {
+      await tester.runAsync<void>(
+        () => Future<void>.delayed(const Duration(milliseconds: 5)));
+      await tester.pump();
+    }
+    expect(loaded.status, EntryCaptureStatus.succeeded);
+    await tester.pump(const Duration(milliseconds: 400));
+    final Finder players = find.byType(Lottie);
+    final List<State<StatefulWidget>> originalStates =
+        tester.stateList(players).toList();
+    final List<Animation<double>?> clocks = tester.widgetList<Lottie>(players)
+        .map((Lottie player) => player.controller).toList();
+    final OriginalsReferenceArtwork artwork = OriginalsReferenceArtwork(
+      root: WidgetsBinding.instance.rootElement,
+      admitted: () => true,
+    );
+    final _Frames frames = _Frames();
+    final List<Lottie> sampled = await _finish<List<Lottie>>(
+      tester,
+      frames,
+      artwork.capture<List<Lottie>>(
+        frames: frames.gate,
+        readback: () async => <Lottie>[
+          for (final State<StatefulWidget> original in originalStates)
+            original.widget as Lottie,
+        ],
+      ),
+    );
+    const List<int> expectedFrames = <int>[48, 60, 118, 118, 118, 54, 48, 24];
+    expect(sampled, hasLength(expectedFrames.length));
+    expect(tester.stateList(players), orderedEquals(originalStates));
+    for (int index = 0; index < sampled.length; index++) {
+      final Lottie player = sampled[index];
+      expect(player.controller, isA<AlwaysStoppedAnimation<double>>());
+      final double frame =
+          player.controller!.value * player.composition!.durationFrames;
+      expect(frame, closeTo(expectedFrames[index], 0.000001));
+      expect((originalStates[index].widget as Lottie).controller,
+        same(clocks[index]));
+    }
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('Ready samples original renderers and restores before next theme',
       (WidgetTester tester) async {
