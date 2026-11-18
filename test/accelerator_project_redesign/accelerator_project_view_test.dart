@@ -80,6 +80,27 @@ void main() {
           expect(find.text('Unknown'), findsOneWidget);
           expect(find.text('28 of 33'), findsNothing);
           expect(find.text('Your vote'), findsOneWidget);
+          final Finder budget = find.byKey(
+            const Key('accelerator_project_budget'),
+          );
+          final Rect label = tester.getRect(find.text('BUDGET'));
+          expect(tester.getTopLeft(budget).dx, closeTo(label.left, 0.01));
+          expect(tester.getTopLeft(budget).dy, closeTo(label.bottom, 0.01));
+          final Finder description = find.byKey(
+            const Key('accelerator_project_description'),
+          );
+          final Text paragraph = tester.widget<Text>(
+            find.descendant(of: description, matching: find.byType(Text)),
+          );
+          final TextPainter zero = TextPainter(
+            text: TextSpan(text: '0', style: paragraph.style),
+            textDirection: TextDirection.ltr,
+          )..layout();
+          expect(
+            tester.widget<ConstrainedBox>(description).constraints.maxWidth,
+            closeTo(62 * zero.width, 0.01),
+          );
+          zero.dispose();
           for (final Key key in <Key>[
             const Key('project_details_back'),
             const Key('acc_create_phase'),

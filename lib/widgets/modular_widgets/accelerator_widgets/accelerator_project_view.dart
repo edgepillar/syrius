@@ -349,7 +349,6 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(label.toUpperCase(), style: tokens.ledgerText),
-        SizedBox(height: tokens.inlineGap),
         child,
       ],
     );
@@ -357,6 +356,17 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
     final String short = owner.length > 14
         ? '${owner.substring(0, 7)}…${owner.substring(owner.length - 6)}'
         : owner;
+    final TextStyle descriptionStyle = tokens.bodyText.copyWith(
+      color: tokens.dim,
+    );
+    final TextPainter zero = TextPainter(
+      text: TextSpan(text: '0', style: descriptionStyle),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout();
+    // The reference limits the description to 62ch at its current scale.
+    final double descriptionWidth = 62 * zero.width;
+    zero.dispose();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
@@ -367,6 +377,7 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
             fact(
               context.l10n.acceleratorBudget,
               Row(
+                key: const Key('accelerator_project_budget'),
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   AmountText(
@@ -414,9 +425,13 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
           ],
         ),
         SizedBox(height: tokens.panelGap),
-        Text(
-          project.description,
-          style: tokens.bodyText.copyWith(color: tokens.dim, height: 1.4),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: ConstrainedBox(
+            key: const Key('accelerator_project_description'),
+            constraints: BoxConstraints(maxWidth: descriptionWidth),
+            child: Text(project.description, style: descriptionStyle),
+          ),
         ),
         SizedBox(height: tokens.panelGap),
         _buildPhases(context, source, project, epoch),
