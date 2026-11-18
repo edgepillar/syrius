@@ -896,6 +896,10 @@ void main() {
               }[key]);
             }
           }
+          if (name == 'scroll') {
+            expect(currentTab, 'settings');
+            expect(command, <String, Object?>{'cmd': 'scroll', 'dy': 440});
+          }
           if (name == 'tap' && command['key'] == 'addresses_save_contact') {
             expect(currentTab, 'settings');
             expect(shots, 6);
@@ -1138,6 +1142,9 @@ void main() {
         if (shots >= 7) query,
         if (fault == 'none') query,
       ]);
+      expect(commands.where((Map<String, Object?> value) =>
+          value['cmd'] == 'scroll').length,
+          shots >= 7 || fault == 'goto-contact-negative' ? 1 : 0);
       expect(hidden, fault == 'hidden-negative');
       if (fault != 'none') {
         final int originalCalls = commands.length;
@@ -1148,10 +1155,13 @@ void main() {
       }
       expect(output.lines.every((Object? line) => line is String &&
           line.startsWith('ok')), isTrue);
-      expect(commands.every((Map<String, Object?> value) => <String>{
-        'readonly-wallet-bind', 'state', 'tree', 'tap', 'theme', 'window',
-        'wait', 'assert', 'shot', 'hover', 'key', 'type',
-      }.contains(value['cmd'])), isTrue);
+      expect(
+        commands.map((Map<String, Object?> value) => value['cmd']),
+        everyElement(isIn(<String>{
+          'readonly-wallet-bind', 'state', 'tree', 'tap', 'theme', 'window',
+          'wait', 'assert', 'shot', 'hover', 'key', 'type', 'scroll',
+        })),
+      );
     }
   });
 
