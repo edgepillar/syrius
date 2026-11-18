@@ -431,7 +431,12 @@ def render_html(manifest: dict[str, object]) -> str:
         url = escape(str(info["url"]), quote=True)
         size = info.get("size")
         caption = f"{label} ({size[0]} by {size[1]})" if size else label
-        return f'<figure><figcaption>{caption}</figcaption><a href="{url}"><img loading="lazy" src="{url}" alt="{label}"></a></figure>'
+        dimensions = f' width="{size[0]}" height="{size[1]}"' if size else ""
+        return (
+            f'<figure><figcaption>{caption}</figcaption><a href="{url}">'
+            f'<img loading="lazy" decoding="async"{dimensions} src="{url}" alt="{label}">'
+            '</a></figure>'
+        )
 
     sections: list[str] = []
     for pair in manifest["pairs"]:
@@ -446,7 +451,7 @@ def render_html(manifest: dict[str, object]) -> str:
         actual_label = f"Actual at {source[:12]}" if source is not None else "Actual"
         figures = image_cell("Mockup", pair["expected"]) + image_cell(actual_label, pair["actual"])
         if pair["diff_url"]:
-            diff = {"state": "available", "url": pair["diff_url"]}
+            diff = {"state": "available", "url": pair["diff_url"], "size": pair["expected"]["size"]}
         elif score is not None:
             diff = {"reason": "Difference image omitted for this report"}
         else:
@@ -470,9 +475,19 @@ def render_html(manifest: dict[str, object]) -> str:
     target = manifest["summary"].get("target_source")
     target_text = ""
     if target is not None:
-        available = manifest["summary"]["target_pairs"]["available"]
+        target_pairs = manifest["summary"]["target_pairs"]
+        available = target_pairs["available"]
         total = manifest["summary"]["pairs"]
         target_text = f"<p>Target commit <code>{escape(target)}</code>. {available} of {total} pairs available.</p>"
+        if target_pairs["remaining"]:
+            links = "".join(
+                f'<li><a href="#{escape(stem, quote=True)}">{escape(stem)}</a></li>'
+                for stem in target_pairs["remaining"]
+            )
+            target_text += (
+                '<details><summary>Pairs still needed at this commit</summary>'
+                f'<ul>{links}</ul></details>'
+            )
     return (
         "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\">"
         "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"

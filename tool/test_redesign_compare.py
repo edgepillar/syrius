@@ -156,6 +156,8 @@ class CompareTests(unittest.TestCase):
         data = path.read_bytes()
         self.assertEqual(path.stem, hashlib.sha256(data).hexdigest())
         self.assertEqual(list(path.parent.iterdir()), [path])
+        page = (self.output / "index.html").read_text(encoding="utf-8")
+        self.assertEqual(page.count(f'width="4" height="3" src="{url}"'), 2)
         before = path.stat()
         self.report()
         after = path.stat()
@@ -289,6 +291,8 @@ class CompareTests(unittest.TestCase):
                 self.assertEqual(pair["review"]["state"], "current" if captured == current else "none")
                 page = (self.output / "index.html").read_text(encoding="utf-8")
                 self.assertIn(f"Target commit <code>{current}</code>", page)
+                self.assertIn("Pairs still needed at this commit", page)
+                self.assertEqual(f'href="#{self.stem}"' in page, captured != current)
                 if captured is not None:
                     self.assertIn(f"Actual at {captured[:12]}", page)
 
@@ -378,6 +382,9 @@ class CompareTests(unittest.TestCase):
                 })
                 self.assertEqual(summary["visual_review"], "INCOMPLETE")
                 self.assertFalse((self.output / "diffs").exists())
+                page = (self.output / "index.html").read_text(encoding="utf-8")
+                self.assertEqual("Pairs still needed at this commit" in page, wrong_size)
+                self.assertEqual(f'href="#{self.stem}"' in page, wrong_size)
 
     def test_target_source_requires_manifest_before_output(self) -> None:
         with self.assertRaisesRegex(ValueError, "requires a capture manifest"):
