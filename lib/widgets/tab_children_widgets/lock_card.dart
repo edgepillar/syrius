@@ -292,100 +292,110 @@ class _LockCardState extends State<LockCard>
           sigma: tokens.panelBlur,
           borderRadius: radius,
           blurInsetTop: tokens.glassTopEdge.width + tokens.lockWellHeight,
-          child: DecoratedBox(
-            position: DecorationPosition.foreground,
-            decoration: BoxDecoration(
-              borderRadius: radius,
-              border: Border.all(color: tokens.line),
-            ),
-            child: Padding(
-              padding: EdgeInsets.all(tokens.glassTopEdge.width),
-              // The shared glass composition clips a separate top edge.
-              // A rounded border cannot paint different side colours.
-              child: DecoratedBox(
-                position: DecorationPosition.foreground,
-                decoration: BoxDecoration(
-                  border: Border(top: tokens.glassTopEdge),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    _buildWell(tokens),
-                    Padding(
-                      padding: tokens.lockContentPadding,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          LockWalletPicker(
-                            current: LockWalletDisplayEntry(
-                              name: widget.walletName,
-                              address: widget.address,
-                            ),
-                          ),
-                          SizedBox(height: tokens.panelGap),
-                          _buildPassword(context, tokens),
-                          if (_hasNote) ...<Widget>[
-                            SizedBox(height: tokens.fieldLabelGap),
-                            _buildNote(context, tokens),
-                          ],
-                          SizedBox(height: tokens.panelGap),
-                          SizedBox(
-                            // Changing the action marker preserves the film
-                            // and password field.
-                            key: ValueKey<String>(
-                              widget.incorrectPassword
-                                  ? 'lock_wrong_marker'
-                                  : 'lock_screen_marker',
-                            ),
-                            height: tokens.lockActionHeight,
-                            child: PrimaryPill(
-                              key: const ValueKey<String>(
-                                'wallet_unlock_button',
-                              ),
-                              onPressed: _passwordEnabled ? _submit : null,
-                              style: ButtonStyle(
-                                minimumSize: WidgetStatePropertyAll<Size>(
-                                  Size(0, tokens.lockActionHeight),
-                                ),
-                                textStyle: WidgetStatePropertyAll<TextStyle>(
-                                  tokens.lockActionText,
-                                ),
-                              ),
-                              icon: _pickerExpanded
-                                  ? null
-                                  : widget.busy
-                                  ? SizedBox.square(
-                                      dimension: tokens.lockGlyphSize,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: tokens.focusWidth,
-                                        color: tokens.primaryButtonForeground,
-                                      ),
-                                    )
-                                  : ShellSymbol(
-                                      'lock',
-                                      size: tokens.railIconSize,
-                                    ),
-                              child: Text(context.l10n.lockUnlock),
-                            ),
-                          ),
-                          if (!_pickerExpanded) ...<Widget>[
-                            SizedBox(height: tokens.panelGap),
-                            _buildLinks(context, tokens),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          child: RepaintBoundary(
+            key: const ValueKey<String>('lock_card_foreground'),
+            // Keep the form's paint while the backdrop and handoff move.
+            child: _buildCardForeground(context, tokens, radius),
           ),
         ),
       ),
     );
   }
+
+  Widget _buildCardForeground(
+    BuildContext context,
+    AppTokens tokens,
+    BorderRadius radius,
+  ) => DecoratedBox(
+    position: DecorationPosition.foreground,
+    decoration: BoxDecoration(
+      borderRadius: radius,
+      border: Border.all(color: tokens.line),
+    ),
+    child: Padding(
+      padding: EdgeInsets.all(tokens.glassTopEdge.width),
+      // The shared glass composition clips a separate top edge.
+      // A rounded border cannot paint different side colours.
+      child: DecoratedBox(
+        position: DecorationPosition.foreground,
+        decoration: BoxDecoration(
+          border: Border(top: tokens.glassTopEdge),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            _buildWell(tokens),
+            Padding(
+              padding: tokens.lockContentPadding,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  LockWalletPicker(
+                    current: LockWalletDisplayEntry(
+                      name: widget.walletName,
+                      address: widget.address,
+                    ),
+                  ),
+                  SizedBox(height: tokens.panelGap),
+                  _buildPassword(context, tokens),
+                  if (_hasNote) ...<Widget>[
+                    SizedBox(height: tokens.fieldLabelGap),
+                    _buildNote(context, tokens),
+                  ],
+                  SizedBox(height: tokens.panelGap),
+                  SizedBox(
+                    // Changing the action marker preserves the film
+                    // and password field.
+                    key: ValueKey<String>(
+                      widget.incorrectPassword
+                          ? 'lock_wrong_marker'
+                          : 'lock_screen_marker',
+                    ),
+                    height: tokens.lockActionHeight,
+                    child: PrimaryPill(
+                      key: const ValueKey<String>(
+                        'wallet_unlock_button',
+                      ),
+                      onPressed: _passwordEnabled ? _submit : null,
+                      style: ButtonStyle(
+                        minimumSize: WidgetStatePropertyAll<Size>(
+                          Size(0, tokens.lockActionHeight),
+                        ),
+                        textStyle: WidgetStatePropertyAll<TextStyle>(
+                          tokens.lockActionText,
+                        ),
+                      ),
+                      icon: _pickerExpanded
+                          ? null
+                          : widget.busy
+                          ? SizedBox.square(
+                              dimension: tokens.lockGlyphSize,
+                              child: CircularProgressIndicator(
+                                strokeWidth: tokens.focusWidth,
+                                color: tokens.primaryButtonForeground,
+                              ),
+                            )
+                          : ShellSymbol(
+                              'lock',
+                              size: tokens.railIconSize,
+                            ),
+                      child: Text(context.l10n.lockUnlock),
+                    ),
+                  ),
+                  if (!_pickerExpanded) ...<Widget>[
+                    SizedBox(height: tokens.panelGap),
+                    _buildLinks(context, tokens),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 
   Widget _withCardShadow(
     BorderRadius radius,

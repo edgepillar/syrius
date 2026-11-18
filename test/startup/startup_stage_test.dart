@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/rendering.dart' show RenderImage, RenderRepaintBoundary;
+import 'package:flutter/rendering.dart'
+    show Layer, OffsetLayer, RenderImage, RenderRepaintBoundary;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -450,9 +451,20 @@ void main() {
           matching: find.byType(BackdropFilter),
         );
         final RenderObject originalFilter = tester.renderObject(backdrop);
+        final Finder foreground = find.byKey(
+          const ValueKey<String>('lock_card_foreground'),
+        );
+        final RenderRepaintBoundary retainedForeground =
+            tester.renderObject(foreground);
+        final OffsetLayer foregroundLayer =
+            retainedForeground.debugLayer! as OffsetLayer;
+        final Layer? foregroundPaint = foregroundLayer.firstChild;
+        expect(foregroundPaint, isNotNull);
         await tester.pump(const Duration(milliseconds: 100));
         expect(originalBackdrop.value, greaterThan(0));
         expect(paintedFrame.size, decodedSize);
+        expect(retainedForeground.debugLayer, same(foregroundLayer));
+        expect(foregroundLayer.firstChild, same(foregroundPaint));
         expect(tester.widget(find.byType(LaunchFilm)), same(renderingFilm));
         expect(tester.widget(find.byType(EntryField)), same(renderingField));
         await tester.pump(const Duration(milliseconds: 99));
@@ -462,6 +474,7 @@ void main() {
         expect(session.filmInWell, isTrue);
         expect(entryClock(), same(originalBackdrop));
         expect(tester.renderObject(shadow), same(retainedShadow));
+        expect(tester.renderObject(foreground), same(retainedForeground));
         expect(tester.renderObject(backdrop), same(originalFilter));
         final Rect cardBounds = tester.getRect(card);
         final Rect well = tester.getRect(
