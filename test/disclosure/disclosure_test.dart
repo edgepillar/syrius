@@ -197,6 +197,18 @@ void main() {
       // The chevron is on its way too, and ahead of the body.
       expect(_turns(tester), greaterThan(-0.25));
       expect(_turns(tester), lessThan(0));
+      final Finder chevronPaint = find.ancestor(
+        of: _chevron(),
+        matching: find.byType(RepaintBoundary),
+      ).first;
+      expect(
+        tester.getSize(chevronPaint),
+        const Size.square(AppTokens.disclosureChevronSize),
+      );
+      expect(
+        find.descendant(of: chevronPaint, matching: find.text('New stake')),
+        findsNothing,
+      );
       expect(tester.takeException(), isNull);
       final RenderRepaintBoundary boundary = tester.renderObject(
         find

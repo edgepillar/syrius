@@ -569,12 +569,15 @@ class _DisclosureChevron extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool rtl = Directionality.of(context) == TextDirection.rtl;
-    return RotationTransition(
-      turns: Tween<double>(begin: rtl ? 0.25 : -0.25, end: 0).animate(turned),
-      child: ShellSymbol(
-        'chev',
-        size: AppTokens.disclosureChevronSize,
-        color: AppTokens.of(context).faint,
+    // A turn dirties only the glyph's paint, beside the static header text.
+    return RepaintBoundary(
+      child: RotationTransition(
+        turns: Tween<double>(begin: rtl ? 0.25 : -0.25, end: 0).animate(turned),
+        child: ShellSymbol(
+          'chev',
+          size: AppTokens.disclosureChevronSize,
+          color: AppTokens.of(context).faint,
+        ),
       ),
     );
   }

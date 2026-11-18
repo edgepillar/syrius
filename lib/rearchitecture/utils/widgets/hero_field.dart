@@ -83,19 +83,17 @@ class _HeroFieldState extends State<HeroField>
       final double pixelRatio = MediaQuery.devicePixelRatioOf(context);
       _clock.active = true;
       return RepaintBoundary(
-        child: ClipRect(
-          child: CustomPaint(
-            painter: _HomeHeroFieldPainter(
-              seconds: _clock,
-              base: tokens.card,
-              green: tokens.znn,
-              blue: tokens.qsr,
-              pink: tokens.pink,
-              raster: _raster,
-              pixelRatio: pixelRatio,
-            ),
-            child: const SizedBox.expand(),
+        child: CustomPaint(
+          painter: _HomeHeroFieldPainter(
+            seconds: _clock,
+            base: tokens.card,
+            green: tokens.znn,
+            blue: tokens.qsr,
+            pink: tokens.pink,
+            raster: _raster,
+            pixelRatio: pixelRatio,
           ),
+          child: const SizedBox.expand(),
         ),
       );
     }
@@ -211,7 +209,6 @@ class _HomeHeroFieldPainter extends CustomPainter {
       return;
     }
     final Rect viewport = Offset.zero & size;
-    canvas.drawRect(viewport, Paint()..color = base);
     // CSS inset percentages use the card; translation uses the enlarged field.
     final Rect field = Rect.fromLTWH(
       -size.width * 0.4,
@@ -226,7 +223,9 @@ class _HomeHeroFieldPainter extends CustomPainter {
     final Offset center = field.center;
     canvas
       ..save()
-      ..clipRect(viewport)
+      // Keep both the opaque base and drifting field in the paint bounds.
+      ..clipRect(viewport, doAntiAlias: false)
+      ..drawRect(viewport, Paint()..color = base)
       ..translate(
         center.dx + field.width * (-fieldDriftX + 2 * fieldDriftX * progress),
         center.dy + field.height * (-fieldDriftY + 2 * fieldDriftY * progress),

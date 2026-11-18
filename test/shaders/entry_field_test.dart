@@ -462,46 +462,48 @@ void main() {
     ) async {
       _prepare(tester);
       const Color outside = Color(0xFF9B743D);
-      await tester.pumpWidget(
-        _host(
-          child: const RepaintBoundary(
-            key: _clipFrame,
-            child: ColoredBox(
-              color: outside,
-              child: Stack(
-                children: <Widget>[
-                  Positioned(
-                    left: 200,
-                    top: 100,
-                    width: 700,
-                    height: 500,
-                    child: EntryField(),
-                  ),
-                ],
+      for (final Widget field in const <Widget>[EntryField(), HeroField.home()]) {
+        await tester.pumpWidget(
+          _host(
+            child: RepaintBoundary(
+              key: _clipFrame,
+              child: ColoredBox(
+                color: outside,
+                child: Stack(
+                  children: <Widget>[
+                    Positioned(
+                      left: 200,
+                      top: 100,
+                      width: 700,
+                      height: 500,
+                      child: field,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      );
-      await tester.pump();
-      final Uint8List pixels = await _pixels(
-        tester,
-        surface: find.byKey(_clipFrame),
-      );
-      for (final Offset point in const <Offset>[
-        Offset(199, 350),
-        Offset(900, 350),
-        Offset(550, 99),
-        Offset(550, 600),
-      ]) {
-        expect(_rgba(pixels, point.dx.toInt(), point.dy.toInt()), <int>[
-          155,
-          116,
-          61,
-          255,
-        ]);
+        );
+        await tester.pump();
+        final Uint8List pixels = await _pixels(
+          tester,
+          surface: find.byKey(_clipFrame),
+        );
+        for (final Offset point in const <Offset>[
+          Offset(199, 350),
+          Offset(900, 350),
+          Offset(550, 99),
+          Offset(550, 600),
+        ]) {
+          expect(_rgba(pixels, point.dx.toInt(), point.dy.toInt()), <int>[
+            155,
+            116,
+            61,
+            255,
+          ]);
+        }
+        expect(_rgba(pixels, 550, 350), isNot(<int>[155, 116, 61, 255]));
       }
-      expect(_rgba(pixels, 550, 350), isNot(<int>[155, 116, 61, 255]));
     },
   );
 
