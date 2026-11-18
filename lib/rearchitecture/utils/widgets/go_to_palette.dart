@@ -99,6 +99,7 @@ Future<T?> showGoToPalette<T>({
   try {
     return await showFrostedDialog<T>(
       context: context,
+      frostWindowCaption: true,
       builder: (BuildContext context) => GoToPalette<T>(
         entries: entries,
         hintText: hintText,
