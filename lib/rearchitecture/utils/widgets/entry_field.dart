@@ -33,11 +33,17 @@ typedef _EntryCaptionPaint = ({
 /// and overlay holds; it never reads the OS animation-effects setting.
 class EntryField extends StatefulWidget {
   /// Creates the continuously animated entry backdrop.
-  const EntryField({this.paintCaption = true, super.key});
+  const EntryField({
+    this.paintCaption = true,
+    this.captionProgress,
+    super.key,
+  });
 
-  /// A launch owner keeps the native caption separate until its transform
-  /// settles. The original body field and its clock remain mounted.
+  /// Whether this field supplies the native caption backdrop.
   final bool paintCaption;
+
+  /// During launch, the caption starts painting when this motion reaches one.
+  final ValueListenable<double>? captionProgress;
 
   @override
   State<EntryField> createState() => _EntryFieldState();
@@ -56,6 +62,7 @@ class _EntryFieldState extends State<EntryField>
   AppWindowFrameState? _captionFrame;
   ModalRoute<dynamic>? _captionRoute;
   bool _captionTickerEnabled = false;
+  bool _captionEnabled = false;
   AppWindowEntryBackdrop? _captionLease;
   _EntryCaptionPaint? _captionRequested;
   _EntryCaptionPaint? _captionPainted;
@@ -90,7 +97,7 @@ class _EntryFieldState extends State<EntryField>
   }
 
   AppWindowEntryBackdropPhase _captionPhase() {
-    if (!widget.paintCaption || !_captionTickerEnabled ||
+    if (!_captionEnabled || !_captionTickerEnabled ||
         !_captionGeometryCurrent()) {
       return AppWindowEntryBackdropPhase.hidden;
     }
@@ -237,6 +244,16 @@ class _EntryFieldState extends State<EntryField>
     super.initState();
     _clock = ShaderClock(vsync: this)..active = true;
     _captionRepaint = Listenable.merge(<Listenable>[_clock, _captionChanges]);
+    widget.captionProgress?.addListener(_updateCaptionEnabled);
+    _updateCaptionEnabled();
+  }
+
+  void _updateCaptionEnabled() {
+    final bool enabled =
+        widget.paintCaption && (widget.captionProgress?.value ?? 1) == 1;
+    if (_captionEnabled == enabled) return;
+    _captionEnabled = enabled;
+    _captionChanges.markPaint();
   }
 
   @override
@@ -261,13 +278,16 @@ class _EntryFieldState extends State<EntryField>
   @override
   void didUpdateWidget(EntryField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.paintCaption != widget.paintCaption) {
-      _captionChanges.markPaint();
+    if (oldWidget.captionProgress != widget.captionProgress) {
+      oldWidget.captionProgress?.removeListener(_updateCaptionEnabled);
+      widget.captionProgress?.addListener(_updateCaptionEnabled);
     }
+    _updateCaptionEnabled();
   }
 
   @override
   void dispose() {
+    widget.captionProgress?.removeListener(_updateCaptionEnabled);
     _captionLease?.dispose();
     _captionLease = null;
     _captionChanges.dispose();
