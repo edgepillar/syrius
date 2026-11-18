@@ -1017,6 +1017,19 @@ void main() {
         await select(tester, TransferMode.zap);
         controller.refresh();
         expect(find.byKey(const Key('transfer_zap_screen')), findsOneWidget);
+        final Finder sender = find.byKey(const Key('transfer_zap_sender'));
+        expect(
+          find.descendant(of: sender, matching: find.text('Address 1')),
+          findsOneWidget,
+        );
+        final Finder senderGate = find.ancestor(
+          of: sender,
+          matching: find.byType(SeamGate),
+        );
+        expect(tester.widget<SeamGate>(senderGate).seam, Seam.zapSend);
+        await tester.tap(sender, warnIfMissed: false);
+        await tester.pump();
+        expect(find.byType(PopupMenuItem<String>), findsNothing);
         expect(find.byType(SeamGate), findsWidgets);
         expect(
           tester

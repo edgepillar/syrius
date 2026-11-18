@@ -14,6 +14,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/eye_toggle.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
+import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/services/price_feed.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
@@ -330,10 +331,10 @@ class _TransferHeader extends StatelessWidget {
         ),
       ],
     );
-    final Widget? picker = switch (mode) {
+    final Widget picker = switch (mode) {
       TransferMode.send => const _TransferSender(),
       TransferMode.receive => _TransferReceiver(controller: receiveHeader),
-      TransferMode.zap => null,
+      TransferMode.zap => const _TransferZapSender(),
     };
     return LayoutBuilder(
       builder: (_, BoxConstraints constraints) => constraints.maxWidth < 520
@@ -341,27 +342,23 @@ class _TransferHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 segment,
-                if (picker != null) ...<Widget>[
-                  SizedBox(height: AppTokens.of(context).transferFieldGap),
-                  Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: picker,
-                  ),
-                ],
+                SizedBox(height: tokens.transferFieldGap),
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: picker,
+                ),
               ],
             )
           : Row(
               children: <Widget>[
                 Expanded(child: segment),
-                if (picker != null) ...<Widget>[
-                  SizedBox(width: AppTokens.of(context).transferFormGap),
-                  Flexible(
-                    child: Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: picker,
-                    ),
+                SizedBox(width: tokens.transferFormGap),
+                Flexible(
+                  child: Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: picker,
                   ),
-                ],
+                ),
               ],
             ),
     );

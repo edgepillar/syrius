@@ -1,5 +1,39 @@
 part of 'transfer_page.dart';
 
+Widget _buildTransferAddressChip(
+  BuildContext context, {
+  required Key key,
+  required String label,
+  required VoidCallback onPressed,
+}) {
+  final AppTokens tokens = AppTokens.of(context);
+  return TextButton(
+    key: key,
+    onPressed: onPressed,
+    style: TextButton.styleFrom(
+      foregroundColor: tokens.dim,
+      backgroundColor: tokens.card2,
+      minimumSize: Size(0, tokens.compactButtonHeight),
+      padding: tokens.transferChipPadding,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(tokens.transferControlRadius),
+        side: BorderSide(color: tokens.line),
+      ),
+      textStyle: tokens.transferChipText,
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Flexible(
+          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
+        SizedBox(width: tokens.transferRecentGap),
+        ShellSymbol('chev', size: tokens.activityIconSize),
+      ],
+    ),
+  );
+}
+
 class _TransferReceiver extends StatelessWidget {
   const _TransferReceiver({required this.controller});
 
@@ -11,7 +45,6 @@ class _TransferReceiver extends StatelessWidget {
     builder: (BuildContext context, Widget? child) {
       final ReceiveHeaderSnapshot? choices = controller.snapshot;
       if (choices == null) return const SizedBox.shrink();
-      final AppTokens tokens = AppTokens.of(context);
       return MenuAnchor(
         menuChildren: <Widget>[
           for (final MapEntry<String, String> option in choices.labels.entries)
@@ -20,8 +53,10 @@ class _TransferReceiver extends StatelessWidget {
               child: Text(option.value),
             ),
         ],
-        builder: (_, MenuController menu, Widget? child) => TextButton(
+        builder: (_, MenuController menu, _) => _buildTransferAddressChip(
+          context,
           key: const Key('transfer_receiver'),
+          label: choices.labels[choices.selected]!,
           onPressed: () {
             if (!identical(controller.snapshot, choices)) return;
             if (menu.isOpen) {
@@ -30,35 +65,35 @@ class _TransferReceiver extends StatelessWidget {
               menu.open();
             }
           },
-          style: TextButton.styleFrom(
-            foregroundColor: tokens.dim,
-            backgroundColor: tokens.card2,
-            minimumSize: Size(0, tokens.compactButtonHeight),
-            padding: tokens.transferChipPadding,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(tokens.transferControlRadius),
-              side: BorderSide(color: tokens.line),
-            ),
-            textStyle: tokens.transferChipText,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Flexible(
-                child: Text(
-                  choices.labels[choices.selected]!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              SizedBox(width: tokens.transferRecentGap),
-              ShellSymbol('chev', size: tokens.activityIconSize),
-            ],
-          ),
         ),
       );
     },
   );
+}
+
+class _TransferZapSender extends StatelessWidget {
+  const _TransferZapSender();
+
+  @override
+  Widget build(BuildContext context) {
+    context.watch<SelectedAddressNotifier?>();
+    final String? address = kSelectedAddress;
+    if (address == null || !kDefaultAddressList.contains(address)) {
+      return const SizedBox.shrink();
+    }
+    final String label =
+        kAddressLabelMap[address] ??
+        sentPartyName(address, const <String, String>{});
+    return SeamGate(
+      seam: Seam.zapSend,
+      child: _buildTransferAddressChip(
+        context,
+        key: const Key('transfer_zap_sender'),
+        label: label,
+        onPressed: () => throw const SeamNotBuilt(Seam.zapSend),
+      ),
+    );
+  }
 }
 
 class _TransferSender extends StatelessWidget {
