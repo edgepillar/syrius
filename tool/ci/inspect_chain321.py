@@ -933,16 +933,26 @@ def main():
     need(all(after[key] == run[key] for key in ("id", "head_sha", "run_attempt", "workflow_id", "status", "conclusion")))
     if interactive_result is not None:
         comparisons = interactive_result.pop('verified_comparisons', None)
+        diagnostics = interactive_result.pop('verified_window_diagnostics', None)
         if comparisons is not None and interactive_result['native_measurement_qualified']:
-            comparison_summary = {key: interactive_result[key] for key in (
+            identity = {key: interactive_result[key] for key in (
                 'schema', 'source_head', 'source_tree', 'source_run_id', 'source_attempt',
                 'archive_sha256', 'manifest_sha256', 'paired_timing_gate_passed')}
-            comparison_summary.update(scope='retained_paired_interactive_frame_comparisons',
-                                      comparisons=comparisons)
+            comparison_summary = dict(identity,
+                scope='retained_paired_interactive_frame_comparisons',
+                comparisons=comparisons)
             encoded_comparisons = json.dumps(comparison_summary, sort_keys=True, separators=(',', ':'))
             need(len(encoded_comparisons.encode('ascii')) <= 3800)
             print('::notice title=' + inspect_interactive_frame_pair.COMPARISON_TITLE
                   + '::' + encoded_comparisons, flush=True)
+            need(diagnostics is not None)
+            diagnostics_summary = dict(identity,
+                scope='retained_paired_interactive_frame_diagnostics',
+                windows=diagnostics)
+            encoded_diagnostics = json.dumps(diagnostics_summary, sort_keys=True, separators=(',', ':'))
+            need(len(encoded_diagnostics.encode('ascii')) <= 3800)
+            print('::notice title=' + inspect_interactive_frame_pair.DIAGNOSTICS_TITLE
+                  + '::' + encoded_diagnostics, flush=True)
         encoded = json.dumps(interactive_result, sort_keys=True, separators=(',', ':'))
         need(len(encoded.encode('ascii')) <= 3800)
         print('::notice title=' + inspect_interactive_frame_pair.TITLE + '::' + encoded, flush=True)

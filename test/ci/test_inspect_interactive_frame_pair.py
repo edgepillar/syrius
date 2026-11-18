@@ -249,6 +249,16 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(result['frame_window_us'], {
             'current': dict.fromkeys(pair.WINDOWS, 1000000),
             'p06': dict.fromkeys(pair.WINDOWS, 1000000)})
+        for label in ('current', 'p06'):
+            for name in pair.WINDOWS:
+                offered_window = offered['samples'][label]['observation']['windows'][name]
+                rows = pair.shared.launch.frame_timing_rows(offered_window)
+                actual = result['verified_window_diagnostics'][label][name]
+                self.assertEqual(actual['samples'], len(rows))
+                self.assertEqual(actual['peak_raster_start_us'],
+                                 max(rows, key=lambda row: row[3])[1])
+                self.assertEqual(actual['peak_total_start_us'],
+                                 max(rows, key=lambda row: row[4])[1])
         self.assertTrue(result['timing_criterion_passed'])
         offered['samples']['p06'].update(profile_stable=False, success=False)
         offered.update(phase='p06_interactive', success=False, comparisons=None,
@@ -258,6 +268,7 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(result['profile_stable'], dict(current=True, p06=False))
         self.assertFalse(result['artifact_reported_success'])
         self.assertFalse(result['timing_criterion_passed'])
+        self.assertIsNone(result['verified_window_diagnostics'])
         interrupted = fixture()
         current = interrupted['samples']['current']
         current['attempt'].update(exit_code=1, forced_kill=True,
@@ -1127,7 +1138,14 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertTrue(result['artifact_reported_success'])
         self.assertEqual(result['frame_counts']['p06'], {'page_change': 512, 'disclosure': 512})
         self.assertEqual(result.pop('verified_comparisons'), offered['comparisons'])
+        diagnostics = result.pop('verified_window_diagnostics')
         self.assertLessEqual(len(cold.canonical(result)), 3800)
+        identity = {key: result[key] for key in (
+            'schema', 'source_head', 'source_tree', 'source_run_id', 'source_attempt',
+            'archive_sha256', 'manifest_sha256')}
+        summary = dict(identity, scope='retained_paired_interactive_frame_diagnostics',
+                       paired_timing_gate_passed=False, windows=diagnostics)
+        self.assertLessEqual(len(cold.canonical(summary)), 3800)
         self.assertFalse(any(result['no_frame_number_gaps'].values()))
         self.assertFalse(result['timing_criterion_passed'])
 

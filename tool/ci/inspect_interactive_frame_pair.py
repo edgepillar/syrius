@@ -15,6 +15,7 @@ JOB_NAME = 'Windows paired interactive timing with owned chain-321'
 ARTIFACT_PREFIX = 'interactive-timing-pair-'
 TITLE = 'Retained paired interactive frame measurements'
 COMPARISON_TITLE = 'Retained paired interactive frame comparisons'
+DIAGNOSTICS_TITLE = 'Retained paired interactive frame diagnostics'
 OBSERVATION_PHASES = frozenset(('lab_before', 'empty_profile', 'prepare_profile',
     'wallet_ready', 'measure', 'verify_after', 'complete'))
 PHASES = frozenset((*cold.COMMAND_STAGES, 'environment', 'storage_admission',
@@ -245,7 +246,12 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
             name: value['no_added_reported_slow_frames'] for name,value in comparisons.items()},
         no_frame_number_gaps=None if comparisons is None else {
             name: value['no_frame_number_gaps'] for name,value in comparisons.items()},
-        verified_comparisons=comparisons)
+        verified_comparisons=comparisons,
+        verified_window_diagnostics={
+            label: {name: cold.window_diagnostics(window, peak_starts=True)
+                    for name, window in frame_windows.items()}
+            for label, frame_windows in (('current', windows), ('p06', old))
+        } if complete else None)
 
 
 def inspect_run(client, *, head, run_id, lab, lab_summary, listing, run):

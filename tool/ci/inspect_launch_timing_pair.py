@@ -136,7 +136,7 @@ def storage_passed(value):
 
 
 
-def window_diagnostics(window):
+def window_diagnostics(window, *, peak_starts=False):
     """Describe every reported sample without changing the acceptance test."""
     rows = pair.launch.frame_timing_rows(window, allow_packed=True)
     count = len(rows)
@@ -157,6 +157,10 @@ def window_diagnostics(window):
             (b[1] - a[1] for a, b in zip(rows, rows[1:])), default=0),
         build_us=percentiles(2), raster_us=percentiles(3), total_us=percentiles(4),
         quarter_frames=quarters, quarter_slow_raster=slow_raster)
+    if peak_starts:
+        summary.update(
+            peak_raster_start_us=max(rows, key=lambda row: row[3])[1],
+            peak_total_start_us=max(rows, key=lambda row: row[4])[1])
     if pair.launch.STARTUP_PHASE_FIELD in window:
         offsets = window[pair.launch.STARTUP_PHASE_FIELD]
         frames, raster, total = [0] * 5, [0] * 5, [0] * 5
