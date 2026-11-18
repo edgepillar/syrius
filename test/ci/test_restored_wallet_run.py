@@ -218,6 +218,9 @@ class PolicyTests(unittest.TestCase):
         detail = dict(completed(), catalog_prerequisites=project_only,
                       seeded_catalog=project_reference)
         self.assertEqual(restored.project(detail), detail)
+        project_catalog = dict(detail, seeded_catalog=dict(
+            project_reference, schema=16, screens=['az', 'az-project'], captured=4))
+        self.assertEqual(restored.project(project_catalog), project_catalog)
         self.assertEqual(project_only['scope'], 'owned_restored_project_catalog_prerequisites')
         for different in (
             dict(detail, catalog_prerequisites=stake_only),
@@ -514,11 +517,14 @@ class ReopenDiagnosticTests(unittest.TestCase):
                      screen='staking-new')
         detail = dict(capture, kind='restored_project_detail_capture_failure',
                       screen='az-project')
-        for scoped in (draft, detail):
+        project_catalog = dict(capture, kind='restored_project_catalog_capture_failure',
+                               screen='az')
+        for scoped in (draft, detail, project_catalog):
             self.assertEqual(restored.child_failure_projection(dict(child,
                 capture=scoped))['capture'], scoped)
         for wrong in (dict(capture, screen='staking-new'),
-                      dict(draft, screen='az-project'), dict(detail, screen='staking')):
+                      dict(draft, screen='az-project'), dict(detail, screen='az'),
+                      dict(project_catalog, screen='staking')):
             with self.assertRaises(restored.checkpoint.Refused):
                 restored.child_failure_projection(dict(child, capture=wrong))
 

@@ -585,7 +585,7 @@ Map<String, Object?>? restoredChildFailure(
         RestoredSeedSelection.stakeDraft =>
           'restored_stake_draft_capture_failure',
         RestoredSeedSelection.projectDetail =>
-          'restored_project_detail_capture_failure',
+          'restored_project_catalog_capture_failure',
         _ => 'restored_seeded_capture_failure',
       },
       'last_entered_step': captureStep.step.name,
@@ -853,8 +853,9 @@ const List<String> _stakeDraftScreens = <String>['staking-new'];
 const List<String> _stakeDraftFiles = <String>[
   '14-staking-new-dark.png', '14-staking-new-light.png',
 ];
-const List<String> _projectScreens = <String>['az-project'];
+const List<String> _projectScreens = <String>['az', 'az-project'];
 const List<String> _projectFiles = <String>[
+  '28-az-dark.png', '28-az-light.png',
   '29-az-project-dark.png', '29-az-project-light.png',
 ];
 
@@ -910,6 +911,9 @@ const Set<String> _stakeDraftLines = <String>{
 
 const Set<String> _projectLines = <String>{
   'goto accelerator',
+  'wait --key accelerator_filter_voting --ready --timeout 30',
+  'tap --key accelerator_filter_voting',
+  'assert --key @confirmed-project-row',
   'wait --key accelerator_filter_all --ready --timeout 30',
   'tap --key accelerator_filter_all',
   'wait --key @confirmed-project-row --timeout 30',
@@ -1190,7 +1194,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
       (schema: 6, screens: _stakeDraftScreens, files: _stakeDraftFiles,
        lines: _stakeDraftLines),
     RestoredSeedSelection.projectDetail =>
-      (schema: 7, screens: _projectScreens, files: _projectFiles,
+      (schema: 16, screens: _projectScreens, files: _projectFiles,
        lines: _projectLines),
     RestoredSeedSelection.all =>
       throw const FormatException('seeded catalog selection required'),
@@ -1212,6 +1216,9 @@ Future<Map<String, Object>> _captureSeededCatalog(
   };
   Map<String, Object?> assertion(List<String> args) {
     final Map<String, Object?> selector = cli.assertionArgs(cli.Args(args));
+    if (projectDetail && selector['key'] == '@confirmed-project-row') {
+      selector['key'] = rowKey;
+    }
     if (stake != null && selector['key'] == 'staking_stakes_count') {
       selector['key'] = stake;
     }
