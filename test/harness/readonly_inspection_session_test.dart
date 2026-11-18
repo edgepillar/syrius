@@ -1481,6 +1481,8 @@ void main() {
       bool restoredWindow = false;
       int shots = 0;
       int returned = 0;
+      bool pillarOpened = false;
+      final Set<String> pillarAssertions = <String>{};
       final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
       final List<ScreenCaptureObservation> progress =
           <ScreenCaptureObservation>[];
@@ -1503,12 +1505,17 @@ void main() {
               command['key'] != 'rail_toggle') {
             expect(tab, routes[shots ~/ 2]);
             if (fault == 'first') return negative;
+            if (tab == 'pillars' && targetKey == 'pillar_dev1_row') {
+              pillarOpened = true;
+            }
           }
           if (name == 'tap' && targetTab != null) {
             expect(<String>['dashboard', ...routes], contains(command['tab']));
             if (targetTab != 'dashboard') {
               expect(targetTab, routes[shots ~/ 2]);
               selected = screens[shots ~/ 2];
+              pillarOpened = false;
+              pillarAssertions.clear();
             }
             if (command['tab'] == 'dashboard') {
               expect(shots, returned + 1);
@@ -1523,17 +1530,27 @@ void main() {
           if (name == 'shot') {
             expect(tab, routes[shots ~/ 2]);
             expect(selected, screens[shots ~/ 2]);
+            if (selected == 'pillars') {
+              expect(pillarOpened, isTrue);
+              expect(pillarAssertions, <String>{
+                'pillar_dev2_row',
+                'pillar_dev3_row',
+                'pillar_dev1_detail',
+              });
+              expect(
+                command['expect'],
+                containsPair('key', 'pillar_dev1_detail'),
+              );
+            }
             if (fault == 'shot' || fault == 'late' && shots == 5) {
               return negative;
             }
             shots++;
           }
-          if (name == 'type') {
-            expect(tab, 'pillars');
-            expect(command['key'], 'pillars_search');
-            expect(command['value'], 'dev1');
-            expect(command['submit'], isNull);
+          if (name == 'assert' && tab == 'pillars' && targetKey is String) {
+            pillarAssertions.add(targetKey);
           }
+          if (name == 'type') expect(tab, isNot('pillars'));
           if (name == 'key') expect(command['key'], 'escape');
           if (name == 'theme') {
             if (command['mode'] case final String requested) mode = requested;

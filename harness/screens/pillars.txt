@@ -1,14 +1,17 @@
 # prerequisite: unlocked-home
-# Requires an existing dev1 pillar in the isolated node's loaded first page.
-# This opens read-only details. It performs no delegation or collection.
+# Requires the three original pillars on the isolated node's first page.
+# Keep the search clear and open the first pillar's read-only details.
 goto pillars
 wait --key nodes_tab_pillars --timeout 30
 tap --key nodes_tab_pillars
 wait --key nodes_pillars_strip --timeout 30
 wait --key pillars_search --timeout 30
-type --key pillars_search dev1
 wait --key pillar_dev1_row --timeout 30
+wait --key pillar_dev2_row --timeout 30
+wait --key pillar_dev3_row --timeout 30
 tap --key pillar_dev1_row
+assert --key pillar_dev2_row
+assert --key pillar_dev3_row
 assert --key pillar_dev1_detail
 # after-capture: goto dashboard
 # after-capture: wait --key home_hero --timeout 5
