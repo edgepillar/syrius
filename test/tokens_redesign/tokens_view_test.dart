@@ -557,17 +557,22 @@ void main() {
         for (final String control in <String>['breadcrumb', 'close']) {
           await tester.tap(create);
           await tester.pump();
-          await tester.pump(const Duration(milliseconds: 400));
           expect(pane, findsOneWidget);
+          final BuildContext panel = tester.element(pane);
+          final ModalRoute<void> route = ModalRoute.of<void>(panel)!;
+          await tester.pump(route.transitionDuration);
+          await tester.pump(const Duration(microseconds: 1));
           expect(find.byKey(rail), findsOneWidget);
           expect(find.byKey(footer), findsOneWidget);
           expect(shell.canPop(), isFalse);
-          final NavigatorState local = Navigator.of(tester.element(pane));
+          final NavigatorState local = Navigator.of(panel);
           expect(local.canPop(), isTrue);
-          expect(create, findsNothing);
+          expect(route.isCurrent, isTrue);
+          expect(create.hitTestable(), findsNothing);
           await tester.tap(find.byKey(Key('token_create_$control')));
           await tester.pump();
-          await tester.pump(const Duration(milliseconds: 400));
+          await tester.pump(route.reverseTransitionDuration);
+          await tester.pump(const Duration(microseconds: 1));
           expect(pane, findsNothing);
           expect(tester.element(create), same(ledger));
         }
