@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:file_selector/file_selector.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as path;
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:share_plus/share_plus.dart';
@@ -56,7 +56,7 @@ class ReceiveQrImage extends StatefulWidget {
   /// Replaces native sharing of the generated PNG bytes.
   final Future<void> Function(Uint8List)? onShareImage;
 
-  /// Replaces the existing cached-PNG save and open behavior.
+  /// Replaces saving the generated PNG to a selected file.
   final Future<void> Function(Uint8List)? onSaveImage;
 
   /// Replaces image encoding without replacing the QR payload.
@@ -102,6 +102,9 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
 
   @override
   Widget build(BuildContext context) {
+    final Future<void> Function(Uint8List) shareImage =
+        widget.onShareImage ?? _shareImage;
+    final Future<void> Function(Uint8List)? saveImage = widget.onSaveImage;
     final AppTokens tokens = AppTokens.of(context);
     QrImage? image;
     PrettyQrDecoration? decoration;
@@ -168,7 +171,7 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
                         _export(
                           image: qrImage,
                           decoration: qrDecoration,
-                          action: widget.onShareImage ?? _shareImage,
+                          action: (Uint8List bytes, _) => shareImage(bytes),
                         ),
                       ),
                 icon: Icon(Icons.share_rounded, size: tokens.heroCopyIconSize),
@@ -192,14 +195,16 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
                         _export(
                           image: qrImage,
                           decoration: qrDecoration,
-                          action: widget.onSaveImage ?? _saveImage,
+                          action: (Uint8List bytes, bool Function() current) =>
+                              saveImage?.call(bytes) ??
+                              _saveImage(bytes, current),
                         ),
                       ),
                 icon: ShellSymbol(
                   'dl',
                   size: tokens.heroCopyIconSize,
                 ),
-                label: Text(context.l10n.saveQr),
+                label: Text(context.l10n.commonSave),
               ),
             ],
           ),
@@ -232,11 +237,16 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
   Future<void> _export({
     required QrImage image,
     required PrettyQrDecoration decoration,
-    required Future<void> Function(Uint8List) action,
+    required Future<void> Function(Uint8List, bool Function()) action,
   }) async {
     final bool Function()? isCurrent = widget.isRequestCurrent;
     if (_exporting || !widget.enabled || !(isCurrent?.call() ?? true)) return;
     final int attempt = ++_attempt;
+    bool current() =>
+        mounted &&
+        widget.enabled &&
+        attempt == _attempt &&
+        (isCurrent?.call() ?? true);
     setState(() {
       _exporting = true;
       _exportFailed = false;
@@ -247,17 +257,12 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
         decoration,
         widget.size.toInt(),
       );
-      if (!mounted ||
-          !widget.enabled ||
-          attempt != _attempt ||
-          !(isCurrent?.call() ?? true)) {
-        return;
-      }
+      if (!current()) return;
       if (bytes == null || bytes.isEmpty) {
         setState(() => _exportFailed = true);
         return;
       }
-      await action(bytes);
+      await action(bytes, current);
     } on Object catch (_) {
       if (mounted && attempt == _attempt && (isCurrent?.call() ?? true)) {
         setState(() => _exportFailed = true);
@@ -291,9 +296,23 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
     return file;
   }
 
-  static Future<void> _saveImage(Uint8List bytes) async {
-    final File file = await _writeImage(bytes);
-    await OpenFilex.open(file.path);
+  static Future<void> _saveImage(
+    Uint8List bytes,
+    bool Function() current,
+  ) async {
+    final FileSaveLocation? location = await getSaveLocation(
+      suggestedName: 'syrius-receive.png',
+      acceptedTypeGroups: const <XTypeGroup>[
+        XTypeGroup(
+          label: 'PNG',
+          extensions: <String>['png'],
+          mimeTypes: <String>['image/png'],
+          uniformTypeIdentifiers: <String>['public.png'],
+        ),
+      ],
+    );
+    if (location == null || !current()) return;
+    await File(location.path).writeAsBytes(bytes, flush: true);
   }
 
   static Future<void> _shareImage(Uint8List bytes) async {

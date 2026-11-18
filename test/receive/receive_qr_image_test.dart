@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/services.dart' show MethodCall, MethodChannel;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
@@ -8,6 +10,25 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/receive_qr_image.dart';
 
 import 'receive_test_support.dart';
+
+class _SaveTarget implements File {
+  final List<List<int>> writes = <List<int>>[];
+
+  @override
+  Future<File> writeAsBytes(
+    List<int> bytes, {
+    FileMode mode = FileMode.write,
+    bool flush = false,
+  }) async {
+    expect(mode, FileMode.write);
+    expect(flush, isTrue);
+    writes.add(bytes.toList());
+    return this;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 ReceiveQrImage _qr({
   String data = 'request-one',
@@ -61,8 +82,82 @@ void main() {
     expect(saved, <List<int>>[
       <int>[4, 5, 6],
     ]);
+    expect(find.text('Save'), findsOneWidget);
     expect(find.text('Copy image'), findsNothing);
     await receiveTestDispose(tester);
+  });
+
+  testWidgets('Save writes only a current confirmed destination', (
+    WidgetTester tester,
+  ) async {
+    const MethodChannel selector = MethodChannel(
+      'plugins.flutter.io/file_selector',
+    );
+    final TestDefaultBinaryMessenger messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    final _SaveTarget target = _SaveTarget();
+    final List<Completer<String?>> choices = <Completer<String?>>[];
+    bool current = true;
+    int openedFiles = 0;
+    messenger.setMockMethodCallHandler(selector, (MethodCall call) {
+      expect(call.method, 'getSavePath');
+      final Map<Object?, Object?> arguments =
+          call.arguments as Map<Object?, Object?>;
+      expect(arguments['suggestedName'], 'syrius-receive.png');
+      final Completer<String?> choice = Completer<String?>();
+      choices.add(choice);
+      return choice.future;
+    });
+    addTearDown(() => messenger.setMockMethodCallHandler(selector, null));
+
+    await IOOverrides.runZoned(
+      () async {
+        await tester.pumpWidget(
+          receiveTestHost(
+            ReceiveQrImage(
+              data: 'request-one',
+              size: 150,
+              tokenStandard: kZnnCoin.tokenStandard,
+              encodeImage: receiveTestEncode,
+              isRequestCurrent: () => current,
+            ),
+          ),
+        );
+        final Finder save = find.byKey(const Key('receive_save_image'));
+        await tester.tap(save);
+        await tester.pump();
+        expect(choices, hasLength(1));
+        expect(tester.widget<TextButton>(save).onPressed, isNull);
+        choices.single.complete(null);
+        await tester.pump();
+        expect(openedFiles, 0);
+        expect(find.text('The QR image could not be exported'), findsNothing);
+
+        await tester.tap(save);
+        await tester.pump();
+        expect(choices, hasLength(2));
+        current = false;
+        choices.last.complete('selected-qr.png');
+        await tester.pump();
+        expect(openedFiles, 0);
+
+        current = true;
+        await tester.tap(save);
+        await tester.pump();
+        expect(choices, hasLength(3));
+        choices.last.complete('selected-qr.png');
+        await tester.pump();
+        expect(openedFiles, 1);
+        expect(target.writes.single, <int>[1, 2, 3]);
+        expect(tester.widget<TextButton>(save).onPressed, isNotNull);
+        await receiveTestDispose(tester);
+      },
+      createFile: (String path) {
+        expect(path, 'selected-qr.png');
+        openedFiles++;
+        return target;
+      },
+    );
   });
 
   testWidgets('a pending encoder disables exports and refuses a replaced QR', (
