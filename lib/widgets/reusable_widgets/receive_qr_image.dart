@@ -3,10 +3,12 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:material_ui/material_ui.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
+import 'package:zenon_syrius_wallet_flutter/services/windows_image_clipboard.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
@@ -310,6 +312,11 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
     await File(location.path).writeAsBytes(bytes, flush: true);
   }
 
-  static Future<void> _copyImage(Uint8List bytes) =>
-      _imageClipboard.invokeMethod<void>('writePng', bytes);
+  static Future<void> _copyImage(Uint8List bytes) async {
+    if (Platform.isWindows && defaultTargetPlatform == TargetPlatform.windows) {
+      writeWindowsClipboardImage(bytes);
+      return;
+    }
+    await _imageClipboard.invokeMethod<void>('writePng', bytes);
+  }
 }

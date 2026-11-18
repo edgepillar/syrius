@@ -4,8 +4,10 @@ import 'dart:typed_data';
 
 import 'package:flutter/services.dart' show MethodCall, MethodChannel;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as image;
 import 'package:material_ui/material_ui.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:zenon_syrius_wallet_flutter/services/windows_image_clipboard.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/receive_qr_image.dart';
 
@@ -48,57 +50,96 @@ ReceiveQrImage _qr({
 );
 
 void main() {
-  testWidgets('Copy sends the encoded image to the platform clipboard', (
-    WidgetTester tester,
-  ) async {
-    const MethodChannel clipboard = MethodChannel(
-      'network.zenon.syrius/image_clipboard',
-    );
-    final TestDefaultBinaryMessenger messenger =
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-    final List<List<int>> copied = <List<int>>[];
-    final List<List<int>> saved = <List<int>>[];
-    final List<int> sizes = <int>[];
-    messenger.setMockMethodCallHandler(clipboard, (MethodCall call) async {
-      expect(call.method, 'writePng');
-      copied.add((call.arguments as Uint8List).toList());
-      return null;
-    });
-    addTearDown(() => messenger.setMockMethodCallHandler(clipboard, null));
-    await tester.pumpWidget(
-      receiveTestHost(
-        ReceiveQrImage(
-          data: 'request-one',
-          size: 150,
-          tokenStandard: kZnnCoin.tokenStandard,
-          encodeImage:
-              (
-                QrImage image,
-                PrettyQrDecoration decoration,
-                int size,
-              ) async {
-                sizes.add(size);
-                return Uint8List.fromList(<int>[4, 5, 6]);
-              },
-          onSaveImage: (Uint8List bytes) async => saved.add(bytes.toList()),
-        ),
-      ),
-    );
-    await tester.tap(find.byKey(const Key('receive_share_image')));
-    await tester.pump();
-    await tester.tap(find.byKey(const Key('receive_save_image')));
-    await tester.pump();
-    expect(sizes, <int>[150, 150]);
-    expect(copied, <List<int>>[
-      <int>[4, 5, 6],
+  test('Windows clipboard bitmap preserves row order, color and alpha', () {
+    final image.Image source = image.Image(width: 1, height: 2, numChannels: 4)
+      ..setPixelRgba(0, 0, 0x12, 0x34, 0x56, 0x78)
+      ..setPixelRgba(0, 1, 0x9a, 0xbc, 0xde, 0xf0);
+    final Uint8List dib = encodeWindowsClipboardBitmap(image.encodePng(source));
+    final ByteData header = ByteData.sublistView(dib);
+    expect(header.getUint32(0, Endian.little), 124);
+    expect(header.getInt32(4, Endian.little), 1);
+    expect(header.getInt32(8, Endian.little), -2);
+    expect(header.getUint16(12, Endian.little), 1);
+    expect(header.getUint16(14, Endian.little), 32);
+    expect(header.getUint32(16, Endian.little), 3);
+    expect(header.getUint32(20, Endian.little), 8);
+    expect(header.getUint32(52, Endian.little), 0xff000000);
+    expect(dib.sublist(124), <int>[
+      0x56,
+      0x34,
+      0x12,
+      0x78,
+      0xde,
+      0xbc,
+      0x9a,
+      0xf0,
     ]);
-    expect(saved, <List<int>>[
-      <int>[4, 5, 6],
-    ]);
-    expect(find.text('Save'), findsOneWidget);
-    expect(find.text('Copy image'), findsOneWidget);
-    await receiveTestDispose(tester);
   });
+
+  test('Windows clipboard bitmap rejects a malformed PNG', () {
+    expect(
+      () => encodeWindowsClipboardBitmap(Uint8List.fromList(<int>[4, 5, 6])),
+      throwsFormatException,
+    );
+  });
+
+  testWidgets(
+    'Copy sends the encoded image to the platform clipboard',
+    (
+      WidgetTester tester,
+    ) async {
+      const MethodChannel clipboard = MethodChannel(
+        'network.zenon.syrius/image_clipboard',
+      );
+      final TestDefaultBinaryMessenger messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      final List<List<int>> copied = <List<int>>[];
+      final List<List<int>> saved = <List<int>>[];
+      final List<int> sizes = <int>[];
+      messenger.setMockMethodCallHandler(clipboard, (MethodCall call) async {
+        expect(call.method, 'writePng');
+        copied.add((call.arguments as Uint8List).toList());
+        return null;
+      });
+      addTearDown(() => messenger.setMockMethodCallHandler(clipboard, null));
+      await tester.pumpWidget(
+        receiveTestHost(
+          ReceiveQrImage(
+            data: 'request-one',
+            size: 150,
+            tokenStandard: kZnnCoin.tokenStandard,
+            encodeImage:
+                (
+                  QrImage image,
+                  PrettyQrDecoration decoration,
+                  int size,
+                ) async {
+                  sizes.add(size);
+                  return Uint8List.fromList(<int>[4, 5, 6]);
+                },
+            onSaveImage: (Uint8List bytes) async => saved.add(bytes.toList()),
+          ),
+        ),
+      );
+      await tester.tap(find.byKey(const Key('receive_share_image')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('receive_save_image')));
+      await tester.pump();
+      expect(sizes, <int>[150, 150]);
+      expect(copied, <List<int>>[
+        <int>[4, 5, 6],
+      ]);
+      expect(saved, <List<int>>[
+        <int>[4, 5, 6],
+      ]);
+      expect(find.text('Save'), findsOneWidget);
+      expect(find.text('Copy image'), findsOneWidget);
+      await receiveTestDispose(tester);
+    },
+    variant: const TargetPlatformVariant(<TargetPlatform>{
+      TargetPlatform.linux,
+    }),
+  );
 
   testWidgets('Save writes only a current confirmed destination', (
     WidgetTester tester,

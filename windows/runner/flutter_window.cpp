@@ -3,8 +3,6 @@
 #include <flutter/method_channel.h>
 #include <flutter/standard_method_codec.h>
 #include <objbase.h>
-#include <wincodec.h>
-#include <wrl/client.h>
 
 #include <cstdint>
 #include <iomanip>
@@ -12,7 +10,6 @@
 #include <sstream>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "flutter/generated_plugin_registrant.h"
 
@@ -24,105 +21,9 @@ using Result = flutter::MethodResult<Value>;
 
 constexpr char kNativeWindowChannel[] =
     "network.zenon.syrius/harness/native_window_owner";
-constexpr char kClipboardChannel[] = "network.zenon.syrius/image_clipboard";
-constexpr size_t kMaxClipboardPngBytes = 1024 * 1024;
-constexpr UINT kMaxClipboardImageDimension = 1024;
 constexpr wchar_t kParentOwnerProperty[] = L"Syrius.Harness.ParentOwner.v1";
 constexpr wchar_t kChildOwnerProperty[] = L"Syrius.Harness.ChildOwner.v1";
 constexpr int64_t kMaxFrameRequests = 128;
-
-bool CopyPngToClipboard(HWND window, const std::vector<uint8_t>& png) {
-  if (png.empty() || png.size() > kMaxClipboardPngBytes || !IsWindow(window)) {
-    return false;
-  }
-
-  using Microsoft::WRL::ComPtr;
-  ComPtr<IWICImagingFactory> factory;
-  ComPtr<IWICStream> stream;
-  ComPtr<IWICBitmapDecoder> decoder;
-  ComPtr<IWICBitmapFrameDecode> frame;
-  ComPtr<IWICFormatConverter> bitmap;
-  GUID format;
-  UINT width = 0;
-  UINT height = 0;
-  if (FAILED(CoCreateInstance(CLSID_WICImagingFactory, nullptr,
-                              CLSCTX_INPROC_SERVER,
-                              IID_PPV_ARGS(factory.GetAddressOf()))) ||
-      FAILED(factory->CreateStream(&stream)) ||
-      FAILED(stream->InitializeFromMemory(const_cast<BYTE*>(png.data()),
-                                          static_cast<DWORD>(png.size()))) ||
-      FAILED(factory->CreateDecoderFromStream(
-          stream.Get(), nullptr, WICDecodeMetadataCacheOnDemand, &decoder)) ||
-      FAILED(decoder->GetContainerFormat(&format)) ||
-      !IsEqualGUID(format, GUID_ContainerFormatPng) ||
-      FAILED(decoder->GetFrame(0, &frame)) ||
-      FAILED(frame->GetSize(&width, &height)) || width == 0 || height == 0 ||
-      width > kMaxClipboardImageDimension ||
-      height > kMaxClipboardImageDimension ||
-      FAILED(factory->CreateFormatConverter(&bitmap)) ||
-      FAILED(bitmap->Initialize(frame.Get(), GUID_WICPixelFormat32bppBGRA,
-                                WICBitmapDitherTypeNone, nullptr, 0,
-                                WICBitmapPaletteTypeCustom))) {
-    return false;
-  }
-
-  const UINT stride = width * 4;
-  const UINT image_size = stride * height;
-  HGLOBAL memory = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
-                               sizeof(BITMAPV5HEADER) + image_size);
-  if (!memory) return false;
-  auto* header = static_cast<BITMAPV5HEADER*>(GlobalLock(memory));
-  if (!header) {
-    GlobalFree(memory);
-    return false;
-  }
-  header->bV5Size = static_cast<DWORD>(sizeof(BITMAPV5HEADER));
-  header->bV5Width = static_cast<LONG>(width);
-  header->bV5Height = -static_cast<LONG>(height);
-  header->bV5Planes = 1;
-  header->bV5BitCount = 32;
-  header->bV5Compression = BI_BITFIELDS;
-  header->bV5SizeImage = image_size;
-  header->bV5RedMask = 0x00ff0000;
-  header->bV5GreenMask = 0x0000ff00;
-  header->bV5BlueMask = 0x000000ff;
-  header->bV5AlphaMask = 0xff000000;
-  header->bV5CSType = LCS_sRGB;
-  header->bV5Intent = LCS_GM_IMAGES;
-  const HRESULT decoded = bitmap->CopyPixels(
-      nullptr, stride, image_size, reinterpret_cast<BYTE*>(header + 1));
-  GlobalUnlock(memory);
-
-  bool transferred = false;
-  if (SUCCEEDED(decoded) && OpenClipboard(window)) {
-    transferred = EmptyClipboard() && SetClipboardData(CF_DIBV5, memory);
-    CloseClipboard();
-  }
-  if (!transferred) GlobalFree(memory);
-  return transferred;
-}
-
-void RegisterClipboardChannel(flutter::BinaryMessenger* messenger,
-                              HWND window) {
-  flutter::MethodChannel<Value> channel(
-      messenger, kClipboardChannel, &flutter::StandardMethodCodec::GetInstance());
-  channel.SetMethodCallHandler(
-      [window](const flutter::MethodCall<Value>& call,
-               std::unique_ptr<Result> result) {
-        if (call.method_name() != "writePng") {
-          result->NotImplemented();
-          return;
-        }
-        const auto* png = call.arguments()
-                              ? std::get_if<std::vector<uint8_t>>(call.arguments())
-                              : nullptr;
-        if (!png || !CopyPngToClipboard(window, *png)) {
-          result->Error("clipboard-write-failed");
-          return;
-        }
-        result->Success();
-      });
-}
 
 // A second controller in this process cannot replace the initially claimed one,
 // including after a Dart hot restart or native window destruction.
@@ -475,8 +376,6 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
   RegisterPlugins(flutter_controller_->engine());
-  RegisterClipboardChannel(flutter_controller_->engine()->messenger(),
-                           GetHandle());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   native_window_owner_ = std::make_shared<NativeWindowOwner>(this);
