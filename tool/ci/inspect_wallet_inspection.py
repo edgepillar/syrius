@@ -616,7 +616,7 @@ def main(parent=None):
     jobs = client.json('/actions/runs/' + text + '/attempts/1/jobs?per_page=50')
     job = selected_job(jobs, head, run_id)
     need((run.get('conclusion') == 'success') is (job['conclusion'] == 'success'))
-    PHASE = 'lab_artifact'
+    PHASE = 'lab_artifact_metadata'
     listing = client.json('/actions/runs/' + text + '/artifacts?per_page=20')
 
     def download(item, cap):
@@ -625,8 +625,12 @@ def main(parent=None):
         return client.read(location, authenticated=False, cap=cap)
 
     root_item = artifact(listing, 'chain321-native-' + head + '-' + text + '-1', head, run_id)
-    lab, lab_sha = archive.unpack(download(root_item, archive.MAX_ARCHIVE),
+    PHASE = 'lab_artifact_transport'
+    lab_bytes = download(root_item, archive.MAX_ARCHIVE)
+    PHASE = 'lab_artifact_contents'
+    lab, lab_sha = archive.unpack(lab_bytes,
         root_item['digest'][7:], root_item['size_in_bytes'])
+    PHASE = 'lab_artifact_closure'
     lab_summary = owned_lab(lab, head, tree, run_id)
     lab_summary.update(archive_sha256=root_item['digest'][7:], manifest_sha256=lab_sha)
     if 'send_warning_node_fixture' in lab:
