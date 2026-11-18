@@ -701,11 +701,11 @@ macOS; Windows provision and acceptance remain pending. See
 | N05 | done | 2026-10-23T15:54Z | e13abb387577 adds the original globe crop and three captured entry routes, preserving owned callbacks and Welcome motion; strict and full local checks pass; native comparison pending |
 | N06 | done | 2026-10-23T15:54Z | e13abb387577 adds pure Import and the bounded three-word quiz with original decrypt, access release and shared-axis routes; strict and full local checks pass; native authentication and comparison remain unqualified |
 | N07 | done | 2026-10-23T15:54Z | e13abb387577 adds the original map and Ready glass card, captured first address and once-only opening bound to original creation and local initialization; connection mismatch and uncertainty remain distinct from readiness; strict and full local checks pass; native acceptance pending |
-| V01 | review | 2026-11-18 | All 94 archived pairs have initial individual reviews. Source730 retains two accepted Ready pairs and four newly reviewed Staking/Token mismatches. Source733 producer 43455072319 / reader 43457743618 qualify six Lock PNGs; every actual/reference pair was viewed and remains a mismatch. Owned review closes successfully. Source730 retains two Ready matches. Source901 has two Welcome matches and two Import mismatches after individual review of the verified entry archive. Full review at one selected commit and comparison-page acceptance remain open. [Current results](docs/review/source734-native-ci-scope-and-lock-results.md). |
+| V01 | review | 2026-11-18T13:42Z | The 28f9c121 gallery renders all 94 verified actual/reference pairs. The independent visual review logs 52 differences. Strict whole-image matches and same-phase recaptures remain open. [Pair findings](docs/review/source-28f9c121-independent-visual-review.md). |
 | V02 | blocked | 2026-11-13 | Source715 producer 43344313240 and independent reader 43347311411 verify 234 current and 2,274 P06 frames and five normal actor exits. Acquisition passes; the unchanged 16 ms duration comparison fails raster and distinct-frame dominance, and both windows retain frame-number gaps. Page-change, disclosure, Motion and Shaders acceptance remain open. [Executed result](docs/review/source716-details-frame-context.md). Earlier Source698 evidence: Source698 producer 43240640136 and reader 43247422901 preserve STARTUP_DEADLINE in P06 measurement: 337 current frames, zero baseline frames and five normal actor exits. The baseline lock field remains disabled before initialization. No comparison or absence of added slow frames is established. Earlier evidence: Source622 adds opt-in frame windows to `harness/h stalls`. Source627 retains ENTRY_INVALID with two normal actor exits and zero frames in its [original run](https://github.com/edgepillar/syrius/actions/runs/42846425942) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42849507992). Source628 passes its selected analysis, tests and Release build. Its timing actor reports ENTRY_UNAVAILABLE with zero retained frames and both actors exit normally. The [original run](https://github.com/edgepillar/syrius/actions/runs/42851137227) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42853554717) preserve that result. Source629 selects the original password field by key and kind. The paired job builds P06 with the same SDK and locked cache after a valid current window. The three paired native measurements and the running Motion and Shaders review remain open. Source630 retains 270 current frames, P06 HTTP_FAILED with zero frames and five normal actor exits. The next controller polls the same lock predicate without a server-side wait. [Original producer](https://github.com/edgepillar/syrius/actions/runs/42865836277) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42868723130). Source631 retains 182 current frames, zero P06 frames at STARTUP_DEADLINE and five normal exits. The paired controller uses a common absolute readiness bound and records finite post-deadline state. [Producer](https://github.com/edgepillar/syrius/actions/runs/42870190367) and [reader](https://github.com/edgepillar/syrius/actions/runs/42873068988). Source632 retains 171 current frames and P06 COMMAND_FAILED with five normal exits. The next controller records which original request refused while preserving its outcome. [Producer](https://github.com/edgepillar/syrius/actions/runs/42874911893) and [reader](https://github.com/edgepillar/syrius/actions/runs/42878160400). Source633 isolates HTTP 400 at the P06 frame window request after the original lock checks. The next overlay exposes finite refusal reasons for the original request. [Producer](https://github.com/edgepillar/syrius/actions/runs/42879055212) and [reader](https://github.com/edgepillar/syrius/actions/runs/42882219474). |
 | V03 | done | 2026-11-12T03:23Z | Source648 673fe4a19468, Source670 2b2c4abdadae, Source676 5d555665a643 and Source686 15fec4c9120f provide executed native refusals for all fifteen current seam values and pointer/keyboard refusal for the only seamed palette target. No direct missing-feature shortcut or other seamed palette target is registered. All 1,213 current runtime entries match Source686; the sole older token observer difference is covered by its holder trial. Source670's producer control list remains distinct from its legacy reader's context/closure proof. The [Source695 audit](docs/review/source695-seam-coverage.md) closes the original requirement without relabelling the later incomplete eleven-control Home batch or its failures. No new native run or visual match is claimed. |
 | V04 | done | 2026-10-31T23:34Z | All four independently qualified Source265 minimum-window/Arabic originals were actually viewed in both themes. The owned review closes SUCCESS with actual controller exit zero; required original native closure stays source-bound. Minimum controls fit and RTL layout mirrors. English fallback/missing Arabic copy is retained as X414; exact saved locale preference and Arabic glyph quality remain separate unqualified observations |
-| V05 | blocked | 2026-11-13T13:50Z | Source699 retains the initial individual 94-pair review and compact comparison inputs. Source730 adds two coordinator-reviewed Ready matches with their exact source. Browser rendering of the comparison page and the independent fresh 94-pair review remain open. Earlier image reviews retain their source bounds; coordinator review does not close V05. [Current scope](docs/review/source731-lock-picker-symbols.md). |
+| V05 | review | 2026-11-18T13:42Z | A fresh reviewer viewed all 94 exact 28f9c121 pairs against the supplied owner and design rules. The report records 42 visual matches and 52 mismatches. Findings are recorded in X821 through X875. [Independent review](docs/review/source-28f9c121-independent-visual-review.md). |
 | V06 | review | 2026-11-13 | Owner-approved native Windows CI substitution closes P03/P09 under the revised accepted criteria, now 76/80. The original Docker/WSL route remains unqualified. Source733 full Linux, Windows Lock and independent reader pass; all six current Lock comparisons remain mismatches. Source730 retains two accepted Ready pairs and four Staking/Token mismatches. F06 stays complete at Source722. V01/V02/V05/V06 remain open. [Current scope](docs/review/source734-native-ci-scope-and-lock-results.md). |
 | X01 | done | 2026-10-21T23:26Z | e13abb387577 restores loading-list sweep ink in lib/rearchitecture/utils/widgets/motion/skeleton.dart; all 19 existing Skeleton tests pass unchanged |
 | X02 | done | 2026-10-21T23:57Z | e13abb387577 keeps the status-strip dot visible at narrow widths and fixes asynchronous visibility tests |
@@ -901,53 +901,53 @@ the difference and its write paths in the note.
 
 ### Screens
 
-The Home, Navigation, Settings and Details entries with X rows refer to the exact
-archived pairs reviewed at their original sources. The V01 row tracks
-available captures. The Welcome matches bind to Source901 in X775. The
-Ready matches retain Source730. Whole-image acceptance remains open.
+X821 through X872 refer to the exact 28f9c121 pairs reviewed independently.
+Other X rows retain their original capture sources. The Welcome matches bind
+to Source901 in X775. The Ready matches retain Source730. The V01 row tracks
+strict whole-image acceptance.
 
 | # | Screen | Dark | Light |
 | --- | --- | --- | --- |
-| 01 | `home-rest` | X521 | X522 |
+| 01 | `home-rest` | X821 | X822 |
 | 02 | `home-open` | X523 | X524 |
 | 03 | `home-hidden` | X525 | X526 |
-| 04 | `home-bell` | X641 | X642 |
-| 05 | `home-goto` | X527 | X528 |
-| 06 | `home-zap` | X643 | X644 |
-| 07 | `send-rest` | X621 | X622 |
+| 04 | `home-bell` | X823 | X824 |
+| 05 | `home-goto` | X825 | X826 |
+| 06 | `home-zap` | X827 | X828 |
+| 07 | `send-rest` | X829 | X830 |
 | 08 | `send-warn` | X645 | X646 |
-| 09 | `receive` | X623 | X624 |
-| 10 | `receive-qr` | X476 | X477 |
-| 11 | `zap-form` | X478 | X479 |
-| 12 | `send-confirm` | X647 | X648 |
+| 09 | `receive` | X831 | X832 |
+| 10 | `receive-qr` | X833 | X834 |
+| 11 | `zap-form` | X835 | X836 |
+| 12 | `send-confirm` | X837 | X838 |
 | 13 | `staking` | X649 | X650 |
 | 14 | `staking-new` | X651 | X652 |
 | 15 | `staking-empty` | X653 | X654 |
 | 16 | `pillars` | X625 | X626 |
-| 17 | `pillar-mine` | X655 | X656 |
+| 17 | `pillar-mine` | X839 | X840 |
 | 18 | `sentinels` | X657 | X658 |
-| 19 | `spawn` | X659 | X660 |
-| 20 | `pillar-done` | X661 | X662 |
-| 21 | `plasma` | X627 | X628 |
-| 22 | `plasma-fuse` | X480 | X481 |
-| 23 | `tokens` | X629 | X630 |
+| 19 | `spawn` | X841 | X842 |
+| 20 | `pillar-done` | X843 | X844 |
+| 21 | `plasma` | X845 | X846 |
+| 22 | `plasma-fuse` | X847 | X848 |
+| 23 | `tokens` | X849 | X850 |
 | 24 | `token-mine` | X663 | X664 |
-| 25 | `token-new` | X665 | X666 |
-| 26 | `swap-list` | X631 | X632 |
-| 27 | `swap-start` | X667 | X668 |
-| 28 | `az` | X633 | X634 |
-| 29 | `az-project` | X669 | X670 |
-| 30 | `set-node` | X486 | X487 |
+| 25 | `token-new` | X851 | X852 |
+| 26 | `swap-list` | X853 | X854 |
+| 27 | `swap-start` | X855 | X856 |
+| 28 | `az` | X857 | X858 |
+| 29 | `az-project` | X859 | X860 |
+| 30 | `set-node` | X861 | X862 |
 | 31 | `set-security` | X488 | X489 |
 | 32 | `set-display` | X490 | X491 |
-| 33 | `set-wallet` | X492 | X493 |
-| 34 | `set-apps` | X494 | X495 |
-| 35 | `set-addresses` | X496 | X497 |
+| 33 | `set-wallet` | X863 | X864 |
+| 34 | `set-apps` | X865 | X866 |
+| 35 | `set-addresses` | X867 | X868 |
 | 36 | `set-about` | X498 | X499 |
-| 37 | `set-licences` | X482 | X483 |
+| 37 | `set-licences` | X869 | X870 |
 | 38 | `set-originals` | X484 | X485 |
 | 39 | `launch` | X671 | X672 |
-| 40 | `launch-settle` | X673 | X674 |
+| 40 | `launch-settle` | X871 | X872 |
 | 41 | `lock-screen` | X675 | X676 |
 | 42 | `lock-wrong` | X677 | X678 |
 | 43 | `lock-pick` | X679 | X680 |
@@ -4040,3 +4040,58 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X818 | review | 2026-11-18T11:06Z | The Staking collectable reward uses the existing 1.2 s value flash when a visible, known amount changes. Initial load, hidden updates and revealing the amount start at rest. The existing staking page case checks actual paint, the return to idle, the hidden amount and price, and revealing the latest value. Strict local Dart analysis passes. The 12cea2c3 focused Linux gate passes its compact Mint geometry case and its Windows capture is queued. [Focused Linux gate](https://github.com/edgepillar/syrius/actions/runs/44290447178/job/134754012166) and [Windows capture](https://github.com/edgepillar/syrius/actions/runs/44291440041). |
 | X819 | review | 2026-11-18T11:11Z | Cold launch holds the lock backdrop clock while its opacity is zero. The original clock starts as the backdrop becomes visible and stays attached through handoff. The existing 400 ms handoff cases cover the held clock, its visible ticks and the original film and authentication owners in both platform motion settings. Strict local Dart analysis passes. The cause of the last slow frames in X817 remains open. Fresh paired Windows evidence is required under V02. |
 | X820 | review | 2026-11-18T11:21Z | The retained comparison input covers 94 pairs from 21 historical source revisions. The gallery now links directly to missing or out-of-revision pairs and reserves the verified dimensions of reference, actual and difference images during lazy loading. All 21 synthetic comparison tests pass. After the focused Linux Lock gate passed, the 12-image startup catalog was dispatched on ca5319cb using one Windows Release build. Current image coverage and independent review remain open. [Windows startup catalog](https://github.com/edgepillar/syrius/actions/runs/44293162033). |
+| X821 | review | 2026-11-18T13:42Z | `01-home-rest-dark` at 28f9c121. The default balance eye is barely visible. Live activity, rewards and pending rows differ. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X822 | review | 2026-11-18T13:42Z | `01-home-rest-light` at 28f9c121. The eye loses its readable outline. Activity and rewards show the sparse fixture. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X823 | review | 2026-11-18T13:42Z | `04-home-bell-dark` at 28f9c121. The drawer shell aligns. Approval, grouped history and toast states are missing from the capture. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X824 | review | 2026-11-18T13:42Z | `04-home-bell-light` at 28f9c121. Drawer elevation appears. Approval and toast states are missing from the fixture. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X825 | review | 2026-11-18T13:42Z | `05-home-goto-dark` at 28f9c121. The address lane is absent, shortening the panel. The title bar remains sharp outside the scrim. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X826 | review | 2026-11-18T13:42Z | `05-home-goto-light` at 28f9c121. Contacts are absent. The undimmed title bar forms a pale strip. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X827 | review | 2026-11-18T13:42Z | `06-home-zap-dark` at 28f9c121. The dialog sits lower, adds a divider and leaves the title bar sharp. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X828 | review | 2026-11-18T13:42Z | `06-home-zap-light` at 28f9c121. The dialog sits lower and adds a divider. The bright title bar stays outside the scrim. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X829 | review | 2026-11-18T13:42Z | `07-send-rest-dark` at 28f9c121. The empty fixture omits the populated recipient, recent chips, estimate and receive rows. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X830 | review | 2026-11-18T13:42Z | `07-send-rest-light` at 28f9c121. The empty form omits the populated form and the in-progress receive state. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X831 | review | 2026-11-18T13:42Z | `09-receive-dark` at 28f9c121. Copy and Show QR align. The reference's one-line empty To receive row is absent. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X832 | review | 2026-11-18T13:42Z | `09-receive-light` at 28f9c121. The QR stays behind the button. The reference's one-line empty To receive row is absent. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X833 | review | 2026-11-18T13:42Z | `10-receive-qr-dark` at 28f9c121. Share image replaces Copy image and the amount-token icon is absent. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X834 | review | 2026-11-18T13:42Z | `10-receive-qr-light` at 28f9c121. The QR and request amount align. The image action changes and the amount-token icon is absent. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X835 | review | 2026-11-18T13:42Z | `11-zap-form-dark` at 28f9c121. The capture lacks recipient selection and the source-address selector. The payment action appears enabled. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X836 | review | 2026-11-18T13:42Z | `11-zap-form-light` at 28f9c121. The stranger fixture leaves the recipient blank and omits the source selector. The gradient action appears enabled. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X837 | review | 2026-11-18T13:42Z | `12-send-confirm-dark` at 28f9c121. The first-time software-wallet fixture displaces the Ledger prompt and fused-plasma line. The dialog sits lower. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X838 | review | 2026-11-18T13:42Z | `12-send-confirm-light` at 28f9c121. The first-send warning and plasma presentation replace the hardware-wallet state. The title bar stays undimmed. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X839 | review | 2026-11-18T13:42Z | `17-pillar-mine-dark` at 28f9c121. Collect moves to the far edge, Producing is absent and the ledger is taller. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X840 | review | 2026-11-18T13:42Z | `17-pillar-mine-light` at 28f9c121. Art and four actions remain visible. The summary lacks Producing and moves Collect. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X841 | review | 2026-11-18T13:42Z | `19-spawn-dark` at 28f9c121. Blank name and producer fields and disabled Continue leave validation unseen. A tooltip crosses the form. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X842 | review | 2026-11-18T13:42Z | `19-spawn-light` at 28f9c121. Step two is incomplete under an overlaid tooltip. The validated reference state is absent. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X843 | review | 2026-11-18T13:42Z | `20-pillar-done-dark` at 28f9c121. Address and chain metadata plus a secondary registration action extend the sidebar. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X844 | review | 2026-11-18T13:42Z | `20-pillar-done-light` at 28f9c121. The sidebar is substantially longer. An address tooltip crosses the panel. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X845 | review | 2026-11-18T13:42Z | `21-plasma-dark` at 28f9c121. The hero bolt is a faint outline with a different glow. The generating strip is absent. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X846 | review | 2026-11-18T13:42Z | `21-plasma-light` at 28f9c121. A hard black disc bounds the bolt glow. The generating strip and elapsed-time fixture are absent. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X847 | review | 2026-11-18T13:42Z | `22-plasma-fuse-dark` at 28f9c121. The inline form and disclosure appear. Unchecked rows omit the batch action, and the bolt glow differs. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X848 | review | 2026-11-18T13:42Z | `22-plasma-fuse-light` at 28f9c121. The black disc changes the hero. Unchecked rows omit the selection treatment and batch action. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X849 | review | 2026-11-18T13:42Z | `23-tokens-dark` at 28f9c121. The empty Held fixture leaves balances, token rows and expanded owner controls unseen. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X850 | review | 2026-11-18T13:42Z | `23-tokens-light` at 28f9c121. Headers remain. Populated rows and disclosure are absent. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X851 | review | 2026-11-18T13:42Z | `25-token-new-dark` at 28f9c121. A plasma and refresh block pushes the preview down. The symbol validation tick is missing. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X852 | review | 2026-11-18T13:42Z | `25-token-new-light` at 28f9c121. Extra sidebar controls move the preview. The selected symbol field lacks the reference tick. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X853 | review | 2026-11-18T13:42Z | `26-swap-list-dark` at 28f9c121. Waiting and the deposit ID appear. Completed and reclaimed rows are absent, and expiry, hashlock and secret fields differ. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X854 | review | 2026-11-18T13:42Z | `26-swap-list-light` at 28f9c121. The expanded ledger uses different fields and timing. Completed and reclaimed rows are absent. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X855 | review | 2026-11-18T13:42Z | `27-swap-start-dark` at 28f9c121. Two amount cards remain. The dialog is taller and uses an informational block in place of the amber warning. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X856 | review | 2026-11-18T13:42Z | `27-swap-start-light` at 28f9c121. The taller dialog has a weaker shadow and changes the amber warning and join-window line. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X857 | review | 2026-11-18T13:42Z | `28-az-dark` at 28f9c121. The empty Voting fixture leaves budgets, vote bars, quorum and status rows unseen. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X858 | review | 2026-11-18T13:42Z | `28-az-light` at 28f9c121. Fund and filters align. The empty table leaves voting rows unseen. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X859 | review | 2026-11-18T13:42Z | `29-az-project-dark` at 28f9c121. The vote column appears without phases or populated quorum. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X860 | review | 2026-11-18T13:42Z | `29-az-project-light` at 28f9c121. The two-column layout appears without phase proofs, phase votes or populated quorum. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X861 | review | 2026-11-18T13:42Z | `30-set-node-dark` at 28f9c121. The pre-check state shows a repository input in place of the downloaded-and-verified callout. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X862 | review | 2026-11-18T13:42Z | `30-set-node-light` at 28f9c121. The earlier update state lacks the installed/latest and download verification treatment. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X863 | review | 2026-11-18T13:42Z | `33-set-wallet-dark` at 28f9c121. Maintenance adds a row. Delete cache omits the preservation wording. Switch values differ. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X864 | review | 2026-11-18T13:42Z | `33-set-wallet-light` at 28f9c121. The extra Maintenance row and changed cache copy are visible. Auto-receive and notification selections differ. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X865 | review | 2026-11-18T13:42Z | `34-set-apps-dark` at 28f9c121. Apps is nested under Settings. The empty fixture leaves connected rows and Disconnect controls unseen. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X866 | review | 2026-11-18T13:42Z | `34-set-apps-light` at 28f9c121. The switch and WalletConnect group align. Connected sessions are absent. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X867 | review | 2026-11-18T13:42Z | `35-set-addresses-dark` at 28f9c121. Address selection appears. The empty contact fixture omits contact, Send and edit rows. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X868 | review | 2026-11-18T13:42Z | `35-set-addresses-light` at 28f9c121. Addresses are populated but Contacts is empty, leaving its rows unseen. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X869 | review | 2026-11-18T13:42Z | `37-set-licences-dark` at 28f9c121. The end field is plain as specified. Per-row licence type is absent. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X870 | review | 2026-11-18T13:42Z | `37-set-licences-light` at 28f9c121. The list and unlabeled field align. Per-row licence type is absent. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X871 | review | 2026-11-18T13:42Z | `40-launch-settle-dark` at 28f9c121. The capture has a flat inset stage and early status strip. The reference shows the shader and emerging lock card. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X872 | review | 2026-11-18T13:42Z | `40-launch-settle-light` at 28f9c121. The capture has a flat backdrop and smaller stage. The reference shows the shader, shadow and rising card. [Independent pair evidence](docs/review/source-28f9c121-independent-visual-review.md#pair-findings). |
+| X873 | review | 2026-11-18T13:42Z | The independent 28f9c121 review flagged unmatched art timing in Home open, empty Staking and Originals and a blank sampled light Lock well. The light picker shows its wordmark. Capture the expected phases for strict review. [Sample findings](docs/review/source-28f9c121-independent-visual-review.md#open-rule-and-capture-questions). |
+| X874 | review | 2026-11-18T13:42Z | The 28f9c121 Receive at-rest reference and screen note show an empty To receive row. The mockup README specifies rows only. The application follows the README and the pair records the difference. [Receive rule](docs/review/source-28f9c121-independent-visual-review.md#open-rule-and-capture-questions). |
+| X875 | review | 2026-11-18T13:42Z | Linux qualifies the separate f976ff02 Receive amount explanation. The Windows run stops in the asset helper branch admission before any native execution. Fresh Windows visual evidence remains open. [Candidate results](docs/review/source-28f9c121-independent-visual-review.md#receive-amount-clarification). |
