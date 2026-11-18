@@ -26,8 +26,10 @@ Subsequent individual comparisons confirm the full-window Launch, settled
 Lock, wrong-password, picker and Ready pairs at 28f9c121. The light Lock
 well shows the wordmark in the verified image. Lock and Ready share identical
 backdrop samples within each image set, with the approved palette accounting
-for the observed tint difference. The strict review of that source records
-twelve matches, 68 mismatches and 14 pending verdicts.
+for the observed tint difference. Both synthetic seed quiz captures also
+match. All 94 pairs at this source have received a strict verdict, with
+fourteen matches and 80 mismatches. V01 still requires the remaining
+corrections and comparison at the qualifying publication source.
 
 ## Qualification snapshot (2026-11-13)
 
