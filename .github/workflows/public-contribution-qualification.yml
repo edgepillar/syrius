@@ -238,26 +238,6 @@ jobs:
             .harness/ci-launch-catalog/39-launch-dark.png
             .harness/ci-launch-catalog/39-launch-light.png
 
-      - name: Capture the original launch handoff in both themes
-        if: (inputs.readonly_catalog_family == 'launch-settle' || inputs.readonly_catalog_family == 'startup-catalog')
-        timeout-minutes: 7
-        env:
-          SYRIUS_WINDOWS_LAUNCH_CATALOG: 'launch-settle'
-        run: python -B -m tool.ci.windows_launch_catalog
-
-      - name: Retain the original launch handoff manifest and PNGs
-        if: always() && (inputs.readonly_catalog_family == 'launch-settle' || inputs.readonly_catalog_family == 'startup-catalog') && hashFiles('.harness/ci-launch-settle-catalog/manifest.json') != ''
-        uses: actions/upload-artifact@v7
-        with:
-          name: windows-launch-settle-catalog-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
-          compression-level: 0
-          include-hidden-files: true
-          if-no-files-found: error
-          path: |
-            .harness/ci-launch-settle-catalog/manifest.json
-            .harness/ci-launch-settle-catalog/40-launch-settle-dark.png
-            .harness/ci-launch-settle-catalog/40-launch-settle-light.png
-
       - name: Measure the original cold lock frame window
         if: inputs.readonly_catalog_family == 'launch-timing'
         timeout-minutes: 5
@@ -355,6 +335,27 @@ jobs:
             .harness/ci-quiz-catalog/manifest.json
             .harness/ci-quiz-catalog/46-seed-quiz-dark.png
             .harness/ci-quiz-catalog/46-seed-quiz-light.png
+
+      # Keep the other startup catalogs before the handoff's short frame window.
+      - name: Capture the original launch handoff in both themes
+        if: (inputs.readonly_catalog_family == 'launch-settle' || inputs.readonly_catalog_family == 'startup-catalog')
+        timeout-minutes: 7
+        env:
+          SYRIUS_WINDOWS_LAUNCH_CATALOG: 'launch-settle'
+        run: python -B -m tool.ci.windows_launch_catalog
+
+      - name: Retain the original launch handoff manifest and PNGs
+        if: always() && (inputs.readonly_catalog_family == 'launch-settle' || inputs.readonly_catalog_family == 'startup-catalog') && hashFiles('.harness/ci-launch-settle-catalog/manifest.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-launch-settle-catalog-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: |
+            .harness/ci-launch-settle-catalog/manifest.json
+            .harness/ci-launch-settle-catalog/40-launch-settle-dark.png
+            .harness/ci-launch-settle-catalog/40-launch-settle-light.png
 
       - name: Retain only finite startup observations
         if: always() && hashFiles('.harness/ci-startup-probe/manifest.json') != ''

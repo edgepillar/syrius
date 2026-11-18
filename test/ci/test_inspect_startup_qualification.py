@@ -447,17 +447,26 @@ class StartupInspectionTests(unittest.TestCase):
                    'Retain the original launch handoff manifest and PNGs',
                    'Retain the original lock catalog manifest and PNGs',
                    'Retain the synthetic seed quiz manifest and PNGs')
+        capture_order = (0, 2, 3, 1)
+        workflow = Path('.github/workflows/public-contribution-qualification.yml').read_text()
+        self.assertEqual(sorted(range(len(captures)), key=lambda i:
+            workflow.index('- name: ' + captures[i])), list(capture_order))
 
         class Batch(Client):
-            def __init__(self, *, partial=False, extra=False):
+            def __init__(self, *, partial=False, reordered=False, extra=False):
                 super().__init__()
                 self.job.update(name=inspect.BATCH_JOB_NAME, labels=['windows-latest'],
                                 conclusion='failure' if partial else 'success')
                 steps = [('Build the ordinary Release harness target', 'success')]
                 self.artifacts = []
-                for index, (capture, upload) in enumerate(zip(captures, uploads)):
-                    outcome = ('success' if not partial or index == 0 else
-                               'failure' if index == 1 else 'skipped')
+                order = capture_order if reordered else range(len(captures))
+                for index in order:
+                    capture, upload = captures[index], uploads[index]
+                    outcome = 'success'
+                    if partial and index == 1:
+                        outcome = 'failure'
+                    elif partial and not reordered and index != 0:
+                        outcome = 'skipped'
                     retained = 'skipped' if outcome == 'skipped' else 'success'
                     steps.extend(((capture, outcome), (upload, retained)))
                     if retained == 'success':
@@ -476,20 +485,20 @@ class StartupInspectionTests(unittest.TestCase):
                     value['head_branch'] = 'redesign'
                 return value
 
-        for partial in (False, True):
-            count = 2 if partial else 4
-            with self.subTest(partial=partial), mock.patch.object(
+        for partial, reordered, count, verified in (
+                (False, True, 4, 12), (True, False, 2, 2), (True, True, 4, 10)):
+            with self.subTest(partial=partial, reordered=reordered), mock.patch.object(
                     inspect, '_inspect_launch_artifact', side_effect=[
-                        dict(scope='catalog', artifact_reported_success=not partial or i == 0,
-                             verified_png_count=(2, 2, 6, 2)[i] if not partial or i == 0 else 0)
+                        dict(scope='catalog', artifact_reported_success=not partial or i != 1,
+                             verified_png_count=0 if partial and i == 1 else (2, 2, 6, 2)[i])
                         for i in range(count)]) as reader:
-                status, output = self.read_windows(Batch(partial=partial))
+                status, output = self.read_windows(Batch(partial=partial, reordered=reordered))
             self.assertEqual(status, 0)
             batch = json.loads(output.splitlines()[-1].split('::', 2)[-1])
             self.assertEqual(batch['scope'], 'retained_windows_startup_catalog_batch')
             self.assertEqual(batch['complete'], not partial)
             self.assertEqual(batch['verified_catalogs'], count)
-            self.assertEqual(batch['verified_png_count'], 2 if partial else 12)
+            self.assertEqual(batch['verified_png_count'], verified)
             self.assertEqual([call.kwargs['item']['id'] for call in reader.call_args_list],
                              list(range(1, count + 1)))
             self.assertTrue(all(call.kwargs['shared_binaries'] is reader.call_args.kwargs['shared_binaries']
