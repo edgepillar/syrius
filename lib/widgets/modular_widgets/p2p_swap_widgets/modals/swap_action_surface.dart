@@ -35,6 +35,7 @@ class SwapDialogSurface extends StatelessWidget {
     required this.onClose,
     required this.marker,
     this.primary,
+    this.footer,
     this.notice,
     super.key,
   });
@@ -54,6 +55,9 @@ class SwapDialogSurface extends StatelessWidget {
   /// Optional single primary action rendered below the content.
   final Widget? primary;
 
+  /// Compact transfer actions outside the scrollable form.
+  final Widget? footer;
+
   /// Fixed localized action or source notice, without raw diagnostics.
   final Widget? notice;
 
@@ -61,7 +65,7 @@ class SwapDialogSurface extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
     final BorderRadius radius = BorderRadius.circular(
-      tokens.transferCardRadius,
+      footer == null ? tokens.transferCardRadius : tokens.dialogRadius,
     );
     return ConstrainedBox(
       constraints: BoxConstraints(
@@ -70,10 +74,10 @@ class SwapDialogSurface extends StatelessWidget {
       ),
       child: SizedBox(
         width: tokens.swapActionWidth,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
+        child: CustomPaint(
+          foregroundPainter: OuterShadowPainter(
             borderRadius: radius,
-            boxShadow: <BoxShadow>[tokens.dialogShadow],
+            shadows: <BoxShadow>[tokens.dialogShadow],
           ),
           child: FrostedSurface(
             borderRadius: radius,
@@ -140,6 +144,11 @@ class SwapDialogSurface extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (footer != null)
+                      Padding(
+                        padding: tokens.dialogFooterPadding,
+                        child: footer,
+                      ),
                   ],
                 ),
               ),
@@ -158,6 +167,7 @@ class SwapPrimaryAction extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.busy = false,
+    this.compact = false,
     super.key,
   });
 
@@ -170,6 +180,9 @@ class SwapPrimaryAction extends StatelessWidget {
   /// Whether an original admitted action is still pending.
   final bool busy;
 
+  /// The original Start and Join footer uses an ordinary action pill.
+  final bool compact;
+
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
@@ -177,11 +190,13 @@ class SwapPrimaryAction extends StatelessWidget {
       onPressed: onPressed,
       style: ButtonStyle(
         minimumSize: WidgetStatePropertyAll<Size>(
-          Size(double.infinity, tokens.swapActionPrimaryHeight),
+          compact
+              ? Size(0, tokens.buttonHeight)
+              : Size(double.infinity, tokens.swapActionPrimaryHeight),
         ),
         animationDuration: tokens.swapActionStateDuration,
         textStyle: WidgetStatePropertyAll<TextStyle>(
-          tokens.swapActionPrimaryText,
+          compact ? tokens.buttonText : tokens.swapActionPrimaryText,
         ),
       ),
       child: Row(
@@ -276,6 +291,11 @@ class SwapChoice extends StatelessWidget {
         key: key,
         style: OutlinedButton.styleFrom(
           animationDuration: tokens.swapActionStateDuration,
+          backgroundColor: tokens.card2,
+          disabledBackgroundColor: tokens.card2,
+          foregroundColor: tokens.foreground,
+          disabledForegroundColor: tokens.dim,
+          side: BorderSide(color: tokens.faint),
           visualDensity: VisualDensity.standard,
           minimumSize: Size(0, tokens.swapActionTokenHeight),
           padding: tokens.transferChipPadding,
@@ -378,7 +398,7 @@ class SwapAmountPane extends StatelessWidget {
     final BigInt? current = controller == null
         ? amount
         : swapAmount(controller!.text, token.decimals);
-    final Widget figure = controller == null
+    final Widget amountField = controller == null
         ? current == null || hideBalances
               ? Text(
                   current == null ? context.l10n.swapListUnknown : '••••',
@@ -410,6 +430,35 @@ class SwapAmountPane extends StatelessWidget {
               contentPadding: EdgeInsets.zero,
             ),
           );
+    final Widget? available = balance == null
+        ? null
+        : hideBalances
+        ? Text('••••', style: tokens.captionText)
+        : AmountText(
+            balance!,
+            decimals: token.decimals,
+            style: tokens.captionText,
+            symbol: token.symbol,
+          );
+    final Widget figure = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        amountField,
+        // A hidden pane never mounts the original price subscription.
+        ConstrainedBox(
+          constraints: BoxConstraints(minHeight: tokens.swapActionDollarHeight),
+          child: visible &&
+                  TickerMode.valuesOf(context).enabled &&
+                  current != null &&
+                  current > BigInt.zero
+              ? hideBalances
+                  ? Text('••••', style: tokens.captionText)
+                  : dollars(context, current, token)
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
     final Widget tokenChoice = choices.isEmpty
         ? _SwapTokenLabel(token)
         : SwapChoice(
@@ -440,6 +489,7 @@ class SwapAmountPane extends StatelessWidget {
             children: <Widget>[
               Text(label.toUpperCase(), style: tokens.ledgerText),
               ?party,
+              ?available,
             ],
           ),
           SizedBox(height: tokens.transferRecentGap),
@@ -484,38 +534,6 @@ class SwapAmountPane extends StatelessWidget {
                 ],
               );
             },
-          ),
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: tokens.swapActionDollarHeight,
-            ),
-            child: Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              spacing: tokens.inlineGap,
-              runSpacing: tokens.transferRecentGap,
-              children: <Widget>[
-                if (balance != null)
-                  if (hideBalances)
-                    Text('••••', style: tokens.captionText)
-                  else
-                    AmountText(
-                      balance!,
-                      decimals: token.decimals,
-                      style: tokens.captionText,
-                      symbol: token.symbol,
-                    ),
-                // The real price source is never mounted behind another route,
-                // a hidden tab, a lost foreground or an invalid original owner.
-                if (visible &&
-                    TickerMode.valuesOf(context).enabled &&
-                    current != null &&
-                    current > BigInt.zero)
-                  if (hideBalances)
-                    Text('••••', style: tokens.captionText)
-                  else
-                    dollars(context, current, token),
-              ],
-            ),
           ),
         ],
       ),
@@ -710,6 +728,23 @@ class SwapTransferSurface extends StatelessWidget {
       marker: marker,
       onClose: onClose,
       notice: notice,
+      footer: OverflowBar(
+        alignment: MainAxisAlignment.end,
+        overflowAlignment: OverflowBarAlignment.end,
+        spacing: tokens.inlineGap,
+        overflowSpacing: tokens.inlineGap,
+        children: <Widget>[
+          OutlinedButton(
+            key: const Key('swap_action_cancel'),
+            style: secondaryButtonStyle(context).copyWith(
+              backgroundColor: WidgetStatePropertyAll<Color>(tokens.card2),
+            ),
+            onPressed: onClose,
+            child: Text(context.l10n.cancel),
+          ),
+          primary,
+        ],
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -723,12 +758,29 @@ class SwapTransferSurface extends StatelessWidget {
           SizedBox(height: tokens.transferRecentGap),
           counterparty,
           SizedBox(height: tokens.swapActionGap),
-          SwapFactRow(label: context.l10n.swapListRate, value: rate),
-          Text(timing, style: tokens.captionText),
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: tokens.swapActionGap,
+            runSpacing: tokens.transferRecentGap,
+            children: <Widget>[
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: tokens.inlineGap,
+                runSpacing: tokens.transferRecentGap,
+                children: <Widget>[
+                  Text(
+                    context.l10n.swapListRate,
+                    style: tokens.transferCaptionText,
+                  ),
+                  rate,
+                ],
+              ),
+              Text(timing, style: tokens.captionText),
+            ],
+          ),
           SizedBox(height: tokens.swapActionGap),
           SwapNotice(context.l10n.swapActionExperimental),
-          SizedBox(height: tokens.transferFormGap),
-          primary,
           SizedBox(height: tokens.swapActionGap),
           details,
         ],

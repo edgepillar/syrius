@@ -1287,7 +1287,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
   double get swapActionGap => 10;
 
   /// Exchange amounts use the data role without decorative movement.
-  TextStyle get swapActionAmountText => dataText.copyWith(fontSize: 30);
+  TextStyle get swapActionAmountText => dataText.copyWith(fontSize: 28);
 
   /// The transfer-shaped dialog's primary action height.
   double get swapActionPrimaryHeight => 58;

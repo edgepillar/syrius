@@ -280,6 +280,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal>
         key: const Key('swap_join_deposit'),
         label: exactId == null ? label : context.l10n.swapListOpen,
         busy: busy,
+        compact: true,
         onPressed: !current || busy
             ? null
             : exactId != null

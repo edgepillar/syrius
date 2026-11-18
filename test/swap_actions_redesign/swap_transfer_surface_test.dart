@@ -4,6 +4,7 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/widgets/amount_text.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/missing_services.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
@@ -51,7 +52,11 @@ Widget _surface(
   timing: '8 h initial · 1 h counter',
   primary: SeamGate(
     seam: Seam.swapTerms,
-    child: SwapPrimaryAction(label: 'Start swap', onPressed: () {}),
+    child: SwapPrimaryAction(
+      label: 'Start swap',
+      onPressed: () {},
+      compact: true,
+    ),
   ),
   details: SwapActionDetails(
     summary: 'Fixture summary',
@@ -72,14 +77,58 @@ void main() {
         prepareSwapViewport(tester);
         final TextEditingController amount = TextEditingController(text: '100');
         addTearDown(amount.dispose);
-        await tester.pumpWidget(swapHost(_surface(amount), light: light));
-        expect(
-          tester.getSize(find.byKey(const Key('fixture_transfer'))).width,
-          480,
+        int cancels = 0;
+        await tester.pumpWidget(
+          swapHost(_surface(amount, onClose: () => cancels++), light: light),
         );
+        final Finder dialog = find.byKey(const Key('fixture_transfer'));
+        expect(tester.getSize(dialog).width, 480);
+        final BoxDecoration border =
+            tester.widget<DecoratedBox>(dialog).decoration as BoxDecoration;
+        expect(border.borderRadius, BorderRadius.circular(12));
+
+        final Finder cancel = find.byKey(const Key('swap_action_cancel'));
+        final Finder primary = find.widgetWithText(
+          OutlinedButton,
+          'Start swap',
+        );
+        expect(tester.getSize(cancel).height, 38);
+        expect(tester.getSize(primary).height, 38);
+        expect(tester.getSize(primary).width, lessThan(240));
+        expect(tester.getCenter(cancel).dy, tester.getCenter(primary).dy);
+        expect(
+          tester.getTopRight(cancel).dx,
+          lessThan(tester.getTopLeft(primary).dx),
+        );
+        final Rect form = tester.getRect(
+          find.byKey(const Key('swap_action_scroll')),
+        );
+        expect(tester.getTopLeft(primary).dy, greaterThan(form.bottom));
+
         expect(find.text('1 ZNN = 10 QSR'), findsOneWidget);
         expect(find.byKey(const Key('fixture_dollars')), findsNWidgets(2));
+        final Finder editor = find.byKey(const Key('swap_amount_input'));
+        final Rect editorRect = tester.getRect(editor);
+        final Finder send = find.ancestor(
+          of: editor,
+          matching: find.byType(SwapAmountPane),
+        );
+        final Finder sendingDollars = find.descendant(
+          of: send,
+          matching: find.byKey(const Key('fixture_dollars')),
+        );
+        expect(tester.getTopLeft(sendingDollars).dx, editorRect.left);
+        expect(tester.getTopLeft(sendingDollars).dy, editorRect.bottom);
+        final Finder balance = find.descendant(
+          of: send,
+          matching: find.byWidgetPredicate(
+            (Widget widget) => widget is AmountText && widget.symbol == 'ZNN',
+          ),
+        );
+        expect(tester.getBottomRight(balance).dy, lessThan(editorRect.top));
         expect(find.byKey(const Key('fixture_deposit')), findsNothing);
+        await tester.tap(cancel);
+        expect(cancels, 1);
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox.shrink());
       },
@@ -142,6 +191,14 @@ void main() {
           VisualDensity.compact,
         );
         expect(tester.getSize(button).height, 34);
+        final AppTokens tokens = AppTokens.of(tester.element(button));
+        final ButtonStyle style = tester.widget<OutlinedButton>(button).style!;
+        expect(style.backgroundColor!.resolve(<WidgetState>{}), tokens.card2);
+        expect(
+          style.backgroundColor!.resolve(<WidgetState>{WidgetState.disabled}),
+          tokens.card2,
+        );
+        expect(style.side!.resolve(<WidgetState>{})!.color, tokens.faint);
         expect(tester.widget<OutlinedButton>(button).onPressed, isNotNull);
         await tester.tap(button);
         await tester.pump();

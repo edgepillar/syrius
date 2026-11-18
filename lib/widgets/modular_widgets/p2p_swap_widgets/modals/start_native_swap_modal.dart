@@ -243,11 +243,13 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal>
             seam: Seam.swapTerms,
             child: SwapPrimaryAction(
               label: context.l10n.swapListStart,
+              compact: true,
               onPressed: () => unawaited(_offer(lease)),
             ),
           )
         : SwapPrimaryAction(
             label: context.l10n.swapListOpen,
+            compact: true,
             onPressed: !current || busy
                 ? null
                 : () {
