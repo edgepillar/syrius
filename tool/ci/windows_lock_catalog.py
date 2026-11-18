@@ -44,7 +44,9 @@ REFUSED_SAMPLE = 'redesign-qualification-wrong-password'
 PHASES = ('prepare', 'ready', 'bind', 'input', 'normal', 'picker', 'refusal', 'complete')
 SHOT_PHASES = ('request', 'readback', 'layer', 'image', 'rgba', 'png',
                'complete', 'disposed', 'reply')
-REFUSAL_COMMANDS = frozenset((
+STILL_COMMANDS = frozenset(('arm-still', 'still-frame'))
+CAPTURE_COMMANDS = STILL_COMMANDS | {'shot'}
+REFUSAL_COMMANDS = STILL_COMMANDS | frozenset((
     'ping', 'window', 'theme', 'lock-view', 'type', 'shot', 'lock-catalog', 'tap', 'quit', 'wait',
 ))
 REFUSAL_REPLIES = {
@@ -54,6 +56,7 @@ REFUSAL_REPLIES = {
     'lock-view-input-refused': 'lock_input_refused',
     'lock-view-shape-refused': 'lock_shape_refused',
     'lock-catalog-artwork-unavailable': 'lock_artwork_unavailable',
+    'lock-catalog-still-unavailable': 'lock_still_unavailable',
     'assert target is covered': 'assertion_covered',
     'a minimized window cannot be captured': 'window_minimized',
     'capture theme differs': 'capture_theme_changed',
@@ -68,6 +71,9 @@ REFUSAL_REPLIES = {
 def command_refusal(command, phase, status, body):
     """Retain fixed labels only, never command arguments or reply details."""
     name = command.get('cmd') if type(command) is dict else None
+    action = command.get('action') if name == 'lock-catalog' else None
+    if type(action) is str and action in STILL_COMMANDS:
+        name = action
     error = body.get('error') if type(body) is dict else None
     return dict(
         command=name if type(name) is str and name in REFUSAL_COMMANDS else 'withheld',
@@ -134,6 +140,7 @@ class LockProcess(launch.LaunchProcess):
         self._command_refusal = None
         self._transport_failure = None
         self._capture_progress = None
+        self._still_in_progress = False
         receipt, result = super().run_launch(theme, capture=capture, settle=settle)
         if self._command_refusal is not None:
             notice = dict(self._command_refusal,
@@ -147,19 +154,19 @@ class LockProcess(launch.LaunchProcess):
                 role='capture' if capture else 'prepare')
             print('::notice title=Original lock transport failure::'
                   + json.dumps(notice, separators=(',', ':')))
-            if self._transport_failure['command'] == 'shot':
-                progress = self._capture_progress or dict(status='unavailable', phases=[])
-                notice = dict(progress, scope='original_lock_capture_progress',
-                    theme=theme if theme in launch.THEMES else 'unknown',
-                    role='capture' if capture else 'prepare')
-                print('::notice title=Original lock capture progress::'
-                      + json.dumps(notice, separators=(',', ':')))
+        if self._capture_progress is not None:
+            notice = dict(self._capture_progress, scope='original_lock_capture_progress',
+                theme=theme if theme in launch.THEMES else 'unknown',
+                role='capture' if capture else 'prepare')
+            print('::notice title=Original lock capture progress::'
+                  + json.dumps(notice, separators=(',', ':')))
         return dict(receipt, phase=self.phase), result
 
     def _quit(self):
         failure = getattr(self, '_transport_failure', None)
         try:
-            if failure is not None and failure['command'] == 'shot':
+            if (getattr(self, '_still_in_progress', False)
+                    or failure is not None and failure['command'] in CAPTURE_COMMANDS):
                 try:
                     status, body = super()._exchange(
                         dict(cmd='logs', since=0, limit=64, levels=['CAPTURE']),
@@ -286,9 +293,11 @@ class LockProcess(launch.LaunchProcess):
         # A real blank-area click also dismisses existing hover tooltips.
         self._rpc(dict(cmd='tap', at=[0, 779], settleMs=0))
         self._lock_view(0)
-        body = self._rpc(dict(cmd='shot', width=1280, height=780, theme=theme,
-                              expect=dict(key='wallet_unlock_button')))
-        need(body.get('asserted') is True and body.get('theme') == theme
+        self._still_in_progress = True
+        self._accept('arm-still')
+        body = self._wait_catalog('still-frame', 27)
+        need(body.get('status') == 'captured' and body.get('asserted') is True
+             and body.get('theme') == theme
              and body.get('width') == 1280 and body.get('height') == 780)
         status = self._status(theme, picker)
         self._lock_view(0)
@@ -296,7 +305,9 @@ class LockProcess(launch.LaunchProcess):
             failures=status['failures'], remaining=status['remaining'],
             picker_gates=status['gates'], masked_chars=masked,
             artwork_seconds=body.get('artwork_seconds'))
-        return self._pixels(body, state)
+        result = self._pixels(body, state)
+        self._still_in_progress = False
+        return result
 
     def _pixels(self, body, state):
         need(frame_matches(state, state['screen']))

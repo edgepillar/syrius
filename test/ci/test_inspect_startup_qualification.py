@@ -1010,6 +1010,59 @@ class StartupInspectionTests(unittest.TestCase):
             exchange.assert_not_called()
             quit_original.assert_called_once_with()
 
+    def test_lock_catalog_arms_one_still_and_polls_within_one_deadline(self):
+        catalog = inspect.lock_catalog
+        ready = dict(frame=55, frames=56, failures=0, remaining=3, gates=0)
+        image = dict(ok=True, status='captured', asserted=True, width=1280,
+                     height=780, theme='dark', artwork_seconds=6, png='fixture')
+        pending = dict(ok=True, status='pending')
+        for finishes in (True, False):
+            with self.subTest(finishes=finishes):
+                probe = object.__new__(catalog.LockProcess)
+                probe.deadline = 0.5
+                probe.limits = inspect.launch.LIMITS
+                elapsed = 0
+
+                def sleep(delta):
+                    nonlocal elapsed
+                    elapsed += delta
+
+                probe.clock = lambda: elapsed
+                probe.sleep = sleep
+                probe._status = mock.Mock(return_value=ready)
+                probe._lock_view = mock.Mock()
+                probe._pixels = mock.Mock(return_value='retained original')
+                probe._rpc = mock.Mock(side_effect=[
+                    dict(ok=True), dict(ok=True, status='accepted'), pending,
+                    image if finishes else pending,
+                ])
+                if finishes:
+                    self.assertEqual(probe._still(
+                        'dark', 'lock-screen', masked=len(catalog.SAMPLE),
+                        picker=False), 'retained original')
+                    probe._pixels.assert_called_once_with(image, dict(
+                        screen='lock-screen', frame=55, frames=56, failures=0,
+                        remaining=3, picker_gates=0, masked_chars=len(catalog.SAMPLE),
+                        artwork_seconds=6))
+                    self.assertFalse(probe._still_in_progress)
+                else:
+                    with self.assertRaises(inspect.startup.Failure) as refused:
+                        probe._still('dark', 'lock-screen', masked=len(catalog.SAMPLE),
+                                     picker=False)
+                    self.assertEqual(refused.exception.code, 'STARTUP_DEADLINE')
+                    probe._pixels.assert_not_called()
+                    self.assertTrue(probe._still_in_progress)
+                self.assertEqual(probe._rpc.call_args_list, [
+                    mock.call(dict(cmd='tap', at=[0, 779], settleMs=0)),
+                    mock.call(dict(cmd='lock-catalog', action='arm-still'), until=None),
+                    mock.call(dict(cmd='lock-catalog', action='still-frame'), until=0.5),
+                    mock.call(dict(cmd='lock-catalog', action='still-frame'), until=0.5),
+                ])
+        failure = catalog.transport_failure(dict(cmd='lock-catalog', action='still-frame'),
+                                           'normal', 'HTTP_FAILED', TimeoutError())
+        self.assertEqual(failure['command'], 'still-frame')
+        self.assertEqual(failure['transport'], 'timeout')
+
     def test_startup_pair_keeps_the_original_twelve_request_transport_bound(self):
         class Response(io.BytesIO):
             status = 200

@@ -35,6 +35,8 @@ typedef _Lock = ({
   RenderView view,
 });
 
+typedef _StillCapture = ({_Lock lock, bool picker});
+
 /// Binds the original lock owner and retains its painted refusal frame.
 final class NativeLockCatalog {
   /// Reserves the process's native window before app startup.
@@ -65,6 +67,10 @@ final class NativeLockCatalog {
   bool _replayVisible = false;
   String? _refusal;
   Uint8List? _wrongPng;
+  final Set<bool> _startedStills = <bool>{};
+  _StillCapture? _still;
+  Map<String, Object?>? _stillResult;
+  bool _stillFailed = false;
 
   /// The painted reference phase of this original lock renderer.
   int? get artworkSeconds {
@@ -98,8 +104,68 @@ final class NativeLockCatalog {
     ),
   );
 
+  /// Starts one guarded renderer readback for the current resting state.
+  Map<String, Object?> startStill(
+    Future<Map<String, Object?>> Function(String theme) capture,
+  ) {
+    final _Lock? original = _original;
+    final bool picker = _picker.value;
+    if (original == null || _still != null || _startedStills.contains(picker)) {
+      throw const CaptureRefused('lock-catalog-state-refused');
+    }
+    final _StillCapture request = (lock: original, picker: picker);
+    _requireStill(request);
+    _startedStills.add(picker);
+    _still = request;
+    // The initiating HTTP reply can close while the original frame and PNG
+    // settle. Polling the same request never schedules another readback.
+    unawaited(Future<void>(() => _captureStill(request, capture)));
+    return <String, Object?>{'status': 'accepted'};
+  }
+
+  Future<void> _captureStill(
+    _StillCapture request,
+    Future<Map<String, Object?>> Function(String theme) capture,
+  ) async {
+    try {
+      _requireStill(request);
+      final Map<String, Object?> pixels = await capture(_theme);
+      _requireStill(request);
+      _stillResult = pixels;
+    } on Object {
+      _stillFailed = true;
+    }
+  }
+
+  /// Reads the issued still and retires it when the result is returned.
+  Map<String, Object?> readStill() {
+    final _StillCapture? request = _still;
+    if (request == null || _stillFailed) {
+      throw const CaptureRefused('lock-catalog-still-unavailable');
+    }
+    _requireStill(request);
+    final Map<String, Object?>? result = _stillResult;
+    if (result == null) return <String, Object?>{'status': 'pending'};
+    _still = null;
+    _stillResult = null;
+    return <String, Object?>{...result, 'status': 'captured'};
+  }
+
+  void _requireStill(_StillCapture request) {
+    final LaunchFilmController film = request.lock.owner.film;
+    if (!_current(request.lock) || artworkSeconds != _referenceArtworkSeconds ||
+        _picker.value != request.picker || _wrongClock != null ||
+        kNumFailedUnlockAttempts != 0 || !film.isDone ||
+        film.frameCount != _frames || film.frame != _frames - 1) {
+      throw const CaptureRefused('lock-catalog-state-refused');
+    }
+  }
+
   /// Reads finite state and arms one passive observation before submission.
   Map<String, Object?> control(String action) {
+    if (_still != null && action != 'status') {
+      throw const CaptureRefused('lock-catalog-state-refused');
+    }
     final _Lock? original = _original ??= _bind();
     if (original == null && action == 'status') {
       return <String, Object?>{'status': 'pending'};

@@ -2581,8 +2581,19 @@ class HarnessAgent {
     if (catalog == null || command.length != 2 || action is! String) {
       throw HarnessError('lock-catalog-input-refused');
     }
-    _requireCaptureFrameIdle();
     try {
+      if (action == 'still-frame') return catalog.readStill();
+      _requireCaptureFrameIdle();
+      if (action == 'arm-still') {
+        return catalog.startStill(
+          (String theme) => _shot(<String, dynamic>{
+            'width': 1280,
+            'height': 780,
+            'theme': theme,
+            'expect': <String, Object?>{'key': 'wallet_unlock_button'},
+          }),
+        );
+      }
       final (Seam, String)? seam = switch (action) {
         'probe-add-wallet' => (Seam.walletPicker, 'lock_add_wallet_gate'),
         'probe-password-recovery' => (
