@@ -461,7 +461,14 @@ def ready_artwork_sources(repo, value, tree):
          and all(type(item) is dict for item in value['tree']))
     if not any(item.get('path') == READY_ARTWORK_SOURCES[0] for item in value['tree']):
         return {}
-    return source_files(repo, value, tree, files=READY_ARTWORK_SOURCES)
+    originals = (
+        'lib/widgets/modular_widgets/help_widgets/originals_card.dart',
+        'lib/widgets/modular_widgets/help_widgets/originals_tiles.dart',
+        'lib/widgets/reusable_widgets/launch_film.dart',
+    )
+    return source_files(repo, value, tree, files=READY_ARTWORK_SOURCES + tuple(
+        path for path in originals
+        if any(item.get('path') == path for item in value['tree'])))
 
 
 def git_blob(raw):

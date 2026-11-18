@@ -2,6 +2,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_ready_binding.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/originals_card.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/staking_tab_child.dart'
     show StakingPage;
 
@@ -178,6 +180,96 @@ class StakingReferenceArtwork {
   }
 
   /// Reads the sampled frame and then restores both original bindings.
+  Future<T> capture<T>({
+    required CaptureFrameGate frames,
+    required Future<T> Function() readback,
+  }) => _capture.capture<T>(frames: frames, readback: readback);
+}
+
+/// The original gallery cannot supply its complete set of Lottie frames.
+class OriginalsReferenceArtworkRefused implements Exception {
+  /// Reports only the capture scope, without retaining an asset error.
+  const OriginalsReferenceArtworkRefused();
+}
+
+/// Samples the Launch film, five Lottie tiles and three small gallery marks.
+class OriginalsReferenceArtwork {
+  /// Binds the live gallery from the original Settings visit.
+  factory OriginalsReferenceArtwork({
+    required Element? root,
+    required bool Function() admitted,
+  }) {
+    final List<State<OriginalsCard>> owners = <State<OriginalsCard>>[];
+    int visited = 0;
+    void visit(Element element) {
+      if (++visited > 16384) throw const OriginalsReferenceArtworkRefused();
+      if (element is StatefulElement &&
+          element.state is State<OriginalsCard> &&
+          ModalRoute.of(element)?.isCurrent == true &&
+          TickerMode.valuesOf(element).enabled) {
+        owners.add(element.state as State<OriginalsCard>);
+      }
+      element.visitChildren(visit);
+    }
+
+    if (root != null) visit(root);
+    if (owners.length != 1) throw const OriginalsReferenceArtworkRefused();
+    return OriginalsReferenceArtwork._(owners.single, admitted);
+  }
+
+  OriginalsReferenceArtwork._(this._owner, this._admitted)
+      : _route = ModalRoute.of(_owner.context);
+
+  final State<OriginalsCard> _owner;
+  final bool Function() _admitted;
+  final ModalRoute<dynamic>? _route;
+  late final _ReferenceArtworkCapture _capture = _ReferenceArtworkCapture(
+    current: _current,
+    sources: _sources,
+    requiresReadiness: (_) => true,
+    refusal: OriginalsReferenceArtworkRefused.new,
+  );
+
+  bool _current() {
+    if (!_owner.mounted || !_admitted() || _route?.isCurrent != true ||
+        !_owner.widget.isCurrent() || _owner.widget.artBuilder != null) {
+      return false;
+    }
+    final AppLifecycleState? lifecycle = WidgetsBinding.instance.lifecycleState;
+    return identical(ModalRoute.of(_owner.context), _route) &&
+        TickerMode.valuesOf(_owner.context).enabled &&
+        (lifecycle == null || lifecycle == AppLifecycleState.resumed);
+  }
+
+  List<ReferenceArtworkSource> _sources() {
+    final List<ReferenceArtworkSource> sources = <ReferenceArtworkSource>[];
+    int visited = 0;
+    void visit(Element element) {
+      if (++visited > 16384) throw const OriginalsReferenceArtworkRefused();
+      if (element is StatefulElement &&
+          element.state is ReferenceArtworkSource) {
+        final ReferenceArtworkSource source =
+            element.state as ReferenceArtworkSource;
+        if (source.referenceArtworkKind ==
+            ReferenceArtworkKind.originalsGallery) {
+          sources.add(source);
+        }
+      }
+      if (element.widget case final LaunchFilm film) {
+        final ReferenceArtworkSource? source =
+            film.controller?.originalsReferenceArtwork;
+        if (source == null) throw const OriginalsReferenceArtworkRefused();
+        sources.add(source);
+      }
+      element.visitChildren(visit);
+    }
+
+    _owner.context.visitChildElements(visit);
+    if (sources.length != 9) throw const OriginalsReferenceArtworkRefused();
+    return sources;
+  }
+
+  /// Reads all sampled frames and observes restoration on the original gate.
   Future<T> capture<T>({
     required CaptureFrameGate frames,
     required Future<T> Function() readback,

@@ -215,6 +215,7 @@ class _OriginalsTileState extends State<_OriginalsTile>
         autoplay: false,
         controller: _film,
         fit: BoxFit.cover,
+        originalsReferenceProgress: 0.42,
       );
     }
     final AppLottieAsset asset = switch (widget.art) {
@@ -234,19 +235,24 @@ class _OriginalsTileState extends State<_OriginalsTile>
     final bool wide =
         widget.art == OriginalsArt.globe || widget.art == OriginalsArt.map;
     final double height = wide ? width / tokens.originalsWideArtAspect : width;
+    // Both bounds override the tile's tight constraints. Object artwork is
+    // smaller than some tiles while wide artwork extends beyond their clips.
     return OverflowBox(
+      minWidth: width,
       maxWidth: width,
+      minHeight: height,
       maxHeight: height,
-      child: SizedBox(
-        width: width,
-        height: height,
-        child: AppLottie(
-          asset,
-          controller: _animation,
-          repeat: false,
-          fit: BoxFit.contain,
-          onLoaded: _loaded,
-        ),
+      child: AppLottie(
+        asset,
+        controller: _animation,
+        repeat: false,
+        fit: BoxFit.contain,
+        onLoaded: _loaded,
+        originalsReferenceProgress: switch (widget.art) {
+          OriginalsArt.globe => 0.4,
+          OriginalsArt.map => 0.5,
+          _ => 0.99,
+        },
       ),
     );
   }
@@ -322,6 +328,11 @@ class _OriginalsMiniState extends State<_OriginalsMini>
                           : size,
                       controller: _clock,
                       onLoaded: _loaded,
+                      originalsReferenceProgress: switch (widget.asset) {
+                        AppLottieAsset.plasmaGeneration => 0.45,
+                        AppLottieAsset.eye => 0.4,
+                        _ => 0.2,
+                      },
                     ),
                   ),
                 )

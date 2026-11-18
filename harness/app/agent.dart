@@ -564,6 +564,7 @@ class HarnessAgent {
   ReadyReferenceArtwork? _readyArtwork;
   bool _readyArtworkRefused = false;
   bool _stakingArtworkRefused = false;
+  bool _originalsArtworkRefused = false;
   bool _readonlySendSyncReserved = false;
   final Set<String> _activityMessageSeamThemes = <String>{};
   bool _activityMessageSeamHeld = false;
@@ -5637,8 +5638,10 @@ class HarnessAgent {
           }
         }
         final ReadonlyNativeCommands? original = _readonlyNative;
+        final String? catalogFamily =
+            Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'];
         if (original != null &&
-            Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'] == 'earn' &&
+            catalogFamily == 'earn' &&
             assertion is Map<Object?, Object?> &&
             assertion['key'] == 'staking_empty_rewards') {
           try {
@@ -5656,6 +5659,27 @@ class HarnessAgent {
           } on StakingReferenceArtworkRefused {
             _stakingArtworkRefused = true;
             throw HarnessError('staking artwork frame unavailable');
+          }
+        }
+        if (original != null &&
+            catalogFamily == 'details' &&
+            assertion is Map<Object?, Object?> &&
+            assertion['key'] == 'originals_play_launch') {
+          try {
+            if (_originalsArtworkRefused) {
+              throw const OriginalsReferenceArtworkRefused();
+            }
+            final OriginalsReferenceArtwork artwork = OriginalsReferenceArtwork(
+              root: WidgetsBinding.instance.rootElement,
+              admitted: () => booted && identical(_readonlyNative, original),
+            );
+            return await artwork.capture<Map<String, Object?>>(
+              frames: _captureFrames,
+              readback: () => _readShot(c),
+            );
+          } on OriginalsReferenceArtworkRefused {
+            _originalsArtworkRefused = true;
+            throw HarnessError('originals artwork frame unavailable');
           }
         }
         final Map<String, Object?> result =
