@@ -130,18 +130,17 @@ class LockWalletPicker extends StatelessWidget {
                 child: LayoutBuilder(
                   builder:
                       (BuildContext context, BoxConstraints constraints) {
+                    final TextStyle style = tokens.bodyText;
                     final Widget label = Text(
                       current.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: tokens.headingText,
+                      style: style,
                     );
                     final TextPainter metrics = TextPainter(
                       text: TextSpan(
                         text: current.name,
-                        style: DefaultTextStyle.of(context).style.merge(
-                          tokens.headingText,
-                        ),
+                        style: DefaultTextStyle.of(context).style.merge(style),
                       ),
                       textDirection: Directionality.of(context),
                       textScaler: MediaQuery.textScalerOf(context),

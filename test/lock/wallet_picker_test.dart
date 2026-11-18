@@ -239,6 +239,10 @@ void main() {
           expect(find.semantics.byLabel(_current.name), findsWidgets);
           expect(find.semantics.byLabel(_current.address!), findsWidgets);
           expect(
+            tester.widget<Text>(find.text(_current.name)).style,
+            tokens.bodyText,
+          );
+          expect(
             tester
                 .renderObject<RenderParagraph>(find.text(_current.name))
                 .didExceedMaxLines,
