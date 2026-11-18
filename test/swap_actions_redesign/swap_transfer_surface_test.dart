@@ -19,6 +19,7 @@ Widget _surface(
   bool visible = true,
   SwapDollarBuilder dollars = fixtureDollars,
   VoidCallback? onClose,
+  bool Function()? onToggleDetails,
 }) => SwapTransferSurface(
   title: 'Start swap',
   marker: const Key('fixture_transfer'),
@@ -58,14 +59,12 @@ Widget _surface(
       compact: true,
     ),
   ),
-  details: SwapActionDetails(
-    summary: 'Fixture summary',
-    onToggle: () => true,
-    child: OutlinedButton(
-      key: const Key('fixture_deposit'),
-      onPressed: () {},
-      child: const Text('Create deposit'),
-    ),
+  detailsSummary: 'Fixture summary',
+  onToggleDetails: onToggleDetails ?? () => true,
+  details: OutlinedButton(
+    key: const Key('fixture_deposit'),
+    onPressed: () {},
+    child: const Text('Create deposit'),
   ),
 );
 
@@ -78,8 +77,16 @@ void main() {
         final TextEditingController amount = TextEditingController(text: '100');
         addTearDown(amount.dispose);
         int cancels = 0;
+        bool current = true;
         await tester.pumpWidget(
-          swapHost(_surface(amount, onClose: () => cancels++), light: light),
+          swapHost(
+            _surface(
+              amount,
+              onClose: () => cancels++,
+              onToggleDetails: () => current,
+            ),
+            light: light,
+          ),
         );
         final Finder dialog = find.byKey(const Key('fixture_transfer'));
         expect(tester.getSize(dialog).width, 480);
@@ -103,6 +110,8 @@ void main() {
         final Rect form = tester.getRect(
           find.byKey(const Key('swap_action_scroll')),
         );
+        final Finder help = find.byKey(const Key('swap_action_details_toggle'));
+        expect(tester.getBottomRight(help).dy, lessThan(form.top));
         expect(tester.getTopLeft(primary).dy, greaterThan(form.bottom));
 
         expect(find.text('1 ZNN = 10 QSR'), findsOneWidget);
@@ -126,6 +135,19 @@ void main() {
           ),
         );
         expect(tester.getBottomRight(balance).dy, lessThan(editorRect.top));
+        expect(find.byKey(const Key('fixture_deposit')), findsNothing);
+        expect(find.text('Fixture summary'), findsOneWidget);
+        await tester.tap(help);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 241));
+        expect(find.byKey(const Key('fixture_deposit')), findsOneWidget);
+        await tester.tap(help);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 241));
+        expect(find.byKey(const Key('fixture_deposit')), findsNothing);
+        current = false;
+        tester.widget<TextButton>(help).onPressed!();
+        await tester.pump(const Duration(milliseconds: 241));
         expect(find.byKey(const Key('fixture_deposit')), findsNothing);
         await tester.tap(cancel);
         expect(cancels, 1);

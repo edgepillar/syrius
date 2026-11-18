@@ -333,67 +333,65 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal>
                 (_readFailed
                     ? SwapNotice(context.l10n.swapActionReadFailed, error: true)
                     : null),
-      details: SwapActionDetails(
-        summary: context.l10n.swapActionDepositOnly,
-        onToggle: () => !_reading && toggleDetails(lease),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            if (_signer != null)
-              SwapChoice(
-                label: context.l10n.swapListYourAddress,
-                value: _signer!,
-                choices: <String, Widget>{
-                  for (final String address in origin!.members)
-                    address: SwapIdentifier(address),
-                },
-                canInteract: () => _editable(lease),
-                onSelected: !editable
-                    ? null
-                    : (String address) {
-                        change(lease, () {
-                          _signer = address;
-                          _funds = null;
-                          _send.clear();
-                          _fundsAttempted = false;
-                        });
-                      },
-              ),
-            Text(
-              context.l10n.swapActionDiscovery(
-                kMinSafeTimeToFindPreimage.inHours,
-                kMinSafeTimeToCompleteSwap.inMinutes,
-              ),
-              style: tokens.captionText,
+      detailsSummary: context.l10n.swapActionDepositOnly,
+      onToggleDetails: () => !_reading && toggleDetails(lease),
+      details: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          if (_signer != null)
+            SwapChoice(
+              label: context.l10n.swapListYourAddress,
+              value: _signer!,
+              choices: <String, Widget>{
+                for (final String address in origin!.members)
+                  address: SwapIdentifier(address),
+              },
+              canInteract: () => _editable(lease),
+              onSelected: !editable
+                  ? null
+                  : (String address) {
+                      change(lease, () {
+                        _signer = address;
+                        _funds = null;
+                        _send.clear();
+                        _fundsAttempted = false;
+                      });
+                    },
             ),
-            SizedBox(height: tokens.swapActionGap),
-            if (result?.status == SwapActionStatus.submitted)
-              OutlinedButton(
-                key: const Key('swap_new_deposit'),
-                onPressed: !current || busy
-                    ? null
-                    : () => unawaited(_newDeposit(lease)),
-                child: Text(context.l10n.swapActionNewDeposit),
-              )
-            else if (result?.status != SwapActionStatus.unknown)
-              OutlinedButton(
-                key: const Key('swap_create_deposit'),
-                onPressed: !editable || !_validAddress || !_funded
-                    ? null
-                    : () => unawaited(_createDeposit(lease)),
-                child: Text(busy ? context.l10n.swapActionSending : label),
-              ),
-            if (!held)
-              TextButton(
-                key: const Key('swap_refresh_funds'),
-                onPressed: !current || busy || _reading || _signer == null
-                    ? null
-                    : () => unawaited(_load(lease, _signer!)),
-                child: Text(context.l10n.swapListRefresh),
-              ),
-          ],
-        ),
+          Text(
+            context.l10n.swapActionDiscovery(
+              kMinSafeTimeToFindPreimage.inHours,
+              kMinSafeTimeToCompleteSwap.inMinutes,
+            ),
+            style: tokens.captionText,
+          ),
+          SizedBox(height: tokens.swapActionGap),
+          if (result?.status == SwapActionStatus.submitted)
+            OutlinedButton(
+              key: const Key('swap_new_deposit'),
+              onPressed: !current || busy
+                  ? null
+                  : () => unawaited(_newDeposit(lease)),
+              child: Text(context.l10n.swapActionNewDeposit),
+            )
+          else if (result?.status != SwapActionStatus.unknown)
+            OutlinedButton(
+              key: const Key('swap_create_deposit'),
+              onPressed: !editable || !_validAddress || !_funded
+                  ? null
+                  : () => unawaited(_createDeposit(lease)),
+              child: Text(busy ? context.l10n.swapActionSending : label),
+            ),
+          if (!held)
+            TextButton(
+              key: const Key('swap_refresh_funds'),
+              onPressed: !current || busy || _reading || _signer == null
+                  ? null
+                  : () => unawaited(_load(lease, _signer!)),
+              child: Text(context.l10n.swapListRefresh),
+            ),
+        ],
       ),
     );
   });

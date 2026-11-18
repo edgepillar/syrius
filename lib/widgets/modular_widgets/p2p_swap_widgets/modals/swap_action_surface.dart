@@ -36,6 +36,7 @@ class SwapDialogSurface extends StatelessWidget {
     required this.marker,
     this.primary,
     this.footer,
+    this.headerAction,
     this.notice,
     super.key,
   });
@@ -57,6 +58,9 @@ class SwapDialogSurface extends StatelessWidget {
 
   /// Compact transfer actions outside the scrollable form.
   final Widget? footer;
+
+  /// A quiet action beside the title's close button.
+  final Widget? headerAction;
 
   /// Fixed localized action or source notice, without raw diagnostics.
   final Widget? notice;
@@ -100,25 +104,34 @@ class SwapDialogSurface extends StatelessWidget {
                       ),
                       child: Padding(
                         padding: tokens.swapActionHeaderPadding,
-                        child: Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: Text(title, style: tokens.headingText),
-                            ),
-                            IconButton(
-                              key: const Key('swap_action_close'),
-                              padding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
-                              constraints: BoxConstraints.tightFor(
-                                width: tokens.smallButtonHeight,
-                                height: tokens.smallButtonHeight,
+                        child: LayoutBuilder(
+                          builder: (_, BoxConstraints constraints) => Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: Text(title, style: tokens.headingText),
                               ),
-                              iconSize: tokens.swapActionTokenIconSize,
-                              tooltip: context.l10n.commonClose,
-                              onPressed: onClose,
-                              icon: Icon(Icons.close, color: tokens.faint),
-                            ),
-                          ],
+                              if (headerAction != null)
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth: constraints.maxWidth / 2,
+                                  ),
+                                  child: headerAction,
+                                ),
+                              IconButton(
+                                key: const Key('swap_action_close'),
+                                padding: EdgeInsets.zero,
+                                visualDensity: VisualDensity.compact,
+                                constraints: BoxConstraints.tightFor(
+                                  width: tokens.smallButtonHeight,
+                                  height: tokens.smallButtonHeight,
+                                ),
+                                iconSize: tokens.swapActionTokenIconSize,
+                                tooltip: context.l10n.commonClose,
+                                onPressed: onClose,
+                                icon: Icon(Icons.close, color: tokens.faint),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -681,7 +694,9 @@ class SwapTransferSurface extends StatelessWidget {
     required this.rate,
     required this.timing,
     required this.primary,
+    required this.detailsSummary,
     required this.details,
+    required this.onToggleDetails,
     required this.onClose,
     this.notice,
     super.key,
@@ -711,8 +726,14 @@ class SwapTransferSurface extends StatelessWidget {
   /// Single externally guarded explicit primary action.
   final Widget primary;
 
-  /// Collapsed original-flow public details.
+  /// The persistent disclosure of what this original action does.
+  final String detailsSummary;
+
+  /// Original-flow public details revealed by the header action.
   final Widget details;
+
+  /// Checks whether the original route still owns disclosure.
+  final bool Function()? onToggleDetails;
 
   /// Exact-generation close callback, absent while busy.
   final VoidCallback? onClose;
@@ -721,13 +742,26 @@ class SwapTransferSurface extends StatelessWidget {
   final Widget? notice;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => SwapActionDetails._inTransfer(
+    summary: detailsSummary,
+    onToggle: onToggleDetails,
+    child: details,
+    layout: (Widget help, Widget disclosure) =>
+        _buildDialog(context, help, disclosure),
+  );
+
+  Widget _buildDialog(
+    BuildContext context,
+    Widget help,
+    Widget disclosure,
+  ) {
     final AppTokens tokens = AppTokens.of(context);
     return SwapDialogSurface(
       title: title,
       marker: marker,
       onClose: onClose,
       notice: notice,
+      headerAction: help,
       footer: OverflowBar(
         alignment: MainAxisAlignment.end,
         overflowAlignment: OverflowBarAlignment.end,
@@ -781,8 +815,9 @@ class SwapTransferSurface extends StatelessWidget {
           ),
           SizedBox(height: tokens.swapActionGap),
           SwapNotice(context.l10n.swapActionExperimental),
-          SizedBox(height: tokens.swapActionGap),
-          details,
+          SizedBox(height: tokens.transferRecentGap),
+          Text(detailsSummary, style: tokens.captionText),
+          disclosure,
         ],
       ),
     );
@@ -902,6 +937,8 @@ class SwapNotice extends StatelessWidget {
   }
 }
 
+typedef _SwapDetailsLayout = Widget Function(Widget help, Widget disclosure);
+
 /// Details are absent from input and semantics while closed or reversing.
 class SwapActionDetails extends StatefulWidget {
   /// Owns disclosure animation; onToggle guards its state changes.
@@ -910,7 +947,14 @@ class SwapActionDetails extends StatefulWidget {
     required this.child,
     this.onToggle,
     super.key,
-  });
+  }) : _layout = null;
+
+  const SwapActionDetails._inTransfer({
+    required this.summary,
+    required this.child,
+    required this.onToggle,
+    required _SwapDetailsLayout layout,
+  }) : _layout = layout;
 
   /// Single public fact visible while the details are collapsed.
   final String summary;
@@ -920,6 +964,9 @@ class SwapActionDetails extends StatefulWidget {
 
   /// Original-view guard that must admit every disclosure state change.
   final bool Function()? onToggle;
+
+  final _SwapDetailsLayout? _layout;
+
   @override
   State<SwapActionDetails> createState() => _SwapActionDetailsState();
 }
@@ -950,9 +997,46 @@ class _SwapActionDetailsState extends State<SwapActionDetails>
     super.dispose();
   }
 
+  void _toggle() {
+    if (!mounted || widget.onToggle?.call() != true) return;
+    setState(() => _open = !_open);
+    unawaited(_open ? _reveal.forward() : _reveal.reverse());
+    if (widget._layout == null) {
+      unawaited(_open ? _chevron.forward() : _chevron.reverse());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    final VoidCallback? toggle = widget.onToggle == null ? null : _toggle;
+    final Widget disclosure = _buildDisclosure(tokens);
+    final _SwapDetailsLayout? layout = widget._layout;
+    if (layout != null) {
+      return layout(
+        Semantics(
+          expanded: _open,
+          child: TextButton(
+            key: const Key('swap_action_details_toggle'),
+            style: quietButtonStyle(context).copyWith(
+              minimumSize: const WidgetStatePropertyAll<Size>(Size(0, 30)),
+              padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+                EdgeInsets.symmetric(horizontal: 6),
+              ),
+              textStyle: WidgetStatePropertyAll<TextStyle>(
+                tokens.compactText.copyWith(fontWeight: FontWeight.w400),
+              ),
+            ),
+            onPressed: toggle,
+            child: Text(
+              context.l10n.swapListDetails,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+        disclosure,
+      );
+    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -962,14 +1046,7 @@ class _SwapActionDetailsState extends State<SwapActionDetails>
           style: quietButtonStyle(
             context,
           ).copyWith(animationDuration: tokens.swapActionStateDuration),
-          onPressed: widget.onToggle == null
-              ? null
-              : () {
-                  if (!widget.onToggle!()) return;
-                  setState(() => _open = !_open);
-                  unawaited(_open ? _reveal.forward() : _reveal.reverse());
-                  unawaited(_open ? _chevron.forward() : _chevron.reverse());
-                },
+          onPressed: toggle,
           child: Row(
             children: <Widget>[
               Expanded(
@@ -1008,50 +1085,52 @@ class _SwapActionDetailsState extends State<SwapActionDetails>
             ],
           ),
         ),
-        AnimatedBuilder(
-          animation: _reveal,
-          builder: (_, Widget? child) {
-            if (_reveal.isDismissed) return const SizedBox.shrink();
-            final Animation<double> curve = _reveal.drive(
-              CurveTween(curve: tokens.spring),
-            );
-            return ExcludeSemantics(
-              excluding: !_open,
-              child: IgnorePointer(
-                ignoring: !_open,
-                child: Focus(
-                  canRequestFocus: false,
-                  skipTraversal: true,
-                  descendantsAreFocusable: _open,
-                  descendantsAreTraversable: _open,
-                  child: SizeTransition(
-                    sizeFactor: curve,
-                    alignment: AlignmentDirectional.topStart,
-                    child: FadeTransition(
-                      opacity: curve,
-                      child: Transform.translate(
-                        offset: Offset(
-                          0,
-                          -tokens.swapActionDetailsRise * (1 - curve.value),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsetsDirectional.only(
-                            top: tokens.swapActionGap,
-                          ),
-                          child: child,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-          child: widget.child,
-        ),
+        disclosure,
       ],
     );
   }
+
+  Widget _buildDisclosure(AppTokens tokens) => AnimatedBuilder(
+    animation: _reveal,
+    builder: (_, Widget? child) {
+      if (_reveal.isDismissed) return const SizedBox.shrink();
+      final Animation<double> curve = _reveal.drive(
+        CurveTween(curve: tokens.spring),
+      );
+      return ExcludeSemantics(
+        excluding: !_open,
+        child: IgnorePointer(
+          ignoring: !_open,
+          child: Focus(
+            canRequestFocus: false,
+            skipTraversal: true,
+            descendantsAreFocusable: _open,
+            descendantsAreTraversable: _open,
+            child: SizeTransition(
+              sizeFactor: curve,
+              alignment: AlignmentDirectional.topStart,
+              child: FadeTransition(
+                opacity: curve,
+                child: Transform.translate(
+                  offset: Offset(
+                    0,
+                    -tokens.swapActionDetailsRise * (1 - curve.value),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsetsDirectional.only(
+                      top: tokens.swapActionGap,
+                    ),
+                    child: child,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+    child: widget.child,
+  );
 }
 
 /// One public review fact whose value retains its own data style.

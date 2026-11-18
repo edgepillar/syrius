@@ -293,45 +293,43 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal>
             ? null
             : () => unawaited(_join(lease)),
       ),
-      details: SwapActionDetails(
-        summary: context.l10n.swapActionDepositVerified,
-        onToggle: () => !_reading && toggleDetails(lease),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            SwapFactRow(
-              label: context.l10n.swapListYourAddress,
-              value: SwapIdentifier(deposit.initial.hashLocked.toString()),
+      detailsSummary: context.l10n.swapActionDepositVerified,
+      onToggleDetails: () => !_reading && toggleDetails(lease),
+      details: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          SwapFactRow(
+            label: context.l10n.swapListYourAddress,
+            value: SwapIdentifier(deposit.initial.hashLocked.toString()),
+          ),
+          SwapFactRow(
+            label: context.l10n.swapListDepositId,
+            value: SwapIdentifier(deposit.initial.id.toString()),
+          ),
+          SwapFactRow(
+            label: context.l10n.swapListTokenStandard,
+            value: SwapIdentifier(deposit.receiving.tokenStandard.toString()),
+          ),
+          Text(
+            context.l10n.swapActionDiscovery(
+              kMinSafeTimeToFindPreimage.inHours,
+              kMinSafeTimeToCompleteSwap.inMinutes,
             ),
-            SwapFactRow(
-              label: context.l10n.swapListDepositId,
-              value: SwapIdentifier(deposit.initial.id.toString()),
+            style: tokens.captionText,
+          ),
+          if (!held)
+            TextButton(
+              key: const Key('swap_change_deposit'),
+              onPressed: !editable
+                  ? null
+                  : () => change(lease, () {
+                      _deposit = null;
+                      _amount.clear();
+                    }),
+              child: Text(context.l10n.swapActionFindDeposit),
             ),
-            SwapFactRow(
-              label: context.l10n.swapListTokenStandard,
-              value: SwapIdentifier(deposit.receiving.tokenStandard.toString()),
-            ),
-            Text(
-              context.l10n.swapActionDiscovery(
-                kMinSafeTimeToFindPreimage.inHours,
-                kMinSafeTimeToCompleteSwap.inMinutes,
-              ),
-              style: tokens.captionText,
-            ),
-            if (!held)
-              TextButton(
-                key: const Key('swap_change_deposit'),
-                onPressed: !editable
-                    ? null
-                    : () => change(lease, () {
-                        _deposit = null;
-                        _amount.clear();
-                      }),
-                child: Text(context.l10n.swapActionFindDeposit),
-              ),
-          ],
-        ),
+        ],
       ),
     );
   });
