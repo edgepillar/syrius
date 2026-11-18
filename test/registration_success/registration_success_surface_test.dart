@@ -189,14 +189,16 @@ void main() {
           find.byKey(const Key('retained_first')),
           'Kept draft',
         );
-        final Offset oldAction = tester.getCenter(find.text('Register'));
-        await tester.tap(find.text('Register'));
+        final Finder register = find.byKey(const Key('retained_register'));
+        final Offset oldAction = tester.getCenter(register);
+        await tester.tap(register);
         await tester.pump();
         expect(presses, 1);
         events.add(null);
         expect(probe.currentState, same(original));
         expect(original.eventsReceived, 1);
-        expect(find.text('Register'), findsNothing);
+        expect(register, findsNothing);
+        expect(find.text('Register'), findsOneWidget);
         await tester.tapAt(oldAction);
         FocusManager.instance.primaryFocus?.unfocus();
         await tester.sendKeyEvent(LogicalKeyboardKey.enter);
@@ -417,7 +419,11 @@ class _RetainedProbeState extends State<_RetainedProbe> {
           controller: draft,
         ),
         TextField(key: const Key('retained_second'), focusNode: second),
-        TextButton(onPressed: widget.onPress, child: const Text('Register')),
+        TextButton(
+          key: const Key('retained_register'),
+          onPressed: widget.onPress,
+          child: const Text('Register'),
+        ),
       ],
     ),
   );
