@@ -329,6 +329,14 @@ void main() {
       expect(tester.widget<CustomPaint>(backdrop).painter, isNotNull);
       await tester.pump(const Duration(milliseconds: 200));
       expect(session.interactive, isTrue);
+      final RenderRepaintBoundary captionPaint = tester.renderObject(
+        find.ancestor(of: backdrop, matching: find.byType(RepaintBoundary))
+            .first,
+      );
+      expect(captionPaint.size.height, tokens.windowCaptionHeight);
+      final int priorPaints = captionPaint.debugAsymmetricPaintCount;
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(captionPaint.debugAsymmetricPaintCount, greaterThan(priorPaints));
       expect(tester.takeException(), isNull);
     },
     variant: const TargetPlatformVariant(
