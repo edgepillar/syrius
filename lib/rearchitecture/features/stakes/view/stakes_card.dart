@@ -162,6 +162,13 @@ class _Populated extends StatelessWidget {
   final List<StakeEntry> stakes;
   final VoidCallback onRefresh;
 
+  // The reference places Duration closer to Amount while keeping the
+  // following columns aligned. Use the same proportions in the head and rows.
+  static const int _amountFlex = 19;
+  static const int _durationFlex = 21;
+  static const int _valueFlex = 20;
+  static const int _actionFlex = 2 * _valueFlex;
+
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
@@ -185,15 +192,22 @@ class _Populated extends StatelessWidget {
           .blank,
         ],
         heads: <InfiniteScrollTableColumnType, InfiniteScrollTableHead>{
-          .date: InfiniteScrollTableHead(name: context.l10n.stakingStarted),
+          .amount: const InfiniteScrollTableHead(flex: _amountFlex),
+          .duration: const InfiniteScrollTableHead(flex: _durationFlex),
+          .date: InfiniteScrollTableHead(
+            flex: _valueFlex,
+            name: context.l10n.stakingStarted,
+          ),
           .expiration: InfiniteScrollTableHead(
+            flex: _valueFlex,
             name: context.l10n.stakingUnlocks,
             alignment: MainAxisAlignment.start,
           ),
-          .blank: const InfiniteScrollTableHead(flex: 2),
+          .blank: const InfiniteScrollTableHead(flex: _actionFlex),
         },
         generateRowCells: (StakeEntry stakeEntry) => <Widget>[
           InfiniteScrollTableCell(
+            flex: _amountFlex,
             // Aligned, so the flash is as wide as the amount and not as
             // the column. The row is keyed by the stake, so only a change
             // to this stake's amount flashes.
@@ -216,6 +230,7 @@ class _Populated extends StatelessWidget {
             ),
           ),
           InfiniteScrollTableCell.withText(
+            flex: _durationFlex,
             content: stakeDurationText(
               stakeEntry.expirationTimestamp - stakeEntry.startTimestamp,
               context.l10n,
@@ -223,6 +238,7 @@ class _Populated extends StatelessWidget {
             textStyle: tokens.bodyText,
           ),
           InfiniteScrollTableCell.withText(
+            flex: _valueFlex,
             content: _startedText(stakeEntry, context),
             tooltipMessage: FormatUtils.formatDateTimeSeconds(
               stakeEntry.startTimestamp * Duration.millisecondsPerSecond,
@@ -231,6 +247,7 @@ class _Populated extends StatelessWidget {
             textStyle: tokens.bodyText.copyWith(color: tokens.dim),
           ),
           InfiniteScrollTableCell(
+            flex: _valueFlex,
             child: Align(
               alignment: AlignmentDirectional.centerStart,
               child: Tooltip(
@@ -244,7 +261,7 @@ class _Populated extends StatelessWidget {
             ),
           ),
           InfiniteScrollTableCell(
-            flex: 2,
+            flex: _actionFlex,
             child: Align(
               alignment: AlignmentDirectional.centerEnd,
               child: _Action(stakeEntry: stakeEntry, onRefresh: onRefresh),

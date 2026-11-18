@@ -502,6 +502,21 @@ void main() {
     await tester.pump();
     expect(find.text(r'$930.00'), findsOneWidget);
     expect(find.text(r'$0.5704'), findsOneWidget);
+    final Finder table = find.byType(StakesCard);
+    double columnStart(String text) => tester
+        .getTopLeft(
+          find.descendant(of: table, matching: find.text(text)).first,
+        )
+        .dx;
+
+    final double amountStart = columnStart('AMOUNT');
+    final double durationStart = columnStart('DURATION');
+    final double startedStart = columnStart('STARTED');
+    expect(
+      (durationStart - amountStart) / (startedStart - amountStart),
+      closeTo(0.475, 0.001),
+    );
+    expect(columnStart('6 months'), closeTo(durationStart, 0.01));
     final Rect week = tester.getRect(
       find.byKey(const Key('staking_week_value')),
     );
