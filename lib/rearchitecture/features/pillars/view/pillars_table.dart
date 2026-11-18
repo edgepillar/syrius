@@ -297,83 +297,74 @@ class _PillarDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    final EdgeInsetsDirectional gap = EdgeInsetsDirectional.only(
+      end: tokens.pillarDetailColumnGap,
+    );
+    final bool uppercase = usesLatinScript(context);
+    final TextStyle labelStyle = ledgerLabelStyle(context);
+    Widget label(String text) => Padding(
+      padding: gap,
+      child: Text(
+        uppercase ? text.toUpperCase() : text,
+        style: labelStyle,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+
+    // Each label column follows its longest label and leaves room for values
+    // when a locale or larger text makes that label wider.
+    const TableColumnWidth labelWidth = MinColumnWidth(
+      IntrinsicColumnWidth(),
+      FractionColumnWidth(0.2),
+    );
     return Padding(
       key: ValueKey<String>('pillar_${item.name}_detail'),
-      padding: tokens.pillarCellPadding.add(
-        EdgeInsetsDirectional.only(start: tokens.pillarDetailIndent),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                _DetailField(
-                  label: context.l10n.producerAddress,
-                  value: _DetailAddress(address: item.producerAddress),
+      padding: tokens.pillarDetailPadding,
+      child: Table(
+        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+        columnWidths: const <int, TableColumnWidth>{
+          0: labelWidth,
+          2: labelWidth,
+        },
+        children: <TableRow>[
+          TableRow(
+            children: <Widget>[
+              label(context.l10n.pillarOwnerProducer),
+              Padding(
+                padding: gap,
+                child: _DetailAddress(address: item.producerAddress),
+              ),
+              label(context.l10n.pillarsMomentums),
+              _buildData(
+                context,
+                context.l10n.pillarsMomentumsValue(
+                  _groupedInteger(item.producedMomentums),
+                  _groupedInteger(item.expectedMomentums),
                 ),
-                SizedBox(height: tokens.fieldLabelGap),
-                _DetailField(
-                  label: context.l10n.pillarsReward,
-                  value: _DetailAddress(address: item.withdrawAddress),
-                ),
-              ],
+              ),
+            ],
+          ),
+          TableRow(
+            children: List<Widget>.filled(
+              4,
+              SizedBox(height: tokens.fieldLabelGap),
             ),
           ),
-          SizedBox(width: tokens.pillarColumnGap),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                _DetailField(
-                  label: context.l10n.pillarsMomentums,
-                  value: _buildData(
-                    context,
-                    context.l10n.pillarsMomentumsValue(
-                      _groupedInteger(item.producedMomentums),
-                      _groupedInteger(item.expectedMomentums),
-                    ),
-                  ),
-                ),
-                SizedBox(height: tokens.fieldLabelGap),
-                _DetailField(
-                  label: context.l10n.pillarsRegistered,
-                  // PillarInfo has no registration timestamp or block hash.
-                  // A revoke timestamp cannot stand in for either fact.
-                  value: _buildData(context, context.l10n.pillarsUnavailable),
-                ),
-              ],
-            ),
+          TableRow(
+            children: <Widget>[
+              label(context.l10n.pillarsReward),
+              Padding(
+                padding: gap,
+                child: _DetailAddress(address: item.withdrawAddress),
+              ),
+              label(context.l10n.pillarsRegistered),
+              // PillarInfo has no registration timestamp or block hash.
+              _buildData(context, context.l10n.pillarsUnavailable),
+            ],
           ),
         ],
       ),
-    );
-  }
-}
-
-class _DetailField extends StatelessWidget {
-  const _DetailField({required this.label, required this.value});
-
-  final String label;
-  final Widget value;
-
-  @override
-  Widget build(BuildContext context) {
-    final AppTokens tokens = AppTokens.of(context);
-    return Row(
-      children: <Widget>[
-        Flexible(
-          child: Text(
-            usesLatinScript(context) ? label.toUpperCase() : label,
-            style: ledgerLabelStyle(context),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        SizedBox(width: tokens.pillarColumnGap),
-        Expanded(flex: 3, child: value),
-      ],
     );
   }
 }
@@ -399,7 +390,7 @@ class _DetailAddress extends StatelessWidget {
             data: IconButtonThemeData(
               style: ButtonStyle(
                 minimumSize: WidgetStatePropertyAll<Size>(
-                  Size.square(tokens.smallButtonHeight),
+                  Size(tokens.smallButtonHeight, tokens.pillarDetailCopyHeight),
                 ),
                 padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
                   EdgeInsets.zero,
@@ -409,7 +400,7 @@ class _DetailAddress extends StatelessWidget {
             ),
             child: CopyToClipboardButton(
               address.toString(),
-              iconSize: tokens.settingsIconSize,
+              iconSize: tokens.inlineGlyphSize,
             ),
           ),
         ],

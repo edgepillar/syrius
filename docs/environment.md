@@ -46,6 +46,12 @@ and distinct-frame durations. The redesign reaches 438.833 ms raster during
 handoff and 268.658 ms after arrival. The maximum total spans are 514.139 ms
 for the redesign and 187.493 ms for P06. V02 remains open.
 
+The [retained launch frame timing reader](https://github.com/edgepillar/syrius/actions/runs/44384943526/job/135086833304)
+verified 83 redesigned and 1,376 P06 frames at `d5b101e6` with five normal
+actor exits. The original windows have 58 and 1,357 frame-number gaps.
+The 16 ms comparison fails on raster and distinct-frame durations. The
+longest total spans are 424.904 ms for the redesign and 257.034 ms for P06.
+
 The private 28f9c121 browser report shows 94 reference, actual and difference
 triplets. All 94 difference PNGs decoded at 1280 by 780 with the standard
 maximum-channel RGBA palette. On-demand encoding reused the verified archives

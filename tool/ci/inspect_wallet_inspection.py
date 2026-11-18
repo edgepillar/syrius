@@ -24,6 +24,8 @@ MAX_WORKFLOW_SOURCE = 128 * 1024
 MAX_WORKFLOW_RESPONSE = 256 * 1024
 VERSIONED_INPUTS = frozenset((
     'harness/screens/token-new.txt', 'tool/ci/run_harness_tour_tests.py',
+    'lib/widgets/modular_widgets/help_widgets/originals_tiles.dart',
+    'lib/widgets/reusable_widgets/launch_film.dart',
 ))
 JOB = 'Windows readonly inspection with owned chain-321'
 PREFLIGHT = ('Test all isolated controllers before SDK allocation',
@@ -453,7 +455,7 @@ HOME_GOTO_CONTACT_SOURCES = (
     'lib/rearchitecture/utils/widgets/go_to_palette.dart')
 
 
-def ready_artwork_sources(repo, value, tree):
+def ready_artwork_sources(repo, value, tree, *, read_versioned_blob=None):
     """Bind new Ready renderers while retaining earlier producer requirements."""
     need(type(value) is dict and value.get('sha') == tree
          and value.get('truncated') is False
@@ -466,9 +468,10 @@ def ready_artwork_sources(repo, value, tree):
         'lib/widgets/modular_widgets/help_widgets/originals_tiles.dart',
         'lib/widgets/reusable_widgets/launch_film.dart',
     )
-    return source_files(repo, value, tree, files=READY_ARTWORK_SOURCES + tuple(
-        path for path in originals
-        if any(item.get('path') == path for item in value['tree'])))
+    return source_files(repo, value, tree,
+        read_versioned_blob=read_versioned_blob,
+        files=READY_ARTWORK_SOURCES + tuple(path for path in originals
+            if any(item.get('path') == path for item in value['tree'])))
 
 
 def git_blob(raw):
@@ -598,7 +601,8 @@ def main(parent=None):
 
     source_digests = source_files(repo, producer_tree, tree,
         read_workflow_blob=read_blob, read_versioned_blob=read_blob)
-    source_digests.update(ready_artwork_sources(repo, producer_tree, tree))
+    source_digests.update(ready_artwork_sources(repo, producer_tree, tree,
+        read_versioned_blob=read_blob))
     has_catalog_contact = any(item.get('path') == CATALOG_CONTACT_SOURCE
                               for item in producer_tree['tree'])
     jobs = client.json('/actions/runs/' + text + '/attempts/1/jobs?per_page=50')

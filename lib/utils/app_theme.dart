@@ -2013,10 +2013,17 @@ class AppTokens extends ThemeExtension<AppTokens> {
   EdgeInsetsDirectional get pillarHeadingPadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 8);
 
-  /// Details align beyond the disclosure arrow.
-  double get pillarDetailIndent => 26;
+  /// Expanded details follow the disclosure inset and the subrow padding.
+  EdgeInsetsDirectional get pillarDetailPadding =>
+      const EdgeInsetsDirectional.fromSTEB(42, 2, 16, 17);
 
-  /// The detail grid separates independent facts.
+  /// The horizontal gap between a Pillar detail label and its value.
+  double get pillarDetailColumnGap => 18;
+
+  /// A copy control fits the height of the detail text.
+  double get pillarDetailCopyHeight => 20;
+
+  /// The main table separates independent facts.
   double get pillarColumnGap => 20;
 
   /// Delegation actions fit within the compact table.
