@@ -132,6 +132,24 @@ def frame_matches(value, screen):
             and tuple(value[field] for field in fields) == expected[screen])
 
 
+def closed_lock_timeout(report):
+    """Admit later batch captures after a known timeout and normal actor closure."""
+    attempts = report['attempts']
+    roles = [(theme, role) for theme in launch.THEMES for role in ('prepare', 'capture')]
+    if (report['success'] is not False or report['error_codes'] != ['STARTUP_OBSERVATION_REFUSED']
+            or [(row['theme'], row['role']) for row in attempts] != roles
+            or not all(launch.attempt_passed(row) for row in attempts[:-1])):
+        return False
+    last = attempts[-1]
+    return (last['phase'] in ('normal', 'picker', 'refusal')
+            and last['action_complete'] is False
+            and last['error_codes'] == ['STARTUP_DEADLINE']
+            and all(last['checks'][name] is True for name in launch.ATTEMPT_CHECKS)
+            and type(last['exit_code']) is int and last['exit_code'] == 0
+            and last['exit_observed'] is True and last['forced_kill'] is False
+            and last['output_complete'] is True and last['output_overflow'] is False)
+
+
 class LockProcess(launch.LaunchProcess):
     profile_screen = SCREEN
 
@@ -408,6 +426,7 @@ def run_seam_probes(repo, parent, binaries, report):
 def main():
     mode = os.environ.get('SYRIUS_WINDOWS_LOCK_SEAMS', 'false')
     seams = mode == 'true'
+    batch = os.environ.get('SYRIUS_WINDOWS_LOCK_BATCH') == 'true'
     report = dict(schema=1, scope=SEAM_SCOPE if seams else SCOPE,
                   success=False, attempts=[], captures=[], source_stable=False, error_codes=[])
     if seams:
@@ -420,7 +439,8 @@ def main():
              and parent.get('GITHUB_RUN_ATTEMPT') == '1'
              and parent.get('SYRIUS_WINDOWS_STARTUP_PROBE') == 'true'
              and parent.get('SYRIUS_WINDOWS_LOCK_CATALOG') == 'true', 'ENVIRONMENT_REFUSED')
-        if seams:
+        need(not batch or not seams, 'ENVIRONMENT_REFUSED')
+        if seams or batch:
             need(parent.get('GITHUB_REPOSITORY') == 'edgepillar/syrius'
                  and parent.get('GITHUB_REF') == 'refs/heads/redesign', 'ENVIRONMENT_REFUSED')
         repo = Path(parent['GITHUB_WORKSPACE'])
@@ -484,6 +504,19 @@ def main():
         except (Exception, KeyboardInterrupt):
             report['success'] = False
             report['error_codes'].append('ARTIFACT_FAILED')
+        if batch and closed_lock_timeout(report):
+            try:
+                bounded.verify_source(repo, head, parent)
+                need(entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
+                need(tuple(bounded.binary_hash(repo, path) for path in
+                           (startup.BINARY, startup.PAYLOAD)) == binaries, 'BINARY_REFUSED')
+                bounded.check_no_existing(repo, parent)
+                step_output = Path(parent['GITHUB_OUTPUT'])
+                bounded.plain(step_output)
+                with step_output.open('a', encoding='ascii') as stream:
+                    stream.write('closed_after_timeout=true\n')
+            except Exception:
+                print('::notice title=Startup batch continuation held::Closure recheck unavailable')
     print('::notice title=Original lock catalog::' + json.dumps(report, separators=(',', ':')))
     return 0 if report['success'] else 1
 

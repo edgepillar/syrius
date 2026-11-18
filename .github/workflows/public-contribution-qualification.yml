@@ -275,10 +275,12 @@ jobs:
           path: .harness/ci-launch-timing-pair/manifest.json
 
       - name: Capture the original lock states in both themes
+        id: startup_lock
         if: (inputs.readonly_catalog_family == 'lock-catalog' || inputs.readonly_catalog_family == 'startup-catalog')
         timeout-minutes: 7
         env:
           SYRIUS_WINDOWS_LOCK_CATALOG: 'true'
+          SYRIUS_WINDOWS_LOCK_BATCH: ${{ inputs.readonly_catalog_family == 'startup-catalog' }}
         run: python -B -m tool.ci.windows_lock_catalog
 
       - name: Retain the original lock catalog manifest and PNGs
@@ -317,13 +319,20 @@ jobs:
           path: .harness/ci-lock-seams/manifest.json
 
       - name: Capture the synthetic seed quiz in both themes
-        if: (inputs.readonly_catalog_family == 'quiz-catalog' || inputs.readonly_catalog_family == 'startup-catalog')
+        id: startup_quiz
+        if: >-
+          ${{ !cancelled() &&
+              ((success() && inputs.readonly_catalog_family == 'quiz-catalog') ||
+               (inputs.readonly_catalog_family == 'startup-catalog' &&
+                (success() || (steps.startup_lock.outcome == 'failure' &&
+                 steps.startup_lock.outputs.closed_after_timeout == 'true')))) }}
         timeout-minutes: 4
         env:
           SYRIUS_WINDOWS_QUIZ_CATALOG: 'true'
         run: python -B -m tool.ci.windows_quiz_catalog
 
       - name: Retain the synthetic seed quiz manifest and PNGs
+        id: retain_startup_quiz
         if: always() && (inputs.readonly_catalog_family == 'quiz-catalog' || inputs.readonly_catalog_family == 'startup-catalog') && hashFiles('.harness/ci-quiz-catalog/manifest.json') != ''
         uses: actions/upload-artifact@v7
         with:
@@ -338,7 +347,14 @@ jobs:
 
       # Keep the other startup catalogs before the handoff's short frame window.
       - name: Capture the original launch handoff in both themes
-        if: (inputs.readonly_catalog_family == 'launch-settle' || inputs.readonly_catalog_family == 'startup-catalog')
+        if: >-
+          ${{ !cancelled() &&
+              ((success() && inputs.readonly_catalog_family == 'launch-settle') ||
+               (inputs.readonly_catalog_family == 'startup-catalog' &&
+                steps.startup_quiz.outcome == 'success' &&
+                steps.retain_startup_quiz.outcome == 'success' &&
+                (success() || (steps.startup_lock.outcome == 'failure' &&
+                 steps.startup_lock.outputs.closed_after_timeout == 'true')))) }}
         timeout-minutes: 7
         env:
           SYRIUS_WINDOWS_LAUNCH_CATALOG: 'launch-settle'

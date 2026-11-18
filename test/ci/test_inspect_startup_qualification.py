@@ -453,19 +453,19 @@ class StartupInspectionTests(unittest.TestCase):
             workflow.index('- name: ' + captures[i])), list(capture_order))
 
         class Batch(Client):
-            def __init__(self, *, partial=False, reordered=False, extra=False):
+            def __init__(self, *, failed=None, reordered=False, extra=False):
                 super().__init__()
                 self.job.update(name=inspect.BATCH_JOB_NAME, labels=['windows-latest'],
-                                conclusion='failure' if partial else 'success')
+                                conclusion='failure' if failed is not None else 'success')
                 steps = [('Build the ordinary Release harness target', 'success')]
                 self.artifacts = []
                 order = capture_order if reordered else range(len(captures))
                 for index in order:
                     capture, upload = captures[index], uploads[index]
                     outcome = 'success'
-                    if partial and index == 1:
+                    if index == failed:
                         outcome = 'failure'
-                    elif partial and not reordered and index != 0:
+                    elif failed is not None and not reordered and index > failed:
                         outcome = 'skipped'
                     retained = 'skipped' if outcome == 'skipped' else 'success'
                     steps.extend(((capture, outcome), (upload, retained)))
@@ -485,22 +485,23 @@ class StartupInspectionTests(unittest.TestCase):
                     value['head_branch'] = 'redesign'
                 return value
 
-        for partial, reordered, count, verified in (
-                (False, True, 4, 12), (True, False, 2, 2), (True, True, 4, 10)):
-            with self.subTest(partial=partial, reordered=reordered), mock.patch.object(
+        for failed, reordered, counts in (
+                (None, True, (2, 2, 6, 2)), (1, False, (2, 0)),
+                (1, True, (2, 0, 6, 2)), (2, True, (2, 2, 3, 2))):
+            with self.subTest(failed=failed, reordered=reordered), mock.patch.object(
                     inspect, '_inspect_launch_artifact', side_effect=[
-                        dict(scope='catalog', artifact_reported_success=not partial or i != 1,
-                             verified_png_count=0 if partial and i == 1 else (2, 2, 6, 2)[i])
-                        for i in range(count)]) as reader:
-                status, output = self.read_windows(Batch(partial=partial, reordered=reordered))
+                        dict(scope='catalog', artifact_reported_success=i != failed,
+                             verified_png_count=size)
+                        for i, size in enumerate(counts)]) as reader:
+                status, output = self.read_windows(Batch(failed=failed, reordered=reordered))
             self.assertEqual(status, 0)
             batch = json.loads(output.splitlines()[-1].split('::', 2)[-1])
             self.assertEqual(batch['scope'], 'retained_windows_startup_catalog_batch')
-            self.assertEqual(batch['complete'], not partial)
-            self.assertEqual(batch['verified_catalogs'], count)
-            self.assertEqual(batch['verified_png_count'], verified)
+            self.assertEqual(batch['complete'], failed is None)
+            self.assertEqual(batch['verified_catalogs'], len(counts))
+            self.assertEqual(batch['verified_png_count'], sum(counts))
             self.assertEqual([call.kwargs['item']['id'] for call in reader.call_args_list],
-                             list(range(1, count + 1)))
+                             list(range(1, len(counts) + 1)))
             self.assertTrue(all(call.kwargs['shared_binaries'] is reader.call_args.kwargs['shared_binaries']
                                 for call in reader.call_args_list))
             for call, option in zip(reader.call_args_list[1:], ('settle', 'lock', 'quiz')):
@@ -1053,6 +1054,28 @@ class StartupInspectionTests(unittest.TestCase):
             probe._quit()
             exchange.assert_not_called()
             quit_original.assert_called_once_with()
+
+    def test_lock_batch_continues_only_after_a_timeout_and_normal_actor_exits(self):
+        catalog, launch = inspect.lock_catalog, inspect.launch
+        actors = [dict(theme=theme, role=role, action_complete=True,
+                       checks=dict.fromkeys(launch.ATTEMPT_CHECKS, True),
+                       exit_code=0, exit_observed=True, forced_kill=False,
+                       output_complete=True, output_overflow=False, error_codes=[])
+                  for theme in launch.THEMES for role in ('prepare', 'capture')]
+        actors[-1].update(phase='normal', action_complete=False,
+                          error_codes=['STARTUP_DEADLINE'])
+        report = dict(success=False, attempts=actors,
+                      error_codes=['STARTUP_OBSERVATION_REFUSED'])
+        self.assertTrue(catalog.closed_lock_timeout(report))
+        for change in (dict(exit_code=1), dict(exit_code=False), dict(exit_observed=False),
+                       dict(forced_kill=True), dict(output_complete=False), dict(output_overflow=True),
+                       dict(checks=dict(actors[-1]['checks'], close_ack=False)),
+                       dict(error_codes=['COMMAND_FAILED']), dict(phase='ready')):
+            with self.subTest(change=change):
+                modified = [*actors[:-1], dict(actors[-1], **change)]
+                self.assertFalse(catalog.closed_lock_timeout(dict(report, attempts=modified)))
+        self.assertFalse(catalog.closed_lock_timeout(dict(report, attempts=actors[:3])))
+        self.assertFalse(catalog.closed_lock_timeout(dict(report, error_codes=['ARTIFACT_FAILED'])))
 
     def test_lock_catalog_arms_one_still_and_polls_within_one_deadline(self):
         catalog = inspect.lock_catalog
