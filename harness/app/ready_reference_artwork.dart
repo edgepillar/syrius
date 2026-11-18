@@ -2,6 +2,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_ready_binding.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/staking_tab_child.dart'
+    show StakingPage;
 
 import 'capture_frame.dart';
 
@@ -43,12 +45,16 @@ class ReadyReferenceArtwork {
   final WalletReadyBinding? _binding;
   final ModalRoute<dynamic>? _route;
   final bool Function() _admitted;
-  bool _held = false;
-  bool _busy = false;
-  CaptureFrameGate? _originalFrames;
+  late final _ReferenceArtworkCapture _capture = _ReferenceArtworkCapture(
+    current: _current,
+    sources: _sources,
+    requiresReadiness: (ReferenceArtworkSource source) =>
+        source.referenceArtworkKind == ReferenceArtworkKind.walletReadyMap,
+    refusal: ReadyReferenceArtworkRefused.new,
+  );
 
   /// A later positive frame or replacement cannot heal an original refusal.
-  bool get held => _held;
+  bool get held => _capture.held;
 
   bool _current() {
     if (!_owner.mounted || !_admitted()) return false;
@@ -62,16 +68,11 @@ class ReadyReferenceArtwork {
         (lifecycle == null || lifecycle == AppLifecycleState.resumed);
   }
 
-  Never _refuse() {
-    _held = true;
-    throw const ReadyReferenceArtworkRefused();
-  }
-
   List<ReferenceArtworkSource> _sources() {
     final List<ReferenceArtworkSource> sources = <ReferenceArtworkSource>[];
     int visited = 0;
     void visit(Element element) {
-      if (++visited > 16384) _refuse();
+      if (++visited > 16384) throw const ReadyReferenceArtworkRefused();
       if (element is StatefulElement &&
           element.state is ReferenceArtworkSource) {
         sources.add(element.state as ReferenceArtworkSource);
@@ -85,9 +86,126 @@ class ReadyReferenceArtwork {
         !sources.every((ReferenceArtworkSource value) =>
           value.referenceArtworkKind == ReferenceArtworkKind.entryField ||
           value.referenceArtworkKind == ReferenceArtworkKind.walletReadyMap)) {
-      _refuse();
+      throw const ReadyReferenceArtworkRefused();
     }
     return sources;
+  }
+
+  /// Both sample and restoration use the same existing native frame gate.
+  Future<T> capture<T>({
+    required CaptureFrameGate frames,
+    required Future<T> Function() readback,
+  }) => _capture.capture<T>(frames: frames, readback: readback);
+}
+
+/// A failed Staking artwork scope has no valid original frame.
+class StakingReferenceArtworkRefused implements Exception {
+  /// Refuses without including private fields or original errors.
+  const StakingReferenceArtworkRefused();
+}
+
+/// Samples the two original no-data players on the visible Staking page.
+class StakingReferenceArtwork {
+  /// Binds a single mounted Staking page from the original widget tree.
+  factory StakingReferenceArtwork({
+    required Element? root,
+    required bool Function() admitted,
+  }) {
+    final List<State<StakingPage>> owners = <State<StakingPage>>[];
+    int visited = 0;
+    void visit(Element element) {
+      if (++visited > 16384) throw const StakingReferenceArtworkRefused();
+      if (element is StatefulElement &&
+          element.state is State<StakingPage> &&
+          ModalRoute.of(element)?.isCurrent == true &&
+          TickerMode.valuesOf(element).enabled) {
+        owners.add(element.state as State<StakingPage>);
+      }
+      element.visitChildren(visit);
+    }
+    if (root != null) visit(root);
+    if (owners.length != 1) throw const StakingReferenceArtworkRefused();
+    return StakingReferenceArtwork._(owners.single, admitted);
+  }
+
+  StakingReferenceArtwork._(this._owner, this._admitted)
+      : _route = ModalRoute.of(_owner.context);
+
+  final State<StakingPage> _owner;
+  final bool Function() _admitted;
+  final ModalRoute<dynamic>? _route;
+  late final _ReferenceArtworkCapture _capture = _ReferenceArtworkCapture(
+    current: _current,
+    sources: _sources,
+    requiresReadiness: (_) => true,
+    refusal: StakingReferenceArtworkRefused.new,
+  );
+
+  bool _current() {
+    if (!_owner.mounted || !_admitted() || _route?.isCurrent != true) {
+      return false;
+    }
+    final AppLifecycleState? lifecycle = WidgetsBinding.instance.lifecycleState;
+    return identical(ModalRoute.of(_owner.context), _route) &&
+        TickerMode.valuesOf(_owner.context).enabled &&
+        (lifecycle == null || lifecycle == AppLifecycleState.resumed);
+  }
+
+  List<ReferenceArtworkSource> _sources() {
+    final List<ReferenceArtworkSource> sources = <ReferenceArtworkSource>[];
+    int footerCount = 0;
+    int visited = 0;
+    void visit(Element element) {
+      if (++visited > 16384) throw const StakingReferenceArtworkRefused();
+      if (element.widget.key == const Key('staking_empty_rewards')) {
+        footerCount++;
+      }
+      if (element is StatefulElement &&
+          element.state is ReferenceArtworkSource) {
+        final ReferenceArtworkSource source =
+            element.state as ReferenceArtworkSource;
+        if (source.referenceArtworkKind == ReferenceArtworkKind.noData) {
+          sources.add(source);
+        }
+      }
+      element.visitChildren(visit);
+    }
+    _owner.context.visitChildElements(visit);
+    if (footerCount != 1 || sources.length != 2) {
+      throw const StakingReferenceArtworkRefused();
+    }
+    return sources;
+  }
+
+  /// Reads the sampled frame and then restores both original bindings.
+  Future<T> capture<T>({
+    required CaptureFrameGate frames,
+    required Future<T> Function() readback,
+  }) => _capture.capture<T>(frames: frames, readback: readback);
+}
+
+/// Owns a complete sample and restoration on the same capture gate.
+class _ReferenceArtworkCapture {
+  _ReferenceArtworkCapture({
+    required this._current,
+    required this._sources,
+    required this._requiresReadiness,
+    required this._refusal,
+  });
+
+  final bool Function() _current;
+  final List<ReferenceArtworkSource> Function() _sources;
+  final bool Function(ReferenceArtworkSource) _requiresReadiness;
+  final Exception Function() _refusal;
+  bool _held = false;
+  bool _busy = false;
+  CaptureFrameGate? _originalFrames;
+
+  bool get held => _held;
+
+  Never _refuse() {
+    _held = true;
+    throw _refusal();
   }
 
   /// Both sample and restoration use the same existing native frame gate.
@@ -122,8 +240,7 @@ class ReadyReferenceArtwork {
       try {
         for (int index = 0; index < sources.length; index++) {
           final Future<Object?>? original = readiness[index];
-          if (sources[index].referenceArtworkKind ==
-              ReferenceArtworkKind.walletReadyMap && original == null) {
+          if (_requiresReadiness(sources[index]) && original == null) {
             _refuse();
           }
           if (original != null) {
@@ -158,7 +275,7 @@ class ReadyReferenceArtwork {
         _refuse();
       }
       void requireObserved() {
-        if (!_current() || samples.length != 2 ||
+        if (!_current() || samples.length != sources.length ||
             !samples.every((ReferenceArtworkFrame sample) => sample.observed)) {
           _refuse();
         }

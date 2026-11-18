@@ -15,6 +15,14 @@ open under V01, including fixtures and matched animation frames. The
 [paired Windows measurement](https://github.com/edgepillar/syrius/actions/runs/44301199443/job/134791077419)
 preserves the failed 16 ms gate for page change and disclosure under V02.
 
+The [independent cold lock reader](https://github.com/edgepillar/syrius/actions/runs/44331884010)
+verified 87 redesigned and 1,935 P06 frame records at `3b9dc469` with
+five normal actor exits. Both windows missed frame numbers, and the unchanged
+16 ms comparison failed. The maximum observed handoff raster duration was
+369.943 ms. The [launch handoff reader](https://github.com/edgepillar/syrius/actions/runs/44331891796)
+verified two PNGs at handoff progress 0.558 and 0.662. The reference checkpoint
+is 0.4. V01 and V02 remain open.
+
 The private 28f9c121 browser report shows 94 reference, actual and difference
 triplets. All 94 difference PNGs decoded at 1280 by 780 with the standard
 maximum-channel RGBA palette. On-demand encoding reused the verified archives

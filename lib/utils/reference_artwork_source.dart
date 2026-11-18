@@ -1,4 +1,4 @@
-/// Original moving surfaces used by the entry references.
+/// Original moving surfaces sampled for reference captures.
 enum ReferenceArtworkKind {
   /// The original welcome composition at the reference's selected frame.
   welcomeGlobe,
@@ -8,6 +8,9 @@ enum ReferenceArtworkKind {
 
   /// The original Ready map at the reference's selected frame.
   walletReadyMap,
+
+  /// The native no-data mark at the reference's selected frame.
+  noData,
 }
 
 /// Implemented by the actual private State; it creates no alternate surface.
@@ -45,7 +48,7 @@ final class ReferenceArtworkFrame {
   /// The original composition entry or shader clock.
   final Object generation;
 
-  /// Only an entry artwork kind, with no application-operation authority.
+  /// The artwork kind, with no application-operation authority.
   final ReferenceArtworkKind kind;
 
   /// Finite artwork position only; no owner, input or transport is serialized.

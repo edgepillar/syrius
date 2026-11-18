@@ -528,7 +528,7 @@ void main() {
     expect(source.captureReferenceArtwork(), isNull);
   }, variant: _captionWindows);
 
-  testWidgets('entry Lottie sampling preserves its original clock and Future', (
+  testWidgets('Lottie sampling preserves the original playback clock', (
     WidgetTester tester,
   ) async {
     prepare(tester);
@@ -582,6 +582,32 @@ void main() {
       expect(completed, isTrue);
       expect(canceled, isFalse);
     }
+
+    await tester.pumpWidget(MaterialApp(
+      theme: AppTheme.darkTheme,
+      home: const AppLottie(AppLottieAsset.noData, size: 64),
+    ));
+    await _loaded(tester);
+    final ReferenceArtworkSource original = _source(tester);
+    final Lottie before = tester.widget<Lottie>(find.byType(Lottie));
+    final AnimationController clock = before.controller! as AnimationController;
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 21));
+    expect(clock.status, AnimationStatus.completed);
+    expect(clock.isAnimating, isFalse);
+    final ReferenceArtworkFrame frame = original.captureReferenceArtwork()!;
+    await tester.pump();
+    expect(frame.observed, isTrue);
+    expect(frame.observation, <String, Object>{
+      'kind': 'no_data', 'frame': 120, 'frame_count': 600,
+    });
+    expect(tester.widget<Lottie>(find.byType(Lottie)).controller!.value,
+      closeTo(120 / 599.99, 0.0000001));
+    expect(frame.restore(), isTrue);
+    await tester.pump();
+    expect(frame.restored, isTrue);
+    expect(tester.widget<Lottie>(find.byType(Lottie)).controller, same(clock));
+    expect(clock.status, AnimationStatus.completed);
   });
 
   testWidgets('asset replacement permanently retires an earlier sample', (

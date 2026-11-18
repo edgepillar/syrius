@@ -562,6 +562,7 @@ class HarnessAgent {
   ReadonlyNativeCommands? _readonlyNative;
   ReadyReferenceArtwork? _readyArtwork;
   bool _readyArtworkRefused = false;
+  bool _stakingArtworkRefused = false;
   bool _readonlySendSyncReserved = false;
   final Set<String> _activityMessageSeamThemes = <String>{};
   bool _activityMessageSeamHeld = false;
@@ -5602,7 +5603,8 @@ class HarnessAgent {
   Future<Map<String, Object?>> _shot(Map<String, dynamic> c) async {
     _requireCaptureFrameIdle();
     _lockShotPhase('request');
-    if (c['expect'] != null) {
+    final Object? assertion = c['expect'];
+    if (assertion != null) {
       try {
         if (_readonlyWalletReady) {
           try {
@@ -5624,6 +5626,28 @@ class HarnessAgent {
           } on ReadyReferenceArtworkRefused {
             _readyArtworkRefused = true;
             throw HarnessError('ready artwork frame unavailable');
+          }
+        }
+        final ReadonlyNativeCommands? original = _readonlyNative;
+        if (original != null &&
+            Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'] == 'earn' &&
+            assertion is Map<Object?, Object?> &&
+            assertion['key'] == 'staking_empty_rewards') {
+          try {
+            if (_stakingArtworkRefused) {
+              throw const StakingReferenceArtworkRefused();
+            }
+            final StakingReferenceArtwork artwork = StakingReferenceArtwork(
+              root: WidgetsBinding.instance.rootElement,
+              admitted: () => booted && identical(_readonlyNative, original),
+            );
+            return await artwork.capture<Map<String, Object?>>(
+              frames: _captureFrames,
+              readback: () => _readShot(c),
+            );
+          } on StakingReferenceArtworkRefused {
+            _stakingArtworkRefused = true;
+            throw HarnessError('staking artwork frame unavailable');
           }
         }
         final Map<String, Object?> result =
