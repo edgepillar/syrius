@@ -476,6 +476,10 @@ void main() {
       matching: find.byType(AmountText),
     );
     expect(tester.widget<AmountText>(week).raw, BigInt.zero);
+    expect(
+      find.descendant(of: week, matching: find.text('0 QSR')),
+      findsOneWidget,
+    );
     expect(find.byKey(const Key('staking_empty_rewards')), findsNothing);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
@@ -520,6 +524,8 @@ void main() {
     final Rect week = tester.getRect(
       find.byKey(const Key('staking_week_value')),
     );
+    expect(find.text('+ 41.2 QSR'), findsOneWidget);
+    expect(find.text('18.4 QSR'), findsOneWidget);
     final Rect collect = tester.getRect(
       find.byKey(const Key('staking_collect_button')),
     );
@@ -546,7 +552,7 @@ void main() {
       expect(find.text(r'$930.00'), findsNothing);
       expect(find.text(r'$0.5704'), findsNothing);
       expect(
-        find.semantics.byLabel(RegExp(r'1,500|18\.4|\$930')),
+        find.semantics.byLabel(RegExp(r'1,500|18\.4|41\.2|\$930')),
         findsNothing,
       );
     } finally {

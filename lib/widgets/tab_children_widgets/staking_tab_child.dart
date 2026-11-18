@@ -479,6 +479,7 @@ class _Strip extends StatelessWidget {
                   // Earned already, not to be had: quieter than the two
                   // amounts before it.
                   dim: true,
+                  showPositiveSign: true,
                 ),
               ),
           ],
@@ -556,6 +557,7 @@ class _StripAmount extends StatelessWidget {
     required this.symbol,
     this.ink,
     this.dim = false,
+    this.showPositiveSign = false,
     super.key,
   });
 
@@ -567,6 +569,9 @@ class _StripAmount extends StatelessWidget {
 
   /// Whether the amount is drawn in the theme's dim; a zero always is.
   final bool dim;
+
+  /// Whether a positive amount is presented as a gain.
+  final bool showPositiveSign;
 
   @override
   Widget build(BuildContext context) {
@@ -584,6 +589,7 @@ class _StripAmount extends StatelessWidget {
           ),
           symbol: symbol,
           symbolColor: quiet ? null : ink,
+          showPositiveSign: showPositiveSign,
         ),
       ),
     );

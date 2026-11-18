@@ -47,6 +47,7 @@ class AmountText extends StatelessWidget {
     required this.style,
     this.symbol,
     this.symbolColor,
+    this.showPositiveSign = false,
     super.key,
   });
 
@@ -65,6 +66,9 @@ class AmountText extends StatelessWidget {
   /// The symbol's colour; the token's own colour where it has one.
   final Color? symbolColor;
 
+  /// Prefixes positive changes with a plus sign.
+  final bool showPositiveSign;
+
   @override
   Widget build(BuildContext context) {
     // The owner's call (2026-10-13): balances show no trailing zeros, not
@@ -75,7 +79,7 @@ class AmountText extends StatelessWidget {
       TextSpan(
         style: mono,
         children: <InlineSpan>[
-          TextSpan(text: head),
+          TextSpan(text: showPositiveSign && raw.sign > 0 ? '+ $head' : head),
           if (symbol != null) ...<InlineSpan>[
             // CSS leaves this space in the amount's run, before the
             // smaller mono unit. Shrinking it makes adjacent data touch.
