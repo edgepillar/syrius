@@ -1,0 +1,9 @@
+# prerequisite: restored-lab-project
+# The original Voting row must be visible for the confirmed project.
+goto accelerator
+wait --key accelerator_filter_voting --ready --timeout 30
+tap --key accelerator_filter_voting
+wait --key @confirmed-project-row --timeout 30
+assert --key @confirmed-project-row
+# after-capture: goto dashboard
+# after-capture: wait --key home_hero --timeout 5

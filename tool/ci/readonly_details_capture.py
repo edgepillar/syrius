@@ -38,6 +38,7 @@ STAKE_DRAFT_FAMILY = 'stake-draft'
 STAKE_DRAFT_SCHEMA = 6
 PROJECT_DETAIL_FAMILY = 'project-detail'
 PROJECT_DETAIL_SCHEMA = 7
+PROJECT_CATALOG_SCHEMA = 16
 PILLAR_SPAWN_FAMILY = 'pillar-spawn'
 PILLAR_SPAWN_SCHEMA = 13
 PILLAR_DONE_FAMILY = 'pillar-done'
@@ -47,15 +48,16 @@ SWAP_SEEDED_SCHEMA = 15
 RESTORED_FAMILIES = {SEEDED_FAMILY: SEEDED_SCHEMA,
                      SEEDED_VISUAL_FAMILY: SEEDED_SCHEMA,
                      STAKE_DRAFT_FAMILY: STAKE_DRAFT_SCHEMA,
-                     PROJECT_DETAIL_FAMILY: PROJECT_DETAIL_SCHEMA,
+                     PROJECT_DETAIL_FAMILY: PROJECT_CATALOG_SCHEMA,
                      PILLAR_SPAWN_FAMILY: PILLAR_SPAWN_SCHEMA,
                      PILLAR_DONE_FAMILY: PILLAR_DONE_SCHEMA,
                      SWAP_SEEDED_FAMILY: SWAP_SEEDED_SCHEMA}
-RESTORED_SCHEMAS = frozenset(RESTORED_FAMILIES.values())
+RESTORED_SCHEMAS = frozenset((*RESTORED_FAMILIES.values(), PROJECT_DETAIL_SCHEMA))
 RESTORED_FAILURE_KINDS = {
     SEEDED_SCHEMA: 'restored_seeded_capture_failure',
     STAKE_DRAFT_SCHEMA: 'restored_stake_draft_capture_failure',
     PROJECT_DETAIL_SCHEMA: 'restored_project_detail_capture_failure',
+    PROJECT_CATALOG_SCHEMA: 'restored_project_catalog_capture_failure',
     PILLAR_SPAWN_SCHEMA: 'restored_pillar_spawn_capture_failure',
     PILLAR_DONE_SCHEMA: 'restored_pillar_done_capture_failure',
     SWAP_SEEDED_SCHEMA: 'restored_swap_seeded_capture_failure',
@@ -84,6 +86,9 @@ CATALOGS = {
                          ('14-staking-new-dark.png', '14-staking-new-light.png')),
     PROJECT_DETAIL_SCHEMA: (('az-project',),
                             ('29-az-project-dark.png', '29-az-project-light.png')),
+    PROJECT_CATALOG_SCHEMA: (('az', 'az-project'),
+                             ('28-az-dark.png', '28-az-light.png',
+                              '29-az-project-dark.png', '29-az-project-light.png')),
     PILLAR_SPAWN_SCHEMA: (('spawn',),
                          ('19-spawn-dark.png', '19-spawn-light.png')),
     PILLAR_DONE_SCHEMA: (('pillar-done',),
@@ -274,9 +279,18 @@ def _script_field(schema):
     return 'script_sha256_by_screen'
 
 
+def catalog_script_name(schema, screen):
+    if schema == PROJECT_CATALOG_SCHEMA and screen == 'az':
+        return 'az-voting-seeded.txt'
+    return screen + '.txt'
+
+
 def _script_pins(repo, schema, read_original):
-    return {name: sha(read_original(repo / 'harness/screens' / (name + '.txt'), 65536))
-        for name in catalog_screens(schema)}
+    scripts = repo / 'harness/screens'
+    return {
+        name: sha(read_original(scripts / catalog_script_name(schema, name), 65536))
+        for name in catalog_screens(schema)
+    }
 
 
 def capture_receipt(value):

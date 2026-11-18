@@ -330,7 +330,13 @@ class DetailsCatalogTests(unittest.TestCase):
                 ['20-pillar-done-dark.png', '20-pillar-done-light.png']),
             (15, ['swap-list'],
                 ['26-swap-list-dark.png', '26-swap-list-light.png']),
+            (16, ['az', 'az-project'],
+                ['28-az-dark.png', '28-az-light.png',
+                 '29-az-project-dark.png', '29-az-project-light.png']),
         )
+        self.assertEqual(details.catalog_script_name(16, 'az'), 'az-voting-seeded.txt')
+        self.assertEqual(details.catalog_script_name(16, 'az-project'), 'az-project.txt')
+        self.assertEqual(details.catalog_script_name(7, 'az-project'), 'az-project.txt')
         for schema, screens, files in families:
             with self.subTest(schema=schema):
                 pins = {screen: str(index)*64

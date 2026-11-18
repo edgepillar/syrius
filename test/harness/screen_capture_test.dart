@@ -516,6 +516,20 @@ void main() {
       final ScreenCapture project = ownedCapture(project: true);
       expect(() => project.preflight('token-mine'),
           throwsA(isA<ScreenCaptureError>()));
+      writeScript('az', File('harness/screens/az.txt').readAsStringSync());
+      writeScript('az-voting-seeded',
+          File('harness/screens/az-voting-seeded.txt').readAsStringSync());
+      expect(seededCapture.preflight('az').single.assertion['key'],
+          'accelerator_filter_voting');
+      final ScreenScript voting = project.preflight('az').single;
+      expect(voting.assertion['key'], '@confirmed-project-row');
+      expect(voting.assertion['exact'], isTrue);
+      expect(voting.lines.map((ScreenLine line) => line.words.join(' ')),
+          containsAllInOrder(<String>[
+            'tap --key accelerator_filter_voting',
+            'wait --key @confirmed-project-row --timeout 30',
+            'assert --key @confirmed-project-row',
+          ]));
       final ScreenScript detail = project.preflight('az-project').single;
       expect(detail.assertion['key'], 'accelerator_project_loaded');
       expect(detail.lines.map((ScreenLine line) => line.words.join(' ')),

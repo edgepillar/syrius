@@ -977,7 +977,7 @@ jobs:
             .harness/ci-seeded-catalog/14-staking-new-dark.png
             .harness/ci-seeded-catalog/14-staking-new-light.png
 
-      - name: Retain the two verified Project detail captures
+      - name: Retain the four verified Accelerator list and Project detail captures
         if: success() && inputs.windows_wallet_tour && inputs.readonly_catalog_family == 'project-detail'
         uses: actions/upload-artifact@v7
         with:
@@ -987,6 +987,8 @@ jobs:
           if-no-files-found: error
           path: |
             .harness/ci-seeded-catalog/manifest.json
+            .harness/ci-seeded-catalog/28-az-dark.png
+            .harness/ci-seeded-catalog/28-az-light.png
             .harness/ci-seeded-catalog/29-az-project-dark.png
             .harness/ci-seeded-catalog/29-az-project-light.png
 

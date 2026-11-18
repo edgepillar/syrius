@@ -755,7 +755,7 @@ def project_wallet_tour(report, lab, head, run_id, tree, manifest_sha):
 def seeded_script_pins(client, head, schema=catalog.SEEDED_SCHEMA):
     pins = {}
     for screen in catalog.catalog_screens(schema):
-        path = 'harness/screens/' + screen + '.txt'
+        path = 'harness/screens/' + catalog.catalog_script_name(schema, screen)
         value = client.json('/contents/' + path + '?ref=' + head)
         need(type(value) is dict and value.get('path') == path
              and value.get('type') == 'file' and value.get('encoding') == 'base64'

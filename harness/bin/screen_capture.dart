@@ -443,10 +443,13 @@ class ScreenCapture {
   ScreenScript _script(ScreenSpec screen) {
     final List<String> parts = <String>['harness', 'screens'];
     _checkParents(parts);
-    final List<String> fileParts = <String>[...parts, '${screen.id}.txt'];
+    final String script = restoredSeeded && restoredProject && screen.id == 'az'
+        ? 'az-voting-seeded'
+        : screen.id;
+    final List<String> fileParts = <String>[...parts, '$script.txt'];
     if (_type(fileParts) != FileSystemEntityType.file) {
       throw ScreenCaptureError(
-        'missing script or refused link: harness/screens/${screen.id}.txt',
+        'missing script or refused link: harness/screens/$script.txt',
       );
     }
     final List<String> source = File(_join(fileParts)).readAsLinesSync();
@@ -473,7 +476,7 @@ class ScreenCapture {
             screen.id == 'token-mine' &&
             text == '# prerequisite: restored-lab-token';
         final bool projectPrepared = restoredSeeded && restoredProject &&
-            screen.id == 'az-project' &&
+            (screen.id == 'az' || screen.id == 'az-project') &&
             text == '# prerequisite: restored-lab-project';
         final bool spawnPrepared = restoredSeeded && restoredPillarSpawn &&
             screen.id == 'spawn' &&
