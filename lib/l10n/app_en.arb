@@ -2065,7 +2065,7 @@
   "zapOneBlock": "One block",
   "zapTwoBlocks": "Two blocks, one per coin",
   "zapBlockPerCoin": "One block per coin",
-  "zapNodeNotice": "Your node can steer the pick. A hardware wallet confirms each block.",
+  "zapNodeNotice": "Picked from what your node reports, so the node can steer it. Two blocks, two confirmations on a hardware wallet.",
   "zapAmountLabel": "{symbol} amount",
   "@zapAmountLabel": {"placeholders": {"symbol": {"type": "String"}}},
   "zapActionBoth": "Zap {znn} ZNN + {qsr} QSR",

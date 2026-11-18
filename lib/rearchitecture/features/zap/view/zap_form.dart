@@ -301,7 +301,7 @@ class _ZapFormState extends State<ZapForm> {
                       ),
                     ],
                   ),
-                  SizedBox(height: tokens.transferFormGap),
+                  SizedBox(height: tokens.transferActionGap),
                   SeamGate(
                     seam: Seam.zapSend,
                     child: PrimaryPill(

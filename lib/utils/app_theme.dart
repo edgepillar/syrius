@@ -1732,8 +1732,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Space between the form's logical groups.
   double get transferFormGap => 12;
 
-  /// The Send button has an extra four-pixel margin above it.
-  double get sendActionGap => transferFormGap + 4;
+  /// The Send and Zap buttons have an extra four-pixel margin above them.
+  double get transferActionGap => transferFormGap + 4;
 
   /// Space between fields in one group.
   double get transferFieldGap => 10;

@@ -183,7 +183,15 @@ void main() {
           tester.getSize(_key('zap_message_area')).height,
           greaterThanOrEqualTo(72),
         );
-        expect(tester.getSize(_key('zap_submit_button')).height, 46);
+        final Finder notice = _key('zap_node_notice');
+        final Finder action = _key('zap_submit_button');
+        expect(
+          tester.widget<Text>(notice).data,
+          'Picked from what your node reports, so the node can steer it. '
+          'Two blocks, two confirmations on a hardware wallet.',
+        );
+        expect(tester.getRect(action).top - tester.getRect(notice).bottom, 16);
+        expect(tester.getSize(action).height, 46);
         expect(find.byType(SeamGate), findsNWidgets(3));
         expect(find.byType(AlertDialog), findsNothing);
         expect(tester.takeException(), isNull);
