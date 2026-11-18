@@ -99,13 +99,14 @@ void _expectActionGeometry(WidgetTester tester, {required bool compact}) {
     expect(text.fontSize, compact ? 13 : 14);
     expect(text.fontWeight, compact ? FontWeight.w500 : FontWeight.w600);
     final OutlinedButton control = tester.widget<OutlinedButton>(button);
+    final double desktopInset = key == const Key('receive_qr_toggle') ? 17 : 16;
     expect(
       control.style!.padding!
           .resolve(const <WidgetState>{})!
           .resolve(
             TextDirection.ltr,
           ),
-      EdgeInsets.symmetric(horizontal: compact ? 12 : 16),
+      EdgeInsets.symmetric(horizontal: compact ? 12 : desktopInset),
     );
   }
   for (final Key key in const <Key>[

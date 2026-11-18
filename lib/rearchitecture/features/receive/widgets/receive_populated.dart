@@ -518,7 +518,11 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
               : tokens.receiveQrAddressText,
         ),
       ),
-      SizedBox(height: centered ? tokens.receiveGap : tokens.transferFormGap),
+      SizedBox(
+        height: centered
+            ? tokens.receiveAddressActionGap
+            : tokens.transferFormGap,
+      ),
       Wrap(
         alignment: centered ? WrapAlignment.center : WrapAlignment.start,
         spacing: tokens.receiveActionGap,
@@ -562,7 +566,7 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
                 centered ? tokens.buttonHeight : tokens.compactButtonHeight,
               ),
               padding: centered
-                  ? tokens.heroActionPadding
+                  ? tokens.receiveOutlinedActionPadding
                   : tokens.homeSideButtonPadding,
               textStyle: centered
                   ? tokens.buttonText
