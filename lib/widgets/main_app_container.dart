@@ -381,6 +381,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                             syncCubit: _nodeSyncStatusCubit,
                             page: _tabIndex,
                             peers: _peers,
+                            locked: locked,
                             showFlight: !locked,
                             trailing: WalletUpdateSlot(
                               releaseNotesLabel: locked,

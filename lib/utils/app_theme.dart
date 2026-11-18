@@ -877,6 +877,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The separation between background-state groups.
   double get statusStripGap => 22;
 
+  /// The separation between the dot, node and height on the lock screen.
+  double get lockedStatusGap => 10;
+
   /// The connection mark's visible diameter.
   double get statusDotSize => 8;
 

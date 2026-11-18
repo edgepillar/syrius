@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buil
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/motion.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/strip/flight.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/strip/plasma_status.dart';
@@ -42,6 +43,7 @@ class StatusStrip extends StatelessWidget {
     required this.syncCubit,
     required this.page,
     this.flight,
+    this.locked = false,
     this.showFlight = true,
     this.peers,
     this.plasma,
@@ -60,6 +62,9 @@ class StatusStrip extends StatelessWidget {
   /// The sends waiting for a momentum; [InFlightBlocks.wallet] when null.
   final InFlightBlocks? flight;
 
+  /// Places the connection mark, selected node and height together on Lock.
+  final bool locked;
+
   /// Hides publication details while locked without discarding or settling
   /// unresolved hashes. Confirmation checks keep their existing ownership.
   final bool showFlight;
@@ -75,6 +80,9 @@ class StatusStrip extends StatelessWidget {
   /// A supplied notice must fit on one short line and describe actual data.
   final Widget? trailing;
 
+  // The node label needs room for a useful part of the selected endpoint.
+  static const double _nodeMinWidth = 140;
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -87,6 +95,21 @@ class StatusStrip extends StatelessWidget {
     final InFlightBlocks flight = this.flight ?? InFlightBlocks.wallet;
     final ValueListenable<int?>? peers = this.peers;
     final Widget? trailing = this.trailing;
+    final Widget node = _buildNode(dim, mono);
+    final Widget height = RepaintBoundary(
+      child: BlocSelector<NodeSyncStatusCubit, NodeSyncStatusState, int>(
+        bloc: syncCubit,
+        selector: (NodeSyncStatusState state) =>
+            state.data?.second.currentHeight ?? 0,
+        builder: (BuildContext context, int height) =>
+            _buildHeight(height, mono, locked ? 0 : tokens.cardGap, context),
+      ),
+    );
+    final double dotTargetWidth = tokens.statusDotSize * 2;
+    // The leading-aligned dot still has a padded hover target.
+    final double afterDot = locked
+        ? tokens.lockedStatusGap - tokens.statusDotSize
+        : 0;
     return Material(
       color: tokens.card,
       borderRadius: BorderRadius.circular(tokens.cardRadius),
@@ -101,38 +124,36 @@ class StatusStrip extends StatelessWidget {
                 priority: 0,
                 shrink: true,
                 // The height can shorten, but the connection dot stays visible.
-                minWidth: tokens.statusDotSize * 2,
+                minWidth: dotTargetWidth + afterDot,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     BlocBuilder<NodeSyncStatusCubit, NodeSyncStatusState>(
                       bloc: syncCubit,
                       builder: (BuildContext context, NodeSyncStatusState s) =>
-                          SyncDot(state: s),
+                          SyncDot(state: s, alignStart: locked),
                     ),
-                    // Selected, so the height is rebuilt when it changes
-                    // and not each time the node is asked how far it has
-                    // synced.
+                    if (locked) SizedBox(width: afterDot),
                     Flexible(
-                      child: RepaintBoundary(
-                        child:
-                            BlocSelector<
-                              NodeSyncStatusCubit,
-                              NodeSyncStatusState,
-                              int
-                            >(
-                              bloc: syncCubit,
-                              selector: (NodeSyncStatusState state) =>
-                                  state.data?.second.currentHeight ?? 0,
-                              builder: (BuildContext context, int height) =>
-                                  _buildHeight(
-                                    height,
-                                    mono,
-                                    tokens.cardGap,
-                                    context,
-                                  ),
-                            ),
-                      ),
+                      child: locked
+                          ? PriorityRow(
+                              gap: tokens.lockedStatusGap,
+                              fill: false,
+                              children: <Prioritized>[
+                                Prioritized(
+                                  priority: 1,
+                                  shrink: true,
+                                  minWidth: _nodeMinWidth,
+                                  child: node,
+                                ),
+                                Prioritized(
+                                  priority: 0,
+                                  shrink: true,
+                                  child: height,
+                                ),
+                              ],
+                            )
+                          : height,
                     ),
                   ],
                 ),
@@ -151,33 +172,13 @@ class StatusStrip extends StatelessWidget {
                           SyncBehind(state: syncCubit.state),
                     ),
               ),
-              Prioritized(
-                priority: 6,
-                shrink: true,
-                // The label and a dozen characters of the address; with
-                // less, the name says nothing and its label overflows.
-                minWidth: 140,
-                child: _onNodeChange(
-                  (BuildContext context) => Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Text('${context.l10n.stripNode} ', style: dim),
-                      Flexible(
-                        child: ValueFlash(
-                          value: kCurrentNode,
-                          child: Text(
-                            kCurrentNode ?? '',
-                            key: const Key('strip_node'),
-                            style: mono,
-                            textDirection: TextDirection.ltr,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+              if (!locked)
+                Prioritized(
+                  priority: 6,
+                  shrink: true,
+                  minWidth: _nodeMinWidth,
+                  child: node,
                 ),
-              ),
               Prioritized(
                 priority: 7,
                 child: _onNodeChange((BuildContext context) {
@@ -264,6 +265,31 @@ class StatusStrip extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildNode(TextStyle dim, TextStyle mono) =>
+      _onNodeChange((BuildContext context) {
+        final String? node = kCurrentNode;
+        final bool embedded = locked && node == kEmbeddedNode;
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            if (!embedded) Text('${context.l10n.stripNode} ', style: dim),
+            Flexible(
+              child: ValueFlash(
+                value: node,
+                child: Text(
+                  embedded ? context.l10n.nodeSettingsEmbedded : node ?? '',
+                  key: const Key('strip_node'),
+                  style: embedded ? dim : mono,
+                  textDirection: embedded ? null : TextDirection.ltr,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ],
+        );
+      });
 
   Widget _buildHeight(
     int height,

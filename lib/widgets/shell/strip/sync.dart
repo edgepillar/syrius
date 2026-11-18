@@ -37,10 +37,13 @@ int? momentumsBehind(NodeSyncStatusState state) {
 /// each way, and in the strip's 28 by 18 box it was drawn as an empty oval.
 class SyncDot extends StatelessWidget {
   /// Creates the dot for [state].
-  const SyncDot({required this.state, super.key});
+  const SyncDot({required this.state, this.alignStart = false, super.key});
 
   /// The sync cubit's latest state.
   final NodeSyncStatusState state;
+
+  /// Paints the mark at the leading edge of its full tooltip target.
+  final bool alignStart;
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +84,10 @@ class SyncDot extends StatelessWidget {
         child: SizedBox(
           width: tokens.statusDotSize * 2,
           height: tokens.statusStripHeight - tokens.statusStripPadding.vertical,
-          child: Center(
+          child: Align(
+            alignment: alignStart
+                ? AlignmentDirectional.centerStart
+                : Alignment.center,
             child: StatusDot(color: color, fillKey: const Key('strip_sync')),
           ),
         ),

@@ -7,6 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/timer_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/pair.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
@@ -94,6 +95,7 @@ class _Rig {
     Widget? plasma,
     ThemeData? theme,
     TextDirection direction = TextDirection.ltr,
+    bool locked = false,
     bool showFlight = true,
   }) async {
     await tester.pumpWidget(
@@ -112,6 +114,7 @@ class _Rig {
                   syncCubit: sync,
                   page: ValueNotifier<int>(0),
                   flight: flight,
+                  locked: locked,
                   showFlight: showFlight,
                   peers: peers,
                   plasma:
@@ -344,6 +347,47 @@ void main() {
     await tester.pump();
     expect(_dot(tester), AppTokens.dark.znn);
     expect(find.byKey(_behind), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Lock aligns the real node and height with the status dot', (
+    WidgetTester tester,
+  ) async {
+    wideWindow(tester);
+    final _Rig rig = _Rig(tester);
+    addTearDown(rig.dispose);
+
+    await rig.show(locked: true);
+    expect(find.byKey(_height), findsNothing);
+    expect(tester.widget<Text>(find.byKey(_node)).data, kCurrentNode);
+    expect(
+      tester.getRect(find.text('Node ')).left -
+          tester.getRect(find.byKey(_sync)).right,
+      closeTo(10, 0.001),
+    );
+
+    kCurrentNode = kEmbeddedNode;
+    rig.sync.answer(current: 3281904, target: 3281904);
+    for (final TextDirection direction in TextDirection.values) {
+      await rig.show(locked: true, direction: direction);
+      expect(find.text('Embedded node'), findsOneWidget);
+      expect(find.text('#3,281,904'), findsOneWidget);
+      expect(_drawn(_chain), isTrue);
+      final Rect strip = tester.getRect(find.byType(StatusStrip));
+      final Rect dot = tester.getRect(find.byKey(_sync));
+      final Rect node = tester.getRect(find.byKey(_node));
+      final Rect height = tester.getRect(find.byKey(_height));
+      final bool ltr = direction == TextDirection.ltr;
+      expect(ltr ? dot.left - strip.left : strip.right - dot.right, 16);
+      expect(
+        ltr ? node.left - dot.right : dot.left - node.right,
+        closeTo(10, 0.001),
+      );
+      expect(
+        ltr ? height.left - node.right : node.left - height.right,
+        closeTo(10, 0.001),
+      );
+    }
     expect(tester.takeException(), isNull);
   });
 
