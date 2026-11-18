@@ -5577,6 +5577,7 @@ class HarnessAgent {
       }
       _assert(Map<String, dynamic>.from(c['expect'] as Map<Object?, Object?>));
     }
+    final int? artworkSeconds = guarded ? _nativeLock?.artworkSeconds : null;
     final Layer? layer = view.layer;
     if (layer is! OffsetLayer) {
       throw HarnessError('the view has no image layer');
@@ -5618,7 +5619,8 @@ class HarnessAgent {
             after.physicalSize != metrics.physicalSize ||
             after.devicePixelRatio != metrics.devicePixelRatio ||
             observed['brightness'] != theme ||
-            observed['mode'] != theme) {
+            observed['mode'] != theme ||
+            _nativeLock?.artworkSeconds != artworkSeconds) {
           throw HarnessError('capture state changed while encoding');
         }
         _assert(
@@ -5633,6 +5635,7 @@ class HarnessAgent {
         ...metrics.toJson(),
         if (guarded) 'theme': theme,
         if (guarded) 'asserted': true,
+        if (artworkSeconds != null) 'artwork_seconds': artworkSeconds,
         if (layoutBefore != null)
           'layoutObservation': pairReadonlyShotLayout(
             layoutBefore,

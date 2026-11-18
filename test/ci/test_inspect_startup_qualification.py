@@ -683,7 +683,7 @@ class StartupInspectionTests(unittest.TestCase):
         bodies = {name: _png(index) for index, name in enumerate(catalog.FILES)}
         captures = [dict(file=name, theme=inspect.launch.THEMES[index // 3],
             screen=catalog.SCREENS[index % 3], bytes=len(bodies[name]),
-            sha256=inspect.archive.sha(bodies[name]), **states[index % 3])
+            sha256=inspect.archive.sha(bodies[name]), artwork_seconds=6, **states[index % 3])
             for index, name in enumerate(catalog.FILES)]
         attempts = [dict(theme=theme, role=role, phase=phase, action_complete=True,
             checks=dict.fromkeys(inspect.launch.ATTEMPT_CHECKS, True), exit_code=0,
@@ -711,12 +711,19 @@ class StartupInspectionTests(unittest.TestCase):
         self.assertTrue(summary['artifact_reported_success'])
         self.assertEqual(summary['verified_png_count'], 6)
         self.assertEqual(summary['states'][1]['remaining'], 2)
+        self.assertEqual([state['artwork_seconds'] for state in summary['states']], [6] * 6)
         for index, change in ((1, dict(failures=0)), (2, dict(picker_gates=3)),
-                              (4, dict(frame=55)), (5, dict(theme='dark'))):
+                              (4, dict(frame=55)), (5, dict(theme='dark')),
+                              (0, dict(artwork_seconds=6.0)), (1, dict(artwork_seconds=5)),
+                              (2, dict(artwork_seconds=None))):
             changed = list(captures)
             changed[index] = dict(changed[index], **change)
             with self.assertRaises(inspect.archive.Refused):
                 read(dict(report, captures=changed))
+        missing = dict(captures[0])
+        del missing['artwork_seconds']
+        with self.assertRaises(inspect.archive.Refused):
+            read(dict(report, captures=[missing, *captures[1:]]))
         with self.assertRaises(inspect.archive.Refused):
             read(dict(report, attempts=attempts[:-1]))
 

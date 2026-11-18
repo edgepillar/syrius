@@ -10,8 +10,10 @@ import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -56,10 +58,22 @@ final class NativeLockCatalog {
   final NativeWindowCall<NativeWindowStartupReceipt> _startup;
   final ValueNotifier<bool> _picker = ValueNotifier<bool>(false);
   _Lock? _original;
+  ReferenceArtworkFrame? _artwork;
+  bool _restoringArtwork = false;
   Stopwatch? _wrongClock;
   bool _replayVisible = false;
   String? _refusal;
   Uint8List? _wrongPng;
+
+  /// The painted reference phase of this original lock renderer.
+  int? get artworkSeconds {
+    final _Lock? original = _original;
+    final ReferenceArtworkFrame? artwork = _artwork;
+    return original != null && artwork != null && _current(original) &&
+            artwork.observed
+        ? artwork.observation['seconds'] as int
+        : null;
+  }
 
   /// Supplies inert rows to the original lock card in this process only.
   Widget wrapRoot(Widget root) => ValueListenableBuilder<bool>(
@@ -106,7 +120,7 @@ final class NativeLockCatalog {
           throw const CaptureRefused('lock-catalog-state-refused');
         }
         if (action == 'arm-wrong') {
-          if (_picker.value) {
+          if (_picker.value || artworkSeconds == null) {
             throw const CaptureRefused('lock-catalog-state-refused');
           }
           _wrongClock = Stopwatch()..start();
@@ -114,6 +128,39 @@ final class NativeLockCatalog {
         } else {
           _picker.value = action == 'open-picker';
         }
+        return <String, Object?>{'status': 'accepted'};
+      case 'sample-artwork':
+        if (_artwork != null || _picker.value || _wrongClock != null ||
+            failures != 0 || !film.isDone || film.frame != _frames - 1 ||
+            film.frameCount != _frames) {
+          throw const CaptureRefused('lock-catalog-state-refused');
+        }
+        _artwork = _sampleArtwork(original.well);
+        return <String, Object?>{'status': 'accepted'};
+      case 'artwork-status':
+        final ReferenceArtworkFrame? artwork = _artwork;
+        if (artwork == null || (!_restoringArtwork && !artwork.isCurrent)) {
+          throw const CaptureRefused('lock-catalog-artwork-unavailable');
+        }
+        if (_restoringArtwork) {
+          return <String, Object?>{
+            'status': artwork.restored ? 'restored' : 'pending',
+          };
+        }
+        final int? observedSeconds = artworkSeconds;
+        return observedSeconds == null
+            ? <String, Object?>{'status': 'pending'}
+            : <String, Object?>{
+                'status': 'ready',
+                'artwork_seconds': observedSeconds,
+              };
+      case 'restore-artwork':
+        final ReferenceArtworkFrame? restoring = _artwork;
+        if (_restoringArtwork || _wrongPng == null || restoring == null ||
+            !restoring.restore()) {
+          throw const CaptureRefused('lock-catalog-artwork-unavailable');
+        }
+        _restoringArtwork = true;
         return <String, Object?>{'status': 'accepted'};
       case 'wrong-frame':
         if (_wrongClock == null) {
@@ -123,6 +170,10 @@ final class NativeLockCatalog {
         final Uint8List? png = _wrongPng;
         if (refusal != null) throw CaptureRefused(refusal);
         if (png == null) return <String, Object?>{'status': 'pending'};
+        final int? seconds = artworkSeconds;
+        if (seconds == null) {
+          throw const CaptureRefused('lock-catalog-artwork-unavailable');
+        }
         return <String, Object?>{
           'status': 'captured',
           'theme': _theme,
@@ -130,6 +181,7 @@ final class NativeLockCatalog {
           'frames': _frames,
           'failures': failures,
           'remaining': 3 - failures,
+          'artwork_seconds': seconds,
           'png': base64Encode(png),
         };
       default:
@@ -154,6 +206,44 @@ final class NativeLockCatalog {
       native: native,
       view: _readView(),
     );
+  }
+
+  ReferenceArtworkFrame _sampleArtwork(Element well) {
+    final List<ReferenceArtworkSource> sources = <ReferenceArtworkSource>[];
+    int visited = 0;
+    void visit(Element element) {
+      if (++visited > 16384) {
+        throw const CaptureRefused('lock-catalog-artwork-unavailable');
+      }
+      if (element is StatefulElement) {
+        final Object state = element.state;
+        if (state is ReferenceArtworkSource &&
+            state.referenceArtworkKind == ReferenceArtworkKind.entryField) {
+          sources.add(state);
+        }
+      }
+      element.visitChildElements(visit);
+    }
+
+    well.visitAncestorElements((Element ancestor) {
+      if (ancestor.widget is! LockCard) return true;
+      ancestor.visitChildElements(visit);
+      return false;
+    });
+    if (sources.length != 1) {
+      throw const CaptureRefused('lock-catalog-artwork-unavailable');
+    }
+    final ReferenceArtworkSource source = sources.single;
+    final Object generation = source.referenceArtworkGeneration;
+    final ReferenceArtworkFrame? frame = source.captureReferenceArtwork();
+    final Object? seconds = frame?.observation['seconds'];
+    if (frame == null || frame.kind != ReferenceArtworkKind.entryField ||
+        !identical(frame.owner, source) ||
+        !identical(frame.generation, generation) ||
+        seconds is! int || seconds != 6) {
+      throw const CaptureRefused('lock-catalog-artwork-unavailable');
+    }
+    return frame;
   }
 
   bool _current(_Lock lock) {
@@ -215,7 +305,8 @@ final class NativeLockCatalog {
 
   void _observeWrong(Duration _) {
     final _Lock? lock = _original;
-    if (lock == null || !_current(lock) || _picker.value ||
+    if (lock == null || !_current(lock) || _artwork?.observed != true ||
+        _picker.value ||
         _wrongClock!.elapsed > const Duration(seconds: 25)) {
       _refusal = 'lock-catalog-replay-refused';
       return;
@@ -245,7 +336,8 @@ final class NativeLockCatalog {
       final RetainedRendererFrame frame = await RetainedRendererFrame.capture(
         view: lock.view,
         expectedSize: _client,
-        sourceCurrent: () => _current(lock) && kNumFailedUnlockAttempts == 1,
+        sourceCurrent: () => _current(lock) && _artwork?.observed == true &&
+            kNumFailedUnlockAttempts == 1,
       );
       final Uint8List png;
       try {

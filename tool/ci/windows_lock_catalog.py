@@ -35,7 +35,9 @@ CAPTURE_SOURCE = Path('harness/app/native_lock_catalog.dart')
 SCREENS = ('lock-screen', 'lock-wrong', 'lock-pick')
 FILES = tuple(f'{index:02}-{screen}-{theme}.png' for theme in launch.THEMES
               for index, screen in enumerate(SCREENS, 41))
-STATE_FIELDS = {'screen', 'frame', 'frames', 'failures', 'remaining', 'picker_gates', 'masked_chars'}
+ARTWORK_SECONDS = 6
+STATE_FIELDS = {'screen', 'frame', 'frames', 'failures', 'remaining',
+                'picker_gates', 'masked_chars', 'artwork_seconds'}
 MAX_ARCHIVE = len(FILES) * launch.MAX_PNG + launch.MAX_MANIFEST + 65536
 SAMPLE = 'screen-state'
 REFUSED_SAMPLE = 'redesign-qualification-wrong-password'
@@ -51,6 +53,7 @@ REFUSAL_REPLIES = {
     'no field has focus': 'field_unfocused',
     'lock-view-input-refused': 'lock_input_refused',
     'lock-view-shape-refused': 'lock_shape_refused',
+    'lock-catalog-artwork-unavailable': 'lock_artwork_unavailable',
     'assert target is covered': 'assertion_covered',
     'a minimized window cannot be captured': 'window_minimized',
     'capture theme differs': 'capture_theme_changed',
@@ -118,6 +121,7 @@ def frame_matches(value, screen):
     fields = ('frame', 'failures', 'remaining', 'picker_gates', 'masked_chars')
     return (screen in expected and value['screen'] == screen
             and type(value['frames']) is int and value['frames'] == 56
+            and startup.integer(value['artwork_seconds'], ARTWORK_SECONDS, ARTWORK_SECONDS)
             and all(type(value[field]) is int for field in fields)
             and tuple(value[field] for field in fields) == expected[screen])
 
@@ -290,7 +294,8 @@ class LockProcess(launch.LaunchProcess):
         self._lock_view(0)
         state = dict(screen=screen, frame=status['frame'], frames=status['frames'],
             failures=status['failures'], remaining=status['remaining'],
-            picker_gates=status['gates'], masked_chars=masked)
+            picker_gates=status['gates'], masked_chars=masked,
+            artwork_seconds=body.get('artwork_seconds'))
         return self._pixels(body, state)
 
     def _pixels(self, body, state):
@@ -307,6 +312,9 @@ class LockProcess(launch.LaunchProcess):
         self._status(theme, False, wait=True)
         self._bind_input()
         self.phase = 'normal'
+        self._accept('sample-artwork')
+        need(self._wait_catalog('artwork-status', 8) ==
+             dict(ok=True, status='ready', artwork_seconds=ARTWORK_SECONDS), 'ENTRY_INVALID')
         self._type_sample(SAMPLE)
         normal = self._still(theme, 'lock-screen', masked=len(SAMPLE), picker=False)
         self.phase = 'picker'
@@ -321,12 +329,17 @@ class LockProcess(launch.LaunchProcess):
         # One actual refusal in this owned profile. An uncertain reply ends the attempt.
         self._rpc(dict(cmd='tap', key='wallet_unlock_button', settleMs=0))
         body = self._wait_catalog('wrong-frame', 27)
-        need(set(body) == {'ok', 'status', 'theme', 'frame', 'frames', 'failures', 'remaining', 'png'}
+        need(set(body) == {'ok', 'status', 'theme', 'frame', 'frames',
+                           'failures', 'remaining', 'artwork_seconds', 'png'}
              and body['status'] == 'captured' and body['theme'] == theme)
         self._lock_view(1)
         state = dict(screen='lock-wrong', frame=body['frame'], frames=body['frames'],
-            failures=body['failures'], remaining=body['remaining'], picker_gates=0, masked_chars=0)
+            failures=body['failures'], remaining=body['remaining'], picker_gates=0,
+            masked_chars=0, artwork_seconds=body['artwork_seconds'])
         wrong = self._pixels(body, state)
+        self._accept('restore-artwork')
+        need(self._wait_catalog('artwork-status', 8) ==
+             dict(ok=True, status='restored'), 'ENTRY_INVALID')
         self.phase = 'complete'
         return normal, wrong, picker
 
