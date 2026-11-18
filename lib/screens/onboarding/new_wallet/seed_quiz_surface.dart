@@ -116,9 +116,16 @@ class SeedQuizSurface extends StatelessWidget {
                 ),
             ],
           )
-        : Text(
-            '…',
-            style: tokens.seedQuizChoiceText.copyWith(color: tokens.faint),
+        : ExcludeSemantics(
+            child: Opacity(
+              opacity: 0.5,
+              child: _SeedChoice(
+                key: ValueKey<String>('seed_quiz_pending_$index'),
+                word: '…',
+                selected: false,
+                onPressed: null,
+              ),
+            ),
           );
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
@@ -138,19 +145,19 @@ class SeedQuizSurface extends StatelessWidget {
         )..layout();
         double requiredWidth = labelMeasure.width + tokens.seedQuizChoiceGap;
         labelMeasure.dispose();
-        if (enabled) {
+        final List<String> labels = enabled
+            ? question.choices
+            : const <String>['…'];
+        requiredWidth += (labels.length - 1) * tokens.seedQuizChoiceGap;
+        for (final String word in labels) {
+          final TextPainter measure = TextPainter(
+            text: TextSpan(text: word, style: tokens.seedQuizChoiceText),
+            textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
+          )..layout();
           requiredWidth +=
-              (question.choices.length - 1) * tokens.seedQuizChoiceGap;
-          for (final String word in question.choices) {
-            final TextPainter measure = TextPainter(
-              text: TextSpan(text: word, style: tokens.seedQuizChoiceText),
-              textDirection: Directionality.of(context),
-              textScaler: MediaQuery.textScalerOf(context),
-            )..layout();
-            requiredWidth +=
-                measure.width + tokens.seedQuizChoicePadding.horizontal;
-            measure.dispose();
-          }
+              measure.width + tokens.seedQuizChoicePadding.horizontal;
+          measure.dispose();
         }
         if (constraints.maxWidth < requiredWidth) {
           return Column(
@@ -186,7 +193,7 @@ class _SeedChoice extends StatelessWidget {
 
   final String word;
   final bool selected;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -198,6 +205,7 @@ class _SeedChoice extends StatelessWidget {
         minimumSize: Size(0, tokens.seedQuizChoiceHeight),
         padding: tokens.seedQuizChoicePadding,
         foregroundColor: selected ? tokens.foreground : tokens.dim,
+        disabledForegroundColor: tokens.dim,
         backgroundColor: selected ? tokens.card2 : Colors.transparent,
         side: BorderSide(color: selected ? tokens.faint : tokens.line),
         textStyle: tokens.seedQuizChoiceText,

@@ -108,6 +108,28 @@ void main() {
         for (final String word in quiz.questions.first.choices) {
           expect(_choice(quiz, 0, word), findsOneWidget);
         }
+        final Finder secondPending =
+            find.byKey(const Key('seed_quiz_pending_1'));
+        final Finder thirdPending =
+            find.byKey(const Key('seed_quiz_pending_2'));
+        expect(secondPending, findsOneWidget);
+        expect(thirdPending, findsOneWidget);
+        final OutlinedButton pendingChip = tester.widget<OutlinedButton>(
+          find.descendant(
+            of: secondPending,
+            matching: find.byType(OutlinedButton),
+          ),
+        );
+        expect(pendingChip.onPressed, isNull);
+        expect(
+          pendingChip.style?.shape?.resolve(
+            <WidgetState>{WidgetState.disabled},
+          ),
+          isA<StadiumBorder>(),
+        );
+        await tester.tap(secondPending, warnIfMissed: false);
+        await tester.pump();
+        expect(quiz.correct, 0);
         expect(_choice(quiz, 1, quiz.questions[1].answer), findsNothing);
         expect(find.text('0 of 3 done.'), findsOneWidget);
         await tester.tap(_choice(quiz, 0, quiz.questions[0].answer));
@@ -115,6 +137,9 @@ void main() {
         for (final String word in quiz.questions[1].choices) {
           expect(_choice(quiz, 1, word), findsOneWidget);
         }
+        expect(secondPending, findsNothing);
+        expect(thirdPending, findsOneWidget);
+        expect(tester.getSize(thirdPending).height, 26);
         expect(_choice(quiz, 2, quiz.questions[2].answer), findsNothing);
         expect(find.text('1 of 3 done.'), findsOneWidget);
         expect(tester.takeException(), isNull);
