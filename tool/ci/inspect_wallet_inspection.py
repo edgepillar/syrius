@@ -28,6 +28,7 @@ VERSIONED_INPUTS = frozenset((
     'harness/screens/token-new.txt', 'tool/ci/run_harness_tour_tests.py',
     'harness/bin/readonly_catalog_contact.dart',
     'harness/bin/readonly_settings_catalog.dart',
+    'lib/rearchitecture/utils/widgets/entry_field.dart',
     'lib/widgets/modular_widgets/help_widgets/originals_tiles.dart',
     'lib/widgets/reusable_widgets/launch_film.dart',
 ))
