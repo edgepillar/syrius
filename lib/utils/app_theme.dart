@@ -3,6 +3,17 @@ import 'dart:ui' show lerpDouble;
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
+/// Geometry and paint shared at the authored launch handoff checkpoint.
+typedef LaunchSettleReference = ({
+  double progress,
+  Size body,
+  Size stage,
+  double verticalAnchor,
+  Size artwork,
+  double radius,
+  BoxShadow shadow,
+});
+
 /// The desktop's semantic values, including the surfaces used by Material.
 /// Surfaces and motion follow `mockups/redesign/src/00-head.html`; brand
 /// fills follow the owner-selected `docs/design/RULES.md` palette. Every
@@ -560,13 +571,22 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Matches the entry container transform in the original mockup.
   Curve get launchSettleCurve => Easing.emphasizedDecelerate;
 
+  /// The progress shared by the reference card and film stage.
+  static const double launchSettleReferenceProgress = 0.4;
+
   /// The authored mid-transition view, relative to the Windows client body.
-  ({double progress, Size body, Size stage, double verticalAnchor})
-  get launchSettleReference => (
-    progress: 0.4,
+  LaunchSettleReference get launchSettleReference => (
+    progress: launchSettleReferenceProgress,
     body: Size(1280, 780 - windowCaptionHeight),
     stage: const Size(780, 330),
     verticalAnchor: 0.78,
+    artwork: const Size(1040, 585),
+    radius: 14,
+    shadow: const BoxShadow(
+      color: Color.fromRGBO(0, 0, 0, 0.55),
+      offset: Offset(0, 30),
+      blurRadius: (90 / 2 - 0.5) / 0.57735,
+    ),
   );
 
   /// The genuine lock card rises as the black movie stage shrinks.

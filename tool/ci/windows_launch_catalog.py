@@ -115,12 +115,14 @@ def frame_matches(value, *, settle=False):
 
 
 def launch_pixels(reply, theme, *, settle=False):
-    """Admit the painted film frame or the measured intermediate handoff."""
+    """Admit the painted film frame at the authored checkpoint."""
     fields = SETTLE_FIELDS if settle else FRAME_FIELDS
     need(theme in THEMES and type(reply) is dict and set(reply) ==
          {'ok', 'status', 'theme', 'png'} | fields)
     need(reply['ok'] is True and reply['status'] == 'captured'
          and reply['theme'] == theme and frame_matches(reply, settle=settle))
+    if settle:
+        need(reply['progress'] == .4 and reply['stage'][2:] == [780, 330])
     pixels = entry.png_bytes(reply['png'])
     need(0 < len(pixels) <= MAX_PNG)
     return pixels, {name: reply[name] for name in sorted(fields)}

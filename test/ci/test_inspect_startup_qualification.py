@@ -554,17 +554,22 @@ class StartupInspectionTests(unittest.TestCase):
                      if settle else dict(frame=23, frames=56, stage=[0, 32, 1280, 748]))
             reply = dict(ok=True, status='captured', theme=theme,
                          png=base64.b64encode(pixels).decode(), **state)
-            original, state = inspect.launch.launch_pixels(reply, theme, settle=settle)
+            live = (dict(reply, stage=[250, 148.6, 780, 330], progress=.4)
+                    if settle else reply)
+            original, observed = inspect.launch.launch_pixels(live, theme, settle=settle)
             self.assertEqual(original, pixels)
             captures.append(dict(theme=theme, file=name, bytes=len(pixels),
-                sha256=inspect.archive.sha(pixels), **state))
+                sha256=inspect.archive.sha(pixels), **(state if settle else observed)))
             refusals = [dict(frame=24), dict(stage=[0, 32, 10, 10]), dict(frames=True)]
             if settle:
-                refusals += [dict(progress=.39), dict(progress=.73),
+                self.assertEqual(observed['progress'], .4)
+                self.assertEqual(observed['stage'], [250, 148.6, 780, 330])
+                refusals += [dict(progress=.39), dict(progress=.52), dict(progress=.73),
+                             dict(stage=[250, 148.6, 779, 330]),
                              dict(lockHandoff=False), dict(well=[0, 0, 960, 480])]
             for wrong in refusals:
                 with self.assertRaises(inspect.startup.Failure):
-                    inspect.launch.launch_pixels(dict(reply, **wrong), theme, settle=settle)
+                    inspect.launch.launch_pixels(dict(live, **wrong), theme, settle=settle)
         scope = inspect.launch.SETTLE_SCOPE if settle else inspect.launch.SCOPE
         report = dict(schema=1, scope=scope, success=True,
             attempts=attempts, captures=captures, source_stable=True, error_codes=[],
