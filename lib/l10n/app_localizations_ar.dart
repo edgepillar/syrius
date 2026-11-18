@@ -2916,7 +2916,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get receiveHideQr => 'Hide QR';
 
   @override
-  String get receiveRequestAmount => 'Request an amount';
+  String get receiveRequestAmount => 'Request a specific amount';
+
+  @override
+  String get receiveRequestAmountHint => 'The QR carries the amount.';
 
   @override
   String get receiveShareImage => 'Share image';
