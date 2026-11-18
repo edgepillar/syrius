@@ -354,7 +354,7 @@ class InspectionTests(unittest.TestCase):
             self.assertEqual(lab.READONLY_CATALOG_SCHEMAS[
                 lab.readonly_catalog_family(selected)], schema)
         for value in (None, True, 1, '', 'Home', 'all', 'home,navigation',
-                      '../home', 'launch', 'launch-settle', 'launch-timing', 'launch-timing-pair', 'interactive-timing-pair',
+                      '../home', 'launch', 'launch-settle', 'startup-catalog', 'launch-timing', 'launch-timing-pair', 'interactive-timing-pair',
                       'lock-catalog', 'lock-seams', 'quiz-catalog', 'seeded-states',
                       'stake-draft', 'project-detail', 'pillar-spawn',
                       'pillar-done', 'swap-seeded'):
@@ -370,7 +370,7 @@ class InspectionTests(unittest.TestCase):
             ['home', 'home-seams', 'surface-seams', 'home-bell', 'home-zap-preview', 'settings', 'settings-seams',
              'navigation', 'details', 'token-draft',
              'send-confirm', 'send-warn', 'swap-start', 'wallet-ready', 'earn',
-             'sentinel-fixture', 'launch', 'launch-settle', 'launch-timing', 'launch-timing-pair', 'interactive-timing-pair',
+             'sentinel-fixture', 'launch', 'launch-settle', 'startup-catalog', 'launch-timing', 'launch-timing-pair', 'interactive-timing-pair',
              'lock-catalog', 'lock-seams', 'quiz-catalog', 'seeded-states',
              'swap-seeded', 'stake-draft', 'project-detail', 'pillar-spawn',
              'pillar-done'])
