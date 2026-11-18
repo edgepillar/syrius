@@ -1,0 +1,13 @@
+# prerequisite: readonly-lab-send-confirmation
+# Fill and clear the original Send draft with the bound disposable recipient.
+goto transfer
+tap --key transfer_mode_send
+wait --key send_recipient_field --kind field --ready --timeout 20
+type --key send_recipient_field @lab-index-0
+type --key send_amount_field 12.5
+wait --key send_submit_button --kind button --ready --timeout 20
+assert --key send_submit_button --kind button
+# after-capture: type --key send_recipient_field
+# after-capture: type --key send_amount_field
+# after-capture: goto dashboard
+# after-capture: wait --key home_hero --timeout 5

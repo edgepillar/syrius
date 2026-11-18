@@ -677,22 +677,23 @@ def main(parent=None):
             PHASE = 'details_catalog_artifact'
             schema = details_reference['schema']
             scripts = producer.details.catalog_screens(schema)
+            script_paths = {name: 'harness/screens/' + producer.details.catalog_script_name(schema, name)
+                            for name in scripts}
             if schema in (producer.details.FAMILY_SCHEMAS['earn'],
                           producer.details.FAMILY_SCHEMAS['sentinel-fixture'],
                           producer.details.FAMILY_SCHEMAS['swap-start'],
                           producer.details.FAMILY_SCHEMAS['wallet-ready'],
                           producer.details.FAMILY_SCHEMAS['send-warn'],
-                          producer.details.FAMILY_SCHEMAS['home-zap-preview']):
+                          producer.details.FAMILY_SCHEMAS['home-zap-preview'],
+                          producer.details.SEND_CATALOG_SCHEMA):
                 fixture_sources = {
                     producer.details.FAMILY_SCHEMAS['sentinel-fixture']: SENTINEL_FIXTURE_SOURCES,
                     producer.details.FAMILY_SCHEMAS['home-zap-preview']: HOME_ZAP_PREVIEW_SOURCES,
                 }.get(schema, ())
                 source_digests.update(source_files(repo, producer_tree, tree,
-                    files=fixture_sources + tuple('harness/screens/' + name + '.txt'
-                                                  for name in scripts)))
+                    files=fixture_sources + tuple(script_paths.values())))
             item = artifact(listing, 'details-catalog-' + head + '-' + text + '-1', head, run_id)
-            pins = {name: source_digests['harness/screens/' + name + '.txt']
-                for name in scripts}
+            pins = {name: source_digests[path] for name, path in script_paths.items()}
             catalog = producer.details.unpack(download(item, producer.details.MAX_ARCHIVE),
                 item['digest'][7:], item['size_in_bytes'], head, tree, run_id,
                 details_reference, pins)
@@ -736,8 +737,8 @@ def main(parent=None):
                 need(reference is not None
                      and reference['schema'] == producer.HOME_BELL_CAPTURE_SCHEMA)
             else:
-                need(details_reference is not None and details_reference['schema'] ==
-                     producer.details.FAMILY_SCHEMAS[sampling_scope.removesuffix('-only')])
+                need(details_reference is not None and producer.details.family_matches(
+                     sampling_scope.removesuffix('-only'), details_reference['schema']))
         else:
             need(viewport_reference is not None)
             item = artifact(listing, viewport_name, head, run_id)

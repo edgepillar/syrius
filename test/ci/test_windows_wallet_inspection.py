@@ -389,22 +389,23 @@ class InspectionTests(unittest.TestCase):
                         dict(GITHUB_RUN_ATTEMPT='2'), dict(SYRIUS_WINDOWS_WALLET_INSPECTION='false')):
                     with self.assertRaises(lab.Failure):
                         lab.require_environment('native', dict(scoped, **change))
-        for family, title, stem in (
-            ('stake-draft', 'New stake draft', '14-staking-new'),
-            ('project-detail', 'Project detail', '29-az-project'),
-            ('pillar-spawn', 'Pillar Spawn', '19-spawn'),
-            ('pillar-done', 'Pillar Done', '20-pillar-done'),
-            ('swap-seeded', 'seeded Swap list', '26-swap-list'),
+        for family, title, stems in (
+            ('stake-draft', 'two verified New stake draft', ('14-staking-new',)),
+            ('project-detail', 'four verified Accelerator list and Project detail',
+             ('28-az', '29-az-project')),
+            ('pillar-spawn', 'two verified Pillar Spawn', ('19-spawn',)),
+            ('pillar-done', 'two verified Pillar Done', ('20-pillar-done',)),
+            ('swap-seeded', 'two verified seeded Swap list', ('26-swap-list',)),
         ):
-            marker = f'      - name: Retain the two verified {title} captures\n'
+            marker = f'      - name: Retain the {title} captures\n'
             upload = workflow.split(marker, 1)[1].split('\n      - name:', 1)[0]
             self.assertIn("success() && inputs.windows_wallet_tour && "
                           f"inputs.readonly_catalog_family == '{family}'", upload)
             self.assertEqual([line.strip() for line in upload.splitlines()
                               if line.strip().startswith('.harness/')], [
                 '.harness/ci-seeded-catalog/manifest.json',
-                f'.harness/ci-seeded-catalog/{stem}-dark.png',
-                f'.harness/ci-seeded-catalog/{stem}-light.png',
+                *(f'.harness/ci-seeded-catalog/{stem}-{theme}.png'
+                  for stem in stems for theme in ('dark', 'light')),
             ])
 
     def test_settings_seam_pointers_stop_on_scope_or_address_change(self):
@@ -904,6 +905,10 @@ class InspectionTests(unittest.TestCase):
             self.assertIs(value[key], False)
         self.assertEqual(value['visual_matches'], 0)
         focused = catalog_only_report(value, 'f' * 64, 'send-confirm')
+        legacy_send = dict(focused, details_catalog=details_reference(
+            'f' * 64, schema=inspection.details.SEND_CONFIRM_SCHEMA))
+        self.assertIs(inspection.public_manifest(legacy_send), legacy_send)
+        self.assertTrue(inspection.completed(legacy_send))
         for family in ('earn', 'sentinel-fixture', 'swap-start', 'wallet-ready', 'send-warn',
                        'home-zap-preview'):
             catalog = catalog_only_report(value, 'f' * 64, family)
@@ -1613,6 +1618,11 @@ class InspectionTests(unittest.TestCase):
         manifest = json.dumps(value).encode()
         output = _Output()
         reads = []
+        details_scripts = {
+            Path('/fixture/harness/screens') /
+            inspection.details.catalog_script_name(details_schema, screen)
+            for screen in inspection.details.catalog_screens(details_schema)
+        }
 
         def read(path, cap):
             reads.append(path)
@@ -1623,8 +1633,7 @@ class InspectionTests(unittest.TestCase):
                         Path('/fixture') / inspection.viewport.PROBE):
                 self.assertEqual(cap, 65536)
                 return script
-            if (path.parent == Path('/fixture/harness/screens')
-                    and path.stem in inspection.details.catalog_screens(details_schema)):
+            if path in details_scripts:
                 self.assertEqual(cap, 65536)
                 return script
             if path.parent == Path('/fixture') / inspection.details.OUTPUT:
@@ -1763,8 +1772,12 @@ class InspectionTests(unittest.TestCase):
         paths, reads, output = self.artifact_case(
             value, pixels=pixels, catalog_only='send-confirm')
         self.assertEqual(paths, ['.harness/ci-wallet-inspection/manifest.json'])
-        self.assertEqual(len(reads), 5)
+        self.assertEqual(len(reads), 8)
         self.assertIn('catalog_family=details-catalog', output)
+        self.assertIn(Path('/fixture/harness/screens/prepared/send-rest.txt'), reads)
+        self.assertNotIn(Path('/fixture/harness/screens/send-rest.txt'), reads)
+        self.assertIn('ci-details-catalog/07-send-rest-dark.png', output)
+        self.assertIn('ci-details-catalog/07-send-rest-light.png', output)
         self.assertIn('ci-details-catalog/12-send-confirm-dark.png', output)
         self.assertIn('ci-details-catalog/12-send-confirm-light.png', output)
         self.assertNotIn('/captures/', output)

@@ -432,15 +432,25 @@ void main() {
         );
         expect(tester.getSize(find.byKey(const Key('send_token_mark'))),
           const Size(22, 22));
-        final InputDecorator recipientDecoration =
-            tester.widget<InputDecorator>(
-              find.descendant(
-                of: find.byKey(const Key('send_recipient_field')),
+        final AppTokens tokens = AppTokens.of(tester.element(token));
+        for (final String field in <String>[
+          'send_recipient_field',
+          'send_amount_field',
+        ]) {
+          final Finder decoration = find
+              .descendant(
+                of: find.byKey(Key(field)),
                 matching: find.byType(InputDecorator),
-              ).first,
-            );
-        expect((recipientDecoration.decoration.enabledBorder!
-          as OutlineInputBorder).borderRadius, BorderRadius.circular(8));
+              )
+              .first;
+          final OutlineInputBorder outline = tester
+              .widget<InputDecorator>(decoration)
+              .decoration
+              .enabledBorder! as OutlineInputBorder;
+          expect(outline.borderRadius, BorderRadius.circular(8));
+          expect(outline.borderSide.color, tokens.faint);
+          expect(tester.getSize(decoration).height, 42);
+        }
         for (final (String, String) glyph in <(String, String)>[
           ('send_address_book', 'book'), ('send_clear_recipient', 'x'),
         ]) {

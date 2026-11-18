@@ -441,12 +441,19 @@ class ScreenCapture {
   }
 
   ScreenScript _script(ScreenSpec screen) {
-    final List<String> parts = <String>['harness', 'screens'];
+    final bool prepared = switch (screen.id) {
+      'az' => restoredSeeded && restoredProject,
+      'send-rest' => readonlySendConfirmation,
+      _ => false,
+    };
+    final List<String> parts = <String>[
+      'harness', 'screens', if (prepared) 'prepared',
+    ];
     _checkParents(parts);
     final List<String> fileParts = <String>[...parts, '${screen.id}.txt'];
     if (_type(fileParts) != FileSystemEntityType.file) {
       throw ScreenCaptureError(
-        'missing script or refused link: harness/screens/${screen.id}.txt',
+        'missing script or refused link: ${fileParts.join('/')}',
       );
     }
     final List<String> source = File(_join(fileParts)).readAsLinesSync();
@@ -458,7 +465,7 @@ class ScreenCapture {
       final bool after = text.startsWith(_afterCapturePrefix);
       if (text.startsWith('#') && !after) {
         final bool sendPrepared = readonlySendConfirmation &&
-            screen.id == 'send-confirm' &&
+            (screen.id == 'send-rest' || screen.id == 'send-confirm') &&
             text == '# prerequisite: readonly-lab-send-confirmation';
         final bool warningPrepared = readonlySendWarning &&
             screen.id == 'send-warn' &&
@@ -473,7 +480,7 @@ class ScreenCapture {
             screen.id == 'token-mine' &&
             text == '# prerequisite: restored-lab-token';
         final bool projectPrepared = restoredSeeded && restoredProject &&
-            screen.id == 'az-project' &&
+            (screen.id == 'az' || screen.id == 'az-project') &&
             text == '# prerequisite: restored-lab-project';
         final bool spawnPrepared = restoredSeeded && restoredPillarSpawn &&
             screen.id == 'spawn' &&

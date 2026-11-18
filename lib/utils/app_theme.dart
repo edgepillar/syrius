@@ -1729,6 +1729,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Space between the form's logical groups.
   double get transferFormGap => 12;
 
+  /// The Send button has an extra four-pixel margin above it.
+  double get sendActionGap => transferFormGap + 4;
+
   /// Space between fields in one group.
   double get transferFieldGap => 10;
 
@@ -1738,6 +1741,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Field content shares a quiet, consistent inset.
   EdgeInsetsDirectional get transferFieldPadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 10);
+
+  /// Send's 42-pixel fields give 20-pixel amounts room to center.
+  EdgeInsetsDirectional get sendFieldPadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 6);
 
   /// Recent-recipient chips keep their compact line height.
   EdgeInsetsDirectional get transferChipPadding =>

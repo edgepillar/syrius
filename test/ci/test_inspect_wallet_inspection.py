@@ -926,6 +926,8 @@ class ReaderTests(unittest.TestCase):
             source_files += reader.SURFACE_SEAM_SOURCES
         if bell_only:
             source_files += (reader.producer.HOME_BELL_SCRIPT.as_posix(),)
+        elif catalog_only == 'send-confirm':
+            source_files += ('harness/screens/prepared/send-rest.txt',)
         elif catalog_only == 'earn':
             source_files += tuple('harness/screens/' + name + '.txt'
                                   for name in reader.producer.details.EARN_SCREENS)
@@ -1152,7 +1154,8 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(value['verified_png_count'], 0)
         self.assertEqual(value['visited_pages'], {})
         self.assertEqual(value['verified_viewport_png_count'], 0)
-        self.assertEqual(value['verified_catalog_png_count'], 2)
+        self.assertEqual(value['verified_catalog_png_count'], 4)
+        self.assertEqual(value['producer_source_files_verified'], len(reader.SOURCE_FILES) + 1)
         self.assertEqual(len(calls), 14)
         self.assertFalse(value['original_checks']['tours_complete'])
         self.assertFalse(value['original_checks']['locale_verified'])
@@ -1160,9 +1163,10 @@ class ReaderTests(unittest.TestCase):
             if line.startswith('::notice title=Retained readonly Details catalog::')]
         self.assertEqual(len(messages), 1)
         observed = json.loads(messages[0])
-        self.assertEqual(observed['schema'], 3)
+        self.assertEqual(observed['schema'], reader.producer.details.SEND_CATALOG_SCHEMA)
         self.assertEqual(observed['filenames'],
-            ['12-send-confirm-dark.png', '12-send-confirm-light.png'])
+            ['07-send-rest-dark.png', '07-send-rest-light.png',
+             '12-send-confirm-dark.png', '12-send-confirm-light.png'])
         self.assertTrue(observed['all_original_png_digests_verified'])
         self.assertTrue(observed['parent_closure_qualified'])
         self.assertFalse(observed['financial_send_qualified'])
