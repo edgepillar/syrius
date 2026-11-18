@@ -585,17 +585,26 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
         SizedBox(height: tokens.receiveMicroGap),
         _buildError(context.l10n.receiveCopyFailed, tokens),
       ],
-      SizedBox(height: centered ? tokens.receiveGap : tokens.transferFormGap),
+      SizedBox(
+        height: centered
+            ? tokens.receiveRequestDividerGap
+            : tokens.transferFormGap,
+      ),
       Divider(height: 1, color: tokens.line),
       Disclosure(
         controller: _request,
         keepAlive: true,
         keyPrefix: 'receive_request',
-        headerPadding: EdgeInsets.zero,
+        headerMinHeight: centered
+            ? tokens.receiveCollapsedRequestHeight
+            : tokens.panelPlainHeaderHeight,
+        headerPadding: centered
+            ? EdgeInsets.only(top: tokens.receiveGap)
+            : EdgeInsets.zero,
         title: context.l10n.receiveRequestAmount,
-        titleStyle: tokens.receiveRequestText.copyWith(
-          color: tokens.foreground,
-        ),
+        titleStyle: centered
+            ? tokens.receiveRequestText
+            : tokens.receiveRequestText.copyWith(color: tokens.foreground),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,

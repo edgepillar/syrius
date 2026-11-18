@@ -398,6 +398,19 @@ void main() {
         );
         final Finder pendingPanel = find.byKey(const Key('transfer_pending'));
         final Finder qrToggle = find.byKey(const Key('receive_qr_toggle'));
+        final Finder requestToggle = find.byKey(
+          const Key('receive_request_toggle'),
+        );
+        final Finder requestLabel = find.descendant(
+          of: requestToggle,
+          matching: find.text('Request a specific amount'),
+        );
+        expect(tester.getSize(requestToggle).height, 34);
+        expect(
+          tester.getRect(requestToggle).top - tester.getRect(qrToggle).bottom,
+          18,
+        );
+        expect(tester.widget<Text>(requestLabel).style?.color, paintTokens.dim);
         pendingStates.add(_rows(<AccountBlock>[], more: true));
         await tester.pump();
         expect(pendingPanel, findsNothing);
@@ -416,6 +429,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 300));
         await tester.pump();
         expect(pendingPanel, findsNothing);
+        expect(tester.getSize(requestToggle).height, 44);
         final AccountBlock incoming = _block(1);
         pendingStates.add(_rows(<AccountBlock>[incoming]));
         await tester.pump(const Duration(milliseconds: 300));

@@ -1808,6 +1808,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Space between Receive actions.
   double get receiveActionGap => 8;
 
+  /// Space below the action buttons before the request divider.
+  double get receiveRequestDividerGap => 17;
+
+  /// Compact request row when the QR image is hidden.
+  double get receiveCollapsedRequestHeight => 34;
+
   /// Space between closely related labels.
   double get receiveMicroGap => 6;
 
