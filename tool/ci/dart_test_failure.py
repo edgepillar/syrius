@@ -124,6 +124,7 @@ ROOT_TEST_FILES = (
     'delegation_bloc_test.dart',
     'delegation_stats_bloc_test.dart',
     'deploy_pillar_bloc_test.dart',
+    'deploy_pillar_step_test.dart',
     'deploy_sentinel_bloc_test.dart',
     'devnet_deposit_confirmation_test.dart',
     'devnet_pillar_observation_test.dart',
