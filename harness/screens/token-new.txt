@@ -15,7 +15,7 @@ assert --key token_create_step_3
 assert --key token_domain_field
 wait --key token_create_continue --kind button --ready --timeout 30
 assert --key token_create_continue --kind button
-# after-capture: tap Close --kind button --exact
+# after-capture: tap --key token_create_close --kind button --exact
 # after-capture: wait --key tokens_create --kind button --ready --timeout 30
 # after-capture: goto dashboard
 # after-capture: wait --key home_hero --timeout 5

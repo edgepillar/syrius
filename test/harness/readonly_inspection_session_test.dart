@@ -1814,11 +1814,22 @@ void main() {
               }
             }
             if (tokenDraft) {
-              expect(targetKey, 'tokens_create');
-              expect(draftOpen, isFalse);
-              draftOpen = true;
-              draftReady = false;
-              draft.clear();
+              switch (targetKey) {
+                case 'tokens_create':
+                  expect(draftOpen, isFalse);
+                  draftOpen = true;
+                  draftReady = false;
+                  draft.clear();
+                case 'token_create_close':
+                  expect(afterShot && draftOpen, isTrue);
+                  expect(command['kind'], 'button');
+                  expect(command['exact'], isTrue);
+                  expect(command['text'], isNull);
+                  draftOpen = false;
+                  closedToken++;
+                default:
+                  fail('Unexpected pointer target for the Token draft');
+              }
             }
             if (sendConfirmation) {
               switch (targetKey) {
@@ -1859,11 +1870,6 @@ void main() {
                   fail('Unexpected pointer target for the Swap draft');
               }
             }
-          }
-          if (tokenDraft && name == 'tap' && command['text'] == 'Close') {
-            expect(afterShot && draftOpen, isTrue);
-            draftOpen = false;
-            closedToken++;
           }
           if (name == 'tap' && targetTab != null) {
             expect(<String>['dashboard', ...routes], contains(command['tab']));
