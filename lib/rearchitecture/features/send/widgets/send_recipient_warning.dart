@@ -23,7 +23,10 @@ class _SendRecipientWarning extends StatelessWidget {
       message: address,
       child: SelectableText.rich(
         TextSpan(
-          style: tokens.dataText.copyWith(color: tokens.dim),
+          style: tokens.dataText.copyWith(
+            fontSize: tokens.transferAddressComparisonTextSize,
+            color: tokens.dim,
+          ),
           children: <InlineSpan>[
             for (int index = 0; index < address.length; index++)
               TextSpan(
@@ -45,15 +48,60 @@ class _SendRecipientWarning extends StatelessWidget {
     );
   }
 
+  TableRow _buildComparisonRow(
+    BuildContext context, {
+    required String label,
+    required String address,
+    required String addressKey,
+    required double maxLabelWidth,
+    double bottomGap = 0,
+  }) {
+    final AppTokens tokens = AppTokens.of(context);
+    return TableRow(
+      children: <Widget>[
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxLabelWidth),
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(
+              end: tokens.transferAddressComparisonGap,
+              bottom: bottomGap,
+            ),
+            child: Text(
+              label,
+              style: tokens.transferCaptionText.copyWith(
+                fontSize: tokens.transferAddressComparisonTextSize,
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.only(bottom: bottomGap),
+          child: _buildAddress(context, address, addressKey),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    final ButtonStyle compact = ButtonStyle(
+      minimumSize: WidgetStatePropertyAll<Size>(
+        Size(0, tokens.compactButtonHeight),
+      ),
+      padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
+        tokens.compactButtonPadding,
+      ),
+      textStyle: WidgetStatePropertyAll<TextStyle>(
+        tokens.compactText.copyWith(fontWeight: FontWeight.w500),
+      ),
+    );
     return Container(
       key: const Key('send_recipient_warning'),
       padding: tokens.transferWarningPadding,
       decoration: BoxDecoration(
         color: tokens.transferWarningTint,
-        borderRadius: BorderRadius.circular(tokens.transferControlRadius),
+        borderRadius: BorderRadius.circular(tokens.cardRadius),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -62,9 +110,10 @@ class _SendRecipientWarning extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Icon(
-                Icons.warning_amber_rounded,
-                size: tokens.heroIconSize,
+              buildShellSymbol(
+                context,
+                'warn',
+                size: tokens.smallActionGlyphSize,
                 color: tokens.warn,
               ),
               SizedBox(width: tokens.inlineGap),
@@ -82,11 +131,33 @@ class _SendRecipientWarning extends StatelessWidget {
             style: tokens.transferCaptionText,
           ),
           SizedBox(height: tokens.inlineGap),
-          Text(context.l10n.sendKnownAddress, style: tokens.ledgerText),
-          _buildAddress(context, finding.address, 'send_known_address'),
-          SizedBox(height: tokens.fieldLabelGap),
-          Text(context.l10n.sendTypedAddress, style: tokens.ledgerText),
-          _buildAddress(context, typed, 'send_typed_address'),
+          LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              final double maxLabelWidth = constraints.maxWidth / 3;
+              return Table(
+                columnWidths: const <int, TableColumnWidth>{
+                  0: IntrinsicColumnWidth(),
+                },
+                children: <TableRow>[
+                  _buildComparisonRow(
+                    context,
+                    label: context.l10n.sendKnownAddress,
+                    address: finding.address,
+                    addressKey: 'send_known_address',
+                    maxLabelWidth: maxLabelWidth,
+                    bottomGap: tokens.fieldLabelGap,
+                  ),
+                  _buildComparisonRow(
+                    context,
+                    label: context.l10n.sendTypedAddress,
+                    address: typed,
+                    addressKey: 'send_typed_address',
+                    maxLabelWidth: maxLabelWidth,
+                  ),
+                ],
+              );
+            },
+          ),
           SizedBox(height: tokens.inlineGap),
           Wrap(
             spacing: tokens.inlineGap,
@@ -95,11 +166,13 @@ class _SendRecipientWarning extends StatelessWidget {
               OutlinedButton(
                 key: const Key('send_use_known'),
                 onPressed: onUseKnown,
+                style: secondaryButtonStyle(context).merge(compact),
                 child: Text(context.l10n.sendUseKnown(name)),
               ),
               TextButton(
                 key: const Key('send_use_typed'),
                 onPressed: onUseTyped,
+                style: quietButtonStyle(context).merge(compact),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[

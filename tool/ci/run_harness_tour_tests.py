@@ -32,7 +32,8 @@ except ImportError:
 # Includes all eight existing toast cases and retained-card paint assertions.
 # Includes pre-Welcome guards and one signing-control deadline matrix.
 # Includes the Token pane navigation and covered Issue cases.
-EXPECTED_DART_CASES = 1523
+# Includes the dark and light Home card wash cases.
+EXPECTED_DART_CASES = 1525
 LAUNCH_ASSET_DART_CASES = 2
 GROUP_COMMAND_LIMIT_SECONDS = 300
 TOTAL_COMMAND_LIMIT_SECONDS = 480

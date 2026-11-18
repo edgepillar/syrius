@@ -793,12 +793,54 @@ void main() {
       expect(warning, findsOneWidget);
       expect(behind, findsOneWidget);
       expect(action(tester).onPressed, isNull);
-      for (final (String key, String expected) in <(String, String)>[
-        ('send_known_address', sendWarningKnownAddress),
-        ('send_typed_address', sendWarningTypedAddress),
-      ]) {
-        expect(tester.widget<SelectableText>(find.byKey(Key(key)))
-            .textSpan!.toPlainText(), expected);
+      final BuildContext warningContext = tester.element(warning);
+      final AppTokens tokens = AppTokens.of(warningContext);
+      final AppLocalizations l10n = warningContext.l10n;
+      for (final Finder notice in <Finder>[warning, behind]) {
+        expectMockupSymbol(
+          tester,
+          within: notice,
+          symbol: 'warn',
+          size: 14,
+          color: tokens.warn,
+        );
+      }
+      final Text lagText = tester.widget<Text>(
+        find.descendant(
+          of: behind,
+          matching: find.byType(Text),
+        ),
+      );
+      final List<InlineSpan> lagSpans =
+          (lagText.textSpan! as TextSpan).children!;
+      expect(lagSpans.first.toPlainText(), l10n.sendNodeBehind(3));
+      expect((lagSpans.first as TextSpan).style!.fontWeight, FontWeight.w700);
+      expect(lagSpans.last.toPlainText().trim(), l10n.sendWaitForSync);
+      for (final (String key, String expected, String label)
+          in <(String, String, String)>[
+            (
+              'send_known_address',
+              sendWarningKnownAddress,
+              l10n.sendKnownAddress,
+            ),
+            (
+              'send_typed_address',
+              sendWarningTypedAddress,
+              l10n.sendTypedAddress,
+            ),
+          ]) {
+        final Finder address = find.byKey(Key(key));
+        expect(
+          tester.widget<SelectableText>(address).textSpan!.toPlainText(),
+          expected,
+        );
+        final Offset labelStart = tester.getTopLeft(find.text(label));
+        final Offset addressStart = tester.getTopLeft(address);
+        expect(addressStart.dy, labelStart.dy);
+        expect(addressStart.dx, greaterThan(labelStart.dx));
+      }
+      for (final String key in <String>['send_use_known', 'send_use_typed']) {
+        expect(tester.getSize(find.byKey(Key(key))).height, 30);
       }
 
       syncStates.add(_syncState(behind: 2));

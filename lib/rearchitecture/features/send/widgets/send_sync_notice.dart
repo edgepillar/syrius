@@ -3,6 +3,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_sync_status/node_sync_status.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show buildShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// The reported lag, using the same three-momentum slack as the status strip.
@@ -44,21 +46,29 @@ class SendSyncNotice extends StatelessWidget {
         return Container(
           key: const Key('send_node_behind'),
           padding: tokens.transferSyncPadding,
-          color: tokens.transferWarningTint,
+          color: tokens.transferSyncTint,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Icon(
-                Icons.warning_amber_rounded,
+              buildShellSymbol(
+                context,
+                'warn',
                 color: tokens.warn,
-                size: tokens.heroIconSize,
+                size: tokens.smallActionGlyphSize,
               ),
               SizedBox(width: tokens.transferFieldGap),
               Expanded(
-                child: Text(
-                  '${context.l10n.sendNodeBehind(lag)} '
-                  '${context.l10n.sendWaitForSync}',
-                  style: tokens.transferCaptionText,
+                child: Text.rich(
+                  TextSpan(
+                    children: <InlineSpan>[
+                      TextSpan(
+                        text: context.l10n.sendNodeBehind(lag),
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      TextSpan(text: ' ${context.l10n.sendWaitForSync}'),
+                    ],
+                  ),
+                  style: tokens.bodyText.copyWith(fontSize: 13.5),
                 ),
               ),
             ],

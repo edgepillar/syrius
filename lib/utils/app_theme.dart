@@ -1741,8 +1741,17 @@ class AppTokens extends ThemeExtension<AppTokens> {
   TextStyle get transferCaptionText =>
       bodyText.copyWith(fontSize: 13, color: dim);
 
-  /// A quiet caution surface derived from the theme's semantic warning.
-  Color get transferWarningTint => warn.withValues(alpha: 0.08);
+  /// The address comparison uses a quieter surface than the node notice.
+  Color get transferWarningTint => warn.withValues(alpha: 0.10);
+
+  /// The node notice spans the top of the Transfer card.
+  Color get transferSyncTint => warn.withValues(alpha: 0.12);
+
+  /// Labels and addresses in the comparison use the same type size.
+  double get transferAddressComparisonTextSize => 12.5;
+
+  /// Gutter between each comparison label and its address.
+  double get transferAddressComparisonGap => 18;
 
   /// A caution outline with the same meaning in both themes.
   Color get transferWarningLine => warn.withValues(alpha: 0.35);
