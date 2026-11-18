@@ -308,12 +308,20 @@ def review_status(
     return {"state": "current", **{key: review[key] for key in fields}, "note": review.get("note", "")}
 
 
-def store_diff(mask: Image.Image, output: Path) -> str:
+def difference_mask(diff: Image.Image) -> Image.Image:
+    return reduce(ImageChops.lighter, diff.split())
+
+
+def encode_diff_png(mask: Image.Image) -> bytes:
     # Palette indices preserve all heatmap colors with one byte per pixel.
     mask.putpalette(DIFF_PALETTE)
     with io.BytesIO() as encoded:
         mask.save(encoded, format="PNG")
-        data = encoded.getvalue()
+        return encoded.getvalue()
+
+
+def store_diff(mask: Image.Image, output: Path) -> str:
+    data = encode_diff_png(mask)
     digest = hashlib.sha256(data).hexdigest()
     directory = output / "diffs"
     directory.mkdir(exist_ok=True)
@@ -405,7 +413,7 @@ def compare_pair(
             )
         diff = ImageChops.difference(before, after)
         mean = sum(ImageStat.Stat(diff).mean) / 4
-        mask = reduce(ImageChops.lighter, diff.split())
+        mask = difference_mask(diff)
         pixels = before.width * before.height
         changed = pixels - mask.histogram()[0]
         pair["score"] = {

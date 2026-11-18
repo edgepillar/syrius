@@ -15,6 +15,13 @@ open under V01, including fixtures and matched animation frames. The
 [paired Windows measurement](https://github.com/edgepillar/syrius/actions/runs/44301199443/job/134791077419)
 preserves the failed 16 ms gate for page change and disclosure under V02.
 
+The private 28f9c121 browser report shows 94 reference, actual and difference
+triplets. All 94 difference PNGs decoded at 1280 by 780 with the standard
+maximum-channel RGBA palette. On-demand encoding reused the verified archives
+and avoided writing 4,753,309 bytes of derived PNG data. The 21 comparator
+controls passed. The browser report retains two strict matches, 68 strict
+mismatches and 24 pairs awaiting a strict verdict at that source.
+
 ## Qualification snapshot (2026-11-13)
 
 Source733 full Linux, Windows Lock producer and independent reader pass at
