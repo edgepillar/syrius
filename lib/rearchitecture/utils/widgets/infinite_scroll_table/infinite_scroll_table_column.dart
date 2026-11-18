@@ -89,9 +89,8 @@ class InfiniteScrollTableColumn extends StatelessWidget {
                 ? label
                 : Tooltip(message: tooltip, child: label),
           ),
-          // Mono capitals fill their column; without a gap two narrow headers
-          // read as one word.
-          const SizedBox(width: 8),
+          // Separate headings while keeping an end-aligned header flush.
+          if (alignment != MainAxisAlignment.end) const SizedBox(width: 8),
           // TODO(community): enable row sorting
           Visibility(
             visible: false,

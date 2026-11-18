@@ -162,8 +162,9 @@ class _View extends StatelessWidget {
 LocalKey _sentinelKey(SentinelInfo item) =>
     ValueKey<String>(item.owner.toString());
 
-/// The head is shared with InfiniteScrollTable. Rows fit the compact chip.
-const double _kHeadHeight = 40;
+// Keep the loading bands aligned with the populated table.
+const double _kHeadHeight = 32;
+const double _kRowVerticalPadding = 9;
 const double _kSkeletonBar = 12;
 
 /// The list while it loads: a bar where each of the first rows will be,
@@ -175,8 +176,7 @@ class _Loading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double rowHeight =
-        AppTokens.of(context).pillarActionHeight +
-        kInfiniteTableHorizontalPadding;
+        AppTokens.of(context).pillarActionHeight + 2 * _kRowVerticalPadding;
     // A short card shows fewer bars instead of overflowing.
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
@@ -207,10 +207,10 @@ class _Populated extends StatelessWidget {
   final VoidCallback? onOpenOwner;
   final VoidCallback onRefresh;
 
-  static const int _ownerFlex = 5;
-  static const int _registeredFlex = 3;
-  static const int _revocableFlex = 3;
-  static const int _statusFlex = 2;
+  static const int _ownerFlex = 15;
+  static const int _registeredFlex = 9;
+  static const int _revocableFlex = 10;
+  static const int _statusFlex = 6;
 
   @override
   Widget build(BuildContext context) {
@@ -224,6 +224,11 @@ class _Populated extends StatelessWidget {
         child: InfiniteScrollTable<SentinelInfo>(
           // Keeps the scroll position when the page is left and shown again.
           key: const PageStorageKey<String>('sentinels_table'),
+          minimumHeaderHeight: _kHeadHeight,
+          rowPadding: const EdgeInsetsDirectional.symmetric(
+            horizontal: kInfiniteTableHorizontalPadding,
+            vertical: _kRowVerticalPadding,
+          ),
           itemKeyGenerator: _sentinelKey,
           rowBuilder: (SentinelInfo item, int index, Widget row) =>
               ListEntranceItem(key: _sentinelKey(item), child: row),

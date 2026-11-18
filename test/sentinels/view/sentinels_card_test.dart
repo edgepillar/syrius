@@ -143,6 +143,35 @@ void main() {
       ]) {
         expect(find.text(label), findsOneWidget);
       }
+      final Finder table = find.byType(InfiniteScrollTable<SentinelInfo>);
+      final double columnWidth =
+          tester.getSize(table).width - 2 * kInfiniteTableHorizontalPadding;
+      final double start = tester.getTopLeft(find.text('OWNER')).dx;
+      final double registered = tester.getTopLeft(find.text('REGISTERED')).dx;
+      final double revocable = tester.getTopLeft(find.text('REVOCABLE')).dx;
+      expect(registered - start, closeTo(columnWidth * 0.375, 0.01));
+      expect(revocable - start, closeTo(columnWidth * 0.6, 0.01));
+      expect(
+        tester
+            .widget<InfiniteScrollTable<SentinelInfo>>(table)
+            .minimumHeaderHeight,
+        32,
+      );
+      expect(tester.getSize(_row(1)).height, 44);
+      expect(
+        tester.getTopLeft(find.text('27 d ago').first).dx,
+        closeTo(registered, 0.01),
+      );
+      final Finder status = find.descendant(
+        of: _row(1),
+        matching: find.byWidgetPredicate(
+          (Widget w) => w is SentinelStatusChip && !w.yours,
+        ),
+      );
+      expect(
+        tester.getTopRight(find.text('STATUS')).dx,
+        closeTo(tester.getTopRight(status).dx, 0.01),
+      );
       expect(find.text('27 d ago'), findsNWidgets(2));
       expect(find.text('in 3 d 2 h'), findsOneWidget);
       expect(find.text('now'), findsOneWidget);
