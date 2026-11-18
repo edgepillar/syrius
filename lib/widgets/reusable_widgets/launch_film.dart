@@ -72,6 +72,7 @@ class LaunchFilm extends StatefulWidget {
     this.decodeWidth,
     this.lastFrameAsset,
     this.fit = BoxFit.contain,
+    this.retainImageLayout = false,
     this.autoplay = true,
     this.onDone,
     this.controller,
@@ -117,6 +118,9 @@ class LaunchFilm extends StatefulWidget {
 
   /// How a frame fills the box.
   final BoxFit fit;
+
+  /// Keeps the decoded frame's layout while its enclosing stage resizes.
+  final bool retainImageLayout;
 
   /// Whether it plays from the first frame as soon as it is built. When
   /// false it stays black until the [controller] is told to play.
@@ -781,19 +785,25 @@ class _LaunchFilmState extends State<LaunchFilm>
   Widget build(BuildContext context) {
     final ui.Image? sample = _originalsArtwork?.sampledImage;
     _paintedArtwork = sample == null ? null : _originalsArtwork;
+    final Widget image = RawImage(image: sample ?? _shown, fit: widget.fit);
+    if (widget.retainImageLayout) {
+      // The launch stage resizes during the handoff. Fit the original image
+      // layer at paint time so the held frame keeps its decoded layout size.
+      return ColoredBox(
+        color: const Color(0xFF000000),
+        child: FittedBox(
+          fit: widget.fit,
+          clipBehavior: Clip.hardEdge,
+          child: RepaintBoundary(child: image),
+        ),
+      );
+    }
     // The frames are drawn on black in both themes, so the box is black
     // before the first of them and round one that does not fill it.
     return RepaintBoundary(
       child: ColoredBox(
         color: const Color(0xFF000000),
-        child: SizedBox.expand(
-          child: RawImage(
-            image: sample ?? _shown,
-            // Drawn with RawImage's own filter, medium: the one that
-            // averages when a frame is drawn smaller than it is.
-            fit: widget.fit,
-          ),
-        ),
+        child: SizedBox.expand(child: image),
       ),
     );
   }
