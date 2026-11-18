@@ -1614,7 +1614,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// The palette's shortcut footer inset.
   EdgeInsetsDirectional get goToFooterPadding =>
-      const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 12);
+      const EdgeInsetsDirectional.fromSTEB(16, 6, 16, 12);
 
   /// The distance between palette shortcut hints.
   double get goToFooterGap => 14;
