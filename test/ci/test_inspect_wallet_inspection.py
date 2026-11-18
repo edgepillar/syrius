@@ -719,8 +719,10 @@ class ReaderTests(unittest.TestCase):
             remote.assert_not_called()
             observed = reader.source_files(Path('/fixture'), versioned, 'b' * 40,
                 read_versioned_blob=remote)
-            self.assertEqual(remote.call_args_list, [mock.call(original_sha)] * 2)
-            for path in reader.VERSIONED_INPUTS.intersection(reader.SOURCE_FILES):
+            versioned_paths = reader.VERSIONED_INPUTS.intersection(reader.SOURCE_FILES)
+            self.assertEqual(remote.call_args_list,
+                [mock.call(original_sha)] * len(versioned_paths))
+            for path in versioned_paths:
                 self.assertEqual(observed[path], reader.archive.sha(historical))
             with self.assertRaises(reader.archive.Refused):
                 reader.source_files(Path('/fixture'), versioned, 'b' * 40,

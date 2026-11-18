@@ -2,6 +2,10 @@ import '../app/fixtures/send_warning_draft.dart' show sendWarningKnownAddress;
 import 'harness.dart' as cli;
 import 'readonly_inspection_session.dart';
 
+/// The original edit action for the isolated synthetic contact.
+String get readonlyCatalogContactEditKey =>
+    'addresses_edit_contact_$sendWarningKnownAddress';
+
 /// Enters the draft through the real field and requires its exact reply.
 Future<void> typeReadonlyCatalogField(
   cli.Instance instance, String key, String value,
@@ -23,6 +27,15 @@ Future<void> prepareReadonlyCatalogContact(
   await cli.call(instance, <String, Object?>{
     'cmd': 'tap', 'key': 'settings_addresses', 'exact': true,
   });
+  await saveReadonlyCatalogContact(instance, name: name);
+  await cli.goto(instance, 'dashboard');
+}
+
+/// Saves the fixed synthetic contact from the already opened Addresses page.
+Future<void> saveReadonlyCatalogContact(
+  cli.Instance instance, {
+  required String name,
+}) async {
   await cli.waitForTarget(instance, cli.Args(<String>[
     '--key', 'addresses_add_contact', '--kind', 'button',
     '--exact', '--ready', '--timeout', '20',
@@ -43,9 +56,8 @@ Future<void> prepareReadonlyCatalogContact(
     'cmd': 'tap', 'key': 'addresses_save_contact', 'exact': true,
   });
   await cli.waitForTarget(instance, cli.Args(<String>[
-    '--key', 'addresses_edit_contact_$sendWarningKnownAddress',
+    '--key', readonlyCatalogContactEditKey,
     '--kind', 'button',
     '--exact', '--ready', '--timeout', '10',
   ]));
-  await cli.goto(instance, 'dashboard');
 }
