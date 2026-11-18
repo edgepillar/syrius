@@ -220,7 +220,11 @@ void main() {
         ),
       );
 
+      bool pageTickersEnabled(int index) =>
+          TickerMode.valuesOf(tester.element(_page(index))).enabled;
+
       await tester.pumpWidget(_host(0, page: paintedPage(0, Colors.red)));
+      expect(pageTickersEnabled(0), isTrue);
       final OffsetLayer leaving = layerFor(0);
       final Layer? leavingPaint = leaving.firstChild;
       expect(leavingPaint, isNotNull);
@@ -233,6 +237,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 80));
       expect(_opacity(tester, _page(0)), greaterThan(0));
       expect(_opacity(tester, _page(1)), 0);
+      expect(pageTickersEnabled(0), isFalse);
+      expect(pageTickersEnabled(1), isFalse);
       expect(transitionFor(0), same(exitTransition));
       expect(transitionFor(1), same(hiddenTransition));
       expect(leaving.firstChild, same(leavingPaint));
@@ -246,6 +252,7 @@ void main() {
       await tester.pump(const Duration(microseconds: 63999));
       expect(_opacity(tester, _page(1)), greaterThan(0));
       expect(_opacity(tester, _page(1)), lessThan(1));
+      expect(pageTickersEnabled(1), isTrue);
       final OffsetLayer arriving = layerFor(1);
       final Layer? arrivingPaint = arriving.firstChild;
       final FadeThroughTransition visibleTransition = transitionFor(1);

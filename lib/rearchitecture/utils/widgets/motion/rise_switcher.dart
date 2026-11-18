@@ -245,7 +245,7 @@ class _RiseSwitcherState extends State<RiseSwitcher>
             valueListenable: entry.visible,
             // The enclosing transform and fade can reuse the page's paint.
             child: RepaintBoundary(child: entry.child),
-            builder: (BuildContext context, bool visible, Widget? child) {
+            builder: (_, _, Widget? child) {
               final bool interactive = entry.interactive;
               return IgnorePointer(
                 ignoring: !interactive,
@@ -265,9 +265,9 @@ class _RiseSwitcherState extends State<RiseSwitcher>
                         secondaryAnimation: entry.exit,
                         fillColor: Colors.transparent,
                         child: TickerMode(
-                          // Only child tickers follow visibility; the
-                          // transition's own clocks keep running.
-                          enabled: visible,
+                          // Keep the last animation frame on a page leaving
+                          // the rail. Its fade clock continues above this.
+                          enabled: interactive,
                           child: child!,
                         ),
                       ),
