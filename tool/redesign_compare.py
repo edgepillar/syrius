@@ -5,6 +5,7 @@
     python tool/redesign_compare.py --actual-dir <shots> --output-dir <report>
     python tool/redesign_compare.py --actual-manifest <captures.json>
     python tool/redesign_compare.py --actual-manifest <captures.json> --target-source <commit>
+    python tool/redesign_compare.py --actual-manifest <first.json> --actual-manifest <second.json> --target-source <commit> --require-current-captures --no-diff-images
     python tool/redesign_compare.py --reviews <reviews.json> --require-reviewed
     python tool/redesign_compare.py --no-diff-images --output-dir <compact-report>
 
@@ -20,6 +21,9 @@ commit. With --target-source, captures from other or unknown commits remain
 visible for diagnosis and are excluded from acceptance. Supply source pins
 from the capture's verified run record. Use the original filename or a
 content-addressed file named by its digest. Missing entries remain visible.
+Pass one manifest per verified batch. For an overlapping screen and theme,
+an exact target capture takes precedence. Multiple distinct files with
+equal precedence require an explicit selection in the input manifests.
 On Windows, place the report and all selected images on the same drive.
 
 Manual reviews use screenshot stems as keys. For example:
@@ -46,6 +50,7 @@ from __future__ import annotations
 import argparse
 import ast
 from collections import Counter
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from functools import reduce
@@ -212,6 +217,24 @@ def load_actual_manifest(source: Path, stems: set[str]) -> dict[str, Capture]:
             raise ReportError("Cannot resolve the capture path") from error
         captures[stem] = Capture(resolved, digest, source_sha)
     return captures
+
+
+def select_actual_captures(
+    sources: Sequence[Path], stems: set[str], target_source: str | None,
+) -> dict[str, Capture]:
+    candidates: dict[str, set[Capture]] = {}
+    for source in sources:
+        for stem, capture in load_actual_manifest(source, stems).items():
+            candidates.setdefault(stem, set()).add(capture)
+
+    selected: dict[str, Capture] = {}
+    for stem, choices in candidates.items():
+        if target_source is not None:
+            choices = {choice for choice in choices if choice.source_sha == target_source} or choices
+        if len(choices) != 1:
+            raise ReportError(f"Capture manifests select multiple files for {stem}")
+        selected[stem] = next(iter(choices))
+    return selected
 
 
 def relative_url(target: Path, output: Path) -> str:
@@ -416,7 +439,11 @@ def render_html(manifest: dict[str, object]) -> str:
         )
     counts = ", ".join(f"{state}: {count}" for state, count in sorted(manifest["summary"]["states"].items()))
     target = manifest["summary"].get("target_source")
-    target_text = f"<p>Target commit <code>{escape(target)}</code></p>" if target is not None else ""
+    target_text = ""
+    if target is not None:
+        available = manifest["summary"]["target_pairs"]["available"]
+        total = manifest["summary"]["pairs"]
+        target_text = f"<p>Target commit <code>{escape(target)}</code>. {available} of {total} pairs available.</p>"
     return (
         "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\">"
         "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
@@ -445,7 +472,7 @@ def generate_report(
     output: Path,
     reviews_path: Path | None = None,
     *,
-    actual_manifest: Path | None = None,
+    actual_manifest: Path | Sequence[Path] | None = None,
     target_source: str | None = None,
     required_size: tuple[int, int] = IMAGE_SIZE,
     write_diffs: bool = True,
@@ -464,7 +491,8 @@ def generate_report(
     if actual_manifest is not None:
         if actual_dir is not None:
             raise ReportError("Choose either an actual directory or a capture manifest")
-        actuals = load_actual_manifest(actual_manifest, stems)
+        sources = (actual_manifest,) if isinstance(actual_manifest, Path) else actual_manifest
+        actuals = select_actual_captures(sources, stems, target_source)
     else:
         directory = actual_dir if actual_dir is not None else repo / ".harness" / "shots"
         actuals = {stem: Capture(directory / f"{stem}.png") for stem in stems}
@@ -489,6 +517,11 @@ def generate_report(
     }
     if target_source is not None:
         summary["target_source"] = target_source
+        remaining = [
+            pair["id"] for pair in pairs
+            if pair["score"] is None or pair["actual"].get("source_sha") != target_source
+        ]
+        summary["target_pairs"] = {"available": len(pairs) - len(remaining), "remaining": remaining}
     manifest = {
         "schema_version": 1,
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
@@ -505,14 +538,19 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     inputs = parser.add_mutually_exclusive_group()
     inputs.add_argument("--actual-dir", type=Path, help="One capture directory (default: .harness/shots)")
-    inputs.add_argument("--actual-manifest", type=Path, help="Private capture paths and SHA-256 pins")
+    inputs.add_argument("--actual-manifest", type=Path, action="append",
+                        help="Private capture paths and SHA-256 pins, repeatable")
     parser.add_argument("--target-source", help="Accept reviews only for captures at this full Git commit")
     parser.add_argument("--output-dir", type=Path, default=ROOT / "mockups" / "redesign" / "compare")
     parser.add_argument("--reviews", type=Path, help="Manual, image-hash-bound visual review JSON")
     parser.add_argument("--no-diff-images", action="store_true",
                         help="Link inputs and report scores without writing difference PNGs")
     parser.add_argument("--require-reviewed", action="store_true", help="Exit 1 unless all 94 pairs are reviewed matches")
+    parser.add_argument("--require-current-captures", action="store_true",
+                        help="Exit 1 unless all 94 pairs are available at --target-source")
     args = parser.parse_args()
+    if args.require_current_captures and args.target_source is None:
+        parser.error("--require-current-captures requires --target-source")
     try:
         actual_dir = args.actual_dir.resolve() if args.actual_dir is not None else None
         manifest = generate_report(
@@ -528,7 +566,12 @@ def main() -> int:
     summary = manifest["summary"]
     print(f"Comparison generated: 47 screens, 94 pairs; visual review {summary['visual_review']}")
     print(", ".join(f"{state}: {count}" for state, count in sorted(summary["states"].items())))
-    return int(args.require_reviewed and summary["visual_review"] != "COMPLETE")
+    target_pairs = summary.get("target_pairs")
+    if target_pairs is not None:
+        print(f"Target pairs available: {target_pairs['available']}/{summary['pairs']}")
+    missing_captures = args.require_current_captures and bool(target_pairs["remaining"])
+    incomplete_reviews = args.require_reviewed and summary["visual_review"] != "COMPLETE"
+    return int(missing_captures or incomplete_reviews)
 
 
 if __name__ == "__main__":

@@ -320,6 +320,24 @@ private JSON has an `actual` object keyed by screenshot stem, with `path`
 and `sha256` fields for each selected PNG. The tool checks the digest and
 links to the existing file. Preserve each capture's original run evidence.
 
+For a comparison at one revision, record the verified producer commit as
+`source_sha` in each capture entry. Pass one manifest per batch. If batches
+overlap, a unique capture from the target commit takes precedence. Resolve
+conflicting selections at equal precedence in the manifests.
+
+```sh
+python tool/redesign_compare.py \
+  --actual-manifest .harness/home-captures.json \
+  --actual-manifest .harness/entry-captures.json \
+  --target-source "$(git rev-parse HEAD)" \
+  --require-current-captures --no-diff-images \
+  --output-dir .harness/compare-current
+```
+
+The summary lists every pair still needed at the target commit. Once all 94
+pairs are available, omit `--no-diff-images` for the visual review. Use
+`--require-reviewed` to require all 94 explicit match verdicts.
+
 An explicit `--dir` must not exist. Absolute paths, traversal, links and
 Windows device aliases are refused. Captures use exclusive file creation;
 the directory must remain under this run's sole ownership because Dart's

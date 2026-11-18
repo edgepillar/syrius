@@ -12,16 +12,19 @@ qualify report behaviour only; they do not establish any screen's match.
 from __future__ import annotations
 
 import argparse
+from contextlib import redirect_stdout
 import hashlib
 import html
+import io
 import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from PIL import Image, ImageOps
 
-from redesign_compare import generate_report, screen_inventory, screen_notes
+from redesign_compare import generate_report, main, screen_inventory, screen_notes
 
 
 TEST_ROOT: Path | None = None
@@ -256,6 +259,9 @@ class CompareTests(unittest.TestCase):
                 pair = result["pairs"][0]
                 self.assertEqual(result["summary"]["states"], {state: 1, "missing": 93})
                 self.assertEqual(result["summary"]["target_source"], current)
+                coverage = result["summary"]["target_pairs"]
+                self.assertEqual(coverage["available"], int(captured == current))
+                self.assertEqual(self.stem in coverage["remaining"], captured != current)
                 self.assertEqual(pair["actual"].get("source_sha"), captured)
                 self.assertEqual(pair["score"]["similarity_pct"], 100)
                 self.assertEqual(pair["review"]["state"], "current" if captured == current else "none")
@@ -263,6 +269,93 @@ class CompareTests(unittest.TestCase):
                 self.assertIn(f"Target commit <code>{current}</code>", page)
                 if captured is not None:
                     self.assertIn(f"Actual at {captured[:12]}", page)
+
+    def test_capture_batches_prefer_target_and_require_a_unique_selection(self) -> None:
+        current = "a" * 40
+        historical = "b" * 40
+        second_stem = "02-screen-a-light"
+        previous = self.actual / "previous"
+        selected = self.actual / "selected"
+        for directory in (previous, selected):
+            directory.mkdir()
+            self.save_png(directory / f"{self.stem}.png")
+        self.save_png(previous / f"{second_stem}.png")
+        digest = hashlib.sha256((selected / f"{self.stem}.png").read_bytes()).hexdigest()
+
+        def save_manifest(directory: Path, source: str, *stems: str) -> Path:
+            manifest = directory / "captures.json"
+            manifest.write_text(json.dumps({"actual": {
+                stem: {"path": f"{stem}.png", "sha256": digest, "source_sha": source}
+                for stem in stems
+            }}), encoding="utf-8")
+            return manifest
+
+        older = save_manifest(previous, historical, self.stem, second_stem)
+        fresh = save_manifest(selected, current, self.stem)
+        result = generate_report(
+            self.repo, None, self.output, actual_manifest=(fresh, older),
+            target_source=current, required_size=(4, 3), write_diffs=False,
+        )
+        pairs = {pair["id"]: pair for pair in result["pairs"]}
+        self.assertEqual(pairs[self.stem]["actual"]["url"], f"../actual/selected/{self.stem}.png")
+        self.assertEqual(pairs[second_stem]["actual"]["url"], f"../actual/previous/{second_stem}.png")
+        self.assertEqual(pairs[second_stem]["state"], "other-source")
+        self.assertEqual(result["summary"]["target_pairs"]["available"], 1)
+        self.assertNotIn(self.stem, result["summary"]["target_pairs"]["remaining"])
+        self.assertIn(second_stem, result["summary"]["target_pairs"]["remaining"])
+
+        save_manifest(previous, current, self.stem, second_stem)
+        conflict = self.repo / "conflict"
+        with self.assertRaisesRegex(ValueError, self.stem):
+            generate_report(
+                self.repo, None, conflict, actual_manifest=(older, fresh),
+                target_source=current, required_size=(4, 3), write_diffs=False,
+            )
+        self.assertFalse(conflict.exists())
+
+    def test_current_capture_gate_distinguishes_coverage_from_visual_review(self) -> None:
+        target = "a" * 40
+        captures = self.repo / "captures.json"
+        entries = {}
+        for name in sorted(self.expected.glob("*.png")):
+            actual = self.actual / name.name
+            self.save_png(actual)
+            entries[name.stem] = {
+                "path": f"actual/{name.name}",
+                "sha256": hashlib.sha256(actual.read_bytes()).hexdigest(),
+                "source_sha": target,
+            }
+        argv = [
+            "redesign_compare.py", "--target-source", target,
+            "--actual-manifest", str(captures), "--output-dir", str(self.output),
+            "--require-current-captures", "--no-diff-images",
+        ]
+        for wrong_size in (False, True):
+            with self.subTest(wrong_size=wrong_size):
+                if wrong_size:
+                    actual = self.actual / f"{self.stem}.png"
+                    self.save_png(actual, (2, 2))
+                    entries[self.stem]["sha256"] = hashlib.sha256(actual.read_bytes()).hexdigest()
+                captures.write_text(json.dumps({"actual": entries}), encoding="utf-8")
+                with (
+                    patch("redesign_compare.ROOT", self.repo),
+                    patch("sys.argv", argv),
+                    patch(
+                        "redesign_compare.generate_report",
+                        side_effect=lambda *args, **kwargs: generate_report(
+                            *args, required_size=(4, 3), **kwargs,
+                        ),
+                    ),
+                    redirect_stdout(io.StringIO()),
+                ):
+                    self.assertEqual(main(), int(wrong_size))
+                summary = json.loads((self.output / "summary.json").read_text(encoding="utf-8"))
+                self.assertEqual(summary["target_pairs"], {
+                    "available": 93 if wrong_size else 94,
+                    "remaining": [self.stem] if wrong_size else [],
+                })
+                self.assertEqual(summary["visual_review"], "INCOMPLETE")
+                self.assertFalse((self.output / "diffs").exists())
 
     def test_target_source_requires_manifest_before_output(self) -> None:
         with self.assertRaisesRegex(ValueError, "requires a capture manifest"):
