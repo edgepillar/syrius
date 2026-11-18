@@ -4816,11 +4816,11 @@ abstract class AppLocalizations {
   /// **'The QR carries the amount.'**
   String get receiveRequestAmountHint;
 
-  /// No description provided for @receiveShareImage.
+  /// No description provided for @receiveCopyImage.
   ///
   /// In en, this message translates to:
-  /// **'Share image'**
-  String get receiveShareImage;
+  /// **'Copy image'**
+  String get receiveCopyImage;
 
   /// No description provided for @receiveInvalidAmount.
   ///

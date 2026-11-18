@@ -1,6 +1,7 @@
 #include "my_application.h"
 
 #include <flutter_linux/flutter_linux.h>
+#include <cstring>
 #ifdef GDK_WINDOWING_X11
 #include <gdk/gdkx.h>
 #endif
@@ -13,6 +14,58 @@ struct _MyApplication {
 };
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
+
+static gboolean ClipboardPngSizeIsSupported(const uint8_t* bytes, gsize size) {
+  constexpr uint8_t header[] = {
+      0x89, 'P', 'N', 'G', 0x0d, 0x0a, 0x1a, 0x0a,
+      0, 0, 0, 13, 'I', 'H', 'D', 'R',
+  };
+  if (size < 24 || size > 1024 * 1024 ||
+      std::memcmp(bytes, header, sizeof(header)) != 0) {
+    return FALSE;
+  }
+  guint32 width, height;
+  std::memcpy(&width, bytes + 16, sizeof(width));
+  std::memcpy(&height, bytes + 20, sizeof(height));
+  width = GUINT32_FROM_BE(width);
+  height = GUINT32_FROM_BE(height);
+  return width > 0 && width <= 1024 && height > 0 && height <= 1024;
+}
+
+static void HandleImageClipboard(FlMethodChannel*, FlMethodCall* call,
+                                 gpointer) {
+  if (std::strcmp(fl_method_call_get_name(call), "writePng") != 0) {
+    g_autoptr(FlMethodResponse) response =
+        FL_METHOD_RESPONSE(fl_method_not_implemented_response_new());
+    fl_method_call_respond(call, response, nullptr);
+    return;
+  }
+
+  FlValue* args = fl_method_call_get_args(call);
+  if (args && fl_value_get_type(args) == FL_VALUE_TYPE_UINT8_LIST) {
+    const uint8_t* bytes = fl_value_get_uint8_list(args);
+    const gsize size = fl_value_get_length(args);
+    if (ClipboardPngSizeIsSupported(bytes, size)) {
+      GtkClipboard* clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+      g_autoptr(GdkPixbufLoader) loader =
+          gdk_pixbuf_loader_new_with_type("png", nullptr);
+      if (clipboard && loader) {
+        const gboolean read =
+            gdk_pixbuf_loader_write(loader, bytes, size, nullptr);
+        const gboolean complete = gdk_pixbuf_loader_close(loader, nullptr);
+        GdkPixbuf* image = gdk_pixbuf_loader_get_pixbuf(loader);
+        if (read && complete && image) {
+          gtk_clipboard_set_image(clipboard, image);
+          fl_method_call_respond_success(call, nullptr, nullptr);
+          return;
+        }
+      }
+    }
+  }
+  g_autoptr(FlMethodResponse) response = FL_METHOD_RESPONSE(
+      fl_method_error_response_new("clipboard-write-failed", nullptr, nullptr));
+  fl_method_call_respond(call, response, nullptr);
+}
 
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
@@ -60,6 +113,12 @@ static void my_application_activate(GApplication* application) {
   gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(view));
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
+  g_autoptr(FlStandardMethodCodec) codec = fl_standard_method_codec_new();
+  g_autoptr(FlMethodChannel) clipboard = fl_method_channel_new(
+      fl_engine_get_binary_messenger(fl_view_get_engine(view)),
+      "network.zenon.syrius/image_clipboard", FL_METHOD_CODEC(codec));
+  fl_method_channel_set_method_call_handler(
+      clipboard, HandleImageClipboard, nullptr, nullptr);
 
   gtk_widget_grab_focus(GTK_WIDGET(view));
 }
