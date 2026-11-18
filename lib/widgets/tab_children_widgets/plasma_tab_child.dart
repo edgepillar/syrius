@@ -200,11 +200,15 @@ class _PlasmaPageState extends State<_PlasmaPage> {
                         ),
                         SizedBox(height: tokens.pageGap),
                         Expanded(
-                          child: FusedPlasmaCard(
-                            owner: _owner,
-                            captureSession: _captureSession,
-                            isCurrent: () => _current,
-                            onSubmitted: _submitted,
+                          child: ListenableBuilder(
+                            listenable: _form,
+                            builder: (_, _) => FusedPlasmaCard(
+                              owner: _owner,
+                              captureSession: _captureSession,
+                              isCurrent: () => _current,
+                              fuseFormOpen: _form.isOpen,
+                              onSubmitted: _submitted,
+                            ),
                           ),
                         ),
                       ],
@@ -270,7 +274,7 @@ class _PlasmaStrip extends StatelessWidget {
                   StripFigure(
                     label: context.l10n.plasmaPageFusedByYou,
                     value: amount(read?.total, 'plasma_qsr_owned'),
-                    trailing: read == null
+                    trailing: read == null || form.isOpen
                         ? null
                         : Text(
                             context.l10n.plasmaPageEntries(read.count),
