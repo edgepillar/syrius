@@ -19,6 +19,10 @@ MAX_ARCHIVE = 256 * 1024
 PRODUCERS = ('windows_startup_probe.py', 'windows_presentation_smoke.py',
              'windows_entry_capture_smoke.py', 'windows_wallet_tour.py')
 JOB_NAME = 'Observe original Windows Release startup'
+BATCH_JOB_NAME = 'Capture original Windows startup catalog'
+# One listing, fifteen source reads and two requests per archive.
+BATCH_REQUESTS = 24
+PRE_BATCH_LAUNCH_PRODUCER_SHA = '166cd2d6a070c53fef5e41d3e7d65fb7bf7e65cab53148da576f5338fe2d1f74'
 # The timing lane preserves earlier launch, lock and quiz producers.
 PRE_TIMING_LAUNCH_PRODUCER_SHA = 'e579d76e178e69189069f5269a0ba8981f3e435a10e0f80f69bb2d559b4761a2'
 FIRST_TIMING_LAUNCH_PRODUCER_SHA = '6880559d501bc59bff26865155af96efe56322a61a587a04edccc37b41a487a5'
@@ -149,7 +153,8 @@ def inspect_run(client, *, head, tree, run_id, job):
 
 
 def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *,
-                   settle=False, lock=False, quiz=False, timing=False, lock_seams=False):
+                   settle=False, lock=False, quiz=False, timing=False, lock_seams=False,
+                   shared_binaries=None):
     """Bind startup evidence to its exact original closed actors."""
     archive.need(not timing or not (settle or lock or quiz))
     archive.need(not lock_seams or not (settle or lock or quiz or timing))
@@ -345,6 +350,9 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         summary['frame'] = 55 if settle else 23
     if settle:
         summary['handoff_progress'] = [row['progress'] for row in captures]
+    if shared_binaries is not None:
+        for key in ('runner_sha256', 'payload_sha256'):
+            archive.need(shared_binaries.setdefault(key, report[key]) == report[key])
     return summary
 
 
@@ -361,6 +369,16 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
             and observed[0]['status'] == retained[0]['status'] == 'completed'
             and observed[0]['conclusion'] in ('success', 'failure')
             and retained[0]['conclusion'] == 'success')
+    summary = _inspect_launch_artifact(client, head, tree, run_id,
+        settle=settle, lock=lock, quiz=quiz, timing=timing, lock_seams=lock_seams)
+    archive.need((job['conclusion'] == 'success') is summary['artifact_reported_success'])
+    summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'])
+    return summary
+
+
+def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=False,
+                             quiz=False, timing=False, lock_seams=False, item=None,
+                             shared_binaries=None):
     pins = {}
     sources = [('tool/ci/windows_launch_catalog.py', None)]
     if timing:
@@ -399,12 +417,15 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
                 prior = (*prior, PRE_TIMING_LAUNCH_PRODUCER_SHA, *PRIOR_TIMING_LAUNCH_PRODUCER_SHAS)
             if quiz and name == 'tool/ci/windows_quiz_catalog.py':
                 prior = PRIOR_QUIZ_PRODUCER_SHAS
-            archive.need(body == current or archive.sha(body) in prior)
+            if name == 'tool/ci/windows_launch_catalog.py':
+                prior = (*prior, PRE_BATCH_LAUNCH_PRODUCER_SHA)
+            archive.need(body == current or (shared_binaries is None and archive.sha(body) in prior))
         else:
             pins[key] = archive.sha(body)
-    listing = client.json('/actions/runs/' + str(run_id) + '/artifacts?per_page=20')
-    archive.need(listing['total_count'] == len(listing['artifacts']) == 1)
-    item = listing['artifacts'][0]
+    if item is None:
+        listing = client.json('/actions/runs/' + str(run_id) + '/artifacts?per_page=20')
+        archive.need(listing['total_count'] == len(listing['artifacts']) == 1)
+        item = listing['artifacts'][0]
     screen = launch.SETTLE_SCREEN if settle else 'launch'
     prefix = lock_catalog.ARTIFACT_PREFIX if lock else 'windows-' + screen + '-catalog-'
     cap = lock_catalog.MAX_ARCHIVE if lock else launch.MAX_ARCHIVE
@@ -421,9 +442,60 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
         and type(item['size_in_bytes']) is int and 0 < item['size_in_bytes'] <= cap)
     location = client.read(archive.API + '/actions/artifacts/' + str(item['id']) + '/zip', redirect=True)
     raw = client.read(location, authenticated=False, cap=cap)
-    summary = launch_archive(raw, item['digest'][7:], item['size_in_bytes'],
+    return launch_archive(raw, item['digest'][7:], item['size_in_bytes'],
         head, tree, run_id, pins, settle=settle, lock=lock, quiz=quiz, timing=timing,
-        lock_seams=lock_seams)
-    archive.need((job['conclusion'] == 'success') is summary['artifact_reported_success'])
-    summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'])
-    return summary
+        lock_seams=lock_seams, shared_binaries=shared_binaries)
+
+
+def inspect_catalog_batch(client, *, head, tree, run_id, job):
+    """Bind each archive to its original step and compare the shared binaries."""
+    archive.need(job['name'] == BATCH_JOB_NAME and job['labels'] == ['windows-latest']
+        and job['head_sha'] == head and job['run_id'] == run_id
+        and job['status'] == 'completed' and job['conclusion'] in ('success', 'failure'))
+    lanes = (
+        (launch.JOB_STEP, 'Retain the original cold launch manifest and PNGs',
+         'windows-launch-catalog-', {}),
+        (launch.SETTLE_JOB_STEP, 'Retain the original launch handoff manifest and PNGs',
+         'windows-launch-settle-catalog-', {'settle': True}),
+        (lock_catalog.JOB_STEP, 'Retain the original lock catalog manifest and PNGs',
+         lock_catalog.ARTIFACT_PREFIX, {'lock': True}),
+        (quiz_catalog.JOB_STEP, 'Retain the synthetic seed quiz manifest and PNGs',
+         quiz_catalog.ARTIFACT_PREFIX, {'quiz': True}),
+    )
+    steps = {}
+    for step in job['steps']:
+        name = step['name']
+        archive.need(name not in steps and step['status'] == 'completed')
+        steps[name] = step['conclusion']
+    archive.need(steps['Build the ordinary Release harness target'] == 'success')
+    expected = {}
+    ran_all = True
+    for capture, retain, prefix, options in lanes:
+        outcome, upload = steps[capture], steps[retain]
+        archive.need(outcome in ('success', 'failure', 'skipped')
+            and upload in ('success', 'failure', 'skipped')
+            and (upload != 'success' or outcome != 'skipped'))
+        ran_all = ran_all and outcome == upload == 'success'
+        if upload == 'success':
+            expected[prefix + head + '-' + str(run_id) + '-1'] = (outcome, options)
+    archive.need(job['conclusion'] != 'success' or ran_all)
+    listing = client.json('/actions/runs/' + str(run_id) + '/artifacts?per_page=20')
+    items = {item['name']: item for item in listing['artifacts']}
+    archive.need(listing['total_count'] == len(listing['artifacts']) == len(items)
+        and set(items) == set(expected)
+        and len({item['id'] for item in items.values()}) == len(items))
+    shared_binaries, results = {}, []
+    for name, (outcome, options) in expected.items():
+        summary = _inspect_launch_artifact(client, head, tree, run_id,
+            item=items[name], shared_binaries=shared_binaries, **options)
+        archive.need((outcome == 'success') is summary['artifact_reported_success'])
+        summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'],
+                       original_capture_conclusion=outcome)
+        results.append(summary)
+    batch = dict(schema=1, scope='retained_windows_startup_catalog_batch',
+        source_head=head, source_tree=tree, source_run_id=run_id, source_attempt=1,
+        original_job_id=job['id'], original_job_conclusion=job['conclusion'],
+        complete=ran_all and job['conclusion'] == 'success', verified_catalogs=len(results),
+        verified_png_count=sum(item['verified_png_count'] for item in results),
+        visual_matches=0, **shared_binaries)
+    return batch, results

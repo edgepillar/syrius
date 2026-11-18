@@ -19,6 +19,7 @@ from . import windows_startup_probe as startup
 
 
 OUTPUT = Path('.harness/ci-launch-catalog')
+SETTLE_OUTPUT = Path('.harness/ci-launch-settle-catalog')
 TIMING_OUTPUT = Path('.harness/ci-launch-timing')
 TIMING_SCREEN = 'launch-timing'
 TIMING_SCOPE = 'original_cold_lock_frame_timing'
@@ -461,7 +462,7 @@ def main():
         if settle:
             report['profile_sha256'] = sha((repo / SETTLE_PROFILE_SOURCE).read_bytes())
         entry.private_root(repo)
-        output_directory = repo / (TIMING_OUTPUT if timing else OUTPUT)
+        output_directory = repo / (TIMING_OUTPUT if timing else SETTLE_OUTPUT if settle else OUTPUT)
         output_directory.mkdir(mode=0o700)
         destination = output_directory
         samples = ((TIMING_THEME, None),) if timing else zip(

@@ -411,6 +411,69 @@ class StartupInspectionTests(unittest.TestCase):
         self.assertTrue(reader.call_args.kwargs['timing'])
         self.assertFalse(any('/artifacts' in path for path in client.calls))
 
+    def test_batch_routes_each_retained_archive_to_its_original_capture_step(self):
+        prefixes = ('windows-launch-catalog-', 'windows-launch-settle-catalog-',
+                    'windows-lock-catalog-', 'windows-quiz-catalog-')
+        captures = (inspect.launch.JOB_STEP, inspect.launch.SETTLE_JOB_STEP,
+                    inspect.lock_catalog.JOB_STEP, inspect.quiz_catalog.JOB_STEP)
+        uploads = ('Retain the original cold launch manifest and PNGs',
+                   'Retain the original launch handoff manifest and PNGs',
+                   'Retain the original lock catalog manifest and PNGs',
+                   'Retain the synthetic seed quiz manifest and PNGs')
+
+        class Batch(Client):
+            def __init__(self, *, partial=False, extra=False):
+                super().__init__()
+                self.job.update(name=inspect.BATCH_JOB_NAME, labels=['windows-latest'],
+                                conclusion='failure' if partial else 'success')
+                steps = [('Build the ordinary Release harness target', 'success')]
+                self.artifacts = []
+                for index, (capture, upload) in enumerate(zip(captures, uploads)):
+                    outcome = ('success' if not partial or index == 0 else
+                               'failure' if index == 1 else 'skipped')
+                    retained = 'skipped' if outcome == 'skipped' else 'success'
+                    steps.extend(((capture, outcome), (upload, retained)))
+                    if retained == 'success':
+                        self.artifacts.append(dict(name=prefixes[index] + HEAD + '-9-1',
+                                                   id=index + 1))
+                if extra:
+                    self.artifacts.append(dict(name='unselected', id=20))
+                self.job['steps'] = [dict(name=name, status='completed', conclusion=outcome)
+                                     for name, outcome in steps]
+
+            def json(self, path):
+                if path == '/actions/runs/9/artifacts?per_page=20':
+                    return dict(total_count=len(self.artifacts), artifacts=self.artifacts)
+                value = super().json(path)
+                if path == '/actions/runs/9':
+                    value['head_branch'] = 'redesign'
+                return value
+
+        for partial in (False, True):
+            count = 2 if partial else 4
+            with self.subTest(partial=partial), mock.patch.object(
+                    inspect, '_inspect_launch_artifact', side_effect=[
+                        dict(scope='catalog', artifact_reported_success=not partial or i == 0,
+                             verified_png_count=(2, 2, 6, 2)[i] if not partial or i == 0 else 0)
+                        for i in range(count)]) as reader:
+                status, output = self.read_windows(Batch(partial=partial))
+            self.assertEqual(status, 0)
+            batch = json.loads(output.splitlines()[-1].split('::', 2)[-1])
+            self.assertEqual(batch['scope'], 'retained_windows_startup_catalog_batch')
+            self.assertEqual(batch['complete'], not partial)
+            self.assertEqual(batch['verified_catalogs'], count)
+            self.assertEqual(batch['verified_png_count'], 2 if partial else 12)
+            self.assertEqual([call.kwargs['item']['id'] for call in reader.call_args_list],
+                             list(range(1, count + 1)))
+            self.assertTrue(all(call.kwargs['shared_binaries'] is reader.call_args.kwargs['shared_binaries']
+                                for call in reader.call_args_list))
+            for call, option in zip(reader.call_args_list[1:], ('settle', 'lock', 'quiz')):
+                self.assertTrue(call.kwargs[option])
+        with mock.patch.object(inspect, '_inspect_launch_artifact') as reader:
+            status, _ = self.read_windows(Batch(extra=True))
+        self.assertEqual(status, 1)
+        reader.assert_not_called()
+
     def test_launch_timing_refuses_unlocked_or_non_numeric_samples(self):
         launch = inspect.launch
         process = object.__new__(launch.LaunchProcess)
@@ -470,7 +533,7 @@ class StartupInspectionTests(unittest.TestCase):
             source_sha=HEAD, source_tree=TREE, run_id=str(RUN), run_attempt='1',
             runner_sha256='e' * 64, payload_sha256='f' * 64, **pins)
 
-        def read(value):
+        def read(value, *, shared_binaries=None):
             buffer = io.BytesIO()
             with zipfile.ZipFile(buffer, 'w') as zipped:
                 zipped.writestr('manifest.json', json.dumps(value))
@@ -478,12 +541,17 @@ class StartupInspectionTests(unittest.TestCase):
                     zipped.writestr(row['file'], pixels)
             raw = buffer.getvalue()
             return inspect.launch_archive(raw, inspect.archive.sha(raw), len(raw),
-                HEAD, TREE, RUN, pins, settle=settle)
+                HEAD, TREE, RUN, pins, settle=settle, shared_binaries=shared_binaries)
 
         actual = read(report)
         self.assertTrue(actual['artifact_reported_success'])
         self.assertEqual(actual['verified_png_count'], 2)
         self.assertEqual(actual['filenames'], list(files))
+        shared_binaries = {}
+        self.assertEqual(read(report, shared_binaries=shared_binaries), actual)
+        self.assertEqual(shared_binaries, dict(runner_sha256='e' * 64, payload_sha256='f' * 64))
+        with self.assertRaises(inspect.archive.Refused):
+            read(dict(report, payload_sha256='a' * 64), shared_binaries=shared_binaries)
         if settle:
             self.assertEqual(actual['handoff_progress'], [.52, .52])
             with self.assertRaises(inspect.archive.Refused):

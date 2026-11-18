@@ -422,7 +422,8 @@ def main():
         PHASE = 'job_metadata'
         listing = client.json('/actions/runs/' + text + '/attempts/1/jobs?per_page=20')
         archive.need(listing['total_count'] == len(listing['jobs']) <= 20)
-        startup_jobs = [job for job in listing['jobs'] if job['name'] == startup.JOB_NAME]
+        startup_jobs = [job for job in listing['jobs']
+                        if job['name'] in (startup.JOB_NAME, startup.BATCH_JOB_NAME)]
         archive.need(len(startup_jobs) <= 1)
         if startup_jobs and startup_jobs[0]['conclusion'] != 'skipped':
             job = startup_jobs[0]
@@ -430,6 +431,15 @@ def main():
                 and other['status'] == 'completed' and other['conclusion'] == 'skipped'
                 for other in listing['jobs'] if other is not job))
             PHASE = 'startup_artifacts'
+            if job['name'] == startup.BATCH_JOB_NAME:
+                archive.need(run['head_branch'] == 'redesign')
+                batch_client = archive.Client(parent.get('GH_TOKEN'), max_calls=startup.BATCH_REQUESTS)
+                batch, results = startup.inspect_catalog_batch(
+                    batch_client, head=head, tree=tree, run_id=run_id, job=job)
+                for summary in results:
+                    emit('Hosted original startup catalog inspection', summary)
+                emit('Hosted shared Windows startup catalog inspection', batch)
+                return 0
             launch_titles = {
                 startup.launch.JOB_STEP: 'Hosted original cold launch inspection',
                 startup.launch.SETTLE_JOB_STEP: 'Hosted original launch handoff inspection',

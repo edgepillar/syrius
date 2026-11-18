@@ -258,7 +258,9 @@ def inspect_run(client, *, head, tree, run_id, job):
         and selected[0]['conclusion'] in ('success', 'failure') and retained[0]['conclusion'] == 'success')
     for name, module in (('windows_launch_timing_pair.py', pair),
                          ('windows_launch_catalog.py', pair.launch)):
-        archive.need(source(client, 'tool/ci/' + name, head) == Path(module.__file__).read_bytes())
+        body = source(client, 'tool/ci/' + name, head)
+        archive.need(body == Path(module.__file__).read_bytes()
+            or (module is pair.launch and archive.sha(body) == startup_reader.PRE_BATCH_LAUNCH_PRODUCER_SHA))
     pinned = client.json('/git/commits/' + pair.P06_SOURCE)
     archive.need(pinned['sha'] == pair.P06_SOURCE and pinned['tree']['sha'] == pair.P06_TREE)
     pins = {key: archive.sha(source(client, path.as_posix(), head)) for key, path in (
