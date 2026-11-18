@@ -276,8 +276,13 @@ class _TransferPageState extends State<TransferPage> {
                       ],
                     ),
                   ),
-                  _TransferPending(
-                    worker: widget.receiveWorker ?? sl<AutoReceiveTxWorker>(),
+                  ListenableBuilder(
+                    listenable: _receiveHeader,
+                    builder: (_, _) => _TransferPending(
+                      worker: widget.receiveWorker ?? sl<AutoReceiveTxWorker>(),
+                      showEmpty: mode == TransferMode.receive &&
+                          _receiveHeader.snapshot?.qrPresent == false,
+                    ),
                   ),
                 ],
               ),

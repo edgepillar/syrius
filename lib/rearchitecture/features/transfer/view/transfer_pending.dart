@@ -16,8 +16,9 @@ List<AccountBlock> _inboundRows(List<AccountBlock> blocks) {
 }
 
 class _TransferPending extends StatefulWidget {
-  const _TransferPending({required this.worker});
+  const _TransferPending({required this.worker, required this.showEmpty});
   final AutoReceiveTxWorker worker;
+  final bool showEmpty;
 
   @override
   State<_TransferPending> createState() => _TransferPendingState();
@@ -141,7 +142,51 @@ class _TransferPendingState extends State<_TransferPending> {
         );
         _rememberRows(rows);
         final bool empty = known && rows.isEmpty;
-        if (empty) return const SizedBox.shrink();
+        if (empty) {
+          if (!widget.showEmpty || !state.hasReachedMax) {
+            return const SizedBox.shrink();
+          }
+          return Padding(
+            padding: EdgeInsetsDirectional.only(top: tokens.pageGap),
+            child: Panel(
+              key: const Key('transfer_pending'),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: tokens.panelPlainHeaderHeight,
+                ),
+                child: Padding(
+                  padding: tokens.panelHeaderPadding,
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          context.l10n.transferToReceive,
+                          overflow: TextOverflow.ellipsis,
+                          style: panelTitleStyle(context),
+                        ),
+                      ),
+                      SizedBox(width: tokens.cardGap),
+                      Flexible(
+                        child: Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          heightFactor: 1,
+                          child: Text(
+                            context.l10n.noItemsFound,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: tokens.compactText.copyWith(
+                              color: tokens.dim,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
         final bool? autoReceive =
             sharedPrefsService?.get(
                   kAutoReceiveKey,

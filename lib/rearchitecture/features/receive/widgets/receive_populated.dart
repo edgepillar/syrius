@@ -194,6 +194,7 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
             address: _labels[address] ?? address,
         },
         selected: selected,
+        qrPresent: _qrPresent,
         isCurrent: () => _headerCurrent,
         onSelected: _selectHeaderAddress,
       );
