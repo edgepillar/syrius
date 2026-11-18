@@ -4996,7 +4996,7 @@ class HarnessAgent {
     if (pillarDone) return nodeArtworkComplete(target, AppLottieAsset.pillar);
     if (catalog == 'earn' && key == 'pillar_owner_panel') {
       return nodeArtworkComplete(target, AppLottieAsset.pillar) &&
-          _stripArtworkComplete('nodes_pillars_strip', AppLottieAsset.pillar);
+          _stripArtworkComplete('nodes_pillar_owner_strip', AppLottieAsset.pillar);
     }
     if (catalog == harnessReadonlySentinelCatalog) {
       if (key == 'nodes_sentinels_strip') {

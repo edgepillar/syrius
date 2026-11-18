@@ -19,6 +19,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart'
     show HeroField;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/dollar_text.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/eye_toggle.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/plasma_meter.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/services/price_feed.dart';
@@ -98,16 +99,21 @@ Future<void> _showHomeField(
   await tester.pump();
 }
 
-Future<Uint8List> _homeFieldPixels(WidgetTester tester) async {
-  final RenderRepaintBoundary boundary =
-      tester.renderObject<RenderRepaintBoundary>(find.descendant(
-        of: find.byType(HeroField), matching: find.byType(RepaintBoundary),
-      ));
+Future<Uint8List> _homeFieldPixels(
+  WidgetTester tester, {
+  Finder? capture,
+  Size size = _homeFieldSize,
+}) async {
+  final Finder target = capture ?? find.descendant(
+    of: find.byType(HeroField),
+    matching: find.byType(RepaintBoundary),
+  );
+  final RenderRepaintBoundary boundary = tester.renderObject(target);
   return (await tester.runAsync<Uint8List>(() async {
     final ui.Image image = await boundary.toImage();
     try {
-      expect(image.width, _homeFieldSize.width.toInt());
-      expect(image.height, _homeFieldSize.height.toInt());
+      expect(image.width, size.width.toInt());
+      expect(image.height, size.height.toInt());
       final ByteData? data = await image.toByteData();
       if (data == null) throw StateError('Home field pixels unavailable');
       return Uint8List.fromList(data.buffer.asUint8List(
@@ -1368,6 +1374,54 @@ void main() {
   });
 
   for (final bool light in <bool>[false, true]) {
+    testWidgets('Home wash uses the existing card base, light $light', (
+      WidgetTester tester,
+    ) async {
+      const Size size = Size(400, 92);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
+          home: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                for (final bool overPanel in <bool>[false, true])
+                  SizedBox.fromSize(
+                    size: size,
+                    child: RepaintBoundary(
+                      key: ValueKey<bool>(overPanel),
+                      child: Panel(child: HeroField.home(overPanel: overPanel)),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 2));
+      final Uint8List original = await _homeFieldPixels(
+        tester,
+        capture: find.byKey(const ValueKey<bool>(false)),
+        size: size,
+      );
+      final Uint8List layered = await _homeFieldPixels(
+        tester,
+        capture: find.byKey(const ValueKey<bool>(true)),
+        size: size,
+      );
+      // Compare the rows inside the fully opaque portion of the rounded card.
+      final int inset = size.width.toInt() * 20 * 4;
+      expect(
+        foundation.listEquals(
+          Uint8List.sublistView(original, inset, original.length - inset),
+          Uint8List.sublistView(layered, inset, layered.length - inset),
+        ),
+        isTrue,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+
     testWidgets('Home wash follows reference light regions, light $light', (
       WidgetTester tester,
     ) async {

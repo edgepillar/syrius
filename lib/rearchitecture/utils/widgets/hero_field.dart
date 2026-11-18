@@ -26,10 +26,12 @@ const String kHeroFieldShader = 'assets/shaders/hero_field.frag';
 /// window or a frosted overlay holds the field on its current frame.
 class HeroField extends StatefulWidget {
   /// Creates the field.
-  const HeroField({this.strength, super.key}) : _referenceHome = false;
+  const HeroField({this.strength, super.key})
+    : _referenceHome = false,
+      overPanel = false;
 
   /// The Home card's closest-side lights and eighteen-second alternate drift.
-  const HeroField.home({super.key})
+  const HeroField.home({this.overPanel = false, super.key})
     : strength = null,
       _referenceHome = true;
 
@@ -37,6 +39,10 @@ class HeroField extends StatefulWidget {
   /// takes the value for the theme: less on a white card, where the same
   /// pull reads as a stain.
   final double? strength;
+
+  /// Whether a containing panel already paints the card color.
+  final bool overPanel;
+
   final bool _referenceHome;
 
   @override
@@ -81,12 +87,16 @@ class _HeroFieldState extends State<HeroField>
     if (widget._referenceHome) {
       final AppTokens tokens = AppTokens.of(context);
       final double pixelRatio = MediaQuery.devicePixelRatioOf(context);
+      final bool panelPaintsBase =
+          widget.overPanel &&
+          tokens.card.a == 1 &&
+          Theme.of(context).colorScheme.primary == tokens.card;
       _clock.active = true;
       return RepaintBoundary(
         child: CustomPaint(
           painter: _HomeHeroFieldPainter(
             seconds: _clock,
-            base: tokens.card,
+            base: panelPaintsBase ? null : tokens.card,
             green: tokens.znn,
             blue: tokens.qsr,
             pink: tokens.pink,
@@ -195,7 +205,7 @@ class _HomeHeroFieldPainter extends CustomPainter {
   }) : super(repaint: seconds);
 
   final ValueListenable<double> seconds;
-  final Color base;
+  final Color? base;
   final Color green;
   final Color blue;
   final Color pink;
@@ -221,11 +231,14 @@ class _HomeHeroFieldPainter extends CustomPainter {
       leg <= 1 ? leg : 2 - leg,
     );
     final Offset center = field.center;
+    // Keep the drifting field in the paint bounds.
     canvas
       ..save()
-      // Keep both the opaque base and drifting field in the paint bounds.
-      ..clipRect(viewport, doAntiAlias: false)
-      ..drawRect(viewport, Paint()..color = base)
+      ..clipRect(viewport, doAntiAlias: false);
+    if (base case final Color color) {
+      canvas.drawRect(viewport, Paint()..color = color);
+    }
+    canvas
       ..translate(
         center.dx + field.width * (-fieldDriftX + 2 * fieldDriftX * progress),
         center.dy + field.height * (-fieldDriftY + 2 * fieldDriftY * progress),
