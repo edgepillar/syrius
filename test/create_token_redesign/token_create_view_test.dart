@@ -17,6 +17,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_slider.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../helpers/mockup_symbol.dart';
 import 'support.dart';
 
 class _IssueBloc extends MockBloc<IssueTokenEvent, IssueTokenState>
@@ -119,6 +120,10 @@ void main() {
         await _clock(tester);
         final AppTokens tokens = AppTokens.of(tester.element(_frame('rail')));
         final Finder badge = _frame('preview_badge');
+        expect(
+          tester.getBottomLeft(badge).dy,
+          lessThan(tester.getTopLeft(_frame('retry')).dy),
+        );
         final Finder firstMark = find.descendant(
           of: _frame('step_0'),
           matching: find.byType(Container),
@@ -319,7 +324,23 @@ void main() {
           ),
         );
         await _clock(tester);
+        final Finder symbol = _field('token_symbol_field');
+        InputDecoration symbolDecoration() =>
+            tester.widget<TextField>(symbol).decoration!;
+        expect(symbolDecoration().suffixIcon, isNull);
+        await tester.enterText(symbol, '!');
+        await tester.pump();
+        expect(symbolDecoration().errorText, isNotNull);
+        expect(symbolDecoration().suffixIcon, isNull);
         await _details(tester);
+        expect(symbolDecoration().errorText, isNull);
+        expectMockupSymbol(
+          tester,
+          within: symbol,
+          symbol: 'check',
+          size: 14,
+          color: AppTokens.of(tester.element(symbol)).znnInk,
+        );
         await tester.tap(_field('token_name_field'));
         await tester.sendKeyEvent(LogicalKeyboardKey.tab);
         await tester.pump(const Duration(milliseconds: 1));
