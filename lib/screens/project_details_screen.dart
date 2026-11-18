@@ -9,10 +9,12 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_action_binding.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_presenter.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_panel_navigation.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_view.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/phase_creation_stepper.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/update_phase_stepper.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_dismiss.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Existing detail route. Its original source is never rebound after an await.
@@ -43,6 +45,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
   AcceleratorActionBinding? _source;
   String? _explorer;
   bool _invalidated = false;
+  ModalRoute<dynamic>? _hostRoute;
 
   @override
   void initState() {
@@ -67,6 +70,12 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
     if (source != null) unawaited(_presenter.load(source));
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _hostRoute = AcceleratorPanelNavigation.hostRouteOf(context);
+  }
+
   void _invalidate() {
     _invalidated = true;
     _presenter.invalidate();
@@ -74,6 +83,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
 
   bool get _onPage =>
       mounted &&
+      (_hostRoute?.isCurrent ?? true) &&
       (ModalRoute.of(context)?.isCurrent ?? true) &&
       TickerMode.valuesOf(context).enabled;
   bool get _current => !_invalidated && (_source?.isCurrent ?? false);
@@ -106,7 +116,9 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
     final Widget stepper = selected == null
         ? PhaseCreationStepper(project, source: source)
         : UpdatePhaseStepper(selected, project, source: source);
-    Navigator.of(context).push<void>(
+    final NavigatorState navigator =
+        _hostRoute?.navigator ?? Navigator.of(context);
+    navigator.push<void>(
       MaterialPageRoute<void>(
         builder: (BuildContext context) => StepperScreen(
           stepper: stepper,
@@ -149,18 +161,24 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    body: AcceleratorProjectView(
-      presenter: _presenter,
-      title: widget.project.name,
-      explorer: _explorer,
-      onBack: () {
-        if (_onPage) Navigator.of(context).pop();
-      },
-      onRefresh: _refresh,
-      onCreatePhase: _openPhase,
-      onUpdatePhase: (Project project, Phase phase) =>
-          _openPhase(project, phase: phase),
-      onOpenUrl: _openUrl,
+    body: PageDismissAction(
+      open: _onPage,
+      onDismiss: _back,
+      child: AcceleratorProjectView(
+        presenter: _presenter,
+        title: widget.project.name,
+        explorer: _explorer,
+        onBack: _back,
+        onRefresh: _refresh,
+        onCreatePhase: _openPhase,
+        onUpdatePhase: (Project project, Phase phase) =>
+            _openPhase(project, phase: phase),
+        onOpenUrl: _openUrl,
+      ),
     ),
   );
+
+  void _back() {
+    if (_onPage) Navigator.of(context).pop();
+  }
 }

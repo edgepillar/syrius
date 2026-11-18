@@ -4,6 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_action_controller.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_panel_navigation.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_view.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
@@ -140,6 +141,66 @@ void main() {
       },
     );
   }
+
+  testWidgets(
+    'a root dialog blocks a saved vote on the visible panel route',
+    (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(1280, 780));
+      final ActionSource source = ActionSource()
+        ..project = actionProject(phases: <int>[2]);
+      final AcceleratorProjectPresenter presenter =
+          AcceleratorProjectPresenter(
+            projectId: listHash(1),
+            actions: AcceleratorActionController(),
+          );
+      await presenter.load(source);
+      try {
+        await tester.pumpWidget(
+          host(
+            AcceleratorPanelNavigation(
+              child: AcceleratorProjectView(
+                presenter: presenter,
+                title: 'Original',
+                onBack: () {},
+                onRefresh: () {},
+              ),
+            ),
+          ),
+        );
+        final Finder yes = find.descendant(
+          of: find.byKey(const Key('accelerator_detail_vote_yes')),
+          matching: find.byType(PrimaryPill),
+        );
+        final BuildContext context = tester.element(yes);
+        final VoidCallback saved = tester.widget<PrimaryPill>(yes).onPressed!;
+        final ModalRoute<dynamic>? panel = ModalRoute.of(context);
+        final NavigatorState shell = Navigator.of(
+          context, rootNavigator: true,
+        );
+        final Future<void> dialog = showDialog<void>(
+          context: context,
+          builder: (_) => const AlertDialog(title: Text('Synthetic cover')),
+        );
+        expect(panel?.isCurrent, isTrue);
+        saved();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(find.text('Synthetic cover'), findsOneWidget);
+        expect(source.builders, isEmpty);
+        expect(source.publications, 0);
+        shell.pop();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+        await dialog;
+        expect(tester.takeException(), isNull);
+      } finally {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump(const Duration(seconds: 1));
+        presenter.dispose();
+        await tester.binding.setSurfaceSize(null);
+      }
+    },
+  );
 
   testWidgets(
     'an old Yes callback cannot vote after the selected phase changes',

@@ -11,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_action_controller.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_presenter.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_panel_navigation.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_list_item.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_presenter.dart';
@@ -66,6 +67,7 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
   int _epoch = 0;
   bool _visible = true;
   ModalRoute<dynamic>? _route;
+  ModalRoute<dynamic>? _hostRoute;
   @override
   void initState() {
     super.initState();
@@ -80,9 +82,16 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
     super.didChangeDependencies();
     final bool visible = TickerMode.valuesOf(context).enabled;
     final ModalRoute<dynamic>? route = ModalRoute.of(context);
-    if (_visible && !visible || !identical(route, _route)) _epoch++;
+    final ModalRoute<dynamic>? host =
+        AcceleratorPanelNavigation.hostRouteOf(context);
+    if (_visible && !visible ||
+        !identical(route, _route) ||
+        !identical(host, _hostRoute)) {
+      _epoch++;
+    }
     _visible = visible;
     _route = route;
+    _hostRoute = host;
   }
 
   @override
@@ -99,7 +108,11 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
     if (mounted) setState(() {});
   }
 
-  bool get _onPage => mounted && _visible && (_route?.isCurrent ?? true);
+  bool get _onPage =>
+      mounted &&
+      _visible &&
+      (_route?.isCurrent ?? true) &&
+      (_hostRoute?.isCurrent ?? true);
   bool _can(AcceleratorProjectSnapshot source, int epoch) =>
       _onPage && epoch == _epoch && widget.presenter.owns(source.authority);
   @override

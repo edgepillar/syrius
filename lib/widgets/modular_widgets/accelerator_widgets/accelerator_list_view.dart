@@ -12,6 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/pa
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_presenter.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_panel_navigation.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_list_item.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_stats.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
@@ -65,6 +66,7 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
   final ScrollController _horizontal = ScrollController();
   Timer? _clock;
   int _epoch = 0;
+  ModalRoute<dynamic>? _hostRoute;
   AcceleratorListFilter? _lastFilter;
   String? _lastQuery;
   bool? _lastNewest;
@@ -76,6 +78,12 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
     _clock = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _hostRoute = AcceleratorPanelNavigation.hostRouteOf(context);
   }
 
   @override
@@ -111,6 +119,7 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
       identical(source.projects, widget.presenter.snapshot.projects);
 
   bool get _onPage =>
+      (_hostRoute?.isCurrent ?? true) &&
       (ModalRoute.of(context)?.isCurrent ?? true) &&
       TickerMode.valuesOf(context).enabled;
 
@@ -423,6 +432,7 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
               nowTimestamp: widget.presenter.nowTimestamp,
               stillCurrent: () =>
                   mounted &&
+                  (_hostRoute?.isCurrent ?? true) &&
                   source.isCurrent &&
                   identical(
                     source.binding,

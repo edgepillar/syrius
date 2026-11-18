@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_view.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_panel_navigation.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_list_item.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -267,29 +268,38 @@ void main() {
     }
   });
 
-  testWidgets('container transform is 300 ms on the nested navigator', (
+  testWidgets('project transform and Back stay within the shell pane', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(1280, 780));
     final AcceleratorListPresenter presenter = await loadedPresenter();
     final _Routes root = _Routes();
-    final _Routes nested = _Routes();
     try {
       await tester.pumpWidget(
         host(
-          Navigator(
-            observers: <NavigatorObserver>[nested],
-            onGenerateRoute: (RouteSettings settings) =>
-                MaterialPageRoute<void>(
-                  builder: (BuildContext context) => listView(
-                    presenter,
-                    detailBuilder:
-                        (
-                          BuildContext context,
-                          AcceleratorListProject project,
-                        ) => Scaffold(body: Text('Exact ${project.id}')),
-                  ),
+          Row(
+            children: <Widget>[
+              const Text('Shell rail'),
+              Expanded(
+                child: Column(
+                  children: <Widget>[
+                    Expanded(
+                      child: AcceleratorPanelNavigation(
+                        child: listView(
+                          presenter,
+                          detailBuilder:
+                              (
+                                BuildContext context,
+                                AcceleratorListProject project,
+                              ) => Scaffold(body: Text('Exact ${project.id}')),
+                        ),
+                      ),
+                    ),
+                    const Text('Shell status'),
+                  ],
                 ),
+              ),
+            ],
           ),
           observer: root,
         ),
@@ -305,9 +315,24 @@ void main() {
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 301));
-      expect(nested.pushed, hasLength(2));
       expect(root.pushed, hasLength(1));
-      expect(find.text('Exact ${listHash(1)}'), findsOneWidget);
+      final Finder detail = find.text('Exact ${listHash(1)}');
+      expect(detail, findsOneWidget);
+      expect(find.text('Shell rail').hitTestable(), findsOneWidget);
+      expect(find.text('Shell status').hitTestable(), findsOneWidget);
+      final BuildContext detailContext = tester.element(detail);
+      final NavigatorState pane = Navigator.of(detailContext);
+      final NavigatorState shell = Navigator.of(
+        detailContext, rootNavigator: true,
+      );
+      expect(pane, isNot(same(shell)));
+      expect(pane.canPop(), isTrue);
+      expect(await shell.maybePop<void>(), isTrue);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 301));
+      expect(detail, findsNothing);
+      expect(find.byKey(const Key('accelerator_list')), findsOneWidget);
+      expect(root.pushed, hasLength(1));
       expect(tester.takeException(), isNull);
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());

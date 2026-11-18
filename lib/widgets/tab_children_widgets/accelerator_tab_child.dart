@@ -10,6 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_binding.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_view.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_panel_navigation.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/project_creation_stepper.dart';
 
 /// Accelerator reads have one original wallet, member set, node and revision.
@@ -104,14 +105,16 @@ class _AcceleratorTabChildState extends State<AcceleratorTabChild>
   }
 
   @override
-  Widget build(BuildContext context) => AcceleratorListView(
-    presenter: _presenter,
-    onRefresh: _queueRefresh,
-    onDonate: (AcceleratorListSnapshot source) =>
-        _openStepper(source, AcceleratorActionKind.donate),
-    onCreateProject: (AcceleratorListSnapshot source) =>
-        _openStepper(source, AcceleratorActionKind.createProject),
-    onStepperNotificationSeeMorePressed:
-        widget.onStepperNotificationSeeMorePressed,
+  Widget build(BuildContext context) => AcceleratorPanelNavigation(
+    child: AcceleratorListView(
+      presenter: _presenter,
+      onRefresh: _queueRefresh,
+      onDonate: (AcceleratorListSnapshot source) =>
+          _openStepper(source, AcceleratorActionKind.donate),
+      onCreateProject: (AcceleratorListSnapshot source) =>
+          _openStepper(source, AcceleratorActionKind.createProject),
+      onStepperNotificationSeeMorePressed:
+          widget.onStepperNotificationSeeMorePressed,
+    ),
   );
 }
