@@ -372,7 +372,7 @@ void main() {
 
   for (final bool light in <bool>[false, true]) {
     testWidgets(
-      'one centered card shows pending only with rows, light $light',
+      'only collapsed Receive shows the confirmed empty queue, light $light',
       (WidgetTester tester) async {
         await show(tester, light: light);
         final Rect card = tester.getRect(
@@ -391,26 +391,56 @@ void main() {
         expect(find.byKey(const Key('transfer_pending')), findsNothing);
         expect(find.byType(LatestTransactionsCard), findsNothing);
         await select(tester, TransferMode.receive);
+        await tester.pump();
         expect(
           find.byKey(const Key('transfer_receive_screen')),
           findsOneWidget,
         );
-        expect(find.byKey(const Key('transfer_pending')), findsNothing);
-        expect(find.text('None yet'), findsNothing);
+        final Finder pendingPanel = find.byKey(const Key('transfer_pending'));
+        final Finder qrToggle = find.byKey(const Key('receive_qr_toggle'));
+        pendingStates.add(_rows(<AccountBlock>[], more: true));
+        await tester.pump();
+        expect(pendingPanel, findsNothing);
+        pendingStates.add(_rows(<AccountBlock>[]));
+        await tester.pump();
+        final Finder emptyNote = find.text('None yet');
+        expect(pendingPanel, findsOneWidget);
+        expect(emptyNote, findsOneWidget);
+        expect(tester.getSize(pendingPanel).height, 44);
+        expect(
+          tester.getRect(pendingPanel).right - tester.getRect(emptyNote).right,
+          paintTokens.panelHeaderPadding.end,
+        );
+        await tester.tap(qrToggle);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+        expect(pendingPanel, findsNothing);
         final AccountBlock incoming = _block(1);
         pendingStates.add(_rows(<AccountBlock>[incoming]));
         await tester.pump(const Duration(milliseconds: 300));
-        expect(find.byKey(const Key('transfer_pending')), findsOneWidget);
+        expect(pendingPanel, findsOneWidget);
         expect(_button(incoming), findsOneWidget);
         expect(worker.calls, isEmpty);
         pendingStates.add(_rows(<AccountBlock>[]));
         await tester.pump(const Duration(milliseconds: 300));
-        expect(find.byKey(const Key('transfer_pending')), findsNothing);
+        expect(pendingPanel, findsNothing);
+        await tester.tap(qrToggle);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+        await tester.pump();
+        expect(pendingPanel, findsOneWidget);
+        expect(find.text('None yet'), findsOneWidget);
         for (final TransferMode mode in <TransferMode>[
           TransferMode.send, TransferMode.zap, TransferMode.receive,
         ]) {
           await select(tester, mode);
-          expect(find.byKey(const Key('transfer_pending')), findsNothing);
+          await tester.pump();
+          expect(
+            pendingPanel,
+            mode == TransferMode.receive ? findsOneWidget : findsNothing,
+          );
         }
         expect(worker.calls, isEmpty);
         expect(tester.takeException(), isNull);

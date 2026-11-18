@@ -7,6 +7,7 @@ class ReceiveHeaderSnapshot {
     this._owner,
     Map<String, String> labels,
     this.selected,
+    this.qrPresent,
   ) : labels = Map<String, String>.unmodifiable(labels);
 
   final Object _owner;
@@ -16,6 +17,9 @@ class ReceiveHeaderSnapshot {
 
   /// The form's selected receiving address.
   final String selected;
+
+  /// Whether the current form is showing or animating its QR panel.
+  final bool qrPresent;
 }
 
 /// Connects Transfer's compact picker to the existing Receive form owner.
@@ -45,6 +49,7 @@ class ReceiveHeaderController extends ChangeNotifier {
     required String selected,
     required bool Function() isCurrent,
     required bool Function(String) onSelected,
+    bool qrPresent = false,
   }) {
     if (_closed || expectedRevision != _revision || !isCurrent() ||
         !labels.containsKey(selected)) {
@@ -52,11 +57,12 @@ class ReceiveHeaderController extends ChangeNotifier {
     }
     final ReceiveHeaderSnapshot? previous = _snapshot;
     if (previous != null && identical(previous._owner, owner) &&
-        previous.selected == selected && mapEquals(previous.labels, labels) &&
+        previous.selected == selected && previous.qrPresent == qrPresent &&
+        mapEquals(previous.labels, labels) &&
         listEquals(previous.labels.keys.toList(), labels.keys.toList())) {
       return;
     }
-    _snapshot = ReceiveHeaderSnapshot._(owner, labels, selected);
+    _snapshot = ReceiveHeaderSnapshot._(owner, labels, selected, qrPresent);
     _isCurrent = isCurrent;
     _onSelected = onSelected;
     _revision += 1;

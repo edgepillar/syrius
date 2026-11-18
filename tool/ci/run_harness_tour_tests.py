@@ -33,7 +33,8 @@ except ImportError:
 # Includes pre-Welcome guards and one signing-control deadline matrix.
 # Includes the Token pane navigation and covered Issue cases.
 # Includes the dark and light Home card wash cases.
-EXPECTED_DART_CASES = 1525
+# Includes the original Launch and eight Lottie restoration case.
+EXPECTED_DART_CASES = 1526
 LAUNCH_ASSET_DART_CASES = 2
 GROUP_COMMAND_LIMIT_SECONDS = 300
 TOTAL_COMMAND_LIMIT_SECONDS = GROUP_COMMAND_LIMIT_SECONDS * 2
