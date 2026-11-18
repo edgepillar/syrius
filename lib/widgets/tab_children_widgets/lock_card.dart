@@ -126,6 +126,7 @@ class _LockCardState extends State<LockCard>
 
   late EntryField _startupBackdrop =
       EntryField(captionProgress: widget.startup?.motion);
+  final OuterShadowRaster _shadowRaster = OuterShadowRaster();
 
   @override
   void initState() {
@@ -221,6 +222,7 @@ class _LockCardState extends State<LockCard>
     _shake.dispose();
     _film.dispose();
     _passwordFocus.dispose();
+    _shadowRaster.dispose();
     super.dispose();
   }
 
@@ -293,6 +295,7 @@ class _LockCardState extends State<LockCard>
       child: _withCardShadow(
         radius,
         tokens.lockCardShadow,
+        MediaQuery.devicePixelRatioOf(context),
         FrostedSurface(
           sigma: tokens.panelBlur,
           borderRadius: radius,
@@ -405,6 +408,7 @@ class _LockCardState extends State<LockCard>
   Widget _withCardShadow(
     BorderRadius radius,
     List<BoxShadow> shadows,
+    double pixelRatio,
     Widget surface,
   ) {
     Rect shadowBounds = Rect.zero;
@@ -443,6 +447,8 @@ class _LockCardState extends State<LockCard>
                   borderRadius: radius,
                   shadows: shadows,
                   surfaceInsets: shadowInsets,
+                  raster: _shadowRaster,
+                  pixelRatio: pixelRatio,
                 ),
                 isComplex: true,
               ),

@@ -1,4 +1,4 @@
-import 'dart:ui' show ImageFilter;
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
@@ -91,7 +91,7 @@ class FrostedBarrier extends StatelessWidget {
           return BackdropFilter(
             // A zero blur is still a saved layer and a copy of the window.
             enabled: t > 0,
-            filter: ImageFilter.blur(sigmaX: sigma * t, sigmaY: sigma * t),
+            filter: ui.ImageFilter.blur(sigmaX: sigma * t, sigmaY: sigma * t),
             child: ColoredBox(
               color: tint.withValues(alpha: tint.a * t),
               child: child,
@@ -153,7 +153,8 @@ class FrostedSurface extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
     final double sigma = this.sigma ?? tokens.dialogBlur;
-    final ImageFilter filter = ImageFilter.blur(sigmaX: sigma, sigmaY: sigma);
+    final ui.ImageFilter filter =
+        ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma);
     final Widget surface = ColoredBox(
       color: tint ?? tokens.glass,
       child: child,
@@ -194,15 +195,38 @@ class OuterShadowPainter extends CustomPainter {
     required this._borderRadius,
     required this._shadows,
     this._surfaceInsets = EdgeInsets.zero,
+    this.raster,
+    this.pixelRatio = 1,
   });
 
   final BorderRadius _borderRadius;
   final List<BoxShadow> _shadows;
   final EdgeInsets _surfaceInsets;
 
+  /// Optional retained bitmap owned by the caller.
+  final OuterShadowRaster? raster;
+
+  /// Device pixel ratio used to render the retained bitmap.
+  final double pixelRatio;
+
   @override
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty || _shadows.isEmpty) return;
+    final ui.Image? image = raster?._imageFor(this, size);
+    if (image == null) {
+      _paintShadow(canvas, size);
+      return;
+    }
+    final Size pixels = Size(image.width.toDouble(), image.height.toDouble());
+    canvas.drawImageRect(
+      image,
+      Offset.zero & pixels,
+      Offset.zero & (pixels / pixelRatio),
+      Paint()..filterQuality = FilterQuality.low,
+    );
+  }
+
+  void _paintShadow(Canvas canvas, Size size) {
     final Rect rect = _surfaceInsets.deflateRect(Offset.zero & size);
     if (rect.isEmpty) return;
     final Path outside = Path()
@@ -229,7 +253,58 @@ class OuterShadowPainter extends CustomPainter {
   bool shouldRepaint(OuterShadowPainter oldDelegate) =>
       oldDelegate._borderRadius != _borderRadius ||
       oldDelegate._surfaceInsets != _surfaceInsets ||
+      oldDelegate.raster != raster ||
+      oldDelegate.pixelRatio != pixelRatio ||
       !listEquals(oldDelegate._shadows, _shadows);
+}
+
+/// Holds the original shadow paint at its device-pixel size across moves.
+final class OuterShadowRaster {
+  OuterShadowPainter? _source;
+  Size? _size;
+  ui.Image? _image;
+
+  ui.Image? _imageFor(OuterShadowPainter source, Size size) {
+    final OuterShadowPainter? previous = _source;
+    if (previous != null && _size == size && !source.shouldRepaint(previous)) {
+      return _image;
+    }
+    dispose();
+    _source = source;
+    _size = size;
+
+    final double ratio = source.pixelRatio;
+    final Size scaled = size * ratio;
+    if (ratio <= 0 || !scaled.isFinite ||
+        scaled.width > 4096 || scaled.height > 4096) {
+      return null;
+    }
+    final int width = scaled.width.ceil();
+    final int height = scaled.height.ceil();
+    if (width * height > 4 * 1024 * 1024) return null;
+
+    final ui.PictureRecorder recorder = ui.PictureRecorder();
+    final Canvas canvas = Canvas(recorder)
+      ..scale(ratio)
+      ..clipRect(Offset.zero & size);
+    source._paintShadow(canvas, size);
+    final ui.Picture picture = recorder.endRecording();
+    try {
+      return _image = picture.toImageSync(width, height);
+    } on Exception {
+      return null;
+    } finally {
+      picture.dispose();
+    }
+  }
+
+  /// Releases the bitmap when the owning surface is removed.
+  void dispose() {
+    _image?.dispose();
+    _image = null;
+    _source = null;
+    _size = null;
+  }
 }
 
 /// A dialog route whose barrier is a [FrostedBarrier] that follows the

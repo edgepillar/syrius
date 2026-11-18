@@ -13,6 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/entry_f
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_tab_child.dart';
@@ -462,6 +463,16 @@ void main() {
         final RenderRepaintBoundary retainedShadow = tester.renderObject(
           shadow,
         );
+        final Finder shadowPaint = find.descendant(
+          of: shadow,
+          matching: find.byType(CustomPaint),
+        );
+        OuterShadowRaster? shadowRaster() =>
+            (tester.widget<CustomPaint>(shadowPaint).painter!
+                    as OuterShadowPainter)
+                .raster;
+        final OuterShadowRaster? originalShadowRaster = shadowRaster();
+        expect(originalShadowRaster, isNotNull);
         final Finder card = find.byKey(
           const ValueKey<String>('lock_card_surface'),
         );
@@ -497,6 +508,7 @@ void main() {
         expect(framePaint.debugLayer, same(originalFrameLayer));
         expect(entryClock(), same(originalBackdrop));
         expect(tester.renderObject(shadow), same(retainedShadow));
+        expect(shadowRaster(), same(originalShadowRaster));
         expect(tester.renderObject(foreground), same(retainedForeground));
         expect(tester.renderObject(backdrop), same(originalFilter));
         final Rect cardBounds = tester.getRect(card);
