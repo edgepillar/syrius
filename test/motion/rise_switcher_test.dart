@@ -213,6 +213,13 @@ void main() {
         return boundary.debugLayer! as OffsetLayer;
       }
 
+      FadeThroughTransition transitionFor(int index) => tester.widget(
+        find.ancestor(
+          of: _page(index),
+          matching: find.byType(FadeThroughTransition),
+        ),
+      );
+
       await tester.pumpWidget(_host(0, page: paintedPage(0, Colors.red)));
       final OffsetLayer leaving = layerFor(0);
       final Layer? leavingPaint = leaving.firstChild;
@@ -221,9 +228,13 @@ void main() {
       expect(find.byType(FadeThroughTransition), findsNWidgets(2));
       expect(_opacity(tester, _page(0)), 1);
       expect(_opacity(tester, _page(1)), 0);
+      final FadeThroughTransition exitTransition = transitionFor(0);
+      final FadeThroughTransition hiddenTransition = transitionFor(1);
       await tester.pump(const Duration(milliseconds: 80));
       expect(_opacity(tester, _page(0)), greaterThan(0));
       expect(_opacity(tester, _page(1)), 0);
+      expect(transitionFor(0), same(exitTransition));
+      expect(transitionFor(1), same(hiddenTransition));
       expect(leaving.firstChild, same(leavingPaint));
       await tester.pump(const Duration(milliseconds: 16));
       expect(_opacity(tester, _page(0)), 0);
@@ -237,10 +248,12 @@ void main() {
       expect(_opacity(tester, _page(1)), lessThan(1));
       final OffsetLayer arriving = layerFor(1);
       final Layer? arrivingPaint = arriving.firstChild;
+      final FadeThroughTransition visibleTransition = transitionFor(1);
       expect(arrivingPaint, isNotNull);
       await tester.pump(const Duration(milliseconds: 160));
       expect(_opacity(tester, _page(1)), 1);
       expect(_rise(tester, _page(1)), 0);
+      expect(transitionFor(1), same(visibleTransition));
       expect(arriving.firstChild, same(arrivingPaint));
       await tester.pump(const Duration(microseconds: 1));
       expect(tester.binding.hasScheduledFrame, isFalse);

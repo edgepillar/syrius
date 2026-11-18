@@ -91,6 +91,8 @@ class _SwitchEntry {
       vsync: vsync,
       animationBehavior: AnimationBehavior.preserve,
     );
+    visible = ValueNotifier<bool>(initial);
+    entrance.addListener(_updateVisibility);
   }
 
   final Key key = UniqueKey();
@@ -103,9 +105,14 @@ class _SwitchEntry {
   late final AnimationController entrance;
   late final Animation<double> primary;
   late final AnimationController exit;
+  late final ValueNotifier<bool> visible;
   bool outgoing = false;
 
-  bool get interactive => !outgoing && primary.value > _exitEnd;
+  bool get interactive => !outgoing && visible.value;
+
+  void _updateVisibility() {
+    visible.value = primary.value > _exitEnd;
+  }
 
   int get remainingExitMicroseconds {
     final double remaining = _exitEnd - exit.value;
@@ -123,6 +130,7 @@ class _SwitchEntry {
   void dispose() {
     entrance.dispose();
     exit.dispose();
+    visible.dispose();
     focus.dispose();
   }
 }
@@ -232,14 +240,12 @@ class _RiseSwitcherState extends State<RiseSwitcher>
       for (final _SwitchEntry entry in _entries)
         KeyedSubtree(
           key: entry.key,
-          child: AnimatedBuilder(
-            animation: Listenable.merge(<Listenable>[
-              entry.entrance,
-              entry.exit,
-            ]),
+          // Focus, semantics and child tickers only need the visibility edge.
+          child: ValueListenableBuilder<bool>(
+            valueListenable: entry.visible,
             // The enclosing transform and fade can reuse the page's paint.
             child: RepaintBoundary(child: entry.child),
-            builder: (BuildContext context, Widget? child) {
+            builder: (BuildContext context, bool visible, Widget? child) {
               final bool interactive = entry.interactive;
               return IgnorePointer(
                 ignoring: !interactive,
@@ -252,15 +258,8 @@ class _RiseSwitcherState extends State<RiseSwitcher>
                     descendantsAreFocusable: interactive,
                     includeSemantics: false,
                     onFocusChange: (_) => entry.clearBlockedFocus(),
-                    child: Transform.translate(
-                      offset: Offset(
-                        0,
-                        entry.rise *
-                            (1 -
-                                AppTokens.of(context).spring.transform(
-                                  entry.primary.value,
-                                )),
-                      ),
+                    child: AnimatedBuilder(
+                      animation: entry.entrance,
                       child: FadeThroughTransition(
                         animation: entry.primary,
                         secondaryAnimation: entry.exit,
@@ -268,10 +267,22 @@ class _RiseSwitcherState extends State<RiseSwitcher>
                         child: TickerMode(
                           // Only child tickers follow visibility; the
                           // transition's own clocks keep running.
-                          enabled: entry.primary.value > _exitEnd,
+                          enabled: visible,
                           child: child!,
                         ),
                       ),
+                      builder: (BuildContext context, Widget? child) =>
+                          Transform.translate(
+                            offset: Offset(
+                              0,
+                              entry.rise *
+                                  (1 -
+                                      AppTokens.of(context).spring.transform(
+                                        entry.primary.value,
+                                      )),
+                            ),
+                            child: child,
+                          ),
                     ),
                   ),
                 ),
