@@ -558,7 +558,7 @@ void main() {
         l10n.pillarsShares,
         l10n.uptime,
         l10n.pillarsAprEstimate,
-        l10n.producerAddress,
+        l10n.pillarOwnerProducer,
         l10n.pillarsReward,
         l10n.pillarsMomentums,
         l10n.pillarsRegistered,
@@ -582,6 +582,31 @@ void main() {
       );
       expect(weight.textDirection, TextDirection.ltr);
       expect(momentums.textDirection, TextDirection.ltr);
+      final Finder detail = find.byKey(const Key('pillar_alpha_detail'));
+      final Finder addresses = find.descendant(
+        of: detail,
+        matching: find.text(emptyAddress.toShortString()),
+      );
+      final Finder produced = find.text(
+        l10n.pillarsMomentumsValue('1,760', '1,762'),
+      );
+      final Finder registered = find.descendant(
+        of: detail,
+        matching: find.text(l10n.pillarsUnavailable),
+      );
+      expect(addresses, findsNWidgets(2));
+      expect(
+        tester.getTopLeft(addresses.first).dx,
+        tester.getTopLeft(addresses.last).dx,
+      );
+      expect(
+        tester.getTopLeft(produced).dx,
+        tester.getTopLeft(registered).dx,
+      );
+      expect(
+        tester.getCenter(addresses.first).dy,
+        closeTo(tester.getCenter(produced).dy, 0.01),
+      );
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
     }
