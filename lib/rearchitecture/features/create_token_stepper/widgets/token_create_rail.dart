@@ -49,6 +49,7 @@ class TokenCreateRail extends StatelessWidget {
     ];
     final BigInt? balance = preflight.znn;
     final bool current = preflight.isCurrent;
+    final String previewName = name.trimLeft();
     final String status = !current
         ? context.l10n.publicationSessionChanged
         : preflight.failed
@@ -76,38 +77,10 @@ class TokenCreateRail extends StatelessWidget {
               spacing: tokens.registrationActionGap,
               children: <Widget>[
                 for (int i = 0; i < labels.length; i++)
-                  Row(
-                    key: ValueKey<String>('token_create_step_$i'),
-                    children: <Widget>[
-                      Container(
-                        width: tokens.tokenCreateStepMarkSize,
-                        height: tokens.tokenCreateStepMarkSize,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: i == step ? tokens.znn : tokens.card3,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          '${i + 1}',
-                          style: tokens.dataText.copyWith(
-                            color: i == step ? tokens.onZnn : tokens.dim,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: tokens.inlineGap),
-                      Expanded(
-                        child: Text(
-                          labels[i],
-                          style: tokens.registrationCaptionText.copyWith(
-                            color: i == step ? tokens.znnInk : tokens.dim,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  _buildStep(tokens, i, labels[i]),
               ],
             ),
-            Divider(color: tokens.line),
+            Divider(height: 1, thickness: 1, color: tokens.line),
             Column(
               spacing: tokens.registrationGap,
               children: <Widget>[
@@ -185,13 +158,34 @@ class TokenCreateRail extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: tokens.inlineGap,
                 children: <Widget>[
-                  Text(
-                    context.l10n.tokenCreatePreview.toUpperCase(),
-                    style: tokens.ledgerText,
-                  ),
+                  Text(context.l10n.tokenCreatePreview, style: tokens.compactText),
                   Row(
                     children: <Widget>[
-                      Icon(Icons.token_outlined, color: tokens.pinkInk),
+                      ExcludeSemantics(
+                        child: Container(
+                          key: const Key('token_create_preview_badge'),
+                          width: tokens.homeTokenBadgeSize,
+                          height: tokens.homeTokenBadgeSize,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: tokens.pink,
+                          ),
+                          child: previewName.isEmpty
+                              ? Icon(
+                                  Icons.token_outlined,
+                                  color: tokens.onZnn,
+                                  size: 14,
+                                )
+                              : Text(
+                                  String.fromCharCode(previewName.runes.first)
+                                      .toUpperCase(),
+                                  style: tokens.homeTokenBadgeText.copyWith(
+                                    color: tokens.onZnn,
+                                  ),
+                                ),
+                        ),
+                      ),
                       SizedBox(width: tokens.inlineGap),
                       Expanded(
                         child: Column(
@@ -223,6 +217,50 @@ class TokenCreateRail extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildStep(AppTokens tokens, int index, String label) {
+    final bool active = index == step;
+    final bool complete = index < step;
+    return Row(
+      key: ValueKey<String>('token_create_step_$index'),
+      children: <Widget>[
+        Container(
+          width: tokens.tokenCreateStepMarkSize,
+          height: tokens.tokenCreateStepMarkSize,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: complete ? tokens.znn : Colors.transparent,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: active || complete ? tokens.znn : tokens.line,
+              width: 1.5,
+            ),
+          ),
+          child: Text(
+            '${index + 1}',
+            style: tokens.dataText.copyWith(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: complete
+                  ? tokens.onZnn
+                  : active
+                  ? tokens.znnInk
+                  : tokens.faint,
+            ),
+          ),
+        ),
+        SizedBox(width: tokens.inlineGap),
+        Expanded(
+          child: Text(
+            label,
+            style: tokens.compactText.copyWith(
+              color: active ? tokens.foreground : tokens.faint,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -117,7 +117,34 @@ void main() {
           light: light,
         ));
         await _clock(tester);
+        final AppTokens tokens = AppTokens.of(tester.element(_frame('rail')));
+        final Finder badge = _frame('preview_badge');
+        final Finder firstMark = find.descendant(
+          of: _frame('step_0'),
+          matching: find.byType(Container),
+        );
+        BoxDecoration firstDecoration() =>
+            tester.widget<Container>(firstMark).decoration! as BoxDecoration;
+        expect(firstDecoration().color, Colors.transparent);
+        expect((firstDecoration().border! as Border).top.color, tokens.znn);
+        expect(
+          find.descendant(
+            of: badge,
+            matching: find.byIcon(Icons.token_outlined),
+          ),
+          findsOneWidget,
+        );
         await _options(tester);
+        expect(firstDecoration().color, tokens.znn);
+        expect(
+          find.descendant(of: badge, matching: find.text('M')),
+          findsOneWidget,
+        );
+        expect(tester.getSize(badge), const Size.square(26));
+        expect(
+          (tester.widget<Container>(badge).decoration! as BoxDecoration).color,
+          tokens.pink,
+        );
         final ValueChanged<bool?> mint = tester
             .widget<Checkbox>(_field('token_mintable_checkbox')).onChanged!;
         final ValueChanged<bool?> burn = tester
