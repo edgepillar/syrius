@@ -1619,6 +1619,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The distance between palette shortcut hints.
   double get goToFooterGap => 14;
 
+  /// The inline space between a palette keycap and its label.
+  double get goToKeyLabelGap => 3;
+
   /// The palette query's text.
   TextStyle get goToQueryText => bodyText.copyWith(fontSize: 16);
 

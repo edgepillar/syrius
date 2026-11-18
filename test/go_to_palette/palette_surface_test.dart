@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/go_to_palette.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/key_hint.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
@@ -116,6 +117,22 @@ void main() {
           expect(palette.width, 560);
           expect(palette.top, 120);
           expect(palette.bottom, lessThanOrEqualTo(600 - tokens.goToEdgeInset));
+          for (final (String key, String label) in <(String, String)>[
+            ('↑↓', 'move'),
+            ('↵', 'open'),
+          ]) {
+            final Rect keycap = tester.getRect(
+              find.ancestor(
+                of: find.text(key),
+                matching: find.byType(AppKeyHint),
+              ),
+            );
+            final Rect caption = tester.getRect(find.text(label));
+            final double gap = direction == TextDirection.ltr
+                ? caption.left - keycap.right
+                : keycap.left - caption.right;
+            expect(gap, closeTo(3, 0.001));
+          }
           expect(find.byType(BackdropFilter), findsNWidgets(2));
           final Finder surface = find.byType(FrostedSurface);
           final Finder barrier = find.byType(FrostedBarrier);

@@ -190,6 +190,11 @@ void main() {
           final Rect sortBounds = tester.getRect(sort);
           expect(sortBounds.height, 26);
           expect(sortBounds.left - tester.getRect(search).right, 8);
+          final AppTokens sortTokens = AppTokens.of(tester.element(sort));
+          final Material sortSurface = tester.widget<Material>(
+            find.descendant(of: sort, matching: find.byType(Material)),
+          );
+          expect(sortSurface.color, Colors.transparent);
           final Finder sortLabel = find.descendant(
             of: sort,
             matching: find.text('Newest'),
@@ -197,7 +202,14 @@ void main() {
           final TextStyle sortText =
               DefaultTextStyle.of(tester.element(sortLabel)).style;
           expect(sortText.fontSize, 12);
-          expect(sortText.color, AppTokens.of(tester.element(sort)).dim);
+          expect(sortText.color, sortTokens.dim);
+          expectMockupSymbol(
+            tester,
+            within: sort,
+            symbol: 'sort',
+            size: 12,
+            color: sortTokens.dim,
+          );
           expect(find.text('28 of 33'), findsNothing);
           expect(tester.takeException(), isNull);
         } finally {

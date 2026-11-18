@@ -288,7 +288,9 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
     final Widget sort = OutlinedButton(
       key: const Key('accelerator_sort'),
       style: OutlinedButton.styleFrom(
+        backgroundColor: Colors.transparent,
         foregroundColor: tokens.dim,
+        iconColor: tokens.dim,
         side: BorderSide(color: tokens.line),
         shape: const StadiumBorder(),
         minimumSize: Size(0, tokens.smallButtonHeight),
