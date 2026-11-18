@@ -229,7 +229,9 @@ class _LockCardState extends State<LockCard>
             valueListenable: startup.motion,
             builder: (_, double progress, _) => Opacity(
               opacity: progress,
-              child: EntryField(paintCaption: progress == 1),
+              child: progress == 1
+                  ? const EntryField()
+                  : const EntryField(paintCaption: false),
             ),
           )
         else

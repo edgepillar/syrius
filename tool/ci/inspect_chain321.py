@@ -834,6 +834,11 @@ def main():
                      'Retained lab failure probe' if component == 'wallet_failure_probe'
                      else 'Retained node momentum timing' if component == 'node_momentum_timing'
                      else 'Retained closed copy ' + component)
+            if seeded_items and component == 'node_momentum_timing':
+                # Keep the timings in the job log and reserve check annotations
+                # for the catalog and verified surface observations.
+                print(title + ': ' + encoded, flush=True)
+                continue
             escaped = encoded.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
             print('::notice title=' + title + '::' + escaped, flush=True)
     if wallet_lab is not None:

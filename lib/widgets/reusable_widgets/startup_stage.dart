@@ -406,8 +406,6 @@ class _StartupStageState extends State<_StartupStage>
       // Interpolation's isDone can be reported on a later tick. The paint
       // and input boundary is the complete 400 ms rectangle, exactly.
       widget.session._finishHandoff();
-    } else {
-      setState(() {});
     }
   }
 
@@ -449,48 +447,46 @@ class _StartupStageState extends State<_StartupStage>
                     });
                   }
                 }
-                final double progress = widget.session.motion.value;
-                final Rect rect = Rect.lerp(
-                  full,
-                  _destination ?? full,
-                  progress,
-                )!;
                 return SizedBox.expand(
                   key: _bounds,
                   child: Stack(
                     children: <Widget>[
                       if (!widget.session.authInShell)
                         Positioned.fill(child: widget.session.buildAuth()),
-                      Positioned.fromRect(
-                        rect: rect,
-                        child: ClipRRect(
-                          key: const ValueKey<String>('startup_stage_rect'),
-                          borderRadius: BorderRadius.circular(
-                            tokens.dialogRadius * progress,
-                          ),
-                          child: ColoredBox(
-                            color: tokens.launchStageBackground,
-                            child: OverflowBox(
-                              minWidth:
-                                  full.width +
-                                  (tokens.lockFilmWidth - full.width) *
-                                      progress,
-                              maxWidth:
-                                  full.width +
-                                  (tokens.lockFilmWidth - full.width) *
-                                      progress,
-                              minHeight:
-                                  full.height +
-                                  (tokens.lockFilmHeight - full.height) *
-                                      progress,
-                              maxHeight:
-                                  full.height +
-                                  (tokens.lockFilmHeight - full.height) *
-                                      progress,
-                              child: widget.session.buildFilm(),
+                      ValueListenableBuilder<double>(
+                        valueListenable: widget.session.motion,
+                        child: widget.session.buildFilm(),
+                        builder: (_, double progress, Widget? film) {
+                          final double width =
+                              full.width +
+                              (tokens.lockFilmWidth - full.width) * progress;
+                          final double height =
+                              full.height +
+                              (tokens.lockFilmHeight - full.height) * progress;
+                          return Positioned.fromRect(
+                            rect: Rect.lerp(
+                              full,
+                              _destination ?? full,
+                              progress,
+                            )!,
+                            child: ClipRRect(
+                              key: const ValueKey<String>('startup_stage_rect'),
+                              borderRadius: BorderRadius.circular(
+                                tokens.dialogRadius * progress,
+                              ),
+                              child: ColoredBox(
+                                color: tokens.launchStageBackground,
+                                child: OverflowBox(
+                                  minWidth: width,
+                                  maxWidth: width,
+                                  minHeight: height,
+                                  maxHeight: height,
+                                  child: film,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                       if (!widget.session._done)
                         Align(
