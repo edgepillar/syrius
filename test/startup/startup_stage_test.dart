@@ -410,6 +410,14 @@ void main() {
           matching: find.byType(RawImage),
         );
         final RenderImage paintedFrame = tester.renderObject(frame);
+        final Finder frameBoundary = find
+            .ancestor(of: frame, matching: find.byType(RepaintBoundary))
+            .first;
+        final RenderRepaintBoundary framePaint = tester.renderObject(
+          frameBoundary,
+        );
+        final Layer? originalFrameLayer = framePaint.debugLayer;
+        expect(originalFrameLayer, isNotNull);
         final Size decodedSize = Size(
           paintedFrame.image!.width.toDouble(),
           paintedFrame.image!.height.toDouble(),
@@ -472,6 +480,10 @@ void main() {
         await tester.pump(const Duration(milliseconds: 1));
         expect(session.interactive, isTrue);
         expect(session.filmInWell, isTrue);
+        expect(tester.renderObject(frame), same(paintedFrame));
+        expect(paintedFrame.size, decodedSize);
+        expect(tester.renderObject(frameBoundary), same(framePaint));
+        expect(framePaint.debugLayer, same(originalFrameLayer));
         expect(entryClock(), same(originalBackdrop));
         expect(tester.renderObject(shadow), same(retainedShadow));
         expect(tester.renderObject(foreground), same(retainedForeground));

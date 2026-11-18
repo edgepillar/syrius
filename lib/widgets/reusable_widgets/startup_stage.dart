@@ -215,7 +215,7 @@ class StartupStageSession implements Listenable {
     // The full stage crops like the original mockup; the final well keeps
     // the same 640 by 360 frame inside its own clip.
     fit: _filmInWell ? BoxFit.contain : BoxFit.cover,
-    retainImageLayout: !_filmInWell,
+    retainImageLayout: true,
     autoplay: !_filmInWell,
     onDone: _filmDone,
   );

@@ -119,7 +119,7 @@ class LaunchFilm extends StatefulWidget {
   /// How a frame fills the box.
   final BoxFit fit;
 
-  /// Keeps the decoded frame's layout while its enclosing stage resizes.
+  /// Keeps the decoded frame's layout while the stage or well fits it.
   final bool retainImageLayout;
 
   /// Whether it plays from the first frame as soon as it is built. When
@@ -785,7 +785,7 @@ class _LaunchFilmState extends State<LaunchFilm>
   Widget build(BuildContext context) {
     final ui.Image? sample = _originalsArtwork?.sampledImage;
     _paintedArtwork = sample == null ? null : _originalsArtwork;
-    final Widget image = RawImage(image: sample ?? _shown, fit: widget.fit);
+    final ui.Image? frame = sample ?? _shown;
     if (widget.retainImageLayout) {
       // The launch stage resizes during the handoff. Fit the original image
       // layer at paint time so the held frame keeps its decoded layout size.
@@ -794,7 +794,7 @@ class _LaunchFilmState extends State<LaunchFilm>
         child: FittedBox(
           fit: widget.fit,
           clipBehavior: Clip.hardEdge,
-          child: RepaintBoundary(child: image),
+          child: RepaintBoundary(child: RawImage(image: frame)),
         ),
       );
     }
@@ -803,7 +803,7 @@ class _LaunchFilmState extends State<LaunchFilm>
     return RepaintBoundary(
       child: ColoredBox(
         color: const Color(0xFF000000),
-        child: SizedBox.expand(child: image),
+        child: SizedBox.expand(child: RawImage(image: frame, fit: widget.fit)),
       ),
     );
   }
