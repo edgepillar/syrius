@@ -705,6 +705,34 @@ class ReaderTests(unittest.TestCase):
                     value['tree'][0]['sha'] = 'e' * 40
                 with self.subTest(fault=fault), self.assertRaises(reader.archive.Refused):
                     reader.source_files(Path('/fixture'), value, 'b' * 40)
+            historical = b'original producer input'
+            original_sha = reader.git_blob(historical)
+            versioned = copy.deepcopy(tree)
+            for item in versioned['tree']:
+                if item['path'] in reader.VERSIONED_INPUTS:
+                    item['sha'] = original_sha
+            response = dict(sha=original_sha, encoding='base64', size=len(historical),
+                content=base64.b64encode(historical).decode('ascii'))
+            remote = mock.Mock(return_value=response)
+            reader.source_files(Path('/fixture'), tree, 'b' * 40, read_versioned_blob=remote)
+            remote.assert_not_called()
+            observed = reader.source_files(Path('/fixture'), versioned, 'b' * 40,
+                read_versioned_blob=remote)
+            self.assertEqual(remote.call_args_list, [mock.call(original_sha)] * 2)
+            for path in reader.VERSIONED_INPUTS:
+                self.assertEqual(observed[path], reader.archive.sha(historical))
+            with self.assertRaises(reader.archive.Refused):
+                reader.source_files(Path('/fixture'), versioned, 'b' * 40,
+                    read_versioned_blob=lambda _: {**response, 'content':
+                        base64.b64encode(b'x' * len(historical)).decode('ascii')})
+            unrelated = copy.deepcopy(tree)
+            next(item for item in unrelated['tree']
+                 if item['path'] not in reader.VERSIONED_INPUTS)['sha'] = original_sha
+            remote.reset_mock()
+            with self.assertRaises(reader.archive.Refused):
+                reader.source_files(Path('/fixture'), unrelated, 'b' * 40,
+                    read_versioned_blob=remote)
+            remote.assert_not_called()
         with mock.patch.object(reader.producer, 'read_original', return_value=raw) as read:
             self.assertEqual(reader.ready_artwork_sources(Path('/fixture'), tree, 'b' * 40), {})
             read.assert_not_called()

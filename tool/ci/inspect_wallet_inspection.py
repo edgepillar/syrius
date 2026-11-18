@@ -22,6 +22,9 @@ MAX_TREE = 2 * 1024**2
 WORKFLOW_SOURCE = '.github/workflows/public-contribution-qualification.yml'
 MAX_WORKFLOW_SOURCE = 128 * 1024
 MAX_WORKFLOW_RESPONSE = 256 * 1024
+VERSIONED_INPUTS = frozenset((
+    'harness/screens/token-new.txt', 'tool/ci/run_harness_tour_tests.py',
+))
 JOB = 'Windows readonly inspection with owned chain-321'
 PREFLIGHT = ('Test all isolated controllers before SDK allocation',
     'Analyze the gated wallet entry and tour',
@@ -455,7 +458,28 @@ def ready_artwork_sources(repo, value, tree):
     return source_files(repo, value, tree, files=READY_ARTWORK_SOURCES)
 
 
-def source_files(repo, value, tree, *, read_workflow_blob=None, files=SOURCE_FILES):
+def git_blob(raw):
+    return hashlib.sha1(b'blob ' + str(len(raw)).encode('ascii') + b'\0' + raw).hexdigest()
+
+
+def exact_source_blob(read_blob, sha):
+    need(callable(read_blob))
+    value = read_blob(sha)
+    need(type(value) is dict and value.get('sha') == sha
+         and value.get('encoding') == 'base64'
+         and type(value.get('size')) is int
+         and 0 < value['size'] <= MAX_WORKFLOW_SOURCE
+         and type(value.get('content')) is str
+         and 0 < len(value['content']) <= MAX_WORKFLOW_RESPONSE
+         and re.fullmatch(r'[A-Za-z0-9+/=\n]+', value['content']) is not None)
+    encoded = value['content'].replace('\n', '')
+    raw = base64.b64decode(encoded, validate=True)
+    need(len(raw) == value['size'] and base64.b64encode(raw).decode('ascii') == encoded)
+    return raw
+
+
+def source_files(repo, value, tree, *, read_workflow_blob=None,
+                 read_versioned_blob=None, files=SOURCE_FILES):
     need(type(value) is dict and value.get('sha') == tree and value.get('truncated') is False
          and type(value.get('tree')) is list and len(value['tree']) <= 10000)
     entries = {}
@@ -467,26 +491,17 @@ def source_files(repo, value, tree, *, read_workflow_blob=None, files=SOURCE_FIL
     need(set(entries) == set(files))
     digests = {}
     for name in files:
+        sha = entries[name]['sha']
         if name == WORKFLOW_SOURCE and read_workflow_blob is not None:
             # Read the exact producer blob even when the reader checks out a
             # different workflow revision for its own source-discovery controls.
-            need(callable(read_workflow_blob))
-            value = read_workflow_blob(entries[name]['sha'])
-            need(type(value) is dict and value.get('sha') == entries[name]['sha']
-                 and value.get('encoding') == 'base64'
-                 and type(value.get('size')) is int
-                 and 0 < value['size'] <= MAX_WORKFLOW_SOURCE
-                 and type(value.get('content')) is str
-                 and 0 < len(value['content']) <= MAX_WORKFLOW_RESPONSE
-                 and re.fullmatch(r'[A-Za-z0-9+/=\n]+', value['content']) is not None)
-            encoded = value['content'].replace('\n', '')
-            raw = base64.b64decode(encoded, validate=True)
-            need(len(raw) == value['size']
-                 and base64.b64encode(raw).decode('ascii') == encoded)
+            raw = exact_source_blob(read_workflow_blob, sha)
         else:
             raw = producer.read_original(repo / name, MAX_TREE)
-        blob = hashlib.sha1(b'blob ' + str(len(raw)).encode('ascii') + b'\0' + raw).hexdigest()
-        need(blob == entries[name]['sha'])
+            if (name in VERSIONED_INPUTS and read_versioned_blob is not None
+                    and git_blob(raw) != sha):
+                raw = exact_source_blob(read_versioned_blob, sha)
+        need(git_blob(raw) == sha)
         digests[name] = archive.sha(raw)
     return digests
 
@@ -564,9 +579,12 @@ def main(parent=None):
     repo = Path(parent['GITHUB_WORKSPACE'])
     producer_tree = decode(client.read(
         archive.API + '/git/trees/' + tree + '?recursive=1', cap=MAX_TREE))
+    def read_blob(blob):
+        return decode(client.read(
+            archive.API + '/git/blobs/' + blob, cap=MAX_WORKFLOW_RESPONSE))
+
     source_digests = source_files(repo, producer_tree, tree,
-        read_workflow_blob=lambda blob: decode(client.read(
-            archive.API + '/git/blobs/' + blob, cap=MAX_WORKFLOW_RESPONSE)))
+        read_workflow_blob=read_blob, read_versioned_blob=read_blob)
     source_digests.update(ready_artwork_sources(repo, producer_tree, tree))
     jobs = client.json('/actions/runs/' + text + '/attempts/1/jobs?per_page=50')
     job = selected_job(jobs, head, run_id)
