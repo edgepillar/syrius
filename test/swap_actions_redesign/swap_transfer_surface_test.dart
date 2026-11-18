@@ -120,6 +120,19 @@ void main() {
         );
         expect(tester.getTopLeft(primary).dy, greaterThan(form.bottom));
 
+        final Finder warning = find.byType(SwapNotice);
+        final AppTokens tokens = AppTokens.of(tester.element(warning));
+        expectMockupSymbol(
+          tester,
+          within: warning,
+          symbol: 'warn',
+          size: 14,
+          color: tokens.warn,
+        );
+        expect(
+          tester.widget<Text>(find.text('8 h initial · 1 h counter')).style,
+          tokens.transferCaptionText,
+        );
         expect(find.text('1 ZNN = 10 QSR'), findsOneWidget);
         expect(find.byKey(const Key('fixture_dollars')), findsNWidgets(2));
         final Finder editor = find.byKey(const Key('swap_amount_input'));
