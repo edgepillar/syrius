@@ -460,6 +460,16 @@ void main() {
             TextDirection.ltr,
           );
           final Rect addressBounds = tester.getRect(address);
+          final Rect nameBounds = tester.getRect(
+            find.descendant(of: row, matching: find.text(_entries[index].name)),
+          );
+          expect(nameBounds.width, greaterThan(rowBounds.width / 2));
+          expect(
+            direction == TextDirection.ltr
+                ? addressBounds.left - nameBounds.right
+                : nameBounds.left - addressBounds.right,
+            closeTo(tokens.inlineGap, 0.01),
+          );
           final EdgeInsets rowPadding = tokens.walletPickerRowPadding.resolve(
             direction,
           );

@@ -312,25 +312,39 @@ class LockWalletPicker extends StatelessWidget {
             child: ShellSymbol(icon),
           ),
           SizedBox(width: tokens.inlineGap),
-          Expanded(
-            child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
-          ),
-          if (address != null) ...<Widget>[
-            SizedBox(width: tokens.inlineGap),
-            Flexible(
-              child: Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: _LockAddress(
-                  address: address,
-                  style: tokens.walletPickerAddressText,
-                ),
-              ),
-            ),
-          ],
+          Expanded(child: _buildMenuLabels(tokens, name, address)),
         ],
       ),
     ),
   );
+
+  Widget _buildMenuLabels(AppTokens tokens, String name, String? address) {
+    final Text label = Text(name, maxLines: 1, overflow: TextOverflow.ellipsis);
+    if (address == null) return label;
+    return LayoutBuilder(
+      builder: (_, BoxConstraints constraints) {
+        final double gap =
+            tokens.inlineGap.clamp(0, constraints.maxWidth).toDouble();
+        return Row(
+          children: <Widget>[
+            Expanded(child: label),
+            SizedBox(width: gap),
+            // Reserve room for the name when text scaling makes the address
+            // wide. Short addresses only take their own width.
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: (constraints.maxWidth - gap) / 2,
+              ),
+              child: _LockAddress(
+                address: address,
+                style: tokens.walletPickerAddressText,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 void _refuseWalletPicker() => throw const SeamNotBuilt(Seam.walletPicker);

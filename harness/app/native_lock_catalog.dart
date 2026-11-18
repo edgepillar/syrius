@@ -83,8 +83,16 @@ final class NativeLockCatalog {
     builder: (_, bool visible, Widget? child) => LockWalletPickerPreview(
       visible: visible,
       additionalEntries: const <LockWalletDisplayEntry>[
-        LockWalletDisplayEntry(name: 'Ledger', isLedger: true),
-        LockWalletDisplayEntry(name: 'Lab devnet'),
+        // Synthetic display strings with no associated wallet or device.
+        LockWalletDisplayEntry(
+          name: 'Ledger',
+          address: 'synthetic-hardware-address-0002',
+          isLedger: true,
+        ),
+        LockWalletDisplayEntry(
+          name: 'Lab devnet',
+          address: 'synthetic-secondary-address-0003',
+        ),
       ],
       child: child!,
     ),
