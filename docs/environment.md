@@ -38,6 +38,14 @@ comparison fails on build, raster and distinct-frame durations. The redesign
 reaches 138.226 ms raster during handoff and 230.732 ms after arrival. This
 run measures the changed shadow and retains the failed V02 result.
 
+The [visible-area blur timing reader](https://github.com/edgepillar/syrius/actions/runs/44367266101/job/135024287057)
+verified 87 redesigned and 389 P06 frame records at `662b8bb7` with
+five normal actor exits. The original windows retain 53 and 464 frame-number
+gaps, respectively. The unchanged 16 ms comparison fails on build, raster
+and distinct-frame durations. The redesign reaches 438.833 ms raster during
+handoff and 268.658 ms after arrival. The maximum total spans are 514.139 ms
+for the redesign and 187.493 ms for P06. V02 remains open.
+
 The private 28f9c121 browser report shows 94 reference, actual and difference
 triplets. All 94 difference PNGs decoded at 1280 by 780 with the standard
 maximum-channel RGBA palette. On-demand encoding reused the verified archives
