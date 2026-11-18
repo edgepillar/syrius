@@ -337,7 +337,7 @@ void main() {
         'znn:$_first?zts=${kZnnCoin.tokenStandard}&amount=0',
       );
       expect(find.text('Share image'), findsOneWidget);
-      expect(find.text('Save QR'), findsOneWidget);
+      expect(find.text('Save'), findsOneWidget);
       expect(find.text('Copy image'), findsNothing);
       await receiveTestDispose(tester);
     });
