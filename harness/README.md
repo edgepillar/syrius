@@ -336,7 +336,8 @@ python tool/redesign_compare.py \
 
 The summary lists every pair still needed at the target commit. Once all 94
 pairs are available, omit `--no-diff-images` for the visual review. Use
-`--require-reviewed` to require all 94 explicit match verdicts.
+`--require-reviewed` to require all 94 explicit match verdicts. Within one
+report directory, identical heatmaps link to a single verified PNG.
 
 An explicit `--dir` must not exist. Absolute paths, traversal, links and
 Windows device aliases are refused. Captures use exclusive file creation;

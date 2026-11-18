@@ -145,6 +145,28 @@ class CompareTests(unittest.TestCase):
             with indexed.convert("RGB") as decoded:
                 self.assertEqual(decoded.tobytes(), expected_pixels)
 
+    def test_equal_diffs_share_one_verified_file(self) -> None:
+        self.add_actual()
+        self.save_png(self.actual / "02-screen-a-light.png")
+        pairs = self.report()["pairs"]
+        url = pairs[0]["diff_url"]
+        self.assertIsNotNone(url)
+        self.assertEqual(pairs[3]["diff_url"], url)
+        path = self.output / url
+        data = path.read_bytes()
+        self.assertEqual(path.stem, hashlib.sha256(data).hexdigest())
+        self.assertEqual(list(path.parent.iterdir()), [path])
+        before = path.stat()
+        self.report()
+        after = path.stat()
+        self.assertEqual((after.st_ino, after.st_mtime_ns), (before.st_ino, before.st_mtime_ns))
+
+        changed = bytes([data[0] ^ 1]) + data[1:]
+        path.write_bytes(changed)
+        with self.assertRaisesRegex(ValueError, "Existing difference image"):
+            self.report()
+        self.assertEqual(path.read_bytes(), changed)
+
     def test_stale_review_on_either_image_is_invalidated(self) -> None:
         self.add_actual()
         for field in ("expected_sha256", "actual_sha256"):

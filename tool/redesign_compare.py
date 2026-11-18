@@ -12,6 +12,7 @@
 Requires Pillow, also used by the mockup pipeline. Input images are linked,
 never copied. The output is local evidence and may contain wallet screenshots;
 keep it private. Relative links require the inputs to remain at their paths.
+Identical difference images share one PNG in the report directory.
 
 For captures retained in separate folders, the private input manifest has
 one "actual" object keyed by literal screenshot stem. Each entry contains
@@ -64,6 +65,7 @@ from pathlib import Path
 import re
 import stat
 import sys
+from tempfile import NamedTemporaryFile
 from urllib.parse import quote
 import warnings
 
@@ -306,6 +308,41 @@ def review_status(
     return {"state": "current", **{key: review[key] for key in fields}, "note": review.get("note", "")}
 
 
+def store_diff(mask: Image.Image, output: Path) -> str:
+    # Palette indices preserve all heatmap colors with one byte per pixel.
+    mask.putpalette(DIFF_PALETTE)
+    with io.BytesIO() as encoded:
+        mask.save(encoded, format="PNG")
+        data = encoded.getvalue()
+    digest = hashlib.sha256(data).hexdigest()
+    directory = output / "diffs"
+    directory.mkdir(exist_ok=True)
+    if directory.is_symlink():
+        raise ReportError("Difference image directory must not be a symbolic link")
+    path = directory / f"{digest}.png"
+    try:
+        metadata = path.lstat()
+    except FileNotFoundError:
+        # Publish only a complete file. Concurrent writers for this digest
+        # publish the same bytes, and links never target a partial PNG.
+        temporary = None
+        try:
+            with NamedTemporaryFile(dir=directory, prefix=".diff-", delete=False) as stream:
+                temporary = Path(stream.name)
+                stream.write(data)
+            os.replace(temporary, path)
+        finally:
+            if temporary is not None:
+                temporary.unlink(missing_ok=True)
+    else:
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_size != len(data):
+            raise ReportError("Existing difference image does not match its digest")
+        with path.open("rb") as existing:
+            if existing.read(len(data) + 1) != data:
+                raise ReportError("Existing difference image does not match its digest")
+    return relative_url(path, output)
+
+
 def compare_pair(
     screen: Screen,
     theme: str,
@@ -378,15 +415,7 @@ def compare_pair(
             "changed_pct": round(100 * changed / pixels, 4),
         }
         if write_diffs:
-            # Hashes keep a new report from showing a cached old diff.
-            diff_name = f"{stem}-{expected['sha256'][:16]}-{actual['sha256'][:16]}.png"
-            diff_path = output / "diffs" / diff_name
-            diff_path.parent.mkdir(parents=True, exist_ok=True)
-            # Each intensity has one RGB color. Keep the same heatmap
-            # with one palette index per pixel.
-            mask.putpalette(DIFF_PALETTE)
-            mask.save(diff_path)
-            pair["diff_url"] = relative_url(diff_path, output)
+            pair["diff_url"] = store_diff(mask, output)
         return pair
     finally:
         for image in (before, after):
