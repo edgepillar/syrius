@@ -735,6 +735,10 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
         !_submitting &&
         !_rearming &&
         !held;
+    final bool isMint = mode == TokenActionMode.mint;
+    final OutlineInputBorder filledMintBorder = kOutlineInputBorder.copyWith(
+      borderSide: BorderSide(color: tokens.faint),
+    );
     final Widget amountField = TextField(
       key: Key(
         mode == TokenActionMode.mint
@@ -750,6 +754,9 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
       decoration: InputDecoration(
         isDense: true,
         constraints: BoxConstraints(minHeight: tokens.tokenActionHeight),
+        enabledBorder: isMint && amount.text.isNotEmpty
+            ? filledMintBorder
+            : null,
         hintText: context.l10n.amount,
         suffixText: token.symbol,
         suffixStyle: tokens.dataText.copyWith(
@@ -787,19 +794,39 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
       decoration: InputDecoration(
         isDense: true,
         constraints: BoxConstraints(minHeight: tokens.tokenActionHeight),
+        enabledBorder: isMint && receiver.text.isNotEmpty
+            ? filledMintBorder
+            : null,
         hintText: mode == TokenActionMode.mint
             ? context.l10n.beneficiaryAddress
             : context.l10n.newOwnerAddress,
-        suffixIcon: mode == TokenActionMode.mint
-            ? TextButton(
-                onPressed: current() && !_submitting
-                    ? () {
-                        if (current()) {
-                          _beneficiary.text = proof.session.address;
-                        }
-                      }
-                    : null,
-                child: Text(context.l10n.tokensThisAddress),
+        suffixIcon: isMint
+            ? Center(
+                widthFactor: 1,
+                heightFactor: 1,
+                child: Padding(
+                  padding: EdgeInsetsDirectional.only(
+                    end: tokens.tokenActionAddressChipEndInset,
+                  ),
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      minimumSize: Size(0, tokens.tokenActionAddressChipHeight),
+                      padding: EdgeInsetsDirectional.symmetric(
+                        horizontal: tokens.tokenActionGap,
+                      ),
+                      side: BorderSide(color: tokens.line),
+                      textStyle: tokens.captionText.copyWith(color: tokens.dim),
+                    ),
+                    onPressed: current() && !_submitting
+                        ? () {
+                            if (current()) {
+                              _beneficiary.text = proof.session.address;
+                            }
+                          }
+                        : null,
+                    child: Text(context.l10n.tokensThisAddress),
+                  ),
+                ),
               )
             : null,
       ),

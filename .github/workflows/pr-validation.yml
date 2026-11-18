@@ -69,7 +69,8 @@ jobs:
         run: >-
           flutter test test/lock/lock_card_test.dart
           test/lock/wallet_picker_test.dart
-          test/startup/startup_stage_test.dart --no-pub
+          test/startup/startup_stage_test.dart
+          test/harness/wallet_recipe_startup_test.dart --no-pub
 
       - name: Verify compact actions and Token details
         run: >-

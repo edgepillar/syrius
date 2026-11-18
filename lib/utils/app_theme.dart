@@ -784,6 +784,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Token action fields and their button share one baseline.
   double get tokenActionHeight => 42;
 
+  /// The address shortcut sits inside the Mint beneficiary field.
+  double get tokenActionAddressChipHeight => 22;
+
+  /// The Mint shortcut is inset from its field edge like the reference text.
+  double get tokenActionAddressChipEndInset => 12;
+
   /// Smallest-unit token amounts keep the data font.
   TextStyle get tokenActionAmountText => dataText.copyWith(fontSize: 16);
 

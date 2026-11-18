@@ -264,12 +264,37 @@ void main() {
               final TextField field = tester.widget<TextField>(
                 find.byKey(const Key('mint_amount_field')),
               );
-              expect(
-                field.style!.fontFamily,
-                AppTokens.of(
-                  tester.element(find.byType(TokenInlineActions)),
-                ).monoFontFamily,
+              final AppTokens tokens = AppTokens.of(
+                tester.element(find.byType(TokenInlineActions)),
               );
+              expect(field.style!.fontFamily, tokens.monoFontFamily);
+              final InputBorder occupied = kOutlineInputBorder.copyWith(
+                borderSide: BorderSide(color: tokens.faint),
+              );
+              expect(field.decoration!.enabledBorder, occupied);
+              const String beneficiaryKey = 'mint_beneficiary_field';
+              TextField beneficiary() => tester.widget<TextField>(
+                find.byKey(const Key(beneficiaryKey)),
+              );
+              expect(beneficiary().decoration!.enabledBorder, occupied);
+              final Finder shortcut = find.widgetWithText(
+                TextButton,
+                'This address',
+              );
+              final ButtonStyle shortcutStyle =
+                  tester.widget<TextButton>(shortcut).style!;
+              expect(
+                shortcutStyle.minimumSize!.resolve(<WidgetState>{}),
+                const Size(0, 22),
+              );
+              expect(
+                shortcutStyle.side!.resolve(<WidgetState>{}),
+                BorderSide(color: tokens.line),
+              );
+              await _editField(tester, beneficiaryKey, '');
+              expect(beneficiary().decoration!.enabledBorder, isNull);
+              await _editField(tester, beneficiaryKey, fixture.session.address);
+              expect(beneficiary().decoration!.enabledBorder, occupied);
               await tester.tap(find.byKey(const Key('token_action_mode_burn')));
               await tester.pump();
               await tester.pump(const Duration(milliseconds: 260));

@@ -112,12 +112,13 @@ void main() {
     expect((await observation())['startupFilmState'], 'opening');
     final Map<String, Object?> opening = <String, Object?>{
       'frames': 0, 'shown': -1, 'decoding': null, 'stage': 'asset',
-      'skip': false, 'pending': false, 'ticking': true, 'done': false,
+      'skip': false, 'pending': false, 'ticking': false, 'done': false,
     };
     final Object? originalFilm = session.film.cleanup?.owner;
     for (int read = 0; read < 5; read++) {
       expect((await observation())['startupFilmProgress'], opening);
       expect(session.film.cleanup?.owner, same(originalFilm));
+      expect(session.film.isPlaying, isTrue);
       expect(bundle.bytes.isCompleted, isFalse);
     }
     await tester.pumpWidget(TickerMode(enabled: false, child: host));
@@ -157,6 +158,7 @@ void main() {
     }
     expect(done, 1);
     expect(session.film.isDone, isTrue);
+    expect(session.film.isPlaying, isFalse);
     expect(await available(), isFalse);
     expect((await observation())['startupFilmState'], 'ended');
     expect((await observation())['startupFilmProgress'], <String, Object?>{
