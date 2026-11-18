@@ -406,9 +406,19 @@ void main() {
           matching: find.text('Request a specific amount'),
         );
         expect(tester.getSize(requestToggle).height, 34);
+        final Finder address = find.byKey(const Key('receive_address'));
+        expect(
+          tester.getRect(qrToggle).top - tester.getRect(address).bottom,
+          13,
+        );
+        expect(
+          tester.widget<OutlinedButton>(qrToggle).style!.padding!
+              .resolve(<WidgetState>{}),
+          const EdgeInsetsDirectional.symmetric(horizontal: 17),
+        );
         expect(
           tester.getRect(requestToggle).top - tester.getRect(qrToggle).bottom,
-          18,
+          19,
         );
         expect(tester.widget<Text>(requestLabel).style?.color, paintTokens.dim);
         pendingStates.add(_rows(<AccountBlock>[], more: true));

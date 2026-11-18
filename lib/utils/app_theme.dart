@@ -1815,8 +1815,15 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Space between Receive actions.
   double get receiveActionGap => 8;
 
+  /// Gap between the centered address and its action row.
+  double get receiveAddressActionGap => 13;
+
+  /// The outlined action includes its border outside the content inset.
+  EdgeInsetsDirectional get receiveOutlinedActionPadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 17);
+
   /// Space below the action buttons before the request divider.
-  double get receiveRequestDividerGap => 17;
+  double get receiveRequestDividerGap => 18;
 
   /// Compact request row when the QR image is hidden.
   double get receiveCollapsedRequestHeight => 34;
