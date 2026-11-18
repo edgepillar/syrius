@@ -435,22 +435,38 @@ void main() {
       await tester.ensureVisible(toggle);
       await tester.tap(toggle);
       await tester.pump();
-      final RenderRepaintBoundary strip = tester.renderObject(
-        find
-            .ancestor(
-              of: find.byKey(const Key('about_strip')),
-              matching: find.byType(RepaintBoundary),
-            )
-            .first,
-      );
-      final OffsetLayer stripLayer = strip.debugLayer! as OffsetLayer;
-      final Layer? stripPaint = stripLayer.firstChild;
-      expect(stripPaint, isNotNull);
+      final List<OffsetLayer> precedingLayers = <OffsetLayer>[];
+      for (final String key in <String>[
+        'about_strip',
+        'about_links',
+        'about_computer',
+      ]) {
+        final RenderRepaintBoundary boundary = tester.renderObject(
+          find
+              .ancestor(
+                of: find.byKey(Key(key)),
+                matching: find.byType(RepaintBoundary),
+              )
+              .first,
+        );
+        precedingLayers.add(boundary.debugLayer! as OffsetLayer);
+      }
+      expect(precedingLayers.toSet(), hasLength(3));
+      final List<Layer?> precedingPaint = <Layer?>[
+        for (final OffsetLayer layer in precedingLayers) layer.firstChild,
+      ];
+      expect(precedingPaint, everyElement(isNotNull));
+      void expectRetainedPaint() {
+        for (int index = 0; index < precedingLayers.length; index++) {
+          expect(precedingLayers[index].firstChild, same(precedingPaint[index]));
+        }
+      }
+
       await tester.pump(const Duration(milliseconds: 80));
       expect(tester.getSize(panel).height, greaterThan(closedHeight));
-      expect(stripLayer.firstChild, same(stripPaint));
+      expectRetainedPaint();
       await tester.pump(const Duration(milliseconds: 160));
-      expect(stripLayer.firstChild, same(stripPaint));
+      expectRetainedPaint();
 
       await tester.pump();
       expect(reads, 1);
@@ -459,6 +475,7 @@ void main() {
       information.complete(AboutInformation(version: 'late-package-info'));
       await tester.pump();
       expect(_text(tester, 'about_version').data, 'late-package-info');
+      expect(precedingLayers.first.firstChild, isNot(same(precedingPaint.first)));
       expect(
         identical(originalList, tester.element(find.byType(Licences))),
         isTrue,

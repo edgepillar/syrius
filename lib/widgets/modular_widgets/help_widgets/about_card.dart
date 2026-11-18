@@ -139,17 +139,19 @@ class _AboutCardState extends State<AboutCard> {
         return SettingsSection(
           key: const Key('about_page'),
           children: <Widget>[
-            // Retain the version strip's paint as the groups change height.
+            // Keep each preceding group's paint local as Licences opens.
             RepaintBoundary(child: _buildStrip(tokens)),
-            CommunityCard(openLink: _openLink),
-            Panel(
-              key: const Key('about_computer'),
-              child: Disclosure(
-                title: context.l10n.aboutComputer,
-                summary: context.l10n.aboutComputerHint,
-                keyPrefix: 'about_computer',
-                keepAlive: true,
-                child: _buildComputer(tokens),
+            RepaintBoundary(child: CommunityCard(openLink: _openLink)),
+            RepaintBoundary(
+              child: Panel(
+                key: const Key('about_computer'),
+                child: Disclosure(
+                  title: context.l10n.aboutComputer,
+                  summary: context.l10n.aboutComputerHint,
+                  keyPrefix: 'about_computer',
+                  keepAlive: true,
+                  child: _buildComputer(tokens),
+                ),
               ),
             ),
             ConstrainedBox(
