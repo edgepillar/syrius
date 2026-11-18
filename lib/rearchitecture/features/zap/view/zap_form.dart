@@ -17,6 +17,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modals.dart'
     show FrostedSurface, RiseIn;
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'zap_received_message.dart';

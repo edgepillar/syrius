@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show debugDefaultTargetPlatformOverride;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +13,9 @@ import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/balances.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modals.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart'
+    show FrostedBarrier;
+import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 
 import '../../harness/app/fixtures/home_zap_preview.dart';
 
@@ -57,6 +61,7 @@ class _Fixture {
     bool disableAnimations = false,
     bool settle = true,
     bool preview = false,
+    bool framed = false,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -68,13 +73,16 @@ class _Fixture {
         locale: Locale(direction == TextDirection.rtl ? 'ar' : 'en'),
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: appLocalizationsDelegates,
-        builder: (BuildContext context, Widget? child) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(scale),
-            disableAnimations: disableAnimations,
-          ),
-          child: Directionality(textDirection: direction, child: child!),
-        ),
+        builder: (BuildContext context, Widget? child) {
+          final Widget body = MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: TextScaler.linear(scale),
+              disableAnimations: disableAnimations,
+            ),
+            child: Directionality(textDirection: direction, child: child!),
+          );
+          return framed ? AppWindowFrame(child: body) : body;
+        },
         home: Scaffold(
           body: Center(
             child: Builder(
@@ -195,20 +203,48 @@ void main() {
         await fixture.close(tester);
       }
       final _Fixture preview = _Fixture(light: light);
+      final TargetPlatform? previousPlatform =
+          debugDefaultTargetPlatformOverride;
+      const MethodChannel channel = MethodChannel('window_manager');
+      final TestDefaultBinaryMessenger messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            ..setMockMethodCallHandler(channel, (MethodCall call) async {
+              return switch (call.method) {
+                'isFullScreen' || 'isMaximized' => false,
+                _ => null,
+              };
+            });
       try {
-        await preview.show(tester, preview: true);
+        debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+        await preview.show(tester, preview: true, framed: true);
         expect(find.text(homeZapPreviewMessage), findsOneWidget);
         expect(find.byType(FrostedSurface), findsOneWidget);
         expect(tester.getRect(_key('zap_received_card')).center,
             const Offset(640, 390));
+        final Finder caption = _key('window-caption-frost');
+        expect(tester.getRect(caption), const Rect.fromLTWH(0, 0, 1280, 32));
+        final Finder barrier = find.byWidgetPredicate(
+          (Widget widget) => widget is FrostedBarrier && widget.key == null,
+        );
+        expect(
+          tester.widget<FrostedBarrier>(caption).animation,
+          same(tester.widget<FrostedBarrier>(barrier).animation),
+        );
+        expect(_key('window-close').hitTestable(), findsOneWidget);
         await tester.tap(_key('zap_received_nice'));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
         expect(_key('zap_received_card'), findsNothing);
+        expect(caption, findsNothing);
         expect(_key('open_received_message').hitTestable(), findsOneWidget);
         expect(tester.takeException(), isNull);
       } finally {
-        await preview.close(tester);
+        try {
+          await preview.close(tester);
+        } finally {
+          debugDefaultTargetPlatformOverride = previousPlatform;
+          messenger.setMockMethodCallHandler(channel, null);
+        }
       }
     });
 
