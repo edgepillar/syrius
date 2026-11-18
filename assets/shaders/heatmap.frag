@@ -140,14 +140,11 @@ float shadowShape(vec2 uv, float t, float contour) {
 void main() {
   int colorsCount = 7;
   vec4 colors[7];
-  // The Zenon ramp, coldest first. The mark at rest sits in the top two
-  // stops, so it is plasma pink; the halo is pink by the mark and falls
-  // through blue at its edge. No green: the halo lives in the first two
-  // stops over a wide area, and green in either drew a green disc behind
-  // a pink mark (tried twice). Green and pink mixed are grey besides.
-  colors[0] = vec4(0.0392, 0.1020, 0.3608, 1.0); // #0a1a5c
-  colors[1] = vec4(0.0000, 0.3804, 0.9216, 1.0); // #0061eb, Zenon blue
-  colors[2] = vec4(0.6510, 0.1843, 0.6824, 1.0); // #a62fae
+  // The cool halo blends into the card before reaching the pink mark.
+  // Premultiplied interpolation lets the blue gain opacity with heat.
+  colors[0] = vec4(0.0000, 0.3804, 0.9216, 0.0); // #0061eb, Zenon blue
+  colors[1] = vec4(0.0000, 0.3804, 0.9216, 0.55);
+  colors[2] = vec4(0.6510, 0.1843, 0.6824, 0.90); // #a62fae
   colors[3] = vec4(0.9765, 0.0863, 0.5647, 1.0); // #f91690, plasma pink
   colors[4] = vec4(1.0000, 0.4275, 0.7216, 1.0); // #ff6db8
   colors[5] = vec4(0.9765, 0.0863, 0.5647, 1.0); // #f91690, plasma pink
