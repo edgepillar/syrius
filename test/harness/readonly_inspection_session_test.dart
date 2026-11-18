@@ -1760,6 +1760,7 @@ void main() {
       int shots = 0;
       int returned = 0;
       int closedFuse = 0;
+      final Set<int> checkedFusions = <int>{};
       int closedToken = 0;
       int canceledSend = 0;
       int swapWarnings = 0;
@@ -1788,6 +1789,22 @@ void main() {
           if (name == 'tap' && command['key'] == 'rail_toggle') {
             expect(tab, 'dashboard');
             expanded = !expanded;
+          }
+          if (name == 'tap' && command['type'] == 'Checkbox') {
+            expect(selected, 'plasma-fuse');
+            final int row = command['nth']! as int;
+            expect(row, anyOf(1, 2));
+            expect(command, <String, Object?>{
+              'cmd': 'tap', 'type': 'Checkbox', 'kind': 'toggle', 'nth': row,
+            });
+            if (afterShot) {
+              final File retained = File('${repository.path}/'
+                '$readonlyDetailsCatalogDirectory/${files[shots - 1]}');
+              expect(retained.readAsBytesSync(), header);
+              expect(checkedFusions.remove(row), isTrue);
+            } else {
+              expect(checkedFusions.add(row), isTrue);
+            }
           }
           if (name == 'tap' && targetKey != null &&
               command['key'] != 'rail_toggle') {
@@ -1902,6 +1919,13 @@ void main() {
           if (name == 'shot') {
             expect(tab, routes[shots ~/ 2]);
             expect(selected, screens[shots ~/ 2]);
+            if (selected == 'plasma-fuse') {
+              expect(checkedFusions, <int>{1, 2});
+              expect(command['expect'], <String, Object?>{
+                'text': 'Cancel 2 fuses', 'key': 'plasma_cancel_selected',
+                'kind': 'button', 'exact': true,
+              });
+            }
             if (sentinelFixture) {
               expect(command['expect'], <String, Object?>{
                 'key': 'nodes_sentinel_read_scope', 'exact': true,
@@ -1947,6 +1971,7 @@ void main() {
           if (name == 'tap' && command['key'] == 'plasma_close_fuse' &&
               afterShot) {
             expect(tab, 'plasma');
+            expect(checkedFusions, isEmpty);
             expect(shots, returned + 1);
             final File retained = File('${repository.path}/'
               '$readonlyDetailsCatalogDirectory/${files[shots - 1]}');
@@ -2137,6 +2162,7 @@ void main() {
         expect(shots, files.length);
         expect(returned, files.length);
         expect(closedFuse, tokenDraft || selection.catalogOnly ? 0 : 2);
+        expect(checkedFusions, isEmpty);
         expect(closedToken, tokenDraft ? 2 : 0);
         expect(canceledSend, sendConfirmation ? 2 : 0);
         expect(swapWarnings, swapStart ? 1 : 0);
