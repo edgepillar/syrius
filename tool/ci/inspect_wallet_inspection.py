@@ -25,7 +25,8 @@ MAX_WORKFLOW_SOURCE = 128 * 1024
 MAX_WORKFLOW_RESPONSE = 256 * 1024
 VERSIONED_INPUTS = frozenset((
     'pubspec.yaml', 'pubspec.lock',
-    'harness/screens/token-new.txt', 'tool/ci/run_harness_tour_tests.py',
+    'harness/screens/set-licences.txt', 'harness/screens/token-new.txt',
+    'tool/ci/run_harness_tour_tests.py',
     'harness/bin/readonly_catalog_contact.dart',
     'harness/bin/readonly_settings_catalog.dart',
     'lib/rearchitecture/utils/widgets/entry_field.dart',

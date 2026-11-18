@@ -9,6 +9,7 @@ scroll 1000000
 scroll 1000000
 scroll 1000000
 reveal --key about_licences_end
+hover @0,0
 assert --key about_licences_end
 # after-capture: goto dashboard
 # after-capture: wait --key home_hero --timeout 5
