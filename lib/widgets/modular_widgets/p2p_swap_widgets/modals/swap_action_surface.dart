@@ -856,11 +856,11 @@ class SwapTransferSurface extends StatelessWidget {
                   rate,
                 ],
               ),
-              Text(timing, style: tokens.captionText),
+              Text(timing, style: tokens.transferCaptionText),
             ],
           ),
           SizedBox(height: tokens.swapActionGap),
-          SwapNotice(context.l10n.swapActionExperimental),
+          SwapNotice._experimental(context.l10n.swapActionExperimental),
           SizedBox(height: tokens.transferRecentGap),
           Text(detailsSummary, style: tokens.captionText),
           disclosure,
@@ -940,7 +940,14 @@ class SwapNotice extends StatelessWidget {
     this.error = false,
     this.waiting = false,
     super.key,
-  });
+  }) : _warning = false;
+
+  const SwapNotice._experimental(this.text)
+    : error = false,
+      waiting = false,
+      _warning = true;
+
+  final bool _warning;
 
   /// Short localized fact or remedy.
   final String text;
@@ -956,19 +963,26 @@ class SwapNotice extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Icon(
-          error
-              ? Icons.error_outline
-              : waiting
-              ? Icons.schedule
-              : Icons.info_outline,
-          size: tokens.swapActionTokenIconSize,
-          color: error
-              ? tokens.error
-              : waiting
-              ? tokens.qsr
-              : tokens.dim,
-        ),
+        if (_warning)
+          ShellSymbol(
+            'warn',
+            size: tokens.smallActionGlyphSize,
+            color: tokens.warn,
+          )
+        else
+          Icon(
+            error
+                ? Icons.error_outline
+                : waiting
+                ? Icons.schedule
+                : Icons.info_outline,
+            size: tokens.swapActionTokenIconSize,
+            color: error
+                ? tokens.error
+                : waiting
+                ? tokens.qsr
+                : tokens.dim,
+          ),
         SizedBox(width: tokens.inlineGap),
         Expanded(
           child: Text(
