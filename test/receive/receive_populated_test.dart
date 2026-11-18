@@ -24,7 +24,7 @@ String get _second => pillarAddress.toString();
 ReceivePopulated _form({
   List<Token>? assets,
   Future<void> Function(String)? copy,
-  Future<void> Function(Uint8List)? share,
+  Future<void> Function(Uint8List)? copyImage,
   Future<void> Function(Uint8List)? save,
   ReceiveQrEncoder? encode,
   ReceiveHeaderController? header,
@@ -37,7 +37,7 @@ ReceivePopulated _form({
   addressLabels: <String, String>{_first: 'Address 1', _second: 'Address 2'},
   initialAddress: _first,
   onCopyAddress: copy ?? (String _) async {},
-  onShareImage: share ?? (Uint8List _) async {},
+  onCopyImage: copyImage ?? (Uint8List _) async {},
   onSaveImage: save ?? (Uint8List _) async {},
   encodeImage: encode ?? receiveTestEncode,
   headerController: header,
@@ -236,7 +236,7 @@ void main() {
         isCurrent: () => current,
         encode: (QrImage image, PrettyQrDecoration decoration, int size) =>
             encoding.future,
-        share: (Uint8List bytes) async => exports.add(bytes),
+        copyImage: (Uint8List bytes) async => exports.add(bytes),
       ));
       await tester.pumpWidget(form());
       await tester.pump();
@@ -336,7 +336,7 @@ void main() {
         _payload(tester),
         'znn:$_first?zts=${kZnnCoin.tokenStandard}&amount=0',
       );
-      expect(find.text('Share image'), findsOneWidget);
+      expect(find.text('Copy image'), findsOneWidget);
       expect(find.text('Save'), findsOneWidget);
       expect(find.text('Copy image'), findsNothing);
       await receiveTestDispose(tester);
@@ -607,7 +607,7 @@ void main() {
     await tester.pumpWidget(
       receiveTestHost(
         _form(
-          share: (Uint8List bytes) async => exports.add(bytes),
+          copyImage: (Uint8List bytes) async => exports.add(bytes),
           save: (Uint8List bytes) async => exports.add(bytes),
         ),
       ),
@@ -647,7 +647,7 @@ void main() {
                 PrettyQrDecoration decoration,
                 int size,
               ) => encoding.future,
-          share: (Uint8List bytes) async => exports.add(bytes),
+          copyImage: (Uint8List bytes) async => exports.add(bytes),
         ),
       ),
     );
@@ -679,7 +679,7 @@ void main() {
                 PrettyQrDecoration decoration,
                 int size,
               ) => encoding.future,
-          share: (Uint8List bytes) async => exports.add(bytes),
+          copyImage: (Uint8List bytes) async => exports.add(bytes),
         ),
       ),
     );

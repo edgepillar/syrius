@@ -3,16 +3,19 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:material_ui/material_ui.dart';
-import 'package:path/path.dart' as path;
 import 'package:pretty_qr_code/pretty_qr_code.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
     show ShellSymbol;
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart' show TokenStandard;
+
+const MethodChannel _imageClipboard = MethodChannel(
+  'network.zenon.syrius/image_clipboard',
+);
 
 /// Rasterizes one exact QR request for the existing image exports.
 typedef ReceiveQrEncoder =
@@ -22,7 +25,7 @@ typedef ReceiveQrEncoder =
       int size,
     );
 
-/// A request QR with the existing Share and Save operations.
+/// A request QR with Copy image and Save operations.
 class ReceiveQrImage extends StatefulWidget {
   /// Creates the image. Tests may replace rasterization and native exports.
   const ReceiveQrImage({
@@ -31,7 +34,7 @@ class ReceiveQrImage extends StatefulWidget {
     required this.tokenStandard,
     this.enabled = true,
     this.isRequestCurrent,
-    this.onShareImage,
+    this.onCopyImage,
     this.onSaveImage,
     this.encodeImage,
     super.key,
@@ -53,8 +56,8 @@ class ReceiveQrImage extends StatefulWidget {
   /// An edited form can revoke this image before its next widget rebuild.
   final bool Function()? isRequestCurrent;
 
-  /// Replaces native sharing of the generated PNG bytes.
-  final Future<void> Function(Uint8List)? onShareImage;
+  /// Replaces the native clipboard write of the generated PNG bytes.
+  final Future<void> Function(Uint8List)? onCopyImage;
 
   /// Replaces saving the generated PNG to a selected file.
   final Future<void> Function(Uint8List)? onSaveImage;
@@ -102,8 +105,8 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
 
   @override
   Widget build(BuildContext context) {
-    final Future<void> Function(Uint8List) shareImage =
-        widget.onShareImage ?? _shareImage;
+    final Future<void> Function(Uint8List) copyImage =
+        widget.onCopyImage ?? _copyImage;
     final Future<void> Function(Uint8List)? saveImage = widget.onSaveImage;
     final AppTokens tokens = AppTokens.of(context);
     QrImage? image;
@@ -154,6 +157,7 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
             runSpacing: tokens.receiveMicroGap,
             children: <Widget>[
               TextButton.icon(
+                // Preserve the existing capture key for this image action.
                 key: const Key('receive_share_image'),
                 style: TextButton.styleFrom(
                   foregroundColor: tokens.dim,
@@ -171,11 +175,11 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
                         _export(
                           image: qrImage,
                           decoration: qrDecoration,
-                          action: (Uint8List bytes, _) => shareImage(bytes),
+                          action: (Uint8List bytes, _) => copyImage(bytes),
                         ),
                       ),
-                icon: Icon(Icons.share_rounded, size: tokens.heroCopyIconSize),
-                label: Text(context.l10n.receiveShareImage),
+                icon: ShellSymbol('copy', size: tokens.heroCopyIconSize),
+                label: Text(context.l10n.receiveCopyImage),
               ),
               TextButton.icon(
                 key: const Key('receive_save_image'),
@@ -287,15 +291,6 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
     return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
   }
 
-  static Future<File> _writeImage(Uint8List bytes) async {
-    final String name = DateTime.now().microsecondsSinceEpoch.toString();
-    final File file = await File(
-      '${znnDefaultPaths.cache.path}${path.separator}$name.png',
-    ).create();
-    await file.writeAsBytes(bytes);
-    return file;
-  }
-
   static Future<void> _saveImage(
     Uint8List bytes,
     bool Function() current,
@@ -315,10 +310,6 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
     await File(location.path).writeAsBytes(bytes, flush: true);
   }
 
-  static Future<void> _shareImage(Uint8List bytes) async {
-    final File file = await _writeImage(bytes);
-    await SharePlus.instance.share(
-      ShareParams(files: <XFile>[XFile(file.path)]),
-    );
-  }
+  static Future<void> _copyImage(Uint8List bytes) =>
+      _imageClipboard.invokeMethod<void>('writePng', bytes);
 }

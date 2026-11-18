@@ -34,7 +34,7 @@ class ReceivePopulated extends StatefulWidget {
     this.addressLabels,
     this.initialAddress,
     this.onCopyAddress,
-    this.onShareImage,
+    this.onCopyImage,
     this.onSaveImage,
     this.encodeImage,
     this.headerController,
@@ -60,10 +60,10 @@ class ReceivePopulated extends StatefulWidget {
   /// Replaces the platform text clipboard operation.
   final Future<void> Function(String)? onCopyAddress;
 
-  /// Replaces the existing native image sharing operation.
-  final Future<void> Function(Uint8List)? onShareImage;
+  /// Replaces the platform image clipboard operation.
+  final Future<void> Function(Uint8List)? onCopyImage;
 
-  /// Replaces the existing cached-image save and open operation.
+  /// Replaces saving the generated PNG to a selected file.
   final Future<void> Function(Uint8List)? onSaveImage;
 
   /// Replaces QR rasterization without changing the encoded request.
@@ -493,7 +493,7 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
                           header.ownsCurrent(this) &&
                           _addresses.contains(_selectedAddress))) &&
                   _payload == payload,
-              onShareImage: widget.onShareImage,
+              onCopyImage: widget.onCopyImage,
               onSaveImage: widget.onSaveImage,
               encodeImage: widget.encodeImage,
             ),

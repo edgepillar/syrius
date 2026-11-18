@@ -34,7 +34,7 @@ ReceiveQrImage _qr({
   String data = 'request-one',
   ReceiveQrEncoder? encode,
   bool Function()? isRequestCurrent,
-  Future<void> Function(Uint8List)? share,
+  Future<void> Function(Uint8List)? copyImage,
   Future<void> Function(Uint8List)? save,
 }) => ReceiveQrImage(
   key: const Key('test_qr'),
@@ -43,21 +43,35 @@ ReceiveQrImage _qr({
   tokenStandard: kZnnCoin.tokenStandard,
   encodeImage: encode ?? receiveTestEncode,
   isRequestCurrent: isRequestCurrent,
-  onShareImage: share ?? (Uint8List _) async {},
+  onCopyImage: copyImage ?? (Uint8List _) async {},
   onSaveImage: save ?? (Uint8List _) async {},
 );
 
 void main() {
-  testWidgets('Share and Save receive bytes at injected boundaries', (
+  testWidgets('Copy sends the encoded image to the platform clipboard', (
     WidgetTester tester,
   ) async {
-    final List<List<int>> shared = <List<int>>[];
+    const MethodChannel clipboard = MethodChannel(
+      'network.zenon.syrius/image_clipboard',
+    );
+    final TestDefaultBinaryMessenger messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    final List<List<int>> copied = <List<int>>[];
     final List<List<int>> saved = <List<int>>[];
     final List<int> sizes = <int>[];
+    messenger.setMockMethodCallHandler(clipboard, (MethodCall call) async {
+      expect(call.method, 'writePng');
+      copied.add((call.arguments as Uint8List).toList());
+      return null;
+    });
+    addTearDown(() => messenger.setMockMethodCallHandler(clipboard, null));
     await tester.pumpWidget(
       receiveTestHost(
-        _qr(
-          encode:
+        ReceiveQrImage(
+          data: 'request-one',
+          size: 150,
+          tokenStandard: kZnnCoin.tokenStandard,
+          encodeImage:
               (
                 QrImage image,
                 PrettyQrDecoration decoration,
@@ -66,8 +80,7 @@ void main() {
                 sizes.add(size);
                 return Uint8List.fromList(<int>[4, 5, 6]);
               },
-          share: (Uint8List bytes) async => shared.add(bytes.toList()),
-          save: (Uint8List bytes) async => saved.add(bytes.toList()),
+          onSaveImage: (Uint8List bytes) async => saved.add(bytes.toList()),
         ),
       ),
     );
@@ -76,14 +89,14 @@ void main() {
     await tester.tap(find.byKey(const Key('receive_save_image')));
     await tester.pump();
     expect(sizes, <int>[150, 150]);
-    expect(shared, <List<int>>[
+    expect(copied, <List<int>>[
       <int>[4, 5, 6],
     ]);
     expect(saved, <List<int>>[
       <int>[4, 5, 6],
     ]);
     expect(find.text('Save'), findsOneWidget);
-    expect(find.text('Copy image'), findsNothing);
+    expect(find.text('Copy image'), findsOneWidget);
     await receiveTestDispose(tester);
   });
 
@@ -174,7 +187,7 @@ void main() {
                 PrettyQrDecoration decoration,
                 int size,
               ) => encoding.future,
-          share: (Uint8List bytes) async => exports.add(bytes),
+          copyImage: (Uint8List bytes) async => exports.add(bytes),
         ),
       ),
     );
@@ -219,7 +232,7 @@ void main() {
                 PrettyQrDecoration decoration,
                 int size,
               ) => encoding.future,
-          share: (Uint8List bytes) async => exports.add(bytes),
+          copyImage: (Uint8List bytes) async => exports.add(bytes),
         ),
       ),
     );
@@ -251,7 +264,7 @@ void main() {
                 encodings += 1;
                 return encoding.future;
               },
-          share: (Uint8List bytes) async => exports.add(bytes),
+          copyImage: (Uint8List bytes) async => exports.add(bytes),
         ),
       ),
     );
@@ -306,7 +319,7 @@ void main() {
     await tester.pumpWidget(
       receiveTestHost(
         _qr(
-          share: (Uint8List bytes) async {
+          copyImage: (Uint8List bytes) async {
             throw StateError('test export internals');
           },
         ),

@@ -2922,7 +2922,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get receiveRequestAmountHint => 'The QR carries the amount.';
 
   @override
-  String get receiveShareImage => 'Share image';
+  String get receiveCopyImage => 'Copy image';
 
   @override
   String get receiveInvalidAmount =>

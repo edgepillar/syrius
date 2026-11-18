@@ -2050,7 +2050,7 @@
   "receiveHideQr": "Hide QR",
   "receiveRequestAmount": "Request a specific amount",
   "receiveRequestAmountHint": "The QR carries the amount.",
-  "receiveShareImage": "Share image",
+  "receiveCopyImage": "Copy image",
   "receiveInvalidAmount": "Enter a positive amount within this token's precision",
   "receiveExportFailed": "The QR image could not be exported",
   "receiveCopyFailed": "Could not copy address. Try again.",
