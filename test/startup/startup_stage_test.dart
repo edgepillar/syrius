@@ -11,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_tab_child.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 
 const String _asset = 'test/launch_film/fixtures/film.webp';
 const MethodChannel _window = MethodChannel('window_manager');
@@ -112,6 +113,7 @@ Future<GlobalKey<_HarnessState>> _show(
   StartupStageSession session, {
   bool light = false,
   bool reduced = false,
+  bool withWindowFrame = false,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = const Size(1280, 780);
@@ -130,7 +132,7 @@ Future<GlobalKey<_HarnessState>> _show(
       locale: const Locale('en'),
       builder: (BuildContext context, Widget? child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(disableAnimations: reduced),
-        child: child!,
+        child: withWindowFrame ? AppWindowFrame(child: child!) : child!,
       ),
       home: _Harness(key: key, session: session),
     ),
@@ -198,10 +200,15 @@ void main() {
         );
         expect(session.film.frame, -1);
         expect(find.text('Click or press a key to skip'), findsOneWidget);
+        final Finder hint = find.byKey(
+          const ValueKey<String>('launch_skip_hint'),
+        );
+        final TextStyle style = tester.widget<Text>(hint).style!;
+        expect(style.inherit, isFalse);
+        expect(style.fontWeight, FontWeight.w400);
+        expect(style.decoration, TextDecoration.none);
         expect(
-          tester
-              .getRect(find.byKey(const ValueKey<String>('launch_skip_hint')))
-              .bottom,
+          tester.getRect(hint).bottom,
           754,
         );
         final LockCard card = tester.widget<LockCard>(find.byType(LockCard));
@@ -218,6 +225,53 @@ void main() {
       },
     );
   }
+
+  testWidgets(
+    'Windows caption stays black through launch and restores at handoff',
+    (WidgetTester tester) async {
+      late StartupStageSession session;
+      session = _session(() => session.wait());
+      final GlobalKey<_HarnessState> host = await _show(
+        tester,
+        session,
+        light: true,
+        withWindowFrame: true,
+      );
+      final Finder caption = find.byKey(
+        const ValueKey<String>('window-caption'),
+      );
+      final Finder backdrop = find.byKey(
+        const ValueKey<String>('window-caption-backdrop'),
+      );
+      final Finder title = find.text('SYRIUS');
+      final Rect full = _stageRect(tester);
+      expect(full.top, 32);
+      expect(tester.widget<Material>(caption).color, Colors.black);
+      expect(tester.widget<Text>(title).style!.color, const Color(0xFF555555));
+      expect(tester.widget<CustomPaint>(backdrop).painter, isNull);
+
+      await tester.tapAt(const Offset(100, 100));
+      await _until(tester, () => session.film.isDone);
+      expect(tester.widget<Material>(caption).color, Colors.black);
+      expect(_stageRect(tester), full);
+
+      await _begin(tester, host);
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(_stageRect(tester).width, lessThan(full.width));
+      expect(
+        tester.widget<Material>(caption).color,
+        AppTokens.light.windowCaptionBackground,
+      );
+      expect(tester.widget<Text>(title).style, AppTokens.light.windowTitleText);
+      expect(tester.widget<CustomPaint>(backdrop).painter, isNotNull);
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(session.interactive, isTrue);
+      expect(tester.takeException(), isNull);
+    },
+    variant: const TargetPlatformVariant(
+      <TargetPlatform>{TargetPlatform.windows},
+    ),
+  );
 
   testWidgets('pointer skip holds the original final frame and starts once', (
     WidgetTester tester,

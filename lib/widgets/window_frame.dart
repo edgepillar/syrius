@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/scheduler.dart' show SchedulerPhase;
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
@@ -85,10 +86,37 @@ class AppWindowFrameState extends State<AppWindowFrame> {
   final Set<AppWindowEntryBackdrop> _entryBackdrops =
       <AppWindowEntryBackdrop>{};
   final _WindowCaptionRepaint _entryBackdropChanges = _WindowCaptionRepaint();
+  final ValueNotifier<bool> _launchCaption = ValueNotifier<bool>(false);
+  Object? _launchCaptionOwner;
   bool _entryBackdropDisposed = false;
 
   /// Whether this original frame owns a client caption to be painted.
   bool get hasClientCaption => !_entryBackdropDisposed && _window != null;
+
+  /// Lets the original full-window launch own the caption until it settles.
+  VoidCallback? holdLaunchCaption() {
+    if (!mounted || !hasClientCaption || _launchCaptionOwner != null) {
+      return null;
+    }
+    final Object owner = Object();
+    _launchCaptionOwner = owner;
+    _updateLaunchCaption();
+    return () {
+      if (!identical(_launchCaptionOwner, owner)) return;
+      _launchCaptionOwner = null;
+      _updateLaunchCaption();
+    };
+  }
+
+  void _updateLaunchCaption() {
+    if (!mounted || !hasClientCaption) return;
+    final WidgetsBinding binding = WidgetsBinding.instance;
+    if (binding.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+      binding.addPostFrameCallback((_) => _updateLaunchCaption());
+      return;
+    }
+    _launchCaption.value = _launchCaptionOwner != null;
+  }
 
   /// Captures only an actual descendant entry body's original paint owner.
   /// Only paint listeners are notified; registration rebuilds no ancestor.
@@ -151,30 +179,37 @@ class AppWindowFrameState extends State<AppWindowFrame> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final AppWindowController? window = _window;
-    if (window == null) {
-      return widget.child;
-    }
+  Widget _buildCaption(
+    BuildContext context,
+    AppWindowController window,
+    bool launch,
+  ) {
     final AppTokens tokens = AppTokens.of(context);
     final AppLocalizations text = AppLocalizations.of(context)!;
-    final Widget caption = Directionality(
+    final Color ink = launch ? tokens.launchCaptionInk : tokens.faint;
+    return Directionality(
       textDirection: TextDirection.ltr,
       child: Material(
         key: const ValueKey<String>('window-caption'),
-        color: tokens.windowCaptionBackground,
+        color: launch
+            ? tokens.launchStageBackground
+            : tokens.windowCaptionBackground,
         child: Stack(
           children: <Widget>[
             Positioned.fill(
-              child: IgnorePointer(child: ExcludeSemantics(
-                child: CustomPaint(
-                  key: const ValueKey<String>('window-caption-backdrop'),
-                  painter: _AppWindowCaptionPainter(
-                    frame: this, background: tokens.windowCaptionBackground,
+              child: IgnorePointer(
+                child: ExcludeSemantics(
+                  child: CustomPaint(
+                    key: const ValueKey<String>('window-caption-backdrop'),
+                    painter: launch
+                        ? null
+                        : _AppWindowCaptionPainter(
+                            frame: this,
+                            background: tokens.windowCaptionBackground,
+                          ),
                   ),
                 ),
-              )),
+              ),
             ),
             SizedBox(
               height: tokens.windowCaptionHeight,
@@ -204,7 +239,9 @@ class AppWindowFrameState extends State<AppWindowFrame> {
                               transformHitTests: false,
                               child: Text(
                                 'SYRIUS',
-                                style: tokens.windowTitleText,
+                                style: tokens.windowTitleText.copyWith(
+                                  color: ink,
+                                ),
                               ),
                             ),
                           ),
@@ -215,6 +252,7 @@ class AppWindowFrameState extends State<AppWindowFrame> {
                         label: text.windowMinimize,
                         icon: Icons.remove,
                         glyph: _CaptionGlyph.minimize,
+                        ink: ink,
                         onPressed: window.canMinimize
                             ? () => unawaited(window.minimize())
                             : null,
@@ -230,6 +268,7 @@ class AppWindowFrameState extends State<AppWindowFrame> {
                         glyph: window.maximized == true
                             ? null
                             : _CaptionGlyph.maximize,
+                        ink: ink,
                         onPressed: window.canToggleMaximize
                             ? () => unawaited(window.toggleMaximize())
                             : null,
@@ -240,6 +279,7 @@ class AppWindowFrameState extends State<AppWindowFrame> {
                         icon: Icons.close,
                         glyph: _CaptionGlyph.close,
                         isClose: true,
+                        ink: ink,
                         onPressed: window.canClose
                             ? () => unawaited(window.close())
                             : null,
@@ -252,6 +292,18 @@ class AppWindowFrameState extends State<AppWindowFrame> {
           ],
         ),
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppWindowController? window = _window;
+    if (window == null) return widget.child;
+    final AppTokens tokens = AppTokens.of(context);
+    final Widget caption = ValueListenableBuilder<bool>(
+      valueListenable: _launchCaption,
+      builder: (BuildContext context, bool launch, _) =>
+          _buildCaption(context, window, launch),
     );
     // Preserve the original Navigator body bounds and View ancestry.
     // Route-owned panels can use the outer overlay's full client bounds.
@@ -289,6 +341,8 @@ class AppWindowFrameState extends State<AppWindowFrame> {
   @override
   void dispose() {
     _entryBackdropDisposed = true;
+    _launchCaptionOwner = null;
+    _launchCaption.dispose();
     for (final AppWindowEntryBackdrop original in _entryBackdrops.toList()) {
       original.dispose();
     }
@@ -333,6 +387,7 @@ class _CaptionButton extends StatelessWidget {
   const _CaptionButton({
     required this.label,
     required this.icon,
+    required this.ink,
     required this.onPressed,
     super.key,
     this.isClose = false,
@@ -341,6 +396,7 @@ class _CaptionButton extends StatelessWidget {
 
   final String label;
   final IconData icon;
+  final Color ink;
   final _CaptionGlyph? glyph;
   final VoidCallback? onPressed;
   final bool isClose;
@@ -390,7 +446,7 @@ class _CaptionButton extends StatelessWidget {
             }
             return isClose && states.contains(WidgetState.hovered)
                 ? tokens.error
-                : tokens.faint;
+                : ink;
           },
         ),
         overlayColor: WidgetStateProperty.resolveWith<Color>(

@@ -7,6 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buil
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 
 /// Builds the actual authentication owner before the launch's first frame.
 typedef StartupAuthBuilder =
@@ -81,6 +82,7 @@ class StartupStageSession implements Listenable {
   final ValueNotifier<double> motion = ValueNotifier<double>(0);
 
   OverlayEntry? _entry;
+  VoidCallback? _releaseLaunchCaption;
   Future<void> Function(String)? _afterUnlock;
   VoidCallback? _afterInit;
   ValueListenable<int>? _replay;
@@ -120,11 +122,19 @@ class StartupStageSession implements Listenable {
   /// Adds only this session's entry above the Navigator's route entries.
   void show(BuildContext context) {
     if (_closed || _entry != null) return;
+    _releaseLaunchCaption = context
+        .findAncestorStateOfType<AppWindowFrameState>()
+        ?.holdLaunchCaption();
     _entry = OverlayEntry(
       maintainState: true,
       builder: (_) => _StartupStage(session: this),
     );
     Navigator.of(context, rootNavigator: true).overlay!.insert(_entry!);
+  }
+
+  void _restoreCaption() {
+    _releaseLaunchCaption?.call();
+    _releaseLaunchCaption = null;
   }
 
   /// Binds the existing shell callbacks without rebuilding another owner.
@@ -241,6 +251,7 @@ class StartupStageSession implements Listenable {
   void dispose() {
     if (_closed) return;
     _closed = true;
+    _restoreCaption();
     _originalFilmCleanup = film.cleanup;
     _onDone = null;
     _afterUnlock = null;
@@ -379,6 +390,7 @@ class _StartupStageState extends State<_StartupStage>
     }
     final AppTokens tokens = AppTokens.of(context);
     _started = true;
+    widget.session._restoreCaption();
     _settle
       ..duration = tokens.launchSettleDuration
       ..forward();

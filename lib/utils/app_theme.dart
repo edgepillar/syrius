@@ -551,6 +551,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The original launch artwork always occupies a black stage.
   Color get launchStageBackground => Colors.black;
 
+  /// The Windows title and controls share the launch reference's quiet ink.
+  Color get launchCaptionInk => const Color(0xFF555555);
+
   /// The one launch stage settles into the measured lock well.
   Duration get launchSettleDuration => const Duration(milliseconds: 400);
 
@@ -571,10 +574,13 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// This hint is painted on the original black art in both themes.
   TextStyle get launchHintText => const TextStyle(
+    inherit: false,
     fontFamily: kSansFontFamily,
     fontSize: 12,
+    fontWeight: FontWeight.w400,
     letterSpacing: .48,
     color: Color(0xFF5A5F5A),
+    decoration: TextDecoration.none,
   );
 
   /// Full-size registration art is reserved for a confirmed original block.
