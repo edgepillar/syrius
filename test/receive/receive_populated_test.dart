@@ -15,6 +15,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
     show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../helpers/mockup_symbol.dart';
 import 'receive_test_support.dart';
 
 String get _first => emptyAddress.toString();
@@ -403,9 +404,22 @@ void main() {
         expect(copies, <String>[_first]);
         await _toggleRequest(tester);
         final Finder amount = find.byKey(const Key('receive_amount_field'));
+        final Finder picker = find.byKey(const Key('receive_token_picker'));
+        final AppTokens tokens = AppTokens.of(tester.element(amount));
+        expect(
+          tester.widget<Text>(find.text('Request a specific amount')).style,
+          tokens.receiveRequestText.copyWith(color: tokens.foreground),
+        );
+        expectMockupSymbol(
+          tester,
+          within: picker,
+          symbol: 'chev',
+          size: 14,
+          color: tokens.faint,
+        );
         for (final Finder control in <Finder>[
           amount,
-          find.byKey(const Key('receive_token_picker')),
+          picker,
         ]) {
           final Finder editable = find.descendant(
             of: control, matching: find.byType(EditableText),
@@ -415,6 +429,18 @@ void main() {
           );
           expect(container, isNotNull);
           expect(container!.size.height, closeTo(42, .5));
+          final InputDecorator decoration = tester.widget<InputDecorator>(
+            find.descendant(
+              of: control, matching: find.byType(InputDecorator),
+            ).first,
+          );
+          final OutlineInputBorder outline =
+              decoration.decoration.enabledBorder! as OutlineInputBorder;
+          expect(outline.borderRadius, BorderRadius.circular(8));
+          expect(
+            outline.borderSide.color,
+            control == amount ? tokens.faint : tokens.line,
+          );
         }
         await tester.enterText(amount, '12.5');
         tester

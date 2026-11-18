@@ -122,6 +122,7 @@ class Disclosure extends StatefulWidget {
     this.keyPrefix,
     this.headerPadding = _kHeaderPadding,
     this.headerMinHeight = _kHeaderHeight,
+    this.titleStyle,
     super.key,
   });
 
@@ -140,6 +141,7 @@ class Disclosure extends StatefulWidget {
        count = null,
        summary = null,
        keyPrefix = null,
+       titleStyle = null,
        headerPadding = _kHeaderPadding;
 
   /// The heading. Null only for [Disclosure.bare], which has no header.
@@ -190,6 +192,9 @@ class Disclosure extends StatefulWidget {
 
   /// Insets for the title and chevron inside the header hit target.
   final EdgeInsetsGeometry headerPadding;
+
+  /// Optional title style for disclosures embedded in a form.
+  final TextStyle? titleStyle;
 
   @override
   State<Disclosure> createState() => _DisclosureState();
@@ -348,6 +353,7 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
                   ? null
                   : ValueKey<String>('${widget.keyPrefix}_toggle'),
               title: title,
+              titleStyle: widget.titleStyle,
               minHeight: widget.headerMinHeight,
               padding: widget.headerPadding,
               count: widget.count,
@@ -415,6 +421,7 @@ class _DisclosureHeader extends StatefulWidget {
   const _DisclosureHeader({
     required this.toggleKey,
     required this.title,
+    required this.titleStyle,
     required this.minHeight,
     required this.padding,
     required this.count,
@@ -428,6 +435,7 @@ class _DisclosureHeader extends StatefulWidget {
   final double minHeight;
   final EdgeInsetsGeometry padding;
   final String title;
+  final TextStyle? titleStyle;
   final int? count;
   final String? summary;
 
@@ -461,7 +469,7 @@ class _DisclosureHeaderState extends State<_DisclosureHeader> {
             widget.title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: panelTitleStyle(context),
+            style: widget.titleStyle ?? panelTitleStyle(context),
           ),
         ),
         if (count != null) ...<Widget>[

@@ -340,10 +340,16 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
     );
   }
 
-  InputDecorationThemeData _buildInputTheme(AppTokens tokens) {
+  InputDecorationThemeData _buildInputTheme(
+    AppTokens tokens, {
+    double? radius,
+    Color? outline,
+  }) {
     final OutlineInputBorder border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(tokens.transferControlRadius),
-      borderSide: BorderSide(color: tokens.line),
+      borderRadius: BorderRadius.circular(
+        radius ?? tokens.transferControlRadius,
+      ),
+      borderSide: BorderSide(color: outline ?? tokens.line),
     );
     return Theme.of(context).inputDecorationTheme.copyWith(
       filled: true,
@@ -511,7 +517,7 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
               : tokens.receiveQrAddressText,
         ),
       ),
-      SizedBox(height: tokens.receiveGap),
+      SizedBox(height: centered ? tokens.receiveGap : tokens.transferFormGap),
       Wrap(
         alignment: centered ? WrapAlignment.center : WrapAlignment.start,
         spacing: tokens.receiveActionGap,
@@ -578,7 +584,7 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
         SizedBox(height: tokens.receiveMicroGap),
         _buildError(context.l10n.receiveCopyFailed, tokens),
       ],
-      SizedBox(height: tokens.receiveGap),
+      SizedBox(height: centered ? tokens.receiveGap : tokens.transferFormGap),
       Divider(height: 1, color: tokens.line),
       Disclosure(
         controller: _request,
@@ -586,6 +592,9 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
         keyPrefix: 'receive_request',
         headerPadding: EdgeInsets.zero,
         title: context.l10n.receiveRequestAmount,
+        titleStyle: tokens.receiveRequestText.copyWith(
+          color: tokens.foreground,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -627,6 +636,12 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
                 (_amountController.text.isNotEmpty && _payload == null
                     ? context.l10n.receiveInvalidAmount
                     : null),
+          ).applyDefaults(
+            _buildInputTheme(
+              tokens,
+              radius: tokens.transferFieldRadius,
+              outline: tokens.faint,
+            ),
           ),
           inputFormatters: FormatUtils.getAmountTextInputFormatters(
             _amountController.text,
@@ -665,14 +680,17 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
 
   Widget _buildTokenPicker(AppTokens tokens) => DropdownMenu<Token>(
     key: const Key('receive_token_picker'),
-    inputDecorationTheme: _buildInputTheme(tokens).copyWith(
+    inputDecorationTheme: _buildInputTheme(
+      tokens,
+      radius: tokens.transferFieldRadius,
+    ).copyWith(
       contentPadding: tokens.transferFieldPadding,
       prefixIconConstraints: BoxConstraints.tightFor(
         width: tokens.fieldHeight,
         height: tokens.fieldHeight,
       ),
       suffixIconConstraints: BoxConstraints.tightFor(
-        width: 34,
+        width: tokens.fieldHeight,
         height: tokens.fieldHeight,
       ),
     ),
@@ -680,7 +698,20 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
     initialSelection: _selectedToken,
     expandedInsets: EdgeInsets.zero,
     enableFilter: true,
-    textStyle: tokens.dataText,
+    textStyle: tokens.bodyText,
+    trailingIcon: ShellSymbol(
+      'chev',
+      size: tokens.smallActionGlyphSize,
+      color: tokens.faint,
+    ),
+    selectedTrailingIcon: RotatedBox(
+      quarterTurns: 2,
+      child: ShellSymbol(
+        'chev',
+        size: tokens.smallActionGlyphSize,
+        color: tokens.faint,
+      ),
+    ),
     leadingIcon: buildTransferTokenMark(
       _selectedToken.tokenStandard.toString(),
       tokens,

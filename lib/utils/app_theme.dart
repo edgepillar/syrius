@@ -1703,7 +1703,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The transfer shape's field and row radius.
   double get transferControlRadius => 14;
 
-  /// Send's ordinary input outline follows the reference field radius.
+  /// The ordinary Transfer input outline follows the reference field radius.
   double get transferFieldRadius => cardRadius;
 
   /// The native token initial inside the Transfer selectors.
