@@ -1,3 +1,5 @@
+import 'dart:ui' show PointerDeviceKind;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
@@ -180,7 +182,18 @@ void main() {
             find.byTooltip('Update phase').hitTestable(),
             findsOneWidget,
           );
-          expect(find.byTooltip('2 · Phase 3').hitTestable(), findsOneWidget);
+          const String fullTitle = '2 · Phase 3';
+          final Finder phaseTitle = find.text(fullTitle);
+          expect(phaseTitle.hitTestable(), findsOneWidget);
+          final TestGesture mouse = await tester.createGesture(
+            kind: PointerDeviceKind.mouse,
+          );
+          await mouse.addPointer(location: const Offset(1, 1));
+          addTearDown(mouse.removePointer);
+          await tester.pump();
+          await mouse.moveTo(tester.getCenter(phaseTitle));
+          await tester.pumpAndSettle();
+          expect(find.text(fullTitle, findRichText: true), findsNWidgets(2));
           expect(source.publications, 0);
           expect(tester.takeException(), isNull);
         } finally {
