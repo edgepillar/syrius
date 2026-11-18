@@ -720,7 +720,7 @@ class ReaderTests(unittest.TestCase):
             observed = reader.source_files(Path('/fixture'), versioned, 'b' * 40,
                 read_versioned_blob=remote)
             self.assertEqual(remote.call_args_list, [mock.call(original_sha)] * 2)
-            for path in reader.VERSIONED_INPUTS:
+            for path in reader.VERSIONED_INPUTS.intersection(reader.SOURCE_FILES):
                 self.assertEqual(observed[path], reader.archive.sha(historical))
             with self.assertRaises(reader.archive.Refused):
                 reader.source_files(Path('/fixture'), versioned, 'b' * 40,
@@ -741,6 +741,26 @@ class ReaderTests(unittest.TestCase):
                 mode='100644', type='blob', sha=blob) for n in reader.READY_ARTWORK_SOURCES])
             self.assertEqual(set(reader.ready_artwork_sources(
                 Path('/fixture'), current, 'b' * 40)), set(reader.READY_ARTWORK_SOURCES))
+            originals = (
+                'lib/widgets/modular_widgets/help_widgets/originals_tiles.dart',
+                'lib/widgets/reusable_widgets/launch_film.dart',
+            )
+            retained = copy.deepcopy(current)
+            retained['tree'].extend(dict(path=name, mode='100644', type='blob',
+                sha=original_sha) for name in originals)
+            with self.assertRaises(reader.archive.Refused):
+                reader.ready_artwork_sources(Path('/fixture'), retained, 'b' * 40)
+            remote.reset_mock()
+            observed = reader.ready_artwork_sources(Path('/fixture'), retained,
+                'b' * 40, read_versioned_blob=remote)
+            self.assertEqual(remote.call_args_list, [mock.call(original_sha)] * 2)
+            for path in originals:
+                self.assertEqual(observed[path], reader.archive.sha(historical))
+            for path in reader.READY_ARTWORK_SOURCES:
+                self.assertEqual(observed[path], reader.archive.sha(raw))
+            with self.assertRaises(reader.archive.Refused):
+                reader.ready_artwork_sources(Path('/fixture'), retained, 'b' * 40,
+                    read_versioned_blob=lambda _: {**response, 'size': len(historical) + 1})
             for fault in ('partial', 'changed', 'truncated', 'alias', 'source'):
                 value = copy.deepcopy(current)
                 if fault == 'partial':
