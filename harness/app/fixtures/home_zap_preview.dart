@@ -17,6 +17,7 @@ Future<void> showHomeZapPreview(BuildContext context) async {
   await showFrostedDialog<void>(
     context: context,
     barrierDismissible: false,
+    frostWindowCaption: true,
     builder: (BuildContext dialogContext) => ZapReceivedMessage(
       sender: _sender,
       znn: BigInt.from(100000000),
