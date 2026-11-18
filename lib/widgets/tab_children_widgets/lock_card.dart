@@ -124,6 +124,9 @@ class _LockCardState extends State<LockCard>
 
   LaunchFilmController get _activeFilm => widget.startup?.film ?? _film;
 
+  late EntryField _startupBackdrop =
+      EntryField(captionProgress: widget.startup?.motion);
+
   @override
   void initState() {
     super.initState();
@@ -175,6 +178,9 @@ class _LockCardState extends State<LockCard>
   @override
   void didUpdateWidget(LockCard oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.startup, widget.startup)) {
+      _startupBackdrop = EntryField(captionProgress: widget.startup?.motion);
+    }
     if (!oldWidget.busy && widget.busy) _obscure = true;
     if ((oldWidget.busy && !widget.busy) ||
         (!oldWidget.canUnlock && widget.canUnlock)) {
@@ -227,7 +233,8 @@ class _LockCardState extends State<LockCard>
         if (widget.startup case final StartupStageSession startup)
           ValueListenableBuilder<double>(
             valueListenable: startup.motion,
-            builder: (_, double progress, _) => TickerMode(
+            child: _startupBackdrop,
+            builder: (_, double progress, Widget? child) => TickerMode(
               // The shader starts with the first visible backdrop frame.
               enabled: progress > 0,
               child: Opacity(
@@ -235,9 +242,7 @@ class _LockCardState extends State<LockCard>
                 // partially transparent card.
                 opacity: (progress / tokens.launchSettleReference.progress)
                     .clamp(0.0, 1.0),
-                child: progress == 1
-                    ? const EntryField()
-                    : const EntryField(paintCaption: false),
+                child: child,
               ),
             ),
           )

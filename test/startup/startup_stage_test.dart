@@ -327,8 +327,11 @@ void main() {
       );
       expect(tester.widget<Text>(title).style, AppTokens.light.windowTitleText);
       expect(tester.widget<CustomPaint>(backdrop).painter, isNotNull);
+      final Finder field = find.byType(EntryField);
+      final EntryField movingField = tester.widget<EntryField>(field);
       await tester.pump(const Duration(milliseconds: 200));
       expect(session.interactive, isTrue);
+      expect(tester.widget<EntryField>(field), same(movingField));
       final RenderRepaintBoundary captionPaint = tester.renderObject(
         find.ancestor(of: backdrop, matching: find.byType(RepaintBoundary))
             .first,
