@@ -1131,6 +1131,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The original eye is cropped to its compact gallery viewport.
   double get originalsEyeSize => 96;
 
+  /// The gallery crops Launch from the authored frame size.
+  Size get originalsLaunchArtSize => const Size(420, 236);
+
   /// The globe is cropped from the original wide composition.
   double get originalsGlobeWidth => 206;
 
