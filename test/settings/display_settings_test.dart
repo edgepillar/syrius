@@ -50,8 +50,12 @@ Future<T> _driveHarness<T>(WidgetTester tester, Future<T> command) async {
 }
 
 void _expectSelectedLabelFits(WidgetTester tester, String key) {
-  final Finder horizontal = find.descendant(
+  final Finder field = find.descendant(
     of: find.byKey(Key(key)),
+    matching: find.byType(TextField),
+  );
+  final Finder horizontal = find.descendant(
+    of: field,
     matching: find.byWidgetPredicate(
       (Widget widget) =>
           widget is Scrollable &&
@@ -64,6 +68,17 @@ void _expectSelectedLabelFits(WidgetTester tester, String key) {
     tester.state<ScrollableState>(horizontal).position.maxScrollExtent,
     0,
   );
+  final Finder chevron = find.descendant(
+    of: field,
+    matching: find.byType(ShellSymbol),
+  );
+  final Rect box = tester.getRect(field);
+  final Rect icon = tester.getRect(chevron);
+  final BuildContext context = tester.element(field);
+  final double inset = Directionality.of(context) == TextDirection.ltr
+      ? box.right - icon.right
+      : icon.left - box.left;
+  expect(inset, closeTo(AppTokens.of(context).cardGap, 0.001));
 }
 
 void main() {

@@ -971,8 +971,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The reference's small chevron inside a compact Settings menu.
   double get settingsMenuChevronSize => 12;
 
-  /// The chevron and its separation from the selected text.
-  double get settingsMenuChevronWidth => 20;
+  /// The chevron and the chip's trailing inset.
+  double get settingsMenuChevronWidth => settingsMenuChevronSize + cardGap;
 
   /// RenderEditable retains room after its selected, read-only text.
   double get settingsMenuCaretInset => 4;
