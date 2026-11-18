@@ -1157,6 +1157,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
   required RestoredSeedSelection selection,
   required Future<void> Function(String) emitMarker,
   required void Function(PreparedSurfaceOperation) onPreparedOperation,
+  required bool observeSeededSeams,
   Future<PreparedTokenHolder> Function()? prepareTokenHolder,
   bool pillarSpawn = false,
   bool pillarDone = false,
@@ -1365,7 +1366,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
       )) {
     throw const FormatException('seeded capture paths refused');
   }
-  if (selection == RestoredSeedSelection.seededCatalog) {
+  if (observeSeededSeams) {
     if (prepareTokenHolder == null || rowKey == null) {
       throw const FormatException('prepared holder admission required');
     }
@@ -1409,17 +1410,19 @@ Future<void> main() async {
         !RegExp(r'^ci-wallet-[a-f0-9]{24}$').hasMatch(name)) {
       throw const FormatException('hosted gate refused');
     }
-    selection = switch (env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE']) {
+    final String? captureMode = env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'];
+    selection = switch (captureMode) {
       null || 'false' || 'pillar-spawn' || 'pillar-done' || 'swap-seeded' =>
         RestoredSeedSelection.all,
-      'true' => RestoredSeedSelection.seededCatalog,
+      'true' || 'seeded-states-visual' => RestoredSeedSelection.seededCatalog,
       'stake-draft' => RestoredSeedSelection.stakeDraft,
       'project-detail' => RestoredSeedSelection.projectDetail,
       _ => throw const FormatException('seeded capture selection refused'),
     };
-    pillarSpawn = env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'] == 'pillar-spawn';
-    pillarDone = env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'] == 'pillar-done';
-    swapList = env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'] == 'swap-seeded';
+    pillarSpawn = captureMode == 'pillar-spawn';
+    pillarDone = captureMode == 'pillar-done';
+    swapList = captureMode == 'swap-seeded';
+    final bool observeSeededSeams = captureMode == 'true';
     final bool seededCapture =
         pillarSpawn || pillarDone || swapList ||
         selection != RestoredSeedSelection.all;
@@ -1616,6 +1619,7 @@ Future<void> main() async {
         instance, receipts, sponsored.selected.selected, requireCurrent,
         (ScreenCaptureObservation step) => captureStep = step,
         selection: RestoredSeedSelection.all,
+        observeSeededSeams: false,
         emitMarker: marker,
         onPreparedOperation: (PreparedSurfaceOperation operation) =>
             surfaceOperation = operation,
@@ -1717,11 +1721,12 @@ Future<void> main() async {
         instance, receipts, owned.selected, requireCurrent,
         (ScreenCaptureObservation step) => captureStep = step,
         selection: selection,
+        observeSeededSeams: observeSeededSeams,
         emitMarker: marker,
         swapList: swapList,
         onPreparedOperation: (PreparedSurfaceOperation operation) =>
             surfaceOperation = operation,
-        prepareTokenHolder: selection != RestoredSeedSelection.seededCatalog
+        prepareTokenHolder: !observeSeededSeams
             ? null : () => prepareSeededTokenHolder(
                 hash: receipts.singleWhere((Map<String, String> row) =>
                     row['recipe'] == 'token')['hash']!,

@@ -401,11 +401,19 @@ class ReopenDiagnosticTests(unittest.TestCase):
             for seam, theme in seams.EXPECTED]
         done = line(b'CI_SEEDED_CAPTURE_DONE', capture)
         complete = [selection, *pointers, done]
-        for offered in (complete, pointers + [done],
-                        [selection, selection, *pointers, done],
-                        [selection, *reversed(pointers), done],
-                        [selection, *pointers[:-1], done],
-                        [pointers[0], selection, *pointers[1:], done]):
+        cases = (
+            (True, complete, True),
+            (True, [done], False),
+            (True, pointers + [done], False),
+            (True, [selection, selection, *pointers, done], False),
+            (True, [selection, *reversed(pointers), done], False),
+            (True, [selection, *pointers[:-1], done], False),
+            (True, [pointers[0], selection, *pointers[1:], done], False),
+            (False, [done], True),
+            (False, complete, False),
+            (False, [pointers[0], done], False),
+        )
+        for observe_seeded_seams, offered, admitted in cases:
             record = dict(phase='seeded_capture', catalog_prerequisites=dict(
                 complete=True, receipts_sha256='a' * 64))
             trace = restored.ReopenDiagnostic()
@@ -416,14 +424,17 @@ class ReopenDiagnosticTests(unittest.TestCase):
                 original=mock.Mock(poll=lambda: None), trace=trace, json=json,
                 capture_schema=4, catalog=catalog, record=record,
                 seed_key='catalog_prerequisites', seeded_surface_seams=seams,
-                surface_seam_observations=[])
+                surface_seam_observations=[], observe_seeded_seams=observe_seeded_seams)
             wait = original_wait(namespace)
-            if offered is complete:
+            if admitted:
                 self.assertEqual(wait(b'CI_SEEDED_CAPTURE_DONE'), capture)
-                retained = record['seeded_surface_seams']
-                self.assertEqual(retained['schema'], 2)
-                self.assertEqual(retained['holder_selection'], seams.HOLDER_SELECTION)
-                self.assertEqual(len(retained['observations']), 8)
+                if observe_seeded_seams:
+                    retained = record['seeded_surface_seams']
+                    self.assertEqual(retained['schema'], 2)
+                    self.assertEqual(retained['holder_selection'], seams.HOLDER_SELECTION)
+                    self.assertEqual(len(retained['observations']), 8)
+                else:
+                    self.assertNotIn('seeded_surface_seams', record)
                 self.assertNotIn('seeded_owner_page_seams', record)
             else:
                 with self.assertRaises(restored.checkpoint.Refused):

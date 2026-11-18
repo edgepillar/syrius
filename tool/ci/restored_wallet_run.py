@@ -948,6 +948,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
     family = parent.get('SYRIUS_READONLY_CATALOG_FAMILY')
     capture_schema = catalog.RESTORED_FAMILIES.get(family)
     seeded_capture = capture_schema is not None
+    observe_seeded_seams = family == catalog.SEEDED_FAMILY
     catalog_capture = seeds.CATALOG_SELECTIONS.get(capture_schema, False)
     pillar_done = capture_schema == catalog.PILLAR_DONE_SCHEMA
     pillar_catalog = pillar_done or capture_schema == catalog.PILLAR_SPAWN_SCHEMA
@@ -1077,7 +1078,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
             SYRIUS_HOSTED_RUNNER=parent['SYRIUS_HOSTED_RUNNER'])
         if seeded_capture:
             env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'] = (
-                'true' if catalog_capture is True else catalog_capture)
+                'true' if observe_seeded_seams else family)
         dart, _ = debug.sdk(parent)
         trace.at('launch')
         job = debug.WindowsJob()
@@ -1150,7 +1151,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                     return aged_fuse_projection(catalog.decode(line.partition(b':')[2]))
                 if line.startswith(b'CI_PREPARED_HOLDER_SELECTION:'):
                     checkpoint.need(marker == b'CI_SEEDED_CAPTURE_DONE'
-                        and capture_schema == catalog.SEEDED_SCHEMA
+                        and observe_seeded_seams
                         and record['phase'] == 'seeded_capture'
                         and holder_selection_observation is None
                         and not surface_seam_observations
@@ -1160,7 +1161,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                     continue
                 if line.startswith(b'CI_PREPARED_SURFACE_SEAM:'):
                     checkpoint.need(marker == b'CI_SEEDED_CAPTURE_DONE'
-                        and capture_schema == catalog.SEEDED_SCHEMA
+                        and observe_seeded_seams
                         and record['phase'] == 'seeded_capture'
                         and holder_selection_observation is not None
                         and len(surface_seam_observations) < len(seeded_surface_seams.EXPECTED)
@@ -1173,7 +1174,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                 if marker == b'CI_SEEDED_CAPTURE_DONE' and line.startswith(marker + b':'):
                     receipt = catalog.capture_receipt(catalog.decode(line.partition(b':')[2]))
                     checkpoint.need(receipt['schema'] == capture_schema)
-                    if capture_schema == catalog.SEEDED_SCHEMA:
+                    if observe_seeded_seams:
                         record['seeded_surface_seams'] = seeded_surface_seams.holder_completed(
                             surface_seam_observations, holder_selection_observation,
                             record[seed_key]['receipts_sha256'])
@@ -1389,6 +1390,6 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         result['aged_fuse_fixture'] = record['aged_fuse_fixture']
     if seeded_capture:
         result['seeded_catalog'] = record['seeded_catalog']
-        if capture_schema == catalog.SEEDED_SCHEMA:
+        if observe_seeded_seams:
             result['seeded_surface_seams'] = record['seeded_surface_seams']
     return project(result)

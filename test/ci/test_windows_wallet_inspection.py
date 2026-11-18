@@ -356,7 +356,7 @@ class InspectionTests(unittest.TestCase):
         for value in (None, True, 1, '', 'Home', 'all', 'home,navigation',
                       '../home', 'launch', 'launch-settle', 'startup-catalog', 'launch-timing', 'launch-timing-pair', 'interactive-timing-pair',
                       'lock-catalog', 'lock-seams', 'quiz-catalog', 'seeded-states',
-                      'stake-draft', 'project-detail', 'pillar-spawn',
+                      'seeded-states-visual', 'stake-draft', 'project-detail', 'pillar-spawn',
                       'pillar-done', 'swap-seeded'):
             with self.subTest(value=value), self.assertRaises(lab.Failure):
                 lab.wallet_inspection_requested('native',
@@ -372,7 +372,7 @@ class InspectionTests(unittest.TestCase):
              'send-confirm', 'send-warn', 'swap-start', 'wallet-ready', 'earn',
              'sentinel-fixture', 'launch', 'launch-settle', 'startup-catalog', 'launch-timing', 'launch-timing-pair', 'interactive-timing-pair',
              'lock-catalog', 'lock-seams', 'quiz-catalog', 'seeded-states',
-             'swap-seeded', 'stake-draft', 'project-detail', 'pillar-spawn',
+             'seeded-states-visual', 'swap-seeded', 'stake-draft', 'project-detail', 'pillar-spawn',
              'pillar-done'])
         self.assertIn('SYRIUS_READONLY_CATALOG_FAMILY: ${{ inputs.readonly_catalog_family }}', workflow)
         for family in ('send-warn', 'settings-seams', 'home-seams', 'surface-seams'):

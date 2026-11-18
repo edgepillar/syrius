@@ -71,6 +71,7 @@ on:
           - lock-seams
           - quiz-catalog
           - seeded-states
+          - seeded-states-visual
           - swap-seeded
           - stake-draft
           - project-detail
@@ -919,7 +920,7 @@ jobs:
           path: .harness/ci-wallet-tour/manifest.json
 
       - name: Retain the four verified restored state captures
-        if: success() && inputs.windows_wallet_tour && inputs.readonly_catalog_family == 'seeded-states'
+        if: success() && inputs.windows_wallet_tour && (inputs.readonly_catalog_family == 'seeded-states' || inputs.readonly_catalog_family == 'seeded-states-visual')
         uses: actions/upload-artifact@v7
         with:
           name: seeded-catalog-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}

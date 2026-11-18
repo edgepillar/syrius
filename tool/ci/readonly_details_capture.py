@@ -29,6 +29,7 @@ EARN_FILES = ('15-staking-empty-dark.png', '15-staking-empty-light.png',
 SENTINEL_FIXTURE_SCREENS = ('sentinels',)
 SENTINEL_FIXTURE_FILES = ('18-sentinels-dark.png', '18-sentinels-light.png')
 SEEDED_FAMILY = 'seeded-states'
+SEEDED_VISUAL_FAMILY = 'seeded-states-visual'
 SEEDED_SCHEMA = 4
 SEEDED_SCREENS = ('staking', 'token-mine')
 SEEDED_FILES = ('13-staking-dark.png', '13-staking-light.png',
@@ -44,6 +45,7 @@ PILLAR_DONE_SCHEMA = 14
 SWAP_SEEDED_FAMILY = 'swap-seeded'
 SWAP_SEEDED_SCHEMA = 15
 RESTORED_FAMILIES = {SEEDED_FAMILY: SEEDED_SCHEMA,
+                     SEEDED_VISUAL_FAMILY: SEEDED_SCHEMA,
                      STAKE_DRAFT_FAMILY: STAKE_DRAFT_SCHEMA,
                      PROJECT_DETAIL_FAMILY: PROJECT_DETAIL_SCHEMA,
                      PILLAR_SPAWN_FAMILY: PILLAR_SPAWN_SCHEMA,
