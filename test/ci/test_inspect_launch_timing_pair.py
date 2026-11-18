@@ -61,7 +61,7 @@ def package(value, *, name='manifest.json', extra=False):
 
 
 class Client:
-    def __init__(self, *, alter_source=False, extra_job=False):
+    def __init__(self, *, alter_source=False, extra_job=False, read_old_evidence=False):
         patch, collector, profile = b'reviewed-p06-patch', b'frame-collector', b'profile-setup'
         self.sources = {
             'tool/ci/windows_launch_timing_pair.py': Path(pair.__file__).read_bytes(),
@@ -84,6 +84,20 @@ class Client:
         self.jobs = [self.job]
         if extra_job:
             self.jobs.append(dict(self.job, id=5, name='Unrelated job'))
+        if read_old_evidence:
+            for job_id, name, controls, inspection in (
+                (5, 'Inspect retained chain-321 evidence',
+                    'Test archive and credential boundaries in memory',
+                    'Inspect only the original finite manifests'),
+                (6, 'Inspect retained Windows qualification',
+                    'Test retained Windows receipt controls in memory',
+                    'Inspect original baseline log and entry archive in memory'),
+            ):
+                self.jobs.append(dict(self.job, id=job_id, name=name, labels=['ubuntu-24.04'],
+                    steps=[dict(name=step, status='completed', conclusion='success')
+                           for step in ('Set up job', 'Checkout the dispatched inspector source',
+                               controls, inspection, 'Post Checkout the dispatched inspector source',
+                               'Complete job')]))
 
     def json(self, path):
         self.calls.append(path)
@@ -388,26 +402,53 @@ class PairInspectionTests(unittest.TestCase):
         with self.assertRaises(reader.archive.Refused):
             self.project(duplicated)
 
-    def test_pair_routes_only_the_exact_source_and_one_archive_in_twelve_calls(self):
+    def read_original_run(self, offered):
         env = dict(GITHUB_ACTIONS='true', SYRIUS_HOSTED_RUNNER='github-hosted',
                    GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_REPOSITORY='edgepillar/syrius',
                    WINDOWS_INSPECT_RUN=str(RUN), WINDOWS_INSPECT_HEAD=HEAD, GH_TOKEN='unused')
-        for offered, expected, calls in ((Client(), 0, 12), (Client(alter_source=True), 1, 4),
+        with mock.patch.dict(windows.os.environ, env, clear=True), \
+             mock.patch.object(windows.archive, 'Client', return_value=offered), \
+             mock.patch.object(pair, 'PATCH_SHA256', offered.pins['baseline_patch_sha256']), \
+             mock.patch.object(pair, 'COLLECTOR_SHA256', offered.pins['collector_sha256']), \
+             contextlib.redirect_stdout(io.StringIO()) as output:
+            status = windows.main()
+        return status, json.loads(output.getvalue().splitlines()[0])
+
+    def test_pair_routes_only_the_exact_source_and_one_archive_in_twelve_calls(self):
+        for offered, expected, calls in ((Client(), 0, 12),
+                                          (Client(read_old_evidence=True), 0, 12),
+                                          (Client(alter_source=True), 1, 4),
                                           (Client(extra_job=True), 1, 3)):
-            output = io.StringIO()
-            with self.subTest(expected=expected, calls=calls), \
-                 mock.patch.dict(windows.os.environ, env, clear=True), \
-                 mock.patch.object(windows.archive, 'Client', return_value=offered), \
-                 mock.patch.object(pair, 'PATCH_SHA256', offered.pins['baseline_patch_sha256']), \
-                 mock.patch.object(pair, 'COLLECTOR_SHA256', offered.pins['collector_sha256']), \
-                 contextlib.redirect_stdout(output):
-                self.assertEqual(windows.main(), expected)
+            with self.subTest(expected=expected, calls=calls, jobs=len(offered.jobs)):
+                status, first = self.read_original_run(offered)
+                self.assertEqual(status, expected)
                 self.assertEqual(len(offered.calls), calls)
                 if expected == 0:
-                    first = json.loads(output.getvalue().splitlines()[0])
                     self.assertEqual(first['scope'], 'retained_' + pair.SCOPE)
                     self.assertEqual(first['original_job_id'], 4)
                     self.assertEqual(first['window_diagnostics']['scope'], 'reported_frames_only')
                     self.assertEqual(first['window_diagnostics']['windows']['current']['samples'], 2)
                 else:
                     self.assertNotIn('memory-location', offered.calls)
+
+    def test_other_executed_jobs_cannot_masquerade_as_the_two_older_readers(self):
+        changes = (
+            lambda client: client.jobs[1].update(head_sha='f' * 40),
+            lambda client: client.jobs[1].update(run_id=RUN + 1),
+            lambda client: client.jobs[1].update(labels=['windows-latest']),
+            lambda client: client.jobs[1].update(conclusion='failure'),
+            lambda client: client.jobs[1]['steps'][3].update(conclusion='failure'),
+            lambda client: client.jobs[1]['steps'].insert(4, dict(name='Upload archive')),
+            lambda client: client.jobs[1].update(id=client.job['id']),
+            lambda client: client.jobs.append(dict(client.jobs[1], id=7)),
+            lambda client: client.job['steps'][0].update(name=pair.launch.JOB_STEP),
+            lambda client: client.job.update(name=reader.startup_reader.BATCH_JOB_NAME),
+        )
+        for index, change in enumerate(changes):
+            offered = Client(read_old_evidence=True)
+            change(offered)
+            with self.subTest(change=index):
+                status, result = self.read_original_run(offered)
+                self.assertEqual(status, 1)
+                self.assertEqual(result['phase'], 'job_metadata')
+                self.assertEqual(len(offered.calls), 3)
