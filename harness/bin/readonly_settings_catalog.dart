@@ -1,10 +1,11 @@
 import 'dart:io';
 
 import 'harness.dart' as cli;
+import 'readonly_catalog_contact.dart';
 import 'readonly_inspection_session.dart';
 import 'screen_capture.dart';
 
-/// Literal Settings defaults, separate from the Home and generic captures.
+/// Literal Settings catalog, separate from the Home and generic captures.
 const String readonlySettingsCatalogDirectory = '.harness/ci-settings-catalog';
 
 class _SettingsInstance extends cli.Instance {
@@ -66,15 +67,36 @@ Future<Map<String, Object>> captureReadonlySettingsDefaults({
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.binding);
   }
   final _SettingsInstance instance = _SettingsInstance(session);
+  bool contactSaved = false;
+  bool capturesAddresses(List<String> words) => switch (words) {
+    ['assert', '--key', 'addresses_account_chain_toggle'] => true,
+    _ => false,
+  };
   final ScreenCapture capture = ScreenCapture(
     repository: repository,
     call: (Map<String, Object?> command) => cli.call(instance, command),
     prepareHome: session.prepareScreenHome,
-    runLine: (List<String> words) => cli.run(
-      instance, words.first, cli.Args(words.sublist(1)),
-    ),
-    assertionFor: (List<String> words) =>
-        cli.assertionArgs(cli.Args(words.sublist(1))),
+    runLine: (List<String> words) async {
+      await cli.run(instance, words.first, cli.Args(words.sublist(1)));
+      if (words case ['tap', '--key', 'settings_addresses']
+          when !contactSaved) {
+        await saveReadonlyCatalogContact(instance, name: 'Sample contact');
+        await cli.call(instance, <String, Object?>{
+          'cmd': 'scroll', 'dy': -1000000,
+        });
+        contactSaved = true;
+      }
+      if (capturesAddresses(words)) {
+        await cli.call(instance, <String, Object?>{
+          'cmd': 'assert', 'key': readonlyCatalogContactEditKey, 'exact': true,
+        });
+      }
+    },
+    assertionFor: (List<String> words) => cli.assertionArgs(cli.Args(
+      capturesAddresses(words)
+          ? <String>['--key', readonlyCatalogContactEditKey]
+          : words.sublist(1),
+    )),
     readRailState: session.railExpanded,
     restoreRailState: session.restoreScreenRail,
     onStep: onStep,

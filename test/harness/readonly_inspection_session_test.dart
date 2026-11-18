@@ -11,6 +11,7 @@ import '../../harness/app/fixtures/send_warning_draft.dart'
 import '../../harness/bin/ci_wallet_inspection.dart'
     show awaitReadonlyInspectionLab, readonlyInspectionCatalogFamily;
 import '../../harness/bin/ci_wallet_tour.dart' show awaitWalletTourLab;
+import '../../harness/bin/readonly_catalog_contact.dart';
 import '../../harness/bin/readonly_details_catalog.dart';
 import '../../harness/bin/readonly_home_catalog.dart';
 import '../../harness/bin/readonly_inspection_session.dart';
@@ -1213,6 +1214,7 @@ void main() {
       bool restoredWindow = false;
       int shots = 0;
       int returned = 0;
+      int contactSaves = 0;
       final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
       final List<ScreenCaptureObservation> progress =
           <ScreenCaptureObservation>[];
@@ -1234,9 +1236,16 @@ void main() {
           if (name == 'tap' && targetKey != null &&
               command['key'] != 'rail_toggle') {
             expect(tab, 'settings');
-            expect(keys, contains(command['key']));
-            if (fault == 'first') return negative;
-            selected = screens[keys.indexOf(targetKey as String)];
+            if (keys.contains(targetKey)) {
+              if (fault == 'first') return negative;
+              selected = screens[keys.indexOf(targetKey as String)];
+            } else {
+              expect(selected, 'set-addresses');
+              expect(targetKey, isIn(<String>{
+                'addresses_add_contact', 'addresses_save_contact',
+              }));
+              if (targetKey == 'addresses_save_contact') contactSaves++;
+            }
           }
           if (name == 'tap' && targetTab != null) {
             expect(<String>['dashboard', 'settings'], contains(command['tab']));
@@ -1256,6 +1265,12 @@ void main() {
             if (selected == 'set-node') {
               expect(command['expect'], <String, Object?>{
                 'key': 'node_settings_add', 'exact': true,
+              });
+            }
+            if (selected == 'set-addresses') {
+              expect(contactSaves, 1);
+              expect(command['expect'], <String, Object?>{
+                'key': readonlyCatalogContactEditKey, 'exact': true,
               });
             }
             if (fault == 'shot' || fault == 'late' && shots == 5) {
@@ -1300,6 +1315,7 @@ void main() {
               'target': <String, dynamic>{'ref': 0, 'kind': 'region',
                 'key': command['key'], 'rect': <int>[0, 0, 200, 100]},
             },
+            if (name == 'type') 'value': command['value'],
             if (name == 'shot') ...<String, dynamic>{
               'client': <int>[1280, 780], 'width': 1280, 'height': 780,
               'scale': 1, 'theme': mode, 'asserted': true,
@@ -1379,7 +1395,8 @@ void main() {
       ).toList();
       expect(scrolls, hasLength(switch (fault) {
         'first' => 0,
-        'none' || 'late' => 6,
+        'none' => 8,
+        'late' => 6,
         'shot' || 'return' || 'png' => 3,
         _ => throw StateError('Unexpected bound capture fault'),
       }));
@@ -1392,6 +1409,10 @@ void main() {
             },
             <String, Object?>{'cmd': 'scroll', 'dy': -1000000},
           ],
+        if (fault == 'none') ...<Map<String, Object?>>[
+          <String, Object?>{'cmd': 'scroll', 'dy': 440},
+          <String, Object?>{'cmd': 'scroll', 'dy': -1000000},
+        ],
       ]));
       final List<Map<String, Object?>> hovers = commands.where(
         (Map<String, Object?> value) => value['cmd'] == 'hover',
@@ -1402,8 +1423,16 @@ void main() {
       ]);
       expect(commands.every((Map<String, Object?> value) => <String>{
         'readonly-wallet-bind', 'state', 'tree', 'tap', 'theme', 'window',
-        'wait', 'assert', 'shot', 'scroll', 'hover',
+        'wait', 'assert', 'shot', 'scroll', 'hover', 'type',
       }.contains(value['cmd'])), isTrue);
+      expect(contactSaves, fault == 'none' ? 1 : 0);
+      expect(
+        commands.where((Map<String, Object?> value) => value['cmd'] == 'type')
+            .map((Map<String, Object?> value) => value['key']),
+        fault == 'none'
+            ? <String>['addresses_contact_name', 'addresses_contact_address']
+            : isEmpty,
+      );
       expect(output.lines.every((Object? line) => line is String &&
           line.startsWith('ok')), isTrue);
     }
