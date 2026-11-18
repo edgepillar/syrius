@@ -131,7 +131,8 @@ void main() {
     expect(getChainIdentifier(), originalChain);
     expect(preferences.get(kChainIdKey), 321);
     expect(fixture.session.film.skipRequested, isTrue);
-    expect(fixture.session.film.clockTicking, isTrue);
+    expect(fixture.session.film.isPlaying, isTrue);
+    expect(fixture.session.film.clockTicking, isFalse);
     expect(fixture.session.film.framePending, isFalse);
     expect(fixture.done, 0);
     await fixture.finish(tester);
@@ -153,6 +154,9 @@ void main() {
     expect(bundle.reads, hasLength(1));
     expect(controller.decodeStage, LaunchFilmDecodeStage.asset);
     expect(controller.isDone, isFalse);
+    expect(controller.isPlaying, isTrue);
+    expect(controller.clockTicking, isFalse);
+    expect(tester.binding.transientCallbackCount, 0);
     expect(controller.frame, -1);
     controller.skipToEnd();
     expect(controller.decodeStage, LaunchFilmDecodeStage.asset);
@@ -162,6 +166,7 @@ void main() {
       controller.decodeStage == LaunchFilmDecodeStage.complete);
     expect(controller.frame, 7);
     expect(done, 1);
+    expect(controller.isPlaying, isFalse);
     expect(controller.clockTicking, isFalse);
     expect(tester.takeException(), isNull);
   });

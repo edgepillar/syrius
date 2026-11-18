@@ -172,6 +172,9 @@ class LaunchFilmController extends ChangeNotifier {
   /// Whether the original decoder has a frame waiting for its display tick.
   bool get framePending => _state?._next != null;
 
+  /// Whether playback still owns a run, including while the decoder waits.
+  bool get isPlaying => _state?._running ?? false;
+
   /// Reads the attached decoder's latched wait without advancing any clock.
   LaunchFilmDecodeStage? get decodeStage => _state?._decodeStage;
 
@@ -320,7 +323,7 @@ class _LaunchFilmState extends State<LaunchFilm>
   bool _skipping = false;
   bool _onLast = false;
 
-  /// When the frame on screen has had its time, on the ticker's clock.
+  /// When the frame on screen has had its time, on the scheduler's clock.
   /// Null at the start of a run: its first frame waits for nothing.
   Duration? _due;
 
@@ -396,10 +399,8 @@ class _LaunchFilmState extends State<LaunchFilm>
     _onLast = false;
     _due = null;
     _controller._report(isDone: false);
-    // Stopped and started, so each run reads its time from zero.
-    _ticker
-      ..stop()
-      ..start();
+    // The decoder wakes the ticker as soon as it has a frame to display.
+    _ticker.stop();
     _tickerReady = true;
     _decoder = _decode(
       run,
@@ -424,6 +425,7 @@ class _LaunchFilmState extends State<LaunchFilm>
     // the last, which the next tick shows.
     if (_next?.last == false) {
       _dropNext();
+      _ticker.stop();
     }
   }
 
@@ -544,6 +546,7 @@ class _LaunchFilmState extends State<LaunchFilm>
         final Completer<void> taken = Completer<void>();
         _next = _Frame(index, image, info.duration, last: last);
         _taken = taken;
+        if (!_ticker.isActive) _ticker.start();
         await _observeDecode(run, LaunchFilmDecodeStage.display, taken.future);
       }
     } on Object catch (error, stack) {
@@ -586,16 +589,18 @@ class _LaunchFilmState extends State<LaunchFilm>
     }
   }
 
-  void _tick(Duration elapsed) {
+  void _tick(Duration _) {
+    // Keep display deadlines on the same clock when decoding pauses ticks.
+    final Duration timestamp = SchedulerBinding.instance.currentFrameTimeStamp;
     final _Frame? next = _next;
     final Duration? due = _due;
-    if (next != null && (due == null || _skipping || elapsed >= due)) {
+    if (next != null && (due == null || _skipping || timestamp >= due)) {
       // A frame up to its own length late keeps the file's clock, so the
       // wait for a vsync is not added to every frame after it. One later
       // than that was held up by its decode, and the clock starts again
       // from it: there is nothing decoded ahead to catch up with.
-      final bool onTime = due != null && elapsed - due <= next.duration;
-      _due = (onTime ? due : elapsed) + next.duration;
+      final bool onTime = due != null && timestamp - due <= next.duration;
+      _due = (onTime ? due : timestamp) + next.duration;
       _onLast = next.last;
       _next = null;
       // The render object holds its own handle on the old frame until this
@@ -608,8 +613,10 @@ class _LaunchFilmState extends State<LaunchFilm>
       _taken?.complete();
       _taken = null;
     }
-    if (_onLast && (_skipping || elapsed >= _due!)) {
-      _end();
+    if (_onLast) {
+      if (_skipping || timestamp >= _due!) _end();
+    } else if (_next == null) {
+      _ticker.stop();
     }
   }
 

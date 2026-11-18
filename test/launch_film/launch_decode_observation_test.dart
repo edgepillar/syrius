@@ -187,6 +187,9 @@ void main() {
       await _until(tester, () => bundle.requested.contains(_ending));
       expect(controller.decodeStage, LaunchFilmDecodeStage.asset);
       expect(controller.isDone, isFalse);
+      expect(controller.isPlaying, isTrue);
+      expect(controller.clockTicking, isFalse);
+      expect(tester.binding.transientCallbackCount, 0);
       await tester.pumpWidget(const SizedBox.shrink());
       expect(original.stateDisposed, isTrue);
       expect(original.decoder!.status, EntryCaptureStatus.pending);

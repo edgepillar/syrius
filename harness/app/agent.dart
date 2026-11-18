@@ -3096,8 +3096,12 @@ class HarnessAgent {
     }
     if (owner.film.frameCount == 0) return 'opening';
     if (owner.film.skipRequested) {
-      if (!owner.film.clockTicking) return 'skip-ticker-stopped';
-      if (owner.film.framePending) return 'skip-display-pending';
+      if (!owner.film.isPlaying) return 'skip-ticker-stopped';
+      if (owner.film.framePending) {
+        return owner.film.clockTicking
+            ? 'skip-display-pending'
+            : 'skip-ticker-stopped';
+      }
       return switch (owner.film.decodeStage) {
         LaunchFilmDecodeStage.previous => 'skip-previous-pending',
         LaunchFilmDecodeStage.asset => 'skip-asset-pending',
