@@ -120,10 +120,15 @@ class FrostedSurface extends StatelessWidget {
     this.tint,
     this.borderRadius,
     this.grouped = false,
+    this.blurInsetTop = 0,
     super.key,
   }) : assert(
          sigma == null || (sigma >= 0 && sigma < double.infinity),
          'Blur must be finite and nonnegative.',
+       ),
+       assert(
+         blurInsetTop >= 0 && blurInsetTop < double.infinity,
+         'The blur inset must be finite and nonnegative.',
        );
 
   /// The content laid over the glass.
@@ -141,6 +146,9 @@ class FrostedSurface extends StatelessWidget {
   /// Whether to share the nearest [BackdropGroup]'s backdrop input.
   final bool grouped;
 
+  /// Height reserved for opaque content above the filtered part of the card.
+  final double blurInsetTop;
+
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
@@ -150,19 +158,29 @@ class FrostedSurface extends StatelessWidget {
       color: tint ?? tokens.glass,
       child: child,
     );
+    Widget blur(Widget content) => grouped
+        ? BackdropFilter.grouped(
+            enabled: sigma > 0,
+            filter: filter,
+            child: content,
+          )
+        : BackdropFilter(enabled: sigma > 0, filter: filter, child: content);
+    final Widget glass = blurInsetTop == 0
+        ? blur(surface)
+        : Stack(
+            fit: StackFit.passthrough,
+            children: <Widget>[
+              // A separate rectangular clip limits the engine's filter bounds.
+              Positioned.fill(
+                top: blurInsetTop,
+                child: ClipRect(child: blur(const SizedBox.expand())),
+              ),
+              surface,
+            ],
+          );
     return ClipRRect(
       borderRadius: borderRadius ?? BorderRadius.circular(tokens.dialogRadius),
-      child: grouped
-          ? BackdropFilter.grouped(
-              enabled: sigma > 0,
-              filter: filter,
-              child: surface,
-            )
-          : BackdropFilter(
-              enabled: sigma > 0,
-              filter: filter,
-              child: surface,
-            ),
+      child: glass,
     );
   }
 }

@@ -425,6 +425,14 @@ void main() {
         final RenderRepaintBoundary retainedShadow = tester.renderObject(
           shadow,
         );
+        final Finder card = find.byKey(
+          const ValueKey<String>('lock_card_surface'),
+        );
+        final Finder backdrop = find.descendant(
+          of: card,
+          matching: find.byType(BackdropFilter),
+        );
+        final RenderObject originalFilter = tester.renderObject(backdrop);
         await tester.pump(const Duration(milliseconds: 100));
         expect(originalBackdrop.value, greaterThan(0));
         expect(tester.widget(find.byType(LaunchFilm)), same(renderingFilm));
@@ -436,15 +444,23 @@ void main() {
         expect(session.filmInWell, isTrue);
         expect(entryClock(), same(originalBackdrop));
         expect(tester.renderObject(shadow), same(retainedShadow));
+        expect(tester.renderObject(backdrop), same(originalFilter));
+        final Rect cardBounds = tester.getRect(card);
+        final Rect well = tester.getRect(
+          find.byKey(const ValueKey<String>('lock_film_well')),
+        );
+        expect(
+          tester.getRect(backdrop),
+          Rect.fromLTRB(
+            cardBounds.left,
+            well.bottom,
+            cardBounds.right,
+            cardBounds.bottom,
+          ),
+        );
         expect(
           retainedShadow.size.width,
-          greaterThan(
-            tester
-                .getSize(
-                  find.byKey(const ValueKey<String>('lock_card_surface')),
-                )
-                .width,
-          ),
+          greaterThan(cardBounds.width),
         );
         expect(
           tester.widget<LaunchFilm>(find.byType(LaunchFilm)).fit,
