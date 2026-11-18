@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
+import 'package:flutter/rendering.dart' show RenderImage, RenderRepaintBoundary;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -404,6 +404,17 @@ void main() {
         expect(originalBackdrop.isRunning, isFalse);
         await _until(tester, () => session.film.isDone);
         expect(originalBackdrop.value, 0);
+        final Finder frame = find.descendant(
+          of: find.byType(LaunchFilm),
+          matching: find.byType(RawImage),
+        );
+        final RenderImage paintedFrame = tester.renderObject(frame);
+        final Size decodedSize = Size(
+          paintedFrame.image!.width.toDouble(),
+          paintedFrame.image!.height.toDouble(),
+        );
+        expect(paintedFrame.size, decodedSize);
+        final Rect originalFrameBounds = tester.getRect(frame);
         final Rect full = _stageRect(tester);
         await _begin(tester, host);
         expect(
@@ -416,6 +427,12 @@ void main() {
         expect(originalBackdrop.isRunning, isTrue);
         expect(_stageRect(tester).width, lessThan(full.width));
         expect(_stageRect(tester).width, greaterThan(418));
+        expect(tester.renderObject(frame), same(paintedFrame));
+        expect(paintedFrame.size, decodedSize);
+        expect(
+          tester.getRect(frame).width,
+          lessThan(originalFrameBounds.width),
+        );
         expect(session.interactive, isFalse);
         final Widget renderingFilm = tester.widget(find.byType(LaunchFilm));
         final Widget renderingField = tester.widget(find.byType(EntryField));
@@ -435,6 +452,7 @@ void main() {
         final RenderObject originalFilter = tester.renderObject(backdrop);
         await tester.pump(const Duration(milliseconds: 100));
         expect(originalBackdrop.value, greaterThan(0));
+        expect(paintedFrame.size, decodedSize);
         expect(tester.widget(find.byType(LaunchFilm)), same(renderingFilm));
         expect(tester.widget(find.byType(EntryField)), same(renderingField));
         await tester.pump(const Duration(milliseconds: 99));
