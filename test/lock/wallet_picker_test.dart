@@ -463,15 +463,24 @@ void main() {
           final Rect nameBounds = tester.getRect(
             find.descendant(of: row, matching: find.text(_entries[index].name)),
           );
-          expect(nameBounds.width, greaterThan(rowBounds.width / 2));
+          final EdgeInsets rowPadding = tokens.walletPickerRowPadding.resolve(
+            direction,
+          );
+          final double labelsWidth =
+              rowBounds.width -
+              rowPadding.horizontal -
+              tokens.lockGlyphSize -
+              2 * tokens.inlineGap;
+          expect(nameBounds.width, greaterThan(labelsWidth / 2));
+          expect(
+            nameBounds.width,
+            closeTo(labelsWidth - addressBounds.width, 0.01),
+          );
           expect(
             direction == TextDirection.ltr
                 ? addressBounds.left - nameBounds.right
                 : nameBounds.left - addressBounds.right,
             closeTo(tokens.inlineGap, 0.01),
-          );
-          final EdgeInsets rowPadding = tokens.walletPickerRowPadding.resolve(
-            direction,
           );
           expect(
             direction == TextDirection.ltr
