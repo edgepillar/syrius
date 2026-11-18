@@ -242,9 +242,11 @@ class _PlayerState extends State<_Player>
 
   @override
   ReferenceArtworkKind get referenceArtworkKind =>
-      _configuration.asset == AppLottieAsset.map
-          ? ReferenceArtworkKind.walletReadyMap
-          : ReferenceArtworkKind.welcomeGlobe;
+      switch (_configuration.asset) {
+        AppLottieAsset.map => ReferenceArtworkKind.walletReadyMap,
+        AppLottieAsset.noData => ReferenceArtworkKind.noData,
+        _ => ReferenceArtworkKind.welcomeGlobe,
+      };
 
   @override
   Object get referenceArtworkGeneration => _entry ?? this;
@@ -257,9 +259,17 @@ class _PlayerState extends State<_Player>
     final _Entry? entry = _entry;
     final LottieComposition? composition = _composition;
     final AppLottieAsset asset = _configuration.asset;
-    if (!mounted || !_active || !_clock.isAnimating || entry == null ||
+    final (String, double)? reference = switch (asset) {
+      AppLottieAsset.globe => ('welcome_globe', 0.4),
+      AppLottieAsset.map => ('wallet_ready_map', 0.5),
+      AppLottieAsset.noData => ('no_data', 0.2),
+      _ => null,
+    };
+    final bool oneShot = asset == AppLottieAsset.noData;
+    if (!mounted || !_active || (!oneShot && !_clock.isAnimating) ||
+        entry == null ||
         composition == null || _referenceFrame != null ||
-        (asset != AppLottieAsset.globe && asset != AppLottieAsset.map) ||
+        reference == null ||
         _configuration.controller != null) {
       return null;
     }
@@ -268,8 +278,7 @@ class _PlayerState extends State<_Player>
     final double duration = composition.durationFrames;
     if (!duration.isFinite || duration <= 0) return null;
     final int count = (duration + 0.01).floor();
-    final int index =
-        (count * (asset == AppLottieAsset.map ? 0.5 : 0.4)).floor();
+    final int index = (count * reference.$2).floor();
     final double progress = index / duration;
     if (count <= 0 || count > 1000000 ||
         !progress.isFinite || progress < 0 || progress > 1) {
@@ -287,11 +296,10 @@ class _PlayerState extends State<_Player>
     frame = ReferenceArtworkFrame(
       owner: this, generation: entry, kind: referenceArtworkKind,
       observation: <String, Object>{
-        'kind': asset == AppLottieAsset.map
-            ? 'wallet_ready_map' : 'welcome_globe',
+        'kind': reference.$1,
         'frame': index, 'frame_count': count,
       },
-      current: () => originalCurrent() && original.isAnimating &&
+      current: () => originalCurrent() && (oneShot || original.isAnimating) &&
           identical(_referenceFrame, frame) &&
           identical(_referenceProgress, sample),
       observed: () => identical(_paintedController, sample),
