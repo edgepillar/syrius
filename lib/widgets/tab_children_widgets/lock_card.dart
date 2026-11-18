@@ -227,11 +227,15 @@ class _LockCardState extends State<LockCard>
         if (widget.startup case final StartupStageSession startup)
           ValueListenableBuilder<double>(
             valueListenable: startup.motion,
-            builder: (_, double progress, _) => Opacity(
-              opacity: progress,
-              child: progress == 1
-                  ? const EntryField()
-                  : const EntryField(paintCaption: false),
+            builder: (_, double progress, _) => TickerMode(
+              // The shader starts with the first visible backdrop frame.
+              enabled: progress > 0,
+              child: Opacity(
+                opacity: progress,
+                child: progress == 1
+                    ? const EntryField()
+                    : const EntryField(paintCaption: false),
+              ),
             ),
           )
         else

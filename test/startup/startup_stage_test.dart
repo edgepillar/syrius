@@ -6,8 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/shader_clock.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/entry_field.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_card.dart';
@@ -333,7 +335,16 @@ void main() {
         final State<StatefulWidget> film = tester.state(
           find.byType(LaunchFilm),
         );
+        ShaderClock entryClock() {
+          final ReferenceArtworkSource backdrop =
+              tester.state(find.byType(EntryField)) as ReferenceArtworkSource;
+          return backdrop.referenceArtworkGeneration as ShaderClock;
+        }
+
+        final ShaderClock originalBackdrop = entryClock();
+        expect(originalBackdrop.isRunning, isFalse);
         await _until(tester, () => session.film.isDone);
+        expect(originalBackdrop.value, 0);
         final Rect full = _stageRect(tester);
         await _begin(tester, host);
         expect(
@@ -342,12 +353,15 @@ void main() {
         );
         expect(identical(tester.state(find.byType(LaunchFilm)), film), isTrue);
         await tester.pump(const Duration(milliseconds: 200));
+        expect(entryClock(), same(originalBackdrop));
+        expect(originalBackdrop.isRunning, isTrue);
         expect(_stageRect(tester).width, lessThan(full.width));
         expect(_stageRect(tester).width, greaterThan(418));
         expect(session.interactive, isFalse);
         final Widget renderingFilm = tester.widget(find.byType(LaunchFilm));
         final Widget renderingField = tester.widget(find.byType(EntryField));
         await tester.pump(const Duration(milliseconds: 100));
+        expect(originalBackdrop.value, greaterThan(0));
         expect(tester.widget(find.byType(LaunchFilm)), same(renderingFilm));
         expect(tester.widget(find.byType(EntryField)), same(renderingField));
         await tester.pump(const Duration(milliseconds: 99));
@@ -355,6 +369,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 1));
         expect(session.interactive, isTrue);
         expect(session.filmInWell, isTrue);
+        expect(entryClock(), same(originalBackdrop));
         expect(
           tester.widget<LaunchFilm>(find.byType(LaunchFilm)).fit,
           BoxFit.contain,
