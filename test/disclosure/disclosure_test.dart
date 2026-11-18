@@ -181,26 +181,35 @@ void main() {
       final double top = tester.getRect(find.byKey(_body)).top;
       expect(top, lessThan(_header));
       expect(top, greaterThan(_header - 8));
-      final double opacity = tester
-          .widget<FadeTransition>(
-            find
-                .ancestor(
-                  of: find.byKey(_body),
-                  matching: find.byType(FadeTransition),
-                )
-                .first,
+      final Finder fade = find
+          .ancestor(
+            of: find.byKey(_body),
+            matching: find.byType(FadeTransition),
           )
-          .opacity
-          .value;
+          .first;
+      final double opacity = tester.widget<FadeTransition>(fade).opacity.value;
       expect(opacity, greaterThan(0));
       expect(opacity, lessThan(1));
+      final RenderAnimatedOpacity opacityRenderer = tester.renderObject(fade);
+      final OpacityLayer opacityLayer =
+          opacityRenderer.debugLayer! as OpacityLayer;
+      expect(opacityLayer.firstChild, isA<ClipRectLayer>());
+      final ClipRectLayer clipLayer = opacityLayer.firstChild! as ClipRectLayer;
+      expect(clipLayer.clipRect!.height, closeTo(mid - _header, 0.01));
+      expect(clipLayer.clipRect!.height, lessThan(_bodyHeight));
+      expect(
+        clipLayer.clipRect!.width,
+        tester.getSize(find.byKey(_body)).width,
+      );
       // The chevron is on its way too, and ahead of the body.
       expect(_turns(tester), greaterThan(-0.25));
       expect(_turns(tester), lessThan(0));
-      final Finder chevronPaint = find.ancestor(
-        of: _chevron(),
-        matching: find.byType(RepaintBoundary),
-      ).first;
+      final Finder chevronPaint = find
+          .ancestor(
+            of: _chevron(),
+            matching: find.byType(RepaintBoundary),
+          )
+          .first;
       expect(
         tester.getSize(chevronPaint),
         const Size.square(AppTokens.disclosureChevronSize),

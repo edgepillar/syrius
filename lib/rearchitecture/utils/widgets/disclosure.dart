@@ -379,34 +379,32 @@ class _DisclosureReveal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: reveal,
-      // Align hands its child loose constraints; the body is to be as wide
-      // as the header is.
-      child: SizedBox(
-        width: double.infinity,
-        child: FadeTransition(
-          opacity: reveal,
-          // The clip, offset and alpha change around an already laid-out body.
+    return FadeTransition(
+      opacity: reveal,
+      // The opacity layer covers only the part exposed by the clip.
+      child: AnimatedBuilder(
+        animation: reveal,
+        // Align gives its child loose constraints. Keep the full body width.
+        child: SizedBox(
+          width: double.infinity,
           child: RepaintBoundary(child: child),
         ),
-      ),
-      builder: (BuildContext context, Widget? child) {
-        final double t = reveal.value;
-        // Clipped only on the way. Open, a field's focus ring and a
-        // button's glow reach past the body's box and must not be cut.
-        return ClipRect(
-          clipBehavior: reveal.isCompleted ? Clip.none : Clip.hardEdge,
-          child: Align(
-            alignment: AlignmentDirectional.topStart,
-            heightFactor: t,
-            child: Transform.translate(
-              offset: Offset(0, -_kSlide * (1 - t)),
-              child: child,
+        builder: (BuildContext context, Widget? child) {
+          final double t = reveal.value;
+          // Fully open, focus rings and glows can extend past the body box.
+          return ClipRect(
+            clipBehavior: reveal.isCompleted ? Clip.none : Clip.hardEdge,
+            child: Align(
+              alignment: AlignmentDirectional.topStart,
+              heightFactor: t,
+              child: Transform.translate(
+                offset: Offset(0, -_kSlide * (1 - t)),
+                child: child,
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

@@ -120,6 +120,7 @@ jobs:
           test/settings_wallet_redesign/wallet_settings_view_test.dart
           test/settings_about_redesign/about_settings_view_test.dart
           test/settings_about_redesign/licences_test.dart
+          test/disclosure/disclosure_test.dart
           test/settings_addresses_redesign/addresses_view_test.dart
           test/token_actions_redesign/token_inline_actions_test.dart --no-pub
 
