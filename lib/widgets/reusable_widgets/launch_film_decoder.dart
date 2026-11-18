@@ -287,11 +287,36 @@ class _RectangleDecoder extends LaunchFilmDecoder {
         patch = null;
       } else {
         final ui.PictureRecorder recorder = ui.PictureRecorder();
+        final double width = frames.width.toDouble();
+        final double height = frames.height.toDouble();
+        final double left = frame.x.toDouble();
+        final double top = frame.y.toDouble();
+        final double right = left + frame.width;
+        final double bottom = top + frame.height;
+        // Batch the strips outside the opaque patch at their original
+        // coordinates so each pixel is painted once.
+        final List<ui.Rect> retained = <ui.Rect>[
+          if (top > 0) ui.Rect.fromLTRB(0, 0, width, top),
+          if (bottom < height) ui.Rect.fromLTRB(0, bottom, width, height),
+          if (left > 0) ui.Rect.fromLTRB(0, top, left, bottom),
+          if (right < width) ui.Rect.fromLTRB(right, top, width, bottom),
+        ];
         ui.Canvas(recorder)
-          ..drawImage(_canvas!, ui.Offset.zero, ui.Paint())
+          ..drawAtlas(
+            _canvas!,
+            <ui.RSTransform>[
+              for (final ui.Rect strip in retained)
+                ui.RSTransform(1, 0, strip.left, strip.top),
+            ],
+            retained,
+            null,
+            null,
+            null,
+            ui.Paint(),
+          )
           ..drawImage(
             patch,
-            ui.Offset(frame.x.toDouble(), frame.y.toDouble()),
+            ui.Offset(left, top),
             ui.Paint()..blendMode = ui.BlendMode.src,
           );
         picture = recorder.endRecording();
