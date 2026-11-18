@@ -423,10 +423,7 @@ class _SendPopulatedState extends State<SendPopulated>
     final AppTokens tokens = AppTokens.of(context);
     final LookAlike? finding = _lookAlike;
     final String typed = _recipient;
-    final OutlineInputBorder border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(tokens.transferFieldRadius),
-      borderSide: BorderSide(color: tokens.line),
-    );
+    final OutlineInputBorder border = _fieldOutline(tokens, tokens.line);
     final ThemeData theme = Theme.of(context);
     return Theme(
       data: theme.copyWith(
@@ -434,6 +431,7 @@ class _SendPopulatedState extends State<SendPopulated>
           filled: true,
           fillColor: tokens.card2,
           isDense: true,
+          constraints: BoxConstraints(minHeight: tokens.fieldHeight),
           contentPadding: tokens.transferFieldPadding,
           border: border,
           enabledBorder: border,
@@ -494,7 +492,7 @@ class _SendPopulatedState extends State<SendPopulated>
                 LayoutBuilder(
                   key: const Key('send_amount_row'),
                   builder: (_, BoxConstraints constraints) {
-                    final Widget amount = _buildAmountField();
+                    final Widget amount = _buildAmountField(tokens);
                     final Widget token = _buildCoinDropdown();
                     if (constraints.maxWidth < tokens.transferTokenWidth * 2) {
                       return Column(
@@ -531,7 +529,7 @@ class _SendPopulatedState extends State<SendPopulated>
                     _buildLastSent(),
                   ],
                 ],
-                SizedBox(height: tokens.transferFormGap),
+                SizedBox(height: tokens.sendActionGap),
                 KeyedSubtree(
                   key: const Key('send_submit_button'),
                   child: SendButton(
@@ -579,8 +577,19 @@ class _SendPopulatedState extends State<SendPopulated>
     return _amount.extractDecimals(_selectedToken.decimals);
   }
 
+  OutlineInputBorder _fieldOutline(AppTokens tokens, Color color) =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(tokens.transferFieldRadius),
+        borderSide: BorderSide(color: color),
+      );
+
   Widget _buildRecipientField(LookAlike? finding) {
     final AppTokens tokens = AppTokens.of(context);
+    final Color? outline = finding != null
+        ? tokens.transferWarningLine
+        : _recipient.isNotEmpty
+        ? tokens.faint
+        : null;
     return TextField(
       key: const Key('send_recipient_field'),
       controller: _recipientController,
@@ -591,14 +600,7 @@ class _SendPopulatedState extends State<SendPopulated>
       decoration: InputDecoration(
         errorText: _recipientErrorText,
         hintText: context.l10n.recipientAddress,
-        enabledBorder: finding == null
-            ? null
-            : OutlineInputBorder(
-                borderRadius: BorderRadius.circular(
-                  tokens.transferFieldRadius,
-                ),
-                borderSide: BorderSide(color: tokens.transferWarningLine),
-              ),
+        enabledBorder: outline == null ? null : _fieldOutline(tokens, outline),
         suffixIcon: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -631,18 +633,21 @@ class _SendPopulatedState extends State<SendPopulated>
     );
   }
 
-  Widget _buildAmountField() => AmountRefusalScope(
+  Widget _buildAmountField(AppTokens tokens) => AmountRefusalScope(
     controller: _amountController,
     builder: (_, String? refusal) => TextField(
       key: const Key('send_amount_field'),
       controller: _amountController,
       enabled: !_busy,
-      style: AppTokens.of(context).transferAmountText,
+      style: tokens.transferAmountText,
       textDirection: TextDirection.ltr,
       textAlign: ltrTextAlign(context, TextAlign.start),
       decoration: InputDecoration(
         errorText: refusal ?? _amountErrorText,
         hintText: context.l10n.amount,
+        enabledBorder: _amount.isEmpty
+            ? null
+            : _fieldOutline(tokens, tokens.faint),
         suffixIcon: CardFieldAction(
           label: context.l10n.max,
           onPressed: _busy ? null : () => _onMaxPressed(_accountInfo),
