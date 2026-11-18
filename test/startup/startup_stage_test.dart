@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -418,6 +419,12 @@ void main() {
         expect(session.interactive, isFalse);
         final Widget renderingFilm = tester.widget(find.byType(LaunchFilm));
         final Widget renderingField = tester.widget(find.byType(EntryField));
+        final Finder shadow = find.byKey(
+          const ValueKey<String>('lock_card_shadow'),
+        );
+        final RenderRepaintBoundary retainedShadow = tester.renderObject(
+          shadow,
+        );
         await tester.pump(const Duration(milliseconds: 100));
         expect(originalBackdrop.value, greaterThan(0));
         expect(tester.widget(find.byType(LaunchFilm)), same(renderingFilm));
@@ -428,6 +435,17 @@ void main() {
         expect(session.interactive, isTrue);
         expect(session.filmInWell, isTrue);
         expect(entryClock(), same(originalBackdrop));
+        expect(tester.renderObject(shadow), same(retainedShadow));
+        expect(
+          retainedShadow.size.width,
+          greaterThan(
+            tester
+                .getSize(
+                  find.byKey(const ValueKey<String>('lock_card_surface')),
+                )
+                .width,
+          ),
+        );
         expect(
           tester.widget<LaunchFilm>(find.byType(LaunchFilm)).fit,
           BoxFit.contain,
