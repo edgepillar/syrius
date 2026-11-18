@@ -6,8 +6,8 @@ import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_view.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_panel_navigation.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_list_item.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../helpers/mockup_symbol.dart';
@@ -284,7 +284,7 @@ void main() {
                 child: Column(
                   children: <Widget>[
                     Expanded(
-                      child: AcceleratorPanelNavigation(
+                      child: ShellPaneNavigation(
                         child: listView(
                           presenter,
                           detailBuilder:

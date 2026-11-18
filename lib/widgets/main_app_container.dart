@@ -918,18 +918,20 @@ class _MainAppContainerState extends State<MainAppContainer>
     return TokensTabChild(
       controller: _tokensPage,
       onSendToken: (String standard) => _openTokenTransfer(standard, epoch),
+      isPageCurrent: () => _ownsTokensPage(epoch),
       onStepperNotificationSeeMorePressed: () =>
           _navigateTo(Tabs.notifications),
     );
   }
 
+  bool _ownsTokensPage(int epoch) =>
+      mounted &&
+      epoch == _pageEpoch &&
+      kTabs[_tabIndex.value] == Tabs.tokens &&
+      !_isWalletLocked();
+
   void _openTokenTransfer(String standard, int epoch) {
-    bool ownsPage() =>
-        mounted &&
-        epoch == _pageEpoch &&
-        kTabs[_tabIndex.value] == Tabs.tokens &&
-        !_isWalletLocked();
-    if (!ownsPage()) return;
+    if (!_ownsTokensPage(epoch)) return;
     try {
       if (TokenStandard.parse(standard).toString() != standard) return;
     } on Object {
@@ -945,7 +947,9 @@ class _MainAppContainerState extends State<MainAppContainer>
       tokenStandard: standard,
     );
     // Draft observers can synchronously revoke the original page or account.
-    if (ownsPage() && action.isCurrent) _openTransfer(TransferMode.send);
+    if (_ownsTokensPage(epoch) && action.isCurrent) {
+      _openTransfer(TransferMode.send);
+    }
   }
 
   Widget _buildLockPage() {

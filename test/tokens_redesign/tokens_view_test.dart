@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/all_tokens/all_tokens.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/widgets/amount_text.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/send_transaction/send_transaction_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_balance/token_balance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/tokens.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_strip.dart';
@@ -19,11 +20,14 @@ import 'package:zenon_syrius_wallet_flutter/utils/node_change.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../helpers/hydrated_bloc.dart';
 import '../helpers/mockup_symbol.dart';
 import 'support.dart';
+
+class _Sender extends Mock implements SendTransactionBloc {}
 
 class _Web3Service extends Mock implements IWeb3WalletService {
   int disposals = 0;
@@ -487,6 +491,96 @@ void main() {
         catalog.close(),
         description: 'Tokens strip catalog close',
       );
+    },
+  );
+
+  testWidgets(
+    'Create token uses the shell pane and returns to the same ledger',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 780);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final AllTokensBloc catalog = AllTokensBloc(zenon: sdk.zenon);
+      final TokenBalanceCubit account = TokenBalanceCubit(
+        zenon: sdk.zenon,
+        address: emptyAddress.toString(),
+      );
+      const Key rail = Key('fixture_shell_rail');
+      const Key footer = Key('fixture_shell_footer');
+      final Finder create = find.byKey(const Key('tokens_create'));
+      final Finder pane = find.byKey(const Key('token_create_pane'));
+      bool current = true;
+      try {
+        await tester.runAsync(() async {
+          await AppLottie.debugLoad(AppLottieAsset.zts.path(kStripLeadSize, 1));
+        });
+        await tester.pumpWidget(_host(
+          Column(
+            children: <Widget>[
+              const SizedBox(key: rail),
+              Expanded(
+                child: BlocProvider<AllTokensBloc>.value(
+                  value: catalog,
+                  child: BlocProvider<SendTransactionBloc>.value(
+                    value: _Sender(),
+                    child: ShellPaneNavigation(
+                      child: TokensPage(
+                        balanceReader: account,
+                        favoriteRepository: favorites,
+                        isPageCurrent: () => current,
+                        onStepperNotificationSeeMorePressed: () {},
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(key: footer),
+            ],
+          ),
+        ));
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 2));
+        final Element ledger = tester.element(create);
+        final NavigatorState shell = Navigator.of(
+          tester.element(find.byKey(rail)),
+        );
+        current = false;
+        await tester.tap(create);
+        await tester.pump();
+        expect(pane, findsNothing);
+        current = true;
+        for (final String control in <String>['breadcrumb', 'close']) {
+          await tester.tap(create);
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 400));
+          expect(pane, findsOneWidget);
+          expect(find.byKey(rail), findsOneWidget);
+          expect(find.byKey(footer), findsOneWidget);
+          expect(shell.canPop(), isFalse);
+          final NavigatorState local = Navigator.of(tester.element(pane));
+          expect(local.canPop(), isTrue);
+          expect(create, findsNothing);
+          await tester.tap(find.byKey(Key('token_create_$control')));
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 400));
+          expect(pane, findsNothing);
+          expect(tester.element(create), same(ledger));
+        }
+        expect(tester.takeException(), isNull);
+      } finally {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await _pumpLogicalFuture<void>(
+          tester,
+          account.close(),
+          description: 'Tokens pane account close',
+        );
+        await _pumpLogicalFuture<void>(
+          tester,
+          catalog.close(),
+          description: 'Tokens pane catalog close',
+        );
+      }
     },
   );
 

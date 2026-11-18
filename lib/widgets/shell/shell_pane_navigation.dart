@@ -1,25 +1,23 @@
 import 'package:material_ui/material_ui.dart';
 
-/// Keeps project details in the Accelerator pane of the current shell.
-class AcceleratorPanelNavigation extends StatefulWidget {
-  /// Hosts the owned project list and its detail transitions.
-  const AcceleratorPanelNavigation({required this.child, super.key});
+/// Keeps a destination's routes inside its pane of the current shell.
+class ShellPaneNavigation extends StatefulWidget {
+  /// Hosts the permanent destination and its local routes.
+  const ShellPaneNavigation({required this.child, super.key});
 
-  /// The permanent list route beneath the project detail transitions.
+  /// The permanent route beneath this pane's transient routes.
   final Widget child;
 
-  /// The outer route stays authoritative while an inner detail is current.
+  /// The outer route stays authoritative while a local route is current.
   static ModalRoute<dynamic>? hostRouteOf(BuildContext context) => context
-      .dependOnInheritedWidgetOfExactType<_AcceleratorPanelHost>()
+      .dependOnInheritedWidgetOfExactType<_ShellPaneHost>()
       ?.route;
 
   @override
-  State<AcceleratorPanelNavigation> createState() =>
-      _AcceleratorPanelNavigationState();
+  State<ShellPaneNavigation> createState() => _ShellPaneNavigationState();
 }
 
-class _AcceleratorPanelNavigationState
-    extends State<AcceleratorPanelNavigation> {
+class _ShellPaneNavigationState extends State<ShellPaneNavigation> {
   final GlobalKey<NavigatorState> _navigator = GlobalKey<NavigatorState>();
 
   @override
@@ -31,12 +29,15 @@ class _AcceleratorPanelNavigationState
       enabled: enabled,
       onPopWithResult: (_) {
         final NavigatorState? navigator = _navigator.currentState;
-        if (mounted && enabled && (host?.isCurrent ?? true) &&
-            navigator != null && navigator.canPop()) {
+        if (mounted &&
+            enabled &&
+            (host?.isCurrent ?? true) &&
+            navigator != null &&
+            navigator.canPop()) {
           navigator.pop<void>();
         }
       },
-      child: _AcceleratorPanelHost(
+      child: _ShellPaneHost(
         route: host,
         child: TickerMode(
           enabled: visible,
@@ -45,11 +46,11 @@ class _AcceleratorPanelNavigationState
               key: _navigator,
               pages: <Page<void>>[
                 MaterialPage<void>(
-                  key: const ValueKey<String>('accelerator_projects_page'),
+                  key: const ValueKey<String>('shell_pane_root'),
                   child: widget.child,
                 ),
               ],
-              // Only the pageless project details are dismissible here.
+              // Only routes above the permanent page are dismissible here.
               onDidRemovePage: (_) {},
             ),
           ),
@@ -59,12 +60,12 @@ class _AcceleratorPanelNavigationState
   }
 }
 
-class _AcceleratorPanelHost extends InheritedWidget {
-  const _AcceleratorPanelHost({required this.route, required super.child});
+class _ShellPaneHost extends InheritedWidget {
+  const _ShellPaneHost({required this.route, required super.child});
 
   final ModalRoute<dynamic>? route;
 
   @override
-  bool updateShouldNotify(_AcceleratorPanelHost oldWidget) =>
+  bool updateShouldNotify(_ShellPaneHost oldWidget) =>
       !identical(route, oldWidget.route);
 }

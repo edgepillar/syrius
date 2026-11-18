@@ -11,13 +11,13 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_action_controller.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_presenter.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_panel_navigation.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_list_item.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_vote_policy.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// The existing project, its phases, and one exact selected vote target.
@@ -83,7 +83,7 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
     final bool visible = TickerMode.valuesOf(context).enabled;
     final ModalRoute<dynamic>? route = ModalRoute.of(context);
     final ModalRoute<dynamic>? host =
-        AcceleratorPanelNavigation.hostRouteOf(context);
+        ShellPaneNavigation.hostRouteOf(context);
     if (_visible && !visible ||
         !identical(route, _route) ||
         !identical(host, _hostRoute)) {

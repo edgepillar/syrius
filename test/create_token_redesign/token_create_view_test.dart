@@ -509,6 +509,50 @@ void main() {
   );
 
   testWidgets(
+    'an Issue read cannot submit while the original pane is covered',
+    (WidgetTester tester) async {
+      _viewport(tester, const Size(1100, 650));
+      final TokenCreateFixture fixture = TokenCreateFixture();
+      final Completer<AccountInfo> pending = Completer<AccountInfo>();
+      bool visible = true;
+      int submissions = 0;
+      try {
+        await tester.pumpWidget(
+          _host(
+            CreateTokenStepperView(
+              preflight: fixture.preflight,
+              isPresentationCurrent: () => visible,
+              onIssue: (_) => submissions++,
+            ),
+          ),
+        );
+        await _clock(tester);
+        await _issue(tester);
+        fixture.accountRead = () => pending.future;
+        await tester.tap(_action('issue'));
+        await tester.pump(const Duration(milliseconds: 1));
+        expect(fixture.accountReads, 3);
+        visible = false;
+        pending.complete(tokenCreateAccount());
+        await _clock(tester);
+        expect(fixture.preflight.sufficient, isTrue);
+        expect(submissions, 0);
+        visible = true;
+        fixture.accountRead = null;
+        await tester.tap(_action('issue'));
+        await _clock(tester);
+        expect(fixture.accountReads, 4);
+        expect(submissions, 1);
+        expect(tester.takeException(), isNull);
+      } finally {
+        if (!pending.isCompleted) pending.complete(tokenCreateAccount());
+        await tester.pumpWidget(const SizedBox.shrink());
+        fixture.dispose();
+      }
+    },
+  );
+
+  testWidgets(
     'disposing a deferred Issue revokes dispatch and never calls presentation',
     (WidgetTester tester) async {
       _viewport(tester, const Size(1100, 650));

@@ -25,6 +25,8 @@ class CreateTokenStepperView extends StatefulWidget {
     this.receipt,
     this.canStartIssue,
     this.isIssueUncertain,
+    this.isPresentationCurrent,
+    this.onViewTokens,
     super.key,
   });
 
@@ -47,6 +49,12 @@ class CreateTokenStepperView extends StatefulWidget {
   /// An original uncertain failure keeps the draft and offers no Issue retry.
   final bool Function()? isIssueUncertain;
 
+  /// Refuses fresh actions after the original pane leaves the active shell.
+  final bool Function()? isPresentationCurrent;
+
+  /// Returns to the pane that opened this receipt when hosted in the shell.
+  final VoidCallback? onViewTokens;
+
   @override
   State<CreateTokenStepperView> createState() => _CreateTokenStepperViewState();
 }
@@ -68,6 +76,11 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   String? _submittedName;
 
   bool get _current => mounted && widget.preflight.isCurrent;
+
+  bool get _presented =>
+      mounted && (widget.isPresentationCurrent?.call() ?? true);
+
+  bool get _canEdit => _presented && _current && !_busy;
 
   bool get _canStartIssue =>
       (widget.canStartIssue?.call() ?? true) && !_issueUncertain;
@@ -117,7 +130,8 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
             TokenCreatedSuccess(
               confirmation: widget.confirmation,
               onCreateAnotherTokenPressed: _another,
-              onViewTokensPressed: () => Navigator.pop(context),
+              onViewTokensPressed:
+                  widget.onViewTokens ?? () => Navigator.pop(context),
             ),
       ),
     );
@@ -139,7 +153,9 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
           name: _name.text,
           symbol: _symbol.text,
           busy: _busy,
-          onRetry: () => unawaited(widget.preflight.refresh()),
+          onRetry: () {
+            if (_canEdit) unawaited(widget.preflight.refresh());
+          },
         ),
         Expanded(
           child: Align(
@@ -284,7 +300,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
             maxValue: 18,
             activeColor: tokens.znnInk,
             callback: (double value) {
-              if (_step == 1 && _current && !_busy) {
+              if (_step == 1 && _canEdit) {
                 _draft.value = _draft.value.copyWith(decimals: value.toInt());
               }
             },
@@ -493,14 +509,14 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   }
 
   Future<void> _continueDetails() async {
-    if (_step != 0 || !_current || _busy || !_detailsValid) return;
+    if (_step != 0 || !_canEdit || !_detailsValid) return;
     final int operation = ++_operation;
     setState(() => _busy = true);
     final bool enough = await widget.preflight.refresh();
     if (!_current || operation != _operation) return;
     setState(() {
       _busy = false;
-      if (enough && _detailsValid) {
+      if (_presented && enough && _detailsValid) {
         _saveDetails();
         _step = 1;
       }
@@ -516,7 +532,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   }
 
   void _continueSupply() {
-    if (_step != 1 || !_current || _busy) return;
+    if (_step != 1 || !_canEdit) return;
     final NewTokenData? data = _supply;
     if (data == null) return;
     _draft.value = data;
@@ -524,7 +540,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   }
 
   void _option({bool? isMintable, bool? isBurnable, bool? isUtility}) {
-    if (_step != 2 || !_current || _busy) return;
+    if (_step != 2 || !_canEdit) return;
     // Input events can share one frame; merge into the latest draft.
     _draft.value = _draft.value.copyWith(
       isMintable: isMintable,
@@ -534,20 +550,20 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   }
 
   void _continueOptions() {
-    if (_step != 2 || !_current || _busy) return;
+    if (_step != 2 || !_canEdit) return;
     final NewTokenData? data = _supply;
     if (data != null) _draft.value = data;
     setState(() => _step = data == null ? 1 : 3);
   }
 
   void _back() {
-    if (_step > 0 && _current && !_busy && !_published) {
+    if (_step > 0 && _canEdit && !_published) {
       setState(() => _step--);
     }
   }
 
   Future<void> _issue() async {
-    if (_step != 3 || !_current || _busy || _published || !_canStartIssue) {
+    if (_step != 3 || !_canEdit || _published || !_canStartIssue) {
       return;
     }
     if (!_detailsValid || _supply == null) {
@@ -561,7 +577,11 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
       _error = null;
     });
     final bool enough = await widget.preflight.refresh();
-    if (!mounted || !_current || operation != _operation) return;
+    if (!_current || operation != _operation) return;
+    if (!_presented) {
+      setState(() => _busy = false);
+      return;
+    }
     final NewTokenData? data = _supply;
     if (!enough || !_canStartIssue || !_detailsValid || data == null) {
       setState(() {
@@ -654,7 +674,9 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   }
 
   void _another() {
-    if (!(widget.confirmation?.resetForAnother() ?? false)) return;
+    if (!_presented || !(widget.confirmation?.resetForAnother() ?? false)) {
+      return;
+    }
     _operation++;
     _run++;
     _name.clear();

@@ -12,12 +12,12 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/pa
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_presenter.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_panel_navigation.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_list_item.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_stats.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
     show ShellSymbol;
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 
 /// The fund strip and one project ledger, with presentation state retained.
 class AcceleratorListView extends StatefulWidget {
@@ -83,7 +83,7 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _hostRoute = AcceleratorPanelNavigation.hostRouteOf(context);
+    _hostRoute = ShellPaneNavigation.hostRouteOf(context);
   }
 
   @override

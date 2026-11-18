@@ -10,8 +10,8 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_binding.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_view.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_panel_navigation.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/project_creation_stepper.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 
 /// Accelerator reads have one original wallet, member set, node and revision.
 class AcceleratorTabChild extends StatefulWidget {
@@ -105,7 +105,7 @@ class _AcceleratorTabChildState extends State<AcceleratorTabChild>
   }
 
   @override
-  Widget build(BuildContext context) => AcceleratorPanelNavigation(
+  Widget build(BuildContext context) => ShellPaneNavigation(
     child: AcceleratorListView(
       presenter: _presenter,
       onRefresh: _queueRefresh,

@@ -31,7 +31,8 @@ except ImportError:
 # Includes the retained root-close/native-failure case.
 # Includes all eight existing toast cases and retained-card paint assertions.
 # Includes pre-Welcome guards and one signing-control deadline matrix.
-EXPECTED_DART_CASES = 1521
+# Includes the Token pane navigation and covered Issue cases.
+EXPECTED_DART_CASES = 1523
 LAUNCH_ASSET_DART_CASES = 2
 GROUP_COMMAND_LIMIT_SECONDS = 300
 TOTAL_COMMAND_LIMIT_SECONDS = 480

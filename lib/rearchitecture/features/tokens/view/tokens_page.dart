@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/all_tokens/all_tokens.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/create_token_stepper.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_create_pane.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/widgets/amount_text.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/send_transaction/send_transaction_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_balance/token_balance.dart';
@@ -23,12 +24,13 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_refresh.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// The strip and one token ledger replace the separate Balances card.
 class TokensPage extends StatelessWidget {
-  /// Keeps the existing create-token route and notification callback.
+  /// Opens token registration from the ledger.
   const TokensPage({
     required this.onStepperNotificationSeeMorePressed,
     this.controller,
@@ -36,6 +38,7 @@ class TokensPage extends StatelessWidget {
     this.favoriteRepository,
     this.onCreateToken,
     this.onSendToken,
+    this.isPageCurrent,
     super.key,
   });
 
@@ -48,11 +51,14 @@ class TokensPage extends StatelessWidget {
   /// Injectable persistence for presentation without opening a wallet profile.
   final FavoriteTokensRepository? favoriteRepository;
 
-  /// Injectable entry callback; production keeps the existing stepper route.
+  /// Injectable entry callback for a presentation fixture.
   final VoidCallback? onCreateToken;
 
   /// The shell selects this exact asset and explicitly opens Send mode.
   final ValueChanged<String>? onSendToken;
+
+  /// Revokes fresh requests when the shell moves to another destination.
+  final bool Function()? isPageCurrent;
 
   /// Existing stepper notification routing.
   final VoidCallback onStepperNotificationSeeMorePressed;
@@ -236,18 +242,54 @@ class _TokensPageState extends State<_TokenSourcePage> {
 
   void _openStepper() {
     if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? true)) return;
-    if (widget.options.onCreateToken != null) {
-      widget.options.onCreateToken!();
+    final ModalRoute<dynamic>? host = ShellPaneNavigation.hostRouteOf(context);
+    final bool Function()? isPageCurrent = widget.options.isPageCurrent;
+    if (!(host?.isCurrent ?? true) ||
+        !TickerMode.valuesOf(context).enabled ||
+        !(isPageCurrent?.call() ?? true)) {
+      return;
+    }
+    if (widget.options.onCreateToken case final VoidCallback open) {
+      open();
       return;
     }
     final SendTransactionBloc sender = context.read<SendTransactionBloc>();
-    Navigator.push<void>(
-      context,
-      MaterialPageRoute<void>(
-        builder: (BuildContext context) => StepperScreen(
-          stepper: CreateTokenStepperPage(sender: sender),
-          onStepperNotificationSeeMorePressed:
-              widget.options.onStepperNotificationSeeMorePressed,
+    final NavigatorState navigator = Navigator.of(context);
+    if (host != null) {
+      final MaterialPageRoute<void> pane = MaterialPageRoute<void>(
+        builder: (BuildContext context) {
+          final ModalRoute<dynamic>? route = ModalRoute.of(context);
+          bool canPresent() =>
+              context.mounted &&
+              (route?.isCurrent ?? false) &&
+              host.isCurrent &&
+              (isPageCurrent?.call() ?? true);
+          void close() {
+            if (canPresent()) navigator.pop<void>();
+          }
+
+          return TokenCreatePane(
+            onClose: close,
+            child: CreateTokenStepperPage(
+              sender: sender,
+              isPresentationCurrent: canPresent,
+              onViewTokens: close,
+            ),
+          );
+        },
+      );
+      unawaited(navigator.push<void>(pane));
+      return;
+    }
+    final VoidCallback showNotification =
+        widget.options.onStepperNotificationSeeMorePressed;
+    unawaited(
+      navigator.push<void>(
+        MaterialPageRoute<void>(
+          builder: (BuildContext context) => StepperScreen(
+            stepper: CreateTokenStepperPage(sender: sender),
+            onStepperNotificationSeeMorePressed: showNotification,
+          ),
         ),
       ),
     );

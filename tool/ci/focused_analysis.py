@@ -108,7 +108,7 @@ SELECTED_DART_SOURCES = (
     'lib/rearchitecture/features/node_owner/node_collect_button.dart',
     'test/nodes/nodes_rewards_test.dart',
     'lib/widgets/modular_widgets/accelerator_widgets/accelerator_list_view.dart',
-    'lib/widgets/modular_widgets/accelerator_widgets/accelerator_panel_navigation.dart',
+    'lib/widgets/shell/shell_pane_navigation.dart',
     'lib/widgets/modular_widgets/accelerator_widgets/accelerator_stats.dart',
     'test/accelerator_list_redesign/accelerator_list_view_test.dart',
     'lib/widgets/shell/bell_panel.dart',

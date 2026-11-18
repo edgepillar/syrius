@@ -14,10 +14,21 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// A wrapper widget that registers create token stepper dependencies.
 class CreateTokenStepperPage extends StatelessWidget {
   /// Creates a [CreateTokenStepperPage].
-  const CreateTokenStepperPage({this.sender, super.key});
+  const CreateTokenStepperPage({
+    this.sender,
+    this.isPresentationCurrent,
+    this.onViewTokens,
+    super.key,
+  });
 
   /// The originating shell sender, captured before opening this route.
   final SendTransactionBloc? sender;
+
+  /// The enclosing pane's current-route and page ownership check.
+  final bool Function()? isPresentationCurrent;
+
+  /// Dismisses only the pane that opened the original form.
+  final VoidCallback? onViewTokens;
 
   @override
   Widget build(BuildContext context) {
@@ -30,16 +41,25 @@ class CreateTokenStepperPage extends StatelessWidget {
           ) => _Bindings(
             confirmation: confirmation,
             publisher: publisher,
+            isPresentationCurrent: isPresentationCurrent,
+            onViewTokens: onViewTokens,
           ),
     );
   }
 }
 
 class _Bindings extends StatefulWidget {
-  const _Bindings({required this.confirmation, required this.publisher});
+  const _Bindings({
+    required this.confirmation,
+    required this.publisher,
+    required this.isPresentationCurrent,
+    required this.onViewTokens,
+  });
 
   final RegistrationConfirmation confirmation;
   final AccountBlockUtils publisher;
+  final bool Function()? isPresentationCurrent;
+  final VoidCallback? onViewTokens;
 
   @override
   State<_Bindings> createState() => _BindingsState();
@@ -91,6 +111,8 @@ class _BindingsState extends State<_Bindings> {
           preflight: preflight,
           canStartIssue: () => _publisher.canStartNewAttempt,
           isIssueUncertain: () => _publisher.isUncertain,
+          isPresentationCurrent: widget.isPresentationCurrent,
+          onViewTokens: widget.onViewTokens,
         ),
       ),
     );
