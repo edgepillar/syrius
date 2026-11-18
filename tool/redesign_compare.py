@@ -4,6 +4,7 @@
     python tool/redesign_compare.py
     python tool/redesign_compare.py --actual-dir <shots> --output-dir <report>
     python tool/redesign_compare.py --actual-manifest <captures.json>
+    python tool/redesign_compare.py --actual-manifest <captures.json> --target-source <commit>
     python tool/redesign_compare.py --reviews <reviews.json> --require-reviewed
     python tool/redesign_compare.py --no-diff-images --output-dir <compact-report>
 
@@ -14,8 +15,11 @@ keep it private. Relative links require the inputs to remain at their paths.
 For captures retained in separate folders, the private input manifest has
 one "actual" object keyed by literal screenshot stem. Each entry contains
 "path" (absolute or relative to the manifest) and "sha256" (64 lowercase hex
-digits). Use the original filename or a content-addressed file named by its
-digest. Missing entries remain visible. Keep run provenance with the captures.
+digits). An optional "source_sha" records the verified producer's 40-digit
+commit. With --target-source, captures from other or unknown commits remain
+visible for diagnosis and are excluded from acceptance. Supply source pins
+from the capture's verified run record. Use the original filename or a
+content-addressed file named by its digest. Missing entries remain visible.
 On Windows, place the report and all selected images on the same drive.
 
 Manual reviews use screenshot stems as keys. For example:
@@ -69,6 +73,7 @@ MAX_IMAGE_BYTES = 16 * 1024 * 1024
 MAX_CAPTURE_MANIFEST_BYTES = 256 * 1024
 MAX_IMAGE_PIXELS = 4096 * 4096
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
+GIT_SHA = re.compile(r"[0-9a-f]{40}\Z")
 DIFF_PALETTE = bytes(
     intensity * channel // 255
     for intensity in range(256)
@@ -89,6 +94,13 @@ class Screen:
 
     def stem(self, theme: str) -> str:
         return f"{self.number:02d}-{self.id}-{theme}"
+
+
+@dataclass(frozen=True)
+class Capture:
+    path: Path
+    sha256: str | None = None
+    source_sha: str | None = None
 
 
 class ScreenParser(HTMLParser):
@@ -159,7 +171,7 @@ def unique_capture_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
     return result
 
 
-def load_actual_manifest(source: Path, stems: set[str]) -> dict[str, tuple[Path, str]]:
+def load_actual_manifest(source: Path, stems: set[str]) -> dict[str, Capture]:
     try:
         if not source.is_file():
             raise ReportError("Capture manifest must be a regular file")
@@ -173,16 +185,24 @@ def load_actual_manifest(source: Path, stems: set[str]) -> dict[str, tuple[Path,
     if not isinstance(data, dict) or set(data) != {"actual"} or not isinstance(data["actual"], dict):
         raise ReportError("Capture manifest must have one actual object keyed by screenshot stem")
 
-    captures: dict[str, tuple[Path, str]] = {}
+    captures: dict[str, Capture] = {}
     for stem, entry in data["actual"].items():
-        if stem not in stems or not isinstance(entry, dict) or set(entry) != {"path", "sha256"}:
+        if (
+            stem not in stems or not isinstance(entry, dict)
+            or entry.keys() not in ({"path", "sha256"}, {"path", "sha256", "source_sha"})
+        ):
             raise ReportError("Invalid capture manifest entry")
         name, digest = entry["path"], entry["sha256"]
+        source_sha = entry.get("source_sha")
         if (
             not isinstance(name, str) or not name or "\0" in name
             or not isinstance(digest, str) or SHA256.fullmatch(digest) is None
         ):
             raise ReportError("Invalid capture path or SHA-256")
+        if "source_sha" in entry and (
+            not isinstance(source_sha, str) or GIT_SHA.fullmatch(source_sha) is None
+        ):
+            raise ReportError("Capture source must be a full lowercase Git commit SHA")
         path = Path(name)
         if path.name not in (f"{stem}.png", digest):
             raise ReportError("Capture file must use its literal name or SHA-256")
@@ -190,7 +210,7 @@ def load_actual_manifest(source: Path, stems: set[str]) -> dict[str, tuple[Path,
             resolved = (source.parent / path).resolve()
         except (OSError, RuntimeError) as error:
             raise ReportError("Cannot resolve the capture path") from error
-        captures[stem] = (resolved, digest)
+        captures[stem] = Capture(resolved, digest, source_sha)
     return captures
 
 
@@ -267,17 +287,22 @@ def compare_pair(
     screen: Screen,
     theme: str,
     expected_dir: Path,
-    actual_path: Path | None,
+    capture: Capture | None,
     output: Path,
     reviews: dict[str, object],
     required_size: tuple[int, int] = IMAGE_SIZE,
     *,
-    actual_sha256: str | None = None,
+    target_source: str | None = None,
     write_diffs: bool = True,
 ) -> dict[str, object]:
     stem = screen.stem(theme)
     expected, before = read_image(expected_dir / f"{stem}.png", output)
-    actual, after = read_image(actual_path, output, actual_sha256)
+    actual, after = read_image(
+        capture.path if capture else None, output, capture.sha256 if capture else None,
+    )
+    source_sha = capture.source_sha if capture else None
+    if source_sha is not None:
+        actual["source_sha"] = source_sha
     pair: dict[str, object] = {
         "id": stem,
         "screen": screen.id,
@@ -307,11 +332,17 @@ def compare_pair(
                 reason=f"Both images must be {required_size[0]} by {required_size[1]}; images were not resized",
             )
             return pair
-        review = review_status(reviews.get(stem), expected["sha256"], actual["sha256"])
-        pair["review"] = review
-        pair["state"] = (
-            f"reviewed-{review['verdict']}" if review["state"] == "current" else "unreviewed"
-        )
+        if target_source is not None and source_sha != target_source:
+            if source_sha is None:
+                pair.update(state="unknown-source", reason="Actual capture has no source commit")
+            else:
+                pair.update(state="other-source", reason="Actual capture is from another commit")
+        else:
+            review = review_status(reviews.get(stem), expected["sha256"], actual["sha256"])
+            pair["review"] = review
+            pair["state"] = (
+                f"reviewed-{review['verdict']}" if review["state"] == "current" else "unreviewed"
+            )
         diff = ImageChops.difference(before, after)
         mean = sum(ImageStat.Stat(diff).mean) / 4
         mask = reduce(ImageChops.lighter, diff.split())
@@ -342,6 +373,7 @@ def compare_pair(
 
 def render_html(manifest: dict[str, object]) -> str:
     def image_cell(label: str, info: dict[str, object]) -> str:
+        label = escape(label, quote=True)
         if info.get("state") != "available":
             return f"<figure><figcaption>{label}</figcaption><p>{escape(str(info.get('reason', 'Unavailable')))}</p></figure>"
         url = escape(str(info["url"]), quote=True)
@@ -358,7 +390,9 @@ def render_html(manifest: dict[str, object]) -> str:
             if score is None
             else f"Pixel similarity {score['similarity_pct']:.4f}%; changed pixels {score['changed_pct']:.4f}%"
         )
-        figures = image_cell("Mockup", pair["expected"]) + image_cell("Actual", pair["actual"])
+        source = pair["actual"].get("source_sha")
+        actual_label = f"Actual at {source[:12]}" if source is not None else "Actual"
+        figures = image_cell("Mockup", pair["expected"]) + image_cell(actual_label, pair["actual"])
         if pair["diff_url"]:
             diff = {"state": "available", "url": pair["diff_url"]}
         elif score is not None:
@@ -381,6 +415,8 @@ def render_html(manifest: dict[str, object]) -> str:
             f'<a href="{escape(pair["source_url"], quote=True)}">Mockup source</a></details></section>'
         )
     counts = ", ".join(f"{state}: {count}" for state, count in sorted(manifest["summary"]["states"].items()))
+    target = manifest["summary"].get("target_source")
+    target_text = f"<p>Target commit <code>{escape(target)}</code></p>" if target is not None else ""
     return (
         "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\">"
         "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
@@ -391,6 +427,7 @@ def render_html(manifest: dict[str, object]) -> str:
         "figure{margin:0;min-width:0}img{width:100%;height:auto}figcaption{margin-bottom:8px}"
         "details{margin-top:16px}li{margin:8px 0}@media(max-width:900px){.images{grid-template-columns:1fr}}"
         "</style><h1>Syrius redesign comparison</h1>"
+        f"{target_text}"
         f"<p>{escape(counts)}</p><p>Visual review: {manifest['summary']['visual_review']}. "
         "A screenshot does not qualify motion, chain actions or Windows builds. "
         "This local report may contain wallet data; keep it private.</p>"
@@ -409,9 +446,15 @@ def generate_report(
     reviews_path: Path | None = None,
     *,
     actual_manifest: Path | None = None,
+    target_source: str | None = None,
     required_size: tuple[int, int] = IMAGE_SIZE,
     write_diffs: bool = True,
 ) -> dict[str, object]:
+    if target_source is not None:
+        if GIT_SHA.fullmatch(target_source) is None:
+            raise ReportError("Target source must be a full lowercase Git commit SHA")
+        if actual_manifest is None:
+            raise ReportError("Target source requires a capture manifest")
     src = repo / "mockups" / "redesign" / "src"
     expected_dir = src.parent / "shots"
     screens = screen_inventory(src)
@@ -424,15 +467,14 @@ def generate_report(
         actuals = load_actual_manifest(actual_manifest, stems)
     else:
         directory = actual_dir if actual_dir is not None else repo / ".harness" / "shots"
-        actuals = {stem: (directory / f"{stem}.png", None) for stem in stems}
+        actuals = {stem: Capture(directory / f"{stem}.png") for stem in stems}
     output.mkdir(parents=True, exist_ok=True)
     pairs = []
     for screen in screens:
         for theme in THEMES:
-            path, digest = actuals.get(screen.stem(theme), (None, None))
             pair = compare_pair(
-                screen, theme, expected_dir, path, output, reviews, required_size,
-                actual_sha256=digest, write_diffs=write_diffs,
+                screen, theme, expected_dir, actuals.get(screen.stem(theme)), output,
+                reviews, required_size, target_source=target_source, write_diffs=write_diffs,
             )
             pair["notes"] = notes[screen.id]
             pairs.append(pair)
@@ -445,6 +487,8 @@ def generate_report(
         "visual_review": "COMPLETE" if states.get("reviewed-match", 0) == 94 else "INCOMPLETE",
         "unrecognized_review_ids": sorted(set(reviews) - {pair["id"] for pair in pairs}),
     }
+    if target_source is not None:
+        summary["target_source"] = target_source
     manifest = {
         "schema_version": 1,
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
@@ -462,6 +506,7 @@ def main() -> int:
     inputs = parser.add_mutually_exclusive_group()
     inputs.add_argument("--actual-dir", type=Path, help="One capture directory (default: .harness/shots)")
     inputs.add_argument("--actual-manifest", type=Path, help="Private capture paths and SHA-256 pins")
+    parser.add_argument("--target-source", help="Accept reviews only for captures at this full Git commit")
     parser.add_argument("--output-dir", type=Path, default=ROOT / "mockups" / "redesign" / "compare")
     parser.add_argument("--reviews", type=Path, help="Manual, image-hash-bound visual review JSON")
     parser.add_argument("--no-diff-images", action="store_true",
@@ -472,7 +517,8 @@ def main() -> int:
         actual_dir = args.actual_dir.resolve() if args.actual_dir is not None else None
         manifest = generate_report(
             ROOT, actual_dir, args.output_dir.resolve(), args.reviews,
-            actual_manifest=args.actual_manifest, write_diffs=not args.no_diff_images,
+            actual_manifest=args.actual_manifest, target_source=args.target_source,
+            write_diffs=not args.no_diff_images,
         )
     except (OSError, UnicodeError, ValueError) as error:
         # Paths and raw diagnostics can contain private profile information.

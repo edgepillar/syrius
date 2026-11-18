@@ -234,12 +234,48 @@ class CompareTests(unittest.TestCase):
         self.assertIsNone(pair["score"])
         self.assertIsNone(pair["diff_url"])
 
+    def test_target_source_admits_review_only_for_the_selected_commit(self) -> None:
+        self.add_actual()
+        reviews = self.review_file()
+        digest = hashlib.sha256((self.actual / f"{self.stem}.png").read_bytes()).hexdigest()
+        manifest = self.repo / "captures.json"
+        current = "a" * 40
+        historical = "b" * 40
+        for captured, state in (
+            (current, "reviewed-match"), (historical, "other-source"), (None, "unknown-source"),
+        ):
+            with self.subTest(captured=captured):
+                entry = {"path": f"actual/{self.stem}.png", "sha256": digest}
+                if captured is not None:
+                    entry["source_sha"] = captured
+                manifest.write_text(json.dumps({"actual": {self.stem: entry}}), encoding="utf-8")
+                result = generate_report(
+                    self.repo, None, self.output, reviews, actual_manifest=manifest,
+                    target_source=current, required_size=(4, 3), write_diffs=False,
+                )
+                pair = result["pairs"][0]
+                self.assertEqual(result["summary"]["states"], {state: 1, "missing": 93})
+                self.assertEqual(result["summary"]["target_source"], current)
+                self.assertEqual(pair["actual"].get("source_sha"), captured)
+                self.assertEqual(pair["score"]["similarity_pct"], 100)
+                self.assertEqual(pair["review"]["state"], "current" if captured == current else "none")
+                page = (self.output / "index.html").read_text(encoding="utf-8")
+                self.assertIn(f"Target commit <code>{current}</code>", page)
+                if captured is not None:
+                    self.assertIn(f"Actual at {captured[:12]}", page)
+
+    def test_target_source_requires_manifest_before_output(self) -> None:
+        with self.assertRaisesRegex(ValueError, "requires a capture manifest"):
+            generate_report(self.repo, self.actual, self.output, target_source="a" * 40)
+        self.assertFalse(self.output.exists())
+
     def test_manifest_rejects_duplicate_or_unknown_capture_stems(self) -> None:
         manifest = self.repo / "captures.json"
         entry = json.dumps({"path": f"actual/{self.stem}.png", "sha256": "0" * 64})
         for entries, message in (
             (f'"{self.stem}":{entry},"{self.stem}":{entry}', "duplicate keys"),
             (f'"00-unregistered-dark":{entry}', "Invalid capture manifest entry"),
+            (f'"{self.stem}":{entry[:-1]},"source_sha":"short"}}', "full lowercase Git commit SHA"),
         ):
             with self.subTest(message=message):
                 manifest.write_text('{"actual":{' + entries + '}}', encoding="utf-8")
