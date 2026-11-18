@@ -161,6 +161,10 @@ FAILURE_REPLIES = (
     'frameDeadlineExceeded',
     'frameOriginalFailed',
     'frameAdmissionFailed',
+    'homeStateInvalid',
+    'railTreeInvalid',
+    'railGeometryInvalid',
+    'railEndpointMissing',
 )
 
 

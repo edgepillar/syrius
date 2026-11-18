@@ -17,6 +17,7 @@ enum ScreenCaptureReplyCode {
   captureThemeMismatch, captureLayerUnavailable, captureColorSpaceMismatch,
   captureReadbackUnavailable, captureDimensionsMismatch, captureStateChanged,
   frameBusy, frameDeadlineExceeded, frameOriginalFailed, frameAdmissionFailed,
+  homeStateInvalid, railTreeInvalid, railGeometryInvalid, railEndpointMissing,
 }
 
 abstract interface class ScreenCaptureReplyFailure {

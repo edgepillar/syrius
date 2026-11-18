@@ -2710,15 +2710,26 @@ void main() {
       () async {
     for (final bool original in <bool>[false, true]) {
       bool expanded = original;
+      bool pendingWidth = false;
+      int transitionSamples = 0;
       final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
       final ReadonlyInspectionSession session = ReadonlyInspectionSession(
         processId: 44,
         original: (Map<String, Object?> command, Duration timeout) async {
           commands.add(command);
-          expect(timeout, const Duration(seconds: 30));
+          int width = expanded ? 184 : 40;
+          if (command['cmd'] == 'tree' && pendingWidth) {
+            expect(timeout, lessThanOrEqualTo(const Duration(seconds: 2)));
+            expect(timeout, greaterThan(Duration.zero));
+            width = expanded ? 41 : 183;
+            pendingWidth = false;
+            transitionSamples++;
+          }
           if (command['cmd'] == 'tap') {
             expect(command['key'], 'rail_toggle');
+            expect(timeout, const Duration(seconds: 30));
             expanded = !expanded;
+            pendingWidth = true;
           }
           return <String, dynamic>{
             ..._reply(wallet: true),
@@ -2730,7 +2741,7 @@ void main() {
             if (command['cmd'] == 'tree') 'nodes': <Object?>[
               <String, dynamic>{
                 'key': 'rail_toggle', 'kind': 'button',
-                'rect': <int>[8, 36, if (expanded) 184 else 40, 32],
+                'rect': <int>[8, 36, width, 32],
               },
             ],
           };
@@ -2744,6 +2755,7 @@ void main() {
       expect(await session.railExpanded(), original);
       expect(commands.where((Map<String, Object?> c) =>
           c['cmd'] == 'tap').length, original ? 2 : 0);
+      expect(transitionSamples, original ? 2 : 0);
       expect(commands.where((Map<String, Object?> c) =>
           c['cmd'] == 'wait').length, 0);
       expect(commands.every((Map<String, Object?> c) =>
@@ -2791,7 +2803,15 @@ void main() {
       );
       await session.bindWallet();
       await expectLater(session.prepareScreenHome(),
-          throwsA(isA<ReadonlyInspectionRefused>()));
+          throwsA(isA<ReadonlyInspectionRefused>().having(
+            (ReadonlyInspectionRefused error) => error.captureReply,
+            'closed Home response',
+            fault['pid'] != null || fault.containsKey('readonlyWallet')
+                ? isNull
+                : fault['ok'] == false
+                ? ScreenCaptureReplyCode.unknown
+                : ScreenCaptureReplyCode.homeStateInvalid,
+          )));
       await expectLater(session.restoreScreenRail(expanded: true),
           throwsA(isA<ReadonlyInspectionRefused>()));
       expect(calls, 2);
