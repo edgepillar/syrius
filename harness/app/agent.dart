@@ -5635,7 +5635,7 @@ class HarnessAgent {
         ...metrics.toJson(),
         if (guarded) 'theme': theme,
         if (guarded) 'asserted': true,
-        if (artworkSeconds != null) 'artwork_seconds': artworkSeconds,
+        'artwork_seconds': ?artworkSeconds,
         if (layoutBefore != null)
           'layoutObservation': pairReadonlyShotLayout(
             layoutBefore,

@@ -47,6 +47,7 @@ final class NativeLockCatalog {
   static const Size _client = Size(1280, 780);
   static const int _frames = 56;
   static const int _referenceFrame = 23;
+  static const int _referenceArtworkSeconds = 6;
   static const Set<String> _pickerKeys = <String>{
     'lock_wallet_picker_entry_0', 'lock_wallet_picker_entry_1',
     'lock_wallet_picker_entry_2', 'lock_wallet_picker_add',
@@ -71,7 +72,7 @@ final class NativeLockCatalog {
     final ReferenceArtworkFrame? artwork = _artwork;
     return original != null && artwork != null && _current(original) &&
             artwork.observed
-        ? artwork.observation['seconds'] as int
+        ? _referenceArtworkSeconds
         : null;
   }
 
@@ -240,7 +241,7 @@ final class NativeLockCatalog {
     if (frame == null || frame.kind != ReferenceArtworkKind.entryField ||
         !identical(frame.owner, source) ||
         !identical(frame.generation, generation) ||
-        seconds is! int || seconds != 6) {
+        seconds is! int || seconds != _referenceArtworkSeconds) {
       throw const CaptureRefused('lock-catalog-artwork-unavailable');
     }
     return frame;
