@@ -12,6 +12,8 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_wid
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Fixtures inject finite art and never subscribe to a network price source.
@@ -648,32 +650,45 @@ class SwapTransferPanes extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    // The centered badge has one form gap on either side of its midpoint.
+    final double gap = 2 * tokens.swapActionGap;
+    final double diameter = tokens.swapActionArrowSize;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         send,
-        SizedBox(
-          height: tokens.swapActionGap,
-          child: OverflowBox(
-            minHeight: tokens.swapActionArrowSize,
-            maxHeight: tokens.swapActionArrowSize,
-            child: Container(
-              width: tokens.swapActionArrowSize,
-              height: tokens.swapActionArrowSize,
-              decoration: BoxDecoration(
-                color: tokens.card3,
-                shape: BoxShape.circle,
-                border: Border.all(color: tokens.line),
-              ),
-              child: Icon(
-                Icons.swap_vert,
-                size: tokens.swapActionTokenIconSize,
-                color: tokens.dim,
+        SizedBox(height: gap),
+        Stack(
+          clipBehavior: Clip.none,
+          children: <Widget>[
+            receive,
+            Positioned(
+              top: -(gap + diameter) / 2,
+              left: 0,
+              right: 0,
+              child: IgnorePointer(
+                child: Center(
+                  child: Container(
+                    key: const Key('swap_action_direction'),
+                    width: diameter,
+                    height: diameter,
+                    decoration: BoxDecoration(
+                      color: tokens.card3,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: tokens.line),
+                    ),
+                    alignment: Alignment.center,
+                    child: ShellSymbol(
+                      'swap',
+                      size: tokens.smallActionGlyphSize,
+                      color: tokens.foreground,
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
+          ],
         ),
-        receive,
       ],
     );
   }
@@ -984,8 +999,8 @@ class SwapActionDetails extends StatefulWidget {
     required this.summary,
     required this.child,
     required this.onToggle,
-    required _SwapDetailsLayout layout,
-  }) : _layout = layout;
+    required _SwapDetailsLayout this._layout,
+  });
 
   /// Single public fact visible while the details are collapsed.
   final String summary;

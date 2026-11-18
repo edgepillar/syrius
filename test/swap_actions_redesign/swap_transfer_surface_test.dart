@@ -12,6 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/swap_action_surface.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../helpers/mockup_symbol.dart';
 import 'support.dart';
 
 Widget _surface(
@@ -126,6 +127,39 @@ void main() {
         final Finder send = find.ancestor(
           of: editor,
           matching: find.byType(SwapAmountPane),
+        );
+        final Finder receive = find.byType(SwapAmountPane).last;
+        final Finder arrow = find.byKey(const Key('swap_action_direction'));
+        final Rect sendRect = tester.getRect(send);
+        final Rect receiveRect = tester.getRect(receive);
+        final Rect arrowRect = tester.getRect(arrow);
+        expect(receiveRect.top - sendRect.bottom, closeTo(20, 0.01));
+        expect(arrowRect.size, const Size.square(32));
+        expect(arrowRect.center.dx, closeTo(receiveRect.center.dx, 0.01));
+        expect(
+          arrowRect.center.dy,
+          closeTo((sendRect.bottom + receiveRect.top) / 2, 0.01),
+        );
+        expect(arrowRect.overlaps(sendRect), isTrue);
+        expect(arrowRect.overlaps(receiveRect), isTrue);
+        final Widget receivePane = tester.widget(receive);
+        final Stack panesOverlay = tester.widget(
+          find.ancestor(
+            of: arrow,
+            matching: find.byWidgetPredicate(
+              (Widget widget) =>
+                  widget is Stack && widget.children.contains(receivePane),
+            ),
+          ),
+        );
+        expect(panesOverlay.children.first, same(receivePane));
+        expect(panesOverlay.children.last, isA<Positioned>());
+        expectMockupSymbol(
+          tester,
+          within: arrow,
+          symbol: 'swap',
+          size: 14,
+          color: AppTokens.of(tester.element(arrow)).foreground,
         );
         final Finder sendingDollars = find.descendant(
           of: send,
