@@ -14,6 +14,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notification
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/model/send_intent.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_confirmation.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/transfer/view/transfer_token_mark.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/dollar_text.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/eye_toggle.dart';
@@ -1043,7 +1044,6 @@ class _SendPopulatedState extends State<SendPopulated>
       MediaQuery.textScalerOf(context).scale(tokens.bodyText.fontSize!) *
           tokens.bodyText.height! + 2,
     );
-    final bool znn = _selectedToken.tokenStandard == kZnnCoin.tokenStandard;
     return DropdownMenu<Token>(
       key: const Key('send_token_field'),
       inputDecorationTheme: InputDecorationTheme(
@@ -1076,37 +1076,11 @@ class _SendPopulatedState extends State<SendPopulated>
       initialSelection: _selectedToken,
       textStyle: tokens.bodyText,
       enableFilter: true,
-      leadingIcon:
-          PricedCoin.ofTokenStandard(
-                _selectedToken.tokenStandard.toString(),
-              ) ==
-              null
-          ? null
-          : ExcludeSemantics(
-              child: Center(
-                child: Container(
-                  key: const Key('send_token_mark'),
-                  width: tokens.transferTokenMarkSize,
-                  height: tokens.transferTokenMarkSize,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: znn ? tokens.znn : tokens.qsr,
-                  ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      znn ? 'Z' : 'Q',
-                      style: tokens.transferTokenMarkText.copyWith(
-                        color: znn
-                            ? tokens.onZnn
-                            : tokens.transferTokenMarkText.color,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+      leadingIcon: buildTransferTokenMark(
+        _selectedToken.tokenStandard.toString(),
+        tokens,
+        markKey: const Key('send_token_mark'),
+      ),
       dropdownMenuEntries: <DropdownMenuEntry<Token>>[
         for (final Token token in _availableAssets)
           DropdownMenuEntry<Token>(

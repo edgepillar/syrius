@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/receive/receive_header_controller.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/receive/receive_request.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/transfer/view/transfer_token_mark.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/token_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/functions/tokens.dart';
@@ -666,6 +667,10 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
     key: const Key('receive_token_picker'),
     inputDecorationTheme: _buildInputTheme(tokens).copyWith(
       contentPadding: tokens.transferFieldPadding,
+      prefixIconConstraints: BoxConstraints.tightFor(
+        width: tokens.fieldHeight,
+        height: tokens.fieldHeight,
+      ),
       suffixIconConstraints: BoxConstraints.tightFor(
         width: 34,
         height: tokens.fieldHeight,
@@ -676,6 +681,11 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
     expandedInsets: EdgeInsets.zero,
     enableFilter: true,
     textStyle: tokens.dataText,
+    leadingIcon: buildTransferTokenMark(
+      _selectedToken.tokenStandard.toString(),
+      tokens,
+      markKey: const Key('receive_token_mark'),
+    ),
     dropdownMenuEntries: <DropdownMenuEntry<Token>>[
       for (final Token token in _tokens)
         DropdownMenuEntry<Token>(value: token, label: _tokenLabel(token)),
