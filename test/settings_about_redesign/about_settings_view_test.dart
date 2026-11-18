@@ -458,7 +458,10 @@ void main() {
       expect(precedingPaint, everyElement(isNotNull));
       void expectRetainedPaint() {
         for (int index = 0; index < precedingLayers.length; index++) {
-          expect(precedingLayers[index].firstChild, same(precedingPaint[index]));
+          expect(
+            precedingLayers[index].firstChild,
+            same(precedingPaint[index]),
+          );
         }
       }
 
@@ -475,7 +478,10 @@ void main() {
       information.complete(AboutInformation(version: 'late-package-info'));
       await tester.pump();
       expect(_text(tester, 'about_version').data, 'late-package-info');
-      expect(precedingLayers.first.firstChild, isNot(same(precedingPaint.first)));
+      expect(
+        precedingLayers.first.firstChild,
+        isNot(same(precedingPaint.first)),
+      );
       expect(
         identical(originalList, tester.element(find.byType(Licences))),
         isTrue,
