@@ -12,6 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/registration
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/registration_success/registration_success_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -193,6 +194,10 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
 
   Widget _buildDetails(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    final bool hasSymbol = _symbol.text.isNotEmpty;
+    final String? symbolError = hasSymbol
+        ? Validations.tokenSymbol(_symbol.text)
+        : null;
     return TokenCreateFrame(
       key: const Key('token_create_details'),
       active: _step == 0 && _current,
@@ -236,9 +241,20 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
                     textDirection: TextDirection.ltr,
                     style: tokens.dataText,
                     decoration: InputDecoration(
-                      errorText: _symbol.text.isEmpty
-                          ? null
-                          : Validations.tokenSymbol(_symbol.text),
+                      errorText: symbolError,
+                      suffixIconConstraints: const BoxConstraints.tightFor(
+                        width: 36,
+                        height: 32,
+                      ),
+                      suffixIcon: hasSymbol && symbolError == null
+                          ? Center(
+                              child: ShellSymbol(
+                                'check',
+                                size: tokens.smallActionGlyphSize,
+                                color: tokens.znnInk,
+                              ),
+                            )
+                          : null,
                     ),
                   ),
                 ),

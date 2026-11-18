@@ -113,39 +113,6 @@ class TokenCreateRail extends StatelessWidget {
                           style: tokens.dataText,
                         ),
                 ),
-                Row(
-                  children: <Widget>[
-                    Icon(
-                      preflight.loading
-                          ? Icons.hourglass_empty
-                          : preflight.sufficient
-                          ? Icons.check_circle_outline
-                          : Icons.info_outline,
-                      size: tokens.tokenCreateStepMarkSize,
-                      color: preflight.sufficient ? tokens.znnInk : tokens.dim,
-                    ),
-                    SizedBox(width: tokens.inlineGap),
-                    Expanded(
-                      child: Text(
-                        status,
-                        style: tokens.registrationCaptionText,
-                      ),
-                    ),
-                  ],
-                ),
-                if (current)
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: TextButton(
-                      key: const Key('token_create_retry'),
-                      onPressed: busy || preflight.loading ? null : onRetry,
-                      child: Text(
-                        preflight.failed
-                            ? context.l10n.commonRetry
-                            : context.l10n.commonRefresh,
-                      ),
-                    ),
-                  ),
               ],
             ),
             Container(
@@ -158,7 +125,10 @@ class TokenCreateRail extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: tokens.inlineGap,
                 children: <Widget>[
-                  Text(context.l10n.tokenCreatePreview, style: tokens.compactText),
+                  Text(
+                    context.l10n.tokenCreatePreview,
+                    style: tokens.compactText,
+                  ),
                   Row(
                     children: <Widget>[
                       ExcludeSemantics(
@@ -213,6 +183,44 @@ class TokenCreateRail extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+            Column(
+              spacing: tokens.registrationGap,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Icon(
+                      preflight.loading
+                          ? Icons.hourglass_empty
+                          : preflight.sufficient
+                          ? Icons.check_circle_outline
+                          : Icons.info_outline,
+                      size: tokens.tokenCreateStepMarkSize,
+                      color: preflight.sufficient ? tokens.znnInk : tokens.dim,
+                    ),
+                    SizedBox(width: tokens.inlineGap),
+                    Expanded(
+                      child: Text(
+                        status,
+                        style: tokens.registrationCaptionText,
+                      ),
+                    ),
+                  ],
+                ),
+                if (current)
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: TextButton(
+                      key: const Key('token_create_retry'),
+                      onPressed: busy || preflight.loading ? null : onRetry,
+                      child: Text(
+                        preflight.failed
+                            ? context.l10n.commonRetry
+                            : context.l10n.commonRefresh,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ],
         ),
