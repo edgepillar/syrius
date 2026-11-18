@@ -319,6 +319,8 @@ void main() {
       expect(find.byType(ReceiveQrImage), findsNothing);
       expect(find.byKey(const Key('receive_amount_field')), findsNothing);
       expect(find.byKey(const Key('receive_share_image')), findsNothing);
+      expect(find.text('Copy image'), findsNothing);
+      expect(find.text('Save'), findsNothing);
       final Finder request = find.byKey(const Key('receive_request_toggle'));
       final Finder requestTitle = find.descendant(
         of: request,
@@ -338,7 +340,6 @@ void main() {
       );
       expect(find.text('Copy image'), findsOneWidget);
       expect(find.text('Save'), findsOneWidget);
-      expect(find.text('Copy image'), findsNothing);
       await receiveTestDispose(tester);
     });
 
