@@ -4798,4 +4798,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plasmaExpires => 'Expires';
+
+  @override
+  String get swapActionHowItWorks => 'How it works';
 }

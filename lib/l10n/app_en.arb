@@ -2673,5 +2673,7 @@
   "plasmaBeneficiary": "Beneficiary",
   "@plasmaBeneficiary": {"description": "Compact beneficiary column heading in the owned-fusion ledger."},
   "plasmaExpires": "Expires",
-  "@plasmaExpires": {"description": "Compact expiration column heading in the owned-fusion ledger."}
+  "@plasmaExpires": {"description": "Compact expiration column heading in the owned-fusion ledger."},
+  "swapActionHowItWorks": "How it works",
+  "@swapActionHowItWorks": {"description": "Swap dialog header action that opens the original guarded details."}
 }

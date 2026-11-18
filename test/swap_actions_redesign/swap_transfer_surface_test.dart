@@ -112,6 +112,10 @@ void main() {
         );
         final Finder help = find.byKey(const Key('swap_action_details_toggle'));
         expect(tester.getBottomRight(help).dy, lessThan(form.top));
+        expect(
+          find.descendant(of: help, matching: find.text('How it works')),
+          findsOneWidget,
+        );
         expect(tester.getTopLeft(primary).dy, greaterThan(form.bottom));
 
         expect(find.text('1 ZNN = 10 QSR'), findsOneWidget);

@@ -1360,7 +1360,8 @@
     "zapReceivedNice",
     "zapSenderAttribution",
     "plasmaBeneficiary",
-    "plasmaExpires"
+    "plasmaExpires",
+    "swapActionHowItWorks"
   ],
 
   "es": [
@@ -2724,7 +2725,8 @@
     "zapReceivedNice",
     "zapSenderAttribution",
     "plasmaBeneficiary",
-    "plasmaExpires"
+    "plasmaExpires",
+    "swapActionHowItWorks"
   ],
 
   "hi": [
@@ -4088,7 +4090,8 @@
     "zapReceivedNice",
     "zapSenderAttribution",
     "plasmaBeneficiary",
-    "plasmaExpires"
+    "plasmaExpires",
+    "swapActionHowItWorks"
   ],
 
   "zh": [
@@ -5452,6 +5455,7 @@
     "zapReceivedNice",
     "zapSenderAttribution",
     "plasmaBeneficiary",
-    "plasmaExpires"
+    "plasmaExpires",
+    "swapActionHowItWorks"
   ]
 }

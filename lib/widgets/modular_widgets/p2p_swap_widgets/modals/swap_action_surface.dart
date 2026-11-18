@@ -1029,7 +1029,7 @@ class _SwapActionDetailsState extends State<SwapActionDetails>
             ),
             onPressed: toggle,
             child: Text(
-              context.l10n.swapListDetails,
+              context.l10n.swapActionHowItWorks,
               textAlign: TextAlign.center,
             ),
           ),

@@ -8295,6 +8295,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expires'**
   String get plasmaExpires;
+
+  /// Swap dialog header action that opens the original guarded details.
+  ///
+  /// In en, this message translates to:
+  /// **'How it works'**
+  String get swapActionHowItWorks;
 }
 
 class _AppLocalizationsDelegate
