@@ -470,9 +470,11 @@ void main() {
           final EdgeInsets rowPadding = tokens.walletPickerRowPadding.resolve(
             direction,
           );
+          const double addressEndInset = 10;
           final double labelsWidth =
               rowBounds.width -
               rowPadding.horizontal -
+              addressEndInset -
               tokens.lockGlyphSize -
               2 * tokens.inlineGap;
           expect(nameBounds.width, greaterThan(labelsWidth / 2));
@@ -491,8 +493,8 @@ void main() {
                 ? addressBounds.right
                 : addressBounds.left,
             direction == TextDirection.ltr
-                ? rowBounds.right - rowPadding.right
-                : rowBounds.left + rowPadding.left,
+                ? rowBounds.right - rowPadding.right - addressEndInset
+                : rowBounds.left + rowPadding.left + addressEndInset,
           );
           expect(
             find.descendant(

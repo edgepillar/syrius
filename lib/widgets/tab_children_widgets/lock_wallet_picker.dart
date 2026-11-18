@@ -320,28 +320,34 @@ class LockWalletPicker extends StatelessWidget {
   Widget _buildMenuLabels(AppTokens tokens, String name, String? address) {
     final Text label = Text(name, maxLines: 1, overflow: TextOverflow.ellipsis);
     if (address == null) return label;
-    return LayoutBuilder(
-      builder: (_, BoxConstraints constraints) {
-        final double gap =
-            tokens.inlineGap.clamp(0, constraints.maxWidth).toDouble();
-        return Row(
-          children: <Widget>[
-            Expanded(child: label),
-            SizedBox(width: gap),
-            // Reserve room for the name when text scaling makes the address
-            // wide. Short addresses only take their own width.
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: (constraints.maxWidth - gap) / 2,
+    // The address has its own end inset inside the padded reference row.
+    return Padding(
+      padding: EdgeInsetsDirectional.only(
+        end: tokens.walletPickerRowPadding.end,
+      ),
+      child: LayoutBuilder(
+        builder: (_, BoxConstraints constraints) {
+          final double gap =
+              tokens.inlineGap.clamp(0, constraints.maxWidth).toDouble();
+          return Row(
+            children: <Widget>[
+              Expanded(child: label),
+              SizedBox(width: gap),
+              // Reserve room for the name when text scaling makes the address
+              // wide. Short addresses only take their own width.
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: (constraints.maxWidth - gap) / 2,
+                ),
+                child: _LockAddress(
+                  address: address,
+                  style: tokens.walletPickerAddressText,
+                ),
               ),
-              child: _LockAddress(
-                address: address,
-                style: tokens.walletPickerAddressText,
-              ),
-            ),
-          ],
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
   }
 }
