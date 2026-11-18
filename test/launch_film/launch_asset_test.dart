@@ -118,6 +118,7 @@ Future<void> _decode(String path, int width, int height) async {
     int total = 0;
     final Stopwatch decoding = Stopwatch();
     final Map<int, typed.Uint8List> decoded = <int, typed.Uint8List>{};
+    ui.Image? previous;
     for (int index = 0; index < _frameCount; index++) {
       decoding.start();
       final ui.FrameInfo info = await codec.getNextFrame();
@@ -134,6 +135,12 @@ Future<void> _decode(String path, int width, int height) async {
           info.duration,
           reason: 'frame $index duration',
         );
+        // The final four patches repeat frame 51's exact rectangle. Flutter
+        // can compare the handles even after the earlier one was disposed.
+        if (index >= 52) {
+          expect(rectangle.image.isCloneOf(previous!), isTrue);
+        }
+        previous = rectangle.image;
         if (index == _frameCount - 1) heldEnding = rectangle.image.clone();
         final typed.ByteData original = (await image.toByteData())!;
         final typed.ByteData composed = (await rectangle.image.toByteData())!;

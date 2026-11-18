@@ -207,6 +207,25 @@ class LaunchWebpFrames {
     ByteData.sublistView(result).setUint32(4, length - 8, Endian.little);
     return result;
   }
+
+  bool _repeatsPreviousPatch(int index) {
+    if (index == 0) return false;
+    final LaunchWebpFrame frame = frames[index];
+    final LaunchWebpFrame previous = frames[index - 1];
+    if (frame._length != previous._length ||
+        frame.x != previous.x ||
+        frame.y != previous.y ||
+        frame.width != previous.width ||
+        frame.height != previous.height) {
+      return false;
+    }
+    for (int byte = 0; byte < frame._length; byte++) {
+      if (_bytes[frame._offset + byte] != _bytes[previous._offset + byte]) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 /// One original opaque rectangle and its unmodified display duration.
@@ -272,6 +291,9 @@ class _RectangleDecoder extends LaunchFilmDecoder {
     ui.Picture? picture;
     try {
       final LaunchWebpFrame frame = frames.frames[_next];
+      // This opaque patch is already on the retained canvas. The original
+      // index and display interval still get their own disposable handle.
+      if (frames._repeatsPreviousPatch(_next)) return _advance(frame);
       codec = await ui.instantiateImageCodec(frames.frameBytes(_next));
       if (codec.frameCount != 1) {
         throw StateError('A film rectangle must be still');
@@ -324,17 +346,22 @@ class _RectangleDecoder extends LaunchFilmDecoder {
       }
       _canvas?.dispose();
       _canvas = output;
-      _next = (_next + 1) % frameCount;
-      return LaunchFilmFrame(
-        output.clone(),
-        Duration(milliseconds: frame.milliseconds),
-      );
+      return _advance(frame);
     } finally {
       picture?.dispose();
       patch?.dispose();
       codec?.dispose();
       _pending = false;
     }
+  }
+
+  LaunchFilmFrame _advance(LaunchWebpFrame frame) {
+    final LaunchFilmFrame result = LaunchFilmFrame(
+      _canvas!.clone(),
+      Duration(milliseconds: frame.milliseconds),
+    );
+    _next = (_next + 1) % frameCount;
+    return result;
   }
 
   @override
