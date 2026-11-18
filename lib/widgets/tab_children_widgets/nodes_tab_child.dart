@@ -240,6 +240,7 @@ class _PillarOwnerStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppTokens tokens = AppTokens.of(context);
     final PillarsByOwnerBloc reader = context.watch<PillarsByOwnerBloc>();
     final String? address = kSelectedAddress;
     final FetchState<List<PillarInfo>> state = reader.state;
@@ -262,7 +263,7 @@ class _PillarOwnerStrip extends StatelessWidget {
         StripFigure(
           label: context.l10n.nodesYourPillar,
           value: own != null
-              ? Text(own.name, style: AppTokens.of(context).pillarOwnerNameText)
+              ? Text(own.name, style: tokens.pillarOwnerNameText)
               : state is FetchPopulated<List<PillarInfo>> &&
                     state.data.isEmpty &&
                     address != null &&
@@ -272,8 +273,11 @@ class _PillarOwnerStrip extends StatelessWidget {
         ),
         nodesRewardsFigure(context, state: rewards),
       ],
+      figureAction: Padding(
+        padding: EdgeInsetsDirectional.only(start: tokens.pageGap),
+        child: PillarCollectAction(enabled: hasNodesRewards(rewards)),
+      ),
       actions: <Widget>[
-        PillarCollectAction(enabled: hasNodesRewards(rewards)),
         TextButton.icon(
           key: const Key('nodes_pillar_owner_close'),
           onPressed: onClose,
