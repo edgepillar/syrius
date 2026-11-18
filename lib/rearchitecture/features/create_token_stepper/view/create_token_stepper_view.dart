@@ -577,7 +577,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
       _error = null;
     });
     final bool enough = await widget.preflight.refresh();
-    if (!_current || operation != _operation) return;
+    if (!mounted || !_current || operation != _operation) return;
     if (!_presented) {
       setState(() => _busy = false);
       return;
