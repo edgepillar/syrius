@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 
+import '../../harness/app/agent.dart';
+
 /// A small vector fixture keeps playback checks separate from image decode
 /// costs. Every requested asset has the same two-second composition.
 class _Bundle extends CachingAssetBundle {
@@ -160,6 +162,49 @@ void main() {
     await tester.pump(const Duration(seconds: 2));
     expect(_clock(tester).value, 1);
     expect(tester.binding.hasScheduledFrame, isFalse);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('Pillar capture waits for the original completed artwork', (
+    WidgetTester tester,
+  ) async {
+    const Key marker = Key('fixture_pillar_receipt');
+    final _Bundle bundle = _Bundle();
+    await tester.pumpWidget(
+      _host(
+        bundle,
+        const KeyedSubtree(
+          key: marker,
+          child: AppLottie(AppLottieAsset.pillar, size: 48, repeat: false),
+        ),
+      ),
+    );
+    bool completed() => HarnessAgent.pillarReceiptArtworkComplete(
+      tester.element(find.byKey(marker)),
+    );
+
+    expect(completed(), isFalse);
+    await _loaded(tester);
+    const Duration margin = Duration(milliseconds: 1);
+    final Duration duration = tester
+        .widget<Lottie>(find.byType(Lottie))
+        .composition!
+        .duration;
+    await tester.pump(duration - margin);
+    expect(completed(), isFalse);
+    await tester.pump(margin * 2);
+    expect(completed(), isTrue);
+
+    final TestGesture mouse = await tester.createGesture(
+      kind: PointerDeviceKind.mouse,
+    );
+    await mouse.addPointer(location: const Offset(200, 200));
+    addTearDown(mouse.removePointer);
+    await mouse.moveTo(tester.getCenter(find.byType(AppLottie)));
+    await tester.pump();
+    expect(completed(), isFalse);
+    await tester.pump(duration + margin);
+    expect(completed(), isTrue);
     await tester.pumpWidget(const SizedBox());
   });
 

@@ -1,4 +1,4 @@
 # prerequisite: restored-lab-pillar-registration
-# Both themes use the same onstage success surface and original confirmation.
+# Both themes wait for the original receipt artwork to reach its final frame.
 wait --key pillar_registration_confirmed --ready --timeout 60
 assert --key pillar_registration_confirmed

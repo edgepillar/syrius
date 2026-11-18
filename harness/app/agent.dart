@@ -22,6 +22,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:logging/logging.dart';
+import 'package:lottie/lottie.dart' show Lottie;
 import 'package:material_ui/material_ui.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
@@ -71,6 +72,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_wid
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_settings_view.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart'
     show SettingsSection;
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
@@ -4971,7 +4973,65 @@ class HarnessAgent {
     if (command.keys.any((String name) => !fields.contains(name))) {
       throw HarnessError('readonly region needs a positive key selector');
     }
-    return _visibleKeyNodes(key, onRejected: onRejected);
+    final List<_Node> nodes = _visibleKeyNodes(key, onRejected: onRejected);
+    if (pillarDone && nodes.length == 1 &&
+        !pillarReceiptArtworkComplete(nodes.single.element)) {
+      onRejected?.call('originalArtworkPending');
+      return const <_Node>[];
+    }
+    return nodes;
+  }
+
+  /// Observes the naturally completed Pillar player in the onstage receipt.
+  @visibleForTesting
+  static bool pillarReceiptArtworkComplete(Element receipt) {
+    final Element? original = _singleOnstageArtwork<AppLottie>(receipt);
+    final Widget? player = original?.widget;
+    if (original == null || player is! AppLottie ||
+        player.asset != AppLottieAsset.pillar || player.repeat ||
+        player.controller != null) {
+      return false;
+    }
+    final Element? rendered = _singleOnstageArtwork<Lottie>(original);
+    final Widget? artwork = rendered?.widget;
+    final RenderObject? box = rendered?.renderObject;
+    if (artwork is! Lottie || artwork.composition == null ||
+        box is! RenderBox || !box.attached || !box.hasSize ||
+        box.size.isEmpty) {
+      return false;
+    }
+    final Animation<double>? controller = artwork.controller;
+    return controller is AnimationController &&
+        controller.status == AnimationStatus.completed &&
+        controller.value == controller.upperBound && !controller.isAnimating;
+  }
+
+  static Element? _singleOnstageArtwork<T extends Widget>(Element root) {
+    Element? match;
+    int visited = 0;
+    bool refused = false;
+    void visit(Element element) {
+      if (refused) return;
+      if (++visited > 4096) {
+        refused = true;
+        return;
+      }
+      final Widget widget = element.widget;
+      if ((widget is Offstage && widget.offstage) ||
+          (widget is Visibility && !widget.visible)) {
+        return;
+      }
+      if (widget is T) {
+        if (match != null) {
+          refused = true;
+          return;
+        }
+        match = element;
+      }
+      element.debugVisitOnstageChildren(visit);
+    }
+    visit(root);
+    return !refused && match?.mounted == true ? match : null;
   }
 
   List<_Node> _visibleKeyNodes(String key, {
