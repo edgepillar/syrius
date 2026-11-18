@@ -61,6 +61,19 @@ JOB_STEP = 'Capture the original cold launch in both themes'
 SETTLE_JOB_STEP = 'Capture the original launch handoff in both themes'
 SCOPE = 'original_cold_launch_catalog'
 SETTLE_SCOPE = 'original_launch_settle_catalog'
+LAUNCH_REFUSALS = {
+    'original-launch-window-refused': 'WINDOW_INVALID',
+    'original-launch-theme-refused': 'ENTRY_INVALID',
+    'original-launch-owner-unavailable': 'LAUNCH_OWNER_UNAVAILABLE',
+    'original-launch-frame-missed': 'LAUNCH_FRAME_MISSED',
+    'original-launch-frame-unavailable': 'LAUNCH_FRAME_UNAVAILABLE',
+}
+HANDOFF_REFUSALS = {
+    'original-launch-handoff-frame-missed': 'LAUNCH_HANDOFF_FRAME_MISSED',
+    'original-launch-handoff-refused': 'LAUNCH_HANDOFF_STATE_REFUSED',
+    'original-launch-handoff-well-unavailable': 'LAUNCH_HANDOFF_WELL_UNAVAILABLE',
+    'original-launch-handoff-geometry-refused': 'LAUNCH_HANDOFF_GEOMETRY_REFUSED',
+}
 
 
 def need(value, code='STARTUP_OBSERVATION_REFUSED'):
@@ -235,16 +248,15 @@ class LaunchProcess(startup.StartupProbe):
 
     def _observe_pixels(self, theme, *, settle):
         screen = SETTLE_SCREEN if settle else 'launch'
+        refusals = LAUNCH_REFUSALS | HANDOFF_REFUSALS if settle else LAUNCH_REFUSALS
         until = min(self.deadline, self.started + 60)
         while self.clock() < until:
             reply = self._rpc(dict(cmd='entry-capture', screen=screen, theme=theme),
                               until=until)
-            if reply == {'ok': True, 'status': 'refused',
-                         'reason': 'original-launch-window-refused'}:
-                raise startup.Failure('WINDOW_INVALID')
-            if reply == {'ok': True, 'status': 'refused',
-                         'reason': 'original-launch-theme-refused'}:
-                raise startup.Failure('ENTRY_INVALID')
+            if (type(reply) is dict and set(reply) == {'ok', 'status', 'reason'}
+                    and reply['ok'] is True and reply['status'] == 'refused'
+                    and type(reply['reason']) is str):
+                raise startup.Failure(refusals.get(reply['reason'], 'STARTUP_OBSERVATION_REFUSED'))
             if reply != {'ok': True, 'status': 'pending'}:
                 return launch_pixels(reply, theme, settle=settle)
             self.sleep(min(self.limits.poll, max(0, until - self.clock())))

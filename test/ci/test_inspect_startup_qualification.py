@@ -134,6 +134,33 @@ class StartupInspectionTests(unittest.TestCase):
     def test_cold_launch_requires_exact_frame_geometry_and_normal_actor_exits(self):
         self._check_launch_catalog(settle=False)
 
+    def test_launch_capture_reports_only_admitted_refusal_reasons(self):
+        launch = inspect.launch
+        process = object.__new__(launch.LaunchProcess)
+        process.deadline, process.started, process.clock = 65, 0, lambda: 0
+        late = 'original-launch-handoff-frame-missed'
+        generic = 'STARTUP_OBSERVATION_REFUSED'
+        for settle, reason, extra, code in (
+            (False, 'original-launch-window-refused', {}, 'WINDOW_INVALID'),
+            (True, 'original-launch-theme-refused', {}, 'ENTRY_INVALID'),
+            (False, 'original-launch-frame-missed', {}, 'LAUNCH_FRAME_MISSED'),
+            (True, late, {}, 'LAUNCH_HANDOFF_FRAME_MISSED'),
+            (True, 'original-launch-handoff-refused', {}, 'LAUNCH_HANDOFF_STATE_REFUSED'),
+            (True, 'original-launch-handoff-well-unavailable', {}, 'LAUNCH_HANDOFF_WELL_UNAVAILABLE'),
+            (True, 'original-launch-handoff-geometry-refused', {}, 'LAUNCH_HANDOFF_GEOMETRY_REFUSED'),
+            (False, late, {}, generic),
+            (True, late, {'detail': 'unexpected'}, generic),
+            (True, ['unexpected'], {}, generic),
+            (True, 'unknown-refusal', {}, generic),
+        ):
+            with self.subTest(settle=settle, reason=reason, extra=extra):
+                process._rpc = mock.Mock(return_value=dict(
+                    ok=True, status='refused', reason=reason, **extra))
+                with self.assertRaises(inspect.startup.Failure) as refused:
+                    process._observe_pixels('dark', settle=settle)
+                self.assertEqual(refused.exception.code, code)
+                process._rpc.assert_called_once()
+
     def test_launch_timing_waits_for_the_original_enabled_lock_field(self):
         launch = inspect.launch
         process = object.__new__(launch.LaunchProcess)
@@ -563,6 +590,14 @@ class StartupInspectionTests(unittest.TestCase):
             source_stable=False, success=False, error_codes=['STARTUP_OBSERVATION_REFUSED']))
         self.assertFalse(partial['artifact_reported_success'])
         self.assertEqual(partial['verified_png_count'], 1)
+        if settle:
+            reason = 'LAUNCH_HANDOFF_FRAME_MISSED'
+            refused = dict(attempts[3], action_complete=False, error_codes=[reason])
+            partial = read(dict(report, attempts=attempts[:3] + [refused],
+                captures=captures[:1], success=False, error_codes=[reason]))
+            self.assertFalse(partial['artifact_reported_success'])
+            self.assertEqual(partial['verified_png_count'], 1)
+            self.assertEqual(partial['error_codes'], [reason])
 
     def test_lock_seams_require_exact_absorbed_controls_and_closed_actors(self):
         catalog = inspect.lock_catalog

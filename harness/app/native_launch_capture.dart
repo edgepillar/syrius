@@ -128,9 +128,10 @@ final class NativeLaunchCapture {
     final double progress = owner.motion.value;
     if (_settle) {
       if (progress < _settleFrom) return false;
-      if (progress > _settleThrough ||
-          owner.filmInWell ||
-          !film.isDone ||
+      if (progress > _settleThrough || owner.filmInWell) {
+        throw const CaptureRefused('original-launch-handoff-frame-missed');
+      }
+      if (!film.isDone ||
           film.frame != _filmLength - 1 ||
           startup.initialization?.succeeded != true ||
           startup.splashOperation?.succeeded != true) {
@@ -169,14 +170,16 @@ final class NativeLaunchCapture {
     }
     if (_settle) {
       final Element? well = originalLaunchLockedWell(owner);
-      final Rect? wellRect = _rect(well?.findRenderObject());
-      if (well == null ||
-          wellRect == null ||
+      if (well == null) {
+        throw const CaptureRefused('original-launch-handoff-well-unavailable');
+      }
+      final Rect? wellRect = _rect(well.findRenderObject());
+      if (wellRect == null ||
           stage.width >= _client.width ||
           stage.height >= _client.height ||
           stage.width <= wellRect.width ||
           stage.height <= wellRect.height) {
-        throw const CaptureRefused('original-launch-handoff-refused');
+        throw const CaptureRefused('original-launch-handoff-geometry-refused');
       }
       _handoff = (
         owner: owner,
