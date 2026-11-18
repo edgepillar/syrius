@@ -361,10 +361,13 @@ double _menuWidth(BuildContext context, String label) {
     locale: Localizations.localeOf(context),
     maxLines: 1,
   )..layout();
+  // Material 3 reserves four pixels between the input and its suffix.
+  final double suffixGap = Theme.of(context).useMaterial3 ? 4 : 0;
   final double width =
       painter.width.ceilToDouble() +
-      2 * tokens.cardGap +
+      tokens.cardGap +
       tokens.settingsMenuChevronWidth +
+      suffixGap +
       tokens.settingsMenuCaretInset;
   painter.dispose();
   return width;
@@ -372,12 +375,15 @@ double _menuWidth(BuildContext context, String label) {
 
 Widget _buildMenuChevron(BuildContext context, {bool open = false}) {
   final AppTokens tokens = AppTokens.of(context);
-  return RotatedBox(
-    quarterTurns: open ? 2 : 0,
-    child: ShellSymbol(
-      'chev',
-      size: tokens.settingsMenuChevronSize,
-      color: tokens.dim,
+  return Align(
+    alignment: AlignmentDirectional.centerStart,
+    child: RotatedBox(
+      quarterTurns: open ? 2 : 0,
+      child: ShellSymbol(
+        'chev',
+        size: tokens.settingsMenuChevronSize,
+        color: tokens.dim,
+      ),
     ),
   );
 }
@@ -396,7 +402,7 @@ InputDecorationThemeData _menuDecoration(BuildContext context) {
       width: tokens.settingsMenuChevronWidth,
       height: tokens.settingsMenuHeight,
     ),
-    contentPadding: EdgeInsetsDirectional.symmetric(horizontal: tokens.cardGap),
+    contentPadding: EdgeInsetsDirectional.only(start: tokens.cardGap),
     border: border,
     enabledBorder: border,
     disabledBorder: border,
