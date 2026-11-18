@@ -902,9 +902,9 @@ the difference and its write paths in the note.
 ### Screens
 
 X821 through X872 refer to the exact 28f9c121 pairs reviewed independently.
-Other X rows retain their original capture sources. The Welcome matches bind
-to Source901 in X775. The Ready matches retain Source730. The V01 row tracks
-strict whole-image acceptance.
+Other X rows retain their original capture sources. Welcome binds to
+Source901 in X775, Launch to 28f9c121 in X877 and Ready to Source730.
+The V01 row tracks strict whole-image acceptance.
 
 | # | Screen | Dark | Light |
 | --- | --- | --- | --- |
@@ -946,11 +946,11 @@ strict whole-image acceptance.
 | 36 | `set-about` | X498 | X499 |
 | 37 | `set-licences` | X869 | X870 |
 | 38 | `set-originals` | X484 | X485 |
-| 39 | `launch` | X671 | X672 |
+| 39 | `launch` | match | match |
 | 40 | `launch-settle` | X871 | X872 |
 | 41 | `lock-screen` | X675 | X676 |
 | 42 | `lock-wrong` | X677 | X678 |
-| 43 | `lock-pick` | X679 | X680 |
+| 43 | `lock-pick` | X878 | X879 |
 | 44 | `welcome` | match | match |
 | 45 | `import` | X776 | X777 |
 | 46 | `seed-quiz` | X681 | X682 |
@@ -4096,3 +4096,6 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X874 | review | 2026-11-18T13:42Z | The 28f9c121 Receive at-rest reference and screen note show an empty To receive row. The mockup README specifies rows only. The application follows the README and the pair records the difference. [Receive rule](docs/review/source-28f9c121-independent-visual-review.md#open-rule-and-capture-questions). |
 | X875 | review | 2026-11-18T13:42Z | Linux qualifies the separate f976ff02 Receive amount explanation. The Windows run stops in the asset helper branch admission before any native execution. Fresh Windows visual evidence remains open. [Candidate results](docs/review/source-28f9c121-independent-visual-review.md#receive-amount-clarification). |
 | X876 | review | 2026-11-18T13:57Z | The private 28f9c121 gallery renders all 94 mockup, capture and difference triplets. All 94 difference PNGs decode at 1280 by 780 with the original palette. On-demand encoding avoids writing 4,753,309 bytes of derived PNG data. All 21 comparator tests pass. |
+| X877 | review | 2026-11-18T14:00Z | Both full-window Launch pairs match at 28f9c121. The black stage, centered mark and skip cue align. The bright green outline bounds are identical in both themes. Launch timing remains under V02. |
+| X878 | review | 2026-11-18T14:00Z | Dark Lock picker at 28f9c121 retains the card, wordmark and menu geometry. The visible backdrop is greener than the mockup. The contribution of phase and the approved ink remains unresolved. |
+| X879 | review | 2026-11-18T14:00Z | Light Lock picker at 28f9c121 retains the card, wordmark and menu geometry. The visible backdrop is greener than the mockup. The contribution of phase and the approved ink remains unresolved. |

@@ -22,6 +22,11 @@ and avoided writing 4,753,309 bytes of derived PNG data. The 21 comparator
 controls passed. The browser report retains two strict matches, 68 strict
 mismatches and 24 pairs awaiting a strict verdict at that source.
 
+Subsequent individual comparison confirms both full-window Launch pairs at
+28f9c121. The Lock picker geometry and wordmark align in both themes, while
+the backdrop remains a visual difference. The latest strict review of that
+source records four matches, 70 mismatches and 20 pending verdicts.
+
 ## Qualification snapshot (2026-11-13)
 
 Source733 full Linux, Windows Lock producer and independent reader pass at
