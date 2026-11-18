@@ -175,15 +175,18 @@ class OuterShadowPainter extends CustomPainter {
   const OuterShadowPainter({
     required this._borderRadius,
     required this._shadows,
+    this._surfaceInsets = EdgeInsets.zero,
   });
 
   final BorderRadius _borderRadius;
   final List<BoxShadow> _shadows;
+  final EdgeInsets _surfaceInsets;
 
   @override
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty || _shadows.isEmpty) return;
-    final Rect rect = Offset.zero & size;
+    final Rect rect = _surfaceInsets.deflateRect(Offset.zero & size);
+    if (rect.isEmpty) return;
     final Path outside = Path()
       ..fillType = PathFillType.evenOdd
       ..addRect(canvas.getLocalClipBounds())
@@ -207,6 +210,7 @@ class OuterShadowPainter extends CustomPainter {
   @override
   bool shouldRepaint(OuterShadowPainter oldDelegate) =>
       oldDelegate._borderRadius != _borderRadius ||
+      oldDelegate._surfaceInsets != _surfaceInsets ||
       !listEquals(oldDelegate._shadows, _shadows);
 }
 

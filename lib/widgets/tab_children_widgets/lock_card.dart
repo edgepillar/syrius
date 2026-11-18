@@ -285,12 +285,10 @@ class _LockCardState extends State<LockCard>
     final BorderRadius radius = BorderRadius.circular(tokens.dialogRadius);
     return KeyedSubtree(
       key: const ValueKey<String>('lock_card_surface'),
-      child: CustomPaint(
-        foregroundPainter: OuterShadowPainter(
-          borderRadius: radius,
-          shadows: tokens.lockCardShadow,
-        ),
-        child: FrostedSurface(
+      child: _withCardShadow(
+        radius,
+        tokens.lockCardShadow,
+        FrostedSurface(
           sigma: tokens.panelBlur,
           borderRadius: radius,
           child: DecoratedBox(
@@ -385,6 +383,57 @@ class _LockCardState extends State<LockCard>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _withCardShadow(
+    BorderRadius radius,
+    List<BoxShadow> shadows,
+    Widget surface,
+  ) {
+    Rect shadowBounds = Rect.zero;
+    for (final BoxShadow shadow in shadows) {
+      // Keep the visible blur inside the shadow's own composited bounds.
+      final double extent = math.max(
+        0,
+        (5 * shadow.blurSigma + shadow.spreadRadius).ceilToDouble(),
+      );
+      shadowBounds = shadowBounds.expandToInclude(
+        Rect.fromCircle(center: shadow.offset, radius: extent),
+      );
+    }
+    final EdgeInsets shadowInsets = EdgeInsets.fromLTRB(
+      -shadowBounds.left,
+      -shadowBounds.top,
+      shadowBounds.right,
+      shadowBounds.bottom,
+    );
+    return Stack(
+      fit: StackFit.passthrough,
+      clipBehavior: Clip.none,
+      children: <Widget>[
+        surface,
+        // Paint after the glass so the backdrop never samples its own shadow.
+        Positioned(
+          left: -shadowInsets.left,
+          top: -shadowInsets.top,
+          right: -shadowInsets.right,
+          bottom: -shadowInsets.bottom,
+          child: IgnorePointer(
+            child: RepaintBoundary(
+              key: const ValueKey<String>('lock_card_shadow'),
+              child: CustomPaint(
+                painter: OuterShadowPainter(
+                  borderRadius: radius,
+                  shadows: shadows,
+                  surfaceInsets: shadowInsets,
+                ),
+                isComplex: true,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
