@@ -5,6 +5,9 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../harness/app/fixtures/home_goto_contact.dart';
+import '../../harness/app/fixtures/send_warning_draft.dart'
+    show sendWarningKnownAddress;
 import '../../harness/bin/ci_wallet_inspection.dart'
     show awaitReadonlyInspectionLab, readonlyInspectionCatalogFamily;
 import '../../harness/bin/ci_wallet_tour.dart' show awaitWalletTourLab;
@@ -792,7 +795,7 @@ void main() {
       ..setUint32(20, 780);
     for (final String fault in <String>['unbound', 'none', 'negative',
       'hidden-negative', 'open-negative', 'open-restore-negative',
-      'goto-negative', 'goto-restore-negative']) {
+      'goto-negative', 'goto-restore-negative', 'goto-contact-negative']) {
       final _CatalogStdout output = _CatalogStdout();
       final Directory repository = Directory.systemTemp.createTempSync(
         'syrius-readonly-catalog-',
@@ -812,6 +815,8 @@ void main() {
       bool hidden = false;
       bool tokensOpen = false;
       bool paletteOpen = false;
+      bool contactSaved = false;
+      final Set<String> contactFields = <String>{};
       int paletteRestorations = 0;
       final List<bool> paletteAtShot = <bool>[];
       String currentTab = 'dashboard';
@@ -837,6 +842,12 @@ void main() {
             observedAtShot.add(hidden);
             tokensAtShot.add(tokensOpen);
             paletteAtShot.add(paletteOpen);
+            if (shots >= 7) {
+              expect(contactSaved, isTrue);
+              expect(command['expect'], <String, Object?>{
+                'key': homeGotoContactKey, 'exact': true,
+              });
+            }
             if ((fault == 'negative' && shots == 1) ||
                 (fault == 'hidden-negative' && shots == 5) ||
                 (fault == 'open-negative' && shots == 3) ||
@@ -854,6 +865,7 @@ void main() {
           if (name == 'key' && command['key'] == 'ctrl+k') {
             expect(command, <String, Object?>{'cmd': 'key', 'key': 'ctrl+k'});
             expect(paletteOpen, isFalse);
+            expect(contactSaved, isTrue);
             paletteOpen = true;
           }
           if (name == 'key' && command['key'] == 'escape') {
@@ -868,10 +880,31 @@ void main() {
             paletteRestorations++;
           }
           if (name == 'type') {
-            expect(command, <String, Object?>{
-              'cmd': 'type', 'key': 'go_to_field', 'value': 'del',
+            if (command['key'] == 'go_to_field') {
+              expect(command, <String, Object?>{
+                'cmd': 'type', 'key': 'go_to_field', 'value': 'del',
+              });
+              expect(paletteOpen, isTrue);
+            } else {
+              expect(currentTab, 'settings');
+              expect(command['exact'], isTrue);
+              final String key = command['key']! as String;
+              expect(contactFields.add(key), isTrue);
+              expect(command['value'], <String, String>{
+                'addresses_contact_name': homeGotoContactName,
+                'addresses_contact_address': sendWarningKnownAddress,
+              }[key]);
+            }
+          }
+          if (name == 'tap' && command['key'] == 'addresses_save_contact') {
+            expect(currentTab, 'settings');
+            expect(shots, 6);
+            expect(contactSaved, isFalse);
+            expect(contactFields, <String>{
+              'addresses_contact_name', 'addresses_contact_address',
             });
-            expect(paletteOpen, isTrue);
+            if (fault == 'goto-contact-negative') return negative;
+            contactSaved = true;
           }
           if ((name == 'wait' || name == 'assert') &&
               command['key'] == 'go_to_palette') {
@@ -918,7 +951,8 @@ void main() {
             if (name == 'type') 'value': command['value'],
             if (name == 'state') ...<String, dynamic>{
               'walletUnlocked': true, 'walletInitCompleted': true,
-              'tab': currentTab, 'tabs': <String>['dashboard', 'transfer'],
+              'tab': currentTab,
+              'tabs': <String>['dashboard', 'transfer', 'settings'],
               'locale': 'en', 'direction': 'ltr',
             },
             if (name == 'tree') 'nodes': <Object?>[
@@ -971,11 +1005,12 @@ void main() {
       await session.bindWallet();
       if (fault == 'negative' || fault == 'hidden-negative' ||
           fault == 'open-negative' || fault == 'open-restore-negative' ||
-          fault == 'goto-negative' || fault == 'goto-restore-negative') {
+          fault.startsWith('goto-')) {
         await expectLater(capture(), throwsA(isA<ScreenCaptureError>()));
         final ScreenCaptureObservation last = observations.last;
         expect(last.step, fault.endsWith('restore-negative')
             ? ScreenCaptureStep.afterCaptureLine
+            : fault == 'goto-contact-negative' ? ScreenCaptureStep.scriptLine
             : ScreenCaptureStep.shotRequest);
         expect(last.screen, fault.startsWith('goto-') ? 'home-goto'
             : fault.startsWith('open-') ? 'home-open'
@@ -984,10 +1019,12 @@ void main() {
         expect(readonlyHomeFailureDiagnostic(last), isNotNull);
         expect(commands.last['cmd'],
             fault == 'open-restore-negative' ? 'tap' :
+            fault == 'goto-contact-negative' ? 'tap' :
             fault == 'goto-restore-negative' ? 'key' : 'shot');
         expect(commands.where((Map<String, Object?> value) =>
             value['cmd'] == 'shot').length,
             fault == 'negative' ? 1 : fault == 'hidden-negative' ? 5 :
+            fault == 'goto-contact-negative' ? 6 :
             fault.startsWith('goto-') ? 7 : 3);
         expect(negative, <String, dynamic>{
           'ok': false, 'error': 'Synthetic capture refusal',
@@ -1032,7 +1069,7 @@ void main() {
         expect(commands.where((Map<String, Object?> value) =>
             value['cmd'] == 'shot').length, 8);
         expect(commands.where((Map<String, Object?> value) =>
-            value['cmd'] == 'tap' && value['tab'] == 'dashboard').length, 8);
+            value['cmd'] == 'tap' && value['tab'] == 'dashboard').length, 9);
         expect(expanded, isTrue);
         expect(mode, 'light');
         expect(restoredWindow, isTrue);
@@ -1070,8 +1107,13 @@ void main() {
           fault == 'negative' || fault.startsWith('open-') ? 0 : 2);
       expect(paletteAtShot,
           List<bool>.generate(shots, (int index) => index >= 6));
-      expect(paletteOpen, fault.startsWith('goto-'));
+      expect(paletteOpen,
+          fault == 'goto-negative' || fault == 'goto-restore-negative');
       expect(paletteRestorations, fault == 'none' ? 2 : 0);
+      expect(contactSaved, shots >= 7);
+      expect(commands.where((Map<String, Object?> value) =>
+          value['cmd'] == 'assert' && value['key'] == homeGotoContactKey)
+          .length, fault == 'none' ? 2 : shots >= 7 ? 1 : 0);
       final List<Map<String, Object?>> paletteKeys = commands.where(
         (Map<String, Object?> value) => value['cmd'] == 'key',
       ).toList();

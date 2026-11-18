@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import '../app/fixtures/home_goto_contact.dart';
 import 'harness.dart' as cli;
+import 'readonly_catalog_contact.dart';
 import 'readonly_inspection_session.dart';
 import 'screen_capture.dart';
 
@@ -101,17 +103,39 @@ ScreenCapture _homeCapture({
   required Directory repository,
   required ReadonlyInspectionSession session,
   void Function(ScreenCaptureObservation step)? onStep,
+  bool withGoToContact = false,
 }) {
   final _CatalogInstance instance = _CatalogInstance(session);
+  bool contactSaved = false;
+  bool isGoToResultAssertion(List<String> words) =>
+      withGoToContact && switch (words) {
+        ['assert', '--key', 'go_to_results'] => true,
+        _ => false,
+      };
   return ScreenCapture(
     repository: repository,
     call: (Map<String, Object?> command) => cli.call(instance, command),
     prepareHome: session.prepareScreenHome,
-    runLine: (List<String> words) => cli.run(
-      instance, words.first, cli.Args(words.sublist(1)),
-    ),
-    assertionFor: (List<String> words) =>
-        cli.assertionArgs(cli.Args(words.sublist(1))),
+    runLine: (List<String> words) async {
+      if (withGoToContact && !contactSaved &&
+          words.length == 2 && words[0] == 'key' && words[1] == 'ctrl+k') {
+        await prepareReadonlyCatalogContact(
+          instance, name: homeGotoContactName,
+        );
+        contactSaved = true;
+      }
+      await cli.run(instance, words.first, cli.Args(words.sublist(1)));
+      if (isGoToResultAssertion(words)) {
+        await cli.call(instance, <String, Object?>{
+          'cmd': 'assert', 'key': homeGotoContactKey, 'exact': true,
+        });
+      }
+    },
+    assertionFor: (List<String> words) => cli.assertionArgs(cli.Args(
+      isGoToResultAssertion(words)
+          ? <String>['--key', homeGotoContactKey]
+          : words.sublist(1),
+    )),
     readRailState: session.railExpanded,
     restoreRailState: session.restoreScreenRail,
     onStep: onStep,
@@ -204,6 +228,7 @@ Future<Map<String, Object>> captureReadonlyHomeGotoStates({
   }
   final ScreenCapture capture = _homeCapture(
     repository: repository, session: session, onStep: onStep,
+    withGoToContact: true,
   );
   const List<String> files = <String>[
     '01-home-rest-dark.png', '01-home-rest-light.png',

@@ -432,7 +432,8 @@ class ReaderTests(unittest.TestCase):
         self.assertTrue(directories)
         # The original workflow blob is read separately from its pinned Git tree.
         required = (set(reader.SOURCE_FILES) | set(reader.SURFACE_SEAM_SOURCES)
-            | set(reader.READY_ARTWORK_SOURCES))
+            | set(reader.READY_ARTWORK_SOURCES)
+            | set(reader.HOME_GOTO_CONTACT_SOURCES))
         required.remove(reader.WORKFLOW_SOURCE)
         missing = sorted(name for name in required if '/' in name
             and not any(name.startswith(directory + '/') for directory in directories))

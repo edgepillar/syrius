@@ -4,6 +4,7 @@ import '../app/fixtures/send_warning_draft.dart';
 import '../app/readonly_native_commands.dart'
     show readonlyHomeZapPreviewCommand, readonlySendWarningSyncCommand;
 import 'harness.dart' as cli;
+import 'readonly_catalog_contact.dart';
 import 'readonly_inspection_session.dart';
 import 'screen_capture.dart';
 
@@ -88,47 +89,6 @@ class _DetailsInstance extends cli.Instance {
     Duration timeout = const Duration(seconds: 30),
   }) => _session.send(command, timeout > const Duration(seconds: 30)
       ? const Duration(seconds: 30) : timeout);
-}
-
-Future<void> _typeDraft(cli.Instance instance, String key, String value) async {
-  final Map<String, dynamic> typed = await cli.call(instance, <String, Object?>{
-    'cmd': 'type', 'key': key, 'exact': true, 'value': value,
-  });
-  if (typed['value'] != value) {
-    throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
-  }
-}
-
-Future<void> _prepareWarningContact(cli.Instance instance) async {
-  await cli.goto(instance, 'settings');
-  await cli.call(instance, <String, Object?>{
-    'cmd': 'tap', 'key': 'settings_addresses', 'exact': true,
-  });
-  await cli.waitForTarget(instance, cli.Args(<String>[
-    '--key', 'addresses_add_contact', '--kind', 'button',
-    '--exact', '--ready', '--timeout', '20',
-  ]));
-  await cli.call(instance, <String, Object?>{
-    'cmd': 'tap', 'key': 'addresses_add_contact', 'exact': true,
-  });
-  await cli.call(instance, <String, Object?>{'cmd': 'scroll', 'dy': 440});
-  await cli.waitForTarget(instance, cli.Args(<String>[
-    '--key', 'addresses_contact_name', '--kind', 'field',
-    '--exact', '--ready', '--timeout', '10',
-  ]));
-  await _typeDraft(instance, 'addresses_contact_name', 'Alice');
-  await _typeDraft(
-    instance, 'addresses_contact_address', sendWarningKnownAddress,
-  );
-  await cli.call(instance, <String, Object?>{
-    'cmd': 'tap', 'key': 'addresses_save_contact', 'exact': true,
-  });
-  await cli.waitForTarget(instance, cli.Args(<String>[
-    '--key', 'addresses_edit_contact_$sendWarningKnownAddress',
-    '--kind', 'button',
-    '--exact', '--ready', '--timeout', '10',
-  ]));
-  await cli.goto(instance, 'dashboard');
 }
 
 /// Exports the original step and an optional closed original-reply category.
@@ -262,7 +222,7 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
     prepareHome: sendWarning ? () async {
       await session.prepareScreenHome();
       if (!warningContactSaved) {
-        await _prepareWarningContact(instance);
+        await prepareReadonlyCatalogContact(instance, name: 'Alice');
         warningContactSaved = true;
       }
     } : requireReady ?? session.prepareScreenHome,
@@ -308,14 +268,16 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
               'cmd': 'tap', 'key': 'transfer_mode_send', 'exact': true,
             });
           case ['type', '--key', 'send_recipient_field', '@warning-recipient']:
-            await _typeDraft(
+            await typeReadonlyCatalogField(
               instance, 'send_recipient_field', sendWarningTypedAddress,
             );
           case ['type', '--key', 'send_amount_field', '12.5']:
-            await _typeDraft(instance, 'send_amount_field', sendWarningAmount);
+            await typeReadonlyCatalogField(
+              instance, 'send_amount_field', sendWarningAmount,
+            );
           case ['type', '--key', final String key] when
               key == 'send_recipient_field' || key == 'send_amount_field':
-            await _typeDraft(instance, key, '');
+            await typeReadonlyCatalogField(instance, key, '');
           case ['wait', '--key', 'send_node_behind']:
             if (!warningWindowOpened) {
               await sendWarningWindow!('BEGIN');
