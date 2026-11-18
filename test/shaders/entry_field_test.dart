@@ -479,11 +479,15 @@ void main() {
         await tester.pump();
         final Uint8List start = await _pixels(tester, surface: surface());
         expect(rasters, hasLength(1));
-        expect(rasters.single.width, 2544);
-        expect(rasters.single.height, 1644);
+        expect(rasters.single.width, greaterThan(_size.width));
+        expect(rasters.single.height, greaterThan(_size.height));
+        expect(
+          rasters.single.width * rasters.single.height,
+          lessThan(2544 * 1644 * 0.55),
+        );
         await tester.pump(const Duration(seconds: 18));
-        expect(await _pixels(tester, surface: surface()),
-          isNot(orderedEquals(start)));
+        final Uint8List turned = await _pixels(tester, surface: surface());
+        expect(turned, isNot(orderedEquals(start)));
         await tester.pump(const Duration(seconds: 18));
         expect(await _pixels(tester, surface: surface()), orderedEquals(start));
         expect(rasters, hasLength(1));
@@ -497,16 +501,21 @@ void main() {
         await tester.pump();
         expect(rasters, hasLength(1));
         expect(rasters.single.debugDisposed, isTrue);
-        final Uint8List fallback = await _pixels(tester, surface: surface());
-        for (final (int x, int y) in <(int, int)>[
-          (120, 120), (380, 330), (640, 390), (900, 580), (1160, 660),
-        ]) {
-          final List<int> cached = _rgba(start, x, y);
-          final List<int> analytic = _rgba(fallback, x, y);
-          for (int channel = 0; channel < 4; channel++) {
-            expect(cached[channel], closeTo(analytic[channel], 2));
+        void expectSamePaint(Uint8List cached, Uint8List analytic) {
+          for (final (int x, int y) in <(int, int)>[
+            (1, 1), (1278, 1), (1, 778), (1278, 778), (120, 120),
+            (380, 330), (640, 390), (900, 580), (1160, 660),
+          ]) {
+            final List<int> cachedPixel = _rgba(cached, x, y);
+            final List<int> analyticPixel = _rgba(analytic, x, y);
+            for (int channel = 0; channel < 4; channel++) {
+              expect(cachedPixel[channel], closeTo(analyticPixel[channel], 2));
+            }
           }
         }
+        expectSamePaint(start, await _pixels(tester, surface: surface()));
+        await tester.pump(const Duration(seconds: 18));
+        expectSamePaint(turned, await _pixels(tester, surface: surface()));
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pump(const Duration(seconds: 36));
         expect(tester.binding.transientCallbackCount, 0);
@@ -545,8 +554,8 @@ void main() {
     expect(rasters, hasLength(2));
     expect(rasters.first.debugDisposed, isTrue);
     expect(rasters.last.debugDisposed, isFalse);
-    expect(rasters.last.width, rasters.first.width * 2);
-    expect(rasters.last.height, rasters.first.height * 2);
+    expect(rasters.last.width, closeTo(rasters.first.width * 2, 2));
+    expect(rasters.last.height, closeTo(rasters.first.height * 2, 2));
     expect(rasters.last.width * rasters.last.height,
       lessThanOrEqualTo(16 * 1024 * 1024));
 
@@ -558,8 +567,12 @@ void main() {
     expect(rasters, hasLength(3));
     expect(rasters[1].debugDisposed, isTrue);
     expect(rasters.last.debugDisposed, isFalse);
-    expect(rasters.last.width, 2400);
-    expect(rasters.last.height, 1320);
+    expect(rasters.last.width, greaterThan(1200));
+    expect(rasters.last.height, greaterThan(600));
+    expect(
+      rasters.last.width * rasters.last.height,
+      lessThan(2400 * 1320 * 0.55),
+    );
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 36));
     expect(rasters.every((ui.Image image) => image.debugDisposed), isTrue);

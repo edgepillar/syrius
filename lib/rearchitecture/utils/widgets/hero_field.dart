@@ -130,43 +130,68 @@ typedef _HomeRasterKey = ({
   double pixelRatio,
 });
 
+typedef _HomeRasterImage = ({ui.Image image, Offset origin});
+
+const double _homeDriftX = 0.03;
+const double _homeDriftY = 0.02;
+const double _homeDriftAngle = math.pi / 30;
+const double _homeBlurSigma = 40;
+const double _homeBlurBleed = 3 * _homeBlurSigma;
+
 // One bounded image holds the Home lights; the original clock moves it.
 // Its owner retires it on geometry/colour/DPR replacement and unmount.
 class _HomeFieldRaster {
   static const int _maxPixels = 16 * 1024 * 1024;
   static const int _maxSide = 8192;
   _HomeRasterKey? _key;
-  ui.Image? _image;
+  _HomeRasterImage? _cached;
 
-  ui.Image? imageFor(Rect field, {
+  _HomeRasterImage? imageFor(Rect viewport, Rect field, {
     required Color green, required Color blue, required Color pink,
     required double pixelRatio,
   }) {
-    final Rect bounds = field.inflate(120);
-    final double width = bounds.width * pixelRatio;
-    final double height = bounds.height * pixelRatio;
-    if (!pixelRatio.isFinite || pixelRatio <= 0 ||
-        !width.isFinite || !height.isFinite || width <= 0 || height <= 0 ||
-        width > _maxSide || height > _maxSide) {
-      dispose();
-      return null;
-    }
-    final int pixelsWide = width.ceil();
-    final int pixelsHigh = height.ceil();
-    if (pixelsWide * pixelsHigh > _maxPixels) {
-      dispose();
-      return null;
-    }
     final _HomeRasterKey key = (
       field: field, green: green, blue: blue, pink: pink,
       pixelRatio: pixelRatio,
     );
-    if (_key == key) return _image;
+    if (_key == key) return _cached;
     dispose();
+    final Rect full = field.inflate(_homeBlurBleed);
+    if (!pixelRatio.isFinite || pixelRatio <= 0 ||
+        !(full.width * pixelRatio).isFinite ||
+        !(full.height * pixelRatio).isFinite) {
+      return null;
+    }
+    // Bound the inverse transform at every drift phase. Each projected
+    // half-extent includes maximum translation and the other axis's maximum
+    // rotation contribution. Keep the blur's working margin around that area.
+    final double halfWidth = viewport.width / 2 + field.width * _homeDriftX;
+    final double halfHeight = viewport.height / 2 + field.height * _homeDriftY;
+    final double sine = math.sin(_homeDriftAngle);
+    final Rect crop = Rect.fromCenter(
+      center: field.center,
+      width: 2 * (halfWidth + sine * halfHeight),
+      height: 2 * (halfHeight + sine * halfWidth),
+    ).inflate(_homeBlurBleed).intersect(full);
+    // Align to the original image's device-pixel grid so a cropped image
+    // samples the same raster coordinates as the full field.
+    final int left = ((crop.left - full.left) * pixelRatio).floor();
+    final int top = ((crop.top - full.top) * pixelRatio).floor();
+    final int right = ((crop.right - full.left) * pixelRatio).ceil();
+    final int bottom = ((crop.bottom - full.top) * pixelRatio).ceil();
+    final int pixelsWide = right - left;
+    final int pixelsHigh = bottom - top;
+    if (pixelsWide <= 0 || pixelsHigh <= 0 ||
+        pixelsWide > _maxSide || pixelsHigh > _maxSide ||
+        pixelsWide * pixelsHigh > _maxPixels) {
+      return null;
+    }
+    final Offset origin =
+        full.topLeft + Offset(left / pixelRatio, top / pixelRatio);
     final ui.PictureRecorder recorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(recorder)
       ..scale(pixelRatio)
-      ..translate(-bounds.left, -bounds.top);
+      ..translate(-origin.dx, -origin.dy);
     _HomeHeroFieldPainter._paintBlurredField(
       canvas, field, green: green, blue: blue, pink: pink,
     );
@@ -175,17 +200,17 @@ class _HomeFieldRaster {
       // The engine rasterizes this handle asynchronously. Creation is
       // part of the first original paint, with no extra warm-up or clock.
       final ui.Image image = picture.toImageSync(pixelsWide, pixelsHigh);
-      _image = image;
+      _cached = (image: image, origin: origin);
       _key = key;
-      return image;
+      return _cached;
     } finally {
       picture.dispose();
     }
   }
 
   void dispose() {
-    _image?.dispose();
-    _image = null;
+    _cached?.image.dispose();
+    _cached = null;
     _key = null;
   }
 }
@@ -233,24 +258,25 @@ class _HomeHeroFieldPainter extends CustomPainter {
       ..save()
       ..clipRect(viewport)
       ..translate(
-        center.dx + field.width * (-0.03 + 0.06 * progress),
-        center.dy + field.height * (-0.02 + 0.04 * progress),
+        center.dx + field.width * (-_homeDriftX + 2 * _homeDriftX * progress),
+        center.dy + field.height * (-_homeDriftY + 2 * _homeDriftY * progress),
       )
-      ..rotate(math.pi / 30 * progress)
+      ..rotate(_homeDriftAngle * progress)
       ..translate(-center.dx, -center.dy);
-    final ui.Image? image = raster.imageFor(
-      field, green: green, blue: blue, pink: pink, pixelRatio: pixelRatio,
+    final _HomeRasterImage? cached = raster.imageFor(
+      viewport, field, green: green, blue: blue, pink: pink,
+      pixelRatio: pixelRatio,
     );
-    if (image == null) {
+    if (cached == null) {
       // Oversized surfaces retain the original full-resolution paint.
       _paintBlurredField(canvas, field, green: green, blue: blue, pink: pink);
     } else {
-      final Rect bounds = field.inflate(120);
+      final ui.Image image = cached.image;
       canvas.drawImageRect(
         image,
         Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
-        Rect.fromLTWH(bounds.left, bounds.top,
-          image.width / pixelRatio, image.height / pixelRatio),
+        cached.origin &
+            Size(image.width / pixelRatio, image.height / pixelRatio),
         Paint()..filterQuality = FilterQuality.low,
       );
     }
@@ -262,12 +288,12 @@ class _HomeHeroFieldPainter extends CustomPainter {
   }) {
     // Keep the original grouped blur and opacity above the separate card base.
     canvas.saveLayer(
-      field.inflate(120),
+      field.inflate(_homeBlurBleed),
       Paint()
         ..color = const Color.fromRGBO(255, 255, 255, 0.55)
         ..imageFilter = ui.ImageFilter.blur(
-          sigmaX: 40,
-          sigmaY: 40,
+          sigmaX: _homeBlurSigma,
+          sigmaY: _homeBlurSigma,
           tileMode: ui.TileMode.decal,
         ),
     );
