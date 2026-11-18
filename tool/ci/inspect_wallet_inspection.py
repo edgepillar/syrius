@@ -22,7 +22,10 @@ MAX_HOME_ARCHIVE = producer.MAX_HOME_CAPTURE_TOTAL + producer.MAX_HOME_MANIFEST 
 MAX_TREE = 2 * 1024**2
 WORKFLOW_SOURCE = '.github/workflows/public-contribution-qualification.yml'
 MAX_WORKFLOW_SOURCE = 128 * 1024
-MAX_WORKFLOW_RESPONSE = 256 * 1024
+MAX_WORKFLOW_RESPONSE = 2 * MAX_WORKFLOW_SOURCE
+CAPTURE_AGENT_SOURCE = 'harness/app/agent.dart'
+MAX_CAPTURE_AGENT_SOURCE = 256 * 1024
+MAX_VERSIONED_BLOB_RESPONSE = 2 * MAX_CAPTURE_AGENT_SOURCE
 VERSIONED_INPUTS = frozenset((
     'pubspec.yaml', 'pubspec.lock',
     'harness/screens/token-new.txt', 'tool/ci/run_harness_tour_tests.py',
@@ -31,6 +34,7 @@ VERSIONED_INPUTS = frozenset((
     'lib/rearchitecture/utils/widgets/entry_field.dart',
     'lib/widgets/modular_widgets/help_widgets/originals_tiles.dart',
     'lib/widgets/reusable_widgets/launch_film.dart',
+    CAPTURE_AGENT_SOURCE,
 ))
 JOB = 'Windows readonly inspection with owned chain-321'
 PREFLIGHT = ('Test all isolated controllers before SDK allocation',
@@ -483,15 +487,17 @@ def git_blob(raw):
     return hashlib.sha1(b'blob ' + str(len(raw)).encode('ascii') + b'\0' + raw).hexdigest()
 
 
-def exact_source_blob(read_blob, sha):
+def exact_source_blob(read_blob, sha, *, max_size=MAX_WORKFLOW_SOURCE):
     need(callable(read_blob))
     value = read_blob(sha)
+    content_cap = (MAX_WORKFLOW_RESPONSE if max_size == MAX_WORKFLOW_SOURCE
+                   else MAX_VERSIONED_BLOB_RESPONSE)
     need(type(value) is dict and value.get('sha') == sha
          and value.get('encoding') == 'base64'
          and type(value.get('size')) is int
-         and 0 < value['size'] <= MAX_WORKFLOW_SOURCE
+         and 0 < value['size'] <= max_size
          and type(value.get('content')) is str
-         and 0 < len(value['content']) <= MAX_WORKFLOW_RESPONSE
+         and 0 < len(value['content']) <= content_cap
          and re.fullmatch(r'[A-Za-z0-9+/=\n]+', value['content']) is not None)
     encoded = value['content'].replace('\n', '')
     raw = base64.b64decode(encoded, validate=True)
@@ -521,7 +527,9 @@ def source_files(repo, value, tree, *, read_workflow_blob=None,
             raw = producer.read_original(repo / name, MAX_TREE)
             if (name in VERSIONED_INPUTS and read_versioned_blob is not None
                     and git_blob(raw) != sha):
-                raw = exact_source_blob(read_versioned_blob, sha)
+                raw = exact_source_blob(read_versioned_blob, sha, max_size=(
+                    MAX_CAPTURE_AGENT_SOURCE if name == CAPTURE_AGENT_SOURCE
+                    else MAX_WORKFLOW_SOURCE))
         need(git_blob(raw) == sha)
         digests[name] = archive.sha(raw)
     return digests
@@ -605,7 +613,7 @@ def main(parent=None):
     @cache
     def read_blob(blob):
         return decode(client.read(
-            archive.API + '/git/blobs/' + blob, cap=MAX_WORKFLOW_RESPONSE))
+            archive.API + '/git/blobs/' + blob, cap=MAX_VERSIONED_BLOB_RESPONSE))
 
     source_digests = source_files(repo, producer_tree, tree,
         read_workflow_blob=read_blob, read_versioned_blob=read_blob)

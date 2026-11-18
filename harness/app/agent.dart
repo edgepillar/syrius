@@ -5722,6 +5722,56 @@ class HarnessAgent {
     }
   }
 
+  Future<void> _waitForGoToCaret() async {
+    final EditableTextState? editable = _focusedEditable();
+    if (editable == null ||
+        editable.context.findAncestorWidgetOfExactType<TextField>()?.key !=
+            const Key('go_to_field')) {
+      throw HarnessError('Go To caret was unavailable');
+    }
+    final RenderEditable render = editable.renderEditable;
+    final ValueNotifier<bool> visible = render.showCursor;
+    bool current() {
+      if (!editable.mounted || !render.attached || !render.hasFocus ||
+          !identical(_focusedEditable(), editable) ||
+          !identical(render.showCursor, visible)) {
+        return false;
+      }
+      final TextEditingValue input = editable.widget.controller.value;
+      return input.text == 'del' && input.selection.isCollapsed &&
+          input.selection.extentOffset == input.text.length;
+    }
+
+    final Stopwatch elapsed = Stopwatch()..start();
+    const Duration budget = Duration(seconds: 2);
+    try {
+      while (current() && elapsed.elapsed < budget) {
+        if (!visible.value) {
+          final Completer<void> lit = Completer<void>();
+          void onBlink() {
+            if (visible.value && !lit.isCompleted) lit.complete();
+          }
+
+          visible.addListener(onBlink);
+          try {
+            await lit.future.timeout(budget - elapsed.elapsed);
+          } finally {
+            visible.removeListener(onBlink);
+          }
+        }
+        await WidgetsBinding.instance.endOfFrame.timeout(
+          budget - elapsed.elapsed,
+        );
+        if (current() && visible.value && (render.cursorColor?.a ?? 0) > 0) {
+          return;
+        }
+      }
+    } on TimeoutException {
+      throw HarnessError('Go To caret was unavailable');
+    }
+    throw HarnessError('Go To caret was unavailable');
+  }
+
   Future<Map<String, Object?>> _readShot(Map<String, dynamic> c) async {
     _lockShotPhase('readback');
     final RenderView view = _view;
@@ -5750,7 +5800,15 @@ class HarnessAgent {
       if (observed['mode'] != theme || observed['brightness'] != theme) {
         throw HarnessError('capture theme differs', observed);
       }
-      _assert(Map<String, dynamic>.from(c['expect'] as Map<Object?, Object?>));
+      final Map<String, dynamic> assertion =
+          Map<String, dynamic>.from(c['expect'] as Map<Object?, Object?>);
+      _assert(assertion);
+      if (_readonlyNative != null &&
+          Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'] == 'home' &&
+          assertion['key'] == homeGotoContactKey) {
+        await _waitForGoToCaret();
+        _assert(assertion);
+      }
     }
     final int? artworkSeconds = guarded ? _nativeLock?.artworkSeconds : null;
     final Layer? layer = view.layer;
