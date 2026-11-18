@@ -508,6 +508,10 @@ void main() {
       );
       const Key rail = Key('fixture_shell_rail');
       const Key footer = Key('fixture_shell_footer');
+      final _Sender sender = _Sender();
+      when(() => sender.stream).thenAnswer(
+        (_) => const Stream<SendTransactionState>.empty(),
+      );
       final Finder create = find.byKey(const Key('tokens_create'));
       final Finder pane = find.byKey(const Key('token_create_pane'));
       bool current = true;
@@ -523,7 +527,7 @@ void main() {
                 child: BlocProvider<AllTokensBloc>.value(
                   value: catalog,
                   child: BlocProvider<SendTransactionBloc>.value(
-                    value: _Sender(),
+                    value: sender,
                     child: ShellPaneNavigation(
                       child: TokensPage(
                         balanceReader: account,
