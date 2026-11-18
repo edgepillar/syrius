@@ -747,18 +747,21 @@ class ReaderTests(unittest.TestCase):
                 'lib/widgets/modular_widgets/help_widgets/originals_tiles.dart',
                 'lib/widgets/reusable_widgets/launch_film.dart',
             )
+            entry_field = 'lib/rearchitecture/utils/widgets/entry_field.dart'
             retained = copy.deepcopy(current)
             retained['tree'].extend(dict(path=name, mode='100644', type='blob',
                 sha=original_sha) for name in originals)
+            entry = next(item for item in retained['tree'] if item['path'] == entry_field)
+            entry['sha'] = original_sha
             with self.assertRaises(reader.archive.Refused):
                 reader.ready_artwork_sources(Path('/fixture'), retained, 'b' * 40)
             remote.reset_mock()
             observed = reader.ready_artwork_sources(Path('/fixture'), retained,
                 'b' * 40, read_versioned_blob=remote)
-            self.assertEqual(remote.call_args_list, [mock.call(original_sha)] * 2)
-            for path in originals:
+            self.assertEqual(remote.call_args_list, [mock.call(original_sha)] * 3)
+            for path in (*originals, entry_field):
                 self.assertEqual(observed[path], reader.archive.sha(historical))
-            for path in reader.READY_ARTWORK_SOURCES:
+            for path in set(reader.READY_ARTWORK_SOURCES) - {entry_field}:
                 self.assertEqual(observed[path], reader.archive.sha(raw))
             with self.assertRaises(reader.archive.Refused):
                 reader.ready_artwork_sources(Path('/fixture'), retained, 'b' * 40,
