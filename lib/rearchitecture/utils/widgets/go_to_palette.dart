@@ -489,12 +489,12 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
       builder: (BuildContext context, BoxConstraints constraints) {
         final List<Widget> move = <Widget>[
           const AppKeyHint('↑↓'),
-          SizedBox(width: tokens.inlineGap),
+          SizedBox(width: tokens.goToKeyLabelGap),
           Text(context.l10n.goToPaletteMove, style: tokens.captionText),
         ];
         final List<Widget> open = <Widget>[
           const AppKeyHint('↵'),
-          SizedBox(width: tokens.inlineGap),
+          SizedBox(width: tokens.goToKeyLabelGap),
           Text(context.l10n.goToPaletteOpen, style: tokens.captionText),
         ];
         final double fontSize = tokens.captionText.fontSize!;
