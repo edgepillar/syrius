@@ -381,20 +381,26 @@ void main() {
                     call.invocation.memberName == #drawPath,
               )
               .invocation;
-          final Path dashes = stroke.positionalArguments[0] as Path;
           final Paint ink = stroke.positionalArguments[1] as Paint;
           expect(ink.color.toARGB32(), tokens.faint.toARGB32());
           expect(ink.style, PaintingStyle.stroke);
-          final List<ui.PathMetric> first = dashes
-              .computeMetrics()
-              .take(2)
+          final List<Invocation> fills = canvas.invocations
+              .map((RecordedInvocation call) => call.invocation)
+              .where((Invocation call) => call.memberName == #drawRect)
               .toList();
-          expect(first[0].length, closeTo(3, 0.001));
-          final Offset start = first[0].getTangentForOffset(0)!.position;
-          final Offset next = first[1].getTangentForOffset(0)!.position;
-          expect(start, const Offset(12, 0));
-          expect(next.dy, 0);
-          expect(next.dx - start.dx, closeTo(1366 / 273, 0.001));
+          final Rect first = fills[0].positionalArguments[0] as Rect;
+          final Rect next = fills[1].positionalArguments[0] as Rect;
+          final Paint fill = fills[0].positionalArguments[1] as Paint;
+          expect(fill.color.toARGB32(), tokens.faint.toARGB32());
+          expect(fill.style, PaintingStyle.fill);
+          expect(first.topLeft, const Offset(12, 0));
+          expect(first.width, closeTo(3, 0.001));
+          expect(first.height, width);
+          expect(next.top, 0);
+          expect(next.left - first.left, closeTo(1366 / 273, 0.001));
+          final Rect bottom = fills.last.positionalArguments[0] as Rect;
+          expect(bottom.top, 132 - width);
+          expect(bottom.height, width);
         }
 
         expectStroke(1);

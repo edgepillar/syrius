@@ -321,22 +321,35 @@ class _ImportDropBorderPainter extends CustomPainter {
     final int count = (perimeter / nominalInterval).round();
     // Spread the fractional gap around the closed border.
     final double interval = count > 0 ? perimeter / count : nominalInterval;
-    final Path dashes = Path();
-    for (double start = 0; start < metric.length; start += interval) {
-      dashes.addPath(
-        metric.extractPath(start, math.min(start + dash, metric.length)),
-        Offset.zero,
-      );
-    }
     final RRect outside = RRect.fromRectAndRadius(Offset.zero & size, curve);
     final RRect inside = outside.deflate(width);
     final Path ring = Path()
       ..fillType = PathFillType.evenOdd
       ..addRRect(outside);
     if (!inside.isEmpty) ring.addRRect(inside);
+    final Paint fill = Paint()..color = color;
+    final Path dashes = Path();
     canvas
       ..save()
-      ..clipPath(ring)
+      ..clipPath(ring);
+    for (double start = 0; start < metric.length; start += interval) {
+      final Path segment = metric.extractPath(
+        start,
+        math.min(start + dash, metric.length),
+      );
+      final Rect bounds = segment.getBounds();
+      if (bounds.height == 0 && (bounds.top == 0 || bounds.top == bottom)) {
+        // Axis-aligned fills retain the fractional coverage at each dash end.
+        final double top = bounds.top == 0 ? 0 : bottom - width;
+        canvas.drawRect(
+          Rect.fromLTWH(bounds.left, top, bounds.width, width),
+          fill,
+        );
+      } else {
+        dashes.addPath(segment, Offset.zero);
+      }
+    }
+    canvas
       ..drawPath(
         dashes,
         Paint()
