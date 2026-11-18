@@ -291,6 +291,7 @@ class _LockCardState extends State<LockCard>
         FrostedSurface(
           sigma: tokens.panelBlur,
           borderRadius: radius,
+          blurInsetTop: tokens.glassTopEdge.width + tokens.lockWellHeight,
           child: DecoratedBox(
             position: DecorationPosition.foreground,
             decoration: BoxDecoration(
