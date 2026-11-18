@@ -259,7 +259,45 @@ void main() {
       expect(_stageRect(tester), full);
 
       await _begin(tester, host);
-      await tester.pump(const Duration(milliseconds: 200));
+      const AppTokens tokens = AppTokens.light;
+      final int duration = tokens.launchSettleDuration.inMicroseconds;
+      int low = 0;
+      int high = duration;
+      while (high - low > 1) {
+        final int middle = (low + high) ~/ 2;
+        if (tokens.launchSettleCurve.transform(middle / duration) < 0.4) {
+          low = middle;
+        } else {
+          high = middle;
+        }
+      }
+      final Duration referenceTime = Duration(microseconds: high);
+      await tester.pump(referenceTime);
+      expect(session.motion.value, closeTo(0.4, 0.004));
+      final Rect authored = _stageRect(tester);
+      expect(authored.left, closeTo(250, 2));
+      expect(authored.top, closeTo(148.6, 2));
+      expect(authored.width, closeTo(780, 3));
+      expect(authored.height, closeTo(330, 3));
+      expect(
+        tester.widget<Opacity>(
+          find.ancestor(
+            of: find.byKey(const ValueKey<String>('lock_card_surface')),
+            matching: find.byType(Opacity),
+          ).first,
+        ).opacity,
+        session.motion.value,
+      );
+      expect(
+        tester.widget<Opacity>(
+          find.ancestor(
+            of: find.byType(EntryField),
+            matching: find.byType(Opacity),
+          ).first,
+        ).opacity,
+        1,
+      );
+      await tester.pump(const Duration(milliseconds: 200) - referenceTime);
       expect(_stageRect(tester).width, lessThan(full.width));
       expect(
         tester.widget<Material>(caption).color,

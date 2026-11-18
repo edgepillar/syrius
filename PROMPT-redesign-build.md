@@ -903,8 +903,8 @@ the difference and its write paths in the note.
 
 X821 through X872 refer to the exact 28f9c121 pairs reviewed independently.
 Other X rows retain their original capture sources. Welcome binds to
-Source901 in X775, Launch to 28f9c121 in X877 and Ready to Source730.
-The V01 row tracks strict whole-image acceptance.
+Source901 in X775, Launch to 28f9c121 in X877 and Lock and Ready to
+28f9c121 in X883. The V01 row tracks strict whole-image acceptance.
 
 | # | Screen | Dark | Light |
 | --- | --- | --- | --- |
@@ -948,9 +948,9 @@ The V01 row tracks strict whole-image acceptance.
 | 38 | `set-originals` | X484 | X485 |
 | 39 | `launch` | match | match |
 | 40 | `launch-settle` | X871 | X872 |
-| 41 | `lock-screen` | X675 | X676 |
-| 42 | `lock-wrong` | X677 | X678 |
-| 43 | `lock-pick` | X878 | X879 |
+| 41 | `lock-screen` | match | match |
+| 42 | `lock-wrong` | match | match |
+| 43 | `lock-pick` | match | match |
 | 44 | `welcome` | match | match |
 | 45 | `import` | X776 | X777 |
 | 46 | `seed-quiz` | X681 | X682 |
@@ -4100,3 +4100,7 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X878 | review | 2026-11-18T14:00Z | Dark Lock picker at 28f9c121 retains the card, wordmark and menu geometry. The visible backdrop is greener than the mockup. The contribution of phase and the approved ink remains unresolved. |
 | X879 | review | 2026-11-18T14:00Z | Light Lock picker at 28f9c121 retains the card, wordmark and menu geometry. The visible backdrop is greener than the mockup. The contribution of phase and the approved ink remains unresolved. |
 | X880 | review | 2026-11-18T14:06Z | Home keeps the reference eye outline visible when balances show. Receive explains when a valid amount is included in the QR. The exact 0ec9d60b application and test patch passes strict Linux analysis, compact and full nonchain tests, and generation. The candidate branch skips the P06 overlay check. Fresh Windows comparisons remain open. [Linux CI](https://github.com/edgepillar/syrius/actions/runs/44317398285/job/134847044951). |
+| X881 | review | 2026-11-18T14:13Z | Retained 28f9c121 Launch settle geometry is 798.9 by 396.4 at progress .558 in dark and 709.5 by 331.1 at .662 in light. The linear rectangle never passes the reference's 780 by 330 checkpoint at .4. The candidate anchors the stage to that checkpoint, brings the backdrop to full strength there and keeps the 400 ms controller and measured Lock destination. Native visual and timing qualification remain open. [Original Windows reader](https://github.com/edgepillar/syrius/actions/runs/44299854427). |
+| X883 | review | 2026-11-18T14:36Z | The exact 28f9c121 Lock, wrong-password, picker and Ready pairs match in both themes. The six Lock mark bounds agree with the references, including the settled light wordmark. Twelve backdrop samples per Lock pair agree with Ready in each image set. The approved palette accounts for the field tint difference in X878/X879. Strict coverage is 12 matches, 68 mismatches and 14 pending pairs. [Original startup reader](https://github.com/edgepillar/syrius/actions/runs/44299854427). |
+| X884 | review | 2026-11-18T14:36Z | The 05741038 Home producer and independent reader verify all eight catalog PNGs. The Details run passes its selected tests and stops in the pinned Go node build with an unclassified failure before startup. The independent reader verifies the terminal manifest and confirms that the wallet/PNG archive is absent. [Home reader](https://github.com/edgepillar/syrius/actions/runs/44325231262), [Details reader](https://github.com/edgepillar/syrius/actions/runs/44324619447) and [Details rerun](https://github.com/edgepillar/syrius/actions/runs/44325427007). |
+| X885 | review | 2026-11-18T14:36Z | The exact 9250e189 application and test patch passes Linux strict analysis, the Lock and startup gate, the full nonchain tests and generation. Its test checks the 780 by 330 frame and the original 400 ms handoff. Fresh Windows capture and paired P06 timing remain open. [Linux CI](https://github.com/edgepillar/syrius/actions/runs/44322342951/job/134864307663). |

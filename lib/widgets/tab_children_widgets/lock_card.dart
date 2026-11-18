@@ -231,7 +231,10 @@ class _LockCardState extends State<LockCard>
               // The shader starts with the first visible backdrop frame.
               enabled: progress > 0,
               child: Opacity(
-                opacity: progress,
+                // The reference shows the full-strength field behind the
+                // partially transparent card.
+                opacity: (progress / tokens.launchSettleReference.progress)
+                    .clamp(0.0, 1.0),
                 child: progress == 1
                     ? const EntryField()
                     : const EntryField(paintCaption: false),
