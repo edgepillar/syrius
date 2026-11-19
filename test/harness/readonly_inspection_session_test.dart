@@ -1928,6 +1928,7 @@ void main() {
       final Set<int> checkedFusions = <int>{};
       bool tappedFuseAmount = false;
       bool clearedFuseHover = false;
+      final List<String> hoveredScreens = <String>[];
       int closedToken = 0;
       int canceledSend = 0;
       int swapWarnings = 0;
@@ -1962,6 +1963,7 @@ void main() {
             expect(command, <String, Object?>{
               'cmd': 'hover', 'at': <int>[0, 0],
             });
+            hoveredScreens.add(selected);
             if (selected == 'plasma-fuse') {
               expect(tappedFuseAmount, isTrue);
               expect(afterShot, isFalse);
@@ -2433,10 +2435,9 @@ void main() {
         'wait', 'assert', 'shot', 'type', 'key', 'scroll', 'hover',
       }.contains(value['cmd'])), isTrue);
       if (fault == 'none') {
-        expect(
-          commands.where((Map<String, Object?> row) => row['cmd'] == 'hover'),
-          hasLength(2),
-        );
+        expect(hoveredScreens, <String>[
+          'plasma-fuse', 'plasma-fuse', 'set-licences', 'set-licences',
+        ]);
       }
       expect(output.lines.every((Object? line) => line is String &&
           line.startsWith('ok') && !line.contains(labRecipient)), isTrue);
