@@ -243,7 +243,8 @@ void main() {
       expect(_clip(tester), Clip.hardEdge);
       expect(layer.firstChild, same(paint));
 
-      await tester.pump(const Duration(milliseconds: 15));
+      // The controller reports completion on a tick past its 240 ms limit.
+      await tester.pump(const Duration(milliseconds: 15, microseconds: 1));
       expect(_height(tester, _disclosure), _header + _bodyHeight);
       expect(tester.getRect(find.byKey(_body)).top, _header);
       expect(_clip(tester), Clip.none);
@@ -257,7 +258,7 @@ void main() {
       expect(_height(tester, _disclosure), greaterThan(_header));
       expect(_height(tester, _disclosure), lessThan(_header + _bodyHeight));
       expect(_clip(tester), Clip.hardEdge);
-      await tester.pump(const Duration(milliseconds: 120));
+      await tester.pump(const Duration(milliseconds: 120, microseconds: 1));
 
       expect(changes, <bool>[true, false]);
       expect(find.byKey(_body, skipOffstage: false), findsNothing);
