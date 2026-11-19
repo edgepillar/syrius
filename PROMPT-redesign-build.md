@@ -824,7 +824,13 @@ The retained Wallet images have empty selection tracks in all three Modes
 controls. The mockup highlights Pillar Auto, Sentinel Auto and Sporks Off.
 The Wallet view now draws those highlights inside the existing operator
 modes seam. The controls still refuse changes and expose the disabled
-seam to assistive technology. The new highlights await native capture.
+seam to assistive technology.
+The [Windows producer at `f81f1a10`](https://github.com/edgepillar/syrius/actions/runs/44628278334/job/135927814515)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44631607999/job/135939404572)
+verify all fourteen Settings captures and the original process closure.
+The Node radio retains its 16 px painted width. About still measures 71 px
+at this source, which precedes the padding correction. The Wallet highlight
+and whole-screen visual verdicts await direct comparison.
 The [first independent read](https://github.com/edgepillar/syrius/actions/runs/44628252295/job/135927721256)
 refused the earlier producer at source admission after the Wallet view
 changed. The reader now verifies the producer's exact Wallet view blob
@@ -1028,6 +1034,10 @@ own bounds. Its final stop is transparent, so the former full-field
 rectangle only added transparent paint outside those bounds. The original
 gradient positions, blur, compositing and drift are preserved. Native
 frames are required to measure the timing impact.
+The [Linux run at `70ca8e1e`](https://github.com/edgepillar/syrius/actions/runs/44629303951/job/135931393838)
+passes application analysis, strict selected analysis, the focused pixel
+checks, the full non-chain suite with 5,124 passes and one skip, and
+generated-file verification.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
