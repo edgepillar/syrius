@@ -5739,17 +5739,25 @@ class HarnessAgent {
     Map<String, dynamic> command,
     Map<Object?, Object?> assertion,
   ) async {
+    HarnessError refusal(ReferenceArtworkFailureStage stage) => HarnessError(
+      'pillar artwork frame unavailable',
+      <String, Object>{'pillar_artwork_stage': stage.name},
+    );
     if (_pillarArtworkRefused || _pillarArtwork != null) {
-      throw HarnessError('pillar artwork frame unavailable');
+      throw refusal(ReferenceArtworkFailureStage.held);
     }
     final List<_Node>? regions = _readonlyPositiveKeyNodes(
       Map<String, dynamic>.from(assertion),
     );
     if (regions == null || regions.length != 1) {
-      throw HarnessError('pillar artwork frame unavailable');
+      throw refusal(ReferenceArtworkFailureStage.owner);
     }
     final _Node original = regions.single;
-    _requireOriginalPillarDone(original);
+    try {
+      _requireOriginalPillarDone(original);
+    } on HarnessError {
+      throw refusal(ReferenceArtworkFailureStage.owner);
+    }
     final PillarReferenceArtwork artwork = PillarReferenceArtwork(
       owner: original.element,
       admitted: () {
@@ -5764,12 +5772,13 @@ class HarnessAgent {
         frames: _captureFrames,
         readback: () => _readShot(command),
       );
-    } on PillarReferenceArtworkRefused catch (refusal) {
+    } on PillarReferenceArtworkRefused catch (error) {
       _pillarArtworkRefused = true;
-      throw HarnessError(
-        'pillar artwork frame unavailable',
-        <String, Object>{'pillar_artwork_stage': refusal.stage.name},
-      );
+      throw refusal(error.stage);
+    } on HarnessError catch (error) {
+      if (error.message != 'original Pillar registration changed') rethrow;
+      _pillarArtworkRefused = true;
+      throw refusal(ReferenceArtworkFailureStage.owner);
     } finally {
       _pillarArtwork = null;
     }

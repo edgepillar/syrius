@@ -972,6 +972,29 @@ void main() {
       }
       for (final MapEntry<String, ScreenCaptureReplyCode> entry in
           <String, ScreenCaptureReplyCode>{
+        'held': ScreenCaptureReplyCode.pillarArtworkHeld,
+        'owner': ScreenCaptureReplyCode.pillarArtworkOwner,
+        'renderers': ScreenCaptureReplyCode.pillarArtworkRenderers,
+        'readiness': ScreenCaptureReplyCode.pillarArtworkReadiness,
+        'overlay': ScreenCaptureReplyCode.pillarArtworkOverlay,
+        'sample': ScreenCaptureReplyCode.pillarArtworkSample,
+        'observation': ScreenCaptureReplyCode.pillarArtworkObservation,
+        'restoration': ScreenCaptureReplyCode.pillarArtworkRestoration,
+        'Synthetic private path': ScreenCaptureReplyCode.unknown,
+      }.entries) {
+        final Map<String, Object?> detail = <String, Object?>{
+          'pillar_artwork_stage': entry.key,
+        };
+        expect(classifyScreenCaptureReply(
+          'pillar artwork frame unavailable', detail,
+        ), entry.value);
+        expect(classifyScreenCaptureReply(
+          'pillar artwork frame unavailable',
+          <String, Object?>{...detail, 'raw': opaque},
+        ), ScreenCaptureReplyCode.unknown);
+      }
+      for (final MapEntry<String, ScreenCaptureReplyCode> entry in
+          <String, ScreenCaptureReplyCode>{
         'busy': ScreenCaptureReplyCode.frameBusy,
         'deadline': ScreenCaptureReplyCode.frameDeadlineExceeded,
         'originalFailure': ScreenCaptureReplyCode.frameOriginalFailed,

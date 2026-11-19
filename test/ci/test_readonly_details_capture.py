@@ -179,6 +179,22 @@ class DetailsCatalogTests(unittest.TestCase):
                 details.failure_diagnostic(dict(observed, screen='receive-qr'))
             with self.subTest(reply=reply), self.assertRaises(details.Refused):
                 details.failure_diagnostic(dict(valid, schema=2, reply=reply))
+        for reply in details.PILLAR_ARTWORK_REPLIES:
+            schema = details.PILLAR_DONE_SCHEMA
+            observed = dict(schema=2, kind=details.RESTORED_FAILURE_KINDS[schema],
+                last_entered_step='shotRequest', screen='pillar-done',
+                theme='dark', reply=reply)
+            self.assertIs(details.failure_diagnostic(observed,
+                catalog_schema=schema), observed)
+            for invalid in (
+                dict(observed, screen='set-originals'),
+                dict(observed, last_entered_step='scriptLine', line=1),
+                dict(observed, path='Synthetic private path'),
+            ):
+                with self.subTest(invalid=invalid), self.assertRaises(details.Refused):
+                    details.failure_diagnostic(invalid, catalog_schema=schema)
+            with self.assertRaises(details.Refused):
+                details.failure_diagnostic(observed)
         # These are existing original Dart refusals, including Ready frames.
         for reply in ('targetUnavailable', 'frameBusy',
                       'frameDeadlineExceeded', 'frameOriginalFailed',

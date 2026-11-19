@@ -21,6 +21,9 @@ enum ScreenCaptureReplyCode {
   originalsArtworkHeld, originalsArtworkOwner, originalsArtworkRenderers,
   originalsArtworkReadiness, originalsArtworkSample,
   originalsArtworkObservation, originalsArtworkRestoration,
+  pillarArtworkHeld, pillarArtworkOwner, pillarArtworkRenderers,
+  pillarArtworkReadiness, pillarArtworkOverlay, pillarArtworkSample,
+  pillarArtworkObservation, pillarArtworkRestoration,
 }
 
 abstract interface class ScreenCaptureReplyFailure {
@@ -58,6 +61,20 @@ ScreenCaptureReplyCode classifyScreenCaptureReply(
   Object? value, Object? detail,
 ) {
   if (value is! String) return ScreenCaptureReplyCode.unknown;
+  if (value == 'pillar artwork frame unavailable' &&
+      detail is Map<Object?, Object?> && detail.length == 1) {
+    return switch (detail['pillar_artwork_stage']) {
+      'held' => ScreenCaptureReplyCode.pillarArtworkHeld,
+      'owner' => ScreenCaptureReplyCode.pillarArtworkOwner,
+      'renderers' => ScreenCaptureReplyCode.pillarArtworkRenderers,
+      'readiness' => ScreenCaptureReplyCode.pillarArtworkReadiness,
+      'overlay' => ScreenCaptureReplyCode.pillarArtworkOverlay,
+      'sample' => ScreenCaptureReplyCode.pillarArtworkSample,
+      'observation' => ScreenCaptureReplyCode.pillarArtworkObservation,
+      'restoration' => ScreenCaptureReplyCode.pillarArtworkRestoration,
+      _ => ScreenCaptureReplyCode.unknown,
+    };
+  }
   if (value == 'originals artwork frame unavailable' &&
       detail is Map<Object?, Object?> && detail.length == 1) {
     return switch (detail['originals_artwork_stage']) {

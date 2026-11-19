@@ -183,6 +183,12 @@ ORIGINALS_ARTWORK_REPLIES = (
     'originalsArtworkObservation', 'originalsArtworkRestoration',
 )
 
+PILLAR_ARTWORK_REPLIES = (
+    'pillarArtworkHeld', 'pillarArtworkOwner', 'pillarArtworkRenderers',
+    'pillarArtworkReadiness', 'pillarArtworkOverlay', 'pillarArtworkSample',
+    'pillarArtworkObservation', 'pillarArtworkRestoration',
+)
+
 
 def capture_frame_state(value):
     """Retain only the original refusal's closed scheduler facts."""
@@ -222,6 +228,10 @@ def failure_diagnostic(value, *, catalog_schema=1):
         if reply in ORIGINALS_ARTWORK_REPLIES:
             need(catalog_schema == 1 and value['schema'] == 2
                  and value.get('screen') == 'set-originals'
+                 and value.get('last_entered_step') == 'shotRequest')
+        elif reply in PILLAR_ARTWORK_REPLIES:
+            need(catalog_schema == PILLAR_DONE_SCHEMA and value['schema'] == 2
+                 and value.get('screen') == 'pillar-done'
                  and value.get('last_entered_step') == 'shotRequest')
         else:
             need(reply in FAILURE_REPLIES)
