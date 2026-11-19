@@ -291,6 +291,25 @@ class PairInspectionTests(unittest.TestCase):
         result.update(original_job_id=2**63 - 1, original_job_conclusion='success')
         self.assertLessEqual(len(json.dumps(result, sort_keys=True).encode('ascii')), 3800)
 
+    def test_raster_start_can_follow_lock_arrival_without_a_later_build(self):
+        value = report(self.pins)
+        rows = [(0, 3000, 1000, 500, 3200), (1, 9500, 200, 16001, 18001),
+                (2, 9800, 400, 17000, 17400)]
+        packed = zlib.compress(b''.join(struct.pack('<5I', *row) for row in rows))
+        current = dict(schema=2, scope='harness_frame_window', windowUs=40000,
+            startupPhaseUs=[2000, 4000, 6000, 10000], frameCount=len(rows),
+            packedFrames=base64.b64encode(packed).decode('ascii'))
+        value['samples'][0]['frame_window'] = current
+        value['comparison'] = pair.compare_windows(value['samples'][1]['frame_window'], current)
+
+        result = self.project(value, diagnostics=True)
+        self.assertEqual(result['comparison'], value['comparison'])
+        diagnostics = result['window_diagnostics']['windows']['current']
+        self.assertEqual(diagnostics['phase_frames'][-1], 0)
+        self.assertEqual(diagnostics['settled_raster_starts'], dict(
+            columns=['samples', 'slow_raster', 'max_raster_us'], before=[1, 0, 500],
+            crossing=[1, 1, 16001], at_or_after=[1, 1, 17000]))
+
     def test_packed_pair_preserves_all_frames_and_rejects_corrupt_payloads(self):
         count = pair.launch.MAX_PAIRED_TIMING_FRAMES
         rows = [[0 if index == 0 else 2**32 - count + index,

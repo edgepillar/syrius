@@ -140,14 +140,6 @@ def sample_receipts(value, *, allow_tap_release=False):
     return windows, closed, entry_closed, success
 
 
-def _raster_start_bounds(row, tap_release_us):
-    _, build_start, build, raster, total = row
-    build_from_tap = build_start - tap_release_us
-    # Raster follows build finish and starts by vsync + total - raster.
-    # Vsync itself is unavailable, but cannot follow build start.
-    return build_from_tap + build, build_from_tap + total - raster
-
-
 def _raster_groups(*names):
     return {name: dict(samples=0, slow_raster=0, max_raster_us=0) for name in names}
 
@@ -163,7 +155,7 @@ def _window_diagnostics(window, tap_release_us, motion_us, disclosure_phases=Non
     if tap_release_us is not None:
         rows = pair.shared.launch.frame_timing_rows(window, allow_packed=True)
         peak = max(rows, key=lambda row: row[3])
-        earliest, latest = _raster_start_bounds(peak, tap_release_us)
+        earliest, latest = cold.raster_start_bounds(peak, tap_release_us)
         result['tap_release_us'] = tap_release_us
         result['peak_raster_offset_from_tap_us'] = peak[1] - tap_release_us
         result['peak_raster_start_bounds_from_tap_us'] = dict(
@@ -174,7 +166,7 @@ def _window_diagnostics(window, tap_release_us, motion_us, disclosure_phases=Non
         phase_groups = {name: _raster_groups('before', 'at_or_after', 'crossing')
                         for name in offsets}
         for row in rows:
-            earliest, latest = _raster_start_bounds(row, tap_release_us)
+            earliest, latest = cold.raster_start_bounds(row, tap_release_us)
             if latest < 0:
                 group = groups['before']
             elif earliest >= motion_us:

@@ -136,6 +136,14 @@ def storage_passed(value):
 
 
 
+def raster_start_bounds(row, origin_us=0):
+    _, build_start, build, raster, total = row
+    relative_start = build_start - origin_us
+    # Raster follows build finish and starts by vsync + total - raster.
+    # Vsync itself is unavailable, but cannot follow build start.
+    return relative_start + build, relative_start + total - raster
+
+
 def window_diagnostics(window, *, peak_starts=False):
     """Describe every reported sample without changing the acceptance test."""
     rows = pair.launch.frame_timing_rows(window, allow_packed=True)
@@ -169,15 +177,32 @@ def window_diagnostics(window, *, peak_starts=False):
     if pair.launch.STARTUP_PHASE_FIELD in window:
         offsets = window[pair.launch.STARTUP_PHASE_FIELD]
         frames, raster, total = [0] * 5, [0] * 5, [0] * 5
-        for _, start, _, raster_us, total_us in rows:
+        settled = offsets[-1]
+        settled_raster = {relation: [0, 0, 0]
+                          for relation in ('before', 'crossing', 'at_or_after')}
+        for row in rows:
+            _, start, _, raster_us, total_us = row
             phase = bisect_right(offsets, start)
             frames[phase] += 1
             raster[phase] = max(raster[phase], raster_us)
             total[phase] = max(total[phase], total_us)
+            earliest, latest = raster_start_bounds(row)
+            if latest < settled:
+                counts = settled_raster['before']
+            elif earliest >= settled:
+                counts = settled_raster['at_or_after']
+            else:
+                counts = settled_raster['crossing']
+            counts[0] += 1
+            counts[1] += raster_us > pair.FRAME_BUDGET_US
+            counts[2] = max(counts[2], raster_us)
         # Offsets are post-frame observations of first film frame, film end,
         # handoff motion and arrival. Groups use each frame's build start.
         summary.update(phase_offsets_us=offsets, phase_frames=frames,
                        phase_max_raster_us=raster, phase_max_total_us=total)
+        # Raster starts can follow arrival even when builds began before it.
+        summary['settled_raster_starts'] = dict(
+            columns=['samples', 'slow_raster', 'max_raster_us'], **settled_raster)
     return summary
 
 

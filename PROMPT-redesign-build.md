@@ -720,6 +720,14 @@ unlocked shell. The eye loads first for Home. The other three compositions
 load sequentially for the remaining wallet pages. New
 Windows timings are required for V02.
 
+The [cold reader at `9f3aaeea`](https://github.com/edgepillar/syrius/actions/runs/44597721331/job/135820439604)
+verified 93 current frames, 1,780 P06 frames and five normal exits. The
+largest current raster duration was 177.138 ms. The recorded build starts
+all precede the observed Lock arrival. The [interactive reader](https://github.com/edgepillar/syrius/actions/runs/44597830011/job/135820819237)
+also records both comparisons outside the 16 ms acceptance condition.
+The cold reader derives raster-start bounds around Lock arrival from the
+retained frame rows. The comparison still uses the original P06 threshold.
+
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
 | Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Native late and settled samples. | Observe the early handoff and complete 400 ms settle. |
