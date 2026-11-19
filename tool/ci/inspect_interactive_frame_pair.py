@@ -73,7 +73,7 @@ def sample_receipts(value, *, allow_tap_release=False):
         required = {'phase', 'lab_revalidations', 'entry', 'windows', 'success'}
         optional = {'action_progress', 'preparation_failure'}
         if allow_tap_release:
-            optional.add('tap_release_us')
+            optional.update(('tap_release_us', 'disclosure_phases_us'))
         archive.need(type(observation) is dict
             and required <= set(observation) <= required | optional
             and type(observation['phase']) is str and observation['phase'] in OBSERVATION_PHASES
@@ -126,6 +126,11 @@ def sample_receipts(value, *, allow_tap_release=False):
                 and set(releases) <= set(windows)
                 and all(pair.shared.launch.startup.integer(offset, 0, windows[name]['windowUs'] - 1)
                         for name, offset in releases.items()))
+        if 'disclosure_phases_us' in observation:
+            archive.need('disclosure' in windows and pair.actions.valid_disclosure_phases(
+                observation['disclosure_phases_us'],
+                observation.get('tap_release_us', {}).get('disclosure'),
+                windows['disclosure']['windowUs']))
         observed = (observation['phase'] == 'complete' and observation['lab_revalidations'] == 3
                     and entry_closed and set(windows) == set(pair.WINDOWS))
         archive.need(observation['success'] is observed)
@@ -143,7 +148,7 @@ def _raster_start_bounds(row, tap_release_us):
     return build_from_tap + build, build_from_tap + total - raster
 
 
-def _window_diagnostics(window, tap_release_us, motion_us):
+def _window_diagnostics(window, tap_release_us, motion_us, disclosure_phases=None):
     result = cold.window_diagnostics(window, peak_starts=True)
     if tap_release_us is not None:
         rows = pair.shared.launch.frame_timing_rows(window, allow_packed=True)
@@ -170,6 +175,10 @@ def _window_diagnostics(window, tap_release_us, motion_us):
             group['slow_raster'] += raster > pair.shared.FRAME_BUDGET_US
             group['max_raster_us'] = max(group['max_raster_us'], raster)
         result.update(nominal_motion_us=motion_us, raster_start_groups=groups)
+        if disclosure_phases:
+            result['observed_post_frame_offsets_from_tap_us'] = {
+                name: offset - tap_release_us
+                for name, offset in disclosure_phases.items()}
     return result
 
 
@@ -306,7 +315,8 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         verified_window_diagnostics={
             label: {name: _window_diagnostics(
                         window, samples[label]['observation'].get('tap_release_us', {}).get(name),
-                        MOTION_US[name])
+                        MOTION_US[name], samples[label]['observation'].get(
+                            'disclosure_phases_us') if name == 'disclosure' else None)
                     for name, window in frame_windows.items()}
             for label, frame_windows in diagnostic_windows.items()
         } or None)

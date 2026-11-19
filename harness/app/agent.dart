@@ -4617,6 +4617,9 @@ class HarnessAgent {
                 if (_interactiveStartUs != started) return;
                 final int elapsed = dev.Timeline.now - started;
                 if (elapsed >= 0) frameWindowTapReleaseUs = elapsed;
+                if (c['key'] == 'about_licences_toggle' && n != null) {
+                  _observeDisclosurePhases(n.element, started);
+                }
               },
       );
       if (c['double'] == true) {
@@ -6046,6 +6049,79 @@ class HarnessAgent {
   HarnessFrameWindow? _frameWindow;
   int? _interactiveStartUs;
   final List<int> _startupPhaseUs = <int>[];
+  final Map<String, int> _disclosurePhasesUs = <String, int>{};
+
+  static Element? _findTimingChild(
+    Element root,
+    bool Function(Widget) accepts,
+  ) {
+    Element? match;
+    void visit(Element element) {
+      if (match != null) return;
+      if (accepts(element.widget)) {
+        match = element;
+      } else {
+        element.debugVisitOnstageChildren(visit);
+      }
+    }
+
+    root.debugVisitOnstageChildren(visit);
+    return match;
+  }
+
+  void _observeDisclosurePhases(Element toggle, int startUs) {
+    if (!toggle.mounted) return;
+    Element? disclosure;
+    toggle.visitAncestorElements((Element ancestor) {
+      final Widget widget = ancestor.widget;
+      if (widget is Disclosure && widget.keyPrefix == 'about_licences') {
+        disclosure = ancestor;
+        return false;
+      }
+      return true;
+    });
+    final Element? owner = disclosure;
+    if (owner == null) return;
+    final SchedulerBinding binding = SchedulerBinding.instance;
+    Element? body;
+
+    void observe(Duration _) {
+      if (_interactiveStartUs != startUs ||
+          !owner.mounted ||
+          EntryCaptureRegistry.instance.held) {
+        return;
+      }
+      body ??= _findTimingChild(
+        owner,
+        (Widget value) => value is DisclosureReveal,
+      );
+      final Element? currentBody = body;
+      if (currentBody?.mounted == false) return;
+      if (currentBody != null) {
+        final int elapsed = dev.Timeline.now - startUs;
+        final Widget widget = currentBody.widget;
+        if (widget is DisclosureReveal && widget.isSettled) {
+          _disclosurePhasesUs.putIfAbsent('settled', () => elapsed);
+        }
+        if (!_disclosurePhasesUs.containsKey('list_laid_out')) {
+          final RenderObject? list = _findTimingChild(
+            currentBody,
+            (Widget value) => value.key == const Key('about_licences_list'),
+          )?.findRenderObject();
+          if (list is RenderBox &&
+              list.attached &&
+              list.hasSize &&
+              !list.size.isEmpty) {
+            _disclosurePhasesUs['list_laid_out'] = elapsed;
+          }
+        }
+      }
+      if (_disclosurePhasesUs.length < 2) binding.addPostFrameCallback(observe);
+    }
+
+    // Observe the next original frame without scheduling additional work.
+    binding.addPostFrameCallback(observe);
+  }
 
   void _observeStartupPhases(HarnessFrameWindow window, int startUs) {
     final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
@@ -6097,6 +6173,7 @@ class HarnessAgent {
         final int started = dev.Timeline.now;
         _frameWindow = HarnessFrameWindow(started);
         _interactiveStartUs = started;
+        _disclosurePhasesUs.clear();
         return <String, Object?>{'frameWindow': 'collecting'};
       case 'end':
         if (window == null) throw refused('notCollecting');
@@ -6127,6 +6204,10 @@ class HarnessAgent {
           if (phases != null && !EntryCaptureRegistry.instance.held) {
             result['startupPhaseUs'] = phases;
           }
+          if (_disclosurePhasesUs.isNotEmpty) {
+            result['interactiveDisclosurePhasesUs'] =
+                Map<String, int>.of(_disclosurePhasesUs);
+          }
           return result;
         } on TimeoutException {
           throw refused('deliveryTimeout');
@@ -6134,6 +6215,7 @@ class HarnessAgent {
           throw refused(error.reason.name);
         } finally {
           _frameWindow = null;
+          _disclosurePhasesUs.clear();
         }
       default:
         throw HarnessError(refusal);

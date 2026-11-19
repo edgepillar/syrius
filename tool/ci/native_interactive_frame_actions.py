@@ -64,7 +64,15 @@ def _end(send, validate_window):
     _require(all(field in reply for field in fields))
     window = {field: reply[field] for field in fields}
     validate_window(window)
-    return window
+    return window, reply.get('interactiveDisclosurePhasesUs')
+
+
+def valid_disclosure_phases(value, release, window_us):
+    return (type(value) is dict and bool(value)
+            and set(value) <= {'settled', 'list_laid_out'}
+            and type(release) is int and type(window_us) is int
+            and all(type(offset) is int and release <= offset < window_us
+                    for offset in value.values()))
 
 
 def _measure(send, validate_window, sleep, selector):
@@ -73,17 +81,18 @@ def _measure(send, validate_window, sleep, selector):
     tap = _original(send, cmd='tap', settleMs=0, **selector)
     _target(tap, **selector)
     sleep(0.6)
-    window = _end(send, validate_window)
+    window, phases = _end(send, validate_window)
     _require(MIN_WINDOW_US <= window['windowUs'] <= MAX_WINDOW_US)
     field = 'frameWindowTapReleaseUs'
     release = tap.get(field)
     if field in tap:
         _require(type(release) is int and 0 <= release < window['windowUs'])
-    return window, release
+    return window, release, phases
 
 
 def observe_interactive(send, validate_window, *, size, windows=None,
-                        tap_releases=None, sleep=time.sleep):
+                        tap_releases=None, disclosure_phases=None,
+                        sleep=time.sleep):
     """Observe Home to Settings and the closed About licences disclosure.
 
     The caller binds the owned release process and profile. A confirmed page
@@ -96,7 +105,7 @@ def observe_interactive(send, validate_window, *, size, windows=None,
     _require(theme.get('mode') == theme.get('brightness') == 'dark'
              and theme.get('savedMode') == 'ThemeMode.dark')
     address = _wallet(send, 'dashboard', size)
-    page, page_release = _measure(send, validate_window, sleep, {'tab': 'settings'})
+    page, page_release, _ = _measure(send, validate_window, sleep, {'tab': 'settings'})
     _wait(send, 'settings_node')
     _wallet(send, 'settings', size, address)
     windows['page_change'] = page
@@ -106,7 +115,7 @@ def observe_interactive(send, validate_window, *, size, windows=None,
     _target(_original(send, cmd='tap', key='settings_about'), key='settings_about')
     _wait(send, 'about_licences_toggle')
     _licences(send, gone=True)
-    disclosure, disclosure_release = _measure(
+    disclosure, disclosure_release, phases = _measure(
         send, validate_window, sleep, {'key': 'about_licences_toggle'})
     # The redesigned list can start below the visible scroll area. Reveal it
     # after closing the timing window so the scroll is outside the sample.
@@ -120,4 +129,7 @@ def observe_interactive(send, validate_window, *, size, windows=None,
     windows['disclosure'] = disclosure
     if tap_releases is not None and disclosure_release is not None:
         tap_releases['disclosure'] = disclosure_release
+    if (disclosure_phases is not None and valid_disclosure_phases(
+            phases, disclosure_release, disclosure['windowUs'])):
+        disclosure_phases.update(phases)
     return windows
