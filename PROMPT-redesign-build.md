@@ -829,6 +829,15 @@ The [first independent read](https://github.com/edgepillar/syrius/actions/runs/4
 refused the earlier producer at source admission after the Wallet view
 changed. The reader now verifies the producer's exact Wallet view blob
 through the existing historical source read before it examines the archive.
+The [corrected independent read](https://github.com/edgepillar/syrius/actions/runs/44628586206/job/135928882607)
+verifies all fourteen original Settings images and parent process closure
+at `c59c46ec`. In both themes the Node selection ink now spans columns
+288 through 303 and rows 213 through 229. Its width is 16 px, down from
+18 px. The Addresses measurements are unchanged. The whole Node screen
+still needs the verified update state for its reference comparison.
+The [Linux run at `c59c46ec`](https://github.com/edgepillar/syrius/actions/runs/44625466425/job/135917975562)
+passes strict analysis, the full non-chain suite with 5,124 passes and one
+skip, and generated-file checks.
 
 ### Receive at rest at `06eda3f7`
 
