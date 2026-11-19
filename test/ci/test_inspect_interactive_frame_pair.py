@@ -320,7 +320,11 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(result['profile_stable'], dict(current=True, p06=False))
         self.assertFalse(result['artifact_reported_success'])
         self.assertFalse(result['timing_criterion_passed'])
-        self.assertIsNone(result['verified_window_diagnostics'])
+        diagnostics = result['verified_window_diagnostics']
+        self.assertEqual(set(diagnostics), {'current'})
+        self.assertEqual(set(diagnostics['current']), set(pair.WINDOWS))
+        self.assertEqual(diagnostics['current']['page_change']['tap_release_us'], 5000)
+        self.assertIsNone(result['verified_comparisons'])
         interrupted = fixture()
         current = interrupted['samples']['current']
         current['attempt'].update(exit_code=1, forced_kill=True,
@@ -340,6 +344,7 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(projected['observation_phases'], dict(current='complete'))
         self.assertEqual(projected['normal_wallet_exits'], 0)
         self.assertFalse(projected['artifact_reported_success'])
+        self.assertIsNone(projected['verified_window_diagnostics'])
         self.assertFalse(projected['timing_criterion_passed'])
         self.assertIsNone(projected['no_added_reported_slow_frames'])
         self.assertIsNone(projected['no_frame_number_gaps'])

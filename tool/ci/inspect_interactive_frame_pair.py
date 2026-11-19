@@ -16,6 +16,7 @@ ARTIFACT_PREFIX = 'interactive-timing-pair-'
 TITLE = 'Retained paired interactive frame measurements'
 COMPARISON_TITLE = 'Retained paired interactive frame comparisons'
 DIAGNOSTICS_TITLE = 'Retained paired interactive frame diagnostics'
+CURRENT_DIAGNOSTICS_TITLE = 'Retained current interactive frame diagnostics'
 OBSERVATION_PHASES = frozenset(('lab_before', 'empty_profile', 'prepare_profile',
     'wallet_ready', 'measure', 'verify_after', 'complete'))
 PHASES = frozenset((*cold.COMMAND_STAGES, 'environment', 'storage_admission',
@@ -226,6 +227,11 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
     timing_criterion_passed = bool(complete and all(
         value['no_added_reported_slow_frames'] and value['no_frame_number_gaps']
         for value in comparisons.values()))
+    diagnostic_windows = {}
+    if current_passed:
+        diagnostic_windows['current'] = windows
+    if complete:
+        diagnostic_windows['p06'] = old
     return dict(schema=1, scope='retained_' + pair.SCOPE,
         source_head=head, source_tree=tree, source_run_id=run_id, source_attempt=1,
         archive_sha256=expected_sha, manifest_sha256=manifest_sha,
@@ -279,8 +285,8 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
             label: {name: _window_diagnostics(
                         window, samples[label]['observation'].get('tap_release_us', {}).get(name))
                     for name, window in frame_windows.items()}
-            for label, frame_windows in (('current', windows), ('p06', old))
-        } if complete else None)
+            for label, frame_windows in diagnostic_windows.items()
+        } or None)
 
 
 def inspect_run(client, *, head, run_id, lab, lab_summary, listing, run):
