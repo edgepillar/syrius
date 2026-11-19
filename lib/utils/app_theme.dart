@@ -857,8 +857,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Review labels do not shift exact values when text changes.
   double get tokenCreateReviewLabelWidth => 176;
 
-  /// The wallet menu sits just below its field.
-  double get walletPickerMenuGap => 4;
+  /// The reference separates the final wallet row from the add action.
+  EdgeInsets get walletPickerDividerPadding =>
+      const EdgeInsets.only(top: 5, bottom: 3);
 
   /// The field's column gap and the menu's extra inset stay separate.
   double get walletPickerFieldMenuGap => 10;

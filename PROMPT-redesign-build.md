@@ -760,6 +760,12 @@ frame. The light capture also shows the original focused caret. The picker
 shows the intended rows and selection state. Its divider at column 640 is
 on row 487 in both captures and row 488 in both references. The four warning
 and picker verdicts remain open for those comparisons.
+The picker allocates 5 px above its divider and 3 px below it, placing the
+line one pixel lower within the existing 8 px gap. The existing theme and
+RTL cases check both distances. The independent Lock reader also reports
+the divider row in each verified picker image. It reproduces row 487 from
+the retained Windows captures and row 488 from the references. Fresh picker
+captures are needed to verify the change.
 
 The retained Addresses captures at `06eda3f7` show the selected glyph in
 columns 299 through 312 and rows 165 through 178 in both themes. The authored
@@ -772,8 +778,12 @@ passes analysis, the full non-chain suite with 5,124 passes and one skip,
 and generated-file checks.
 The Settings reader reports the green ink bounds for both verified Addresses
 images directly from the catalog archive. It reproduces the retained
-14 px measurements in both themes. The catalog covers all fourteen Settings
-captures.
+14 px measurements in both themes. The [new Windows capture at `cc574e9a`](https://github.com/edgepillar/syrius/actions/runs/44619150110/job/135895818195)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44622827266/job/135908733904)
+verify all fourteen catalog PNGs and original process closure. The selected
+ink spans columns 298 through 313 and rows 163 through 179 in both themes.
+The widget measures 16 by 16 logical pixels and its painted width is 16 px.
+The whole Addresses pairs remain under V01 review.
 
 ### Receive at rest at `06eda3f7`
 

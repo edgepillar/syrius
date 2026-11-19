@@ -124,7 +124,7 @@ class Client:
         return data
 
 
-def _png(sample=0, *, well=None):
+def _png(sample=0, *, well=None, divider=None):
     def chunk(kind, data):
         return (struct.pack('>I', len(data)) + kind + data
                 + struct.pack('>I', zlib.crc32(kind + data)))
@@ -139,6 +139,11 @@ def _png(sample=0, *, well=None):
         film = (b'\0' + background * left + bytes(3 * (right - left + 1))
                 + background * (1279 - right))
         scanlines = row * top + film * (bottom - top + 1) + row * (779 - bottom)
+    if divider is not None:
+        line, ink = divider
+        start = line * (1 + 1280 * 3)
+        scanlines = (scanlines[:start] + b'\0' + bytes(ink) * 1280
+                     + scanlines[start + 1 + 1280 * 3:])
     return (b'\x89PNG\r\n\x1a\n'
         + chunk(b'IHDR', struct.pack('>IIBBBBB', 1280, 780, 8, 2, 0, 0, 0))
         + chunk(b'IDAT', zlib.compress(scanlines))
@@ -823,6 +828,8 @@ class StartupInspectionTests(unittest.TestCase):
         )
         bounds = [(431, top, 848, top + 116) for top in (210, 188, 118, 209, 187, 117)]
         bodies = {name: _png(well=well) for name, well in zip(catalog.FILES, bounds)}
+        for index, ink in ((2, (56, 58, 56)), (5, (213, 216, 213))):
+            bodies[catalog.FILES[index]] = _png(well=bounds[index], divider=(488, ink))
         captures = [dict(file=name, theme=inspect.launch.THEMES[index // 3],
             screen=catalog.SCREENS[index % 3], bytes=len(bodies[name]),
             sha256=inspect.archive.sha(bodies[name]), artwork_seconds=6, **states[index % 3])
@@ -854,6 +861,7 @@ class StartupInspectionTests(unittest.TestCase):
         self.assertEqual(summary['verified_png_count'], 6)
         self.assertEqual(summary['film_pixel_bounds'], [
             dict(zip(('left', 'top', 'right', 'bottom'), well)) for well in bounds])
+        self.assertEqual(summary['picker_divider_rows'], dict(dark=488, light=488))
         self.assertIsNone(inspect.lock_film_bounds(base64.b64encode(_png()).decode('ascii')))
         self.assertLessEqual(len(json.dumps(summary, separators=(',', ':')).encode('ascii')), 3800)
         self.assertEqual(summary['states'][1]['remaining'], 2)

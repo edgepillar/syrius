@@ -181,6 +181,20 @@ def lock_film_bounds(encoded):
                 right=black_columns[-1], bottom=top + black_rows[-1])
 
 
+def lock_picker_divider_row(encoded, theme):
+    """Read the one menu line between the wallet rows and the add action."""
+    from .inspect_windows_qualification import _opaque, _png_crop
+
+    top, bottom = 476, 508
+    rows, channels = _png_crop(encoded, (622, 655), (top, bottom))
+    ink = {'dark': bytes((56, 58, 56)), 'light': bytes((213, 216, 213))}[theme]
+    if not _opaque(rows, channels):
+        return None
+    matches = [y for y, row in enumerate(rows, top)
+               if all(row[i:i + 3] == ink for i in range(0, len(row), channels))]
+    return matches[0] if len(matches) == 1 else None
+
+
 def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *,
                    settle=False, lock=False, quiz=False, timing=False, lock_seams=False,
                    motion=False, shared_binaries=None):
@@ -349,7 +363,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                         attemptedSlots=attempted, samples=live_rows), launch.TIMING_THEME)
                 except startup.Failure:
                     raise archive.Refused('INSPECTION_REFUSED') from None
-        film_bounds = []
+        film_bounds, picker_divider_rows = [], {}
         for index, (row, name) in enumerate(zip(captures, () if motion else files)):
             theme, phase = divmod(index, per_theme)
             actor = 0 if quiz else 2 * theme + 1
@@ -370,6 +384,8 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
             encoded = base64.b64encode(pixels).decode('ascii')
             if lock:
                 film_bounds.append(lock_film_bounds(encoded))
+                if row['screen'] == 'lock-pick':
+                    picker_divider_rows[row['theme']] = lock_picker_divider_row(encoded, row['theme'])
             else:
                 launch.entry.png_bytes(encoded)
         archive.need(set(names) == {'manifest.json', *(row['file'] for row in captures)})
@@ -420,6 +436,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         summary['frames'] = 56
         summary['states'] = [{key: row[key] for key in sorted(frame_fields)} for row in captures]
         summary['film_pixel_bounds'] = film_bounds
+        summary['picker_divider_rows'] = picker_divider_rows
     else:
         summary['frames'] = 56
         summary['frame'] = 55 if settle else 23

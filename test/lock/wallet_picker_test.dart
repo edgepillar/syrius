@@ -508,11 +508,18 @@ void main() {
           tester.getSize(find.byKey(_add)).height,
           tokens.walletPickerAddRowHeight,
         );
-        final Divider divider = tester.widget<Divider>(
-          find.byKey(const ValueKey<String>('lock_wallet_picker_separator')),
+        final Finder separator = find.byKey(
+          const ValueKey<String>('lock_wallet_picker_separator'),
         );
+        final Divider divider = tester.widget<Divider>(separator);
         expect(divider.color, tokens.line);
         expect(divider.thickness, tokens.glassTopEdge.width);
+        final Rect dividerBounds = tester.getRect(separator);
+        final Rect lastWallet = tester.getRect(
+          find.byKey(_entryKey(_entries.length - 1)),
+        );
+        expect(dividerBounds.top - lastWallet.bottom, 5);
+        expect(tester.getRect(find.byKey(_add)).top - dividerBounds.bottom, 3);
         expect(tester.takeException(), isNull);
       });
 

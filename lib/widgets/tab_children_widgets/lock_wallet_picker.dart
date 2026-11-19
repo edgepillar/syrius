@@ -224,9 +224,7 @@ class LockWalletPicker extends StatelessWidget {
                 for (int index = 0; index < rows.length; index++)
                   _buildEntry(tokens, rows[index], index),
                 Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: tokens.walletPickerMenuGap,
-                  ),
+                  padding: tokens.walletPickerDividerPadding,
                   child: Divider(
                     key: const ValueKey<String>('lock_wallet_picker_separator'),
                     height: tokens.glassTopEdge.width,
