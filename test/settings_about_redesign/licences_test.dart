@@ -100,7 +100,13 @@ void main() {
           ),
         );
         await tester.pump();
-        expect(find.text('alpha'), findsOneWidget);
+        final Finder name = find.text('alpha');
+        expect(name, findsOneWidget);
+        expect(tester.widget<Text>(name).style?.fontWeight, FontWeight.w400);
+        expect(
+          Theme.of(tester.element(name)),
+          same(Theme.of(tester.element(find.byType(Licences)))),
+        );
         expect(find.text('zeta'), findsOneWidget);
         expect(find.text('Fixture Font'), findsOneWidget);
         final Finder known = find.text('MIT');

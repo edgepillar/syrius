@@ -449,34 +449,27 @@ class _LicenceRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
-    final ThemeData theme = Theme.of(context);
     return DecoratedBox(
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: tokens.line)),
       ),
-      child: Theme(
-        data: theme.copyWith(
-          textTheme: theme.textTheme.copyWith(headlineSmall: tokens.bodyText),
-        ),
-        child: Disclosure(
-          title: package.name.isEmpty
-              ? context.l10n.aboutUnknown
-              : package.name,
-          summary: package.identifier,
-          summaryColumnPercent: summaryColumnPercent,
-          keyPrefix: 'about_licence_${package.name}',
-          headerMinHeight: tokens.aboutLicenceRowHeight,
-          onChanged: (bool open) {
-            if (open) {
-              try {
-                package.readParagraphs();
-              } on Object {
-                onReadFailure();
-              }
+      child: Disclosure(
+        title: package.name.isEmpty ? context.l10n.aboutUnknown : package.name,
+        titleStyle: tokens.bodyText,
+        summary: package.identifier,
+        summaryColumnPercent: summaryColumnPercent,
+        keyPrefix: 'about_licence_${package.name}',
+        headerMinHeight: tokens.aboutLicenceRowHeight,
+        onChanged: (bool open) {
+          if (open) {
+            try {
+              package.readParagraphs();
+            } on Object {
+              onReadFailure();
             }
-          },
-          child: Builder(builder: (_) => _buildParagraphs(tokens)),
-        ),
+          }
+        },
+        child: Builder(builder: (_) => _buildParagraphs(tokens)),
       ),
     );
   }
