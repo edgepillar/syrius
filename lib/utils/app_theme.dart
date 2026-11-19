@@ -1072,7 +1072,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
   double get aboutLicenceRowHeight => 40;
 
   /// The reference licence type column in the full registry.
-  int get aboutLicenceSummaryPercent => 58;
+  int get aboutLicenceSummaryPercent => 59;
 
   /// The reference type column for the two rows above Originals.
   int get aboutOriginalsLicenceSummaryPercent => 43;

@@ -352,46 +352,59 @@ class _LicencesState extends State<Licences> {
         if (notification.depth == 0) _rememberEnd();
         return false;
       },
-      child: Scrollbar(
+      child: RawScrollbar(
         key: _viewportKey,
         controller: _scroll,
         thumbVisibility: true,
-        child: ListView.builder(
-          key: const Key('about_licences_list'),
-          controller: _scroll,
-          primary: false,
-          // Opening the panel only prepares a short scroll buffer of rows.
-          scrollCacheExtent: ScrollCacheExtent.pixels(
-            2 * tokens.aboutLicenceRowHeight,
-          ),
-          itemCount: packages.length + 1,
-          itemBuilder: (BuildContext context, int index) {
-            if (index == packages.length) {
-              return KeyedSubtree(
-                key: const Key('about_licences_end'),
-                child: KeyedSubtree(
-                  key: _trailingKey,
-                  child: widget.trailingBuilder?.call(context) ??
-                      SizedBox(height: tokens.cardGap),
-                ),
+        trackVisibility: true,
+        thumbColor: tokens.faint,
+        trackColor: tokens.line,
+        trackBorderColor: Colors.transparent,
+        thickness: 4,
+        radius: const Radius.circular(2),
+        trackRadius: const Radius.circular(2),
+        mainAxisMargin: 6,
+        crossAxisMargin: 4,
+        minThumbLength: 46,
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+          child: ListView.builder(
+            key: const Key('about_licences_list'),
+            controller: _scroll,
+            primary: false,
+            // Opening the panel only prepares a short scroll buffer of rows.
+            scrollCacheExtent: ScrollCacheExtent.pixels(
+              2 * tokens.aboutLicenceRowHeight,
+            ),
+            itemCount: packages.length + 1,
+            itemBuilder: (BuildContext context, int index) {
+              if (index == packages.length) {
+                return KeyedSubtree(
+                  key: const Key('about_licences_end'),
+                  child: KeyedSubtree(
+                    key: _trailingKey,
+                    child: widget.trailingBuilder?.call(context) ??
+                        SizedBox(height: tokens.cardGap),
+                  ),
+                );
+              }
+              final _PackageLicence package = packages[index];
+              return _LicenceRow(
+                key: ValueKey<String>('about_licence_${package.name}'),
+                package: package,
+                summaryColumnPercent: widget.preserveEndOnReveal
+                    ? tokens.aboutOriginalsLicenceSummaryPercent
+                    : tokens.aboutLicenceSummaryPercent,
+                onReadFailure: () {
+                  if (!mounted || !identical(_packages, packages)) return;
+                  setState(() {
+                    _packages = null;
+                    _failed = true;
+                  });
+                },
               );
-            }
-            final _PackageLicence package = packages[index];
-            return _LicenceRow(
-              key: ValueKey<String>('about_licence_${package.name}'),
-              package: package,
-              summaryColumnPercent: widget.preserveEndOnReveal
-                  ? tokens.aboutOriginalsLicenceSummaryPercent
-                  : tokens.aboutLicenceSummaryPercent,
-              onReadFailure: () {
-                if (!mounted || !identical(_packages, packages)) return;
-                setState(() {
-                  _packages = null;
-                  _failed = true;
-                });
-              },
-            );
-          },
+            },
+          ),
         ),
       ),
     );

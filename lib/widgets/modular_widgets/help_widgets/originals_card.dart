@@ -98,8 +98,11 @@ class _OriginalsDiscoveryState extends State<OriginalsDiscovery>
         source() &&
         TickerMode.valuesOf(context).enabled &&
         (ModalRoute.of(context)?.isCurrent ?? true);
-    return Padding(
+    return Container(
       padding: tokens.originalsDiscoveryPadding,
+      foregroundDecoration: BoxDecoration(
+        border: Border(top: BorderSide(color: tokens.line)),
+      ),
       child: Align(
         alignment: AlignmentDirectional.centerStart,
         child: ConstrainedBox(

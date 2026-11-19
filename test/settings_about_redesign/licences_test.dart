@@ -220,8 +220,17 @@ void main() {
         findsNothing,
       );
       expect(find.byKey(const Key('fixture_hook')).hitTestable(), findsNothing);
+      final Finder list = find.byKey(const Key('about_licences_list'));
+      final RawScrollbar scrollbar = tester.widget<RawScrollbar>(
+        find.ancestor(of: list, matching: find.byType(RawScrollbar)),
+      );
+      expect(scrollbar.thickness, 4);
+      expect(scrollbar.trackVisibility, isTrue);
+      expect(scrollbar.mainAxisMargin, 6);
+      expect(scrollbar.crossAxisMargin, 4);
+      expect(scrollbar.minThumbLength, 46);
       final Finder scrollable = find.descendant(
-        of: find.byKey(const Key('about_licences_list')),
+        of: list,
         matching: find.byType(Scrollable),
       );
       expect(scrollable, findsOneWidget);
