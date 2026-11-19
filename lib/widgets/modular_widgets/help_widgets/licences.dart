@@ -334,9 +334,6 @@ class _LicencesState extends State<Licences> {
           key: const Key('about_licences_list'),
           controller: _scroll,
           primary: false,
-          // The parent disclosure retains the list's paint. Each nested
-          // disclosure already retains its moving body and chevron.
-          addRepaintBoundaries: false,
           // Opening the panel only prepares a short scroll buffer of rows.
           scrollCacheExtent: ScrollCacheExtent.pixels(
             2 * tokens.aboutLicenceRowHeight,
