@@ -273,8 +273,6 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
 
   Widget _buildRail(BuildContext context, BigInt? slotFee) {
     final AppTokens tokens = AppTokens.of(context);
-    final List<String> labels = pillarRegistrationSteps(context);
-    final int current = _stage.index + 1;
     return Container(
       width: tokens.registrationRailWidth,
       decoration: BoxDecoration(
@@ -284,63 +282,94 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
         padding: EdgeInsets.all(tokens.registrationInset),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: tokens.registrationActionGap,
+          spacing: tokens.registrationRailGap,
           children: <Widget>[
-            for (int i = 0; i < labels.length; i++)
-              Row(
-                spacing: tokens.inlineGap,
-                children: <Widget>[
-                  ExcludeSemantics(
-                    child: Container(
-                      width: tokens.registrationInset,
-                      height: tokens.registrationInset,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: i <= current ? tokens.znnInk : tokens.line,
-                        ),
-                      ),
-                      child: i < current
-                          ? Icon(Icons.check, color: tokens.znnInk, size: 14)
-                          : Text('${i + 1}', style: tokens.compactText),
-                    ),
+            _buildRailSteps(context, tokens),
+            Divider(height: 1, thickness: 1, color: tokens.line),
+            Column(
+              spacing: tokens.registrationGap,
+              children: <Widget>[
+                if (slotFee != null)
+                  _buildRailAmount(
+                    tokens,
+                    context.l10n.createPillarSlotFeeLabel,
+                    slotFee,
+                    kQsrCoin,
                   ),
-                  Expanded(
-                    child: Semantics(
-                      selected: i == current,
-                      child: Text(
-                        labels[i],
-                        style: i == current
-                            ? tokens.bodyText
-                            : tokens.registrationCaptionText,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            Divider(height: 1, color: tokens.line),
-            if (slotFee != null)
-              _buildRailAmount(
-                tokens,
-                context.l10n.createPillarSlotFeeLabel,
-                slotFee,
-                kQsrCoin,
-              ),
-            _buildRailAmount(
-              tokens,
-              context.l10n.createPillarCollateralLabel,
-              pillarRegisterZnnAmount,
-              kZnnCoin,
-            ),
-            _buildRailAmount(
-              tokens,
-              context.l10n.tokenCreateHave,
-              widget.availableZnn,
-              kZnnCoin,
+                _buildRailAmount(
+                  tokens,
+                  context.l10n.createPillarCollateralLabel,
+                  pillarRegisterZnnAmount,
+                  kZnnCoin,
+                ),
+                _buildRailAmount(
+                  tokens,
+                  context.l10n.tokenCreateHave,
+                  widget.availableZnn,
+                  kZnnCoin,
+                ),
+              ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRailSteps(BuildContext context, AppTokens tokens) {
+    final List<String> labels = pillarRegistrationSteps(context);
+    final int current = _stage.index + 1;
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: tokens.registrationStepListInset),
+      child: Column(
+        spacing: tokens.registrationActionGap,
+        children: <Widget>[
+          for (int i = 0; i < labels.length; i++)
+            Row(
+              spacing: tokens.entryStepGap,
+              children: <Widget>[
+                ExcludeSemantics(
+                  child: Container(
+                    width: tokens.entryStepSize,
+                    height: tokens.entryStepSize,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: i < current ? tokens.znn : null,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: i <= current ? tokens.znn : tokens.line,
+                      ),
+                    ),
+                    child: i < current
+                        ? ShellSymbol(
+                            'check',
+                            size: tokens.inlineGlyphSize,
+                            color: tokens.onZnn,
+                          )
+                        : Text(
+                            '${i + 1}',
+                            style: tokens.ledgerText.copyWith(
+                              color: i == current
+                                  ? tokens.znnInk
+                                  : tokens.faint,
+                            ),
+                          ),
+                  ),
+                ),
+                Expanded(
+                  child: Semantics(
+                    selected: i == current,
+                    child: Text(
+                      labels[i],
+                      style: i == current
+                          ? tokens.compactText
+                          : tokens.compactText.copyWith(color: tokens.faint),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+        ],
       ),
     );
   }

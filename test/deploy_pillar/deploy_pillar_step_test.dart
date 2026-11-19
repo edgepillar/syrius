@@ -74,6 +74,18 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    final Finder deposit = find.text('Deposit QSR');
+    final Finder details = find.text('Name and addresses');
+    final Row depositRow = tester
+        .element(deposit)
+        .findAncestorWidgetOfExactType<Row>()!;
+    final Finder depositMark = find.byWidget(depositRow.children.first);
+    expect(tester.getSize(depositMark), const Size.square(22));
+    expect(
+      tester.getCenter(details).dy - tester.getCenter(deposit).dy,
+      closeTo(36, .01),
+    );
+
     final Finder name = find.byKey(const Key('pillar_name_field'));
     final Finder nameValid = find.byKey(const Key('pillar_name_valid'));
     final Finder producer = find.byKey(
