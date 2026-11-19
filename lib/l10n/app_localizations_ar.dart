@@ -1853,6 +1853,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get createPillarNameAndAddresses => 'Name and addresses';
 
   @override
+  String get createPillarProducerField => 'Producer address';
+
+  @override
+  String get createPillarRewardField => 'Reward address';
+
+  @override
   String get createPillarNameHelp =>
       'Up to 40 characters. Use -, . or _ between letters or numbers.';
 

@@ -455,6 +455,13 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
     final TextStyle text = accFieldTextStyle(context);
     final bool hasName = _pillarNameController.text.isNotEmpty;
     final String? nameError = hasName ? _pillarNameError : null;
+    final bool hasProducer = _pillarMomentumController.text.isNotEmpty;
+    final String? producerError = hasProducer ? _pillarMomentumError : null;
+    final bool hasReward = _pillarRewardAddressController.text.isNotEmpty;
+    final String? rewardError = hasReward ? _pillarRewardAddressError : null;
+    final OutlineInputBorder populatedBorder = kOutlineInputBorder.copyWith(
+      borderSide: BorderSide(color: tokens.faint),
+    );
     // An address reads left to right in every language.
     final TextStyle address = accFieldTextStyle(context, mono: true);
     final TextAlign addressAlign = ltrTextAlign(context);
@@ -477,6 +484,9 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
               helperText: context.l10n.createPillarNameHelp,
               helperMaxLines: 3,
               errorText: nameError,
+              enabledBorder: hasName && nameError == null
+                  ? populatedBorder
+                  : null,
               suffixIconConstraints: BoxConstraints.tightFor(
                 width: 36,
                 height: tokens.fieldHeight,
@@ -495,7 +505,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
           ),
         ),
         AccField(
-          label: context.l10n.pillarProducerAddress,
+          label: context.l10n.createPillarProducerField,
           child: TextField(
             key: const Key('pillar_producer_address_field'),
             controller: _pillarMomentumController,
@@ -506,8 +516,9 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
             decoration: InputDecoration(
               helperText: context.l10n.createPillarProducerHelp,
               helperMaxLines: 3,
-              errorText: _pillarMomentumController.text.isNotEmpty
-                  ? _pillarMomentumError
+              errorText: producerError,
+              enabledBorder: hasProducer && producerError == null
+                  ? populatedBorder
                   : null,
               suffixIconConstraints: BoxConstraints(
                 minHeight: tokens.fieldHeight,
@@ -519,7 +530,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
           ),
         ),
         AccField(
-          label: context.l10n.pillarRewardAddress,
+          label: context.l10n.createPillarRewardField,
           help: context.l10n.addressToCollectRewards,
           child: Focus.withExternalFocusNode(
             focusNode: _rewardAddressFocus,
@@ -531,8 +542,9 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
               textDirection: TextDirection.ltr,
               textAlign: addressAlign,
               decoration: InputDecoration(
-                errorText: _pillarRewardAddressController.text.isNotEmpty
-                    ? _pillarRewardAddressError
+                errorText: rewardError,
+                enabledBorder: hasReward && rewardError == null
+                    ? populatedBorder
                     : null,
                 suffixIconConstraints: BoxConstraints(
                   minHeight: tokens.fieldHeight,

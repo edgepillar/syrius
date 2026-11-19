@@ -3097,6 +3097,18 @@ abstract class AppLocalizations {
   /// **'Name and addresses'**
   String get createPillarNameAndAddresses;
 
+  /// No description provided for @createPillarProducerField.
+  ///
+  /// In en, this message translates to:
+  /// **'Producer address'**
+  String get createPillarProducerField;
+
+  /// No description provided for @createPillarRewardField.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward address'**
+  String get createPillarRewardField;
+
   /// No description provided for @createPillarNameHelp.
   ///
   /// In en, this message translates to:

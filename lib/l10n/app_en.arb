@@ -1237,6 +1237,8 @@
   },
   "createPillarPaneTitle": "Spawn a pillar",
   "createPillarNameAndAddresses": "Name and addresses",
+  "createPillarProducerField": "Producer address",
+  "createPillarRewardField": "Reward address",
   "createPillarNameHelp": "Up to 40 characters. Use -, . or _ between letters or numbers.",
   "createPillarProducerHelp": "Use the node's znn-controller address from a seed other than this wallet's.",
   "createPillarMomentumShareLabel": "Momentum share",

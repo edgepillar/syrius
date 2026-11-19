@@ -171,8 +171,15 @@ void main() {
     );
     expect(register.hitTestable(), findsNothing);
     expect(slider.hitTestable(), findsNothing);
+    expect(find.text('PRODUCER ADDRESS'), findsOneWidget);
+    expect(find.text('REWARD ADDRESS'), findsOneWidget);
     expect(requests, isEmpty);
     expect(nameValid, findsNothing);
+    expect(tester.widget<TextField>(name).decoration!.enabledBorder, isNull);
+    expect(
+      tester.widget<TextField>(producer).decoration!.enabledBorder,
+      isNull,
+    );
     expect(
       InputDecorator.containerOf(tester.element(nameEditor))?.size.height,
       closeTo(tokens.fieldHeight, .01),
@@ -190,6 +197,8 @@ void main() {
     await tester.pump();
     expect(rewardTools, findsNothing);
     expect(nameValid, findsNothing);
+    expect(tester.widget<TextField>(name).decoration!.errorText, isNotNull);
+    expect(tester.widget<TextField>(name).decoration!.enabledBorder, isNull);
     await tester.enterText(name, 'pillar');
     await tester.enterText(producer, owner);
     await tester.pump();
@@ -206,6 +215,12 @@ void main() {
     await tester.tap(ownerChip);
     await tester.pump();
     expect(tester.widget<TextField>(reward).controller!.text, owner);
+    for (final Finder field in <Finder>[name, producer, reward]) {
+      expect(
+        tester.widget<TextField>(field).decoration!.enabledBorder?.borderSide,
+        BorderSide(color: tokens.faint),
+      );
+    }
     expect(tester.getSize(reward).height, closeTo(tokens.fieldHeight, .01));
 
     await tester.tap(detailsNext);
