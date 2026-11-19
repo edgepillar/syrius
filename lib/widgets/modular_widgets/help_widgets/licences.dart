@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:cryptography/dart.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:hex/hex.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
@@ -333,6 +334,10 @@ class _LicencesState extends State<Licences> {
           key: const Key('about_licences_list'),
           controller: _scroll,
           primary: false,
+          // Opening the panel only prepares a short scroll buffer of rows.
+          scrollCacheExtent: ScrollCacheExtent.pixels(
+            2 * tokens.aboutLicenceRowHeight,
+          ),
           itemCount: packages.length + 1,
           itemBuilder: (BuildContext context, int index) {
             if (index == packages.length) {

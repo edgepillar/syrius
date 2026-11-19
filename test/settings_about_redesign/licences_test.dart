@@ -205,6 +205,14 @@ void main() {
         operation: 'complete registry close',
       );
       await tester.pump();
+      expect(
+        find.byKey(const Key('about_licence_package-00')).hitTestable(),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('about_licence_package-10')),
+        findsNothing,
+      );
       expect(find.byKey(const Key('fixture_hook')).hitTestable(), findsNothing);
       final Finder scrollable = find.descendant(
         of: find.byKey(const Key('about_licences_list')),
