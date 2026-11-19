@@ -960,6 +960,11 @@ verifies four normal actor exits and 82 redesign frames. The redesign records
 Four of six starts after observed Lock arrival exceed 16 ms, with a maximum
 of 65.564 ms. The paired comparison remains open.
 
+A P06 preparation timeout now records the original process's finite Lock
+and initialization states before closing. The observation has its own five
+seconds after failure. The preparation readiness deadline, frame windows,
+and required process exit are unchanged.
+
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
 calls `jumpTo` only when the extent differs from the current offset, avoiding

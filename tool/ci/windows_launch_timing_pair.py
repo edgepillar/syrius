@@ -208,11 +208,27 @@ def attempt_outcomes(samples):
 
 
 class _P06Warmup(launch.LaunchProcess):
+    preparation_diagnostic = None
+
     def _prepare_theme(self, theme):
         super()._prepare_theme(theme)
         # Let the original app finish its normal startup before it saves the
         # warm profile on exit. The subsequent process owns the cold window.
-        self.wait_for_timing_lock(self.deadline - 5)
+        try:
+            self.wait_for_timing_lock(self.deadline - 5)
+        except launch.startup.Failure as error:
+            if error.code == 'STARTUP_DEADLINE':
+                # Allow five seconds for the passive diagnostic after failure,
+                # preserving both the readiness deadline and close grace.
+                self.deadline += 5
+                self.preparation_diagnostic = self._lock_diagnostic()
+            raise
+
+    def run_launch(self, theme, **options):
+        receipt, result = super().run_launch(theme, **options)
+        if self.preparation_diagnostic is not None:
+            receipt['lock_diagnostic'] = self.preparation_diagnostic
+        return receipt, result
 
 
 def measure_sample(repo, parent, current, binaries, name, report):

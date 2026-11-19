@@ -87,7 +87,7 @@ def command_receipts(rows):
     return len(rows) == len(COMMAND_STAGES) and rows[-1]['success']
 
 
-def samples(rows):
+def samples(rows, phase):
     archive.need(type(rows) is list and len(rows) <= len(SAMPLE_ROLES))
     windows, closed = {}, 0
     fields = {*EXIT_FLAGS, 'theme', 'role', 'exit_code',
@@ -96,7 +96,7 @@ def samples(rows):
         archive.need(type(row) is dict and set(row) == {'name', 'attempts', 'frame_window'}
             and row['name'] == name and type(row['attempts']) is list
             and len(row['attempts']) <= len(roles))
-        for attempt, role in zip(row['attempts'], roles):
+        for index, (attempt, role) in enumerate(zip(row['attempts'], roles)):
             archive.need(type(attempt) is dict and set(attempt) in (fields, fields | {'lock_diagnostic'})
                 and attempt['theme'] == pair.launch.TIMING_THEME and attempt['role'] == role
                 and type(attempt['action_complete']) is bool and type(attempt['checks']) is dict
@@ -108,7 +108,10 @@ def samples(rows):
                 archive.need(pair.launch.valid_lock_diagnostic(diagnostic))
                 original_code = ('COMMAND_FAILED' if diagnostic['status'] == 'command_refused'
                                  else 'STARTUP_DEADLINE')
-                archive.need(role == 'timing' and not attempt['action_complete']
+                warmup = (name == 'p06' and index == 1
+                    and phase == 'p06_warm_ordinary_profile'
+                    and diagnostic['status'] != 'command_refused')
+                archive.need((role == 'timing' or warmup) and not attempt['action_complete']
                     and original_code in attempt['error_codes'])
             closed += normal_exit(attempt) and all(attempt['checks'].values())
         archive.need(all(pair.launch.attempt_passed(attempt) for attempt in row['attempts'][:-1]))
@@ -255,7 +258,7 @@ def project(raw, expected_sha, expected_size, *, head, tree, run_id, pins,
              and all(digest(p06[key]) for key in BINARY_HASHES)))
     comparison = report['comparison']
     try:
-        windows, closed = samples(report['samples'])
+        windows, closed = samples(report['samples'], report['phase'])
         archive.need((verified or len(report['samples']) <= 1)
             and (not report['commands'] or 'current' in windows))
         if comparison is not None:
@@ -308,7 +311,8 @@ def inspect_run(client, *, head, tree, run_id, job):
     archive.need(len(selected) == len(retained) == 1
         and selected[0]['status'] == retained[0]['status'] == 'completed'
         and selected[0]['conclusion'] in ('success', 'failure') and retained[0]['conclusion'] == 'success')
-    prior_pair = ('fdadca2905a65134927a3b19e6218b99b98cf579b7579a3a3636bf9a058c691c',)
+    prior_pair = ('7c39d88355a696f5580c45282eac38aa11ef4eb54d56bd85b1b691878b2c13a3',
+                  'fdadca2905a65134927a3b19e6218b99b98cf579b7579a3a3636bf9a058c691c')
     prior_launch = (startup_reader.PRE_P06_WARMUP_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_LOCK_SETTLE_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_BATCH_LAUNCH_PRODUCER_SHA,

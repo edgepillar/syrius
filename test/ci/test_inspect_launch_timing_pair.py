@@ -218,6 +218,47 @@ class PairInspectionTests(unittest.TestCase):
         ])
         self.assertEqual(retained['samples'], [sample])
 
+    def test_p06_warmup_retains_the_original_deadline_and_its_diagnostic(self):
+        value = report(self.pins)
+        value.update(success=False, phase='p06_warm_ordinary_profile', comparison=None,
+                     error_codes=['STARTUP_OBSERVATION_REFUSED'])
+        sample = value['samples'][1]
+        sample['frame_window'] = None
+        sample['attempts'].pop()
+        attempt = sample['attempts'][-1]
+        attempt.update(action_complete=False, error_codes=['STARTUP_DEADLINE'])
+        diagnostic = dict(status='unavailable', error_code='ENTRY_UNAVAILABLE')
+
+        warmup = object.__new__(pair._P06Warmup)
+        warmup.deadline = 90
+        failure = pair.launch.startup.Failure('STARTUP_DEADLINE')
+        warmup.wait_for_timing_lock = mock.Mock(side_effect=failure)
+        warmup._lock_diagnostic = mock.Mock(return_value=diagnostic)
+
+        def run_prepare(theme, **options):
+            with self.assertRaises(pair.launch.startup.Failure) as raised:
+                warmup._prepare_theme(theme)
+            self.assertIs(raised.exception, failure)
+            return attempt, None
+
+        with mock.patch.object(pair.launch.LaunchProcess, '_prepare_theme'), \
+             mock.patch.object(pair.launch.LaunchProcess, 'run_launch', side_effect=run_prepare):
+            warmup.run_launch(pair.launch.TIMING_THEME, capture=False, settle=False)
+        warmup.wait_for_timing_lock.assert_called_once_with(85)
+        warmup._lock_diagnostic.assert_called_once_with()
+        self.assertEqual(warmup.deadline, 95)
+        result = self.project(value)
+        self.assertEqual(result['normal_actor_exits'], 4)
+        self.assertEqual(result['attempt_outcomes']['p06'][-1]['lock_diagnostic'], diagnostic)
+        self.assertIsNone(result['comparison'])
+
+        misplaced = deepcopy(value)
+        misplaced['samples'][1]['attempts'].pop(0)
+        with self.assertRaises(reader.archive.Refused):
+            self.project(misplaced)
+        with self.assertRaises(reader.archive.Refused):
+            self.project(dict(value, phase='p06_measure'))
+
     def test_failed_pair_retains_only_finite_original_lock_observations(self):
         value = report(self.pins)
         value.update(success=False, phase='p06_measure', comparison=None,
