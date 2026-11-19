@@ -899,6 +899,10 @@ Zap remains gated. The new paint awaits native capture.
 The [Linux run at `0659e0bb`](https://github.com/edgepillar/syrius/actions/runs/44632799095/job/135943576249)
 passes the three header height assertions, the full non-chain suite with
 5,124 passes and one skip, and generated-file verification.
+The [independent Details reader](https://github.com/edgepillar/syrius/actions/runs/44636503274/job/135956285727)
+verifies the ten original Windows PNGs at `0659e0bb` and normal parent
+closure. The reader can now measure the Receive QR and Zap address chips
+within the verified archive. It reports their painted row intervals.
 
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
@@ -1102,6 +1106,9 @@ viewport corners throughout drift at three device pixel ratios and verifies
 the smaller lower bound. At 1280 by 780 and pixel ratio one, the crop
 calculation drops from 1838 by 1360 to 1835 by 1328. A new Windows sample
 is needed to measure the timing effect.
+The [Linux run at `c235d037`](https://github.com/edgepillar/syrius/actions/runs/44634017432/job/135947778442)
+passes the focused pixel checks, the full non-chain suite with 5,124 passes
+and one skip, and generated-file verification.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now

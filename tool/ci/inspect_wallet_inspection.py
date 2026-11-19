@@ -656,6 +656,31 @@ def settings_catalog_geometry(raw):
         )
 
 
+def details_transfer_chip_rows(raw):
+    """Read the address chip's painted rows in the verified QR and Zap views."""
+    left, right, top, bottom = 860, 974, 44, 84
+    result = {}
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        for name in ('10-receive-qr', '11-zap-form'):
+            themes = {}
+            for theme in producer.details.THEMES:
+                encoded = base64.b64encode(zipped.read(f'{name}-{theme}.png')).decode('ascii')
+                rows, channels = windows._png_crop(encoded, (left, right), (top, bottom))
+                themes[theme] = None
+                if not windows._opaque(rows, channels):
+                    continue
+                background = rows[0][:channels] * (right - left)
+                if (rows[0] != background or rows[-1] != background
+                        or any(row[:channels] != background[:channels]
+                               or row[-channels:] != background[-channels:] for row in rows)):
+                    continue
+                painted = [y for y, row in enumerate(rows, top) if row != background]
+                if painted and len(painted) == painted[-1] - painted[0] + 1:
+                    themes[theme] = [painted[0], painted[-1] + 1]
+            result[name] = themes
+    return result
+
+
 def artifact(listing, name, head, run_id):
     need(type(listing) is dict and type(listing.get('artifacts')) is list
          and type(listing.get('total_count')) is int
@@ -816,6 +841,8 @@ def main(parent=None):
             catalog = producer.details.unpack(catalog_archive,
                 item['digest'][7:], item['size_in_bytes'], head, tree, run_id,
                 details_reference, pins)
+            if '10-receive-qr-dark.png' in catalog['filenames']:
+                catalog['transfer_address_chip_rows'] = details_transfer_chip_rows(catalog_archive)
             if schema == producer.details.FAMILY_SCHEMAS['earn']:
                 catalog['staking_empty_bands'] = staking_empty_bands(catalog_archive)
             del catalog_archive

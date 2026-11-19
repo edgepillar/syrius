@@ -1203,6 +1203,24 @@ class ReaderTests(unittest.TestCase):
         self.assertFalse(observed['atomic_frame_qualified'])
         self.assertFalse(observed['wallet_qualified'])
         self.assertEqual(observed['visual_matches'], 0)
+        self.assertEqual(observed['transfer_address_chip_rows'], {
+            name: dict(dark=None, light=None) for name in ('10-receive-qr', '11-zap-form')
+        })
+        packed = io.BytesIO()
+        background = bytes((100, 100, 100, 255))
+        ordinary = b'\0' + background * 1280
+        outlined = (b'\0' + background * 870 + bytes((125, 125, 125, 255)) * 96
+                    + background * 314)
+        pixels = ordinary * 52 + outlined * 26 + ordinary * 702
+        chip = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
+                + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
+        with zipfile.ZipFile(packed, 'w') as zipped:
+            for name in ('10-receive-qr', '11-zap-form'):
+                for theme in ('dark', 'light'):
+                    zipped.writestr(f'{name}-{theme}.png', chip)
+        self.assertEqual(reader.details_transfer_chip_rows(packed.getvalue()), {
+            name: dict(dark=[52, 78], light=[52, 78]) for name in ('10-receive-qr', '11-zap-form')
+        })
 
         value, calls, text = self.run_main(catalog_only='send-confirm')
         self.assertTrue(value['native_inspection_qualified'])
