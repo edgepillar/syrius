@@ -705,6 +705,19 @@ Registering the retained Import backdrop to the reference gives a closer
 fit near the start of the drift than at the existing six-second sample.
 The exact reference phase and whole-image verdicts remain open under V01.
 
+### Receive at rest at `06eda3f7`
+
+The latest private comparison records verdicts for all 62 locally available
+pairs. Two match and 60 retain differences. Thirty-two pairs still need to be
+added from the verified CI archives.
+
+Both Receive themes match at this source. The Receive segment is selected,
+the QR and request form are closed and the verified empty read shows the
+one-line To receive card. The card boundaries, section dividers and action
+rows agree. The address, live status, approved brand colors and rasterized
+text and edges account for the remaining differences. [Original Windows capture](https://github.com/edgepillar/syrius/actions/runs/44576665310)
+[Independent catalog reader](https://github.com/edgepillar/syrius/actions/runs/44580184381/job/135758423183).
+
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
 The rows follow the [mockup motion](mockups/redesign/README.md#motion) and
@@ -769,6 +782,15 @@ at progress 0.391, the late sample is at 0.662 and the settled stage has the
 original well's bounds. [Linux at the same source](https://github.com/edgepillar/syrius/actions/runs/44603951870/job/135842555407)
 passes analysis, the focused Lock and Ready suites, the full non-chain suite
 and generated-file verification.
+
+The [paired cold run at `f06dfa77`](https://github.com/edgepillar/syrius/actions/runs/44607488707/job/135854974488)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44611325548/job/135868391968)
+verify 84 redesign frames, 1,649 P06 frames and five normal exits. The 16 ms
+comparison fails for build, raster and distinct frames. The peak total is
+448.176 ms in the redesign and 253.177 ms in P06. The redesign peak raster
+duration is 243.843 ms in the group whose builds precede the first observed
+film frame. Three raster starts fall at or after observed Lock arrival.
+Two exceed 16 ms and the maximum is 61.354 ms. V02 remains open.
 
 Both Staking Empty captures from X1248 show the summary labels and amounts
 one pixel below the references. The Stakes card begins at row 119 and its
@@ -1106,7 +1128,7 @@ Source901 in X775, Launch to 28f9c121 in X877 and Lock and Ready to
 | 06 | `home-zap` | X827 | X828 |
 | 07 | `send-rest` | X829 | X830 |
 | 08 | `send-warn` | X889 | X890 |
-| 09 | `receive` | X831 | X832 |
+| 09 | `receive` | [match](#receive-at-rest-at-06eda3f7) | [match](#receive-at-rest-at-06eda3f7) |
 | 10 | `receive-qr` | X1186 | X1186 |
 | 11 | `zap-form` | X1189 | X1189 |
 | 12 | `send-confirm` | X837 | X838 |
