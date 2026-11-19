@@ -24,6 +24,7 @@ enum ScreenCaptureReplyCode {
   pillarArtworkHeld, pillarArtworkOwner, pillarArtworkRenderers,
   pillarArtworkReadiness, pillarArtworkOverlay, pillarArtworkSample,
   pillarArtworkObservation, pillarArtworkRestoration,
+  pillarDraftOverlay,
 }
 
 abstract interface class ScreenCaptureReplyFailure {
@@ -61,6 +62,9 @@ ScreenCaptureReplyCode classifyScreenCaptureReply(
   Object? value, Object? detail,
 ) {
   if (value is! String) return ScreenCaptureReplyCode.unknown;
+  if (value == 'Pillar draft tooltip still open' && detail == null) {
+    return ScreenCaptureReplyCode.pillarDraftOverlay;
+  }
   if (value == 'pillar artwork frame unavailable' &&
       detail is Map<Object?, Object?> && detail.length == 1) {
     return switch (detail['pillar_artwork_stage']) {

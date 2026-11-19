@@ -233,6 +233,10 @@ def failure_diagnostic(value, *, catalog_schema=1):
             need(catalog_schema == PILLAR_DONE_SCHEMA and value['schema'] == 2
                  and value.get('screen') == 'pillar-done'
                  and value.get('last_entered_step') == 'shotRequest')
+        elif reply == 'pillarDraftOverlay':
+            need(catalog_schema == PILLAR_SPAWN_SCHEMA and value['schema'] == 2
+                 and value.get('screen') == 'spawn'
+                 and value.get('last_entered_step') == 'shotRequest')
         else:
             need(reply in FAILURE_REPLIES)
     else:

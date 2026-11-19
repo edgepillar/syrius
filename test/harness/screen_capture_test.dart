@@ -998,6 +998,14 @@ void main() {
           <String, Object?>{...detail, 'raw': opaque},
         ), ScreenCaptureReplyCode.unknown);
       }
+      expect(
+        classifyScreenCaptureReply('Pillar draft tooltip still open', null),
+        ScreenCaptureReplyCode.pillarDraftOverlay,
+      );
+      expect(
+        classifyScreenCaptureReply('Pillar draft tooltip still open', opaque),
+        ScreenCaptureReplyCode.unknown,
+      );
       for (final MapEntry<String, ScreenCaptureReplyCode> entry in
           <String, ScreenCaptureReplyCode>{
         'busy': ScreenCaptureReplyCode.frameBusy,

@@ -5735,15 +5735,23 @@ class HarnessAgent {
         if (draftAssertion != null) {
           _assert(Map<String, dynamic>.from(draftAssertion));
           if (!await settleCaptureTooltips(draftCurrent)) {
-            throw HarnessError('Pillar draft tooltip still open');
+            throw HarnessError(
+              draftCurrent()
+                  ? 'Pillar draft tooltip still open'
+                  : 'original Pillar draft changed',
+            );
           }
         }
         final Map<String, Object?> result =
             await _captureFrames.capture<Map<String, Object?>>(
           () {
-            if (draftAssertion != null &&
-                (!draftCurrent() || Tooltip.dismissAllToolTips())) {
-              throw HarnessError('Pillar draft tooltip still open');
+            if (draftAssertion != null) {
+              if (!draftCurrent()) {
+                throw HarnessError('original Pillar draft changed');
+              }
+              if (Tooltip.dismissAllToolTips()) {
+                throw HarnessError('Pillar draft tooltip still open');
+              }
             }
             return _readShot(c);
           },
