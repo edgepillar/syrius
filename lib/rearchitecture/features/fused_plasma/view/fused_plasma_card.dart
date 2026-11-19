@@ -11,6 +11,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/em
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -591,33 +593,39 @@ class _Expiry extends StatelessWidget {
         status == PlasmaCancellationStatus.unknown ||
         status == PlasmaCancellationStatus.refused ||
         (status == null && !current);
+    final bool ready = status == null && eligible;
     final Color color = unknown
         ? tokens.warn
-        : eligible && status == null
-        ? tokens.znnInk
-        : tokens.qsrInk;
+        : (ready ? tokens.znnInk : tokens.qsrInk);
+    final Color fill = unknown
+        ? tokens.warn.withValues(alpha: 0.16)
+        : (ready ? tokens.znn : tokens.qsr).withValues(alpha: 0.14);
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: color.withValues(alpha: .12),
+        color: fill,
         borderRadius: BorderRadius.circular(tokens.pillRadius),
       ),
-      child: Padding(
-        padding: tokens.keyboardHintPadding,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              status == null && !eligible
-                  ? Icons.lock_outline
-                  : unknown
-                  ? Icons.help_outline
-                  : Icons.check,
-              size: tokens.heroCopyIconSize,
-              color: color,
-            ),
-            SizedBox(width: tokens.heroBalanceRunGap),
-            Text(label, style: tokens.dollarText.copyWith(color: color)),
-          ],
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: tokens.smallButtonHeight),
+        child: Padding(
+          // The reference's 10 px content inset includes a transparent
+          // one-pixel border. Let the badge grow for accessible text sizes.
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 3),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              if (unknown)
+                Icon(Icons.help_outline, size: 12, color: color)
+              else
+                ShellSymbol(
+                  status == null && !eligible ? 'lock' : 'check',
+                  size: 12,
+                  color: color,
+                ),
+              const SizedBox(width: 6),
+              Text(label, style: tokens.captionText.copyWith(color: color)),
+            ],
+          ),
         ),
       ),
     );

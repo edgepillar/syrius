@@ -10,6 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/notifiers/balance_visibility.d
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 
 import '../helpers/hydrated_bloc.dart';
+import '../helpers/mockup_symbol.dart';
 import 'support.dart';
 
 Widget _host(
@@ -246,11 +247,40 @@ void main() {
             tester.getTopLeft(find.text('EXPIRES')).dx - left,
             dark ? 442 : 498,
           );
+          final AppTokens tokens = dark ? AppTokens.dark : AppTokens.light;
           for (final int id in <int>[1, 2]) {
             final Finder row = find.byKey(
               ValueKey<String>('plasma_row_${plasmaTestHash(id)}'),
             );
             expect(tester.getSize(row).height, 44);
+            final Color fill = (id == 1 ? tokens.znn : tokens.qsr).withValues(
+              alpha: 0.14,
+            );
+            final Color ink = id == 1 ? tokens.znnInk : tokens.qsrInk;
+            final Finder badge = find.descendant(
+              of: row,
+              matching: find.byWidgetPredicate(
+                (Widget widget) =>
+                    widget is DecoratedBox &&
+                    widget.decoration is BoxDecoration &&
+                    (widget.decoration as BoxDecoration).color == fill,
+              ),
+            );
+            expect(badge, findsOneWidget);
+            expect(tester.getSize(badge).height, 26);
+            final Text status = tester.widget<Text>(
+              find.descendant(of: badge, matching: find.byType(Text)),
+            );
+            expect(status.style?.fontFamily, tokens.sansFontFamily);
+            expect(status.style?.fontSize, 12);
+            expect(status.style?.color, ink);
+            expectMockupSymbol(
+              tester,
+              within: badge,
+              symbol: id == 1 ? 'check' : 'lock',
+              size: 12,
+              color: ink,
+            );
             final Finder selection = find.byKey(
               ValueKey<String>('plasma_select_${plasmaTestHash(id)}'),
             );
