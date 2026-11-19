@@ -108,7 +108,9 @@ class ShellDetailPane extends StatelessWidget {
               ),
             ),
             Divider(height: 1, color: tokens.line),
-            Expanded(child: FocusTraversalGroup(child: child)),
+            Expanded(
+              child: ClipRect(child: FocusTraversalGroup(child: child)),
+            ),
           ],
         ),
       ),

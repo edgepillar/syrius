@@ -133,6 +133,15 @@ void main() {
       expect(target.invoke('delegate'), isFalse);
       final Finder detail = find.byKey(const Key('detail_pane'));
       final Finder close = find.byKey(const Key('detail_close'));
+      final Finder body = find.descendant(
+        of: detail,
+        matching: find.byType(ClipRect),
+      );
+      final Rect bodyBounds = tester.getRect(body);
+      final Rect paneBounds = tester.getRect(detail);
+      expect(tester.widget<ClipRect>(body).clipBehavior, Clip.hardEdge);
+      expect(bodyBounds.top, tester.getRect(close).bottom + 1);
+      expect(bodyBounds.bottom, paneBounds.bottom);
       final Finder closeMark = find.descendant(
         of: close,
         matching: find.byType(ShellSymbol),
@@ -140,7 +149,7 @@ void main() {
       expect(tester.getSize(close), const Size.square(48));
       expect(tester.getSize(closeMark), const Size.square(14));
       expect(
-        tester.getRect(detail).right - tester.getRect(closeMark).right,
+        paneBounds.right - tester.getRect(closeMark).right,
         16,
       );
       await tester.tap(close);
