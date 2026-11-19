@@ -215,8 +215,7 @@ class _FusePlasmaFormState extends State<FusePlasmaForm> {
                 builder: (BuildContext context, BoxConstraints constraints) {
                   final double availableWidth =
                       (constraints.maxWidth - tokens.pageGap * 2)
-                          .clamp(0.0, constraints.maxWidth)
-                          .toDouble();
+                            .clamp(0.0, constraints.maxWidth);
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
@@ -374,9 +373,7 @@ class _FusePlasmaFormState extends State<FusePlasmaForm> {
           child: LoadingButton(
             key: widget.buttonKey,
             minimumSize: Size(104, tokens.plasmaFuseActionHeight),
-            paddingAroundChild: EdgeInsets.symmetric(
-              horizontal: tokens.plasmaFuseFormPadding.horizontal / 2,
-            ),
+            paddingAroundChild: tokens.primaryButtonPadding,
             circularBorderRadius: tokens.pillRadius,
             borderWidth: 0,
             outlineColor: Colors.transparent,

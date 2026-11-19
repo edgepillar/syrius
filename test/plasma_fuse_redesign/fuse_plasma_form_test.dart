@@ -275,6 +275,16 @@ void main() {
       );
       expect(actionAmount.raw, BigInt.parse('10000000001'));
       expect(actionAmount.decimals, 8);
+      final LoadingButton submit = tester.widget<LoadingButton>(
+        find.descendant(
+          of: find.byKey(_submit),
+          matching: find.byType(LoadingButton),
+        ),
+      );
+      expect(
+        submit.paddingAroundChild,
+        const EdgeInsets.symmetric(horizontal: 16),
+      );
       final Text actionDigits = tester.widget<Text>(
         find.descendant(
           of: find.byType(AmountText),

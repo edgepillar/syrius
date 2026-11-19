@@ -28,7 +28,8 @@ MAX_CAPTURE_AGENT_SOURCE = 256 * 1024
 MAX_VERSIONED_BLOB_RESPONSE = 2 * MAX_CAPTURE_AGENT_SOURCE
 VERSIONED_INPUTS = frozenset((
     'pubspec.yaml', 'pubspec.lock',
-    'harness/screens/set-licences.txt', 'harness/screens/token-new.txt',
+    'harness/screens/plasma-fuse.txt', 'harness/screens/set-licences.txt',
+    'harness/screens/token-new.txt',
     'tool/ci/run_harness_tour_tests.py',
     'tool/ci/windows_wallet_inspection.py',
     'harness/bin/ci_wallet_inspection.dart',

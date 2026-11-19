@@ -1926,6 +1926,7 @@ void main() {
       int returned = 0;
       int closedFuse = 0;
       final Set<int> checkedFusions = <int>{};
+      bool tappedFuseAmount = false;
       int closedToken = 0;
       int canceledSend = 0;
       int swapWarnings = 0;
@@ -1981,6 +1982,13 @@ void main() {
               command['key'] != 'rail_toggle') {
             expect(tab, routes[(afterShot ? shots - 1 : shots) ~/ 2]);
             if (fault == 'first') return negative;
+            if (targetKey == 'fuse_plasma_amount_field') {
+              expect(selected, 'plasma-fuse');
+              expect(command['kind'], 'field');
+              expect(checkedFusions, <int>{1, 2});
+              expect(afterShot, isFalse);
+              tappedFuseAmount = true;
+            }
             if (sentinelFixture) expect(targetKey, 'nodes_tab_sentinels');
             if (earn) {
               switch (targetKey) {
@@ -2093,6 +2101,8 @@ void main() {
             expect(selected, screens[shots ~/ 2]);
             if (selected == 'plasma-fuse') {
               expect(checkedFusions, <int>{1, 2});
+              expect(tappedFuseAmount, isTrue);
+              tappedFuseAmount = false;
               expect(command['expect'], <String, Object?>{
                 'text': 'Cancel 2 fuses', 'key': 'plasma_cancel_selected',
                 'kind': 'button', 'exact': true,
