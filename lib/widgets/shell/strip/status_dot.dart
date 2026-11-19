@@ -82,27 +82,23 @@ class _StatusDotState extends State<StatusDot> {
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
-    return RepaintBoundary(
-      child: ValueListenableBuilder<double>(
-        valueListenable: _pulse,
-        builder: (BuildContext context, double phase, Widget? child) {
-          final double progress = tokens.ease.transform(phase);
-          return DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: <BoxShadow>[
-                // CSS uses the brand halo for every .dot.live; the solid
-                // centre carries blue waiting, amber behind or error state.
-                BoxShadow(
-                  color: tokens.znn.withValues(alpha: 0.6 * (1 - progress)),
-                  spreadRadius: tokens.statusDotHalo * progress,
-                ),
-              ],
+    final double halo = tokens.statusDotHalo;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: <Widget>[
+        // Give the halo its full paint bounds without growing the solid dot.
+        Positioned(
+          left: -halo,
+          top: -halo,
+          right: -halo,
+          bottom: -halo,
+          child: IgnorePointer(
+            child: RepaintBoundary(
+              child: CustomPaint(painter: _StatusHaloPainter(_pulse, tokens)),
             ),
-            child: child,
-          );
-        },
-        child: AnimatedContainer(
+          ),
+        ),
+        AnimatedContainer(
           key: widget.fillKey,
           duration: Durations.short3,
           curve: tokens.ease,
@@ -113,7 +109,31 @@ class _StatusDotState extends State<StatusDot> {
             shape: BoxShape.circle,
           ),
         ),
-      ),
+      ],
     );
   }
+}
+
+class _StatusHaloPainter extends CustomPainter {
+  _StatusHaloPainter(this.pulse, this.tokens) : super(repaint: pulse);
+
+  final ValueNotifier<double> pulse;
+  final AppTokens tokens;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double progress = tokens.ease.transform(pulse.value);
+    if (progress == 1) return;
+    final double remaining = 1 - progress;
+    // The halo uses brand green for every connection state.
+    canvas.drawCircle(
+      size.center(Offset.zero),
+      size.shortestSide / 2 - tokens.statusDotHalo * remaining,
+      Paint()..color = tokens.znn.withValues(alpha: 0.6 * remaining),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_StatusHaloPainter oldDelegate) =>
+      oldDelegate.pulse != pulse || oldDelegate.tokens != tokens;
 }

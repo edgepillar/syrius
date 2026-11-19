@@ -24,18 +24,24 @@ Widget _app(Widget child, {bool dark = true, bool disabled = false}) =>
       ),
     );
 
-BoxShadow _halo(WidgetTester tester) => tester
-    .widgetList<DecoratedBox>(
-      find.descendant(
-        of: find.byType(StatusDot),
-        matching: find.byType(DecoratedBox),
-      ),
-    )
-    .map((DecoratedBox box) => box.decoration)
-    .whereType<BoxDecoration>()
-    .singleWhere((BoxDecoration box) => box.boxShadow?.isNotEmpty ?? false)
-    .boxShadow!
-    .single;
+Finder get _haloPaint => find.descendant(
+  of: find.byType(StatusDot),
+  matching: find.byType(CustomPaint),
+);
+
+({double radius, Color color})? _halo(WidgetTester tester) {
+  final CustomPaint widget = tester.widget<CustomPaint>(_haloPaint);
+  final TestRecordingCanvas canvas = TestRecordingCanvas();
+  widget.painter!.paint(canvas, tester.getSize(_haloPaint));
+  if (canvas.invocations.isEmpty) return null;
+  final Invocation call = canvas.invocations.single.invocation;
+  expect(call.memberName, #drawCircle);
+  expect(call.positionalArguments[0], const Offset(11, 11));
+  return (
+    radius: call.positionalArguments[1] as double,
+    color: (call.positionalArguments[2] as Paint).color,
+  );
+}
 
 NodeSyncStatusState _state({
   int current = 100,
@@ -66,8 +72,12 @@ void main() {
             _app(StatusDot(color: AppTokens.dark.znn), disabled: disabled),
           );
           await tester.pump();
-          expect(_halo(tester).spreadRadius, 0);
-          expect(_halo(tester).color.a, closeTo(0.6, 0.001));
+          final CustomPaint originalHalo = tester.widget<CustomPaint>(
+            _haloPaint,
+          );
+          expect(tester.getSize(_haloPaint), const Size.square(22));
+          expect(_halo(tester)!.radius, 4);
+          expect(_halo(tester)!.color.a, closeTo(0.6, 0.001));
           expect(
             find.descendant(
               of: find.byType(StatusDot),
@@ -78,20 +88,19 @@ void main() {
           await tester.pump(const Duration(milliseconds: 840));
           const Curve cssEase = Cubic(0.4, 0, 0.2, 1);
           final double halfway = cssEase.transform(0.5);
-          expect(_halo(tester).spreadRadius, closeTo(7 * halfway, 0.001));
-          expect(_halo(tester).color.a, closeTo(0.6 * (1 - halfway), 0.001));
+          expect(tester.widget<CustomPaint>(_haloPaint), same(originalHalo));
+          expect(_halo(tester)!.radius, closeTo(4 + 7 * halfway, 0.001));
+          expect(_halo(tester)!.color.a, closeTo(0.6 * (1 - halfway), 0.001));
           expect(tester.binding.transientCallbackCount, greaterThan(0));
           await tester.pump(const Duration(milliseconds: 840));
-          expect(_halo(tester).spreadRadius, closeTo(7, 0.001));
-          expect(_halo(tester).color.a, closeTo(0, 0.001));
+          expect(_halo(tester), isNull);
           expect(tester.binding.transientCallbackCount, 0);
           await tester.pump(const Duration(milliseconds: 420));
-          expect(_halo(tester).spreadRadius, closeTo(7, 0.001));
-          expect(_halo(tester).color.a, closeTo(0, 0.001));
+          expect(_halo(tester), isNull);
           expect(tester.binding.transientCallbackCount, 0);
           await tester.pump(const Duration(milliseconds: 300));
-          expect(_halo(tester).spreadRadius, closeTo(0, 0.001));
-          expect(_halo(tester).color.a, closeTo(0.6, 0.001));
+          expect(_halo(tester)!.radius, closeTo(4, 0.001));
+          expect(_halo(tester)!.color.a, closeTo(0.6, 0.001));
           expect(tester.binding.transientCallbackCount, greaterThan(0));
           // Unmount with the next cycle's wake-up still pending.
           await tester.pump(const Duration(milliseconds: 1680));
@@ -112,11 +121,12 @@ void main() {
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 840));
-      final double before = _halo(tester).spreadRadius;
+      final ({double radius, Color color}) before = _halo(tester)!;
       await tester.pumpWidget(
         _app(StatusDot(color: AppTokens.dark.qsr, fillKey: const Key('fill'))),
       );
-      expect(_halo(tester).spreadRadius, closeTo(before, 0.001));
+      expect(_halo(tester)!.radius, closeTo(before.radius, 0.001));
+      expect(_halo(tester)!.color, before.color);
       expect(tester.getSize(find.byKey(const Key('fill'))), const Size(8, 8));
       expect(
         (tester
