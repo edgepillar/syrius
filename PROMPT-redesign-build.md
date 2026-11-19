@@ -825,6 +825,10 @@ controls. The mockup highlights Pillar Auto, Sentinel Auto and Sporks Off.
 The Wallet view now draws those highlights inside the existing operator
 modes seam. The controls still refuse changes and expose the disabled
 seam to assistive technology. The new highlights await native capture.
+The [first independent read](https://github.com/edgepillar/syrius/actions/runs/44628252295/job/135927721256)
+refused the earlier producer at source admission after the Wallet view
+changed. The reader now verifies the producer's exact Wallet view blob
+through the existing historical source read before it examines the archive.
 
 ### Receive at rest at `06eda3f7`
 
