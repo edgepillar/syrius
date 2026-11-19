@@ -31,6 +31,7 @@ class RiseSwitcher extends StatefulWidget {
     this.rise = 6,
     this.duration = const Duration(milliseconds: 320),
     this.reverseDuration = const Duration(milliseconds: 320),
+    this.isolateTransitionPaint = true,
     super.key,
   });
 
@@ -51,6 +52,10 @@ class RiseSwitcher extends StatefulWidget {
   /// Fade-through uses its first 30 percent, so the default visible exit lasts
   /// 96 ms. The child is retired then, rather than waiting on a hidden page.
   final Duration reverseDuration;
+
+  /// Isolates the moving stack from surrounding paint. A host that already
+  /// isolates the whole page can share its boundary with the stack.
+  final bool isolateTransitionPaint;
 
   @override
   State<RiseSwitcher> createState() => _RiseSwitcherState();
@@ -234,9 +239,8 @@ class _RiseSwitcherState extends State<RiseSwitcher>
   }
 
   @override
-  Widget build(BuildContext context) => RepaintBoundary(
-    // The moving pages stay in their own layer beside the shell chrome.
-    child: Stack(
+  Widget build(BuildContext context) {
+    final Widget pages = Stack(
       fit: StackFit.expand,
       children: <Widget>[
         for (final _SwitchEntry entry in _entries)
@@ -292,6 +296,9 @@ class _RiseSwitcherState extends State<RiseSwitcher>
             ),
           ),
       ],
-    ),
-  );
+    );
+    return widget.isolateTransitionPaint
+        ? RepaintBoundary(child: pages)
+        : pages;
+  }
 }

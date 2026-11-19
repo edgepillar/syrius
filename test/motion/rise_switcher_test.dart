@@ -59,27 +59,29 @@ Widget _host(
   Duration? reverseDuration,
   double? rise,
   bool disableAnimations = false,
+  bool hostOwnsPaint = false,
   CustomPainter? shellPaint,
 }) {
   final Widget destination =
       page ?? KeyedSubtree(key: ValueKey<int>(index), child: _Page('$index'));
-  final RiseSwitcher switcher =
-      duration == null && reverseDuration == null && rise == null
-      ? RiseSwitcher(child: destination)
-      : RiseSwitcher(
-          duration: duration ?? const Duration(milliseconds: 320),
-          reverseDuration: reverseDuration ?? const Duration(milliseconds: 320),
-          rise: rise ?? 6,
-          child: destination,
-        );
+  final Widget switcher = RiseSwitcher(
+    duration: duration ?? const Duration(milliseconds: 320),
+    reverseDuration: reverseDuration ?? const Duration(milliseconds: 320),
+    rise: rise ?? 6,
+    isolateTransitionPaint: !hostOwnsPaint,
+    child: destination,
+  );
+  final Widget pages = hostOwnsPaint
+      ? RepaintBoundary(child: switcher)
+      : switcher;
   return Directionality(
     textDirection: TextDirection.ltr,
     child: MediaQuery(
       data: MediaQueryData(disableAnimations: disableAnimations),
       child: Material(
         child: shellPaint == null
-            ? switcher
-            : CustomPaint(painter: shellPaint, child: switcher),
+            ? pages
+            : CustomPaint(painter: shellPaint, child: pages),
       ),
     ),
   );
@@ -238,16 +240,25 @@ void main() {
         ),
       );
 
-      await tester.pumpWidget(
-        _host(0, page: paintedPage(0, Colors.red), shellPaint: shell),
+      Widget host(int index, Color color) => _host(
+        index,
+        page: paintedPage(index, color),
+        shellPaint: shell,
+        hostOwnsPaint: true,
+      );
+      await tester.pumpWidget(host(0, Colors.red));
+      expect(
+        find.descendant(
+          of: find.byType(RiseSwitcher),
+          matching: find.byType(RepaintBoundary),
+        ),
+        findsOneWidget,
       );
       final OffsetLayer leaving = layerFor(0);
       final Layer? leavingPaint = leaving.firstChild;
       expect(leavingPaint, isNotNull);
       expect(shellPaints, greaterThan(0));
-      await tester.pumpWidget(
-        _host(1, page: paintedPage(1, Colors.green), shellPaint: shell),
-      );
+      await tester.pumpWidget(host(1, Colors.green));
       final int shellPaintsAtStart = shellPaints;
       expect(find.byType(FadeThroughTransition), findsNWidgets(2));
       expect(_opacity(tester, _page(0)), 1);
@@ -284,9 +295,7 @@ void main() {
       expect(tester.binding.hasScheduledFrame, isFalse);
       expect(shellPaints, shellPaintsAtStart);
 
-      await tester.pumpWidget(
-        _host(1, page: paintedPage(1, Colors.blue), shellPaint: shell),
-      );
+      await tester.pumpWidget(host(1, Colors.blue));
       expect(arriving.firstChild, isNot(same(arrivingPaint)));
     });
 

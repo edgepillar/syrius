@@ -856,7 +856,10 @@ class _MainAppContainerState extends State<MainAppContainer>
           child: _buildPageScope(kTabs[index]),
         );
         // Lock removes the outgoing financial page in this frame.
-        return kTabs[index] == Tabs.lock ? page : RiseSwitcher(child: page);
+        // ShellFrame already isolates the moving page from the rail and strip.
+        return kTabs[index] == Tabs.lock
+            ? page
+            : RiseSwitcher(isolateTransitionPaint: false, child: page);
       },
     );
   }
