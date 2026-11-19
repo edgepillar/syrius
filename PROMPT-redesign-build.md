@@ -783,7 +783,22 @@ and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44622
 verify all fourteen catalog PNGs and original process closure. The selected
 ink spans columns 298 through 313 and rows 163 through 179 in both themes.
 The widget measures 16 by 16 logical pixels and its painted width is 16 px.
-The whole Addresses pairs remain under V01 review.
+
+#### Settings at `cc574e9a`
+
+All fourteen captures were viewed against their original dark and light
+references from the [verified Settings archive](https://github.com/edgepillar/syrius/actions/runs/44619150110/artifacts/14577187695).
+The original captures and references were read directly in memory.
+
+| Screen | Dark and light verdict | Observed result |
+| --- | --- | --- |
+| Node | Review | The release is at pre-check. The references show a verified download and its separate installation actions. |
+| Security | Review | The control groups and selected password limit align. The current warning describes shared app data. The references describe the wallet file. |
+| Display | Match | The seven rows, grouped choices and switches align. The captured themes select their own modes, and the Explorer selector is disabled on the isolated chain as specified. |
+| Wallet | Review | The current view has a Maintenance group, and the original profile has different switch selections. |
+| Apps | Review | The real empty state leaves the references' connected rows and Disconnect actions unseen. |
+| Addresses | Match | Both panels, the populated account and contact rows, the selected label, action columns and collapsed account-chain row align. Fixture values differ. The round selector follows the authored 16 px ring. |
+| About | Review | The version and action groups align. The current update label reports its unverified state, while the references show a verified release badge. |
 
 ### Receive at rest at `06eda3f7`
 
@@ -1297,10 +1312,10 @@ whole-image acceptance.
 | 29 | `az-project` | X859 | X860 |
 | 30 | `set-node` | X861 | X862 |
 | 31 | `set-security` | X488 | X489 |
-| 32 | `set-display` | X490 | X491 |
+| 32 | `set-display` | [match](#settings-at-cc574e9a) | [match](#settings-at-cc574e9a) |
 | 33 | `set-wallet` | X863 | X864 |
 | 34 | `set-apps` | X865 | X866 |
-| 35 | `set-addresses` | X867 | X868 |
+| 35 | `set-addresses` | [match](#settings-at-cc574e9a) | [match](#settings-at-cc574e9a) |
 | 36 | `set-about` | X498 | X499 |
 | 37 | `set-licences` | X1192 | X1192 |
 | 38 | `set-originals` | X1192 | X1192 |
