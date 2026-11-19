@@ -157,6 +157,8 @@ def window_diagnostics(window, *, peak_starts=False):
         ordered = sorted(row[column] for row in rows)
         return [ordered[(p * count + 99) // 100 - 1]
                 for p in (50, 95, 99, 100)]
+    peak_raster = max(rows, key=lambda row: row[3])
+    earliest, latest = raster_start_bounds(peak_raster)
     summary = dict(window_us=window['windowUs'], samples=count,
         frame_key_gaps=rows[-1][0] + 1 - count,
         maximum_frame_key_gap=max(
@@ -164,12 +166,12 @@ def window_diagnostics(window, *, peak_starts=False):
         maximum_build_start_gap_us=max(
             (b[1] - a[1] for a, b in zip(rows, rows[1:])), default=0),
         build_us=percentiles(2), raster_us=percentiles(3), total_us=percentiles(4),
-        quarter_frames=quarters, quarter_slow_raster=slow_raster)
+        quarter_frames=quarters, quarter_slow_raster=slow_raster,
+        peak_raster_start_bounds_us=dict(earliest=earliest, latest=latest))
     if peak_starts:
         _, start, build, raster, total = max(rows, key=lambda row: row[4])
         summary.update(
-            peak_raster_start_us=max(rows, key=lambda row: row[3])[1],
-            peak_total_start_us=start,
+            peak_build_starts_us=dict(raster=peak_raster[1], total=start),
             # The original total spans vsync to raster finish. The remaining
             # time includes both the wait for build and the wait for raster.
             peak_total_parts_us=dict(

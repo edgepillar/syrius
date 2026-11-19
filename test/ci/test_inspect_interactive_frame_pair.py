@@ -286,16 +286,14 @@ class InteractiveFramePairTests(unittest.TestCase):
                 rows = pair.shared.launch.frame_timing_rows(offered_window)
                 actual = result['verified_window_diagnostics'][label][name]
                 self.assertEqual(actual['samples'], len(rows))
-                self.assertEqual(actual['peak_raster_start_us'],
-                                 max(rows, key=lambda row: row[3])[1])
                 _, start, build, raster, total = max(rows, key=lambda row: row[4])
-                self.assertEqual(actual['peak_total_start_us'], start)
+                self.assertEqual(actual['peak_build_starts_us'], dict(
+                    raster=max(rows, key=lambda row: row[3])[1], total=start))
                 self.assertEqual(actual['peak_total_parts_us'], dict(
                     build=build, raster=raster, outside_build_raster=total - build - raster))
         self.assertTrue(result['timing_criterion_passed'])
         page = result['verified_window_diagnostics']['current']['page_change']
         self.assertEqual(page['tap_release_us'], 5000)
-        self.assertEqual(page['peak_raster_offset_from_tap_us'], page['peak_raster_start_us'] - 5000)
         current_page = observation['windows']['page_change']
         _, start, build, raster, total = max(
             pair.shared.launch.frame_timing_rows(current_page), key=lambda row: row[3])

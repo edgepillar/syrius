@@ -816,6 +816,11 @@ duration is 243.843 ms in the group whose builds precede the first observed
 film frame. Three raster starts fall at or after observed Lock arrival.
 Two exceed 16 ms and the maximum is 61.354 ms. V02 remains open.
 
+The timing readers report the earliest and latest possible raster start for
+the peak raster frame. The interactive reader also labels the original
+build-start offsets and relates the raster bounds to pointer release where
+available. The original frame samples and 16 ms comparison are retained.
+
 The Lock raster preparation now waits for the original film to advance past
 its first frame. It uses the laid-out backdrop while the film still covers
 it. The widget case exercises the wait and reuse on first visible paint.

@@ -154,12 +154,10 @@ def _window_diagnostics(window, tap_release_us, motion_us, disclosure_phases=Non
     result = cold.window_diagnostics(window, peak_starts=True)
     if tap_release_us is not None:
         rows = pair.shared.launch.frame_timing_rows(window, allow_packed=True)
-        peak = max(rows, key=lambda row: row[3])
-        earliest, latest = cold.raster_start_bounds(peak, tap_release_us)
         result['tap_release_us'] = tap_release_us
-        result['peak_raster_offset_from_tap_us'] = peak[1] - tap_release_us
-        result['peak_raster_start_bounds_from_tap_us'] = dict(
-            earliest=earliest, latest=latest)
+        result['peak_raster_start_bounds_from_tap_us'] = {
+            name: offset - tap_release_us
+            for name, offset in result.pop('peak_raster_start_bounds_us').items()}
         groups = _raster_groups('before', 'within', 'after', 'crossing')
         offsets = {name: offset - tap_release_us
                    for name, offset in (disclosure_phases or {}).items()}
