@@ -526,6 +526,8 @@ class _DisclosureHeaderState extends State<_DisclosureHeader> {
           // desktop, and the row would not look pressable.
           mouseCursor: SystemMouseCursors.click,
           hoverColor: tokens.hover,
+          // The reveal and chevron already animate the press.
+          splashFactory: NoSplash.splashFactory,
           // Focus is the ring below, not a fill: the theme's focus fill is
           // heavier than the hover it would sit beside.
           focusColor: Colors.transparent,

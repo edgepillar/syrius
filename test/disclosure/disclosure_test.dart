@@ -165,7 +165,12 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byKey(_toggle));
+      final Finder toggle = find.byKey(_toggle);
+      expect(
+        tester.widget<InkWell>(toggle).splashFactory,
+        same(NoSplash.splashFactory),
+      );
+      await tester.tap(toggle);
       await tester.pump();
       expect(changes, <bool>[true]);
       await tester.pump(const Duration(milliseconds: 120));
@@ -238,7 +243,7 @@ void main() {
       expect(_clip(tester), Clip.hardEdge);
       expect(layer.firstChild, same(paint));
 
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 15));
       expect(_height(tester, _disclosure), _header + _bodyHeight);
       expect(tester.getRect(find.byKey(_body)).top, _header);
       expect(_clip(tester), Clip.none);
@@ -252,12 +257,13 @@ void main() {
       expect(_height(tester, _disclosure), greaterThan(_header));
       expect(_height(tester, _disclosure), lessThan(_header + _bodyHeight));
       expect(_clip(tester), Clip.hardEdge);
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 120));
 
       expect(changes, <bool>[true, false]);
       expect(find.byKey(_body, skipOffstage: false), findsNothing);
       expect(_height(tester, _disclosure), _header);
       expect(_turns(tester), -0.25);
+      expect(tester.binding.transientCallbackCount, 0);
     });
 
     testWidgets('a close turned back before it ends leaves the body in place', (
