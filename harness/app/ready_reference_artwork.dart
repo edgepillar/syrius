@@ -123,6 +123,7 @@ class PillarReferenceArtwork {
     sources: _sources,
     requiresReadiness: (_) => true,
     refusal: PillarReferenceArtworkRefused.new,
+    settleOverlay: _settleTooltips,
   );
 
   bool _current() =>
@@ -135,6 +136,22 @@ class PillarReferenceArtwork {
   /// While reading it, the normal receipt assertion still verifies its owner.
   bool isReadingSample(Element owner) =>
       _readingSample && identical(owner, _owner) && _current();
+
+  Future<void> _settleTooltips() async {
+    const Duration budget = Duration(seconds: 1);
+    final Stopwatch elapsed = Stopwatch()..start();
+    // The native mouse can keep a receipt tooltip open after the scripted tap.
+    // Wait for Flutter's own dismissal animation before holding the artwork.
+    while (_current()) {
+      if (!Tooltip.dismissAllToolTips()) return;
+      final Duration remaining = budget - elapsed.elapsed;
+      if (remaining <= Duration.zero) break;
+      await WidgetsBinding.instance.endOfFrame.timeout(remaining);
+    }
+    throw const PillarReferenceArtworkRefused(
+      ReferenceArtworkFailureStage.overlay,
+    );
+  }
 
   List<ReferenceArtworkSource> _sources() {
     final List<ReferenceArtworkSource> sources = <ReferenceArtworkSource>[];
@@ -170,6 +187,11 @@ class PillarReferenceArtwork {
   }) => _capture.capture<T>(
     frames: frames,
     readback: () async {
+      if (Tooltip.dismissAllToolTips()) {
+        throw const PillarReferenceArtworkRefused(
+          ReferenceArtworkFailureStage.overlay,
+        );
+      }
       _readingSample = true;
       try {
         return await readback();
@@ -279,6 +301,9 @@ enum ReferenceArtworkFailureStage {
 
   /// The original assets did not become ready within the preparation budget.
   readiness,
+
+  /// An open tooltip was still present at the resting receipt capture.
+  overlay,
 
   /// A renderer refused to select its authored sample.
   sample,
@@ -414,6 +439,7 @@ class _ReferenceArtworkCapture {
     required this._requiresReadiness,
     required this._refusal,
     this._prepareBudget,
+    this._settleOverlay,
   });
 
   final bool Function() _current;
@@ -421,6 +447,7 @@ class _ReferenceArtworkCapture {
   final bool Function(ReferenceArtworkSource) _requiresReadiness;
   final Exception Function(ReferenceArtworkFailureStage) _refusal;
   final Duration? _prepareBudget;
+  final Future<void> Function()? _settleOverlay;
   bool _held = false;
   bool _busy = false;
   CaptureFrameGate? _originalFrames;
@@ -488,6 +515,12 @@ class _ReferenceArtworkCapture {
               !identical(sources[index].referenceArtworkReadiness, original)) {
             _refuse(stage);
           }
+        }
+        final Future<void> Function()? settleOverlay = _settleOverlay;
+        if (settleOverlay != null) {
+          stage = ReferenceArtworkFailureStage.overlay;
+          await settleOverlay();
+          if (!_current()) _refuse(stage);
         }
         stage = ReferenceArtworkFailureStage.renderers;
         final List<ReferenceArtworkSource> fresh = _sources();

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lottie/lottie.dart';
@@ -130,11 +131,13 @@ void main() {
     });
   }
 
-  testWidgets('Pillar samples the 99% frame and restores playback', (
+  testWidgets('Pillar settles tooltips, samples 99% and restores playback', (
     WidgetTester tester,
   ) async {
     prepare(tester);
     const Key receipt = Key('confirmed_pillar_fixture');
+    const Key address = Key('pillar_receipt_address');
+    const String tooltipText = 'Full receipt address';
     await tester.pumpWidget(
       DefaultAssetBundle(
         bundle: _Bundle(),
@@ -142,7 +145,17 @@ void main() {
           home: Scaffold(
             body: Center(
               key: receipt,
-              child: AppLottie(AppLottieAsset.pillar, size: 340, repeat: false),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Tooltip(
+                    message: tooltipText,
+                    waitDuration: Duration.zero,
+                    child: Text('Receipt address', key: address),
+                  ),
+                  AppLottie(AppLottieAsset.pillar, size: 340, repeat: false),
+                ],
+              ),
             ),
           ),
         ),
@@ -165,6 +178,16 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 3));
 
+    final TestGesture mouse = await tester.createGesture(
+      kind: PointerDeviceKind.mouse,
+    );
+    final Offset addressCenter = tester.getCenter(find.byKey(address));
+    await mouse.addPointer(location: Offset.zero);
+    await mouse.moveTo(addressCenter);
+    await tester.pumpAndSettle();
+    final Finder tooltip = find.text(tooltipText);
+    expect(tooltip, findsOneWidget);
+
     final Finder lottie = find.byType(Lottie);
     final Element renderer = tester.element(lottie);
     final Animation<double> original = (renderer.widget as Lottie).controller!;
@@ -180,6 +203,7 @@ void main() {
       double frame,
       AnimationStatus originalStatus,
       bool reading,
+      bool tooltipVisible,
     }) sample = await _finish(
       tester,
       frames,
@@ -192,17 +216,24 @@ void main() {
             controller: held.controller,
             frame: held.controller!.value * held.composition!.durationFrames,
             originalStatus: original.status,
+            tooltipVisible: tooltip.evaluate().isNotEmpty,
           );
         },
       ),
     );
     expect(sample.reading, isTrue);
+    expect(sample.tooltipVisible, isFalse);
     expect(sample.controller, isNot(same(original)));
     expect(sample.frame, closeTo(118, .0001));
     expect(sample.originalStatus, AnimationStatus.completed);
     expect(artwork.isReadingSample(owner), isFalse);
     expect(tester.element(lottie), same(renderer));
     expect(tester.widget<Lottie>(lottie).controller, same(original));
+    await mouse.moveTo(Offset.zero);
+    await mouse.moveTo(addressCenter);
+    await tester.pumpAndSettle();
+    expect(tooltip, findsOneWidget);
+    await mouse.removePointer();
   });
 
   testWidgets('Originals samples the film and its eight Lotties', (
