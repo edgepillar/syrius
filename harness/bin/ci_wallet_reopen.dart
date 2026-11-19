@@ -949,6 +949,7 @@ const Set<String> _spawnLines = <String>{
   'wait --key pillar_producer_address_field --kind field --ready --timeout 30',
   'type --key pillar_producer_address_field',
   'tap --key pillar_use_owner_address --kind button --exact',
+  'tap --key pillar_create_title --kind text --exact',
   'assert --key pillar_name_field --kind field',
   'assert --key pillar_producer_address_field --kind field',
   'assert --key pillar_reward_address_field --kind field',
@@ -1388,6 +1389,9 @@ Future<Map<String, Object>> _captureSeededCatalog(
             final Object? target = asserted['target'];
             if (target is! Map || target['value'] != expectedValue) {
               throw const FormatException('seeded draft field refused');
+            }
+            if (pillarSpawn && target['focused'] == true) {
+              throw const FormatException('Pillar draft field still focused');
             }
           }
           if (pillarSpawn && key == 'pillar_details_next_button') {

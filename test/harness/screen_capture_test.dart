@@ -572,6 +572,7 @@ void main() {
             producerReady,
             'type --key pillar_producer_address_field',
             'tap --key pillar_use_owner_address --kind button --exact',
+            'tap --key pillar_create_title --kind text --exact',
             'assert --key pillar_name_field --kind field',
             'assert --key pillar_producer_address_field --kind field',
             'assert --key pillar_reward_address_field --kind field',

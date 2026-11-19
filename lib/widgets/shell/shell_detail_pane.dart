@@ -75,9 +75,13 @@ class ShellDetailPane extends StatelessWidget {
                     ),
                     SizedBox(width: tokens.inlineGap),
                     Expanded(
-                      child: Text(
-                        title,
-                        style: tokens.headingText,
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Text(
+                          title,
+                          key: ValueKey<String>('${keyPrefix}_title'),
+                          style: tokens.headingText,
+                        ),
                       ),
                     ),
                     IconButton(

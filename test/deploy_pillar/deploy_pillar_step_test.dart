@@ -128,6 +128,8 @@ void main() {
     await tester.tap(find.byKey(const Key('pillar_use_owner_address')));
     await tester.pump();
     expect(tester.widget<TextField>(reward).controller!.text, owner);
+    final AppTokens tokens = AppTokens.of(tester.element(reward));
+    expect(tester.getSize(reward).height, closeTo(tokens.fieldHeight, .01));
 
     await tester.tap(detailsNext);
     await tester.pumpAndSettle();

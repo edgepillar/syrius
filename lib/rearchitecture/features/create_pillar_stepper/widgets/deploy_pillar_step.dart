@@ -189,12 +189,30 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
     final VoidCallback? next = active && _isInputValid()
         ? () => _changeStage(_Stage.details, _Stage.sharing)
         : null;
+    final AppTokens tokens = AppTokens.of(context);
+    final ThemeData theme = Theme.of(context);
     return TokenStepFrame(
       active: active && _stage == _Stage.details,
       busy: _isSending,
       onBack: widget.onBackPressed,
       onSubmit: next,
-      body: _buildTextFields(context),
+      body: Theme(
+        data: theme.copyWith(
+          inputDecorationTheme: theme.inputDecorationTheme.copyWith(
+            isDense: true,
+            contentPadding: tokens.sendFieldPadding,
+            constraints: BoxConstraints(minHeight: tokens.fieldHeight),
+          ),
+          iconButtonTheme: IconButtonThemeData(
+            style: IconButton.styleFrom(
+              minimumSize: Size.square(tokens.fieldHeight),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.standard,
+            ),
+          ),
+        ),
+        child: _buildTextFields(context),
+      ),
       primary: KeyedSubtree(
         key: const Key('pillar_details_next_button'),
         child: PrimaryPill(
@@ -461,6 +479,9 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
               errorText: _pillarMomentumController.text.isNotEmpty
                   ? _pillarMomentumError
                   : null,
+              suffixIconConstraints: BoxConstraints(
+                minHeight: tokens.fieldHeight,
+              ),
               suffixIcon: FieldSuffixButtons(
                 controller: _pillarMomentumController,
               ),
@@ -481,11 +502,19 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
               errorText: _pillarRewardAddressController.text.isNotEmpty
                   ? _pillarRewardAddressError
                   : null,
+              suffixIconConstraints: BoxConstraints(
+                minHeight: tokens.fieldHeight,
+              ),
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   TextButton(
                     key: const Key('pillar_use_owner_address'),
+                    style: TextButton.styleFrom(
+                      minimumSize: Size(0, tokens.fieldHeight),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.standard,
+                    ),
                     onPressed: _canUseOwnerAddress ? _useOwnerAddress : null,
                     child: Text(context.l10n.tokensThisAddress),
                   ),
