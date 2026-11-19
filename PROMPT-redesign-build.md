@@ -858,6 +858,9 @@ in both themes. The reference table ends at 255. Each row now reserves a
 The existing standard and scaled cases check these dimensions.
 The Settings reader reports the original row boundaries from the
 verified archive without extracting the images.
+The [Linux run at `2debedd8`](https://github.com/edgepillar/syrius/actions/runs/44640247993/job/135969170925)
+passes analysis, the standard and scaled Node cases, the non-chain suite
+and generated-file checks.
 The updated native row positions and whole-screen verdict remain open.
 
 At column 700, both original About images at `cc574e9a` fill rows 36 through
@@ -1162,6 +1165,15 @@ new case.
 The [Linux rerun at `825af826`](https://github.com/edgepillar/syrius/actions/runs/44639532273/job/135966688004)
 passes the corrected count gate, analysis, the non-chain suite and
 generated-file checks.
+The [Windows producer at `825af826`](https://github.com/edgepillar/syrius/actions/runs/44639532414/job/135966689069)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44642039885/job/135975264506)
+retain 97 redesign frames, 1,788 P06 frames and five normal process exits.
+The 16 ms comparison fails for raster and distinct frames. Frame numbers
+have 28 gaps in the redesign window and 1,070 in P06.
+There is one ranked raster excess during playback, one after the film ends
+while it still covers the next view, and one during the handoff.
+The largest excess is 16.493 ms in the covered interval, from a 119.162 ms
+raster against 102.669 ms in P06. V02 remains open.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
