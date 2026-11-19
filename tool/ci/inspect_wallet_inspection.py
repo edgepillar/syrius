@@ -38,6 +38,7 @@ VERSIONED_INPUTS = frozenset((
     'harness/bin/readonly_settings_catalog.dart',
     'harness/bin/wallet_recipe.dart',
     'lib/rearchitecture/utils/widgets/entry_field.dart',
+    'lib/widgets/modular_widgets/help_widgets/about_card.dart',
     'lib/widgets/modular_widgets/help_widgets/originals_card.dart',
     'lib/widgets/modular_widgets/help_widgets/originals_tiles.dart',
     'lib/widgets/modular_widgets/settings_widgets/wallet_settings_view.dart',

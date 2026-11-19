@@ -81,8 +81,7 @@ void main() {
           await tester.pump();
           expect(
             tester.getSize(find.byKey(const Key('about_strip'))).height,
-            inInclusiveRange(70, 71),
-            reason: 'CSS line boxes total 70.5 px before raster rounding.',
+            70,
           );
           final Rect version = tester.getRect(
             find.byKey(const Key('about_version')),
@@ -109,9 +108,7 @@ void main() {
           );
           expect(
             tester.getSize(find.byKey(const Key('about_strip'))).height,
-            variant.$3 > 1
-                ? greaterThan(71)
-                : inInclusiveRange(70, 71),
+            variant.$3 > 1 ? greaterThan(71) : 70,
           );
           expect(_text(tester, 'about_version').data, '9.8.7-rc.2');
           expect(_text(tester, 'about_embedded_version').data, 'Unknown');

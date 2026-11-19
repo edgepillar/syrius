@@ -291,6 +291,7 @@ class _AboutCardState extends State<AboutCard> {
             key: const Key('about_strip'),
             figures: figures,
             minimumContentHeight: tokens.aboutStripContentHeight,
+            padding: tokens.aboutStripPadding,
             figureGap: tokens.aboutStripFigureGap,
             actions: <Widget>[updates],
           );
@@ -303,6 +304,7 @@ class _AboutCardState extends State<AboutCard> {
               PageStrip(
                 figures: figures,
                 minimumContentHeight: tokens.aboutStripContentHeight,
+                padding: tokens.aboutStripPadding,
                 figureGap: tokens.aboutStripFigureGap,
               ),
               Padding(
