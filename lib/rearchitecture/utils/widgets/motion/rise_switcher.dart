@@ -234,62 +234,64 @@ class _RiseSwitcherState extends State<RiseSwitcher>
   }
 
   @override
-  Widget build(BuildContext context) => Stack(
-    fit: StackFit.expand,
-    children: <Widget>[
-      for (final _SwitchEntry entry in _entries)
-        KeyedSubtree(
-          key: entry.key,
-          // Focus, semantics and child tickers only need the visibility edge.
-          child: ValueListenableBuilder<bool>(
-            valueListenable: entry.visible,
-            // The enclosing transform and fade can reuse the page's paint.
-            child: RepaintBoundary(child: entry.child),
-            builder: (BuildContext context, bool visible, Widget? child) {
-              final bool interactive = entry.interactive;
-              return IgnorePointer(
-                ignoring: !interactive,
-                child: ExcludeSemantics(
-                  excluding: !interactive,
-                  child: Focus(
-                    focusNode: entry.focus,
-                    canRequestFocus: false,
-                    skipTraversal: true,
-                    descendantsAreFocusable: interactive,
-                    includeSemantics: false,
-                    onFocusChange: (_) => entry.clearBlockedFocus(),
-                    child: AnimatedBuilder(
-                      animation: entry.entrance,
-                      child: FadeThroughTransition(
-                        animation: entry.primary,
-                        secondaryAnimation: entry.exit,
-                        fillColor: Colors.transparent,
-                        child: TickerMode(
-                          // Only child tickers follow visibility; the
-                          // transition's own clocks keep running.
-                          enabled: visible,
-                          child: child!,
-                        ),
-                      ),
-                      builder: (BuildContext context, Widget? child) =>
-                          Transform.translate(
-                            offset: Offset(
-                              0,
-                              entry.rise *
-                                  (1 -
-                                      AppTokens.of(context).spring.transform(
-                                        entry.primary.value,
-                                      )),
-                            ),
-                            child: child,
+  Widget build(BuildContext context) => RepaintBoundary(
+    // The moving pages stay in their own layer beside the shell chrome.
+    child: Stack(
+      fit: StackFit.expand,
+      children: <Widget>[
+        for (final _SwitchEntry entry in _entries)
+          KeyedSubtree(
+            key: entry.key,
+            // Focus and child tickers only need the visibility edge.
+            child: ValueListenableBuilder<bool>(
+              valueListenable: entry.visible,
+              // The transform and fade can reuse each page's paint.
+              child: RepaintBoundary(child: entry.child),
+              builder: (BuildContext context, bool visible, Widget? child) {
+                final bool interactive = entry.interactive;
+                return IgnorePointer(
+                  ignoring: !interactive,
+                  child: ExcludeSemantics(
+                    excluding: !interactive,
+                    child: Focus(
+                      focusNode: entry.focus,
+                      canRequestFocus: false,
+                      skipTraversal: true,
+                      descendantsAreFocusable: interactive,
+                      includeSemantics: false,
+                      onFocusChange: (_) => entry.clearBlockedFocus(),
+                      child: AnimatedBuilder(
+                        animation: entry.entrance,
+                        child: FadeThroughTransition(
+                          animation: entry.primary,
+                          secondaryAnimation: entry.exit,
+                          fillColor: Colors.transparent,
+                          child: TickerMode(
+                            // Child tickers follow the page's visibility.
+                            enabled: visible,
+                            child: child!,
                           ),
+                        ),
+                        builder: (BuildContext context, Widget? child) =>
+                            Transform.translate(
+                              offset: Offset(
+                                0,
+                                entry.rise *
+                                    (1 -
+                                        AppTokens.of(context).spring.transform(
+                                          entry.primary.value,
+                                        )),
+                              ),
+                              child: child,
+                            ),
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
-        ),
-    ],
+      ],
+    ),
   );
 }

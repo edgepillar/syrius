@@ -40,6 +40,18 @@ class _PageState extends State<_Page> {
       SizedBox.expand(key: ValueKey<String>('page_${widget.name}'));
 }
 
+class _ShellPaint extends CustomPainter {
+  const _ShellPaint(this.onPaint);
+
+  final VoidCallback onPaint;
+
+  @override
+  void paint(Canvas canvas, Size size) => onPaint();
+
+  @override
+  bool shouldRepaint(_ShellPaint oldDelegate) => false;
+}
+
 Widget _host(
   int index, {
   Widget? page,
@@ -47,6 +59,7 @@ Widget _host(
   Duration? reverseDuration,
   double? rise,
   bool disableAnimations = false,
+  CustomPainter? shellPaint,
 }) {
   final Widget destination =
       page ?? KeyedSubtree(key: ValueKey<int>(index), child: _Page('$index'));
@@ -64,7 +77,9 @@ Widget _host(
     child: MediaQuery(
       data: MediaQueryData(disableAnimations: disableAnimations),
       child: Material(
-        child: switcher,
+        child: shellPaint == null
+            ? switcher
+            : CustomPaint(painter: shellPaint, child: switcher),
       ),
     ),
   );
@@ -193,6 +208,8 @@ void main() {
     testWidgets('fade-through separates visibility and finishes at 320 ms', (
       WidgetTester tester,
     ) async {
+      int shellPaints = 0;
+      final _ShellPaint shell = _ShellPaint(() => shellPaints++);
       Widget paintedPage(int index, Color color) => KeyedSubtree(
         key: ValueKey<int>(index),
         child: ColoredBox(
@@ -203,12 +220,13 @@ void main() {
       );
       OffsetLayer layerFor(int index) {
         final RenderRepaintBoundary boundary = tester.renderObject(
-          find
-              .ancestor(
-                of: _page(index),
-                matching: find.byType(RepaintBoundary),
-              )
-              .first,
+          find.ancestor(
+            of: _page(index),
+            matching: find.byWidgetPredicate(
+              (Widget widget) =>
+                  widget is RepaintBoundary && widget.child is KeyedSubtree,
+            ),
+          ),
         );
         return boundary.debugLayer! as OffsetLayer;
       }
@@ -220,11 +238,17 @@ void main() {
         ),
       );
 
-      await tester.pumpWidget(_host(0, page: paintedPage(0, Colors.red)));
+      await tester.pumpWidget(
+        _host(0, page: paintedPage(0, Colors.red), shellPaint: shell),
+      );
       final OffsetLayer leaving = layerFor(0);
       final Layer? leavingPaint = leaving.firstChild;
       expect(leavingPaint, isNotNull);
-      await tester.pumpWidget(_host(1, page: paintedPage(1, Colors.green)));
+      expect(shellPaints, greaterThan(0));
+      await tester.pumpWidget(
+        _host(1, page: paintedPage(1, Colors.green), shellPaint: shell),
+      );
+      final int shellPaintsAtStart = shellPaints;
       expect(find.byType(FadeThroughTransition), findsNWidgets(2));
       expect(_opacity(tester, _page(0)), 1);
       expect(_opacity(tester, _page(1)), 0);
@@ -236,6 +260,7 @@ void main() {
       expect(transitionFor(0), same(exitTransition));
       expect(transitionFor(1), same(hiddenTransition));
       expect(leaving.firstChild, same(leavingPaint));
+      expect(shellPaints, shellPaintsAtStart);
       await tester.pump(const Duration(milliseconds: 16));
       expect(_opacity(tester, _page(0)), 0);
       expect(_opacity(tester, _page(1)), closeTo(0, 1e-9));
@@ -257,8 +282,11 @@ void main() {
       expect(arriving.firstChild, same(arrivingPaint));
       await tester.pump(const Duration(microseconds: 1));
       expect(tester.binding.hasScheduledFrame, isFalse);
+      expect(shellPaints, shellPaintsAtStart);
 
-      await tester.pumpWidget(_host(1, page: paintedPage(1, Colors.blue)));
+      await tester.pumpWidget(
+        _host(1, page: paintedPage(1, Colors.blue), shellPaint: shell),
+      );
       expect(arriving.firstChild, isNot(same(arrivingPaint)));
     });
 
