@@ -709,6 +709,17 @@ actor exits. The early handoff sample is missing. The [cold launch](https://gith
 [page change and disclosure](https://github.com/edgepillar/syrius/actions/runs/44583354667/job/135769611827)
 comparisons against P06 failed the 16 ms acceptance check.
 
+The [paired cold run at `8935b5ba`](https://github.com/edgepillar/syrius/actions/runs/44593889453/job/135806899165)
+retained 85 current and 810 P06 frames with five normal actor exits. The
+16 ms comparison still fails, and both samples have gaps in frame numbers.
+The current maximum raster time was 246.312 ms after the Lock view settled.
+The [separate startup catalog](https://github.com/edgepillar/syrius/actions/runs/44593958607/job/135807141586)
+verifies twelve actual Launch, Lock and quiz captures from that source.
+The next startup change starts optional page artwork preload on the first
+unlocked shell. The eye loads first for Home. The other three compositions
+load sequentially for the remaining wallet pages. New
+Windows timings are required for V02.
+
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
 | Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Native late and settled samples. | Observe the early handoff and complete 400 ms settle. |

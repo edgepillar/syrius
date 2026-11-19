@@ -102,6 +102,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   /// timer, which changes without a change of page (the countdown starting
   /// after a new wallet is made), so the rail cannot read it at build time.
   final ValueNotifier<bool> _locked = ValueNotifier<bool>(true);
+  bool _pageArtPreloadStarted = false;
 
   /// Zero is the cold-entry still; explicit lock or replay starts the well.
   final ValueNotifier<int> _lockReplay = ValueNotifier<int>(0);
@@ -740,7 +741,15 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   /// Tells the rail after anything that starts or stops the auto-lock timer.
   void _syncLocked() {
-    _locked.value = _isWalletLocked();
+    final bool locked = _isWalletLocked();
+    _locked.value = locked;
+    if (!locked && !_pageArtPreloadStarted) {
+      _pageArtPreloadStarted = true;
+      // Only the unlocked pages use these optional compositions.
+      unawaited(
+        AppLottie.preload().onError<Object>((Object _, StackTrace _) {}),
+      );
+    }
     _syncBell();
   }
 

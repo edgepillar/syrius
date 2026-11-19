@@ -151,10 +151,10 @@ class AppLottie extends StatelessWidget {
   /// about 20 MB of pixels, kept from then on.
   static Future<void> preload({AssetBundle? bundle}) async {
     for (final AppLottieAsset asset in const <AppLottieAsset>[
+      AppLottieAsset.eye,
       AppLottieAsset.zts,
       AppLottieAsset.pillar,
       AppLottieAsset.sentinel,
-      AppLottieAsset.eye,
     ]) {
       // One at a time: each is an isolate and a burst of decodes, and
       // nothing is waiting for the last of them.

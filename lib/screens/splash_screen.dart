@@ -87,8 +87,6 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted || _initsScheduled) return;
     _initsScheduled = true;
     _startup.wait();
-    // Optional art preloading cannot replace startup's actual result.
-    unawaited(AppLottie.preload().onError<Object>((Object _, StackTrace _) {}));
     final Future<void> original = _splashInits();
     _entryCapture?.retainSplashOperation(original);
     unawaited(original);
