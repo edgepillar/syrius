@@ -158,9 +158,14 @@ def window_diagnostics(window, *, peak_starts=False):
         build_us=percentiles(2), raster_us=percentiles(3), total_us=percentiles(4),
         quarter_frames=quarters, quarter_slow_raster=slow_raster)
     if peak_starts:
+        _, start, build, raster, total = max(rows, key=lambda row: row[4])
         summary.update(
             peak_raster_start_us=max(rows, key=lambda row: row[3])[1],
-            peak_total_start_us=max(rows, key=lambda row: row[4])[1])
+            peak_total_start_us=start,
+            # The original total spans vsync to raster finish. The remaining
+            # time includes both the wait for build and the wait for raster.
+            peak_total_parts_us=dict(
+                build=build, raster=raster, outside_build_raster=total - build - raster))
     if pair.launch.STARTUP_PHASE_FIELD in window:
         offsets = window[pair.launch.STARTUP_PHASE_FIELD]
         frames, raster, total = [0] * 5, [0] * 5, [0] * 5

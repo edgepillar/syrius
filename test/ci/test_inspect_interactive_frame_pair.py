@@ -284,8 +284,10 @@ class InteractiveFramePairTests(unittest.TestCase):
                 self.assertEqual(actual['samples'], len(rows))
                 self.assertEqual(actual['peak_raster_start_us'],
                                  max(rows, key=lambda row: row[3])[1])
-                self.assertEqual(actual['peak_total_start_us'],
-                                 max(rows, key=lambda row: row[4])[1])
+                _, start, build, raster, total = max(rows, key=lambda row: row[4])
+                self.assertEqual(actual['peak_total_start_us'], start)
+                self.assertEqual(actual['peak_total_parts_us'], dict(
+                    build=build, raster=raster, outside_build_raster=total - build - raster))
         self.assertTrue(result['timing_criterion_passed'])
         offered['samples']['p06'].update(profile_stable=False, success=False)
         offered.update(phase='p06_interactive', success=False, comparisons=None,
