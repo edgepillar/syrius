@@ -14,6 +14,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/pa
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+import '../helpers/mockup_symbol.dart';
+
 const Key _surface = Key('fixture_fuse_disclosure');
 const Key _amount = Key('fuse_plasma_amount_field');
 const Key _another = Key('fuse_plasma_beneficiary_address_field');
@@ -255,10 +257,10 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Available'), findsNothing);
       expect(find.text('After fusing'), findsNothing);
-      expect(
-        find.text('Cancel unlocked fuses to recover QSR.'),
-        findsOneWidget,
-      );
+      final Finder note = find.text('Cancel unlocked fuses to recover QSR.');
+      expect(note, findsOneWidget);
+      final AppTokens tokens = AppTokens.of(tester.element(note));
+      expect(tester.widget<Text>(note).style!.color, tokens.faint);
       expect(find.textContaining('10 hours'), findsNothing);
       expect(
         find.descendant(
@@ -305,7 +307,15 @@ void main() {
         closeTo(tester.getRect(find.byKey(_menu)).top, 1),
       );
       final Finder beneficiary = find.descendant(
-        of: find.byKey(_menu), matching: find.byType(InputDecorator),
+        of: find.byKey(_menu),
+        matching: find.byType(InputDecorator),
+      );
+      expectMockupSymbol(
+        tester,
+        within: beneficiary,
+        symbol: 'chev',
+        size: 14,
+        color: tokens.faint,
       );
       final Finder row = find.descendant(
         of: beneficiary, matching: find.byType(Row),

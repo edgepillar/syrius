@@ -5,6 +5,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/widgets
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 /// A beneficiary captured from the wallet's existing address list.
@@ -323,7 +325,9 @@ class _FusePlasmaFormState extends State<FusePlasmaForm> {
                   Expanded(
                     child: Text(
                       context.l10n.plasmaFuseLockNote,
-                      style: tokens.plasmaFuseHintText,
+                      style: tokens.plasmaFuseHintText.copyWith(
+                        color: tokens.faint,
+                      ),
                     ),
                   ),
                   if (widget.showAnother)
@@ -481,7 +485,12 @@ class _FusePlasmaFormState extends State<FusePlasmaForm> {
                   context.l10n.plasmaFuseAnotherAddress,
                   style: tokens.plasmaFuseHintText,
                 ),
-                Icon(Icons.expand_more, size: tokens.heroIconSize),
+                SizedBox(width: tokens.inlineGap),
+                ShellSymbol(
+                  'chev',
+                  size: tokens.smallActionGlyphSize,
+                  color: tokens.faint,
+                ),
               ],
             ),
           ),
@@ -498,7 +507,7 @@ class _FusePlasmaFormState extends State<FusePlasmaForm> {
     key: const Key('fuse_plasma_beneficiary_selector'),
     tooltip: context.l10n.plasmaFuseFor,
     icon: child == null
-        ? Icon(Icons.expand_more, size: AppTokens.of(context).heroIconSize)
+        ? ShellSymbol('chev', size: AppTokens.of(context).smallActionGlyphSize)
         : null,
     enabled: isCurrent(),
     onSelected: (int index) => _pick(index, isCurrent),
