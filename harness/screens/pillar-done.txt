@@ -1,5 +1,6 @@
 # prerequisite: restored-lab-pillar-registration
-# Both themes wait for the original receipt artwork to reach its final frame.
+# Both themes wait for the original playback to finish before sampling the
+# reference composition frame during readback.
 wait --key pillar_registration_confirmed --ready --timeout 60
 wait --key registration_confirmation_caption --timeout 10
 # Tap the passive caption to dismiss tooltips from either mouse device.

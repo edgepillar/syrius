@@ -130,6 +130,72 @@ void main() {
     });
   }
 
+  testWidgets('Pillar samples the 99% frame and restores playback', (
+    WidgetTester tester,
+  ) async {
+    prepare(tester);
+    const Key receipt = Key('confirmed_pillar_fixture');
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: _Bundle(),
+        child: const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              key: receipt,
+              child: AppLottie(AppLottieAsset.pillar, size: 340, repeat: false),
+            ),
+          ),
+        ),
+      ),
+    );
+    final ReferenceArtworkSource source = tester.allStates
+        .whereType<ReferenceArtworkSource>()
+        .single;
+    final EntryCaptureCompletion loaded = EntryCaptureCompletion(
+      source.referenceArtworkReadiness!,
+    );
+    for (int frame = 0; frame < 200 &&
+        loaded.status == EntryCaptureStatus.pending; frame++) {
+      await tester.runAsync<void>(
+        () => Future<void>.delayed(const Duration(milliseconds: 5)),
+      );
+      await tester.pump();
+    }
+    expect(loaded.status, EntryCaptureStatus.succeeded);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 3));
+
+    final Finder lottie = find.byType(Lottie);
+    final Animation<double> original =
+        tester.widget<Lottie>(lottie).controller!;
+    expect(original.status, AnimationStatus.completed);
+    final Element owner = tester.element(find.byKey(receipt));
+    final PillarReferenceArtwork artwork = PillarReferenceArtwork(
+      owner: owner,
+      admitted: () => true,
+    );
+    final _Frames frames = _Frames();
+    await _finish<void>(
+      tester,
+      frames,
+      artwork.capture<void>(
+        frames: frames.gate,
+        readback: () async {
+          expect(artwork.isReadingSample(owner), isTrue);
+          final Lottie held = tester.widget<Lottie>(lottie);
+          expect(held.controller, isNot(same(original)));
+          expect(
+            held.controller!.value * held.composition!.durationFrames,
+            closeTo(118, .0001),
+          );
+          expect(original.status, AnimationStatus.completed);
+        },
+      ),
+    );
+    expect(artwork.isReadingSample(owner), isFalse);
+    expect(tester.widget<Lottie>(lottie).controller, same(original));
+  });
+
   testWidgets('Originals samples the film and its eight Lotties', (
     WidgetTester tester,
   ) async {

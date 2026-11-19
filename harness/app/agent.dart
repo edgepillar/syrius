@@ -565,6 +565,8 @@ class HarnessAgent {
   bool _readyArtworkRefused = false;
   bool _stakingArtworkRefused = false;
   bool _originalsArtworkRefused = false;
+  PillarReferenceArtwork? _pillarArtwork;
+  bool _pillarArtworkRefused = false;
   bool _readonlySendSyncReserved = false;
   final Set<String> _activityMessageSeamThemes = <String>{};
   bool _activityMessageSeamHeld = false;
@@ -5028,7 +5030,10 @@ class HarnessAgent {
     required String? catalog,
     required bool pillarDone,
   }) {
-    if (pillarDone) return nodeArtworkComplete(target, AppLottieAsset.pillar);
+    if (pillarDone) {
+      return (_pillarArtwork?.isReadingSample(target) ?? false) ||
+          nodeArtworkComplete(target, AppLottieAsset.pillar);
+    }
     if (catalog == 'earn' && key == 'pillar_owner_panel') {
       return nodeArtworkComplete(target, AppLottieAsset.pillar) &&
           _stripArtworkComplete(
@@ -5638,6 +5643,11 @@ class HarnessAgent {
     final Object? assertion = c['expect'];
     if (assertion != null) {
       try {
+        if (_labPillarRegistration != null &&
+            assertion is Map<Object?, Object?> &&
+            assertion['key'] == 'pillar_registration_confirmed') {
+          return await _readPillarReferenceShot(c, assertion);
+        }
         if (_readonlyWalletReady) {
           try {
             if (_readyArtworkRefused) {
@@ -5723,6 +5733,46 @@ class HarnessAgent {
     await _frame();
     _requireCaptureFrameIdle();
     return _readShot(c);
+  }
+
+  Future<Map<String, Object?>> _readPillarReferenceShot(
+    Map<String, dynamic> command,
+    Map<Object?, Object?> assertion,
+  ) async {
+    if (_pillarArtworkRefused || _pillarArtwork != null) {
+      throw HarnessError('pillar artwork frame unavailable');
+    }
+    final List<_Node>? regions = _readonlyPositiveKeyNodes(
+      Map<String, dynamic>.from(assertion),
+    );
+    if (regions == null || regions.length != 1) {
+      throw HarnessError('pillar artwork frame unavailable');
+    }
+    final _Node original = regions.single;
+    _requireOriginalPillarDone(original);
+    final PillarReferenceArtwork artwork = PillarReferenceArtwork(
+      owner: original.element,
+      admitted: () {
+        if (!booted || _pillarArtworkRefused) return false;
+        _requireOriginalPillarDone(original);
+        return true;
+      },
+    );
+    _pillarArtwork = artwork;
+    try {
+      return await artwork.capture<Map<String, Object?>>(
+        frames: _captureFrames,
+        readback: () => _readShot(command),
+      );
+    } on PillarReferenceArtworkRefused catch (refusal) {
+      _pillarArtworkRefused = true;
+      throw HarnessError(
+        'pillar artwork frame unavailable',
+        <String, Object>{'pillar_artwork_stage': refusal.stage.name},
+      );
+    } finally {
+      _pillarArtwork = null;
+    }
   }
 
   HarnessError _captureFrameUnavailable() {

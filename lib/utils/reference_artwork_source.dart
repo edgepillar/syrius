@@ -14,6 +14,9 @@ enum ReferenceArtworkKind {
 
   /// A Lottie renderer in the visit-owned Originals gallery.
   originalsGallery,
+
+  /// The original once-only Pillar registration artwork.
+  pillarRegistration,
 }
 
 /// Implemented by the actual private State; it creates no alternate surface.

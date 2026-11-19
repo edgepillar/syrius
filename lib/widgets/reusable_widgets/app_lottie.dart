@@ -257,6 +257,8 @@ class _PlayerState extends State<_Player>
     return switch (_configuration.asset) {
       AppLottieAsset.map => ReferenceArtworkKind.walletReadyMap,
       AppLottieAsset.noData => ReferenceArtworkKind.noData,
+      AppLottieAsset.pillar when !_configuration.repeat =>
+        ReferenceArtworkKind.pillarRegistration,
       _ => ReferenceArtworkKind.welcomeGlobe,
     };
   }
@@ -273,17 +275,25 @@ class _PlayerState extends State<_Player>
     final LottieComposition? composition = _composition;
     final AppLottieAsset asset = _configuration.asset;
     final double? galleryProgress = _configuration.originalsReferenceProgress;
+    final ReferenceArtworkKind kind = referenceArtworkKind;
+    final bool pillarRegistration =
+        kind == ReferenceArtworkKind.pillarRegistration;
     final (String, double)? reference = galleryProgress != null
         ? ('originals_${asset.name}', galleryProgress)
         : switch (asset) {
             AppLottieAsset.globe => ('welcome_globe', 0.4),
             AppLottieAsset.map => ('wallet_ready_map', 0.5),
             AppLottieAsset.noData => ('no_data', 0.2),
+            AppLottieAsset.pillar when pillarRegistration =>
+              ('pillar_registration', 0.99),
             _ => null,
           };
     final bool requireMotion = galleryProgress == null &&
-        asset != AppLottieAsset.noData;
-    if (!mounted || !_active || (requireMotion && !_clock.isAnimating) ||
+        asset != AppLottieAsset.noData && !pillarRegistration;
+    bool clockCurrent() => pillarRegistration
+        ? _clock.isCompleted && !_clock.isAnimating
+        : !requireMotion || _clock.isAnimating;
+    if (!mounted || !_active || !clockCurrent() ||
         entry == null ||
         composition == null || _referenceFrame != null ||
         reference == null ||
@@ -309,16 +319,16 @@ class _PlayerState extends State<_Player>
         identical(_entry, entry) && identical(_composition, composition) &&
         identical(_configuration.controller ?? _clock, original) &&
         _configuration.asset == asset &&
+        referenceArtworkKind == kind &&
         _configuration.originalsReferenceProgress == galleryProgress;
     late final ReferenceArtworkFrame frame;
     frame = ReferenceArtworkFrame(
-      owner: this, generation: entry, kind: referenceArtworkKind,
+      owner: this, generation: entry, kind: kind,
       observation: <String, Object>{
         'kind': reference.$1,
         'frame': index, 'frame_count': count,
       },
-      current: () => originalCurrent() &&
-          (!requireMotion || _clock.isAnimating) &&
+      current: () => originalCurrent() && clockCurrent() &&
           identical(_referenceFrame, frame) &&
           identical(_referenceProgress, sample),
       observed: () => identical(_paintedController, sample),

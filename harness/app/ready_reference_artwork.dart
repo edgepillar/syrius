@@ -100,6 +100,86 @@ class ReadyReferenceArtwork {
   }) => _capture.capture<T>(frames: frames, readback: readback);
 }
 
+/// A confirmed registration whose original art could not be sampled.
+class PillarReferenceArtworkRefused implements Exception {
+  /// Reports only the finite failure stage.
+  const PillarReferenceArtworkRefused(this.stage);
+
+  /// The phase at which the original art became unavailable.
+  final ReferenceArtworkFailureStage stage;
+}
+
+/// Samples the original Pillar player inside one admitted receipt.
+class PillarReferenceArtwork {
+  /// The owning receipt and its positive registration check are supplied by
+  /// the original capture route.
+  PillarReferenceArtwork({required this._owner, required this._admitted});
+
+  final Element _owner;
+  final bool Function() _admitted;
+  bool _readingSample = false;
+  late final _ReferenceArtworkCapture _capture = _ReferenceArtworkCapture(
+    current: _current,
+    sources: _sources,
+    requiresReadiness: (_) => true,
+    refusal: PillarReferenceArtworkRefused.new,
+  );
+
+  bool _current() =>
+      _owner.mounted &&
+      ModalRoute.of(_owner)?.isCurrent == true &&
+      TickerMode.valuesOf(_owner).enabled &&
+      _admitted();
+
+  /// The natural completion was checked before the original frame was held.
+  /// While reading it, the normal receipt assertion still verifies its owner.
+  bool isReadingSample(Element owner) =>
+      _readingSample && identical(owner, _owner) && _current();
+
+  List<ReferenceArtworkSource> _sources() {
+    final List<ReferenceArtworkSource> sources = <ReferenceArtworkSource>[];
+    int visited = 0;
+    void visit(Element element) {
+      if (++visited > 16384) {
+        throw const PillarReferenceArtworkRefused(
+          ReferenceArtworkFailureStage.renderers,
+        );
+      }
+      if (element
+          case StatefulElement(state: final ReferenceArtworkSource source)
+          when source.referenceArtworkKind ==
+              ReferenceArtworkKind.pillarRegistration) {
+        sources.add(source);
+      }
+      element.debugVisitOnstageChildren(visit);
+    }
+
+    _owner.debugVisitOnstageChildren(visit);
+    if (sources.length != 1) {
+      throw const PillarReferenceArtworkRefused(
+        ReferenceArtworkFailureStage.renderers,
+      );
+    }
+    return sources;
+  }
+
+  /// Restores the same renderer binding after the atomic readback.
+  Future<T> capture<T>({
+    required CaptureFrameGate frames,
+    required Future<T> Function() readback,
+  }) => _capture.capture<T>(
+    frames: frames,
+    readback: () async {
+      _readingSample = true;
+      try {
+        return await readback();
+      } finally {
+        _readingSample = false;
+      }
+    },
+  );
+}
+
 /// A failed Staking artwork scope has no valid original frame.
 class StakingReferenceArtworkRefused implements Exception {
   /// Refuses without including private fields or original errors.
