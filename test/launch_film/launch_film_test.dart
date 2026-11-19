@@ -174,6 +174,33 @@ void main() {
     expect(await _colour(tester), _colours[_last]);
   });
 
+  testWidgets('reports repeated frames while keeping the displayed image', (
+    WidgetTester tester,
+  ) async {
+    final LaunchFilmController controller = LaunchFilmController()
+      ..play(from: 51);
+    addTearDown(controller.dispose);
+    final List<int> frames = _record(controller);
+    await tester.pumpWidget(
+      _host(
+        LaunchFilm(
+          asset: 'assets/images/launch_well.webp',
+          autoplay: false,
+          controller: controller,
+        ),
+      ),
+    );
+
+    const Duration tick = Duration(milliseconds: 20);
+    await _until(tester, () => controller.frame == 51, by: tick);
+    final ui.Image? shown = _shown(tester);
+    expect(shown, isNotNull);
+    await _until(tester, () => controller.isDone, by: tick);
+
+    expect(frames, <int>[51, 52, 53, 54, 55]);
+    expect(_shown(tester), same(shown));
+  });
+
   testWidgets('shows each frame for its own duration', (
     WidgetTester tester,
   ) async {

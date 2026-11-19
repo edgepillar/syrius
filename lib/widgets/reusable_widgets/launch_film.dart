@@ -715,13 +715,17 @@ class _LaunchFilmState extends State<LaunchFilm>
       _due = (onTime ? due : timestamp) + next.duration;
       _onLast = next.last;
       _next = null;
-      // The render object holds its own handle on the old frame until this
-      // build replaces it, so ours can go now.
-      setState(() {
-        _shown?.dispose();
-        _shown = next.image;
-      });
       _originalsArtwork?.observe(next, _controller.frameCount);
+      final ui.Image? shown = _shown;
+      if (shown != null && next.image.isCloneOf(shown)) {
+        next.image.dispose();
+      } else {
+        // The render object holds its own handle until this build replaces it.
+        setState(() {
+          shown?.dispose();
+          _shown = next.image;
+        });
+      }
       _controller._report(frame: next.index);
       _taken?.complete();
       _taken = null;
