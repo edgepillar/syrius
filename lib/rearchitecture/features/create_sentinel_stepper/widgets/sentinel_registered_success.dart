@@ -38,7 +38,7 @@ class SentinelRegisteredSuccess extends StatelessWidget {
         context.l10n.management(kZnnCoin.symbol),
         context.l10n.registerSentinel,
       ],
-      facts: <Widget>[
+      facts: <RegistrationReceiptFact>[
         if (qsrCost != null)
           RegistrationReceiptFact(
             label: context.l10n.createSentinelDepositLabel,

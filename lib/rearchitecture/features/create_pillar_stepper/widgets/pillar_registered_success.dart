@@ -42,7 +42,7 @@ class PillarRegisteredSuccess extends StatelessWidget {
           : context.l10n.registrationPillarRegistered(name),
       caption: context.l10n.registrationPillarReady,
       steps: pillarRegistrationSteps(context),
-      facts: <Widget>[
+      facts: <RegistrationReceiptFact>[
         if (qsrCost != null)
           RegistrationReceiptFact(
             label: context.l10n.createPillarSlotFeeLabel,

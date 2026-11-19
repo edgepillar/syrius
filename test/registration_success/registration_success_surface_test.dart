@@ -20,10 +20,20 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class _Context extends Mock implements WalletActionContext {}
 
-Widget _host(Widget child, {bool light = false}) => MaterialApp(
+Widget _host(
+  Widget child, {
+  bool light = false,
+  double textScale = 1,
+}) => MaterialApp(
   theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
   localizationsDelegates: appLocalizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
+  builder: (BuildContext context, Widget? child) => MediaQuery(
+    data: MediaQuery.of(context).copyWith(
+      textScaler: TextScaler.linear(textScale),
+    ),
+    child: child!,
+  ),
   home: Scaffold(
     // Playback has its own F14 tests. This fixture inspects assembly admission
     // and element identity without decoding the original image masters.
@@ -93,9 +103,31 @@ void main() {
           final Text title = tester.widget<Text>(find.text(heading));
           expect(title.style!.fontSize, 22);
           expect(title.style!.fontWeight, FontWeight.w600);
+          final Finder table = find.byType(Table);
+          final Finder chain = find.text('CHAIN');
+          final Finder chainValue = find.text('321');
+          final Finder blockValue = find.text('666666…6666');
+          expect(find.descendant(of: table, matching: chain), findsOneWidget);
+          expect(
+            tester.getCenter(chain).dy,
+            closeTo(tester.getCenter(chainValue).dy, .01),
+          );
+          expect(
+            tester.getTopLeft(chainValue).dx,
+            tester.getTopLeft(blockValue).dx,
+          );
           final Element original = tester.element(find.byType(AppLottie));
           await tester.pumpWidget(_host(surface, light: light));
           await tester.pump(const Duration(seconds: 1));
+          expect(tester.element(find.byType(AppLottie)), same(original));
+          await tester.pumpWidget(
+            _host(surface, light: light, textScale: 2),
+          );
+          expect(table, findsNothing);
+          expect(
+            tester.getTopLeft(chainValue).dy,
+            greaterThan(tester.getBottomLeft(chain).dy),
+          );
           expect(tester.element(find.byType(AppLottie)), same(original));
           expect(another, 0);
           await tester.pumpWidget(const SizedBox.shrink());

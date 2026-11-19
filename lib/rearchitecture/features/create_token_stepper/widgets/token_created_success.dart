@@ -40,7 +40,7 @@ class TokenCreatedSuccess extends StatelessWidget {
         context.l10n.tokenCreateOptions,
         context.l10n.tokenCreateIssue,
       ],
-      facts: <Widget>[
+      facts: <RegistrationReceiptFact>[
         if (publication != null)
           RegistrationReceiptFact(
             label: context.l10n.createTokenFeeLabel,

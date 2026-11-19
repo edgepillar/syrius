@@ -96,7 +96,7 @@ class RegistrationSuccessSurface extends StatelessWidget {
     required this.confirmedKey,
     this.confirmation,
     this.steps = const <String>[],
-    this.facts = const <Widget>[],
+    this.facts = const <RegistrationReceiptFact>[],
     this.caption,
     this.anotherLabel,
     this.onAnother,
@@ -125,7 +125,7 @@ class RegistrationSuccessSurface extends StatelessWidget {
   final List<String> steps;
 
   /// Original registration costs, when their values were established.
-  final List<Widget> facts;
+  final List<RegistrationReceiptFact> facts;
 
   /// One short line below the confirmed heading.
   final String? caption;
@@ -150,6 +150,26 @@ class RegistrationSuccessSurface extends StatelessWidget {
   Widget _buildBody(BuildContext context, {required bool confirmed}) {
     final AppTokens tokens = AppTokens.of(context);
     final RegistrationPublication? publication = confirmation?.publication;
+    final List<RegistrationReceiptFact> receiptFacts =
+        <RegistrationReceiptFact>[
+          ...facts,
+          if (publication != null) ...<RegistrationReceiptFact>[
+            RegistrationReceiptFact(
+              label: context.l10n.registrationBlock,
+              value: _Identifier(publication.hashText),
+            ),
+            RegistrationReceiptFact(
+              label: context.l10n.address,
+              value: _Identifier(publication.ownerAddress),
+            ),
+            RegistrationReceiptFact(
+              label: context.l10n.registrationChain,
+              value: Ltr(
+                child: Text('${publication.chainId}', style: tokens.dataText),
+              ),
+            ),
+          ],
+        ];
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
@@ -186,26 +206,8 @@ class RegistrationSuccessSurface extends StatelessWidget {
                     ],
                   ),
                 Divider(color: tokens.line),
-                ...facts,
-                if (publication != null) ...<Widget>[
-                  RegistrationReceiptFact(
-                    label: context.l10n.registrationBlock,
-                    value: _Identifier(publication.hashText),
-                  ),
-                  RegistrationReceiptFact(
-                    label: context.l10n.address,
-                    value: _Identifier(publication.ownerAddress),
-                  ),
-                  RegistrationReceiptFact(
-                    label: context.l10n.registrationChain,
-                    value: Ltr(
-                      child: Text(
-                        '${publication.chainId}',
-                        style: tokens.dataText,
-                      ),
-                    ),
-                  ),
-                ],
+                if (receiptFacts.isNotEmpty)
+                  _buildFacts(context, tokens, receiptFacts),
                 if (confirmed && onAnother != null && anotherLabel != null)
                   TextButton(
                     key: const Key('registration_another'),
@@ -313,6 +315,46 @@ class RegistrationSuccessSurface extends StatelessWidget {
       ],
     );
   }
+
+  Widget _buildFacts(
+    BuildContext context,
+    AppTokens tokens,
+    List<RegistrationReceiptFact> receiptFacts,
+  ) {
+    final double valueSize = tokens.dataText.fontSize!;
+    if (MediaQuery.textScalerOf(context).scale(valueSize) > valueSize) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: tokens.registrationActionGap,
+        children: receiptFacts,
+      );
+    }
+    return Table(
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      columnWidths: const <int, TableColumnWidth>{
+        0: MinColumnWidth(IntrinsicColumnWidth(), FractionColumnWidth(.46)),
+        1: FlexColumnWidth(),
+      },
+      children: <TableRow>[
+        for (final RegistrationReceiptFact fact in receiptFacts)
+          TableRow(
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsetsDirectional.only(
+                  end: tokens.registrationFactColumnGap,
+                  bottom: tokens.registrationGap,
+                ),
+                child: fact._buildLabel(tokens),
+              ),
+              Padding(
+                padding: EdgeInsets.only(bottom: tokens.registrationGap),
+                child: fact.value,
+              ),
+            ],
+          ),
+      ],
+    );
+  }
 }
 
 /// One established fact from the original registration receipt.
@@ -337,11 +379,14 @@ class RegistrationReceiptFact extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: tokens.registrationGap,
       children: <Widget>[
-        Text(label.toUpperCase(), style: tokens.ledgerText),
+        _buildLabel(tokens),
         value,
       ],
     );
   }
+
+  Widget _buildLabel(AppTokens tokens) =>
+      Text(label.toUpperCase(), style: tokens.ledgerText);
 }
 
 class _Identifier extends StatelessWidget {
