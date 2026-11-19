@@ -764,8 +764,22 @@ The picker allocates 5 px above its divider and 3 px below it, placing the
 line one pixel lower within the existing 8 px gap. The existing theme and
 RTL cases check both distances. The independent Lock reader also reports
 the divider row in each verified picker image. It reproduces row 487 from
-the retained Windows captures and row 488 from the references. Fresh picker
-captures are needed to verify the change.
+the retained Windows captures and row 488 from the references. The
+[independent reader at `47e606a1`](https://github.com/edgepillar/syrius/actions/runs/44626221484/job/135920663206)
+verifies all six new Lock images. The picker divider now measures row 488
+in both themes, matching the reference measurement.
+
+#### Lock at rest at `47e606a1`
+
+Both themes of normal Lock, Wrong Password and the wallet picker match
+their references in the direct visual comparison of the six verified
+captures. Normal Lock and the picker show the final film frame. Wrong
+Password shows frame 23, the clear password field and the two-line warning
+with two attempts left. The blinking caret is off in both warning captures.
+The picker shows the selected row, two other wallets, the Add a wallet row
+and the disabled Unlock action. The fixture addresses, live status values,
+approved brand colours and font rasterization account for the remaining
+differences. See the [six original Windows images](https://github.com/edgepillar/syrius/actions/runs/44623282393/artifacts/14578324803).
 
 The retained Addresses captures at `06eda3f7` show the selected glyph in
 columns 299 through 312 and rows 165 through 178 in both themes. The authored
@@ -1341,9 +1355,9 @@ whole-image acceptance.
 | 38 | `set-originals` | X1192 | X1192 |
 | 39 | `launch` | match | match |
 | 40 | `launch-settle` | X871 | X872 |
-| 41 | `lock-screen` | [match](#lock-at-rest-at-5b149ee2) | [match](#lock-at-rest-at-5b149ee2) |
-| 42 | `lock-wrong` | [review](#lock-at-rest-at-5b149ee2) | [review](#lock-at-rest-at-5b149ee2) |
-| 43 | `lock-pick` | [review](#lock-at-rest-at-5b149ee2) | [review](#lock-at-rest-at-5b149ee2) |
+| 41 | `lock-screen` | [match](#lock-at-rest-at-47e606a1) | [match](#lock-at-rest-at-47e606a1) |
+| 42 | `lock-wrong` | [match](#lock-at-rest-at-47e606a1) | [match](#lock-at-rest-at-47e606a1) |
+| 43 | `lock-pick` | [match](#lock-at-rest-at-47e606a1) | [match](#lock-at-rest-at-47e606a1) |
 | 44 | `welcome` | match | match |
 | 45 | `import` | X776 | X777 |
 | 46 | `seed-quiz` | match | match |
