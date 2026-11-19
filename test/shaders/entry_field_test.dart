@@ -13,11 +13,24 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_fi
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/entry_card_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/welcome_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 
 const MethodChannel _window = MethodChannel('window_manager');
 const Size _size = Size(1280, 780);
 const Key _clipFrame = Key('entry_field_clip_frame');
+
+class _TestLaunchFilmController extends LaunchFilmController {
+  int _shownFrame = -1;
+
+  @override
+  int get frame => _shownFrame;
+
+  void show(int index) {
+    _shownFrame = index;
+    notifyListeners();
+  }
+}
 
 Widget _host({
   Widget child = const EntryField(),
@@ -356,23 +369,31 @@ void main() {
     });
   }
 
-  testWidgets('the first visible lock field reuses the covered raster', (
+  testWidgets('lock raster preparation follows the first launch frame', (
     WidgetTester tester,
   ) async {
     _prepare(tester);
     final ValueNotifier<double> progress = ValueNotifier<double>(0);
+    final _TestLaunchFilmController film = _TestLaunchFilmController();
     addTearDown(progress.dispose);
+    addTearDown(film.dispose);
     final List<ui.Image> rasters = _watchEntryRasters();
     await tester.pumpWidget(_host(
       child: ValueListenableBuilder<double>(
         valueListenable: progress,
-        child: EntryField(captionProgress: progress),
+        child: EntryField(captionProgress: progress, launchFilm: film),
         builder: (_, double value, Widget? child) => TickerMode(
           enabled: value > 0,
           child: Opacity(opacity: value, child: child),
         ),
       ),
     ));
+    expect(rasters, isEmpty);
+    film.show(0);
+    await tester.pump();
+    expect(rasters, isEmpty);
+    film.show(1);
+    await tester.pump();
     expect(rasters, hasLength(1));
     expect(rasters.single.debugDisposed, isFalse);
     progress.value = 1;

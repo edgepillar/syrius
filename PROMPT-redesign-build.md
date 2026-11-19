@@ -792,6 +792,10 @@ duration is 243.843 ms in the group whose builds precede the first observed
 film frame. Three raster starts fall at or after observed Lock arrival.
 Two exceed 16 ms and the maximum is 61.354 ms. V02 remains open.
 
+The Lock raster preparation now waits for the original film to advance past
+its first frame. It uses the laid-out backdrop while the film still covers
+it. The widget case exercises the wait and reuse on first visible paint.
+
 Both Staking Empty captures from X1248 show the summary labels and amounts
 one pixel below the references. The Stakes card begins at row 119 and its
 divider is at row 162. The references place them at rows 118 and 161.

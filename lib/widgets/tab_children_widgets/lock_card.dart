@@ -124,9 +124,13 @@ class _LockCardState extends State<LockCard>
 
   LaunchFilmController get _activeFilm => widget.startup?.film ?? _film;
 
-  late EntryField _startupBackdrop =
-      EntryField(captionProgress: widget.startup?.motion);
+  late EntryField _startupBackdrop = _buildStartupBackdrop();
   final OuterShadowRaster _shadowRaster = OuterShadowRaster();
+
+  EntryField _buildStartupBackdrop() => EntryField(
+    captionProgress: widget.startup?.motion,
+    launchFilm: widget.startup?.film,
+  );
 
   @override
   void initState() {
@@ -180,7 +184,7 @@ class _LockCardState extends State<LockCard>
   void didUpdateWidget(LockCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.startup, widget.startup)) {
-      _startupBackdrop = EntryField(captionProgress: widget.startup?.motion);
+      _startupBackdrop = _buildStartupBackdrop();
     }
     if (!oldWidget.busy && widget.busy) _obscure = true;
     if ((oldWidget.busy && !widget.busy) ||

@@ -7,6 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/drift_r
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/shader_clock.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 
 class _EntryCaptionRepaint extends ChangeNotifier {
@@ -36,6 +37,7 @@ class EntryField extends StatefulWidget {
   const EntryField({
     this.paintCaption = true,
     this.captionProgress,
+    this.launchFilm,
     super.key,
   });
 
@@ -44,6 +46,9 @@ class EntryField extends StatefulWidget {
 
   /// During launch, the caption starts painting when this motion reaches one.
   final ValueListenable<double>? captionProgress;
+
+  /// The covering film. Raster preparation waits for it to advance.
+  final LaunchFilmController? launchFilm;
 
   @override
   State<EntryField> createState() => _EntryFieldState();
@@ -54,7 +59,8 @@ class _EntryFieldState extends State<EntryField>
     implements ReferenceArtworkSource {
   late final ShaderClock _clock;
   final _EntryFieldRaster _raster = _EntryFieldRaster();
-  _EntryRasterKey? _pendingRaster;
+  _EntryRasterKey? _coveredRaster;
+  bool _rasterPreparationScheduled = false;
   ReferenceArtworkFrame? _referenceFrame;
   ValueListenable<double>? _referenceSeconds;
   ValueListenable<double>? _paintedSeconds;
@@ -256,6 +262,7 @@ class _EntryFieldState extends State<EntryField>
     _clock = ShaderClock(vsync: this)..active = true;
     _captionRepaint = Listenable.merge(<Listenable>[_clock, _captionChanges]);
     widget.captionProgress?.addListener(_updateCaptionEnabled);
+    widget.launchFilm?.addListener(_prepareCoveredRaster);
     _updateCaptionEnabled();
   }
 
@@ -293,12 +300,17 @@ class _EntryFieldState extends State<EntryField>
       oldWidget.captionProgress?.removeListener(_updateCaptionEnabled);
       widget.captionProgress?.addListener(_updateCaptionEnabled);
     }
+    if (oldWidget.launchFilm != widget.launchFilm) {
+      oldWidget.launchFilm?.removeListener(_prepareCoveredRaster);
+      widget.launchFilm?.addListener(_prepareCoveredRaster);
+    }
     _updateCaptionEnabled();
   }
 
   @override
   void dispose() {
     widget.captionProgress?.removeListener(_updateCaptionEnabled);
+    widget.launchFilm?.removeListener(_prepareCoveredRaster);
     _captionLease?.dispose();
     _captionLease = null;
     _captionChanges.dispose();
@@ -307,14 +319,23 @@ class _EntryFieldState extends State<EntryField>
     super.dispose();
   }
 
-  void _prepareCoveredRaster(_EntryRasterKey key) {
-    if (widget.captionProgress?.value != 0 || _pendingRaster == key) return;
-    _pendingRaster = key;
+  bool get _canPrepareCoveredRaster =>
+      widget.captionProgress?.value == 0 &&
+      (widget.launchFilm?.frame ?? -1) > 0;
+
+  void _prepareCoveredRaster() {
+    if (_coveredRaster == null ||
+        _rasterPreparationScheduled ||
+        !_canPrepareCoveredRaster) {
+      return;
+    }
+    _rasterPreparationScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _pendingRaster != key) return;
-      _pendingRaster = null;
-      // The opaque launch film still covers the field at progress zero.
-      if (widget.captionProgress?.value == 0) _raster.imageFor(key);
+      _rasterPreparationScheduled = false;
+      if (!mounted || !_canPrepareCoveredRaster) return;
+      final _EntryRasterKey? key = _coveredRaster;
+      _coveredRaster = null;
+      if (key != null) _raster.imageFor(key);
     });
   }
 
@@ -332,15 +353,16 @@ class _EntryFieldState extends State<EntryField>
         _captionForLayout(
           constraints.biggest, tokens, paintedSeconds, pixelRatio,
         );
-        if (widget.captionProgress?.value == 0) {
-          _prepareCoveredRaster(_EntryFieldRaster.keyFor(
+        if (widget.launchFilm != null && widget.captionProgress?.value == 0) {
+          _coveredRaster = _EntryFieldRaster.keyFor(
             constraints.biggest,
             captionHeight: captionHeight,
             green: tokens.znn,
             blue: tokens.qsr,
             pink: tokens.pink,
             pixelRatio: pixelRatio,
-          ));
+          );
+          _prepareCoveredRaster();
         }
         return RepaintBoundary(
           child: ClipRect(
