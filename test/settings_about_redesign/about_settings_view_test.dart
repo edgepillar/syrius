@@ -113,6 +113,19 @@ void main() {
           expect(_text(tester, 'about_version').data, '9.8.7-rc.2');
           expect(_text(tester, 'about_embedded_version').data, 'Unknown');
           expect(_text(tester, 'about_build').data, '00042 · abcdef12');
+          final Finder badge = find.byKey(const Key('about_update_badge'));
+          final AppTokens tokens = AppTokens.of(tester.element(badge));
+          final ShapeDecoration badgeDecoration = tester
+              .widget<Container>(badge)
+              .decoration! as ShapeDecoration;
+          expect(tester.getSize(badge).height, greaterThanOrEqualTo(26));
+          expect(badgeDecoration.shape, const StadiumBorder());
+          expect(badgeDecoration.color, tokens.pink.withValues(alpha: 0.14));
+          expect(_text(tester, 'about_update_label').data, 'Wallet updates');
+          expect(
+            _text(tester, 'about_update_label').style!.color,
+            tokens.pinkInk,
+          );
           final ButtonStyle actionStyle = tester
               .widget<OutlinedButton>(
                 find.byKey(const Key('about_what_changed')),

@@ -1078,6 +1078,13 @@ class AppTokens extends ThemeExtension<AppTokens> {
   EdgeInsetsDirectional get aboutStripPadding =>
       stripPadding.copyWith(top: 11.5, bottom: 11.5);
 
+  /// The release label uses the reference's tinted update badge.
+  double get aboutUpdateBadgeHeight => 26;
+
+  /// Includes the reference badge's transparent outline.
+  EdgeInsetsDirectional get aboutUpdateBadgePadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 11, vertical: 4);
+
   /// The reference separates About's version facts by 28 pixels.
   double get aboutStripFigureGap => 28;
 

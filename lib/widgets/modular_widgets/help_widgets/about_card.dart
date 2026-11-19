@@ -246,10 +246,25 @@ class _AboutCardState extends State<AboutCard> {
         runSpacing: tokens.inlineGap,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: <Widget>[
-          Text(
-            context.l10n.stripWalletUpdates,
-            key: const Key('about_update_label'),
-            style: tokens.compactText.copyWith(color: tokens.dim),
+          Container(
+            key: const Key('about_update_badge'),
+            constraints: BoxConstraints(
+              minHeight: tokens.aboutUpdateBadgeHeight,
+            ),
+            padding: tokens.aboutUpdateBadgePadding,
+            decoration: ShapeDecoration(
+              color: tokens.pink.withValues(alpha: 0.14),
+              shape: const StadiumBorder(),
+            ),
+            child: Align(
+              widthFactor: 1,
+              heightFactor: 1,
+              child: Text(
+                context.l10n.stripWalletUpdates,
+                key: const Key('about_update_label'),
+                style: tokens.captionText.copyWith(color: tokens.pinkInk),
+              ),
+            ),
           ),
           SecondaryAction(
             child: OutlinedButton(

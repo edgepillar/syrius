@@ -861,6 +861,19 @@ The [Linux run at `1d5e4ffa`](https://github.com/edgepillar/syrius/actions/runs/
 passes analysis, the About height assertions at standard and scaled text
 sizes, 5,124 tests with one skip, and generated-file verification.
 
+The two Wallet images at `1d5e4ffa` show the reference highlights for Pillar
+Auto, Sentinel Auto and Sporks Off. Maintenance and the profile's switch
+values remain visible differences. Both About images show the corrected
+panel positions and a plain Wallet updates label. The About view now draws
+the reference badge shape and tint around that label. A release version
+and its availability still require genuine update evidence.
+
+The four comparisons used the same
+[verified Settings archive](https://github.com/edgepillar/syrius/actions/runs/44630625025/artifacts/14581264770).
+The retained bytes and image digests match the independent reader's evidence.
+The local transport remains recorded as failed with unknown exit status
+after metadata contention. The original receipts and bytes are preserved.
+
 ### Receive at rest at `06eda3f7`
 
 The latest private comparison records verdicts for all 62 locally available
