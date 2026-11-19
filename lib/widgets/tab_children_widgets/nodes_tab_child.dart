@@ -18,7 +18,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/notifiers/balance_visibility.d
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_action_context.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_command.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -278,10 +280,16 @@ class _PillarOwnerStrip extends StatelessWidget {
         child: PillarCollectAction(enabled: hasNodesRewards(rewards)),
       ),
       actions: <Widget>[
-        TextButton.icon(
+        OutlinedButton.icon(
           key: const Key('nodes_pillar_owner_close'),
+          style: secondaryButtonStyle(context).copyWith(
+            backgroundColor: WidgetStatePropertyAll<Color>(tokens.card2),
+            padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+              EdgeInsets.symmetric(horizontal: 17),
+            ),
+          ),
           onPressed: onClose,
-          icon: const Icon(Icons.close),
+          icon: ShellSymbol('x', size: tokens.actionGlyphSize),
           label: Text(context.l10n.commonClose),
         ),
       ],
