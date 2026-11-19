@@ -48,7 +48,7 @@ class TokenCreatedSuccess extends StatelessWidget {
               publication.amount,
               decimals: kZnnCoin.decimals,
               symbol: kZnnCoin.symbol,
-              style: AppTokens.of(context).dataText,
+              style: AppTokens.of(context).registrationFactText,
             ),
           ),
       ],

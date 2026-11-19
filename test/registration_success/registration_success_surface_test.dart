@@ -191,6 +191,8 @@ void main() {
           final Finder chainValue = find.text('321');
           final Finder blockValue = find.text('666666…6666');
           expect(find.descendant(of: table, matching: chain), findsOneWidget);
+          expect(tester.widget<Text>(chainValue).style!.fontSize, 13);
+          expect(tester.widget<Text>(blockValue).style!.fontSize, 13);
           expect(
             tester.getCenter(chain).dy,
             closeTo(tester.getCenter(chainValue).dy, .01),

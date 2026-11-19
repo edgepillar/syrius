@@ -50,7 +50,7 @@ class PillarRegisteredSuccess extends StatelessWidget {
               qsrCost,
               decimals: kQsrCoin.decimals,
               symbol: kQsrCoin.symbol,
-              style: tokens.dataText,
+              style: tokens.registrationFactText,
             ),
           ),
         if (publication != null)
@@ -60,7 +60,7 @@ class PillarRegisteredSuccess extends StatelessWidget {
               publication.amount,
               decimals: kZnnCoin.decimals,
               symbol: kZnnCoin.symbol,
-              style: tokens.dataText,
+              style: tokens.registrationFactText,
             ),
           ),
       ],

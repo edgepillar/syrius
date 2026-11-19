@@ -167,7 +167,10 @@ class RegistrationSuccessSurface extends StatelessWidget {
             RegistrationReceiptFact(
               label: context.l10n.registrationChain,
               value: Ltr(
-                child: Text('${publication.chainId}', style: tokens.dataText),
+                child: Text(
+                  '${publication.chainId}',
+                  style: tokens.registrationFactText,
+                ),
               ),
             ),
           ],
@@ -365,7 +368,7 @@ class RegistrationSuccessSurface extends StatelessWidget {
     AppTokens tokens,
     List<RegistrationReceiptFact> receiptFacts,
   ) {
-    final double valueSize = tokens.dataText.fontSize!;
+    final double valueSize = tokens.registrationFactText.fontSize!;
     if (MediaQuery.textScalerOf(context).scale(valueSize) > valueSize) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -446,7 +449,10 @@ class _Identifier extends StatelessWidget {
     return Tooltip(
       message: value,
       child: Ltr(
-        child: Text(shortened, style: AppTokens.of(context).dataText),
+        child: Text(
+          shortened,
+          style: AppTokens.of(context).registrationFactText,
+        ),
       ),
     );
   }
