@@ -63,6 +63,7 @@ on:
           - sentinel-fixture
           - launch
           - launch-settle
+          - launch-motion
           - startup-catalog
           - launch-timing
           - launch-timing-pair
@@ -154,7 +155,7 @@ env:
 
 jobs:
   windows-startup-probe:
-    if: inputs.windows_startup_probe && (inputs.readonly_catalog_family != 'startup-catalog' || (github.repository == 'edgepillar/syrius' && github.ref == 'refs/heads/redesign' && github.event_name == 'workflow_dispatch' && github.run_attempt == '1'))
+    if: inputs.windows_startup_probe && ((inputs.readonly_catalog_family != 'startup-catalog' && inputs.readonly_catalog_family != 'launch-motion') || (github.repository == 'edgepillar/syrius' && github.ref == 'refs/heads/redesign' && github.event_name == 'workflow_dispatch' && github.run_attempt == '1'))
     name: ${{ inputs.readonly_catalog_family == 'startup-catalog' && 'Capture original Windows startup catalog' || 'Observe original Windows Release startup' }}
     runs-on: windows-latest
     timeout-minutes: ${{ inputs.readonly_catalog_family == 'startup-catalog' && 45 || 30 }}
@@ -209,12 +210,12 @@ jobs:
         run: flutter build windows --release --no-pub --target harness/app/main.dart --dart-define-from-file=.dart_tool/git_metadata.json
 
       - name: Observe the original startup and normal process exit
-        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'lock-seams' && inputs.readonly_catalog_family != 'quiz-catalog' && inputs.readonly_catalog_family != 'launch-timing' && inputs.readonly_catalog_family != 'launch-timing-pair' && inputs.readonly_catalog_family != 'startup-catalog'
+        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'lock-seams' && inputs.readonly_catalog_family != 'quiz-catalog' && inputs.readonly_catalog_family != 'launch-timing' && inputs.readonly_catalog_family != 'launch-timing-pair' && inputs.readonly_catalog_family != 'startup-catalog' && inputs.readonly_catalog_family != 'launch-motion'
         timeout-minutes: 3
         run: python -B -m tool.ci.windows_startup_probe
 
       - name: Observe natural startup in a fresh original process
-        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'lock-seams' && inputs.readonly_catalog_family != 'quiz-catalog' && inputs.readonly_catalog_family != 'launch-timing' && inputs.readonly_catalog_family != 'launch-timing-pair' && inputs.readonly_catalog_family != 'startup-catalog'
+        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'lock-seams' && inputs.readonly_catalog_family != 'quiz-catalog' && inputs.readonly_catalog_family != 'launch-timing' && inputs.readonly_catalog_family != 'launch-timing-pair' && inputs.readonly_catalog_family != 'startup-catalog' && inputs.readonly_catalog_family != 'launch-motion'
         timeout-minutes: 3
         run: python -B -m tool.ci.windows_startup_probe --natural-only
 
@@ -372,6 +373,27 @@ jobs:
             .harness/ci-launch-settle-catalog/manifest.json
             .harness/ci-launch-settle-catalog/40-launch-settle-dark.png
             .harness/ci-launch-settle-catalog/40-launch-settle-light.png
+
+      - name: Sample the natural Windows launch handoff
+        if: inputs.readonly_catalog_family == 'launch-motion'
+        timeout-minutes: 5
+        env:
+          SYRIUS_WINDOWS_LAUNCH_CATALOG: 'launch-motion'
+        run: python -B -m tool.ci.windows_launch_catalog
+
+      - name: Retain bounded launch motion samples
+        if: always() && inputs.readonly_catalog_family == 'launch-motion' && hashFiles('.harness/ci-launch-motion/manifest.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-launch-motion-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: |
+            .harness/ci-launch-motion/manifest.json
+            .harness/ci-launch-motion/00-early.png
+            .harness/ci-launch-motion/01-late.png
+            .harness/ci-launch-motion/02-settled.png
 
       - name: Retain only finite startup observations
         if: always() && hashFiles('.harness/ci-startup-probe/manifest.json') != ''

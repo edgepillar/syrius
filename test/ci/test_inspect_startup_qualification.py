@@ -535,6 +535,70 @@ class StartupInspectionTests(unittest.TestCase):
 
     def test_launch_settle_requires_original_handoff_and_intermediate_geometry(self):
         self._check_launch_catalog(settle=True)
+        launch = inspect.launch
+        raw = _png()
+        png = base64.b64encode(raw).decode('ascii')
+        well = [431, 210, 418, 118]
+        rows = [
+            dict(slot=0, offsetUs=0, progress=.31, stage=[150, 120, 980, 470], well=well, png=png),
+            dict(slot=1, offsetUs=166667, progress=.76, stage=[350, 180, 570, 240], well=well, png=png),
+            dict(slot=2, offsetUs=305000, progress=1, stage=well, well=well, png=png),
+        ]
+        live = dict(ok=True, status='captured', theme='dark', frame=55, frames=56,
+                    lockHandoff=True, attemptedSlots=[0, 1, 2], samples=rows)
+        attempted, captured = launch.motion_pixels(live, 'dark')
+        self.assertEqual(attempted, [0, 1, 2])
+        self.assertEqual([pixels for pixels, _ in captured], [raw] * 3)
+        self.assertEqual([row['offsetUs'] for _, row in captured], [0, 166667, 305000])
+        # An absent intermediate frame is observable without fabricating it.
+        partial = dict(live, attemptedSlots=[0, 2], samples=[rows[0], rows[2]])
+        self.assertEqual([row['slot'] for _, row in launch.motion_pixels(partial, 'dark')[1]], [0, 2])
+        for bad in (dict(attemptedSlots=[0, 1, 1]), dict(attemptedSlots=[0, 2]),
+                    dict(samples=[rows[1], rows[0], rows[2]]),
+                    dict(samples=[rows[0], dict(rows[1], progress=.3), rows[2]]),
+                    dict(samples=[rows[0], dict(rows[1], offsetUs=0), rows[2]]),
+                    dict(samples=[rows[0], rows[1], dict(rows[2], stage=rows[1]['stage'])]),
+                    dict(samples=[dict(rows[0], png='A' * (2 * launch.MOTION_PNG_CAP))])):
+            with self.subTest(motion=next(iter(bad))), self.assertRaises(inspect.startup.Failure):
+                launch.motion_pixels(dict(live, **bad), 'dark')
+
+        pins = dict(recipe_sha256='c' * 64, capture_source_sha256='d' * 64,
+                    profile_sha256='a' * 64)
+        actor = dict(theme='dark', action_complete=True, exit_observed=True,
+            checks=dict.fromkeys(launch.ATTEMPT_CHECKS, True), exit_code=0,
+            forced_kill=False, output_complete=True, output_overflow=False, error_codes=[])
+
+        def read_motion(observation, *, complete, extra=False):
+            slots, observed = launch.motion_pixels(observation, 'dark')
+            report = dict(schema=1, scope=launch.MOTION_SCOPE, success=complete,
+                source_stable=True, error_codes=[] if complete else ['LAUNCH_HANDOFF_FRAME_MISSED'],
+                source_sha=HEAD, source_tree=TREE, run_id=str(RUN), run_attempt='1',
+                runner_sha256='e' * 64, payload_sha256='f' * 64,
+                attempts=[dict(actor, role=role) for role in ('prepare', 'capture')],
+                attempted_slots=slots, captures=[dict(theme='dark', file=launch.MOTION_FILES[row['slot']],
+                    bytes=len(pixels), sha256=inspect.archive.sha(pixels), **row)
+                    for pixels, row in observed], **pins)
+            with io.BytesIO() as buffer:
+                with zipfile.ZipFile(buffer, 'w') as zipped:
+                    zipped.writestr('manifest.json', json.dumps(report))
+                    for pixels, row in observed:
+                        zipped.writestr(launch.MOTION_FILES[row['slot']], pixels)
+                    if extra:
+                        zipped.writestr('unregistered.png', raw)
+                payload = buffer.getvalue()
+            return inspect.launch_archive(payload, inspect.archive.sha(payload), len(payload),
+                HEAD, TREE, RUN, pins, motion=True)
+
+        verified = read_motion(live, complete=True)
+        self.assertEqual(verified['verified_png_count'], 3)
+        self.assertEqual(verified['normal_actor_exits'], 2)
+        retained = read_motion(partial, complete=False)
+        self.assertFalse(retained['artifact_reported_success'])
+        self.assertEqual(retained['verified_png_count'], 2)
+        with self.assertRaises(inspect.archive.Refused):
+            read_motion(partial, complete=True)
+        with self.assertRaises(inspect.archive.Refused):
+            read_motion(live, complete=True, extra=True)
 
     def _check_launch_catalog(self, *, settle):
         pixels = _png()

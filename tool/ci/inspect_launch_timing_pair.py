@@ -285,7 +285,8 @@ def inspect_run(client, *, head, tree, run_id, job):
                          ('windows_launch_catalog.py', pair.launch)):
         body = source(client, 'tool/ci/' + name, head)
         prior_launch = (startup_reader.PRE_BATCH_LAUNCH_PRODUCER_SHA,
-                        startup_reader.PRE_PHASE_LAUNCH_PRODUCER_SHA)
+                        startup_reader.PRE_PHASE_LAUNCH_PRODUCER_SHA,
+                        startup_reader.PRE_MOTION_LAUNCH_PRODUCER_SHA)
         archive.need(body == Path(module.__file__).read_bytes()
             or (module is pair.launch and archive.sha(body) in prior_launch))
     pinned = client.json('/git/commits/' + pair.P06_SOURCE)

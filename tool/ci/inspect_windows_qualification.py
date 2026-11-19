@@ -488,6 +488,7 @@ def main():
             launch_titles = {
                 startup.launch.JOB_STEP: 'Hosted original cold launch inspection',
                 startup.launch.SETTLE_JOB_STEP: 'Hosted original launch handoff inspection',
+                startup.launch.MOTION_JOB_STEP: 'Hosted original launch motion inspection',
                 startup.launch.TIMING_JOB_STEP: 'Hosted original cold lock timing inspection',
                 paired_timing.pair.JOB_STEP: paired_timing.TITLE,
                 startup.lock_catalog.JOB_STEP: 'Hosted original lock catalog inspection',
@@ -504,13 +505,17 @@ def main():
                     summary = paired_timing.inspect_run(
                         client, head=head, tree=tree, run_id=run_id, job=job)
                 else:
+                    motion = name == startup.launch.MOTION_JOB_STEP
+                    if motion:
+                        archive.need(run['head_branch'] == 'redesign')
                     summary = startup.inspect_launch_run(
                         client, head=head, tree=tree, run_id=run_id, job=job,
                         settle=name == startup.launch.SETTLE_JOB_STEP,
                         lock=name == startup.lock_catalog.JOB_STEP,
                         quiz=name == startup.quiz_catalog.JOB_STEP,
                         timing=name == startup.launch.TIMING_JOB_STEP,
-                        lock_seams=name == startup.lock_catalog.SEAM_STEP)
+                        lock_seams=name == startup.lock_catalog.SEAM_STEP,
+                        **({'motion': True} if motion else {}))
                 emit(launch_titles[name], summary)
                 return 0
             for summary in startup.inspect_run(

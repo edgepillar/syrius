@@ -636,6 +636,7 @@ class HarnessAgent {
     required NativeWindowOwner window,
     String? launchTheme,
     bool launchSettle = false,
+    bool launchMotion = false,
     bool launchLockCatalog = false,
     bool launchQuizCatalog = false,
   }) {
@@ -712,6 +713,7 @@ class HarnessAgent {
       _nativeLaunch = NativeLaunchCapture(
         theme: launchTheme,
         settle: launchSettle,
+        motion: launchMotion,
         window: window,
         readView: () => _view,
       );
@@ -1394,7 +1396,8 @@ class HarnessAgent {
         throw HarnessError('unsupported entry capture input');
       }
       final Object? screen = command['screen'];
-      if (screen == 'launch' || screen == 'launch-settle') {
+      if (screen == 'launch' || screen == 'launch-settle' ||
+          screen == nativeLaunchMotionScreen) {
         final NativeLaunchCapture? launch = _nativeLaunch;
         if (launch == null || launch.screen != screen) {
           throw const CaptureRefused('original-launch-capture-unavailable');

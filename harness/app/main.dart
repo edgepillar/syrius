@@ -15,7 +15,8 @@ import 'client_window.dart';
 import 'fixtures/launch_settle_profile.dart';
 import 'fixtures/sentinel_fixture.dart';
 import 'native_launch_capture.dart'
-    show nativeLaunchScreenEnvironment, nativeLaunchThemeEnvironment;
+    show nativeLaunchMotionScreen, nativeLaunchScreenEnvironment,
+        nativeLaunchThemeEnvironment;
 import 'native_lock_catalog.dart' show lockCatalogScreen;
 import 'native_quiz_catalog.dart' show quizCatalogScreen;
 import 'native_window_owner.dart';
@@ -81,13 +82,15 @@ Future<void> main() async {
   }
   final String? launchTheme = env[nativeLaunchThemeEnvironment];
   final String? launchScreen = env[nativeLaunchScreenEnvironment];
-  final bool launchSettle = launchScreen == 'launch-settle';
+  final bool launchMotion = launchScreen == nativeLaunchMotionScreen;
+  final bool launchSettle = launchScreen == 'launch-settle' || launchMotion;
   final bool launchLock = launchScreen == lockCatalogScreen;
   final bool launchQuiz = launchScreen == quizCatalogScreen;
   if ((launchTheme != null || launchScreen != null) &&
       (!Platform.isWindows || env['GITHUB_ACTIONS'] != 'true' ||
           readonlyNative || presentation != null ||
           launchScreen != null && !launchSettle && !launchLock && !launchQuiz ||
+          launchMotion && launchTheme != null && launchTheme != 'dark' ||
           launchQuiz && launchTheme != 'dark' ||
           launchTheme != null && launchTheme != 'dark' &&
               launchTheme != 'light')) {
@@ -150,6 +153,7 @@ Future<void> main() async {
       window: NativeWindowOwner.process(),
       launchTheme: launchTheme,
       launchSettle: launchSettle,
+      launchMotion: launchMotion,
       launchLockCatalog: launchLock,
       launchQuizCatalog: launchQuiz,
     );

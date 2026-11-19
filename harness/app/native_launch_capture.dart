@@ -26,6 +26,9 @@ const String nativeLaunchThemeEnvironment = 'SYRIUS_CI_LAUNCH_THEME';
 /// Selects the isolated lock handoff and its preparation profile.
 const String nativeLaunchScreenEnvironment = 'SYRIUS_CI_LAUNCH_SCREEN';
 
+/// Selects natural handoff samples in a separate Windows capture run.
+const String nativeLaunchMotionScreen = 'launch-motion';
+
 /// The original lock well in the isolated, still-locked startup profile.
 Element? originalLaunchLockedWell(StartupStageSession owner) {
   final BuildContext? well = owner.wellKey.currentContext;
@@ -58,6 +61,14 @@ typedef _LaunchHandoff = ({
   double progress,
 });
 
+typedef _MotionSample = ({
+  int slot,
+  int offsetUs,
+  Rect stage,
+  _LaunchHandoff handoff,
+  Uint8List png,
+});
+
 /// Observes one reference state during the original cold launch.
 /// The handoff observes the authored paint on the running settle clock.
 final class NativeLaunchCapture {
@@ -67,6 +78,7 @@ final class NativeLaunchCapture {
     required this._settle,
     required this._window,
     required this._readView,
+    this._motion = false,
   }) : _startup = _window.startup() {
     WidgetsBinding.instance.addPostFrameCallback(_observe);
   }
@@ -74,6 +86,7 @@ final class NativeLaunchCapture {
   /// The theme saved by the closed preparation process.
   final String theme;
   final bool _settle;
+  final bool _motion;
   final NativeWindowOwner _window;
   final RenderView Function() _readView;
   final NativeWindowCall<NativeWindowStartupReceipt> _startup;
@@ -83,15 +96,22 @@ final class NativeLaunchCapture {
   Rect? _stage;
   StartupStageSession? _referenceOwner;
   _LaunchHandoff? _handoff;
+  final Set<int> _scheduledMotion = <int>{};
+  final List<_MotionSample> _motionSamples = <_MotionSample>[];
+  int? _motionOriginUs;
+  RenderView? _motionView;
+  int _motionPending = 0;
+  bool _motionFinished = false;
 
   /// The one screen admitted by this process's startup configuration.
-  String get screen => _settle ? 'launch-settle' : 'launch';
+  String get screen => _motion ? nativeLaunchMotionScreen
+      : _settle ? 'launch-settle' : 'launch';
 
   static const Size _client = Size(1280, 780);
   static const int _filmLength = 56;
   // The reference uses floor(totalFrames * 0.42).
   static const int _referenceIndex = 23;
-  void _observe(Duration _) {
+  void _observe(Duration stamp) {
     final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
     final EntryStartupReceipt? startup = registry.startup;
     try {
@@ -102,7 +122,7 @@ final class NativeLaunchCapture {
         _refusal = 'original-launch-frame-missed';
         return;
       }
-      if (startup != null && _tryCapture(startup)) return;
+      if (startup != null && _tryCapture(startup, stamp)) return;
       WidgetsBinding.instance.addPostFrameCallback(_observe);
     } on CaptureRefused catch (error) {
       _refusal = error.code;
@@ -111,7 +131,7 @@ final class NativeLaunchCapture {
     }
   }
 
-  bool _tryCapture(EntryStartupReceipt startup) {
+  bool _tryCapture(EntryStartupReceipt startup, Duration stamp) {
     if (!_settle && !startup.isCurrent) return false;
     final Object owner = startup.startupOwner;
     if (owner is! StartupStageSession || owner.isClosed) {
@@ -123,7 +143,24 @@ final class NativeLaunchCapture {
       throw const CaptureRefused('original-launch-frame-missed');
     }
     final double progress = owner.motion.value;
-    if (_settle) {
+    int? motionSlot;
+    if (_motion) {
+      if (!film.isDone || !owner.authInShell ||
+          startup.initialization?.succeeded != true ||
+          startup.splashOperation?.succeeded != true || progress <= 0) {
+        return false;
+      }
+      motionSlot = owner.filmInWell ? 2 : (progress < .55 ? 0 : 1);
+      if (progress == 1 && !owner.filmInWell) return false;
+      if (_scheduledMotion.contains(motionSlot)) return false;
+      _referenceOwner ??= owner;
+      if (film.frame != _filmLength - 1 || (motionSlot == 2 && progress != 1)) {
+        throw const CaptureRefused('original-launch-handoff-refused');
+      }
+      if (!identical(_referenceOwner, owner)) {
+        throw const CaptureRefused('original-launch-owner-unavailable');
+      }
+    } else if (_settle) {
       if (_referenceOwner == null) {
         if (!startup.isCurrent || !owner.requestHandoffReferenceFrame()) {
           throw const CaptureRefused('original-launch-handoff-frame-missed');
@@ -167,26 +204,44 @@ final class NativeLaunchCapture {
     if (!metrics.matches(_client) || view.size != _client) {
       throw const CaptureRefused('original-launch-window-refused');
     }
-    final Rect? stage = _stageRect(element);
+    final Element? lockedWell =
+        _settle ? originalLaunchLockedWell(owner) : null;
+    final Rect? wellBounds = _rect(lockedWell?.findRenderObject());
+    final Rect? stage = motionSlot == 2 ? wellBounds : _stageRect(element);
     if (Theme.of(element).brightness.name != theme ||
         app.sharedPrefsService?.get(kThemeModeKey) != 'ThemeMode.$theme') {
       throw const CaptureRefused('original-launch-theme-refused');
+    }
+    if (_motion &&
+        (lockedWell == null || wellBounds == null || stage == null)) {
+      return false;
     }
     if (!_window.isCurrent(native) || stage == null) {
       throw const CaptureRefused('original-launch-frame-unavailable');
     }
     if (_settle) {
-      final Element? well = originalLaunchLockedWell(owner);
+      final Element? well = lockedWell;
       if (well == null) {
         throw const CaptureRefused('original-launch-handoff-well-unavailable');
       }
-      final Rect? wellRect = _rect(well.findRenderObject());
-      if (wellRect == null ||
+      final Rect? wellRect = wellBounds;
+      if (wellRect == null || motionSlot != 2 && (
           stage.width >= _client.width ||
           stage.height >= _client.height ||
           stage.width <= wellRect.width ||
-          stage.height <= wellRect.height) {
+          stage.height <= wellRect.height)) {
+        if (_motion) return false;
         throw const CaptureRefused('original-launch-handoff-geometry-refused');
+      }
+      if (motionSlot != null) {
+        final _LaunchHandoff? previous = _handoff;
+        _motionView ??= view;
+        if (!identical(_motionView, view) ||
+            previous != null &&
+                (!identical(previous.film, element) ||
+                    !identical(previous.well, well))) {
+          throw const CaptureRefused('original-launch-owner-unavailable');
+        }
       }
       _handoff = (
         owner: owner,
@@ -195,6 +250,19 @@ final class NativeLaunchCapture {
         wellRect: wellRect,
         progress: progress,
       );
+      if (motionSlot != null) {
+        if (motionSlot == 2 && !_settled()) {
+          throw const CaptureRefused(
+            'original-launch-handoff-well-unavailable',
+          );
+        }
+        _scheduledMotion.add(motionSlot);
+        _motionOriginUs ??= stamp.inMicroseconds;
+        _motionPending++;
+        unawaited(_captureMotion(startup, native, view, motionSlot,
+            stamp.inMicroseconds - _motionOriginUs!, stage, _handoff!));
+        return _motionFinished = motionSlot == 2;
+      }
     } else {
       final Object splash = startup.owner;
       if (splash is! State ||
@@ -246,26 +314,35 @@ final class NativeLaunchCapture {
     return filmInOriginalWell;
   }
 
+  Future<Uint8List> _encode(
+    EntryStartupReceipt startup,
+    NativeWindowStartupReceipt native,
+    RenderView view, {
+    bool Function()? stillLocked,
+  }) async {
+    final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
+    final RetainedRendererFrame frame = await RetainedRendererFrame.capture(
+      view: view,
+      expectedSize: _client,
+      sourceCurrent: () => !registry.held &&
+          identical(registry.startup, startup) &&
+          _window.isCurrent(native) && identical(_readView(), view) &&
+          (stillLocked?.call() ?? true),
+    );
+    try {
+      return await frame.encodePng();
+    } finally {
+      await frame.release();
+    }
+  }
+
   Future<void> _capture(
     EntryStartupReceipt startup,
     NativeWindowStartupReceipt native,
     RenderView view,
   ) async {
     try {
-      final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
-      final RetainedRendererFrame frame = await RetainedRendererFrame.capture(
-        view: view,
-        expectedSize: _client,
-        sourceCurrent: () => !registry.held &&
-            identical(registry.startup, startup) &&
-            _window.isCurrent(native) && identical(_readView(), view),
-      );
-      final Uint8List png;
-      try {
-        png = await frame.encodePng();
-      } finally {
-        await frame.release();
-      }
+      final Uint8List png = await _encode(startup, native, view);
       if (png.isEmpty || png.length > 8 * 1024 * 1024) {
         throw const CaptureRefused('original-launch-png-refused');
       }
@@ -275,11 +352,65 @@ final class NativeLaunchCapture {
     }
   }
 
+  Future<void> _captureMotion(EntryStartupReceipt startup,
+      NativeWindowStartupReceipt native, RenderView view, int slot,
+      int offsetUs, Rect stage, _LaunchHandoff handoff) async {
+    try {
+      final Uint8List png = await _encode(
+        startup,
+        native,
+        view,
+        stillLocked: () => identical(
+          originalLaunchLockedWell(handoff.owner), handoff.well,
+        ) && identical(handoff.owner.filmKey.currentContext, handoff.film),
+      );
+      if (png.isNotEmpty && png.length <= 256 * 1024) {
+        _motionSamples.add((slot: slot, offsetUs: offsetUs, stage: stage,
+            handoff: handoff, png: png));
+      }
+    } on Object {
+      // Retain other frames from the same original motion on a readback loss.
+    } finally {
+      _motionPending--;
+    }
+  }
+
+  Map<String, Object?> _readMotion() {
+    if (_motionPending != 0 || !_motionFinished || !_settled()) {
+      final String? reason = _refusal;
+      return <String, Object?>{
+        'status': reason == null ? 'pending' : 'refused',
+        'reason': ?reason,
+      };
+    }
+    final List<_MotionSample> samples = _motionSamples.toList()
+      ..sort((_MotionSample a, _MotionSample b) => a.slot.compareTo(b.slot));
+    if (!identical(_readView(), _motionView)) {
+      throw const CaptureRefused('original-launch-owner-unavailable');
+    }
+    return <String, Object?>{
+      'status': 'captured', 'theme': theme, 'frame': _filmLength - 1,
+      'frames': _filmLength, 'lockHandoff': true,
+      'attemptedSlots': _scheduledMotion.toList()..sort(),
+      'samples': <Map<String, Object>>[
+        for (final _MotionSample sample in samples) <String, Object>{
+          'slot': sample.slot,
+          'offsetUs': sample.offsetUs,
+          'stage': _bounds(sample.stage),
+          'well': _bounds(sample.handoff.wellRect),
+          'progress': sample.handoff.progress,
+          'png': base64Encode(sample.png),
+        },
+      ],
+    };
+  }
+
   /// Reads the same retained bytes. Polling never schedules another image.
   Map<String, Object?> read(String requestedTheme) {
     if (requestedTheme != theme) {
       throw const CaptureRefused('original-launch-theme-refused');
     }
+    if (_motion) return _readMotion();
     final Uint8List? png = _png;
     final Rect? stage = _stage;
     final _LaunchHandoff? handoff = _handoff;

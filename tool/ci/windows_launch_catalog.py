@@ -20,6 +20,7 @@ from . import windows_startup_probe as startup
 
 OUTPUT = Path('.harness/ci-launch-catalog')
 SETTLE_OUTPUT = Path('.harness/ci-launch-settle-catalog')
+MOTION_OUTPUT = Path('.harness/ci-launch-motion')
 TIMING_OUTPUT = Path('.harness/ci-launch-timing')
 TIMING_SCREEN = 'launch-timing'
 TIMING_SCOPE = 'original_cold_lock_frame_timing'
@@ -51,15 +52,22 @@ THEMES = ('dark', 'light')
 FILES = tuple('39-launch-' + theme + '.png' for theme in THEMES)
 SETTLE_SCREEN = 'launch-settle'
 SETTLE_FILES = tuple('40-launch-settle-' + theme + '.png' for theme in THEMES)
+MOTION_SCREEN = 'launch-motion'
+MOTION_SCOPE = 'original_launch_motion_samples'
+MOTION_FILES = ('00-early.png', '01-late.png', '02-settled.png')
+MOTION_PNG_CAP = 256 * 1024
 FRAME_FIELDS = {'frame', 'frames', 'stage'}
 SETTLE_FIELDS = FRAME_FIELDS | {'progress', 'well', 'lockHandoff'}
 MAX_PNG = 4 * 1024**2
 MAX_MANIFEST = 32 * 1024
 MAX_ARCHIVE = 2 * MAX_PNG + MAX_MANIFEST + 65536
+MOTION_MAX_ARCHIVE = len(MOTION_FILES) * MOTION_PNG_CAP + MAX_MANIFEST + 65536
 LIMITS = replace(startup.LIMITS, response_bytes=entry.MAX_BASE64 + 65536)
 ATTEMPT_CHECKS = ('identity', 'auth', 'close_ack', 'exit')
 JOB_STEP = 'Capture the original cold launch in both themes'
 SETTLE_JOB_STEP = 'Capture the original launch handoff in both themes'
+MOTION_JOB_STEP = 'Sample the natural Windows launch handoff'
+MOTION_RETAIN_STEP = 'Retain bounded launch motion samples'
 SCOPE = 'original_cold_launch_catalog'
 SETTLE_SCOPE = 'original_launch_settle_catalog'
 LAUNCH_REFUSALS = {
@@ -126,6 +134,44 @@ def launch_pixels(reply, theme, *, settle=False):
     pixels = entry.png_bytes(reply['png'])
     need(0 < len(pixels) <= MAX_PNG)
     return pixels, {name: reply[name] for name in sorted(fields)}
+
+
+def motion_pixels(reply, theme):
+    """Read finite samples of the natural handoff, including missing slots."""
+    need(theme == TIMING_THEME and type(reply) is dict and set(reply) == {
+        'ok', 'status', 'theme', 'frame', 'frames', 'lockHandoff',
+        'attemptedSlots', 'samples'})
+    need(reply['ok'] is True and reply['status'] == 'captured'
+         and reply['theme'] == theme and reply['lockHandoff'] is True
+         and type(reply['frame']) is int and reply['frame'] == 55
+         and type(reply['frames']) is int and reply['frames'] == 56)
+    attempted = reply['attemptedSlots']
+    need(type(attempted) is list and len(attempted) in (1, 2, 3)
+         and all(type(slot) is int and 0 <= slot < len(MOTION_FILES) for slot in attempted)
+         and attempted == sorted(set(attempted)) and attempted[-1] == 2)
+    rows = reply['samples']
+    need(type(rows) is list and len(rows) <= len(attempted))
+    result, previous_slot, previous_offset = [], -1, -1
+    fields = {'slot', 'offsetUs', 'stage', 'well', 'progress'}
+    for row in rows:
+        need(type(row) is dict and set(row) == fields | {'png'})
+        slot, offset, progress = row['slot'], row['offsetUs'], row['progress']
+        stage, well = row['stage'], row['well']
+        need(type(slot) is int and slot in attempted and slot > previous_slot
+             and type(offset) is int and previous_offset < offset <= 4_000_000
+             and type(progress) in (int, float) and client_rect(stage) and client_rect(well))
+        if slot == 2:
+            need(progress == 1 and stage == well)
+        else:
+            need((0 < progress < .55 if slot == 0 else .55 <= progress < 1)
+                 and well[2] < stage[2] < 1280 and well[3] < stage[3] < 780)
+        encoded = row['png']
+        need(type(encoded) is str and len(encoded) <= 4 * ((MOTION_PNG_CAP + 2) // 3))
+        pixels = entry.png_bytes(encoded)
+        need(0 < len(pixels) <= MOTION_PNG_CAP)
+        result.append((pixels, {name: row[name] for name in sorted(fields)}))
+        previous_slot, previous_offset = slot, offset
+    return attempted, result
 
 
 def _packed_frame_rows(value):
@@ -258,6 +304,8 @@ class LaunchProcess(startup.StartupProbe):
 
     def _observe_pixels(self, theme, *, settle):
         screen = SETTLE_SCREEN if settle else 'launch'
+        if settle and self.profile_screen == MOTION_SCREEN:
+            screen = MOTION_SCREEN
         refusals = LAUNCH_REFUSALS | HANDOFF_REFUSALS if settle else LAUNCH_REFUSALS
         until = min(self.deadline, self.started + 60)
         while self.clock() < until:
@@ -268,6 +316,8 @@ class LaunchProcess(startup.StartupProbe):
                     and type(reply['reason']) is str):
                 raise startup.Failure(refusals.get(reply['reason'], 'STARTUP_OBSERVATION_REFUSED'))
             if reply != {'ok': True, 'status': 'pending'}:
+                if screen == MOTION_SCREEN:
+                    return motion_pixels(reply, theme)
                 return launch_pixels(reply, theme, settle=settle)
             self.sleep(min(self.limits.poll, max(0, until - self.clock())))
         raise startup.Failure('STARTUP_DEADLINE')
@@ -392,6 +442,10 @@ class LaunchProcess(startup.StartupProbe):
         return receipt, result if attempt_passed(receipt) else None
 
 
+class LaunchMotionProcess(LaunchProcess):
+    profile_screen = MOTION_SCREEN
+
+
 def run_process(repo, parent, binaries, profile, theme, *, capture, settle,
                 process_type=LaunchProcess, timing=False, lock_diagnostic=None,
                 interactive=False):
@@ -450,8 +504,11 @@ def run_process(repo, parent, binaries, profile, theme, *, capture, settle,
 def main():
     requested = os.environ.get('SYRIUS_WINDOWS_LAUNCH_CATALOG')
     timing = requested == TIMING_SCREEN
-    settle = requested in (SETTLE_SCREEN, TIMING_SCREEN)
-    scope = TIMING_SCOPE if timing else SETTLE_SCOPE if settle else SCOPE
+    motion = requested == MOTION_SCREEN
+    settle = requested in (SETTLE_SCREEN, TIMING_SCREEN, MOTION_SCREEN)
+    scope = {TIMING_SCREEN: TIMING_SCOPE, MOTION_SCREEN: MOTION_SCOPE,
+             SETTLE_SCREEN: SETTLE_SCOPE}.get(requested, SCOPE)
+    process_options = {'process_type': LaunchMotionProcess} if motion else {}
     report = dict(schema=1, scope=scope, success=False,
         attempts=[], source_stable=False, error_codes=[])
     if timing:
@@ -459,6 +516,8 @@ def main():
                       frame_window=None)
     else:
         report['captures'] = []
+    if motion:
+        report['attempted_slots'] = []
     destination = None
     try:
         need(not sys.argv[1:], 'ARGUMENTS_REFUSED')
@@ -466,8 +525,9 @@ def main():
         need(parent.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
              and parent.get('GITHUB_RUN_ATTEMPT') == '1'
              and parent.get('SYRIUS_WINDOWS_STARTUP_PROBE') == 'true'
-             and requested in ('true', SETTLE_SCREEN, TIMING_SCREEN)
-             and (not timing or parent.get('GITHUB_REPOSITORY') == 'edgepillar/syrius'),
+             and requested in ('true', SETTLE_SCREEN, TIMING_SCREEN, MOTION_SCREEN)
+             and (not (timing or motion) or parent.get('GITHUB_REPOSITORY') == 'edgepillar/syrius')
+             and (not motion or parent.get('GITHUB_REF') == 'refs/heads/redesign'),
              'ENVIRONMENT_REFUSED')
         repo = Path(parent['GITHUB_WORKSPACE'])
         bounded.plain(repo)
@@ -486,37 +546,49 @@ def main():
         if settle:
             report['profile_sha256'] = sha((repo / SETTLE_PROFILE_SOURCE).read_bytes())
         entry.private_root(repo)
-        output_directory = repo / (TIMING_OUTPUT if timing else SETTLE_OUTPUT if settle else OUTPUT)
+        output_directory = repo / {TIMING_SCREEN: TIMING_OUTPUT, MOTION_SCREEN: MOTION_OUTPUT,
+                                   SETTLE_SCREEN: SETTLE_OUTPUT}.get(requested, OUTPUT)
         output_directory.mkdir(mode=0o700)
         destination = output_directory
-        samples = ((TIMING_THEME, None),) if timing else zip(
+        samples = ((TIMING_THEME, None),) if timing or motion else zip(
             THEMES, SETTLE_FILES if settle else FILES)
         for theme, filename in samples:
             profile = entry.new_profile(repo)
             original = bounded.plain(profile)
             prepared, _ = run_process(repo, parent, binaries, profile, theme,
-                                      capture=False, settle=settle)
+                                      capture=False, settle=settle, **process_options)
             report['attempts'].append(prepared)
             need(attempt_passed(prepared))
             current = bounded.plain(profile)
             need((current.st_dev, current.st_ino) == (original.st_dev, original.st_ino), 'PROFILE_REFUSED')
             captured, result = run_process(repo, parent, binaries, profile, theme,
-                                           capture=True, settle=settle, timing=timing)
+                                           capture=True, settle=settle, timing=timing,
+                                           **process_options)
             report['attempts'].append(captured)
             need(result is not None)
             if timing:
                 report['frame_window'] = frame_timing_window(result)
                 continue
-            pixels, state = result
-            with (destination / filename).open('xb') as output:
-                output.write(pixels)
-            report['captures'].append(dict(theme=theme, file=filename,
-                bytes=len(pixels), sha256=sha(pixels), **state))
+            if motion:
+                report['attempted_slots'], observations = result
+                pictures = [(MOTION_FILES[state['slot']], pixels, state)
+                            for pixels, state in observations]
+            else:
+                pixels, state = result
+                pictures = [(filename, pixels, state)]
+            for name, pixels, state in pictures:
+                with (destination / name).open('xb') as output:
+                    output.write(pixels)
+                report['captures'].append(dict(theme=theme, file=name,
+                    bytes=len(pixels), sha256=sha(pixels), **state))
         bounded.verify_source(repo, head, parent)
         need(entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
         need(tuple(bounded.binary_hash(repo, path)
                    for path in (startup.BINARY, startup.PAYLOAD)) == binaries, 'BINARY_REFUSED')
-        report.update(source_stable=True, success=True)
+        report['source_stable'] = True
+        if motion:
+            need(len(report['captures']) == len(MOTION_FILES), 'LAUNCH_HANDOFF_FRAME_MISSED')
+        report['success'] = True
     except bounded.SmokeFailure as error:
         report['error_codes'].append(error.code)
     except (Exception, KeyboardInterrupt):
@@ -536,7 +608,8 @@ def main():
         window = report['frame_window']
         summary['frame_count'] = len(window['frames']) if window is not None else 0
     else:
-        title = 'Original launch handoff catalog' if settle else 'Original cold launch catalog'
+        title = {MOTION_SCREEN: 'Original launch motion samples',
+                 SETTLE_SCREEN: 'Original launch handoff catalog'}.get(requested, 'Original cold launch catalog')
         summary = report
     print('::notice title=' + title + '::' + json.dumps(summary, separators=(',', ':')))
     return 0 if report['success'] else 1
