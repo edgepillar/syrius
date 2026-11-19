@@ -196,6 +196,7 @@ class _SectionItemState extends State<_SectionItem>
                 key: ValueKey<String>('settings_${widget.section.name}'),
                 borderRadius: radius,
                 // Selection and keyboard focus already own their feedback.
+                splashFactory: NoSplash.splashFactory,
                 overlayColor: const WidgetStatePropertyAll<Color>(
                   Colors.transparent,
                 ),

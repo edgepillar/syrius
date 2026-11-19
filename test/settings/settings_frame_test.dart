@@ -284,7 +284,12 @@ void main() {
         );
         await tester.pumpWidget(_app(disableAnimations: flags.$2));
         await tester.pumpAndSettle();
-        await tester.tap(_section(SettingsSectionId.apps));
+        final Finder apps = _section(SettingsSectionId.apps);
+        expect(
+          tester.widget<InkWell>(apps).splashFactory,
+          same(NoSplash.splashFactory),
+        );
+        await tester.tap(apps);
         await tester.pump();
         final Color off = AppTokens.dark.card2.withValues(alpha: 0);
         expect(_surface(tester, SettingsSectionId.apps).color, off);
