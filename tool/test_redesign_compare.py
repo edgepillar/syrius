@@ -386,11 +386,29 @@ class CompareTests(unittest.TestCase):
         descriptor, media_type = gallery.assets[url]
         self.assertEqual(media_type, "image/png")
         self.assertEqual(capture_bytes(descriptor), image)
-        self.assertIn(pair["diff_url"], gallery.assets)
-        self.assertIn(url, (self.output / "index.html").read_text())
-        self.assertNotIn(archive_digest, (self.output / "index.html").read_text())
+        diff_url = pair["diff_url"]
+        diff, diff_type = gallery.read_asset(diff_url)
+        self.assertEqual(diff_type, "image/png")
+        with Image.open(io.BytesIO(diff)) as rendered:
+            self.assertEqual(rendered.size, (4, 3))
+            self.assertEqual(rendered.getextrema(), (0, 0))
+        report_html = (self.output / "index.html").read_text()
+        self.assertIn(url, report_html)
+        self.assertIn(diff_url, report_html)
+        self.assertNotIn(archive_digest, report_html)
         self.assertFalse((self.output / "capture").exists())
+        self.assertFalse((self.output / "diffs").exists())
         self.assertEqual(list(self.actual.iterdir()), [retained])
+
+        expected = self.expected / name
+        self.save_png(expected, (2, 3))
+        with self.assertRaisesRegex(ValueError, "Asset has changed"):
+            gallery.read_asset(diff_url)
+        expected.write_bytes(image)
+        retained.write_bytes(b"changed")
+        with self.assertRaisesRegex(ValueError, "ZIP does not match"):
+            gallery.read_asset(diff_url)
+        retained.write_bytes(payload.getvalue())
 
         for field in ("sha256", "archive_sha256"):
             with self.subTest(wrong_pin=field):

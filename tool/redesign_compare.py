@@ -32,8 +32,9 @@ To compare from a retained ZIP, use its path in "path" and include the
 archive's SHA-256 under "archive_sha256" and the literal PNG name under
 "archive_member". Keep the original PNG's "sha256" and producer "source_sha".
 Use --serve to view such a report on loopback. The gallery reads only the
-registered originals directly from their archives. By default, --serve writes
-the page to compare/served, alongside the static report.
+registered originals directly from their archives and renders difference PNGs
+on request. By default, --serve writes the page to compare/served, alongside
+the static report.
 
 Manual reviews use screenshot stems as keys. For example:
 {
@@ -60,6 +61,7 @@ import argparse
 import ast
 from collections import Counter
 from collections.abc import Sequence
+from contextlib import closing
 from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 from functools import reduce
@@ -123,6 +125,12 @@ class Capture:
     source_sha: str | None = None
     archive_member: str | None = None
     archive_sha256: str | None = None
+
+
+@dataclass(frozen=True)
+class Difference:
+    expected: Capture
+    actual: Capture
 
 
 class ScreenParser(HTMLParser):
@@ -307,11 +315,29 @@ def capture_bytes(capture: Capture) -> bytes:
         return data
 
 
+def verified_bytes(capture: Capture) -> bytes:
+    data = capture_bytes(capture)
+    if hashlib.sha256(data).hexdigest() != capture.sha256:
+        raise ValueError("Asset has changed")
+    return data
+
+
+def decode_png(data: bytes) -> Image.Image:
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", Image.DecompressionBombWarning)
+        with Image.open(io.BytesIO(data)) as original:
+            if original.format != "PNG" or getattr(original, "n_frames", 1) != 1:
+                raise ValueError("Expected a single-frame PNG")
+            if original.width * original.height > MAX_IMAGE_PIXELS:
+                raise ValueError("PNG exceeds the pixel limit")
+            return original.convert("RGBA")
+
+
 class ReportGallery:
     """Serve the exact assets of one private comparison on loopback."""
 
     def __init__(self) -> None:
-        self.assets: dict[str, tuple[Capture, str]] = {}
+        self.assets: dict[str, tuple[Capture | Difference, str]] = {}
 
     def add(self, url: str, capture: Capture, media_type: str = "image/png") -> None:
         self.assets[url] = capture, media_type
@@ -321,10 +347,28 @@ class ReportGallery:
             digest = hashlib.sha256(bounded_bytes(path, MAX_IMAGE_BYTES)).hexdigest()
             self.add(url, Capture(path, digest), media_type)
 
+    def add_difference(self, url: str, expected_url: str, actual_url: str) -> None:
+        expected, _ = self.assets[expected_url]
+        actual, _ = self.assets[actual_url]
+        if not isinstance(expected, Capture) or not isinstance(actual, Capture):
+            raise ReportError("Difference inputs must be original images")
+        self.assets[url] = Difference(expected, actual), "image/png"
+
+    def read_asset(self, url: str) -> tuple[bytes, str]:
+        asset, media_type = self.assets[url]
+        if isinstance(asset, Capture):
+            return verified_bytes(asset), media_type
+        with (
+            closing(decode_png(verified_bytes(asset.expected))) as before,
+            closing(decode_png(verified_bytes(asset.actual))) as after,
+        ):
+            diff = ImageChops.difference(before, after)
+            return encode_diff_png(difference_mask(diff)), media_type
+
     def serve(self, output: Path) -> None:
         self.add_file("index.html", output / "index.html", "text/html; charset=utf-8")
         prefix = "/" + secrets.token_urlsafe(24) + "/"
-        assets = self.assets
+        read_asset = self.read_asset
 
         class GalleryHandler(BaseHTTPRequestHandler):
             timeout = 5
@@ -337,16 +381,10 @@ class ReportGallery:
                 if self.headers.get("Host") != f"{host}:{port}" or not self.path.startswith(prefix):
                     self.send_error(404)
                     return
-                entry = assets.get(self.path[len(prefix):])
-                if entry is None:
-                    self.send_error(404)
-                    return
-                capture, media_type = entry
                 try:
-                    data = capture_bytes(capture)
-                    if hashlib.sha256(data).hexdigest() != capture.sha256:
-                        raise ValueError("Asset has changed")
-                except (OSError, ValueError, zipfile.BadZipFile, zlib.error):
+                    data, media_type = read_asset(self.path[len(prefix):])
+                except (KeyError, OSError, ValueError, SyntaxError, zipfile.BadZipFile,
+                        zlib.error, Image.DecompressionBombError, Image.DecompressionBombWarning):
                     self.send_error(404)
                     return
                 self.send_response(200)
@@ -383,15 +421,8 @@ def read_image(
         if capture.sha256 is not None and info["sha256"] != capture.sha256:
             info.update(state="invalid", reason="Actual PNG does not match the capture manifest SHA-256")
             return info, None
-        with warnings.catch_warnings():
-            warnings.simplefilter("error", Image.DecompressionBombWarning)
-            with Image.open(io.BytesIO(data)) as original:
-                if original.format != "PNG" or getattr(original, "n_frames", 1) != 1:
-                    raise ValueError("Expected a single-frame PNG")
-                if original.width * original.height > MAX_IMAGE_PIXELS:
-                    raise ValueError("PNG exceeds the pixel limit")
-                info["size"] = [original.width, original.height]
-                image = original.convert("RGBA")
+        image = decode_png(data)
+        info["size"] = list(image.size)
         info["state"] = "available"
         return info, image
     except FileNotFoundError:
@@ -563,9 +594,11 @@ def compare_pair(
             "changed_pct": round(100 * changed / pixels, 4),
         }
         if write_diffs:
-            pair["diff_url"] = store_diff(mask, output)
-            if gallery is not None:
-                gallery.add_file(pair["diff_url"], output / pair["diff_url"])
+            if gallery is None:
+                pair["diff_url"] = store_diff(mask, output)
+            else:
+                pair["diff_url"] = f"diff/{stem}.png"
+                gallery.add_difference(pair["diff_url"], expected["url"], actual["url"])
         return pair
     finally:
         for image in (before, after):
