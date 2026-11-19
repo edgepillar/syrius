@@ -941,8 +941,8 @@ Source901 in X775, Launch to 28f9c121 in X877 and Lock and Ready to
 | 07 | `send-rest` | X829 | X830 |
 | 08 | `send-warn` | X889 | X890 |
 | 09 | `receive` | X831 | X832 |
-| 10 | `receive-qr` | X833 | X834 |
-| 11 | `zap-form` | X835 | X836 |
+| 10 | `receive-qr` | X1186 | X1186 |
+| 11 | `zap-form` | X1189 | X1189 |
 | 12 | `send-confirm` | X837 | X838 |
 | 13 | `staking` | X891 | X892 |
 | 14 | `staking-new` | X893 | X894 |
@@ -953,7 +953,7 @@ Source901 in X775, Launch to 28f9c121 in X877 and Lock and Ready to
 | 19 | `spawn` | X1150 | X1151 |
 | 20 | `pillar-done` | X1152 | X1153 |
 | 21 | `plasma` | X845 | X846 |
-| 22 | `plasma-fuse` | X847 | X848 |
+| 22 | `plasma-fuse` | X1184 | X1184 |
 | 23 | `tokens` | X849 | X850 |
 | 24 | `token-mine` | X899 | X900 |
 | 25 | `token-new` | X851 | X852 |
@@ -968,8 +968,8 @@ Source901 in X775, Launch to 28f9c121 in X877 and Lock and Ready to
 | 34 | `set-apps` | X865 | X866 |
 | 35 | `set-addresses` | X867 | X868 |
 | 36 | `set-about` | X498 | X499 |
-| 37 | `set-licences` | X869 | X870 |
-| 38 | `set-originals` | X484 | X485 |
+| 37 | `set-licences` | X1192 | X1192 |
+| 38 | `set-originals` | X1192 | X1192 |
 | 39 | `launch` | match | match |
 | 40 | `launch-settle` | X871 | X872 |
 | 41 | `lock-screen` | match | match |
@@ -4432,3 +4432,6 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1188 | review | 2026-11-19 | The [Pillar Done Windows run](https://github.com/edgepillar/syrius/actions/runs/44511887581/job/135517942579) at `2fe0c360` completes the wallet tour. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44515686898/job/135530988543) verifies the copied wallet refusal at the Fuse prerequisite after publication entry. Its 18 observations include three absent effects and fifteen pending effects. The checkpoint stops before image acquisition and all five original nodes exit normally. The header line in X1174 remains open. |
 | X1189 | review | 2026-11-19 | Both X1179 Zap form pairs were viewed from the verified archive. The copy mark starts at column 775 in both native images and at 782 in both references. The counter ink ends at row 302 in both native images and at 306 and 307 in the references. The form now aligns the copy glyph to the field's trailing inset, accounts for the Pick another outline in the action spacing and anchors the byte count above the message box's bottom inset. The existing widget cases check the layout and the recipient and submit seams. The captured wallet reports recipients unavailable. Fresh Windows comparison remains open. |
 | X1190 | done | 2026-11-19 | [Full Linux validation](https://github.com/edgepillar/syrius/actions/runs/44514981472/job/135528541166) passes at `1b847d1a`, including the Originals footer and eye layout, strict analysis, the full non-chain suite and generated files. Both Windows visual verdicts remain open. |
+| X1191 | review | 2026-11-19 | The [Windows Details producer](https://github.com/edgepillar/syrius/actions/runs/44513755899/job/135524331993) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44517211743/job/135536232468) verify ten original PNGs and parent closure at `0c3e6799`. The archive includes the X1170 Originals controls and X1180 scrollbar inset. Later Receive QR, Zap, Plasma and Originals changes require their own source-bound images. |
+| X1192 | review | 2026-11-19 | The four X1191 Licences and Originals images were viewed and measured from the verified archive. In both themes the full and compact tracks occupy columns 1256 through 1259 with the reference colors. The compact thumb spans rows 206 through 235. The licence chevron's right edge is four pixels past the reference and the Play launch button's left edge is two pixels inward. The licence rows now use a 16 px trailing inset. The replay button accounts for its 1 px outline at each side. Both whole-image verdicts require a fresh comparison under V01. |
+| X1193 | done | 2026-11-19 | Full Linux validation passes at [`f2c924d3`](https://github.com/edgepillar/syrius/actions/runs/44515885770/job/135531650026) for the Plasma address layout and at [`954230e4`](https://github.com/edgepillar/syrius/actions/runs/44516612500/job/135534142386) for the Receive QR controls and amount note. Both runs cover strict analysis, the full non-chain suite and generated files. |

@@ -375,7 +375,9 @@ class _OriginalsCardState extends State<OriginalsCard>
                                 minimumSize: Size(0, tokens.smallButtonHeight),
                                 visualDensity: VisualDensity.standard,
                                 padding: const EdgeInsetsDirectional.symmetric(
-                                  horizontal: 10,
+                                  // The reference adds its 1 px stroke to the
+                                  // 10 px content inset.
+                                  horizontal: 11,
                                 ),
                                 textStyle: tokens.captionText.copyWith(
                                   fontWeight: FontWeight.w500,

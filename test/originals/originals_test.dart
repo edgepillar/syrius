@@ -297,7 +297,7 @@ void main() {
       expect(tester.getSize(action).height, 26);
       expect(
         button.style!.padding!.resolve(<WidgetState>{}),
-        const EdgeInsetsDirectional.symmetric(horizontal: 10),
+        const EdgeInsetsDirectional.symmetric(horizontal: 11),
       );
       expect(
         button.style!.textStyle!.resolve(<WidgetState>{})!.fontWeight,

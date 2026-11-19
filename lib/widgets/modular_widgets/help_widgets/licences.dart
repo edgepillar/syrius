@@ -510,6 +510,7 @@ class _LicenceRow extends StatelessWidget {
         summaryColumnPercent: summaryColumnPercent,
         keyPrefix: 'about_licence_${package.name}',
         headerMinHeight: tokens.aboutLicenceRowHeight,
+        headerPadding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
         onChanged: (bool open) {
           if (open) {
             try {

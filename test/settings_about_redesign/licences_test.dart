@@ -109,6 +109,17 @@ void main() {
         final Finder name = find.text('alpha');
         expect(name, findsOneWidget);
         expect(tester.widget<Text>(name).style?.fontWeight, FontWeight.w400);
+        final Finder row = find.byKey(const Key('about_licence_alpha_toggle'));
+        final Rect rowBounds = tester.getRect(row);
+        final Rect chevron = tester.getRect(
+          find.descendant(of: row, matching: find.byType(RotationTransition)),
+        );
+        expect(
+          variant.$2
+              ? chevron.left - rowBounds.left
+              : rowBounds.right - chevron.right,
+          closeTo(16, .01),
+        );
         expect(
           Theme.of(tester.element(name)),
           same(Theme.of(tester.element(find.byType(Licences)))),
