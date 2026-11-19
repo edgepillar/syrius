@@ -166,14 +166,25 @@ void main() {
         ),
       );
       expect(tester.getSize(find.byKey(_strip)).height, withLead);
-      for (final bool lead in <bool>[false, true]) {
+      for (final double? leadHeight in <double?>[
+        null,
+        kStripLeadSize,
+        kStripTextContentHeight,
+      ]) {
         await tester.pumpWidget(
           _host(
             _page(
               PageStrip(
                 key: _strip,
-                lead: lead ? const SizedBox.expand(key: _lead) : null,
-                minimumContentHeight: 46,
+                lead: leadHeight == null
+                    ? null
+                    : const OverflowBox(
+                        minHeight: kStripLeadSize,
+                        maxHeight: kStripLeadSize,
+                        child: SizedBox.expand(key: _lead),
+                      ),
+                leadSize: Size(kStripLeadSize, leadHeight ?? kStripLeadSize),
+                minimumContentHeight: kStripTextContentHeight,
                 figureGap: 28,
                 figures: const <StripFigure>[
                   StripFigure(label: 'Staked', value: Text('0')),
@@ -184,11 +195,17 @@ void main() {
         );
         expect(
           tester.getSize(find.byKey(_strip)).height,
-          lead ? equals(withLead) : inInclusiveRange(70, 71),
+          leadHeight == kStripLeadSize
+              ? equals(withLead)
+              : inInclusiveRange(70, 71),
           reason: 'CSS line boxes total 70.5 px before raster rounding.',
         );
-        if (lead) {
+        if (leadHeight != null) {
           expect(tester.getSize(find.byKey(_lead)), const Size.square(48));
+          expect(
+            tester.getCenter(find.byKey(_lead)).dy,
+            closeTo(tester.getCenter(find.byKey(_strip)).dy, 0.01),
+          );
         }
       }
       int activations = 0;

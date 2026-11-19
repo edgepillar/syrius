@@ -260,7 +260,15 @@ class _PillarOwnerStrip extends StatelessWidget {
         : const FetchInitial<UncollectedReward>();
     return PageStrip(
       key: const Key('nodes_pillar_owner_strip'),
-      lead: own == null ? null : const NodeObject.pillar(size: kStripLeadSize),
+      minimumContentHeight: kStripTextContentHeight,
+      leadSize: const Size(kStripLeadSize, kStripTextContentHeight),
+      lead: own == null
+          ? null
+          : const OverflowBox(
+              minHeight: kStripLeadSize,
+              maxHeight: kStripLeadSize,
+              child: NodeObject.pillar(size: kStripLeadSize),
+            ),
       figures: <StripFigure>[
         StripFigure(
           label: context.l10n.nodesYourPillar,
