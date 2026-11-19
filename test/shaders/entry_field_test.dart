@@ -22,12 +22,21 @@ const Key _clipFrame = Key('entry_field_clip_frame');
 
 class _TestLaunchFilmController extends LaunchFilmController {
   int _shownFrame = -1;
+  bool _finished = false;
 
   @override
   int get frame => _shownFrame;
 
+  @override
+  bool get isDone => _finished;
+
   void show(int index) {
     _shownFrame = index;
+    notifyListeners();
+  }
+
+  void finish() {
+    _finished = true;
     notifyListeners();
   }
 }
@@ -369,7 +378,7 @@ void main() {
     });
   }
 
-  testWidgets('lock raster preparation follows the first launch frame', (
+  testWidgets('lock raster preparation waits for launch playback to finish', (
     WidgetTester tester,
   ) async {
     _prepare(tester);
@@ -394,6 +403,9 @@ void main() {
     await tester.pump();
     expect(rasters, isEmpty);
     tester.binding.scheduleFrameCallback((_) => film.show(1));
+    await tester.pump();
+    expect(rasters, isEmpty);
+    tester.binding.scheduleFrameCallback((_) => film.finish());
     await tester.pump();
     expect(rasters, hasLength(1));
     expect(rasters.single.debugDisposed, isFalse);

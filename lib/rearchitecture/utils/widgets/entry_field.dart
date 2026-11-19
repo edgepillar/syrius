@@ -47,7 +47,7 @@ class EntryField extends StatefulWidget {
   /// During launch, the caption starts painting when this motion reaches one.
   final ValueListenable<double>? captionProgress;
 
-  /// The covering film. Raster preparation waits for it to advance.
+  /// The covering film. Raster preparation waits for playback to finish.
   final LaunchFilmController? launchFilm;
 
   @override
@@ -321,7 +321,7 @@ class _EntryFieldState extends State<EntryField>
 
   bool get _canPrepareCoveredRaster =>
       widget.captionProgress?.value == 0 &&
-      (widget.launchFilm?.frame ?? -1) > 0;
+      (widget.launchFilm?.isDone ?? false);
 
   void _prepareCoveredRaster() {
     if (_coveredRaster == null ||

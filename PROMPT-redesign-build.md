@@ -845,10 +845,19 @@ observed film end at 3,590.920 ms. Three raster starts follow observed Lock
 arrival. All three exceed 16 ms and the maximum is 46.876 ms. These timings
 locate the peak within playback. The responsible raster work remains unknown.
 
+The next Lock change waits for the original film's playback completion
+before preparing the backdrop. This uses the covered interval after the
+film stops advancing. If the field becomes visible first, its painter owns
+the first raster as usual. The existing widget case checks frames zero,
+one, completion and image reuse on the first visible paint. A fresh paired
+Windows sample is required to measure the timing impact.
+
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
 calls `jumpTo` only when the extent differs from the current offset, avoiding
-an idle and ballistic activity reset for an already aligned viewport.
+an idle and ballistic activity reset for an already aligned viewport. The
+[Linux run at `c7df0d8d`](https://github.com/edgepillar/syrius/actions/runs/44613814937/job/135877025155)
+passes analysis, the full non-chain suite and generated-file checks.
 
 Both Staking Empty captures from X1248 show the summary labels and amounts
 one pixel below the references. The Stakes card begins at row 119 and its
