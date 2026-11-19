@@ -59,7 +59,16 @@ class _ShellPaneNavigationState extends State<ShellPaneNavigation> {
               pages: <Page<void>>[
                 MaterialPage<void>(
                   key: const ValueKey<String>('shell_pane_root'),
-                  child: widget.child,
+                  child: Builder(
+                    builder: (BuildContext paneContext) => TooltipVisibility(
+                      // The original pane stays mounted under a detail route.
+                      // Its hover overlays follow the visible route.
+                      visible:
+                          ShellPaneNavigation.isCurrentRoute(paneContext) &&
+                          TooltipVisibility.of(paneContext),
+                      child: widget.child,
+                    ),
+                  ),
                 ),
               ],
               // Only routes above the permanent page are dismissible here.

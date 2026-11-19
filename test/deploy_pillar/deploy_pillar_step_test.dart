@@ -126,6 +126,11 @@ void main() {
 
     final Finder name = find.byKey(const Key('pillar_name_field'));
     final Finder nameValid = find.byKey(const Key('pillar_name_valid'));
+    final Finder nameEditor = find.descendant(
+      of: name,
+      matching: find.byType(EditableText),
+    );
+    final AppTokens tokens = AppTokens.of(tester.element(nameEditor));
     final Finder producer = find.byKey(
       const Key('pillar_producer_address_field'),
     );
@@ -150,6 +155,10 @@ void main() {
     expect(slider.hitTestable(), findsNothing);
     expect(requests, isEmpty);
     expect(nameValid, findsNothing);
+    expect(
+      InputDecorator.containerOf(tester.element(nameEditor))?.size.height,
+      closeTo(tokens.fieldHeight, .01),
+    );
     await tester.tap(back);
     expect(exits, 1);
 
@@ -160,6 +169,10 @@ void main() {
     await tester.enterText(producer, owner);
     await tester.pump();
     expect(nameValid, findsOneWidget);
+    expect(
+      InputDecorator.containerOf(tester.element(nameEditor))?.size.height,
+      closeTo(tokens.fieldHeight, .01),
+    );
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     expect(sharingNext.hitTestable(), findsNothing);
     await tester.enterText(producer, pillarAddress.toString());
@@ -168,7 +181,6 @@ void main() {
     await tester.tap(find.byKey(const Key('pillar_use_owner_address')));
     await tester.pump();
     expect(tester.widget<TextField>(reward).controller!.text, owner);
-    final AppTokens tokens = AppTokens.of(tester.element(reward));
     expect(tester.getSize(reward).height, closeTo(tokens.fieldHeight, .01));
 
     await tester.tap(detailsNext);

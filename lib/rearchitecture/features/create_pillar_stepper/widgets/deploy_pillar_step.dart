@@ -473,9 +473,9 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
               helperText: context.l10n.createPillarNameHelp,
               helperMaxLines: 3,
               errorText: nameError,
-              suffixIconConstraints: const BoxConstraints.tightFor(
+              suffixIconConstraints: BoxConstraints.tightFor(
                 width: 36,
-                height: 32,
+                height: tokens.fieldHeight,
               ),
               suffixIcon: hasName && nameError == null
                   ? Center(
@@ -486,7 +486,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
                         key: const Key('pillar_name_valid'),
                       ),
                     )
-                  : null,
+                  : const SizedBox.shrink(),
             ),
           ),
         ),

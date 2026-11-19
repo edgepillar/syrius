@@ -65,6 +65,8 @@ void main() {
       int closes = 0;
       bool visible = true;
       late StateSetter update;
+      const Key hintKey = Key('retained_pane_hint');
+      const String hint = 'Retained pane hint';
       expect(target.invoke('delegate'), isFalse);
       await tester.pumpWidget(
         _app(
@@ -84,7 +86,11 @@ void main() {
                       child: PageDismissAction(
                         open: true,
                         onDismiss: () => closes++,
-                        child: const Text('Page'),
+                        child: const Tooltip(
+                          key: hintKey,
+                          message: hint,
+                          child: Text('Page'),
+                        ),
                       ),
                     ),
                   ),
@@ -100,6 +106,32 @@ void main() {
       expect(calls, 1);
       expect(target.invoke('unknown'), isFalse);
       final BuildContext page = tester.element(find.text('Page'));
+      final TooltipState tooltip = tester.state<TooltipState>(
+        find.byKey(hintKey),
+      );
+      expect(tooltip.ensureTooltipVisible(), isTrue);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text(hint), findsOneWidget);
+      final NavigatorState pane = Navigator.of(page);
+      unawaited(
+        pane.push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => const Scaffold(body: Text('Detail')),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Detail'), findsOneWidget);
+      expect(find.text(hint), findsNothing);
+      expect(tooltip.ensureTooltipVisible(), isFalse);
+      expect(target.invoke('delegate'), isFalse);
+      pane.pop<void>();
+      await tester.pumpAndSettle();
+      expect(tester.state<TooltipState>(find.byKey(hintKey)), same(tooltip));
+      expect(tooltip.ensureTooltipVisible(), isTrue);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
       final NavigatorState root = Navigator.of(page, rootNavigator: true);
       unawaited(
         root.push<void>(
@@ -110,6 +142,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      expect(find.text(hint), findsNothing);
+      expect(tooltip.ensureTooltipVisible(), isFalse);
       expect(TickerMode.valuesOf(page).enabled, isTrue);
       expect(target.invoke('delegate'), isFalse);
       refresh.refresh();
