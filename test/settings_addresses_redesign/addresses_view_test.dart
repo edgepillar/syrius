@@ -155,7 +155,24 @@ void main() {
           for (final Finder action in <Finder>[choice, rename, copy]) {
             expect(tester.getSize(action), const Size.square(32));
           }
-          expect(tester.widget<IconButton>(choice).iconSize, 16);
+          final IconButton select = tester.widget<IconButton>(choice);
+          expect(select.iconSize, 16);
+          final SizedBox mark = select.icon as SizedBox;
+          expect(mark.width, 16);
+          expect(mark.height, 16);
+          final DecoratedBox ring = mark.child! as DecoratedBox;
+          final bool isSelected = address == source.members.first;
+          expect(
+            ring.decoration,
+            BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected ? tokens.znnInk : tokens.faint,
+                width: 2,
+              ),
+            ),
+          );
+          expect(ring.child, isSelected ? isA<Center>() : isNull);
           final Rect renameBounds = tester.getRect(rename);
           final Rect copyBounds = tester.getRect(copy);
           expect(

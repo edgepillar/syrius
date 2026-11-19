@@ -742,6 +742,13 @@ PNG members and reports inclusive coordinates in capture order. It reproduces
 the six earlier measurements against the exact reference PNGs in memory. The
 geometry reading supports the whole-image review.
 
+The retained dark Addresses capture at `06eda3f7` shows the selected glyph
+in columns 299 through 312 and rows 165 through 178. The authored selector
+specifies a 16 px circle with a 2 px ring and a filled centre for the selected
+address. The button now draws those dimensions directly. It keeps its 32 px
+input area, tooltip and checked state. The existing theme and scaled RTL
+cases verify the mark and the hit area. Fresh Windows pixels remain open.
+
 ### Receive at rest at `06eda3f7`
 
 The latest private comparison records verdicts for all 62 locally available
@@ -864,6 +871,9 @@ film stops advancing. If the field becomes visible first, its painter owns
 the first raster as usual. The existing widget case checks frames zero,
 one, completion and image reuse on the first visible paint. A fresh paired
 Windows sample is required to measure the timing impact.
+The [Linux run at `bf11a65e`](https://github.com/edgepillar/syrius/actions/runs/44616503291/job/135886514914)
+passes analysis, the focused Ready and Lock suites, the full non-chain
+test suite and generated-file verification.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now

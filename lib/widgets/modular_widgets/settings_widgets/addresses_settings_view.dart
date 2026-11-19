@@ -769,6 +769,7 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
   ) {
     final AppTokens tokens = AppTokens.of(context);
     final bool selected = address == owner.selected;
+    final Color choiceInk = selected ? tokens.znnInk : tokens.faint;
     final double scale = MediaQuery.textScalerOf(context).scale(1);
     final String label = owner.labels[address] ?? address;
     return ConstrainedBox(
@@ -792,11 +793,30 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
                         ? () => unawaited(_select(address, current))
                         : null,
                     iconSize: tokens.addressesChoiceSize,
-                    icon: Icon(
-                      selected
-                          ? Icons.radio_button_checked
-                          : Icons.radio_button_off,
-                      color: selected ? tokens.znnInk : tokens.faint,
+                    icon: SizedBox.square(
+                      dimension: tokens.addressesChoiceSize,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: choiceInk,
+                            width: tokens.addressesChoiceStroke,
+                          ),
+                        ),
+                        child: selected
+                            ? Center(
+                                child: SizedBox.square(
+                                  dimension: tokens.addressesChoiceDotSize,
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: choiceInk,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : null,
+                      ),
                     ),
                   ),
                 ),

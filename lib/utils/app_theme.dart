@@ -1021,6 +1021,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The reference's account-selection mark.
   double get addressesChoiceSize => 16;
 
+  /// The circle's outline and its filled centre when selected.
+  double get addressesChoiceStroke => 2;
+
+  /// The diameter of the selected account's centre mark.
+  double get addressesChoiceDotSize => 7;
+
   /// The reference's circular table action and its input area.
   double get addressesActionSize => 32;
 
