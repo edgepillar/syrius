@@ -1146,9 +1146,13 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(observed['address_selector_bounds'], dict(dark=None, light=None))
         self.assertEqual(observed['node_selector_bounds'], dict(dark=None, light=None))
         self.assertEqual(observed['about_card_bands']['themes'], dict(dark=None, light=None))
+        self.assertEqual(observed['about_update_badge_bounds'], dict(dark=None, light=None))
         packed = io.BytesIO()
         with zipfile.ZipFile(packed, 'w') as zipped:
-            for theme, green in (('dark', (0, 213, 87)), ('light', (22, 138, 53))):
+            for theme, green, pink in (
+                ('dark', (0, 213, 87), (67, 36, 52)),
+                ('light', (22, 138, 53), (246, 215, 231)),
+            ):
                 background = bytes((100, 100, 100, 255))
                 ordinary = b'\0' + background * 1280
                 for screen, left, top in (('35-set-addresses', 298, 164), ('30-set-node', 288, 214)):
@@ -1159,17 +1163,25 @@ class ReaderTests(unittest.TestCase):
                              + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
                     zipped.writestr(f'{screen}-{theme}.png', image)
                 card = b'\0' + bytes((*green, 255)) * 1280
-                pixels = ordinary * 36 + card * 70 + 3 * (ordinary * 12 + card * 44) + ordinary * 506
+                badge = (b'\0' + bytes((*green, 255)) * 830 + bytes((*pink, 255)) * 86
+                         + bytes((*green, 255)) * 364)
+                text_ink = (b'\0' + bytes((*green, 255)) * 1010
+                            + bytes((218, 141, 211, 255)) * 12
+                            + bytes((*green, 255)) * 258)
+                pixels = (ordinary * 36 + card * 21 + text_ink + badge * 26 + card * 22
+                          + 3 * (ordinary * 12 + card * 44) + ordinary * 506)
                 image = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                          + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
                 zipped.writestr(f'36-set-about-{theme}.png', image)
         address = dict(left=298, top=164, right=313, bottom=179)
         node = dict(left=288, top=214, right=303, bottom=229)
         about = dict(version=[36, 106], links=[118, 162], computer=[174, 218], licences=[230, 274])
+        badge_bounds = dict(left=830, top=58, right=915, bottom=83)
         self.assertEqual(reader.settings_catalog_geometry(packed.getvalue()), dict(
             address_selector_bounds=dict(dark=address, light=address),
             node_selector_bounds=dict(dark=node, light=node),
             about_card_bands=dict(column=700, scan_rows=[35, 279], themes=dict(dark=about, light=about)),
+            about_update_badge_bounds=dict(dark=badge_bounds, light=badge_bounds),
         ))
         value, calls, text = self.run_main(navigation_catalog=True)
         self.assertTrue(value['native_inspection_qualified'])

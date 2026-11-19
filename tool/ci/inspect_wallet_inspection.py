@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from collections import Counter
 import hashlib
 import io
 import json
@@ -606,7 +607,7 @@ def staking_empty_bands(raw):
     return dict(column=column, scan_rows=[top, bottom], themes=themes)
 
 
-def _selector_bounds(zipped, screen, columns, lines):
+def _ink_bounds(zipped, screen, columns, lines, matches, *, minimum_fill=0):
     left, right = columns
     top, bottom = lines
     themes = {}
@@ -618,16 +619,28 @@ def _selector_bounds(zipped, screen, columns, lines):
         if windows._opaque(rows, channels):
             for y, row in enumerate(rows, top):
                 for index in range(0, len(row), channels):
-                    red, green, blue = row[index:index + 3]
-                    if green - red >= 45 and green - blue >= 31:
-                        points.append((left + index // channels, y))
+                    color = tuple(row[index:index + 3])
+                    if matches(*color):
+                        points.append((color, left + index // channels, y))
         themes[theme] = None
+        if points and minimum_fill:
+            # Isolate the solid tint from pink text and anti-aliased edges.
+            color, count = Counter(color for color, _, _ in points).most_common(1)[0]
+            points = [point for point in points if point[0] == color] if count >= minimum_fill else []
         if points:
-            xs, ys = zip(*points)
+            _, xs, ys = zip(*points)
             x1, x2, y1, y2 = min(xs), max(xs), min(ys), max(ys)
             if left < x1 <= x2 < right - 1 and top < y1 <= y2 < bottom - 1:
                 themes[theme] = dict(left=x1, top=y1, right=x2, bottom=y2)
     return themes
+
+
+def _selection_ink(red, green, blue):
+    return green - red >= 45 and green - blue >= 31
+
+
+def _update_badge_ink(red, green, blue):
+    return red - green >= 20 and blue - green >= 10
 
 
 def _about_card_bands(zipped):
@@ -647,12 +660,17 @@ def _about_card_bands(zipped):
 
 
 def settings_catalog_geometry(raw):
-    """Measure selector ink and half-open About panel ranges after verification."""
+    """Measure selector ink, About panel ranges, and update badge ink after verification."""
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         return dict(
-            address_selector_bounds=_selector_bounds(zipped, '35-set-addresses', (288, 321), (90, 315)),
-            node_selector_bounds=_selector_bounds(zipped, '30-set-node', (284, 319), (88, 256)),
+            address_selector_bounds=_ink_bounds(
+                zipped, '35-set-addresses', (288, 321), (90, 315), _selection_ink),
+            node_selector_bounds=_ink_bounds(
+                zipped, '30-set-node', (284, 319), (88, 256), _selection_ink),
             about_card_bands=_about_card_bands(zipped),
+            about_update_badge_bounds=_ink_bounds(
+                zipped, '36-set-about', (740, 1248), (47, 95), _update_badge_ink,
+                minimum_fill=300),
         )
 
 

@@ -867,6 +867,12 @@ values remain visible differences. Both About images show the corrected
 panel positions and a plain Wallet updates label. The About view now draws
 the reference badge shape and tint around that label. A release version
 and its availability still require genuine update evidence.
+The [Linux run at `73e7c3dc`](https://github.com/edgepillar/syrius/actions/runs/44636661156/job/135956825005)
+passes application analysis, the non-chain test suite and generated-file checks.
+The Settings reader locates the solid badge tint in verified captures
+without extracting images. In the reference, the tint spans rows 58
+through 83 in both themes, columns 831 through 914 in dark and
+columns 830 through 914 in light.
 
 The four comparisons used the same
 [verified Settings archive](https://github.com/edgepillar/syrius/actions/runs/44630625025/artifacts/14581264770).
