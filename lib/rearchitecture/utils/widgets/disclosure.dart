@@ -339,7 +339,7 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
             // Retained EditableText nodes can latch an inherited traversal
             // barrier. Focusability alone closes the form without that latch.
             descendantsAreFocusable: _open,
-            child: _DisclosureReveal(reveal: _reveal, child: widget.child),
+            child: DisclosureReveal._(reveal: _reveal, child: widget.child),
           ),
         ),
       );
@@ -384,33 +384,39 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
   }
 }
 
-/// The part that opens and closes.
+/// The moving body of a [Disclosure].
 ///
 /// The body is laid out at its full height throughout and uncovered from
 /// the top while it slides down into place. Squeezed into the height reached
 /// so far, a form would overflow on every frame of the way.
-class _DisclosureReveal extends StatelessWidget {
-  const _DisclosureReveal({required this.reveal, required this.child});
+class DisclosureReveal extends StatelessWidget {
+  const DisclosureReveal._({
+    required Animation<double> reveal,
+    required this.child,
+  }) : _reveal = reveal;
 
-  /// 0 closed, 1 open.
-  final Animation<double> reveal;
+  final Animation<double> _reveal;
 
+  /// The body laid out at its full size.
   final Widget child;
+
+  /// Whether the revealed body has reached its fully open position.
+  bool get isSettled => _reveal.isCompleted;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: reveal,
+      animation: _reveal,
       // Align gives its child loose constraints. Keep the full body width.
       child: SizedBox(
         width: double.infinity,
         child: RepaintBoundary(child: child),
       ),
       builder: (BuildContext context, Widget? child) {
-        final double t = reveal.value;
+        final double t = _reveal.value;
         // Fully open, focus rings and glows can extend past the body box.
         return ClipRect(
-          clipBehavior: reveal.isCompleted ? Clip.none : Clip.hardEdge,
+          clipBehavior: isSettled ? Clip.none : Clip.hardEdge,
           child: Align(
             alignment: AlignmentDirectional.topStart,
             heightFactor: t,

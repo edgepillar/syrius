@@ -3005,8 +3005,8 @@ class HarnessAgent {
         }
         entranceFade = null;
       }
-      if (widget is Disclosure && reveal != null) {
-        if (!reveal.isCompleted) {
+      if (widget is DisclosureReveal) {
+        if (!widget.isSettled) {
           settled = false;
           return false;
         }
