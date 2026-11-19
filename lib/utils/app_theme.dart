@@ -1609,6 +1609,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Separation between independent node summary facts.
   double get nodeSettingsSummaryGap => 16;
 
+  /// The table's two-line rows include their one-pixel separator.
+  double get nodeSettingsRowHeight => 57;
+
   /// The compact node status chip's base height.
   double get nodeSettingsChipHeight => 26;
 

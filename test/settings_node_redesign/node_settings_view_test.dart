@@ -175,6 +175,16 @@ void main() {
           find.byKey(const Key('node_settings_sporks_gate')),
         );
         expect(nodes.width, 992);
+        for (final String node in <String>[
+          embeddedNode,
+          remoteNode,
+          customNode,
+        ]) {
+          final Finder row = find.byKey(
+            ValueKey<String>('node_settings_row_$node'),
+          );
+          expect(tester.getSize(row).height, greaterThanOrEqualTo(57));
+        }
         final Rect add = tester.getRect(
           find.byKey(const Key('node_settings_add')),
         );
@@ -228,6 +238,10 @@ void main() {
         final Rect nodes = tester.getRect(
           find.byKey(const Key('node_settings_nodes')),
         );
+        final Finder row = find.byKey(
+          const ValueKey<String>('node_settings_row_$embeddedNode'),
+        );
+        expect(tester.getSize(row).height, greaterThan(57));
         final Rect add = tester.getRect(
           find.byKey(const Key('node_settings_add')),
         );

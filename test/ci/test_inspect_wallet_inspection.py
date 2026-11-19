@@ -1145,6 +1145,7 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(observed['visual_matches'], 0)
         self.assertEqual(observed['address_selector_bounds'], dict(dark=None, light=None))
         self.assertEqual(observed['node_selector_bounds'], dict(dark=None, light=None))
+        self.assertEqual(observed['node_table_rows']['themes'], dict(dark=None, light=None))
         self.assertEqual(observed['about_card_bands']['themes'], dict(dark=None, light=None))
         self.assertEqual(observed['about_update_badge_bounds'], dict(dark=None, light=None))
         packed = io.BytesIO()
@@ -1159,6 +1160,15 @@ class ReaderTests(unittest.TestCase):
                     selected = (b'\0' + background * left + bytes((*green, 255)) * 16
                                 + background * (1280 - left - 16))
                     pixels = ordinary * top + selected * 16 + ordinary * (780 - top - 16)
+                    if screen == '30-set-node':
+                        table = bytes((125, 125, 125, 255))
+                        card = b'\0' + table * 1280
+                        rule = b'\0' + bytes((160, 160, 160, 255)) * 1280
+                        selected = (b'\0' + table * left + bytes((*green, 255)) * 16
+                                    + table * (1280 - left - 16))
+                        pixels = (ordinary * 36 + card * 48 + (rule + card * 56) * 2
+                                  + rule + card * 15 + selected * 16 + card * 25
+                                  + ordinary * 525)
                     image = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                              + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
                     zipped.writestr(f'{screen}-{theme}.png', image)
@@ -1180,6 +1190,8 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(reader.settings_catalog_geometry(packed.getvalue()), dict(
             address_selector_bounds=dict(dark=address, light=address),
             node_selector_bounds=dict(dark=node, light=node),
+            node_table_rows=dict(column=700, scan_rows=[35, 330],
+                                 themes=dict(dark=[84, 141, 198, 255], light=[84, 141, 198, 255])),
             about_card_bands=dict(column=700, scan_rows=[35, 279], themes=dict(dark=about, light=about)),
             about_update_badge_bounds=dict(dark=badge_bounds, light=badge_bounds),
         ))

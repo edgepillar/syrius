@@ -845,6 +845,15 @@ The [Linux run at `c59c46ec`](https://github.com/edgepillar/syrius/actions/runs/
 passes strict analysis, the full non-chain suite with 5,124 passes and one
 skip, and generated-file checks.
 
+In the [retained Settings capture at `1d5e4ffa`](https://github.com/edgepillar/syrius/actions/runs/44633912950/job/135947427497),
+the three Node rows fill 55 px each and the table ends at row 249
+in both themes. The reference table ends at 255. Each row now reserves a
+57 px minimum including its separator and can grow for large text.
+The existing standard and scaled cases check these dimensions.
+The Settings reader reports the original row boundaries from the
+verified archive without extracting the images.
+The updated native row positions and whole-screen verdict remain open.
+
 At column 700, both original About images at `cc574e9a` fill rows 36 through
 106 in the version strip. Both references fill rows 36 through 105. Each
 closed disclosure below the version strip is displaced by one row. The

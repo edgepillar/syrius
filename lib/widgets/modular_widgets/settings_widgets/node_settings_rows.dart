@@ -338,58 +338,58 @@ class _NodeSettingsRow extends StatelessWidget {
           ),
       ],
     );
-    return DecoratedBox(
+    return Container(
+      constraints: BoxConstraints(minHeight: tokens.nodeSettingsRowHeight),
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: tokens.line)),
       ),
-      child: Padding(
-        padding: tokens.settingsRowPadding,
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            final bool compact =
-                constraints.maxWidth < 620 ||
-                MediaQuery.textScalerOf(context).scale(1) > 1.3;
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    choice,
-                    SizedBox(width: tokens.pageGap),
-                    Expanded(flex: 5, child: endpoint),
-                    if (!compact) ...<Widget>[
-                      SizedBox(width: tokens.inlineGap),
-                      Expanded(flex: 2, child: chain),
-                      Expanded(
-                        flex: 3,
-                        child: Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: status,
-                        ),
-                      ),
-                    ],
+      padding: tokens.settingsRowPadding,
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final bool compact =
+              constraints.maxWidth < 620 ||
+              MediaQuery.textScalerOf(context).scale(1) > 1.3;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  choice,
+                  SizedBox(width: tokens.pageGap),
+                  Expanded(flex: 5, child: endpoint),
+                  if (!compact) ...<Widget>[
                     SizedBox(width: tokens.inlineGap),
-                    actions,
+                    Expanded(flex: 2, child: chain),
+                    Expanded(
+                      flex: 3,
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: status,
+                      ),
+                    ),
                   ],
-                ),
-                if (compact)
-                  Padding(
-                    padding: EdgeInsetsDirectional.only(
-                      start: tokens.settingsChoiceSize + tokens.pageGap,
-                      top: tokens.fieldLabelGap,
-                    ),
-                    child: Wrap(
-                      spacing: tokens.nodeSettingsSummaryGap,
-                      runSpacing: tokens.fieldLabelGap,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: <Widget>[chain, status],
-                    ),
+                  SizedBox(width: tokens.inlineGap),
+                  actions,
+                ],
+              ),
+              if (compact)
+                Padding(
+                  padding: EdgeInsetsDirectional.only(
+                    start: tokens.settingsChoiceSize + tokens.pageGap,
+                    top: tokens.fieldLabelGap,
                   ),
-              ],
-            );
-          },
-        ),
+                  child: Wrap(
+                    spacing: tokens.nodeSettingsSummaryGap,
+                    runSpacing: tokens.fieldLabelGap,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: <Widget>[chain, status],
+                  ),
+                ),
+            ],
+          );
+        },
       ),
     );
   }

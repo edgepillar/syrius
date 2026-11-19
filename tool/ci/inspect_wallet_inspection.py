@@ -643,6 +643,22 @@ def _update_badge_ink(red, green, blue):
     return red - green >= 20 and blue - green >= 10
 
 
+def _node_table_rows(zipped):
+    column, top, bottom = 700, 35, 330
+    themes = {}
+    for theme in producer.settings.THEMES:
+        bands = _vertical_bands(zipped, f'30-set-node-{theme}.png', column, top, bottom)[:9]
+        themes[theme] = None
+        if len(bands) != 9:
+            continue
+        positions, colors = zip(*bands)
+        base, card, divider = colors[:3]
+        if (base != card and divider not in (base, card)
+                and colors == (base, card, divider, card, divider, card, divider, card, base)):
+            themes[theme] = list(positions[2:9:2])
+    return dict(column=column, scan_rows=[top, bottom], themes=themes)
+
+
 def _about_card_bands(zipped):
     column, top, bottom = 700, 35, 279
     themes = {}
@@ -660,13 +676,14 @@ def _about_card_bands(zipped):
 
 
 def settings_catalog_geometry(raw):
-    """Measure selector ink, About panel ranges, and update badge ink after verification."""
+    """Measure the Node rows, selectors and About panels after verification."""
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         return dict(
             address_selector_bounds=_ink_bounds(
                 zipped, '35-set-addresses', (288, 321), (90, 315), _selection_ink),
             node_selector_bounds=_ink_bounds(
                 zipped, '30-set-node', (284, 319), (88, 256), _selection_ink),
+            node_table_rows=_node_table_rows(zipped),
             about_card_bands=_about_card_bands(zipped),
             about_update_badge_bounds=_ink_bounds(
                 zipped, '36-set-about', (740, 1248), (47, 95), _update_badge_ink,
