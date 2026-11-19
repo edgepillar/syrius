@@ -11,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/balance_visibility.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart' show PlasmaInfo, emptyAddress;
 
 typedef _Levels = InfiniteListState<PlasmaInfoWrapper>;
 
@@ -27,19 +28,29 @@ void main() {
           final String? previousAddress = kSelectedAddress;
           kSelectedAddress = null;
           final SelectedAddressNotifier selection = SelectedAddressNotifier();
+          final PlasmaBeneficiaryAddressCubit beneficiary =
+              PlasmaBeneficiaryAddressCubit();
           final _Stats stats = _Stats();
+          final PlasmaInfoWrapper other = PlasmaInfoWrapper(
+            address: emptyAddress.toString(),
+            plasmaInfo: PlasmaInfo(
+              currentPlasma: 63000,
+              maxPlasma: 63000,
+              qsrAmount: BigInt.zero,
+            ),
+          );
           whenListen(
             stats,
             const Stream<_Levels>.empty(),
-            initialState: const _Levels(
+            initialState: _Levels(
               status: InfiniteListStatus.success,
-              data: <PlasmaInfoWrapper>[],
+              data: <PlasmaInfoWrapper>[other],
               hasReachedMax: true,
             ),
           );
           when(() => stats.hasCurrentRead).thenReturn(true);
           when(() => stats.currentReadings).thenReturn(
-            const <PlasmaInfoWrapper>[],
+            <PlasmaInfoWrapper>[other],
           );
           when(() => stats.currentReading(any())).thenReturn(null);
           BalanceVisibility.debugReset();
@@ -50,6 +61,7 @@ void main() {
               await tester.pumpWidget(const SizedBox.shrink());
               await tester.pump();
             } finally {
+              await beneficiary.close();
               selection.dispose();
               kSelectedAddress = previousAddress;
               BalanceVisibility.debugReset();
@@ -61,8 +73,13 @@ void main() {
           await tester.pumpWidget(
             ChangeNotifierProvider<SelectedAddressNotifier>.value(
               value: selection,
-              child: BlocProvider<PlasmaStatsBloc>.value(
-                value: stats,
+              child: MultiBlocProvider(
+                providers: <BlocProvider<dynamic>>[
+                  BlocProvider<PlasmaStatsBloc>.value(value: stats),
+                  BlocProvider<PlasmaBeneficiaryAddressCubit>.value(
+                    value: beneficiary,
+                  ),
+                ],
                 child: MaterialApp(
                   theme: dark ? AppTheme.darkTheme : AppTheme.lightTheme,
                   locale: const Locale('en'),
@@ -114,6 +131,21 @@ void main() {
           expect(openTop, lessThan(openingTop));
           expect(openTop, greaterThan(card.top + card.height * .35));
           expect(openTop, lessThan(card.top + card.height * .65));
+          if (height == 674) {
+            expect(openTop - card.top, closeTo(321, 1));
+          }
+          final Finder row = find.byKey(ValueKey<String>(other.address));
+          final Rect rowBounds = tester.getRect(row);
+          final Rect meter = tester.getRect(
+            find.descendant(of: row, matching: find.byType(PlasmaLevelMeter)),
+          );
+          expect(
+            rowBounds.top - tester.getRect(toggle).bottom,
+            closeTo(7, .01),
+          );
+          expect(rowBounds.height, 30);
+          expect(meter.left - card.left, closeTo(143, .01));
+          expect(meter.width, 90);
           expect(tester.state<State<PlasmaGlow>>(mark), same(glow));
           final Size openMark = tester.getSize(mark);
           expect(openMark.width, inInclusiveRange(96, 120));

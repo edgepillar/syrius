@@ -320,6 +320,10 @@ class _OtherAddresses extends StatelessWidget {
             final bool loaded =
                 state.status == InfiniteListStatus.success &&
                 source.hasCurrentRead;
+            final InfiniteListState<PlasmaInfoWrapper> listState =
+                loaded || state.status == InfiniteListStatus.failure
+                    ? state
+                    : const InfiniteListState<PlasmaInfoWrapper>.initial();
             final List<PlasmaInfoWrapper> others = <PlasmaInfoWrapper>[
               for (final PlasmaInfoWrapper w in source.currentReadings)
                 if (w.address != selected) w,
@@ -346,15 +350,18 @@ class _OtherAddresses extends StatelessWidget {
                 // list. The original reveal lends this height to the mark
                 // while closed, so its header rests at the card's foot.
                 height: maxHeight,
-                child: Padding(
-                  padding: tokens.plasmaOtherListPadding,
-                  child: _LevelsView(
-                    state: loaded || state.status == InfiniteListStatus.failure
-                        ? state
-                        : const InfiniteListState<PlasmaInfoWrapper>.initial(),
-                    items: others,
-                    onPage: true,
-                    onPicked: onPicked,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: tokens.line)),
+                  ),
+                  child: Padding(
+                    padding: tokens.plasmaOtherListPadding,
+                    child: _LevelsView(
+                      state: listState,
+                      items: others,
+                      onPage: true,
+                      onPicked: onPicked,
+                    ),
                   ),
                 ),
               ),
@@ -655,7 +662,7 @@ class _LevelRow extends StatelessWidget {
               child: PlasmaLevelMeter(plasma: plasma),
             ),
             SizedBox(
-              width: _kRowLevelWidth,
+              width: onPage ? tokens.plasmaOtherLevelWidth : _kRowLevelWidth,
               child: Align(
                 alignment: AlignmentDirectional.centerEnd,
                 child: PlasmaLevelLabel(plasma: plasma),

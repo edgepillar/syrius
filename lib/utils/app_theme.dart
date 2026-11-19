@@ -669,8 +669,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Reserves room for the actual beneficiary plasma and level.
   double get plasmaFiguresHeight => 116;
 
-  /// Other addresses may use this fraction of the well column.
-  double get plasmaOtherShare => .45;
+  /// Other addresses reserve 309 pixels in the 674-pixel reference well.
+  double get plasmaOtherShare => .459;
 
   /// The check column does not shift exact fusion amounts.
   double get plasmaCheckboxWidth => 36;
@@ -784,12 +784,15 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Other-address meters do not compete with the beneficiary's main meter.
   double get plasmaOtherMeterWidth => 90;
 
+  /// The trailing level column places the meter inside the reference well.
+  double get plasmaOtherLevelWidth => 91;
+
   /// Other addresses form a compact list within the well.
   double get plasmaOtherRowHeight => 30;
 
-  /// The address list follows the well's directional inset.
+  /// The list uses the reference inset with room for the full row hit area.
   EdgeInsetsDirectional get plasmaOtherListPadding =>
-      const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 12);
+      const EdgeInsetsDirectional.fromSTEB(16, 7, 16, 12);
 
   /// The reference's detail offset includes the table cell's leading inset.
   double get tokenDetailIndent => 66;
