@@ -120,6 +120,7 @@ class LaunchFilm extends StatefulWidget {
   final BoxFit fit;
 
   /// Keeps the decoded frame's layout while the stage or well fits it.
+  /// The enclosing stage or well supplies the black backing in this mode.
   final bool retainImageLayout;
 
   /// Whether it plays from the first frame as soon as it is built. When
@@ -789,13 +790,10 @@ class _LaunchFilmState extends State<LaunchFilm>
     if (widget.retainImageLayout) {
       // The launch stage resizes during the handoff. Fit the original image
       // layer at paint time so the held frame keeps its decoded layout size.
-      return ColoredBox(
-        color: const Color(0xFF000000),
-        child: FittedBox(
-          fit: widget.fit,
-          clipBehavior: Clip.hardEdge,
-          child: RepaintBoundary(child: RawImage(image: frame)),
-        ),
+      return FittedBox(
+        fit: widget.fit,
+        clipBehavior: Clip.hardEdge,
+        child: RepaintBoundary(child: RawImage(image: frame)),
       );
     }
     // The frames are drawn on black in both themes, so the box is black
