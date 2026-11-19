@@ -80,6 +80,7 @@ class SendConfirmation extends StatelessWidget {
       key: const Key('send_confirmation_marker'),
       width: 440,
       radius: tokens.transferCardRadius,
+      insetPadding: clientCentredDialogInsets(context, 24),
       title: context.l10n.sendConfirmTitle(intent.displayAmount, intent.symbol),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

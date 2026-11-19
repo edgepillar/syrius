@@ -63,14 +63,10 @@ class ZapReceivedMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
     final BorderRadius radius = BorderRadius.circular(tokens.dialogRadius);
-    final double inset = tokens.zapReceivedViewportInset;
-    final AppWindowFrameState? window = context
-        .findAncestorStateOfType<AppWindowFrameState>();
-    // The Windows navigator starts below the caption. Split its offset
-    // across the vertical insets to keep the card centred in the window.
-    final double captionOffset = window?.hasClientCaption == true
-        ? (tokens.windowCaptionHeight / 2).clamp(0.0, inset)
-        : 0.0;
+    final EdgeInsets inset = clientCentredDialogInsets(
+      context,
+      tokens.zapReceivedViewportInset,
+    );
     return RiseIn(
       duration: const Duration(milliseconds: 240),
       child: Dialog(
@@ -78,12 +74,7 @@ class ZapReceivedMessage extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.transparent,
         elevation: 0,
-        insetPadding: EdgeInsets.fromLTRB(
-          inset,
-          inset - captionOffset,
-          inset,
-          inset + captionOffset,
-        ),
+        insetPadding: inset,
         child: Container(
           key: const Key('zap_received_card'),
           width: tokens.zapReceivedWidth,

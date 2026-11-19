@@ -3,12 +3,30 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/pa
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 
 /// The widest a dialog gets.
 const double kDialogWidth = 420;
 
 /// The shared inset for modal bodies that supply their own chrome.
 const EdgeInsets kDialogPadding = EdgeInsets.fromLTRB(24, 20, 24, 20);
+
+/// Centres a dialog in the client area while leaving the caption reachable.
+EdgeInsets clientCentredDialogInsets(BuildContext context, double inset) {
+  final AppWindowFrameState? window = context
+      .findAncestorStateOfType<AppWindowFrameState>();
+  // The Windows navigator starts below the caption. Split its offset across
+  // the vertical insets without changing the height available to the card.
+  final double captionOffset = window?.hasClientCaption == true
+      ? (AppTokens.of(context).windowCaptionHeight / 2).clamp(0.0, inset)
+      : 0.0;
+  return EdgeInsets.fromLTRB(
+    inset,
+    inset - captionOffset,
+    inset,
+    inset + captionOffset,
+  );
+}
 
 /// The line colour of the theme in force. The stepper screens run under a
 /// theme whose divider has no colour, so this falls back to the app's.
@@ -184,6 +202,7 @@ class DialogCard extends StatelessWidget {
     this.icon,
     this.width = kDialogWidth,
     this.radius,
+    this.insetPadding = const EdgeInsets.all(24),
     super.key,
   });
 
@@ -205,6 +224,9 @@ class DialogCard extends StatelessWidget {
   /// Transfer dialogs use their shared card shape.
   final double? radius;
 
+  /// The space reserved outside the card.
+  final EdgeInsets insetPadding;
+
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
@@ -217,7 +239,7 @@ class DialogCard extends StatelessWidget {
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        insetPadding: const EdgeInsets.all(24),
+        insetPadding: insetPadding,
         shape: RoundedRectangleBorder(
           borderRadius: radius,
         ),

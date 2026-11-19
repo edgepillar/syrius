@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/foundation.dart' as foundation;
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -24,6 +26,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
@@ -153,10 +156,17 @@ void main() {
     }, timeout: const Timeout(Duration(seconds: 30)));
   }
 
-  Widget host({bool actualDialog = false, bool light = false}) => MaterialApp(
+  Widget host({
+    required bool actualDialog,
+    required bool light,
+    required bool framed,
+  }) => MaterialApp(
     theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
     localizationsDelegates: appLocalizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
+    builder: framed
+        ? (BuildContext context, Widget? child) => AppWindowFrame(child: child!)
+        : null,
     home: MultiBlocProvider(
       providers: <SingleChildWidget>[
         BlocProvider<SendTransactionBloc>.value(value: sender),
@@ -207,6 +217,7 @@ void main() {
     WidgetTester tester, {
     bool actualDialog = false,
     bool light = false,
+    bool framed = false,
   }) async {
     confirmation = Completer<bool>();
     publication = Completer<AccountBlockTemplate>();
@@ -224,8 +235,30 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(host(actualDialog: actualDialog, light: light));
-    await tester.pump();
+    final foundation.TargetPlatform? previousPlatform =
+        foundation.debugDefaultTargetPlatformOverride;
+    if (framed) {
+      const MethodChannel channel = MethodChannel('window_manager');
+      final TestDefaultBinaryMessenger messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(channel, (MethodCall call) async {
+        return switch (call.method) {
+          'isFullScreen' || 'isMaximized' => false,
+          _ => null,
+        };
+      });
+      addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+      foundation.debugDefaultTargetPlatformOverride =
+          foundation.TargetPlatform.windows;
+    }
+    try {
+      await tester.pumpWidget(
+        host(actualDialog: actualDialog, light: light, framed: framed),
+      );
+      await tester.pump();
+    } finally {
+      foundation.debugDefaultTargetPlatformOverride = previousPlatform;
+    }
   }
 
   Future<void> submit(WidgetTester tester) async {
@@ -477,7 +510,7 @@ void main() {
     checkWidgets(
       'actual dialog shows full original facts and cancellation $light',
       (WidgetTester tester) async {
-        await show(tester, actualDialog: true, light: light);
+        await show(tester, actualDialog: true, light: light, framed: true);
         await submit(tester);
         await tester.pump(const Duration(milliseconds: 300));
         expect(
@@ -498,6 +531,15 @@ void main() {
         final AppTokens tokens = AppTokens.of(tester.element(dialog));
         final Rect surface = tester.getRect(
           find.descendant(of: dialog, matching: find.byType(FrostedSurface)),
+        );
+        expect(surface.center, const Offset(640, 390));
+        final Finder caption = find.byKey(
+          const ValueKey<String>('window-caption-frost'),
+        );
+        expect(tester.getRect(caption), const Rect.fromLTWH(0, 0, 1280, 32));
+        expect(
+          find.byKey(const Key('window-close')).hitTestable(),
+          findsOneWidget,
         );
         expect(
           tester.getRect(find.text('Send 12.5 ZNN?')).left - surface.left,
@@ -543,6 +585,7 @@ void main() {
         expect(tester.takeException(), isNull);
         await tester.tap(find.byKey(const Key('send_confirmation_cancel')));
         await tester.pumpAndSettle();
+        expect(caption, findsNothing);
         expect(publishCount, 0);
         expect(draft.state.amount, '12.5');
         await tester.pumpWidget(const SizedBox.shrink());
