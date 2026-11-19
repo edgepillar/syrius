@@ -339,7 +339,7 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
             // Retained EditableText nodes can latch an inherited traversal
             // barrier. Focusability alone closes the form without that latch.
             descendantsAreFocusable: _open,
-            child: DisclosureReveal._(reveal: _reveal, child: widget.child),
+            child: DisclosureReveal._(_reveal, child: widget.child),
           ),
         ),
       );
@@ -390,10 +390,7 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
 /// the top while it slides down into place. Squeezed into the height reached
 /// so far, a form would overflow on every frame of the way.
 class DisclosureReveal extends StatelessWidget {
-  const DisclosureReveal._({
-    required Animation<double> reveal,
-    required this.child,
-  }) : _reveal = reveal;
+  const DisclosureReveal._(this._reveal, {required this.child});
 
   final Animation<double> _reveal;
 

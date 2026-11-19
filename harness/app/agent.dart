@@ -5720,9 +5720,33 @@ class HarnessAgent {
             );
           }
         }
+        final String? pillarDeposit = _labPillarDepositHash;
+        final Map<Object?, Object?>? draftAssertion =
+            pillarDeposit != null &&
+            _labPillarRegistration == null &&
+            assertion is Map<Object?, Object?> &&
+            assertion['key'] == 'pillar_details_next_button'
+            ? assertion
+            : null;
+        bool draftCurrent() =>
+            booted &&
+            _labPillarDepositHash == pillarDeposit &&
+            _labPillarRegistration == null;
+        if (draftAssertion != null) {
+          _assert(Map<String, dynamic>.from(draftAssertion));
+          if (!await settleCaptureTooltips(draftCurrent)) {
+            throw HarnessError('Pillar draft tooltip still open');
+          }
+        }
         final Map<String, Object?> result =
             await _captureFrames.capture<Map<String, Object?>>(
-          () => _readShot(c),
+          () {
+            if (draftAssertion != null &&
+                (!draftCurrent() || Tooltip.dismissAllToolTips())) {
+              throw HarnessError('Pillar draft tooltip still open');
+            }
+            return _readShot(c);
+          },
         );
         _lockShotPhase('reply');
         return result;

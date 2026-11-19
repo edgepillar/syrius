@@ -140,35 +140,11 @@ class PillarReferenceArtwork {
       _readingSample && identical(owner, _owner) && _current();
 
   Future<void> _settleTooltips() async {
-    const Duration budget = Duration(seconds: 1);
-    final Stopwatch elapsed = Stopwatch()..start();
-    final WidgetsBinding binding = WidgetsBinding.instance;
-    // The native mouse can keep a receipt tooltip open after the scripted tap.
-    // A pending hover can open on the next frame. Observe a full clear frame
-    // after Flutter's own dismissal before holding the artwork.
-    bool clearBeforeFrame = false;
-    while (_current()) {
-      final bool clear = !Tooltip.dismissAllToolTips();
-      if (clear && clearBeforeFrame) return;
-      clearBeforeFrame = clear;
-      final Duration remaining = budget - elapsed.elapsed;
-      if (remaining <= Duration.zero) break;
-      // Request a fresh frame even if the renderer is idle or a post-frame
-      // callback is already running. An existing endOfFrame may be for the
-      // frame whose paint preceded the dismissal.
-      final Completer<void> painted = Completer<void>();
-      final int callback = binding.scheduleFrameCallback((Duration _) {
-        binding.addPostFrameCallback((Duration _) => painted.complete());
-      });
-      try {
-        await painted.future.timeout(remaining);
-      } finally {
-        if (!painted.isCompleted) binding.cancelFrameCallbackWithId(callback);
-      }
+    if (!await settleCaptureTooltips(_current)) {
+      throw const PillarReferenceArtworkRefused(
+        ReferenceArtworkFailureStage.overlay,
+      );
     }
-    throw const PillarReferenceArtworkRefused(
-      ReferenceArtworkFailureStage.overlay,
-    );
   }
 
   List<ReferenceArtworkSource> _sources() {
@@ -218,6 +194,36 @@ class PillarReferenceArtwork {
       }
     },
   );
+}
+
+/// Dismisses hover tooltips and confirms a painted frame while [current].
+Future<bool> settleCaptureTooltips(bool Function() current) async {
+  const Duration budget = Duration(seconds: 1);
+  final Stopwatch elapsed = Stopwatch()..start();
+  final WidgetsBinding binding = WidgetsBinding.instance;
+  // A native pointer can stay over a tooltip after a scripted tap. A pending
+  // hover can also open on the next frame.
+  bool clearBeforeFrame = false;
+  while (current()) {
+    final bool clear = !Tooltip.dismissAllToolTips();
+    if (clear && clearBeforeFrame) return true;
+    clearBeforeFrame = clear;
+    final Duration remaining = budget - elapsed.elapsed;
+    if (remaining <= Duration.zero) break;
+    // An existing endOfFrame may belong to paint before the dismissal.
+    final Completer<void> painted = Completer<void>();
+    final int callback = binding.scheduleFrameCallback((Duration _) {
+      binding.addPostFrameCallback((Duration _) => painted.complete());
+    });
+    try {
+      await painted.future.timeout(remaining);
+    } on TimeoutException {
+      return false;
+    } finally {
+      if (!painted.isCompleted) binding.cancelFrameCallbackWithId(callback);
+    }
+  }
+  return false;
 }
 
 /// A failed Staking artwork scope has no valid original frame.
