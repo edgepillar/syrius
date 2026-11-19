@@ -903,6 +903,11 @@ The [independent Details reader](https://github.com/edgepillar/syrius/actions/ru
 verifies the ten original Windows PNGs at `0659e0bb` and normal parent
 closure. The reader can now measure the Receive QR and Zap address chips
 within the verified archive. It reports their painted row intervals.
+The [measurement at `553ce11c`](https://github.com/edgepillar/syrius/actions/runs/44637006436/job/135957987790)
+reads the same capture. Both updated chips start at reference row 52 in
+both themes. Their last painted row is 78, one below the reference. The
+26 px widget height passed on Linux. The remaining raster difference and
+whole-image comparisons are open.
 
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
@@ -1109,6 +1114,16 @@ is needed to measure the timing effect.
 The [Linux run at `c235d037`](https://github.com/edgepillar/syrius/actions/runs/44634017432/job/135947778442)
 passes the focused pixel checks, the full non-chain suite with 5,124 passes
 and one skip, and generated-file verification.
+
+The [paired Windows producer at `c235d037`](https://github.com/edgepillar/syrius/actions/runs/44634017345/job/135947779671)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44637006651/job/135957989303)
+retain 83 redesign frames and 425 P06 frames with five normal process exits.
+The comparison still fails for build, raster and distinct frames. It finds
+25 ranked raster excesses, with 24 during playback and one crossing into
+handoff. The largest excess is 22.368 ms at that boundary. No reported
+raster entirely between the film end and the handoff exceeds its P06 rank.
+The two runs differ in timing and sample counts. The effect of the crop
+change on its own remains unestablished.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
