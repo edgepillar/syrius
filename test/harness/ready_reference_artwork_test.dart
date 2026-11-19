@@ -175,23 +175,31 @@ void main() {
       admitted: () => true,
     );
     final _Frames frames = _Frames();
-    await _finish<void>(
+    final ({
+      Animation<double>? controller,
+      double frame,
+      AnimationStatus originalStatus,
+      bool reading,
+    }) sample = await _finish(
       tester,
       frames,
-      artwork.capture<void>(
+      artwork.capture(
         frames: frames.gate,
         readback: () async {
-          expect(artwork.isReadingSample(owner), isTrue);
           final Lottie held = tester.widget<Lottie>(lottie);
-          expect(held.controller, isNot(same(original)));
-          expect(
-            held.controller!.value * held.composition!.durationFrames,
-            closeTo(118, .0001),
+          return (
+            reading: artwork.isReadingSample(owner),
+            controller: held.controller,
+            frame: held.controller!.value * held.composition!.durationFrames,
+            originalStatus: original.status,
           );
-          expect(original.status, AnimationStatus.completed);
         },
       ),
     );
+    expect(sample.reading, isTrue);
+    expect(sample.controller, isNot(same(original)));
+    expect(sample.frame, closeTo(118, .0001));
+    expect(sample.originalStatus, AnimationStatus.completed);
     expect(artwork.isReadingSample(owner), isFalse);
     expect(tester.widget<Lottie>(lottie).controller, same(original));
   });
