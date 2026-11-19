@@ -205,6 +205,11 @@ void main() {
         operation: 'complete registry close',
       );
       await tester.pump();
+      final Finder list = find.byKey(const Key('about_licences_list'));
+      final SliverChildBuilderDelegate delegate =
+          tester.widget<ListView>(list).childrenDelegate
+              as SliverChildBuilderDelegate;
+      expect(delegate.addRepaintBoundaries, isFalse);
       expect(
         find.byKey(const Key('about_licence_package-00')).hitTestable(),
         findsOneWidget,
@@ -215,7 +220,7 @@ void main() {
       );
       expect(find.byKey(const Key('fixture_hook')).hitTestable(), findsNothing);
       final Finder scrollable = find.descendant(
-        of: find.byKey(const Key('about_licences_list')),
+        of: list,
         matching: find.byType(Scrollable),
       );
       expect(scrollable, findsOneWidget);
