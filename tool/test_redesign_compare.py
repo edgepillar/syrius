@@ -29,6 +29,7 @@ from redesign_compare import (
     ReportGallery,
     capture_bytes,
     generate_report,
+    load_actual_manifest,
     main,
     screen_inventory,
     screen_notes,
@@ -426,6 +427,38 @@ class CompareTests(unittest.TestCase):
                 self.assertEqual(report["pairs"][0]["state"], "invalid")
                 self.assertEqual(report["summary"]["target_pairs"]["available"], 0)
                 self.assertNotIn(url, invalid.assets)
+
+    def test_zip_gallery_accepts_the_same_screen_without_its_catalog_number(self) -> None:
+        source = "a" * 40
+        image = (self.expected / f"{self.stem}.png").read_bytes()
+        member = f"{self.stem.partition('-')[2]}.png"
+        archive_path = self.actual / "entry.zip"
+        with zipfile.ZipFile(archive_path, "w") as archive:
+            archive.writestr(member, image)
+        capture_path = self.repo / "captures.json"
+        entry = {
+            "path": "actual/entry.zip",
+            "sha256": hashlib.sha256(image).hexdigest(),
+            "source_sha": source,
+            "archive_sha256": hashlib.sha256(archive_path.read_bytes()).hexdigest(),
+            "archive_member": member,
+        }
+        capture_path.write_text(json.dumps({"actual": {self.stem: entry}}))
+        gallery = ReportGallery()
+        report = generate_report(
+            self.repo, None, self.output, actual_manifest=capture_path,
+            target_source=source, required_size=(4, 3), gallery=gallery,
+        )
+        pair = report["pairs"][0]
+        self.assertEqual(report["summary"]["target_pairs"]["available"], 1)
+        self.assertEqual(gallery.read_asset(pair["actual"]["url"]), (image, "image/png"))
+
+        for wrong_name in ("screen-z-light.png", "screen-a-dark.png", f"inside/{member}"):
+            with self.subTest(wrong_name=wrong_name):
+                entry["archive_member"] = wrong_name
+                capture_path.write_text(json.dumps({"actual": {self.stem: entry}}))
+                with self.assertRaisesRegex(ValueError, "Invalid ZIP member"):
+                    load_actual_manifest(capture_path, {self.stem})
 
     def test_current_capture_gate_distinguishes_coverage_from_visual_review(self) -> None:
         target = "a" * 40

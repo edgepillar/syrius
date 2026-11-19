@@ -671,6 +671,68 @@ V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
 
 V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
 
+### End-state audit at `06eda3f7` (2026-11-19)
+
+| Original requirement | Verified evidence | Remaining work |
+| --- | --- | --- |
+| Windows setup, Debug and Release | The [independent Windows reader](https://github.com/edgepillar/syrius/actions/runs/44582250018/job/135765713115) verifies both builds and all 12 baseline checks at this source. The [environment record](docs/environment.md) covers the approved Windows native lab path. | Bind the build and setup evidence to the final candidate. The original Docker Desktop and WSL route remains unqualified. |
+| Flutter analysis and tests | [Linux](https://github.com/edgepillar/syrius/actions/runs/44576536298/job/135745421355) passes analysis, the full non-chain suite and generated-file checks. The Windows baseline reports zero root errors and warnings, 5,123 passing tests and one skip. | Repeat the acceptance audit on the final candidate. |
+| All 47 screens in both themes | Independent readers verify the complete set of 94 original filenames at this source. The last missing images were [Send Warn](https://github.com/edgepillar/syrius/actions/runs/44583601147/job/135770500835), [Pillar Spawn](https://github.com/edgepillar/syrius/actions/runs/44585643994/job/135777717146) and [Accelerator Project](https://github.com/edgepillar/syrius/actions/runs/44586309734/job/135780080870), each in both themes. | Assemble the complete private comparison page with diffs and resolve the whole-screen verdicts. |
+| All motions and shaders, and the three 16 ms comparisons | The [review below](#running-motion-and-shader-review-at-06eda3f7-2026-11-19) records all 23 motions and shaders and the failed P06 comparisons. | Complete the running observations and pass the original three frame-time comparisons. |
+| Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) retains all fifteen native refusals. The [Lock reader](https://github.com/edgepillar/syrius/actions/runs/44583040674/job/135768541433) verifies both controls and the [Settings reader](https://github.com/edgepillar/syrius/actions/runs/44583601077/job/135770498555) all eight controls at this source. The [Home repetition](https://github.com/edgepillar/syrius/actions/runs/44584335395/job/135773096319) observed six of eleven controls before refusal. | Audit final routes and preserve partial reruns with their original outcomes. |
+
+V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
+
+The private report assembled 48 pairs from the five already retained archives
+at this source. The browser gallery uses the verified PNGs directly and draws
+diffs on demand. The remaining 46 pairs are present in verified CI archives.
+Visual verdicts remain open. The comparison loader also accepts an original
+ZIP member that omits the catalog number and keeps the same screen and theme.
+All 23 comparison tests pass. The four [Welcome and Import originals](https://github.com/edgepillar/syrius/actions/runs/44582250018/job/135765713115)
+also read directly from their retained archive at 1280 by 780 using their
+original filenames, with no extracted image copies.
+
+### Running motion and shader review at `06eda3f7` (2026-11-19)
+
+The rows follow the [mockup motion](mockups/redesign/README.md#motion) and
+[shader](mockups/redesign/README.md#shaders) tables. The [Linux test run](https://github.com/edgepillar/syrius/actions/runs/44576536298/job/135745421355)
+passed the non-chain suite. Use the listed widget checks for timing and
+behavior, and the final column for observations still needed in the Windows
+wallet. The [natural launch reader](https://github.com/edgepillar/syrius/actions/runs/44580183792/job/135758420016)
+verified a late handoff at progress 0.558 and a settled frame, with two normal
+actor exits. The early handoff sample is missing. The [cold launch](https://github.com/edgepillar/syrius/actions/runs/44579167413/job/135754781495),
+[page change and disclosure](https://github.com/edgepillar/syrius/actions/runs/44583354667/job/135769611827)
+comparisons against P06 failed the 16 ms acceptance check.
+
+| Motion | Existing check | Remaining Windows observation |
+| --- | --- | --- |
+| Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Native late and settled samples. | Observe the early handoff and complete 400 ms settle. |
+| Page change | `test/motion/rise_switcher_test.dart` checks the retained pages and both fade phases. Native Home to Settings frame timings. | See the fade and 6 px rise over the full transition. |
+| Rail open and close | `test/shell/rail_test.dart` checks the 200 ms width motion and 150 ms label fade. | Open and close from the collapsed rail. |
+| Segment thumb slides | `test/segment/segment_test.dart` checks thumb motion and the 360 ms clock. | Switch segments in Transfer and Tokens. |
+| Disclosure opens | `test/disclosure/disclosure_test.dart` checks the reveal and chevron. Native About Licences frame timings. | See the slide and chevron turns in the requested groups. |
+| A value changes | `test/motion/value_flash_test.dart` checks the one 1.2 s flash. `test/row_detail/list_entrance_test.dart` checks the incoming row. | Observe a genuine value change and arrival in the isolated wallet. |
+| List entrance | `test/row_detail/list_entrance_test.dart` and `test/row_detail/table_entrance_test.dart` cover the stagger and first-paint behavior. | Watch the Welcome rows and a freshly populated list. |
+| Primary pill sheen | `test/sheen/primary_pill_test.dart` and `test/sheen/sheen_test.dart` cover hover and completion feedback. | Observe the 600 ms hover and completion passes on their original controls. |
+| Stepper steps | `test/motion/step_switcher_test.dart` checks direction, height and preserved duration. | Observe steps in the Spawn, Token and onboarding flows. |
+| Row opens into a page | `test/accelerator_project_redesign/accelerator_project_view_test.dart` covers the project view. | Observe the original project row transforming into the detail page and returning. |
+| Panel and dialogs | `test/shell/bell/bell_panel_test.dart` and `test/frost/dialog_motion_test.dart` cover motion and interaction. | Open Bell, Go To and a confirmation, and view each motion. |
+| Toast | `test/toast/event_toast_test.dart` checks the 300 ms rise, 5 s drain and hover pause. | View the rise, pause and resumed drain. |
+| Zap arrived | `test/home/zap_sparks_test.dart` covers the 28 sparks and once-per-event behavior. | Observe the original animation using an explicitly identified preview or admitted isolated event. |
+| Object assembles | `test/lottie/app_lottie_test.dart` covers original asset timing and endpoints. | Observe the confirmed states and permitted hover replays. |
+| The eye | `test/hidden_balances/hidden_balances_test.dart` checks both original eye segments. | Observe both directions and masked values during the switch. |
+| The bolt | `test/shell/strip/plasma_lifecycle_test.dart` checks repeat during generation and exit to idle. | Watch a complete loop while generation is in progress. |
+| Wrong password | The Lock catalog retains the wrong-password state after input. | See the 200 ms shake and original well replay as the submission is refused. |
+| Sync dot | `test/shell/strip/sync_pulse_test.dart` checks the 2.4 s pulse. | Observe a full pulse cycle. |
+| Skeleton sweep | `test/motion/skeleton_test.dart` checks one shared clock and the 1.4 s sweep. | Watch loading rows sweep in step. |
+
+| Shader | Existing check | Remaining Windows observation |
+| --- | --- | --- |
+| 1. Hero field | `test/shaders/entry_field_test.dart` checks raster bounds and `test/shaders/shader_clock_test.dart` checks clock lifetime. Home and entry catalogs retain still frames. | See the field drift in Home, Lock and Welcome, and check that hiding a view stops its clock. |
+| 2. Plasma glow | The Plasma and Fuse catalogs show the resting heatmap. `test/rearchitecture/utils/widgets/plasma_well_test.dart` covers the view. | Observe idle breathing and the brighter generation state. |
+| 3. Plasma meter | `test/shaders/plasma_meter_test.dart` covers the idle level and ticker. | Observe the flow during generation and its still idle state in the page and hero meters. |
+| 4. Frost | `test/frost/frosted_surface_test.dart` and `test/frost/frosted_route_test.dart` cover glass placement and clipping. Retained captures show several settled surfaces. | Observe the blur during opening and closing of the requested surfaces. |
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |

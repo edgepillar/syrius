@@ -31,6 +31,8 @@ For a static report on Windows, place the report and all images on the same driv
 To compare from a retained ZIP, use its path in "path" and include the
 archive's SHA-256 under "archive_sha256" and the literal PNG name under
 "archive_member". Keep the original PNG's "sha256" and producer "source_sha".
+The ZIP member may omit the catalog number, as the Windows entry archive
+does. It must otherwise have the same screen and theme as the manifest key.
 Use --serve to view such a report on loopback. The gallery reads only the
 registered originals directly from their archives and renders difference PNGs
 on request. By default, --serve writes the page to compare/served, alongside
@@ -238,8 +240,9 @@ def load_actual_manifest(source: Path, stems: set[str]) -> dict[str, Capture]:
         member = entry.get("archive_member")
         archive_digest = entry.get("archive_sha256")
         if archived:
+            unnumbered_stem = stem.partition("-")[2]
             if (
-                member != f"{stem}.png"
+                member not in (f"{stem}.png", f"{unnumbered_stem}.png")
                 or not isinstance(archive_digest, str)
                 or SHA256.fullmatch(archive_digest) is None
                 or (path.suffix.lower() != ".zip" and path.name != archive_digest)
