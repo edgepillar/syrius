@@ -356,6 +356,34 @@ void main() {
     });
   }
 
+  testWidgets('the first visible lock field reuses the covered raster', (
+    WidgetTester tester,
+  ) async {
+    _prepare(tester);
+    final ValueNotifier<double> progress = ValueNotifier<double>(0);
+    addTearDown(progress.dispose);
+    final List<ui.Image> rasters = _watchEntryRasters();
+    await tester.pumpWidget(_host(
+      child: ValueListenableBuilder<double>(
+        valueListenable: progress,
+        child: EntryField(captionProgress: progress),
+        builder: (_, double value, Widget? child) => TickerMode(
+          enabled: value > 0,
+          child: Opacity(opacity: value, child: child),
+        ),
+      ),
+    ));
+    expect(rasters, hasLength(1));
+    expect(rasters.single.debugDisposed, isFalse);
+    progress.value = 1;
+    await tester.pump();
+    final Uint8List pixels = await _pixels(tester);
+    _expectBackground(pixels, false);
+    _expectEntryWash(pixels, false);
+    expect(rasters, hasLength(1));
+    expect(rasters.single.debugDisposed, isFalse);
+  });
+
   testWidgets(
     'OS animation flags keep the real field moving on its own clock',
     (

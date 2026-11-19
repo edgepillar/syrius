@@ -54,6 +54,7 @@ class _EntryFieldState extends State<EntryField>
     implements ReferenceArtworkSource {
   late final ShaderClock _clock;
   final _EntryFieldRaster _raster = _EntryFieldRaster();
+  _EntryRasterKey? _pendingRaster;
   ReferenceArtworkFrame? _referenceFrame;
   ValueListenable<double>? _referenceSeconds;
   ValueListenable<double>? _paintedSeconds;
@@ -306,6 +307,17 @@ class _EntryFieldState extends State<EntryField>
     super.dispose();
   }
 
+  void _prepareCoveredRaster(_EntryRasterKey key) {
+    if (widget.captionProgress?.value != 0 || _pendingRaster == key) return;
+    _pendingRaster = key;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _pendingRaster != key) return;
+      _pendingRaster = null;
+      // The opaque launch film still covers the field at progress zero.
+      if (widget.captionProgress?.value == 0) _raster.imageFor(key);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
@@ -314,9 +326,22 @@ class _EntryFieldState extends State<EntryField>
     _paintedSeconds = paintedSeconds;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
+        final double captionHeight = _captionFrame?.hasClientCaption == true
+            ? tokens.windowCaptionHeight
+            : 0;
         _captionForLayout(
           constraints.biggest, tokens, paintedSeconds, pixelRatio,
         );
+        if (widget.captionProgress?.value == 0) {
+          _prepareCoveredRaster(_EntryFieldRaster.keyFor(
+            constraints.biggest,
+            captionHeight: captionHeight,
+            green: tokens.znn,
+            blue: tokens.qsr,
+            pink: tokens.pink,
+            pixelRatio: pixelRatio,
+          ));
+        }
         return RepaintBoundary(
           child: ClipRect(
             child: CustomPaint(
@@ -328,9 +353,7 @@ class _EntryFieldState extends State<EntryField>
                 pink: tokens.pink,
                 raster: _raster,
                 pixelRatio: pixelRatio,
-                captionHeight: _captionFrame?.hasClientCaption == true
-                    ? tokens.windowCaptionHeight
-                    : 0,
+                captionHeight: captionHeight,
               ),
               child: const SizedBox.expand(),
             ),
@@ -361,32 +384,41 @@ class _EntryFieldRaster {
   _EntryRasterKey? _key;
   _EntryRasterImage? _cached;
 
-  _EntryRasterImage? imageFor(Rect field, Rect viewport, {
+  static _EntryRasterKey keyFor(Size size, {
+    required double captionHeight,
     required Color green, required Color blue, required Color pink,
     required double pixelRatio,
-  }) {
-    final _EntryRasterKey key = (
-      field: field, viewport: viewport,
-      green: green, blue: blue, pink: pink, pixelRatio: pixelRatio,
-    );
+  }) => (
+    // CSS inset:-20% enlarges each side relative to the original body.
+    field: Rect.fromLTWH(
+      -size.width * 0.2,
+      -size.height * 0.2,
+      size.width * 1.4,
+      size.height * 1.4,
+    ),
+    // The caption and body share the same crop.
+    viewport: Rect.fromLTRB(0, -captionHeight, size.width, size.height),
+    green: green, blue: blue, pink: pink, pixelRatio: pixelRatio,
+  );
+
+  _EntryRasterImage? imageFor(_EntryRasterKey key) {
     if (_key == key) return _cached;
     dispose();
     final DriftRasterRegion? region = driftRasterRegion(
-      viewport: viewport, field: field, blurBleed: _entryBlurBleed,
-      pixelRatio: pixelRatio,
+      viewport: key.viewport, field: key.field, blurBleed: _entryBlurBleed,
+      pixelRatio: key.pixelRatio,
     );
     if (region == null) return null;
     final ui.PictureRecorder recorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(recorder)
-      ..scale(pixelRatio)
+      ..scale(key.pixelRatio)
       ..translate(-region.origin.dx, -region.origin.dy);
     _EntryFieldPainter._paintBlurredField(
-      canvas, field, green: green, blue: blue, pink: pink,
+      canvas, key.field, green: key.green, blue: key.blue, pink: key.pink,
     );
     final ui.Picture picture = recorder.endRecording();
     try {
-      // The engine rasterizes this handle asynchronously. Creation is
-      // part of the first original paint, with no extra warm-up or clock.
+      // The engine rasterizes this handle asynchronously.
       final ui.Image image = picture.toImageSync(region.width, region.height);
       _cached = (image: image, origin: region.origin);
       _key = key;
@@ -453,14 +485,11 @@ class _EntryFieldPainter extends CustomPainter {
     required double pixelRatio,
     required double captionHeight,
   }) {
-    // CSS inset:-20% enlarges each side by a fraction of the parent, while
-    // translate percentages use this enlarged field's own dimensions.
-    final Rect field = Rect.fromLTWH(
-      -size.width * 0.2,
-      -size.height * 0.2,
-      size.width * 1.4,
-      size.height * 1.4,
+    final _EntryRasterKey key = _EntryFieldRaster.keyFor(
+      size, captionHeight: captionHeight, green: green, blue: blue, pink: pink,
+      pixelRatio: pixelRatio,
     );
+    final Rect field = key.field;
     final double leg = (seconds % 40) / 20;
     final double progress = Curves.easeInOut.transform(
       leg <= 1 ? leg : 2 - leg,
@@ -474,14 +503,7 @@ class _EntryFieldPainter extends CustomPainter {
       )
       ..rotate(fieldDriftAngle * progress)
       ..translate(-center.dx, -center.dy);
-    // Both painters use the same crop, including the portion above the body.
-    final Rect visible = Rect.fromLTRB(
-      0, -captionHeight, size.width, size.height,
-    );
-    final _EntryRasterImage? cached = raster.imageFor(
-      field, visible, green: green, blue: blue, pink: pink,
-      pixelRatio: pixelRatio,
-    );
+    final _EntryRasterImage? cached = raster.imageFor(key);
     if (cached == null) {
       // Oversized surfaces keep the original paint instead of downsampling.
       _paintBlurredField(canvas, field, green: green, blue: blue, pink: pink);

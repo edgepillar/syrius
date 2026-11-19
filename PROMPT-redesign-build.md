@@ -744,6 +744,11 @@ The Windows caption uses the opaque fill of its Material during entry field
 repaint. A single attached entry field is selected directly and checked for
 visibility before painting inside the caption clip.
 
+The Lock backdrop prepares its shared raster after layout while the opaque
+launch film covers it. The first visible frame can reuse that image. The
+startup fixture checks that the same image serves the first visible paint,
+and the native motion lane samples the running transition.
+
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
 | Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Native late and settled samples. | Observe the early handoff and complete 400 ms settle. |
