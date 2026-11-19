@@ -1,13 +1,17 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/registration_success/registration_confirmation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/explorer_links.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
-    show ShellSymbol;
+    show ShellSymbol, buildShellSymbol;
 
 /// Keeps the genuine form and its listeners mounted behind its receipt.
 class RegistrationRetainedFlow extends StatelessWidget {
@@ -154,11 +158,24 @@ class RegistrationSuccessSurface extends StatelessWidget {
     final RegistrationPublication? publication = confirmation?.publication;
     final List<RegistrationReceiptFact> receiptFacts =
         <RegistrationReceiptFact>[
-          ...facts,
+          for (final RegistrationReceiptFact fact in facts)
+            if (confirmed && fact.confirmedLabel != null)
+              RegistrationReceiptFact(
+                label: fact.confirmedLabel!,
+                value: fact.value,
+                key: fact.key,
+              )
+            else
+              fact,
           if (publication != null) ...<RegistrationReceiptFact>[
             RegistrationReceiptFact(
               label: context.l10n.registrationBlock,
-              value: _Identifier(publication.hashText),
+              value: _buildBlock(
+                context,
+                tokens,
+                publication,
+                confirmed: confirmed,
+              ),
             ),
             RegistrationReceiptFact(
               label: context.l10n.address,
@@ -224,6 +241,52 @@ class RegistrationSuccessSurface extends StatelessWidget {
                     ),
                   ),
                 ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBlock(
+    BuildContext context,
+    AppTokens tokens,
+    RegistrationPublication publication, {
+    required bool confirmed,
+  }) {
+    if (asset != AppLottieAsset.pillar || !confirmed) {
+      return _Identifier(publication.hashText);
+    }
+    final Uri? link = ExplorerLinks.transaction(
+      publication.hashText,
+      chainId: publication.chainId,
+    );
+    return Row(
+      children: <Widget>[
+        Flexible(child: _Identifier(publication.hashText, prefixLength: 4)),
+        SizedBox(width: tokens.inlineGap),
+        IconButton(
+          key: const Key('registration_block_explorer'),
+          tooltip: context.l10n.activityExplorer,
+          iconSize: tokens.inlineGlyphSize,
+          onPressed: link == null
+              ? null
+              : () {
+                  if (confirmation?.isConfirmed == true &&
+                      identical(confirmation?.publication, publication)) {
+                    unawaited(NavigationUtils.openUrl(link.toString()));
+                  }
+                },
+          style: IconButton.styleFrom(
+            minimumSize: Size.square(tokens.inlineGlyphSize),
+            padding: EdgeInsets.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            visualDensity: VisualDensity.standard,
+          ),
+          icon: buildShellSymbol(
+            context,
+            'ext',
+            color: tokens.faint,
+            size: tokens.inlineGlyphSize,
           ),
         ),
       ],
@@ -410,11 +473,15 @@ class RegistrationReceiptFact extends StatelessWidget {
   const RegistrationReceiptFact({
     required this.label,
     required this.value,
+    this.confirmedLabel,
     super.key,
   });
 
   /// The ledger label.
   final String label;
+
+  /// A separate label for a fact established by positive confirmation.
+  final String? confirmedLabel;
 
   /// An exact amount, chain or identifier.
   final Widget value;
@@ -437,14 +504,15 @@ class RegistrationReceiptFact extends StatelessWidget {
 }
 
 class _Identifier extends StatelessWidget {
-  const _Identifier(this.value);
+  const _Identifier(this.value, {this.prefixLength = 6});
 
   final String value;
+  final int prefixLength;
 
   @override
   Widget build(BuildContext context) {
     final String shortened = value.length > 12
-        ? '${value.substring(0, 6)}…${value.substring(value.length - 4)}'
+        ? '${value.substring(0, prefixLength)}…${value.substring(value.length - 4)}'
         : value;
     return Tooltip(
       message: value,

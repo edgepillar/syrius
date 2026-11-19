@@ -53,6 +53,8 @@ void main() {
       testWidgets('${asset.name} waits for its exact block in theme $light', (
         WidgetTester tester,
       ) async {
+        final bool pillar = asset == AppLottieAsset.pillar;
+        final int chainId = pillar && light ? 1 : 321;
         await _withRegistrationFixture(tester, (
           _RegistrationFixture fixture,
         ) async {
@@ -78,12 +80,18 @@ void main() {
             const Key('registration_confirmation_caption'),
           );
           final Finder checks = find.byType(ShellSymbol);
+          final Finder blockExplorer = find.byKey(
+            const Key('registration_block_explorer'),
+          );
           expect(find.byKey(const Key('registration_waiting')), findsOneWidget);
           expect(find.byType(AppLottie), findsNothing);
           expect(caption, findsNothing);
           expect(checks, findsNWidgets(3));
           expect(find.byKey(const Key('registration_another')), findsNothing);
-          expect(fixture.requests, <(int, Hash)>[(321, fixture.hash)]);
+          expect(blockExplorer, findsNothing);
+          expect(find.text('LOCKED'), findsNothing);
+          if (pillar) expect(find.text('COLLATERAL'), findsOneWidget);
+          expect(fixture.requests, <(int, Hash)>[(chainId, fixture.hash)]);
           await tester.pump(const Duration(minutes: 5));
           expect(find.byType(AppLottie), findsNothing);
           expect(another, 0);
@@ -101,6 +109,16 @@ void main() {
             asset == AppLottieAsset.pillar ? findsOneWidget : findsNothing,
           );
           expect(checks, findsNWidgets(4));
+          if (pillar) {
+            final IconButton explorer = tester.widget<IconButton>(
+              blockExplorer,
+            );
+            expect(explorer.onPressed, chainId == 1 ? isNotNull : isNull);
+            expect(find.text('LOCKED'), findsOneWidget);
+            expect(find.text('COLLATERAL'), findsNothing);
+          } else {
+            expect(blockExplorer, findsNothing);
+          }
           expect(tester.getSize(checks.first), const Size.square(12));
           final AppTokens tokens = AppTokens.of(tester.element(checks.first));
           final Row firstRow = tester
@@ -188,8 +206,10 @@ void main() {
           );
           final Finder table = find.byType(Table);
           final Finder chain = find.text('CHAIN');
-          final Finder chainValue = find.text('321');
-          final Finder blockValue = find.text('666666…6666');
+          final Finder chainValue = find.text('$chainId');
+          final Finder blockValue = find.text(
+            pillar ? '6666…6666' : '666666…6666',
+          );
           expect(find.descendant(of: table, matching: chain), findsOneWidget);
           expect(tester.widget<Text>(chainValue).style!.fontSize, 13);
           expect(tester.widget<Text>(blockValue).style!.fontSize, 13);
@@ -217,7 +237,7 @@ void main() {
           expect(another, 0);
           await tester.pumpWidget(const SizedBox.shrink());
           expect(tester.takeException(), isNull);
-        });
+        }, chainId: chainId);
       });
     }
   }
@@ -382,11 +402,11 @@ void main() {
 }
 
 class _RegistrationFixture {
-  _RegistrationFixture() {
+  _RegistrationFixture(int chainId) {
     when(() => context.ownerAddress).thenReturn(owner);
     when(() => context.isCurrent).thenAnswer((_) => current);
     registry = WalletFlightRegistry(
-      currentChainId: () => 321,
+      currentChainId: () => chainId,
       lookup: (int chainId, Hash hash) {
         requests.add((chainId, hash));
         return reply.future;
@@ -394,7 +414,7 @@ class _RegistrationFixture {
     );
     confirmation = RegistrationConfirmation(
       context: context,
-      chainId: 321,
+      chainId: chainId,
       walletAddresses: <String>[owner],
       registry: registry,
     );
@@ -405,7 +425,7 @@ class _RegistrationFixture {
           )
           ..hash = hash
           ..address = Address.parse(owner)
-          ..chainIdentifier = 321;
+          ..chainIdentifier = chainId;
     confirmation.accept(
       RegistrationPublication(accountBlock: block, name: 'pillar'),
     );
@@ -455,10 +475,11 @@ Future<void> _withRegistrationFixture(
   WidgetTester tester,
   Future<void> Function(_RegistrationFixture) body, {
   Future<void> Function()? afterUnmount,
+  int chainId = 321,
 }) async {
   // The reply, registry and first check share the test's fake clock.
   // A root-zone reply cannot be drained by bounded widget pumps.
-  final _RegistrationFixture fixture = _RegistrationFixture();
+  final _RegistrationFixture fixture = _RegistrationFixture(chainId);
   final List<(Object, StackTrace)> failures = <(Object, StackTrace)>[];
   Future<void> retainFailure(FutureOr<void> Function() action) async {
     try {

@@ -56,6 +56,7 @@ class PillarRegisteredSuccess extends StatelessWidget {
         if (publication != null)
           RegistrationReceiptFact(
             label: context.l10n.createPillarCollateralLabel,
+            confirmedLabel: context.l10n.pillarOwnerLocked,
             value: AmountText(
               publication.amount,
               decimals: kZnnCoin.decimals,
