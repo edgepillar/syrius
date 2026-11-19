@@ -238,6 +238,10 @@ class _NodesOwnerContentState extends State<_NodesOwnerContent> {
 class _PillarOwnerStrip extends StatelessWidget {
   const _PillarOwnerStrip({required this.onClose});
 
+  // The 48 px artwork overhangs its layout slot by the mockup's margins.
+  static const EdgeInsetsDirectional _artworkOverhang =
+      EdgeInsetsDirectional.fromSTEB(6, 6, 8, 6);
+
   final VoidCallback onClose;
 
   @override
@@ -261,13 +265,28 @@ class _PillarOwnerStrip extends StatelessWidget {
     return PageStrip(
       key: const Key('nodes_pillar_owner_strip'),
       minimumContentHeight: kStripTextContentHeight,
-      leadSize: const Size(kStripLeadSize, kStripTextContentHeight),
+      leadSize: Size(
+        kStripLeadSize - _artworkOverhang.horizontal,
+        kStripLeadSize - _artworkOverhang.vertical,
+      ),
+      leadGap: 28,
       lead: own == null
           ? null
-          : const OverflowBox(
+          : OverflowBox(
+              alignment: AlignmentDirectional.centerStart,
+              minWidth: kStripLeadSize,
+              maxWidth: kStripLeadSize,
               minHeight: kStripLeadSize,
               maxHeight: kStripLeadSize,
-              child: NodeObject.pillar(size: kStripLeadSize),
+              child: Transform.translate(
+                offset: Offset(
+                  Directionality.of(context) == TextDirection.rtl
+                      ? _artworkOverhang.start
+                      : -_artworkOverhang.start,
+                  0,
+                ),
+                child: const NodeObject.pillar(size: kStripLeadSize),
+              ),
             ),
       figures: <StripFigure>[
         StripFigure(
