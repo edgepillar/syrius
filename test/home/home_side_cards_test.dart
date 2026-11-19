@@ -860,7 +860,11 @@ void main() {
       expect(midwayHeight, greaterThan(0));
       expect(tester.widget<DisclosureReveal>(reveal).isSettled, isFalse);
       await tester.pump(const Duration(milliseconds: 120));
-      expect(tester.getSize(reveal).height, greaterThan(midwayHeight));
+      final double endHeight = tester.getSize(reveal).height;
+      expect(endHeight, greaterThan(midwayHeight));
+      // The Flutter clock reports completion on the tick after the endpoint.
+      await tester.pump(const Duration(microseconds: 1));
+      expect(tester.getSize(reveal).height, closeTo(endHeight, .01));
       expect(tester.widget<DisclosureReveal>(reveal).isSettled, isTrue);
       expect(find.byKey(_body), findsOneWidget);
       expect(tester.takeException(), isNull);
