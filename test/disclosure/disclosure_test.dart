@@ -181,25 +181,26 @@ void main() {
       final double top = tester.getRect(find.byKey(_body)).top;
       expect(top, lessThan(_header));
       expect(top, greaterThan(_header - 8));
-      final Finder fade = find
+      final Finder clip = find
           .ancestor(
             of: find.byKey(_body),
-            matching: find.byType(FadeTransition),
+            matching: find.byType(ClipRect),
           )
           .first;
-      final double opacity = tester.widget<FadeTransition>(fade).opacity.value;
-      expect(opacity, greaterThan(0));
-      expect(opacity, lessThan(1));
-      final RenderAnimatedOpacity opacityRenderer = tester.renderObject(fade);
-      final OpacityLayer opacityLayer =
-          opacityRenderer.debugLayer! as OpacityLayer;
-      expect(opacityLayer.firstChild, isA<ClipRectLayer>());
-      final ClipRectLayer clipLayer = opacityLayer.firstChild! as ClipRectLayer;
+      final RenderClipRect clipRenderer = tester.renderObject(clip);
+      final ClipRectLayer clipLayer = clipRenderer.debugLayer! as ClipRectLayer;
       expect(clipLayer.clipRect!.height, closeTo(mid - _header, 0.01));
       expect(clipLayer.clipRect!.height, lessThan(_bodyHeight));
       expect(
         clipLayer.clipRect!.width,
         tester.getSize(find.byKey(_body)).width,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(_disclosure),
+          matching: find.byType(FadeTransition),
+        ),
+        findsNothing,
       );
       // The chevron is on its way too, and ahead of the body.
       expect(_turns(tester), greaterThan(-0.25));

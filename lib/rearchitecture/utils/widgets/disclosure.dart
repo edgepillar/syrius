@@ -24,8 +24,12 @@ const double _kSlide = 8;
 /// The least height of the header row.
 const double _kHeaderHeight = 44;
 
-const EdgeInsetsDirectional _kHeaderPadding =
-    EdgeInsetsDirectional.fromSTEB(16, 0, 12, 0);
+const EdgeInsetsDirectional _kHeaderPadding = EdgeInsetsDirectional.fromSTEB(
+  16,
+  0,
+  12,
+  0,
+);
 
 /// The mockup's spring: fast out, long settle, and never past either end,
 /// so a height that follows it is never negative.
@@ -383,9 +387,8 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
 /// The part that opens and closes.
 ///
 /// The body is laid out at its full height throughout and uncovered from
-/// the top, while it fades in and comes down the last few pixels into its
-/// place. Squeezed into the height reached so far, a form would overflow on
-/// every frame of the way.
+/// the top while it slides down into place. Squeezed into the height reached
+/// so far, a form would overflow on every frame of the way.
 class _DisclosureReveal extends StatelessWidget {
   const _DisclosureReveal({required this.reveal, required this.child});
 
@@ -396,32 +399,28 @@ class _DisclosureReveal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: reveal,
-      // The opacity layer covers only the part exposed by the clip.
-      child: AnimatedBuilder(
-        animation: reveal,
-        // Align gives its child loose constraints. Keep the full body width.
-        child: SizedBox(
-          width: double.infinity,
-          child: RepaintBoundary(child: child),
-        ),
-        builder: (BuildContext context, Widget? child) {
-          final double t = reveal.value;
-          // Fully open, focus rings and glows can extend past the body box.
-          return ClipRect(
-            clipBehavior: reveal.isCompleted ? Clip.none : Clip.hardEdge,
-            child: Align(
-              alignment: AlignmentDirectional.topStart,
-              heightFactor: t,
-              child: Transform.translate(
-                offset: Offset(0, -_kSlide * (1 - t)),
-                child: child,
-              ),
-            ),
-          );
-        },
+    return AnimatedBuilder(
+      animation: reveal,
+      // Align gives its child loose constraints. Keep the full body width.
+      child: SizedBox(
+        width: double.infinity,
+        child: RepaintBoundary(child: child),
       ),
+      builder: (BuildContext context, Widget? child) {
+        final double t = reveal.value;
+        // Fully open, focus rings and glows can extend past the body box.
+        return ClipRect(
+          clipBehavior: reveal.isCompleted ? Clip.none : Clip.hardEdge,
+          child: Align(
+            alignment: AlignmentDirectional.topStart,
+            heightFactor: t,
+            child: Transform.translate(
+              offset: Offset(0, -_kSlide * (1 - t)),
+              child: child,
+            ),
+          ),
+        );
+      },
     );
   }
 }
