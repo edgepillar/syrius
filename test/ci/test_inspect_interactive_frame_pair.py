@@ -304,6 +304,32 @@ class InteractiveFramePairTests(unittest.TestCase):
         disclosure = result['verified_window_diagnostics']['current']['disclosure']
         self.assertEqual(disclosure['observed_post_frame_offsets_from_tap_us'],
                          dict(settled=244_000, list_laid_out=341_000))
+        measured_disclosure = fixture()
+        disclosure_sample = measured_disclosure['samples']['current']['observation']
+        disclosure_sample['tap_release_us'] = {'disclosure': 6000}
+        disclosure_sample['disclosure_phases_us'] = phases
+        disclosure_sample['windows']['disclosure'] = dict(
+            disclosure_sample['windows']['disclosure'], frames=[
+                [0, 239000, 100, 16000, 16100],
+                [1, 249000, 100, 21000, 23000],
+                [2, 249900, 100, 17000, 17100],
+                [3, 346000, 100, 24000, 26000],
+                [4, 346900, 100, 12000, 12100],
+            ])
+        measured_disclosure['comparisons']['disclosure'] = pair.shared.compare_windows(
+            measured_disclosure['samples']['p06']['observation']['windows']['disclosure'],
+            disclosure_sample['windows']['disclosure'])
+        diagnosed = self.project(measured_disclosure)['verified_window_diagnostics']
+        self.assertEqual(diagnosed['current']['disclosure']['raster_start_groups_by_observed_phase'], {
+            'columns': ['samples', 'slow_raster', 'max_raster_us'],
+            'phases': {
+                'settled': dict(before=[1, 0, 16000], at_or_after=[3, 2, 24000],
+                                crossing=[1, 1, 21000]),
+                'list_laid_out': dict(before=[3, 2, 21000], at_or_after=[1, 0, 12000],
+                                      crossing=[1, 1, 24000]),
+            },
+        })
+        self.assertNotIn('raster_start_groups_by_observed_phase', diagnosed['p06']['disclosure'])
         for value in ({}, {'settled': 5999}, {'settled': True},
                       {'list_laid_out': 1_000_000}, {'other': 6500}):
             observation['disclosure_phases_us'] = value

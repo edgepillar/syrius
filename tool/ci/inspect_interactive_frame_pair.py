@@ -148,6 +148,16 @@ def _raster_start_bounds(row, tap_release_us):
     return build_from_tap + build, build_from_tap + total - raster
 
 
+def _raster_groups(*names):
+    return {name: dict(samples=0, slow_raster=0, max_raster_us=0) for name in names}
+
+
+def _record_raster(group, raster):
+    group['samples'] += 1
+    group['slow_raster'] += raster > pair.shared.FRAME_BUDGET_US
+    group['max_raster_us'] = max(group['max_raster_us'], raster)
+
+
 def _window_diagnostics(window, tap_release_us, motion_us, disclosure_phases=None):
     result = cold.window_diagnostics(window, peak_starts=True)
     if tap_release_us is not None:
@@ -158,8 +168,11 @@ def _window_diagnostics(window, tap_release_us, motion_us, disclosure_phases=Non
         result['peak_raster_offset_from_tap_us'] = peak[1] - tap_release_us
         result['peak_raster_start_bounds_from_tap_us'] = dict(
             earliest=earliest, latest=latest)
-        groups = {name: dict(samples=0, slow_raster=0, max_raster_us=0)
-                  for name in ('before', 'within', 'after', 'crossing')}
+        groups = _raster_groups('before', 'within', 'after', 'crossing')
+        offsets = {name: offset - tap_release_us
+                   for name, offset in (disclosure_phases or {}).items()}
+        phase_groups = {name: _raster_groups('before', 'at_or_after', 'crossing')
+                        for name in offsets}
         for row in rows:
             earliest, latest = _raster_start_bounds(row, tap_release_us)
             if latest < 0:
@@ -171,14 +184,26 @@ def _window_diagnostics(window, tap_release_us, motion_us, disclosure_phases=Non
             else:
                 group = groups['crossing']
             raster = row[3]
-            group['samples'] += 1
-            group['slow_raster'] += raster > pair.shared.FRAME_BUDGET_US
-            group['max_raster_us'] = max(group['max_raster_us'], raster)
+            _record_raster(group, raster)
+            # These post-frame observations are independent. The list can
+            # lay out either before or after the disclosure settles.
+            for name, offset in offsets.items():
+                if latest < offset:
+                    phase = 'before'
+                elif earliest >= offset:
+                    phase = 'at_or_after'
+                else:
+                    phase = 'crossing'
+                _record_raster(phase_groups[name][phase], raster)
         result.update(nominal_motion_us=motion_us, raster_start_groups=groups)
-        if disclosure_phases:
-            result['observed_post_frame_offsets_from_tap_us'] = {
-                name: offset - tap_release_us
-                for name, offset in disclosure_phases.items()}
+        if offsets:
+            result['observed_post_frame_offsets_from_tap_us'] = offsets
+            columns = ['samples', 'slow_raster', 'max_raster_us']
+            result['raster_start_groups_by_observed_phase'] = dict(
+                columns=columns,
+                phases={name: {relation: [group[column] for column in columns]
+                               for relation, group in relations.items()}
+                        for name, relations in phase_groups.items()})
     return result
 
 
