@@ -1145,6 +1145,7 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(observed['visual_matches'], 0)
         self.assertEqual(observed['address_selector_bounds'], dict(dark=None, light=None))
         self.assertEqual(observed['node_selector_bounds'], dict(dark=None, light=None))
+        self.assertEqual(observed['about_card_bands']['themes'], dict(dark=None, light=None))
         packed = io.BytesIO()
         with zipfile.ZipFile(packed, 'w') as zipped:
             for theme, green in (('dark', (0, 213, 87)), ('light', (22, 138, 53))):
@@ -1157,11 +1158,18 @@ class ReaderTests(unittest.TestCase):
                     image = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                              + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
                     zipped.writestr(f'{screen}-{theme}.png', image)
+                card = b'\0' + bytes((*green, 255)) * 1280
+                pixels = ordinary * 36 + card * 70 + 3 * (ordinary * 12 + card * 44) + ordinary * 506
+                image = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
+                         + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
+                zipped.writestr(f'36-set-about-{theme}.png', image)
         address = dict(left=298, top=164, right=313, bottom=179)
         node = dict(left=288, top=214, right=303, bottom=229)
-        self.assertEqual(reader.settings_selector_bounds(packed.getvalue()), dict(
+        about = dict(version=[36, 106], links=[118, 162], computer=[174, 218], licences=[230, 274])
+        self.assertEqual(reader.settings_catalog_geometry(packed.getvalue()), dict(
             address_selector_bounds=dict(dark=address, light=address),
             node_selector_bounds=dict(dark=node, light=node),
+            about_card_bands=dict(column=700, scan_rows=[35, 279], themes=dict(dark=about, light=about)),
         ))
         value, calls, text = self.run_main(navigation_catalog=True)
         self.assertTrue(value['native_inspection_qualified'])

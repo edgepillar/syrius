@@ -844,7 +844,9 @@ At column 700, both original About images at `cc574e9a` fill rows 36 through
 closed disclosure below the version strip is displaced by one row. The
 About strip now reserves 47 px for the rounded text lines and uses 11.5 px
 above and below, giving 70 px at standard scale. The strip can still grow
-with scaled text. The visual result awaits a fresh Windows capture.
+with scaled text. The independent Settings reader reports the pixel ranges
+of all four panels directly from the verified archive. The visual result
+awaits a fresh Windows capture.
 
 ### Receive at rest at `06eda3f7`
 

@@ -572,6 +572,18 @@ def selected_job(value, head, run_id):
     return job
 
 
+def _vertical_bands(zipped, name, column, top, bottom):
+    encoded = base64.b64encode(zipped.read(name)).decode('ascii')
+    rows, channels = windows._png_crop(encoded, (column, column + 1), (top, bottom))
+    if not windows._opaque(rows, channels):
+        return []
+    bands = [(top, rows[0])]
+    for y, row in enumerate(rows[1:], top + 1):
+        if row != bands[-1][1]:
+            bands.append((y, row))
+    return bands
+
+
 def staking_empty_bands(raw):
     """Observe the strip and both cards in the verified Earn archive."""
     column, top, bottom = 1000, 35, 711
@@ -579,15 +591,9 @@ def staking_empty_bands(raw):
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         for theme in producer.details.THEMES:
             name = '15-staking-empty-' + theme + '.png'
-            encoded = base64.b64encode(zipped.read(name)).decode('ascii')
-            rows, channels = windows._png_crop(
-                encoded, (column, column + 1), (top, bottom))
-            bands = [(top, rows[0])]
-            for y, row in enumerate(rows[1:], top + 1):
-                if row != bands[-1][1]:
-                    bands.append((y, row))
+            bands = _vertical_bands(zipped, name, column, top, bottom)
             themes[theme] = dict(status='unavailable')
-            if len(bands) != 9 or not windows._opaque(rows, channels):
+            if len(bands) != 9:
                 continue
             positions, colors = zip(*bands)
             base, card, divider = colors[0], colors[1], colors[4]
@@ -624,12 +630,29 @@ def _selector_bounds(zipped, screen, columns, lines):
     return themes
 
 
-def settings_selector_bounds(raw):
-    """Measure selected green ink in the verified Addresses and Node images."""
+def _about_card_bands(zipped):
+    column, top, bottom = 700, 35, 279
+    themes = {}
+    for theme in producer.settings.THEMES:
+        bands = _vertical_bands(zipped, f'36-set-about-{theme}.png', column, top, bottom)
+        themes[theme] = None
+        if len(bands) != 9:
+            continue
+        positions, colors = zip(*bands)
+        base, card = colors[:2]
+        if base != card and colors == (base, card) * 4 + (base,):
+            themes[theme] = dict(version=list(positions[1:3]), links=list(positions[3:5]),
+                computer=list(positions[5:7]), licences=list(positions[7:9]))
+    return dict(column=column, scan_rows=[top, bottom], themes=themes)
+
+
+def settings_catalog_geometry(raw):
+    """Measure selector ink and half-open About panel ranges after verification."""
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         return dict(
             address_selector_bounds=_selector_bounds(zipped, '35-set-addresses', (288, 321), (90, 315)),
             node_selector_bounds=_selector_bounds(zipped, '30-set-node', (284, 319), (88, 256)),
+            about_card_bands=_about_card_bands(zipped),
         )
 
 
@@ -817,7 +840,7 @@ def main(parent=None):
             catalog = producer.settings.unpack(catalog_archive,
                 item['digest'][7:], item['size_in_bytes'], head, tree, run_id,
                 settings_reference, pins)
-            catalog.update(settings_selector_bounds(catalog_archive))
+            catalog.update(settings_catalog_geometry(catalog_archive))
             del catalog_archive
         else:
             PHASE = 'home_catalog_artifact'
