@@ -742,12 +742,16 @@ PNG members and reports inclusive coordinates in capture order. It reproduces
 the six earlier measurements against the exact reference PNGs in memory. The
 geometry reading supports the whole-image review.
 
-The retained dark Addresses capture at `06eda3f7` shows the selected glyph
-in columns 299 through 312 and rows 165 through 178. The authored selector
-specifies a 16 px circle with a 2 px ring and a filled centre for the selected
-address. The button now draws those dimensions directly. It keeps its 32 px
+The retained Addresses captures at `06eda3f7` show the selected glyph in
+columns 299 through 312 and rows 165 through 178 in both themes. The authored
+selector specifies a 16 px circle with a 2 px ring and a filled centre for the
+selected address. The button draws those dimensions and provides a 32 px
 input area, tooltip and checked state. The existing theme and scaled RTL
 cases verify the mark and the hit area. Fresh Windows pixels remain open.
+The Settings reader reports the green ink bounds for both verified Addresses
+images directly from the catalog archive. It reproduces the retained
+14 px measurements in both themes. The catalog covers all fourteen Settings
+captures.
 
 ### Receive at rest at `06eda3f7`
 

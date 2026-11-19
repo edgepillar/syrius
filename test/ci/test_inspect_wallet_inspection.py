@@ -1143,6 +1143,21 @@ class ReaderTests(unittest.TestCase):
         self.assertFalse(observed['atomic_frame_qualified'])
         self.assertFalse(observed['wallet_qualified'])
         self.assertEqual(observed['visual_matches'], 0)
+        self.assertEqual(observed['address_selector_bounds'], dict(dark=None, light=None))
+        packed = io.BytesIO()
+        with zipfile.ZipFile(packed, 'w') as zipped:
+            for theme, green in (('dark', (0, 213, 87)), ('light', (22, 138, 53))):
+                background = bytes((100, 100, 100, 255))
+                ordinary = b'\0' + background * 1280
+                selected = (b'\0' + background * 298 + bytes((*green, 255)) * 16
+                            + background * 966)
+                pixels = ordinary * 164 + selected * 16 + ordinary * 600
+                image = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
+                         + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
+                zipped.writestr('35-set-addresses-' + theme + '.png', image)
+        bounds = dict(left=298, top=164, right=313, bottom=179)
+        self.assertEqual(reader.address_selector_bounds(packed.getvalue()),
+                         dict(dark=bounds, light=bounds))
         value, calls, text = self.run_main(navigation_catalog=True)
         self.assertTrue(value['native_inspection_qualified'])
         self.assertEqual(value['verified_catalog_png_count'], 14)
