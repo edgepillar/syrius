@@ -749,6 +749,12 @@ launch film covers it. The first visible frame can reuse that image. The
 startup fixture checks that the same image serves the first visible paint,
 and the native motion lane samples the running transition.
 
+Both Staking Empty captures from X1248 show the summary labels and amounts
+one pixel below the references. The Stakes card begins at row 119 and its
+divider is at row 162. The references place them at rows 118 and 161.
+The empty summary now uses an 11 px top inset to align these elements.
+The existing two-theme widget cases check the inset.
+
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
 | Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Native late and settled samples. | Observe the early handoff and complete 400 ms settle. |

@@ -11,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_strip.dart';
 import 'package:zenon_syrius_wallet_flutter/services/price_feed.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/balance_visibility.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -402,6 +403,11 @@ void main() {
       ) async {
         populate(empty: true);
         await show(tester, light: light);
+        final Finder strip = find.byKey(const Key('staking_strip'));
+        expect(
+          tester.widget<PageStrip>(strip).padding,
+          const EdgeInsetsDirectional.fromSTEB(18, 11, 18, 12),
+        );
         expect(find.byKey(const Key('staking_empty_rewards')), findsOneWidget);
         expect(find.text('None yet'), findsNWidgets(2));
         final List<double> marks = tester

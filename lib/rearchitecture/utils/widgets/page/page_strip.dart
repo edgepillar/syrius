@@ -108,6 +108,7 @@ class PageStrip extends StatelessWidget {
     this.figureGap,
     this.leadSize = const Size.square(kStripLeadSize),
     this.leadGap,
+    this.padding,
     super.key,
   });
 
@@ -138,6 +139,9 @@ class PageStrip extends StatelessWidget {
   /// The gap between facts. Null keeps the ordinary page-strip spacing.
   final double? figureGap;
 
+  /// Insets for strip variants with their own layout. Null uses the theme.
+  final EdgeInsetsGeometry? padding;
+
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
@@ -148,7 +152,7 @@ class PageStrip extends StatelessWidget {
       child: Padding(
         // The strip's inset differs from the list title's: its figures
         // have the extra room drawn in the mockup's stripcard rule.
-        padding: tokens.stripPadding,
+        padding: padding ?? tokens.stripPadding,
         // The ordinary strip reserves the lead slot even without a lead.
         // Text-only variants can use their own minimum without clipping.
         child: ConstrainedBox(
