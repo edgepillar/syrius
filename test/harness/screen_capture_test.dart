@@ -598,8 +598,13 @@ void main() {
           ownedCapture(project: false, pillarDone: true)
               .preflight('pillar-done').single;
       expect(done.assertion['key'], 'pillar_registration_confirmed');
-      expect(done.lines.map((ScreenLine line) => line.words.first),
-          <String>['wait', 'assert']);
+      expect(done.lines.map((ScreenLine line) => line.words.join(' ')),
+          <String>[
+            'wait --key pillar_registration_confirmed --ready --timeout 60',
+            'wait --key registration_confirmation_caption --timeout 10',
+            'hover --key registration_confirmation_caption --kind text',
+            'assert --key pillar_registration_confirmed',
+          ]);
       expect(done.afterCapture, isEmpty);
       expect(agent.commands, isEmpty);
       expect(Directory('${repository.path}/.harness').existsSync(), isFalse);

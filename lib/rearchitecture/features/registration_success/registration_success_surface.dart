@@ -6,6 +6,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 
 /// Keeps the genuine form and its listeners mounted behind its receipt.
 class RegistrationRetainedFlow extends StatelessWidget {
@@ -187,16 +189,11 @@ class RegistrationSuccessSurface extends StatelessWidget {
                 for (int i = 0; i < steps.length; i++)
                   Row(
                     children: <Widget>[
-                      Icon(
-                        i == steps.length - 1 && !confirmed
-                            ? Icons.hourglass_empty
-                            : Icons.check_circle,
-                        color: i == steps.length - 1 && !confirmed
-                            ? tokens.qsr
-                            : tokens.znnInk,
-                        size: tokens.registrationInset,
+                      _buildStepMark(
+                        tokens,
+                        waiting: i == steps.length - 1 && !confirmed,
                       ),
-                      SizedBox(width: tokens.inlineGap),
+                      SizedBox(width: tokens.entryStepGap),
                       Expanded(
                         child: Text(
                           steps[i],
@@ -270,6 +267,9 @@ class RegistrationSuccessSurface extends StatelessWidget {
                                 if (confirmed && caption != null)
                                   Text(
                                     caption!,
+                                    key: const Key(
+                                      'registration_confirmation_caption',
+                                    ),
                                     style: tokens.registrationCaptionText,
                                     textAlign: TextAlign.center,
                                   ),
@@ -315,6 +315,30 @@ class RegistrationSuccessSurface extends StatelessWidget {
       ],
     );
   }
+
+  Widget _buildStepMark(AppTokens tokens, {required bool waiting}) =>
+      SizedBox.square(
+        dimension: tokens.entryStepSize,
+        child: waiting
+            ? Icon(
+                Icons.hourglass_empty,
+                color: tokens.qsr,
+                size: tokens.registrationInset,
+              )
+            : DecoratedBox(
+                decoration: BoxDecoration(
+                  color: tokens.znn,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: ShellSymbol(
+                    'check',
+                    size: tokens.inlineGlyphSize,
+                    color: tokens.onZnn,
+                  ),
+                ),
+              ),
+      );
 
   Widget _buildFacts(
     BuildContext context,

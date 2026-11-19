@@ -16,6 +16,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/wallet_action_context.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_flight_registry.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class _Context extends Mock implements WalletActionContext {}
@@ -72,8 +74,14 @@ void main() {
             ),
           };
           await tester.pumpWidget(_host(surface, light: light));
+          final Finder caption = find.byKey(
+            const Key('registration_confirmation_caption'),
+          );
+          final Finder checks = find.byType(ShellSymbol);
           expect(find.byKey(const Key('registration_waiting')), findsOneWidget);
           expect(find.byType(AppLottie), findsNothing);
+          expect(caption, findsNothing);
+          expect(checks, findsNWidgets(3));
           expect(find.byKey(const Key('registration_another')), findsNothing);
           expect(fixture.requests, <(int, Hash)>[(321, fixture.hash)]);
           await tester.pump(const Duration(minutes: 5));
@@ -88,6 +96,17 @@ void main() {
           );
           await tester.pump();
           expect(find.byKey(const Key('registration_waiting')), findsNothing);
+          expect(
+            caption,
+            asset == AppLottieAsset.pillar ? findsOneWidget : findsNothing,
+          );
+          expect(checks, findsNWidgets(4));
+          expect(tester.getSize(checks.first), const Size.square(12));
+          expect(
+            tester.getTopLeft(checks.at(1)).dy -
+                tester.getTopLeft(checks.first).dy,
+            closeTo(36, .01),
+          );
           final AppLottie art = tester.widget<AppLottie>(
             find.byType(AppLottie),
           );

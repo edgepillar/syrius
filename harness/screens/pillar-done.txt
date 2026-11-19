@@ -1,4 +1,6 @@
 # prerequisite: restored-lab-pillar-registration
 # Both themes wait for the original receipt artwork to reach its final frame.
 wait --key pillar_registration_confirmed --ready --timeout 60
+wait --key registration_confirmation_caption --timeout 10
+hover --key registration_confirmation_caption --kind text
 assert --key pillar_registration_confirmed
