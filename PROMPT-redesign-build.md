@@ -778,6 +778,11 @@ The existing two-theme widget cases check the inset.
 The readonly Earn reader samples the strip, divider and card edges at column
 1000 in the two verified Staking Empty PNGs. The in-memory reference check
 reads both themes at the same column.
+The [native Earn run at `cb250ea9`](https://github.com/edgepillar/syrius/actions/runs/44605090442/job/135846535933)
+and its [updated reader](https://github.com/edgepillar/syrius/actions/runs/44609607989/job/135862384062)
+verify the reference bands at that column in both themes. The summary fills
+rows 36–105, Stakes rows 118–653, the divider row 161 and Rewards rows 666–709.
+The whole-image verdicts remain under V01.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
