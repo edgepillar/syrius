@@ -75,9 +75,12 @@ class InteractiveFramePairTests(unittest.TestCase):
     def test_shutdown_trace_has_closed_labels_bounded_lines_and_no_private_output(self):
         profile = pair.profile
 
-        def row(phase, failed=False):
+        def row(phase, failed=False, *, elapsed_ms=None):
+            event = dict(phase=phase, failed=failed)
+            if elapsed_ms is not None:
+                event['elapsed_ms'] = elapsed_ms
             return profile.SHUTDOWN_PREFIX + json.dumps(
-                dict(phase=phase, failed=failed), separators=(',', ':')).encode() + b'\n'
+                event, separators=(',', ':')).encode() + b'\n'
 
         def read(raw, complete=True, overflow=False, **options):
             result = profile.observe_shutdown_trace(raw, output_complete=complete,
@@ -95,6 +98,14 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(read(b'synthetic private child output\n'),
                          dict(status='absent', output_complete=True))
         self.assertEqual(read(row('exitRequested') + row('exitRequested', True))['failed'], True)
+        timed = (row('idle', elapsed_ms=1) + row('serviceReset', elapsed_ms=500)
+                 + row('exitRequested', elapsed_ms=10_123))
+        self.assertEqual(read(timed), dict(status='observed', phase='exitRequested',
+            failed=False, event_count=3, output_complete=True, elapsed_ms=10_123,
+            max_gap_ms=9_623, max_gap_after='serviceReset'))
+        single = read(row('idle', elapsed_ms=0))
+        self.assertEqual((single['elapsed_ms'], single['max_gap_ms'],
+                          single['max_gap_after']), (0, 0, None))
         invalid = (
             row('synthetic private phase'), row('idle', True), row('serviceReset', 1),
             profile.SHUTDOWN_PREFIX + b'{"phase":"idle","failed":false,"private":"synthetic private"}\n',
@@ -103,6 +114,12 @@ class InteractiveFramePairTests(unittest.TestCase):
             profile.SHUTDOWN_PREFIX + b' ' * 256 + b'\n', partial,
             row('idle') + row('idle'), row('serviceReset', True) + row('windowSizeRead'),
             row('exitRequested') + row('windowSizeRead'),
+            row('idle') + row('serviceReset', elapsed_ms=1),
+            row('idle', elapsed_ms=1) + row('serviceReset'),
+            row('idle', elapsed_ms=4) + row('serviceReset', elapsed_ms=3),
+            row('idle', elapsed_ms=1) + row('idle', elapsed_ms=2),
+            row('idle', elapsed_ms=True), row('idle', elapsed_ms=-1),
+            row('idle', elapsed_ms=profile.SHUTDOWN_ELAPSED_LIMIT_MS + 1),
             b''.join(row('serviceReset' if turn % 2 else 'windowSizeRead')
                      for turn in range(len(profile.SHUTDOWN_PHASES) + 2)),
         )
@@ -122,6 +139,9 @@ class InteractiveFramePairTests(unittest.TestCase):
             dict(status='observed', phase='idle', failed=False, event_count=0, output_complete=True),
             dict(status='unavailable', error_code='synthetic private', output_complete=True),
             dict(status='absent', output_complete=True, private='synthetic private'),
+            dict(single, max_gap_after='idle'), dict(single, max_gap_ms=1),
+            dict(read(timed), max_gap_after='synthetic private'),
+            dict(read(timed), max_gap_ms=10_124),
         ):
             self.assertFalse(profile.valid_shutdown_trace(value))
 
@@ -184,6 +204,13 @@ class InteractiveFramePairTests(unittest.TestCase):
                          dict(current=current['shutdown_observation']))
         self.assertEqual(result['normal_wallet_exits'], 0)
         self.assertFalse(result['artifact_reported_success'])
+        self.assertFalse(result['timing_criterion_passed'])
+        timed = dict(trace, elapsed_ms=11_200, max_gap_ms=9000,
+                     max_gap_after='serviceReset')
+        current['shutdown_trace'] = timed
+        result = self.project(offered)
+        self.assertEqual(result['shutdown_traces'], dict(current=timed))
+        self.assertEqual(result['normal_wallet_exits'], 0)
         self.assertFalse(result['timing_criterion_passed'])
         for update in (dict(output_complete=True), dict(phase='synthetic private'),
                        dict(event_count=0), dict(private='synthetic private')):
@@ -1131,6 +1158,9 @@ class InteractiveFramePairTests(unittest.TestCase):
                     for i in range(pair.shared.launch.MAX_TIMING_FRAMES)])
         for sample in offered['samples'].values():
             sample['observation']['windows'] = dict.fromkeys(pair.WINDOWS, full)
+            sample['shutdown_trace'] = dict(status='observed', phase='exitRequested',
+                failed=False, event_count=20, output_complete=True,
+                elapsed_ms=120_000, max_gap_ms=110_000, max_gap_after='windowPositionRead')
         offered['comparisons'] = {name: pair.shared.compare_windows(full, full)
                                  for name in pair.WINDOWS}
         self.assertLessEqual(len(cold.canonical(offered)) + 1, pair.MAX_MANIFEST)

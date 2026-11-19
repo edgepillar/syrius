@@ -1334,8 +1334,13 @@ class HarnessAgent {
             Platform.environment['SYRIUS_HARNESS_FRAME_TIMING'] ==
                 'interactive') {
           _shutdownObserved = true;
+          final Stopwatch clock = Stopwatch()..start();
           appShutdownObservation.observe((Map<String, Object> snapshot) {
-            stdout.writeln('SYRIUS_SHUTDOWN ${jsonEncode(snapshot)}');
+            final Map<String, Object> event = <String, Object>{
+              ...snapshot,
+              'elapsed_ms': clock.elapsedMilliseconds,
+            };
+            stdout.writeln('SYRIUS_SHUTDOWN ${jsonEncode(event)}');
           });
         }
         unawaited(

@@ -25,6 +25,7 @@ ENTRY_SHA256 = '9964efb8467c25596735b42c07719bb8fc0a71a1e83dcace3c82eca25bd26ad8
 MEASUREMENT_COMMANDS = frozenset(('theme', 'state', 'stalls', 'tap', 'wait', 'scroll'))
 MAX_MEASUREMENT_COMMANDS = 32
 SHUTDOWN_PREFIX = b'SYRIUS_SHUTDOWN '
+SHUTDOWN_ELAPSED_LIMIT_MS = 120_000
 SHUTDOWN_PHASES = frozenset((
     'idle', 'windowMaximizedRead', 'windowMaximizedSave', 'windowSizeRead',
     'windowWidthSave', 'windowHeightSave', 'windowPositionRead', 'windowXSave',
@@ -76,12 +77,29 @@ def valid_shutdown_trace(value):
     if set(value) == {'status', 'error_code', 'output_complete'}:
         return (value['status'] == 'unavailable'
             and value['error_code'] in ('STATE_INVALID', 'OUTPUT_OVERFLOW', 'INTERNAL_ERROR'))
-    return (set(value) == {'status', 'phase', 'failed', 'event_count', 'output_complete'}
+    base = {'status', 'phase', 'failed', 'event_count', 'output_complete'}
+    timed = base | {'elapsed_ms', 'max_gap_ms', 'max_gap_after'}
+    if not (set(value) in (base, timed)
         and value['status'] == 'observed' and type(value['phase']) is str
         and value['phase'] in SHUTDOWN_PHASES and type(value['failed']) is bool
         and not (value['phase'] == 'idle' and value['failed'])
         and type(value['event_count']) is int
-        and 1 <= value['event_count'] <= len(SHUTDOWN_PHASES) + 1)
+        and 1 <= value['event_count'] <= len(SHUTDOWN_PHASES) + 1):
+        return False
+    if set(value) == base:
+        return True
+    if (not _shutdown_milliseconds(value['elapsed_ms'])
+            or not _shutdown_milliseconds(value['max_gap_ms'])
+            or value['max_gap_ms'] > value['elapsed_ms']):
+        return False
+    if value['event_count'] == 1:
+        return value['max_gap_ms'] == 0 and value['max_gap_after'] is None
+    return (type(value['max_gap_after']) is str
+            and value['max_gap_after'] in SHUTDOWN_PHASES)
+
+
+def _shutdown_milliseconds(value):
+    return type(value) is int and 0 <= value <= SHUTDOWN_ELAPSED_LIMIT_MS
 
 
 def observe_shutdown_trace(raw, *, output_complete, output_overflow, cap=131072):
@@ -116,7 +134,8 @@ def observe_shutdown_trace(raw, *, output_complete, output_overflow, cap=131072)
         except (ValueError, UnicodeError):
             return unavailable('STATE_INVALID')
         if (index == len(lines) - 1 or type(value) is not dict
-                or set(value) != {'phase', 'failed'}
+                or set(value) not in ({'phase', 'failed'}, {'phase', 'failed', 'elapsed_ms'})
+                or 'elapsed_ms' in value and not _shutdown_milliseconds(value['elapsed_ms'])
                 or type(value['phase']) is not str or value['phase'] not in SHUTDOWN_PHASES
                 or type(value['failed']) is not bool
                 or value['phase'] == 'idle' and value['failed']
@@ -124,15 +143,25 @@ def observe_shutdown_trace(raw, *, output_complete, output_overflow, cap=131072)
             return unavailable('STATE_INVALID')
         if events:
             previous = events[-1]
-            if (previous == value or previous['failed']
+            if (set(previous) != set(value)
+                    or value.get('elapsed_ms', 0) < previous.get('elapsed_ms', 0)
+                    or previous['phase'] == value['phase'] and previous['failed'] == value['failed']
+                    or previous['failed']
                     or previous['phase'] == 'exitRequested' and not (
                         value['phase'] == 'exitRequested' and value['failed'])):
                 return unavailable('STATE_INVALID')
         events.append(value)
     if not events:
         return dict(status='absent', output_complete=output_complete)
-    return dict(status='observed', **events[-1], event_count=len(events),
-                output_complete=output_complete)
+    summary = dict(status='observed', **events[-1], event_count=len(events),
+                   output_complete=output_complete)
+    if 'elapsed_ms' in summary:
+        maximum, after = max(
+            ((later['elapsed_ms'] - earlier['elapsed_ms'], earlier['phase'])
+             for earlier, later in zip(events, events[1:])),
+            key=lambda pair: pair[0], default=(0, None))
+        summary.update(max_gap_ms=maximum, max_gap_after=after)
+    return summary
 
 
 def valid_navigation_observation(value):
