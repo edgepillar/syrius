@@ -255,6 +255,11 @@ void main() {
       final Rect crop = raster.origin &
           Size(raster.width / ratio, raster.height / ratio);
       expect(crop.width * crop.height, lessThan(2152 * 1408 * 0.85));
+      expect(
+        crop.bottom,
+        lessThan(1023),
+        reason: 'The top caption does not add storage below the body.',
+      );
       for (int step = 0; step <= 20; step++) {
         final double progress = step / 20;
         final double radians = fieldDriftAngle * progress;

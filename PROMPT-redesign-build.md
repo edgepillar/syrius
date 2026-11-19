@@ -1067,6 +1067,21 @@ For a failed raster comparison, the independent reader now identifies which
 ranked durations exceed their P06 counterpart. It groups the original
 raster start bounds by launch phase and retains the largest excess. It uses
 the same ranked durations and 16 ms budget as the acceptance comparison.
+The [reader at `8ca076ab`](https://github.com/edgepillar/syrius/actions/runs/44633488408/job/135945988445)
+finds one excess in the retained `70ca8e1e` window. The second-longest
+raster takes 103.821 ms against 100.481 ms in P06. It starts between
+3,247.732 and 3,248.974 ms, after the film ends and before the handoff
+starts. Every measured raster within the handoff meets its ranked P06
+counterpart. This locates the excess without identifying its paint source.
+
+The shared drift crop now bounds each side independently through the
+reference's forward rotation. The caption extends the upper crop without
+adding the same depth below the body. The crop keeps the existing blur margin
+and alignment to the raster's pixel grid. The existing test checks all four
+viewport corners throughout drift at three device pixel ratios and verifies
+the smaller lower bound. At 1280 by 780 and pixel ratio one, the crop
+calculation drops from 1838 by 1360 to 1835 by 1328. A new Windows sample
+is needed to measure the timing effect.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
