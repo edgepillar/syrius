@@ -999,6 +999,12 @@ and initialization states before closing. The observation has its own five
 seconds after failure. The preparation readiness deadline, frame windows,
 and required process exit are unchanged.
 
+The Entry and Home light painters draw each radial gradient inside its
+own bounds. Its final stop is transparent, so the former full-field
+rectangle only added transparent paint outside those bounds. The original
+gradient positions, blur, compositing and drift are preserved. Native
+frames are required to measure the timing impact.
+
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
 calls `jumpTo` only when the extent differs from the current offset, avoiding

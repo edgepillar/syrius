@@ -588,13 +588,9 @@ class _EntryFieldPainter extends CustomPainter {
       ..save()
       ..translate(center.dx, center.dy)
       ..scale(radiusX, radiusY)
+      // The clamped gradient has zero alpha beyond its unit radius.
       ..drawRect(
-        Rect.fromLTRB(
-          (field.left - center.dx) / radiusX,
-          (field.top - center.dy) / radiusY,
-          (field.right - center.dx) / radiusX,
-          (field.bottom - center.dy) / radiusY,
-        ),
+        const Rect.fromLTWH(-1, -1, 2, 2),
         Paint()
           ..shader = ui.Gradient.radial(
             Offset.zero,
