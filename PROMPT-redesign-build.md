@@ -839,6 +839,13 @@ The [Linux run at `c59c46ec`](https://github.com/edgepillar/syrius/actions/runs/
 passes strict analysis, the full non-chain suite with 5,124 passes and one
 skip, and generated-file checks.
 
+At column 700, both original About images at `cc574e9a` fill rows 36 through
+106 in the version strip. Both references fill rows 36 through 105. Each
+closed disclosure below the version strip is displaced by one row. The
+About strip now reserves 47 px for the rounded text lines and uses 11.5 px
+above and below, giving 70 px at standard scale. The strip can still grow
+with scaled text. The visual result awaits a fresh Windows capture.
+
 ### Receive at rest at `06eda3f7`
 
 The latest private comparison records verdicts for all 62 locally available
@@ -998,6 +1005,21 @@ A P06 preparation timeout now records the original process's finite Lock
 and initialization states before closing. The observation has its own five
 seconds after failure. The preparation readiness deadline, frame windows,
 and required process exit are unchanged.
+
+The [paired producer at `1970ec2f`](https://github.com/edgepillar/syrius/actions/runs/44626330873/job/135921051528)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44630196013/job/135934465713)
+retain 81 redesign frames and five normal process exits. P06 completes warm
+preparation, then reaches the cold measurement deadline before initialization.
+Its native window is ready at the target size and its Lock field is disabled.
+P06 retains zero measured frames. The redesign has 42 frame-number gaps
+and a 267.408 ms peak raster around the start of handoff. Six of the seven
+raster starts after observed Lock arrival exceed 16 ms and peak at 60.947 ms.
+
+The pinned P06 agent already reads the original film's frame indices and
+its done, skip, pending and ticking flags. The controller previously omitted
+that seven-field reply because it expected a three-field observation. It now
+checks the version and retains only the six bounded facts. The original actor,
+film and timing procedure are unchanged.
 
 The Entry and Home light painters draw each radial gradient inside its
 own bounds. Its final stop is transparent, so the former full-field
@@ -1336,7 +1358,7 @@ the difference and its write paths in the note.
 X821 through X872 refer to the exact 28f9c121 pairs reviewed independently.
 Other X rows retain their original capture sources. Welcome binds to
 Source901 in X775, Launch to 28f9c121 in X877 and Ready to 28f9c121 in X883.
-The Lock rows link to the review at 5b149ee2. The V01 row tracks strict
+The Lock rows link to the review at 47e606a1. The V01 row tracks strict
 whole-image acceptance.
 
 | # | Screen | Dark | Light |

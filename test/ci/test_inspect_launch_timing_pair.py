@@ -279,6 +279,10 @@ class PairInspectionTests(unittest.TestCase):
         attempt['lock_diagnostic'] = dict(diagnostic, film_frame=film)
         retained = self.project(value)['attempt_outcomes']['p06'][-1]['lock_diagnostic']
         self.assertEqual(retained['film_frame'], film)
+        p06_film = dict(film, skip=False, pending=True, ticking=False)
+        attempt['lock_diagnostic'] = dict(diagnostic, film_frame=p06_film)
+        retained = self.project(value)['attempt_outcomes']['p06'][-1]['lock_diagnostic']
+        self.assertEqual(retained['film_frame'], p06_film)
         for invalid in (dict(diagnostic, path='synthetic private path'),
                         dict(diagnostic, wallet_path_present=1), dict(diagnostic, field='arbitrary'),
                         dict(diagnostic, entry_phase='synthetic source string'),
@@ -286,6 +290,7 @@ class PairInspectionTests(unittest.TestCase):
                         dict(diagnostic, film_frame=dict(film, shown=54)),
                         dict(diagnostic, film_frame=dict(film, shown=True)),
                         dict(diagnostic, film_frame=dict(film, done=0)),
+                        dict(diagnostic, film_frame=dict(p06_film, pending=1)),
                         dict(diagnostic, film_frame=dict(film, raw='synthetic private text'))):
             attempt['lock_diagnostic'] = invalid
             with self.subTest(invalid=invalid), self.assertRaises(reader.archive.Refused):

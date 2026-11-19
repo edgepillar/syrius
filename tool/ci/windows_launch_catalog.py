@@ -32,6 +32,8 @@ TIMING_SIZE = (1280, 780)
 LOCK_SETTLE_OBSERVATION_SECONDS = 1
 LOCK_DIAGNOSTIC_FLAGS = ('wallet_path_present', 'wallet_unlocked', 'client_at_target',
     'native_window_ready', 'startup_ready', 'welcome_ready', 'entry_held')
+LOCK_FILM_FIELDS = frozenset(('frames', 'shown', 'done'))
+P06_FILM_FIELDS = LOCK_FILM_FIELDS | {'skip', 'pending', 'ticking'}
 TIMING_COMMAND_STAGES = ('password_readiness', 'lock_state', 'frame_window')
 FRAME_REFUSALS = ('notCollecting', 'launchNotBooted', 'lockFieldCount', 'lockFieldDisabled',
     'lockFieldUnreachable', 'deliveryTimeout', 'frameOrder', 'frameLimit', 'frameTiming',
@@ -266,10 +268,26 @@ def timing_reply(stage, status, reply):
 
 
 def valid_lock_film_frame(value):
-    return (type(value) is dict and set(value) == {'frames', 'shown', 'done'}
+    return (type(value) is dict and value.keys() in (LOCK_FILM_FIELDS, P06_FILM_FIELDS)
         and startup.integer(value['frames'], 0, 4096)
         and startup.integer(value['shown'], -1, max(-1, value['frames'] - 1))
-        and type(value['done']) is bool)
+        and all(type(value[name]) is bool for name in value.keys() - {'frames', 'shown'}))
+
+
+def _lock_film_projection(recipe):
+    if 'startupFilmProgress' in recipe:
+        progress = startup.progress_projection(recipe['startupFilmProgress'])
+        return {name: progress[name] for name in sorted(LOCK_FILM_FIELDS)} if progress else None
+    film = recipe.get('startupFilmFrame')
+    if type(film) is not dict:
+        return None
+    if film.keys() == LOCK_FILM_FIELDS:
+        return film
+    # The pinned P06 overlay reads these six facts from its original film.
+    if (film.keys() == P06_FILM_FIELDS | {'schema'}
+            and type(film['schema']) is int and film['schema'] == 2):
+        return {name: film[name] for name in sorted(P06_FILM_FIELDS)}
+    return None
 
 
 def valid_lock_diagnostic(value):
@@ -415,11 +433,7 @@ class LaunchProcess(startup.StartupProbe):
                 client_at_target=size == list(TIMING_SIZE), native_window_ready=native.get('nativeWindowReady'),
                 startup_ready=native.get('startupReady'), welcome_ready=native.get('welcomeReady'),
                 entry_held=native.get('held'))
-            film = recipe.get('startupFilmFrame')
-            if 'startupFilmProgress' in recipe:
-                progress = startup.progress_projection(recipe['startupFilmProgress'])
-                film = ({name: progress[name] for name in ('frames', 'shown', 'done')}
-                        if progress is not None else None)
+            film = _lock_film_projection(recipe)
             if valid_lock_film_frame(film):
                 value['film_frame'] = film
             need(valid_lock_diagnostic(value), 'ENTRY_INVALID')

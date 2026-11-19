@@ -318,11 +318,16 @@ class StartupInspectionTests(unittest.TestCase):
         self.assertEqual([call.args[0]['cmd'] for call in process._rpc.call_args_list],
                          ['state', 'entry-state', 'wallet-recipe'])
         legacy = dict(frames=54, shown=31, done=False)
-        current = dict(legacy, decoding=32, stage='frame', skip=False,
-                       pending=True, ticking=True)
+        p06 = dict(legacy, skip=False, pending=True, ticking=True)
+        current = dict(p06, decoding=32, stage='frame')
         for fields, expected in (
             (dict(startupFilmFrame=legacy), legacy),
+            (dict(startupFilmFrame=dict(p06, schema=2)), p06),
             (dict(startupFilmProgress=current), legacy),
+            (dict(startupFilmFrame=p06), None),
+            (dict(startupFilmFrame=dict(p06, schema=3)), None),
+            (dict(startupFilmFrame=dict(p06, schema=2, ticking=1)), None),
+            (dict(startupFilmFrame=dict(p06, schema=2, private='synthetic private path')), None),
             (dict(startupFilmFrame=dict(legacy, shown=54)), None),
             (dict(startupFilmFrame=dict(legacy, done=0)), None),
             (dict(startupFilmFrame=dict(legacy, path='synthetic private path')), None),
