@@ -20,6 +20,12 @@ from tool.ci import inspect_windows_qualification as windows
 HEAD, TREE, RUN = 'a' * 40, 'b' * 40, 9
 
 
+def packed_frame_window(window_us, rows):
+    encoded = zlib.compress(b''.join(struct.pack('<5I', *row) for row in rows))
+    return dict(schema=2, scope='harness_frame_window', windowUs=window_us,
+                frameCount=len(rows), packedFrames=base64.b64encode(encoded).decode('ascii'))
+
+
 def positive_report(*, natural_only=False):
     """Keep fixture construction independent of any external test package."""
     report = inspect.startup.Report(natural_only=natural_only)
@@ -168,8 +174,8 @@ class StartupInspectionTests(unittest.TestCase):
         process.clock, process.sleep = lambda: 0, mock.Mock()
         process.limits = launch.LIMITS
         lock = dict(kind='field', key='wallet_password_field')
-        report = dict(schema=1, scope='harness_frame_window', windowUs=3000000,
-                      frames=[[0, 10, 200, 300, 500]])
+        report = dict(packed_frame_window(3000000, [(0, 10, 200, 300, 500)]),
+                      startupPhaseUs=[100, 200, 300, 400])
         process._exchange = mock.Mock(side_effect=[
             (400, dict(ok=False, error='not there after 0 ms')),
             (400, dict(ok=False, error='not ready after 0 ms')),
@@ -190,13 +196,12 @@ class StartupInspectionTests(unittest.TestCase):
             mock.call(dict(cmd='state'), until=20),
             mock.call(dict(cmd='stalls', frameWindow='end'), until=60),
         ])
-        self.assertEqual(process.sleep.call_args_list, [mock.call(launch.LIMITS.poll)] * 4)
+        self.assertEqual(process.sleep.call_args_list,
+                         [mock.call(launch.LIMITS.poll)] * 4 + [mock.call(1)])
 
         count = launch.MAX_TIMING_FRAMES + 1
-        packed = zlib.compress(b''.join(struct.pack('<5I', i, 60000000 + i, 10, 5, 20)
-                                      for i in range(count)))
-        receipt = dict(schema=2, scope='harness_frame_window', windowUs=75000000,
-                       frameCount=count, packedFrames=base64.b64encode(packed).decode('ascii'),
+        receipt = dict(packed_frame_window(75000000,
+                           [(i, 60000000 + i, 10, 5, 20) for i in range(count)]),
                        startupPhaseUs=[1000000, 5250000, 6500000, 7000000])
         process._exchange = mock.Mock(side_effect=[
             (200, dict(ok=True, target=lock)),
@@ -205,11 +210,15 @@ class StartupInspectionTests(unittest.TestCase):
         ])
         process.deadline = 125
         process.clock = lambda: 75
+        process.sleep.reset_mock()
         self.assertEqual(process._observe_frame_timing(paired=True), receipt)
         self.assertEqual(process._exchange.call_args_list, [
             mock.call(wait, until=90), mock.call(dict(cmd='state'), until=90),
             mock.call(dict(cmd='stalls', frameWindow='end'), until=100),
         ])
+        process.sleep.assert_not_called()
+        with self.assertRaises(inspect.startup.Failure):
+            launch.standalone_frame_timing_window(receipt)
 
     def test_launch_timing_keeps_pending_distinct_from_an_actual_command_failure(self):
         launch = inspect.launch
@@ -346,8 +355,7 @@ class StartupInspectionTests(unittest.TestCase):
         facts = dict(theme='dark', action_complete=True, exit_observed=True,
             exit_code=0, forced_kill=False, output_complete=True, output_overflow=False,
             checks=dict.fromkeys(launch.ATTEMPT_CHECKS, True), error_codes=[])
-        frames = dict(schema=1, scope='harness_frame_window', windowUs=2000000,
-                      frames=[[0, 10, 200, 400, 610]])
+        frames = packed_frame_window(2000000, [(0, 10, 200, 400, 610)])
         environment = dict(SYRIUS_WINDOWS_LAUNCH_CATALOG=launch.TIMING_SCREEN)
         parent = dict(GITHUB_REPOSITORY='edgepillar/syrius',
             GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_RUN_ATTEMPT='1',
@@ -414,6 +422,15 @@ class StartupInspectionTests(unittest.TestCase):
         self.assertEqual(summary['verified_png_count'], 0)
         self.assertFalse(summary['baseline_compared'])
         self.assertTrue(summary['artifact_reported_success'])
+        self.assertNotIn('frame_diagnostics', summary)
+        packed = dict(packed_frame_window(1200000, [(0, 1100000, 3000, 17000, 22000)]),
+                      startupPhaseUs=[10000, 20000, 30000, 40000])
+        merged = read(dict(report, frame_window=packed))
+        self.assertEqual(merged['frame_diagnostics']['settled_raster_starts']['at_or_after'],
+                         [1, 1, 17000])
+        self.assertFalse(merged['baseline_compared'])
+        with self.assertRaises(inspect.archive.Refused):
+            read(dict(report, frame_window=packed_frame_window(999999, [(0, 0, 0, 1, 1)])))
         for change in (dict(frame_window=None), dict(collector_sha256='1' * 64),
                        dict(mode='debug'), dict(client=[1280, 781]),
                        dict(attempts=[report['attempts'][0],

@@ -22,6 +22,7 @@ JOB_NAME = 'Observe original Windows Release startup'
 BATCH_JOB_NAME = 'Capture original Windows startup catalog'
 # One listing, fifteen source reads and two requests per archive.
 BATCH_REQUESTS = 24
+PRE_LOCK_SETTLE_LAUNCH_PRODUCER_SHA = 'd83f34f0be461f80f350917c97b8dd2cff71e0b8d146a02f67adeda05e6340a4'
 PRE_BATCH_LAUNCH_PRODUCER_SHA = '166cd2d6a070c53fef5e41d3e7d65fb7bf7e65cab53148da576f5338fe2d1f74'
 PRE_PHASE_LAUNCH_PRODUCER_SHA = '83e89caefc7b68ad03450013544f98d234d5f01bbd9fa30c77e5c19765a80170'
 PRE_MOTION_LAUNCH_PRODUCER_SHA = '34e0f9e31655e61d9299a0c3002f99f921ca2e2ad7fe3c7c7cc728ca072f3ae4'
@@ -297,7 +298,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
             if frame_window is not None:
                 archive.need(len(attempts) == len(roles) and launch.attempt_passed(attempts[-1]))
                 try:
-                    launch.frame_timing_window(frame_window)
+                    launch.standalone_frame_timing_window(frame_window)
                 except startup.Failure:
                     raise archive.Refused('INSPECTION_REFUSED') from None
         if motion:
@@ -361,8 +362,12 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         if frame_window is not None:
             raw_window = json.dumps(frame_window, sort_keys=True,
                 separators=(',', ':')).encode('ascii')
-            summary.update(frame_count=len(frame_window['frames']),
+            summary.update(frame_count=launch.frame_timing_count(frame_window),
                 window_us=frame_window['windowUs'], frame_window_sha256=archive.sha(raw_window))
+            if frame_window['schema'] == 2:
+                from .inspect_launch_timing_pair import window_diagnostics
+
+                summary['frame_diagnostics'] = window_diagnostics(frame_window)
         summary.update(mode=report['mode'], theme=report['theme'], client=report['client'],
             original_attempts=attempts, baseline_compared=False)
     elif lock_seams:
@@ -466,7 +471,9 @@ def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=F
             before_phase_capture = (name == 'tool/ci/windows_launch_catalog.py'
                                     and archive.sha(body) in (PRE_PHASE_LAUNCH_PRODUCER_SHA,
                                                              PRE_MOTION_LAUNCH_PRODUCER_SHA))
-            archive.need(body == current or not motion and (before_phase_capture
+            before_lock_settle = (name == 'tool/ci/windows_launch_catalog.py'
+                                  and archive.sha(body) == PRE_LOCK_SETTLE_LAUNCH_PRODUCER_SHA)
+            archive.need(body == current or before_lock_settle or not motion and (before_phase_capture
                          or shared_binaries is None and archive.sha(body) in prior))
         else:
             pins[key] = archive.sha(body)

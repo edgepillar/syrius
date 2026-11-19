@@ -29,6 +29,7 @@ TIMING_ARTIFACT_PREFIX = 'windows-launch-timing-'
 TIMING_MAX_ARCHIVE = 64 * 1024
 TIMING_THEME = 'dark'
 TIMING_SIZE = (1280, 780)
+LOCK_SETTLE_OBSERVATION_SECONDS = 1
 LOCK_DIAGNOSTIC_FLAGS = ('wallet_path_present', 'wallet_unlocked', 'client_at_target',
     'native_window_ready', 'startup_ready', 'welcome_ready', 'entry_held')
 TIMING_COMMAND_STAGES = ('password_readiness', 'lock_state', 'frame_window')
@@ -235,6 +236,17 @@ def frame_timing_count(value):
     """Count a previously validated original frame window."""
     return value['frameCount'] if value['schema'] == 2 else len(value['frames'])
 
+
+def standalone_frame_timing_window(value):
+    """Read a bounded standalone window, including legacy JSON samples."""
+    frame_timing_rows(value, allow_packed=True)
+    if value['schema'] == 2:
+        minimum_us = LOCK_SETTLE_OBSERVATION_SECONDS * 1_000_000
+        need(minimum_us <= value['windowUs'] <= MAX_TIMING_US
+             and value['frameCount'] <= MAX_TIMING_FRAMES)
+    return value
+
+
 class TimingCommandRefused(startup.Failure):
     def __init__(self, stage, http_status, reply):
         super().__init__('COMMAND_FAILED')
@@ -355,13 +367,19 @@ class LaunchProcess(startup.StartupProbe):
             self.sleep(min(self.limits.poll, max(0, until - self.clock())))
         else:
             raise startup.Failure('WINDOW_INVALID' if window_pending else 'STARTUP_DEADLINE')
+        if not paired:
+            # Observe the original lock at rest without scheduling any frames.
+            self.sleep(LOCK_SETTLE_OBSERVATION_SECONDS)
         raw = timing_reply('frame_window', *self._exchange(dict(cmd='stalls', frameWindow='end'),
                            until=min(self.deadline, self.started + (100 if paired else 60))))
-        fields = PACKED_TIMING_FIELDS if paired else TIMING_FIELDS
-        if paired and STARTUP_PHASE_FIELD in raw:
+        fields = PACKED_TIMING_FIELDS
+        if STARTUP_PHASE_FIELD in raw:
             fields = (*fields, STARTUP_PHASE_FIELD)
-        need(set(raw) == {'ok', *fields})
-        return frame_timing_window({field: raw[field] for field in fields}, allow_packed=paired)
+        need(set(raw) == {'ok', *fields} and raw['schema'] == 2)
+        window = {field: raw[field] for field in fields}
+        if paired:
+            return frame_timing_window(window, allow_packed=True)
+        return standalone_frame_timing_window(window)
 
     def _lock_diagnostic(self):
         # This sample occurs after the failed comparison window. Keep only
@@ -567,7 +585,7 @@ def main():
             report['attempts'].append(captured)
             need(result is not None)
             if timing:
-                report['frame_window'] = frame_timing_window(result)
+                report['frame_window'] = standalone_frame_timing_window(result)
                 continue
             if motion:
                 report['attempted_slots'], observations = result
@@ -606,7 +624,7 @@ def main():
         title = 'Original cold lock frame timing'
         summary = {key: value for key, value in report.items() if key != 'frame_window'}
         window = report['frame_window']
-        summary['frame_count'] = len(window['frames']) if window is not None else 0
+        summary['frame_count'] = frame_timing_count(window) if window is not None else 0
     else:
         title = {MOTION_SCREEN: 'Original launch motion samples',
                  SETTLE_SCREEN: 'Original launch handoff catalog'}.get(requested, 'Original cold launch catalog')

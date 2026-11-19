@@ -727,6 +727,11 @@ all precede the observed Lock arrival. The [interactive reader](https://github.c
 also records both comparisons outside the 16 ms acceptance condition.
 The cold reader derives raster-start bounds around Lock arrival from the
 retained frame rows. The comparison still uses the original P06 threshold.
+The standalone Windows launch timing now keeps its original locked process
+alive for one second after the password field and client size qualify.
+Its reader reports any observed startup phases and separates samples by their
+raster-start bounds around Lock arrival. The paired launch window and its
+16 ms acceptance criterion retain their original timing.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |

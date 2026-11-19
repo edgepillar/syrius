@@ -6239,14 +6239,13 @@ class HarnessAgent {
   /// the raster thread, where a large image or a first-use shader costs.
   void _hookStalls() {
     if (_isLaunchTiming) {
-      final bool paired = _frameTimingMode == _pairedLaunchTiming;
       final int startUs = dev.Timeline.now;
       final HarnessFrameWindow window = HarnessFrameWindow(
         startUs,
-        packed: paired,
+        packed: true,
       );
       _frameWindow = window;
-      if (paired) _observeStartupPhases(window, startUs);
+      _observeStartupPhases(window, startUs);
     }
     void record(String kind, int ms) {
       _stalls.add(<String, Object?>{

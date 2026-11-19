@@ -309,7 +309,8 @@ def inspect_run(client, *, head, tree, run_id, job):
     for name, module in (('windows_launch_timing_pair.py', pair),
                          ('windows_launch_catalog.py', pair.launch)):
         body = source(client, 'tool/ci/' + name, head)
-        prior_launch = (startup_reader.PRE_BATCH_LAUNCH_PRODUCER_SHA,
+        prior_launch = (startup_reader.PRE_LOCK_SETTLE_LAUNCH_PRODUCER_SHA,
+                        startup_reader.PRE_BATCH_LAUNCH_PRODUCER_SHA,
                         startup_reader.PRE_PHASE_LAUNCH_PRODUCER_SHA,
                         startup_reader.PRE_MOTION_LAUNCH_PRODUCER_SHA)
         archive.need(body == Path(module.__file__).read_bytes()
