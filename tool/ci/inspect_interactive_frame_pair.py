@@ -24,6 +24,8 @@ PHASES = frozenset((*cold.COMMAND_STAGES, 'environment', 'storage_admission',
     'p06_interactive', 'source_recheck', 'complete'))
 EXIT_FIELDS = {*cold.EXIT_FLAGS, 'exit_code', 'error_codes'}
 READOUT_FIELDS = {*EXIT_FIELDS, 'output_bytes', 'seconds', 'success'}
+# The handoff's nominal intervals, measured from the recorded tap release.
+MOTION_US = {'page_change': 320_000, 'disclosure': 240_000}
 
 
 def sample_receipts(value, *, allow_tap_release=False):
@@ -133,21 +135,41 @@ def sample_receipts(value, *, allow_tap_release=False):
     return windows, closed, entry_closed, success
 
 
-def _window_diagnostics(window, tap_release_us):
+def _raster_start_bounds(row, tap_release_us):
+    _, build_start, build, raster, total = row
+    build_from_tap = build_start - tap_release_us
+    # Raster follows build finish and starts by vsync + total - raster.
+    # Vsync itself is unavailable, but cannot follow build start.
+    return build_from_tap + build, build_from_tap + total - raster
+
+
+def _window_diagnostics(window, tap_release_us, motion_us):
     result = cold.window_diagnostics(window, peak_starts=True)
     if tap_release_us is not None:
         rows = pair.shared.launch.frame_timing_rows(window, allow_packed=True)
-        _, build_start, build, raster, total = max(rows, key=lambda row: row[3])
-        # Keep the existing offset for the build start of the peak-raster frame.
-        # Its raster starts after build finish and by vsync + total - raster.
-        # Vsync itself is unavailable, but cannot follow build start.
-        build_from_tap = build_start - tap_release_us
+        peak = max(rows, key=lambda row: row[3])
+        earliest, latest = _raster_start_bounds(peak, tap_release_us)
         result['tap_release_us'] = tap_release_us
-        result['peak_raster_offset_from_tap_us'] = build_from_tap
+        result['peak_raster_offset_from_tap_us'] = peak[1] - tap_release_us
         result['peak_raster_start_bounds_from_tap_us'] = dict(
-            earliest=build_from_tap + build,
-            latest=build_from_tap + total - raster,
-        )
+            earliest=earliest, latest=latest)
+        groups = {name: dict(samples=0, slow_raster=0, max_raster_us=0)
+                  for name in ('before', 'within', 'after', 'crossing')}
+        for row in rows:
+            earliest, latest = _raster_start_bounds(row, tap_release_us)
+            if latest < 0:
+                group = groups['before']
+            elif earliest >= motion_us:
+                group = groups['after']
+            elif earliest >= 0 and latest < motion_us:
+                group = groups['within']
+            else:
+                group = groups['crossing']
+            raster = row[3]
+            group['samples'] += 1
+            group['slow_raster'] += raster > pair.shared.FRAME_BUDGET_US
+            group['max_raster_us'] = max(group['max_raster_us'], raster)
+        result.update(nominal_motion_us=motion_us, raster_start_groups=groups)
     return result
 
 
@@ -283,7 +305,8 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         verified_comparisons=comparisons,
         verified_window_diagnostics={
             label: {name: _window_diagnostics(
-                        window, samples[label]['observation'].get('tap_release_us', {}).get(name))
+                        window, samples[label]['observation'].get('tap_release_us', {}).get(name),
+                        MOTION_US[name])
                     for name, window in frame_windows.items()}
             for label, frame_windows in diagnostic_windows.items()
         } or None)

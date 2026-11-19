@@ -302,6 +302,29 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertNotIn('tap_release_us', result['verified_window_diagnostics']['p06']['page_change'])
         self.assertNotIn('peak_raster_start_bounds_from_tap_us',
                          result['verified_window_diagnostics']['p06']['page_change'])
+        self.assertNotIn('raster_start_groups',
+                         result['verified_window_diagnostics']['p06']['page_change'])
+        grouped = fixture()
+        measured = grouped['samples']['current']['observation']
+        measured['tap_release_us'] = {'page_change': 5000}
+        measured['windows']['page_change'] = dict(
+            measured['windows']['page_change'], frames=[
+                [0, 1000, 100, 16000, 16100],
+                [1, 4000, 100, 21000, 23000],
+                [2, 4900, 100, 17000, 17100],
+                [3, 324000, 100, 24000, 26000],
+                [4, 324900, 100, 12000, 12100],
+            ])
+        grouped['comparisons']['page_change'] = pair.shared.compare_windows(
+            grouped['samples']['p06']['observation']['windows']['page_change'],
+            measured['windows']['page_change'])
+        page_groups = self.project(grouped)['verified_window_diagnostics']['current']['page_change']
+        self.assertEqual(page_groups['nominal_motion_us'], 320_000)
+        self.assertEqual(page_groups['raster_start_groups'], dict(
+            before=dict(samples=1, slow_raster=0, max_raster_us=16000),
+            within=dict(samples=1, slow_raster=1, max_raster_us=17000),
+            after=dict(samples=1, slow_raster=0, max_raster_us=12000),
+            crossing=dict(samples=2, slow_raster=2, max_raster_us=24000)))
         for offset in (-1, True, 1_000_000):
             observation['tap_release_us']['page_change'] = offset
             with self.subTest(offset=offset), self.assertRaises(archive.Refused):

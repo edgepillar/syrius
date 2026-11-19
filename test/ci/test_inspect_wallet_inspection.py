@@ -744,6 +744,7 @@ class ReaderTests(unittest.TestCase):
             self.assertEqual(set(reader.ready_artwork_sources(
                 Path('/fixture'), current, 'b' * 40)), set(reader.READY_ARTWORK_SOURCES))
             originals = (
+                'lib/widgets/modular_widgets/help_widgets/originals_card.dart',
                 'lib/widgets/modular_widgets/help_widgets/originals_tiles.dart',
                 'lib/widgets/reusable_widgets/launch_film.dart',
             )
@@ -758,7 +759,7 @@ class ReaderTests(unittest.TestCase):
             remote.reset_mock()
             observed = reader.ready_artwork_sources(Path('/fixture'), retained,
                 'b' * 40, read_versioned_blob=remote)
-            self.assertEqual(remote.call_args_list, [mock.call(original_sha)] * 3)
+            self.assertEqual(remote.call_args_list, [mock.call(original_sha)] * 4)
             for path in (*originals, entry_field):
                 self.assertEqual(observed[path], reader.archive.sha(historical))
             for path in set(reader.READY_ARTWORK_SOURCES) - {entry_field}:

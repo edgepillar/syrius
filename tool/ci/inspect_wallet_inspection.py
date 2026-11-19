@@ -35,6 +35,7 @@ VERSIONED_INPUTS = frozenset((
     'harness/bin/readonly_settings_catalog.dart',
     'harness/bin/wallet_recipe.dart',
     'lib/rearchitecture/utils/widgets/entry_field.dart',
+    'lib/widgets/modular_widgets/help_widgets/originals_card.dart',
     'lib/widgets/modular_widgets/help_widgets/originals_tiles.dart',
     'lib/widgets/reusable_widgets/launch_film.dart',
     CAPTURE_AGENT_SOURCE,
