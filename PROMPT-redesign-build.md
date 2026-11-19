@@ -635,6 +635,18 @@ macOS; Windows provision and acceptance remain pending. See
 
 V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
 
+### End-state audit at `7a818d5c` (2026-11-19)
+
+| Original requirement | Evidence at the listed source | Remaining work |
+| --- | --- | --- |
+| Windows setup, Debug and Release | P03 and P09 use the accepted isolated native route. Debug and Release passed together at `2bc8e8e6`. The [Pillar Done run](https://github.com/edgepillar/syrius/actions/runs/44479066184/job/135406599289) builds Release and completes the twelve-page tour at `f4a1d9d7`. Only the Spawn harness, its test and this ledger differ between that source and `7a818d5c`. | Run both documented Windows builds at the final source. |
+| Flutter analysis and tests | [Linux at `7a818d5c`](https://github.com/edgepillar/syrius/actions/runs/44483045525/job/135419681960) passes application and integration analysis, strict selected analysis, the full non-chain `test/` directory and generated-file checks. | Bind the passing checks to the final source. |
+| All 47 screens in both themes | The [review of `28f9c121`](docs/review/source-28f9c121-independent-visual-review.md) retains fourteen accepted pairs. X1114 verifies the two Send states at `5ac6d1d0`. X1115 compares both Pillar Done states from `f4a1d9d7` and records the remaining differences. The [Spawn capture](https://github.com/edgepillar/syrius/actions/runs/44484434399) is in progress at `7a818d5c`. | Finish the literal comparisons at the final source and record all 94 verdicts on the comparison page and in the Screens table. |
+| Running Motion and Shaders review and three 16 ms comparisons | X1029 retains the cold-launch comparison failure. X1102 retains the page and disclosure comparison failures. The [paired run at `f4a1d9d7`](https://github.com/edgepillar/syrius/actions/runs/44483500776) is in progress. | Review the original Motion and Shaders rows in the running wallet and satisfy all three P06 comparisons. |
+| Seam refusals | V03 records native refusal coverage for the fifteen seams and the original palette target. `lib/seams`, the Go To catalog and `test/seams` are byte-identical between `0a6ea3ec` and `7a818d5c`. | Recheck the final control and shortcut registrations against the refusal coverage. |
+
+V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |
@@ -718,7 +730,7 @@ V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
 | V03 | done | 2026-11-12T03:23Z | Source648 673fe4a19468, Source670 2b2c4abdadae, Source676 5d555665a643 and Source686 15fec4c9120f provide executed native refusals for all fifteen current seam values and pointer/keyboard refusal for the only seamed palette target. No direct missing-feature shortcut or other seamed palette target is registered. All 1,213 current runtime entries match Source686; the sole older token observer difference is covered by its holder trial. Source670's producer control list remains distinct from its legacy reader's context/closure proof. The [Source695 audit](docs/review/source695-seam-coverage.md) closes the original requirement without relabelling the later incomplete eleven-control Home batch or its failures. No new native run or visual match is claimed. |
 | V04 | done | 2026-10-31T23:34Z | All four independently qualified Source265 minimum-window/Arabic originals were actually viewed in both themes. The owned review closes SUCCESS with actual controller exit zero; required original native closure stays source-bound. Minimum controls fit and RTL layout mirrors. English fallback/missing Arabic copy is retained as X414; exact saved locale preference and Arabic glyph quality remain separate unqualified observations |
 | V05 | done | 2026-11-18T13:45Z | fdb88d89 commits the fresh independent review of all 94 exact 28f9c121 pairs and X821 through X875. The visual verdicts guide further comparisons under V01. [Independent review](docs/review/source-28f9c121-independent-visual-review.md). |
-| V06 | review | 2026-11-19 | The [five-item end-state audit](#end-state-audit-at-0a6ea3ec-2026-11-19) records the verified evidence and remaining acceptance work at `0a6ea3ec`. The [environment record](docs/environment.md#current-qualification-status-2026-11-18) retains the accepted P03/P09 native Windows route. |
+| V06 | review | 2026-11-19 | The [five-item end-state audit at `7a818d5c`](#end-state-audit-at-7a818d5c-2026-11-19) records the verified evidence and remaining acceptance work. The [earlier audit](#end-state-audit-at-0a6ea3ec-2026-11-19) and [environment record](docs/environment.md#current-qualification-status-2026-11-18) retain their original scope. |
 | X01 | done | 2026-10-21T23:26Z | e13abb387577 restores loading-list sweep ink in lib/rearchitecture/utils/widgets/motion/skeleton.dart; all 19 existing Skeleton tests pass unchanged |
 | X02 | done | 2026-10-21T23:57Z | e13abb387577 keeps the status-strip dot visible at narrow widths and fixes asynchronous visibility tests |
 | X03 | done | 2026-10-21T23:57Z | e13abb387577 parses the bridge test's HTTP head before binary frames; compression refusal assertions retained |
