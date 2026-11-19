@@ -45,6 +45,12 @@ void main() {
         const String secondText =
             'A second independent notice for the same package.';
         final String verifiedNotice = File('LICENSE').readAsStringSync();
+        final String changedNotice = verifiedNotice.replaceFirst(
+          'Permission',
+          'permission',
+        );
+        expect(changedNotice, isNot(verifiedNotice));
+        expect(changedNotice.length, verifiedNotice.length);
         int reads = 0;
         int verifiedReads = 0;
         await tester.pumpWidget(
@@ -87,7 +93,7 @@ void main() {
                   ),
                   LicenseEntryWithLineBreaks(
                     const <String>['mixed', 'unverified'],
-                    '$verifiedNotice\nA synthetic condition changes the text.',
+                    changedNotice,
                   ),
                 ],
               ),
