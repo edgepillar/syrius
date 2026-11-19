@@ -873,6 +873,12 @@ The Settings reader locates the solid badge tint in verified captures
 without extracting images. In the reference, the tint spans rows 58
 through 83 in both themes, columns 831 through 914 in dark and
 columns 830 through 914 in light.
+The [Windows run at `73e7c3dc`](https://github.com/edgepillar/syrius/actions/runs/44636660723/job/135956825478)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44639160782/job/135965391591)
+verify all fourteen Settings images and normal parent closure. In both
+themes the placeholder tint spans columns 808 through 914 and rows 58
+through 83. The painted height and right edge agree with the references.
+The placeholder is wider and the whole-image comparison remains open.
 
 The four comparisons used the same
 [verified Settings archive](https://github.com/edgepillar/syrius/actions/runs/44630625025/artifacts/14581264770).
@@ -1130,6 +1136,14 @@ handoff. The largest excess is 22.368 ms at that boundary. No reported
 raster entirely between the film end and the handoff exceeds its P06 rank.
 The two runs differ in timing and sample counts. The effect of the crop
 change on its own remains unestablished.
+
+The final four repeated launch frames now retain the displayed image.
+The controller still reports each original frame in order and preserves
+completion timing. The [Linux run at `1f23bc5b`](https://github.com/edgepillar/syrius/actions/runs/44637890236/job/135961067994)
+passes all 5,125 executed tests, including the new retained-image case,
+with one existing skip. Its count gate fails after observing 1,528 selected
+cases against an expectation of 1,527. The expected count now includes the
+new case.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now

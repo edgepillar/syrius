@@ -35,7 +35,8 @@ except ImportError:
 # Includes the dark and light Home card wash cases.
 # Includes the original Launch and eight Lottie restoration case.
 # Includes the confirmed Pillar reference frame and restoration case.
-EXPECTED_DART_CASES = 1527
+# Includes the repeated launch frame and retained image case.
+EXPECTED_DART_CASES = 1528
 LAUNCH_ASSET_DART_CASES = 2
 TOUR_TEST_PATHS = (
     'test/zap/zap_form_test.dart',
