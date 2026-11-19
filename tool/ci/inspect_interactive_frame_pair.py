@@ -135,8 +135,18 @@ def sample_receipts(value, *, allow_tap_release=False):
 def _window_diagnostics(window, tap_release_us):
     result = cold.window_diagnostics(window, peak_starts=True)
     if tap_release_us is not None:
+        rows = pair.shared.launch.frame_timing_rows(window, allow_packed=True)
+        _, build_start, build, raster, total = max(rows, key=lambda row: row[3])
+        # Keep the existing offset for the build start of the peak-raster frame.
+        # Its raster starts after build finish and by vsync + total - raster.
+        # Vsync itself is unavailable, but cannot follow build start.
+        build_from_tap = build_start - tap_release_us
         result['tap_release_us'] = tap_release_us
-        result['peak_raster_offset_from_tap_us'] = result['peak_raster_start_us'] - tap_release_us
+        result['peak_raster_offset_from_tap_us'] = build_from_tap
+        result['peak_raster_start_bounds_from_tap_us'] = dict(
+            earliest=build_from_tap + build,
+            latest=build_from_tap + total - raster,
+        )
     return result
 
 

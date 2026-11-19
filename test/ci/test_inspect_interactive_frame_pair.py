@@ -294,7 +294,14 @@ class InteractiveFramePairTests(unittest.TestCase):
         page = result['verified_window_diagnostics']['current']['page_change']
         self.assertEqual(page['tap_release_us'], 5000)
         self.assertEqual(page['peak_raster_offset_from_tap_us'], page['peak_raster_start_us'] - 5000)
+        current_page = observation['windows']['page_change']
+        _, start, build, raster, total = max(
+            pair.shared.launch.frame_timing_rows(current_page), key=lambda row: row[3])
+        self.assertEqual(page['peak_raster_start_bounds_from_tap_us'], dict(
+            earliest=start + build - 5000, latest=start + total - raster - 5000))
         self.assertNotIn('tap_release_us', result['verified_window_diagnostics']['p06']['page_change'])
+        self.assertNotIn('peak_raster_start_bounds_from_tap_us',
+                         result['verified_window_diagnostics']['p06']['page_change'])
         for offset in (-1, True, 1_000_000):
             observation['tap_release_us']['page_change'] = offset
             with self.subTest(offset=offset), self.assertRaises(archive.Refused):
