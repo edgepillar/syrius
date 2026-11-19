@@ -1,7 +1,8 @@
 import io
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import unittest
+from unittest.mock import patch
 
 from tool.ci.check_tour_test_count import selected_passes
 
@@ -37,6 +38,13 @@ class TourTestCountTests(unittest.TestCase):
 
     def test_counts_only_selected_ordinary_passes(self):
         self.assertEqual(self.count(self.report()), 2)
+
+        windows_root = PureWindowsPath('D:/Workspace/Syrius')
+        events = self.report()
+        events[0]['suite']['path'] = r'test\One_test.dart'
+        events[1]['suite']['path'] = (windows_root / 'TEST/TWO_TEST.DART').as_uri()
+        with patch.object(Path, 'resolve', return_value=windows_root):
+            self.assertEqual(self.count(events), 2)
 
     def test_refuses_missing_suites_and_incomplete_events(self):
         events = self.report()

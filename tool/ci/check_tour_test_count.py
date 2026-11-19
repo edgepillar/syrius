@@ -15,7 +15,9 @@ MAX_REPORT_BYTES = 16 * 1024**2
 def selected_passes(stream, *, repo, paths):
     """Count completed ordinary tests for the selected source suites."""
     root = repo.resolve().as_posix()
-    expected = {f'{root}/{path}' for path in paths}
+    expected = {_path(posixpath.join(root, path)) for path in paths}
+    if None in expected:
+        raise ValueError('Invalid tour suite path')
     suites = {}
     tests = {}
     outcomes = {}
@@ -38,7 +40,8 @@ def selected_passes(stream, *, repo, paths):
                 raise ValueError('Invalid or duplicate suite')
             absolute = _path(path)
             if absolute is None and type(path) is str:
-                absolute = posixpath.normpath(posixpath.join(root, path))
+                relative = path.replace('\\', '/')
+                absolute = _path(posixpath.normpath(posixpath.join(root, relative)))
             suites[suite_id] = absolute
         elif kind == 'testStart':
             test = event['test']
