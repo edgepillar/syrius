@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
@@ -140,6 +142,7 @@ class PillarReferenceArtwork {
   Future<void> _settleTooltips() async {
     const Duration budget = Duration(seconds: 1);
     final Stopwatch elapsed = Stopwatch()..start();
+    final WidgetsBinding binding = WidgetsBinding.instance;
     // The native mouse can keep a receipt tooltip open after the scripted tap.
     // A pending hover can open on the next frame. Observe a full clear frame
     // after Flutter's own dismissal before holding the artwork.
@@ -150,7 +153,18 @@ class PillarReferenceArtwork {
       clearBeforeFrame = clear;
       final Duration remaining = budget - elapsed.elapsed;
       if (remaining <= Duration.zero) break;
-      await WidgetsBinding.instance.endOfFrame.timeout(remaining);
+      // Request a fresh frame even if the renderer is idle or a post-frame
+      // callback is already running. An existing endOfFrame may be for the
+      // frame whose paint preceded the dismissal.
+      final Completer<void> painted = Completer<void>();
+      final int callback = binding.scheduleFrameCallback((Duration _) {
+        binding.addPostFrameCallback((Duration _) => painted.complete());
+      });
+      try {
+        await painted.future.timeout(remaining);
+      } finally {
+        if (!painted.isCompleted) binding.cancelFrameCallbackWithId(callback);
+      }
     }
     throw const PillarReferenceArtworkRefused(
       ReferenceArtworkFailureStage.overlay,
