@@ -696,6 +696,9 @@ were also compared directly with the mockups. All show the intended Lock
 state. The normal view and picker retain the actual wallet labels, and
 the wrong-password view retains its original form feedback. Background
 lighting and other whole-screen differences remain under V01 review.
+The later private comparison holds 62 pairs and 30 current mismatch verdicts.
+The two Security themes retain the shared-app-data warning. Display retains
+the selected theme and the Explorer state for the isolated chain.
 
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
@@ -754,6 +757,13 @@ The Lock backdrop prepares its shared raster after layout while the opaque
 launch film covers it. The first visible frame can reuse that image. The
 startup fixture checks that the same image serves the first visible paint,
 and the native motion lane samples the running transition.
+The [Windows motion run at `024251b0`](https://github.com/edgepillar/syrius/actions/runs/44603952194/job/135842560153)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44606554892/job/135851678797)
+verify all three natural samples and two normal exits. The early sample is
+at progress 0.391, the late sample is at 0.662 and the settled stage has the
+original well's bounds. [Linux at the same source](https://github.com/edgepillar/syrius/actions/runs/44603951870/job/135842555407)
+passes analysis, the focused Lock and Ready suites, the full non-chain suite
+and generated-file verification.
 
 Both Staking Empty captures from X1248 show the summary labels and amounts
 one pixel below the references. The Stakes card begins at row 119 and its
@@ -763,7 +773,7 @@ The existing two-theme widget cases check the inset.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
-| Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Native late and settled samples. | Observe the early handoff and complete 400 ms settle. |
+| Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Verified native early, late and settled samples. | Inspect the retained images and verify the running 400 ms settle. |
 | Page change | `test/motion/rise_switcher_test.dart` checks the retained pages and both fade phases. Native Home to Settings frame timings. | See the fade and 6 px rise over the full transition. |
 | Rail open and close | `test/shell/rail_test.dart` checks the 200 ms width motion and 150 ms label fade. | Open and close from the collapsed rail. |
 | Segment thumb slides | `test/segment/segment_test.dart` checks thumb motion and the 360 ms clock. | Switch segments in Transfer and Tokens. |
