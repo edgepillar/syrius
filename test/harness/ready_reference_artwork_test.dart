@@ -90,8 +90,11 @@ Future<T> _finish<T>(WidgetTester tester, _Frames frames,
   unawaited(original.then<void>((_) { completed = true; },
     onError: (Object _) { completed = true; }));
   for (int index = 0; index < 30 && !completed; index++) {
+    // A request issued in an end-of-frame callback belongs to the next pump.
+    final bool waitingForFrame =
+        frames.original.any((Completer<void> frame) => !frame.isCompleted);
     await tester.pump(const Duration(milliseconds: 16));
-    frames.completeOriginal();
+    if (waitingForFrame) frames.completeOriginal();
     await tester.pump();
   }
   expect(completed, isTrue);
