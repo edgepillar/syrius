@@ -345,6 +345,13 @@ void main() {
           ),
         );
         final _RetainedProbeState original = probe.currentState!;
+        final Finder editor = find.descendant(
+          of: find.byKey(const Key('retained_first'), skipOffstage: false),
+          matching: find.byType(EditableText, skipOffstage: false),
+          skipOffstage: false,
+        );
+        final Color cursor = tester.widget<EditableText>(editor).cursorColor;
+        expect(cursor, isNot(Colors.transparent));
         await tester.enterText(
           find.byKey(const Key('retained_first')),
           'Kept draft',
@@ -366,6 +373,10 @@ void main() {
         events.add(null);
         expect(probe.currentState, same(original));
         expect(original.eventsReceived, 1);
+        expect(
+          tester.widget<EditableText>(editor).cursorColor,
+          Colors.transparent,
+        );
         expect(find.text(hint), findsNothing);
         expect(Tooltip.dismissAllToolTips(), isFalse);
         expect(register, findsNothing);
@@ -379,6 +390,7 @@ void main() {
         expect(probe.currentState, same(original));
         expect(original.eventsReceived, 1);
         expect(original.draft.text, 'Kept draft');
+        expect(tester.widget<EditableText>(editor).cursorColor, cursor);
         expect(tester.state<TooltipState>(tooltip), same(originalTooltip));
         expect(originalTooltip.ensureTooltipVisible(), isTrue);
         await tester.pump();

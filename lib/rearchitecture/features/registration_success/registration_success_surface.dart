@@ -33,34 +33,43 @@ class RegistrationRetainedFlow extends StatelessWidget {
   final Widget receipt;
 
   @override
-  Widget build(BuildContext context) => Stack(
-    fit: StackFit.expand,
-    children: <Widget>[
-      TickerMode(
-        enabled: !published,
-        child: Focus(
-          canRequestFocus: false,
-          skipTraversal: true,
-          // ExcludeFocus leaves retained EditableText traversal latched after
-          // return. This gate matches the existing step and page switchers.
-          descendantsAreFocusable: !published,
-          child: IgnorePointer(
-            ignoring: published,
-            child: ExcludeSemantics(
-              excluding: published,
-              // A tooltip animates in the overlay even though its trigger
-              // belongs to the form. Retire it before keeping the form idle.
-              child: TooltipVisibility(
-                visible: !published && TooltipVisibility.of(context),
-                child: Offstage(offstage: published, child: form),
+  Widget build(BuildContext context) {
+    final TextSelectionThemeData selection = TextSelectionTheme.of(context);
+    return Stack(
+      fit: StackFit.expand,
+      children: <Widget>[
+        TickerMode(
+          enabled: !published,
+          child: Focus(
+            canRequestFocus: false,
+            skipTraversal: true,
+            // ExcludeFocus leaves retained EditableText traversal latched
+            // after return. This gate matches the step and page switchers.
+            descendantsAreFocusable: !published,
+            child: IgnorePointer(
+              ignoring: published,
+              child: ExcludeSemantics(
+                excluding: published,
+                // A tooltip animates in the overlay of its original trigger.
+                child: TooltipVisibility(
+                  visible: !published && TooltipVisibility.of(context),
+                  child: TextSelectionTheme(
+                    // The hidden editor must stop painting its caret as the
+                    // focus handoff completes.
+                    data: published
+                        ? selection.copyWith(cursorColor: Colors.transparent)
+                        : selection,
+                    child: Offstage(offstage: published, child: form),
+                  ),
+                ),
               ),
             ),
           ),
         ),
-      ),
-      if (published) Positioned.fill(child: receipt),
-    ],
-  );
+        if (published) Positioned.fill(child: receipt),
+      ],
+    );
+  }
 }
 
 /// The original art is mounted only while exact confirmation is authoritative.

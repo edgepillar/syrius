@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -105,20 +103,18 @@ void main() {
       expect(target.invoke('delegate'), isTrue);
       expect(calls, 1);
       expect(target.invoke('unknown'), isFalse);
-      final BuildContext page = tester.element(find.text('Page'));
       final TooltipState tooltip = tester.state<TooltipState>(
         find.byKey(hintKey),
       );
+      final BuildContext page = tooltip.context;
       expect(tooltip.ensureTooltipVisible(), isTrue);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
       expect(find.text(hint), findsOneWidget);
       final NavigatorState pane = Navigator.of(page);
-      unawaited(
-        pane.push<void>(
-          MaterialPageRoute<void>(
-            builder: (_) => const Scaffold(body: Text('Detail')),
-          ),
+      pane.push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => const Scaffold(body: Text('Detail')),
         ),
       );
       await tester.pumpAndSettle();
@@ -133,12 +129,10 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
       final NavigatorState root = Navigator.of(page, rootNavigator: true);
-      unawaited(
-        root.push<void>(
-          DialogRoute<void>(
-            context: page,
-            builder: (_) => const AlertDialog(content: Text('Confirm')),
-          ),
+      root.push<void>(
+        DialogRoute<void>(
+          context: page,
+          builder: (_) => const AlertDialog(content: Text('Confirm')),
         ),
       );
       await tester.pumpAndSettle();
