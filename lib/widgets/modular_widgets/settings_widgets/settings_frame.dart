@@ -167,7 +167,7 @@ class _SectionItemState extends State<_SectionItem>
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
-    final BorderRadius radius = BorderRadius.circular(tokens.cardRadius);
+    final BorderRadius radius = BorderRadius.circular(tokens.compactRadius);
     return Semantics(
       selected: widget.selected,
       child: AnimatedBuilder(
@@ -207,7 +207,7 @@ class _SectionItemState extends State<_SectionItem>
                 // Larger labels can wrap without losing their line height.
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minHeight: tokens.settingsItemHeight,
+                    minHeight: tokens.settingsSectionHeight,
                   ),
                   child: Padding(
                     padding: EdgeInsetsDirectional.symmetric(
@@ -221,7 +221,7 @@ class _SectionItemState extends State<_SectionItem>
                           size: tokens.settingsIconSize,
                           color: Color.lerp(tokens.dim, tokens.znnInk, t),
                         ),
-                        SizedBox(width: tokens.pageGap),
+                        SizedBox(width: tokens.cardGap),
                         Expanded(
                           child: Text(
                             widget.section.label(context),

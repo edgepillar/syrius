@@ -116,8 +116,8 @@ void main() {
           ];
           expect(rows.length, 7);
           for (int i = 0; i < rows.length; i++) {
-            expect(rows[i].height, 38);
-            if (i > 0) expect(rows[i].top, rows[i - 1].bottom);
+            expect(rows[i].height, closeTo(38.3, 0.001));
+            expect(rows[i].top - menu.top, closeTo(8 + i * 38.3, 0.001));
           }
           expect(find.text('Apps'), findsOneWidget);
           expect(find.textContaining('Confirm'), findsNothing);
@@ -126,7 +126,13 @@ void main() {
             light ? AppTokens.light.card2 : AppTokens.dark.card2,
           );
           for (final SettingsSectionId section in SettingsSectionId.values) {
-            final InkWell link = tester.widget<InkWell>(_section(section));
+            final Finder row = _section(section);
+            final InkWell link = tester.widget<InkWell>(row);
+            expect(link.borderRadius, BorderRadius.circular(6));
+            final Row content = tester.widget<Row>(
+              find.descendant(of: row, matching: find.byType(Row)),
+            );
+            expect((content.children[1] as SizedBox).width, 10);
             for (final WidgetState state in <WidgetState>[
               WidgetState.hovered,
               WidgetState.pressed,

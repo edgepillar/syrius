@@ -912,8 +912,11 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The first balance read's short state label.
   TextStyle get heroLoadingText => bodyText.copyWith(fontSize: 15, color: dim);
 
-  /// A Settings section's compact navigation row.
+  /// Compact row allowance used by the Apps viewport.
   double get settingsItemHeight => 38;
+
+  /// The Settings menu's 14 px label at 1.45 line height with 9 px insets.
+  double get settingsSectionHeight => 38.3;
 
   /// The glyph beside a Settings section name.
   double get settingsIconSize => 14;
