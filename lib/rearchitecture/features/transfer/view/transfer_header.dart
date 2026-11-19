@@ -12,13 +12,12 @@ Widget _buildTransferAddressChip(
     onPressed: onPressed,
     style: TextButton.styleFrom(
       foregroundColor: tokens.dim,
-      backgroundColor: tokens.card2,
-      minimumSize: Size(0, tokens.compactButtonHeight),
+      backgroundColor: Colors.transparent,
+      minimumSize: Size(0, tokens.transferAddressChipHeight),
       padding: tokens.transferChipPadding,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(tokens.transferControlRadius),
-        side: BorderSide(color: tokens.line),
-      ),
+      side: BorderSide(color: tokens.line),
+      shape: const StadiumBorder(),
+      visualDensity: VisualDensity.standard,
       textStyle: tokens.transferChipText,
     ),
     child: Row(
@@ -28,7 +27,7 @@ Widget _buildTransferAddressChip(
           child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
         SizedBox(width: tokens.transferRecentGap),
-        ShellSymbol('chev', size: tokens.activityIconSize),
+        ShellSymbol('chev', size: tokens.inlineGlyphSize),
       ],
     ),
   );
@@ -167,15 +166,13 @@ class _TransferSender extends StatelessWidget {
                 },
                 child: Container(
                   constraints: BoxConstraints(
-                    minHeight: tokens.compactButtonHeight,
+                    minHeight: tokens.transferAddressChipHeight,
                   ),
                   padding: tokens.transferChipPadding,
-                  decoration: BoxDecoration(
-                    color: tokens.card2,
-                    borderRadius: BorderRadius.circular(
-                      tokens.transferControlRadius,
+                  decoration: ShapeDecoration(
+                    shape: StadiumBorder(
+                      side: BorderSide(color: tokens.line),
                     ),
-                    border: Border.all(color: tokens.line),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -210,8 +207,8 @@ class _TransferSender extends StatelessWidget {
                       SizedBox(width: tokens.transferRecentGap),
                       ShellSymbol(
                         'chev',
-                        size: tokens.activityIconSize,
-                        color: tokens.faint,
+                        size: tokens.inlineGlyphSize,
+                        color: tokens.dim,
                       ),
                     ],
                   ),

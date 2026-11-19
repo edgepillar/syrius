@@ -1799,6 +1799,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   EdgeInsetsDirectional get transferChipPadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 3);
 
+  /// Minimum height of the outlined address chip in Transfer headers.
+  double get transferAddressChipHeight => 26;
+
   /// Address selectors use the reference chip size and dim interface role.
   TextStyle get transferChipText =>
       bodyText.copyWith(fontSize: 12, color: dim);

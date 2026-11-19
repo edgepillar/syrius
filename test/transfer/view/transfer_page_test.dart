@@ -557,6 +557,7 @@ void main() {
           closeTo(tokens.cardPadding.right, 0.01));
         expect(selector.center.dy,
           closeTo(tester.getRect(_mode(TransferMode.send)).center.dy, 0.01));
+        expect(selector.height, 26);
         expect(selector.left, greaterThan(card.center.dx));
         expect(sender.hitTestable(), findsOneWidget);
         final Finder grouped = find.descendant(
@@ -1042,6 +1043,7 @@ void main() {
         controller.refresh();
         expect(find.byKey(const Key('transfer_zap_screen')), findsOneWidget);
         final Finder sender = find.byKey(const Key('transfer_zap_sender'));
+        expect(tester.getSize(sender).height, 26);
         expect(
           find.descendant(of: sender, matching: find.text('Address 1')),
           findsOneWidget,

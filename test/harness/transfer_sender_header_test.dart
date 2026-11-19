@@ -721,6 +721,7 @@ void main() {
       );
       final Finder picker = find.byKey(const Key('transfer_receiver'));
       expect(picker, findsOneWidget);
+      expect(tester.getSize(picker).height, 26);
       expect(find.byKey(const Key('receive_address_picker')), findsNothing);
       final ModalRoute<dynamic> route = ModalRoute.of(tester.element(picker))!;
       await tester.tap(picker);

@@ -853,6 +853,9 @@ above and below, giving 70 px at standard scale. The strip can still grow
 with scaled text. The independent Settings reader reports the pixel ranges
 of all four panels directly from the verified archive. The visual result
 awaits a fresh Windows capture.
+The [Linux run at `1d5e4ffa`](https://github.com/edgepillar/syrius/actions/runs/44630593552/job/135935863012)
+passes analysis, the About height assertions at standard and scaled text
+sizes, 5,124 tests with one skip, and generated-file verification.
 
 ### Receive at rest at `06eda3f7`
 
@@ -866,6 +869,16 @@ one-line To receive card. The card boundaries, section dividers and action
 rows agree. The address, live status, approved brand colors and rasterized
 text and edges account for the remaining differences. [Original Windows capture](https://github.com/edgepillar/syrius/actions/runs/44576665310)
 [Independent catalog reader](https://github.com/edgepillar/syrius/actions/runs/44580184381/job/135758423183).
+
+### Transfer address chip at `fb3b2a01`
+
+Both verified Receive QR captures at `fb3b2a01` show the address chip on
+rows 54 through 76. Both references show it on rows 52 through 77. The
+reference uses a transparent outlined pill and a 12 px chevron. Send,
+Receive and Zap now share that outline, a 26 px minimum and the same
+compact icon. The sender and receiver keep their original menu owners.
+Zap remains gated. The new paint awaits native capture.
+[Verified Details images](https://github.com/edgepillar/syrius/actions/runs/44563737357/artifacts/14552043899).
 
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
