@@ -12,12 +12,14 @@ import unittest
 from unittest import mock
 import warnings
 import zipfile
+import zlib
 
 from tool.ci import inspect_wallet_inspection as reader
 from tool.ci import windows_interactive_frame_profile as frame_profile
 import test_inspect_chain321 as lab_fixtures
 import test_windows_wallet_inspection as wallet_fixtures
 import test_readonly_viewport_capture as viewport_fixtures
+from test_windows_entry_capture_smoke import HEADER, chunk
 
 
 def lab_report():
@@ -97,20 +99,6 @@ def jobs(*, positive=True):
 
 
 class ReaderTests(unittest.TestCase):
-    def test_staking_empty_bands_read_the_reference_edges_in_both_themes(self):
-        shots = Path('mockups/redesign/shots')
-        packed = io.BytesIO()
-        with zipfile.ZipFile(packed, 'w') as zipped:
-            for theme in ('dark', 'light'):
-                name = '15-staking-empty-' + theme + '.png'
-                zipped.writestr(name, (shots / name).read_bytes())
-        bands = reader.staking_empty_bands(packed.getvalue())
-        self.assertEqual(bands['column'], 1000)
-        self.assertEqual(bands['scan_rows'], [35, 711])
-        expected = dict(status='observed', summary=[36, 106],
-            stakes=[118, 654], divider=[161, 162], rewards=[666, 710])
-        self.assertEqual(bands['themes'], dict(dark=expected, light=expected))
-
     def test_actual_http_client_keeps_default_and_full_capture_request_budgets(self):
         class Response:
             status = 200
@@ -1224,6 +1212,29 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(value['verified_png_count'], 0)
         self.assertEqual(value['verified_viewport_png_count'], 0)
         self.assertNotIn('Retained readonly viewport observation', text)
+        earn_catalog = next(json.loads(line.split('::', 2)[-1])
+            for line in text.splitlines()
+            if line.startswith('::notice title=Retained readonly Details catalog::'))
+        self.assertEqual(earn_catalog['staking_empty_bands']['themes'],
+            dict(dark=dict(status='unavailable'), light=dict(status='unavailable')))
+        packed = io.BytesIO()
+        with zipfile.ZipFile(packed, 'w') as zipped:
+            for theme, (base, card, divider) in (
+                    ('dark', (27, 38, 56)), ('light', (234, 246, 213))):
+                positions = (0, 36, 106, 118, 161, 162, 654, 666, 710, 780)
+                palette = (base, card, base, card, divider, card, base, card, base)
+                pixels = b''.join((b'\0' + bytes((shade, shade, shade, 255)) * 1280)
+                                  * (end - start) for shade, start, end
+                                  in zip(palette, positions, positions[1:]))
+                image = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
+                         + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
+                zipped.writestr('15-staking-empty-' + theme + '.png', image)
+        bands = reader.staking_empty_bands(packed.getvalue())
+        self.assertEqual(bands['column'], 1000)
+        self.assertEqual(bands['scan_rows'], [35, 711])
+        expected = dict(status='observed', summary=[36, 106],
+            stakes=[118, 654], divider=[161, 162], rewards=[666, 710])
+        self.assertEqual(bands['themes'], dict(dark=expected, light=expected))
         with self.assertRaises(reader.archive.Refused):
             self.run_main(catalog_only='earn', extra_viewport=True)
         value, calls, text = self.run_main(catalog_only='sentinel-fixture')
