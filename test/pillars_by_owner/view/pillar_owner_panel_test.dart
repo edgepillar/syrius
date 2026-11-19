@@ -229,6 +229,23 @@ void main() {
           find.byTooltip('z1producer00000000000000000000000000000'),
           findsOneWidget,
         );
+        final Rect panel = tester.getRect(
+          find.byKey(const Key('pillar_owner_panel')),
+        );
+        final Rect artwork = tester.getRect(
+          find.byKey(const Key('pillar_owner_object')),
+        );
+        final Rect locked = tester.getRect(find.text('LOCKED'));
+        expect(artwork.size, const Size.square(132));
+        expect(artwork.top - panel.top, closeTo(8, 0.01));
+        expect(
+          rtl ? panel.right - artwork.right : artwork.left - panel.left,
+          closeTo(4, 0.01),
+        );
+        expect(
+          rtl ? panel.right - locked.right : locked.left - panel.left,
+          closeTo(156, 0.01),
+        );
         for (final (String first, String second) in <(String, String)>[
           ('LOCKED', 'DEPOSITED'),
           ('PRODUCER', 'REVOCABLE'),

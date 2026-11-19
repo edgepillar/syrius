@@ -374,6 +374,13 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
     final AppTokens tokens = AppTokens.of(context);
     final PillarOwnerSnapshot snapshot = widget.snapshot;
     final int epoch = _epoch;
+    final double objectSize = tokens.pillarOwnerObjectSize;
+    const EdgeInsetsDirectional artworkOutsets = EdgeInsetsDirectional.fromSTEB(
+      14,
+      8,
+      8,
+      8,
+    );
     return CallbackShortcuts(
       bindings: <ShortcutActivator, VoidCallback>{
         const SingleActivator(LogicalKeyboardKey.escape): () =>
@@ -395,11 +402,26 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
                   Semantics(
                     label: '${context.l10n.nodesYourPillar}: ${snapshot.name}',
                     image: true,
-                    child: AppLottie(
-                      AppLottieAsset.pillar,
-                      key: const Key('pillar_owner_object'),
-                      size: tokens.pillarOwnerObjectSize,
-                      repeat: false,
+                    // The reference keeps the full artwork and uses its
+                    // negative margins when placing the ledger beside it.
+                    child: SizedBox(
+                      width: objectSize - artworkOutsets.horizontal,
+                      height: objectSize - artworkOutsets.vertical,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: <Widget>[
+                          PositionedDirectional(
+                            start: -artworkOutsets.start,
+                            top: -artworkOutsets.top,
+                            child: AppLottie(
+                              AppLottieAsset.pillar,
+                              key: const Key('pillar_owner_object'),
+                              size: objectSize,
+                              repeat: false,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   SizedBox(width: tokens.pillarOwnerGap),
