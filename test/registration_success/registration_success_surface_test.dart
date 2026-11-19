@@ -334,7 +334,7 @@ void main() {
         final Finder register = find.byKey(const Key('retained_register'));
         final Offset oldAction = tester.getCenter(register);
         const String hint = 'The retained step hint';
-        final Finder tooltip = find.byTooltip(hint);
+        final Finder tooltip = find.byKey(const Key('retained_step_hint'));
         final TooltipState originalTooltip = tester.state<TooltipState>(
           tooltip,
         );
@@ -579,6 +579,7 @@ class _RetainedProbeState extends State<_RetainedProbe> {
         ),
         TextField(key: const Key('retained_second'), focusNode: second),
         const Tooltip(
+          key: Key('retained_step_hint'),
           message: 'The retained step hint',
           child: Text('Original step details'),
         ),
