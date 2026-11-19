@@ -507,6 +507,9 @@ class _StartupStageState extends State<_StartupStage>
         child: ClipRRect(
           key: const ValueKey<String>('startup_stage_rect'),
           borderRadius: radius,
+          // At full size the film already clips to this same rectangle.
+          // The stage needs its own crop only as it moves into the well.
+          clipBehavior: progress == 0 ? Clip.none : Clip.antiAlias,
           child: ColoredBox(
             color: tokens.launchStageBackground,
             child: OverflowBox(

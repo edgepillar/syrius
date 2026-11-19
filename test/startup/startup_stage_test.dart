@@ -250,8 +250,17 @@ void main() {
         const ValueKey<String>('window-caption-backdrop'),
       );
       final Finder title = find.text('SYRIUS');
+      final Finder stage = find.byKey(
+        const ValueKey<String>('startup_stage_rect'),
+      );
       final Rect full = _stageRect(tester);
       expect(full.top, 32);
+      expect(tester.widget<ClipRRect>(stage).clipBehavior, Clip.none);
+      final Finder filmFit = find.descendant(
+        of: stage,
+        matching: find.byType(FittedBox),
+      );
+      expect(tester.widget<FittedBox>(filmFit).clipBehavior, Clip.hardEdge);
       expect(tester.widget<Material>(caption).color, Colors.black);
       expect(tester.widget<Text>(title).style!.color, const Color(0xFF555555));
       expect(tester.widget<CustomPaint>(backdrop).painter, isNull);
@@ -260,6 +269,7 @@ void main() {
       await _until(tester, () => session.film.isDone);
       expect(tester.widget<Material>(caption).color, Colors.black);
       expect(_stageRect(tester), full);
+      expect(tester.widget<ClipRRect>(stage).clipBehavior, Clip.none);
 
       await _begin(tester, host);
       const AppTokens tokens = AppTokens.light;
@@ -282,9 +292,7 @@ void main() {
       expect(authored.top, closeTo(148.6, 2));
       expect(authored.width, closeTo(780, 3));
       expect(authored.height, closeTo(330, 3));
-      final Finder stage = find.byKey(
-        const ValueKey<String>('startup_stage_rect'),
-      );
+      expect(tester.widget<ClipRRect>(stage).clipBehavior, Clip.antiAlias);
       expect(
         tester.widget<ClipRRect>(stage).borderRadius
             .resolve(TextDirection.ltr).topLeft.x,

@@ -691,6 +691,11 @@ ZIP member that omits the catalog number and keeps the same screen and theme.
 All 23 comparison tests pass. The four [Welcome and Import originals](https://github.com/edgepillar/syrius/actions/runs/44582250018/job/135765713115)
 also read directly from their retained archive at 1280 by 780 using their
 original filenames, with no extracted image copies.
+The six [Lock originals](https://github.com/edgepillar/syrius/actions/runs/44579867208/job/135757308518)
+were also compared directly with the mockups. All show the intended Lock
+state. The normal view and picker retain the actual wallet labels, and
+the wrong-password view retains its original form feedback. Background
+lighting and other whole-screen differences remain under V01 review.
 
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
