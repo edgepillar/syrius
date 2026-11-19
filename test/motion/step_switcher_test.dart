@@ -639,7 +639,7 @@ void main() {
       expect(_disposed, 0);
     });
 
-    _retainedTestWidgets('departed and incoming refuse focus and semantics', (
+    _retainedTestWidgets('steps gate focus, semantics and tooltips', (
       WidgetTester tester,
     ) async {
       final SemanticsHandle semantics = tester.ensureSemantics();
@@ -649,21 +649,33 @@ void main() {
       addTearDown(newFocus.dispose);
       int oldPresses = 0;
       int newPresses = 0;
+      const Key oldHint = Key('retained_old_hint');
+      const Key newHint = Key('retained_new_hint');
       try {
         Widget host(int index) => MaterialApp(
           home: Scaffold(
             body: _retainedHost(
               index,
               children: <Widget>[
-                TextButton(
-                  focusNode: oldFocus,
-                  onPressed: () => oldPresses++,
-                  child: const Text('Old action'),
+                Tooltip(
+                  key: oldHint,
+                  message: 'Old hint',
+                  excludeFromSemantics: true,
+                  child: TextButton(
+                    focusNode: oldFocus,
+                    onPressed: () => oldPresses++,
+                    child: const Text('Old action'),
+                  ),
                 ),
-                TextButton(
-                  focusNode: newFocus,
-                  onPressed: () => newPresses++,
-                  child: const Text('New action'),
+                Tooltip(
+                  key: newHint,
+                  message: 'New hint',
+                  excludeFromSemantics: true,
+                  child: TextButton(
+                    focusNode: newFocus,
+                    onPressed: () => newPresses++,
+                    child: const Text('New action'),
+                  ),
                 ),
               ],
             ),
@@ -672,6 +684,16 @@ void main() {
         await tester.pumpWidget(host(0));
         oldFocus.requestFocus();
         await tester.pump();
+        final TooltipState oldTooltip = tester.state<TooltipState>(
+          find.byKey(oldHint),
+        );
+        final TooltipState newTooltip = tester.state<TooltipState>(
+          find.byKey(newHint, skipOffstage: false),
+        );
+        expect(newTooltip.ensureTooltipVisible(), isFalse);
+        expect(oldTooltip.ensureTooltipVisible(), isTrue);
+        await tester.pumpAndSettle();
+        expect(find.text('Old hint'), findsOneWidget);
         final SemanticsNode old = tester.getSemantics(find.text('Old action'));
         final SemanticsOwner owner = old.owner!;
         await tester.pumpWidget(host(1));
@@ -679,6 +701,8 @@ void main() {
         expect(oldFocus.hasFocus, isFalse);
         expect(oldFocus.canRequestFocus, isFalse);
         expect(newFocus.canRequestFocus, isFalse);
+        expect(oldTooltip.ensureTooltipVisible(), isFalse);
+        expect(newTooltip.ensureTooltipVisible(), isFalse);
         oldFocus.requestFocus();
         newFocus.requestFocus();
         await tester.pump();
@@ -698,9 +722,18 @@ void main() {
           reason: 'Current input gates: ${_inputGates(tester)}',
         );
         expect(find.semantics.byLabel('New action'), findsOneWidget);
+        expect(find.text('Old hint'), findsNothing);
+        expect(newTooltip.ensureTooltipVisible(), isTrue);
         await tester.tap(find.text('New action'));
         expect(newPresses, 1);
         expect(oldPresses, 0);
+        await tester.pumpWidget(host(0));
+        await tester.pumpAndSettle();
+        expect(
+          tester.state<TooltipState>(find.byKey(oldHint)),
+          same(oldTooltip),
+        );
+        expect(oldTooltip.ensureTooltipVisible(), isTrue);
         await tester.pumpWidget(const SizedBox.shrink());
       } finally {
         semantics.dispose();

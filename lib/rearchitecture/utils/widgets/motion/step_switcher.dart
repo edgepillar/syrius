@@ -450,25 +450,29 @@ class _RetainedStepsState extends State<_RetainedSteps>
       offstage: !entry.painting,
       child: TickerMode(
         enabled: interactive,
-        child: IgnorePointer(
-          ignoring: !interactive,
-          child: ExcludeSemantics(
-            excluding: !interactive,
-            child: Focus(
-              focusNode: entry.focus,
-              canRequestFocus: false,
-              descendantsAreFocusable: interactive,
-              // The focus barrier already removes hidden controls from Tab.
-              // EditableText can latch an inherited traversal barrier into
-              // its own node while rebuilding under the pinned Flutter.
-              child: StepInteraction(
-                interactive: interactive,
-                child: SharedAxisTransition(
-                  animation: entry.primary,
-                  secondaryAnimation: entry.secondary,
-                  transitionType: SharedAxisTransitionType.horizontal,
-                  fillColor: widget.fillColor,
-                  child: entry.child,
+        child: TooltipVisibility(
+          // Tooltips paint in the overlay outside this step's body.
+          visible: interactive && TooltipVisibility.of(context),
+          child: IgnorePointer(
+            ignoring: !interactive,
+            child: ExcludeSemantics(
+              excluding: !interactive,
+              child: Focus(
+                focusNode: entry.focus,
+                canRequestFocus: false,
+                descendantsAreFocusable: interactive,
+                // The focus barrier already removes hidden controls from Tab.
+                // EditableText can latch an inherited traversal barrier into
+                // its own node while rebuilding under the pinned Flutter.
+                child: StepInteraction(
+                  interactive: interactive,
+                  child: SharedAxisTransition(
+                    animation: entry.primary,
+                    secondaryAnimation: entry.secondary,
+                    transitionType: SharedAxisTransitionType.horizontal,
+                    fillColor: widget.fillColor,
+                    child: entry.child,
+                  ),
                 ),
               ),
             ),
