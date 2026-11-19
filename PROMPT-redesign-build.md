@@ -741,6 +741,12 @@ The Lock reader measures the black film edges directly from the verified
 PNG members and reports inclusive coordinates in capture order. It reproduces
 the six earlier measurements against the exact reference PNGs in memory. The
 geometry reading supports the whole-image review.
+The [fresh Lock run at `5b149ee2`](https://github.com/edgepillar/syrius/actions/runs/44617307764/job/135889352957)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44620358231/job/135900059187)
+verify all six original PNGs. Their film spans columns 431 through 848.
+The black rows are 209 through 326 on Lock, 187 through 304 on Wrong
+Password and 117 through 234 on the picker in both themes. Those coordinates
+agree with the six references. Whole-image verdicts remain under V01.
 
 The retained Addresses captures at `06eda3f7` show the selected glyph in
 columns 299 through 312 and rows 165 through 178 in both themes. The authored
@@ -748,6 +754,9 @@ selector specifies a 16 px circle with a 2 px ring and a filled centre for the
 selected address. The button draws those dimensions and provides a 32 px
 input area, tooltip and checked state. The existing theme and scaled RTL
 cases verify the mark and the hit area. Fresh Windows pixels remain open.
+The [Linux run at `3cd97577`](https://github.com/edgepillar/syrius/actions/runs/44618616403/job/135893909913)
+passes analysis, the full non-chain suite with 5,124 passes and one skip,
+and generated-file checks.
 The Settings reader reports the green ink bounds for both verified Addresses
 images directly from the catalog archive. It reproduces the retained
 14 px measurements in both themes. The catalog covers all fourteen Settings
@@ -877,7 +886,19 @@ one, completion and image reuse on the first visible paint. A fresh paired
 Windows sample is required to measure the timing impact.
 The [Linux run at `bf11a65e`](https://github.com/edgepillar/syrius/actions/runs/44616503291/job/135886514914)
 passes analysis, the focused Ready and Lock suites, the full non-chain
-test suite and generated-file verification.
+test suite and generated-file verification. The full suite reports 5,124
+passes and one skip.
+
+The [next paired Windows producer](https://github.com/edgepillar/syrius/actions/runs/44616504058/job/135886522298)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44620358287/job/135900059181)
+verify the redesign's 82 frames and five normal actor exits. P06 reaches the
+startup deadline before initialization with its field disabled. Its original
+window contains zero frames, so the timing comparison remains open.
+The redesign sample retains 35 frame-number gaps and a peak total span of
+294.785 ms. The longest raster takes 232.607 ms and starts between 3,986.787
+and 4,043.508 ms, after the observed film end at 3,847.469 ms. Four of the
+five starts after observed Lock arrival exceed 16 ms. Their maximum is
+48.435 ms. The source of the peak raster work remains open under V02.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
