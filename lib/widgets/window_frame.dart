@@ -141,7 +141,13 @@ class AppWindowFrameState extends State<AppWindowFrame> {
   }
 
   AppWindowEntryBackdrop? _selectedEntryBackdrop() {
-    if (!mounted || !hasClientCaption) return null;
+    if (!mounted || !hasClientCaption || _entryBackdrops.isEmpty) return null;
+    if (_entryBackdrops.length == 1) {
+      final AppWindowEntryBackdrop original = _entryBackdrops.single;
+      return original._originalPhase == AppWindowEntryBackdropPhase.hidden
+          ? null
+          : original;
+    }
     final List<AppWindowEntryBackdrop> current = <AppWindowEntryBackdrop>[];
     final List<AppWindowEntryBackdrop> covered = <AppWindowEntryBackdrop>[];
     for (final AppWindowEntryBackdrop original in _entryBackdrops.toList()) {
@@ -369,7 +375,10 @@ class _AppWindowCaptionPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty) return;
     final Rect viewport = Offset.zero & size;
-    canvas.drawRect(viewport, Paint()..color = _background);
+    // The caption Material already paints this opaque base.
+    if (_background.a != 1) {
+      canvas.drawRect(viewport, Paint()..color = _background);
+    }
     final AppWindowEntryBackdrop? original = _frame._selectedEntryBackdrop();
     if (original == null) return;
     canvas

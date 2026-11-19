@@ -740,6 +740,10 @@ fall at or after the observed Lock arrival. Eighteen exceed 16 ms and the
 longest takes 138.403 ms. The original window has 62 missing frame numbers.
 The paired P06 comparison remains open under V02.
 
+The Windows caption uses the opaque fill of its Material during entry field
+repaint. A single attached entry field is selected directly and checked for
+visibility before painting inside the caption clip.
+
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
 | Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Native late and settled samples. | Observe the early handoff and complete 400 ms settle. |
