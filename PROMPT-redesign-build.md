@@ -743,6 +743,12 @@ The paired P06 comparison remains open under V02.
 The Windows caption uses the opaque fill of its Material during entry field
 repaint. A single attached entry field is selected directly and checked for
 visibility before painting inside the caption clip.
+The [Windows run at `7e6160d7`](https://github.com/edgepillar/syrius/actions/runs/44603377731/job/135840477626)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44605876138/job/135849294933)
+verify 117 retained frames and two normal exits. Twenty-four of 28 raster
+starts at or after the observed Lock arrival exceed 16 ms. Their maximum is
+142.577 ms. The window has 68 missing frame numbers. The result leaves the
+effect on frame time unestablished.
 
 The Lock backdrop prepares its shared raster after layout while the opaque
 launch film covers it. The first visible frame can reuse that image. The
