@@ -1052,6 +1052,17 @@ passes application analysis, strict selected analysis, the focused pixel
 checks, the full non-chain suite with 5,124 passes and one skip, and
 generated-file verification.
 
+The [paired Windows producer at `70ca8e1e`](https://github.com/edgepillar/syrius/actions/runs/44629645076/job/135932566274)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44632712232/job/135943276838)
+verify 90 redesign frames, 1,853 P06 frames and five normal process exits.
+Both windows report zero builds over 16 ms. The raster and distinct-frame
+comparison still fails. The retained windows have 26 and 1,118 frame-number
+gaps, respectively. Peak raster times are 109.791 ms for the redesign and
+123.368 ms for P06. The redesign peak starts between 3,575.683 and 3,602.570 ms
+while the handoff moves. All three starts after observed Lock arrival exceed
+16 ms and peak at 51.882 ms. The earlier redesign sample peaked at 267.408 ms.
+The measurements leave the effect of the paint change on its own unestablished.
+
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
 calls `jumpTo` only when the extent differs from the current offset, avoiding
