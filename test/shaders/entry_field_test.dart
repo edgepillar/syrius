@@ -389,10 +389,11 @@ void main() {
       ),
     ));
     expect(rasters, isEmpty);
-    film.show(0);
+    // The real film reports each displayed frame from its ticker.
+    tester.binding.scheduleFrameCallback((_) => film.show(0));
     await tester.pump();
     expect(rasters, isEmpty);
-    film.show(1);
+    tester.binding.scheduleFrameCallback((_) => film.show(1));
     await tester.pump();
     expect(rasters, hasLength(1));
     expect(rasters.single.debugDisposed, isFalse);

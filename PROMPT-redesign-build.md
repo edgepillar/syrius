@@ -795,6 +795,11 @@ Two exceed 16 ms and the maximum is 61.354 ms. V02 remains open.
 The Lock raster preparation now waits for the original film to advance past
 its first frame. It uses the laid-out backdrop while the film still covers
 it. The widget case exercises the wait and reuse on first visible paint.
+The [first Linux run](https://github.com/edgepillar/syrius/actions/runs/44612332869/job/135871918854)
+passes analysis and reports 75 passes and one failure in the focused suite.
+The test controller reported frame 1 while the test binding was idle. The
+fixture now reports both frame indices from a scheduled frame callback,
+matching the production ticker phase.
 
 Both Staking Empty captures from X1248 show the summary labels and amounts
 one pixel below the references. The Stakes card begins at row 119 and its
