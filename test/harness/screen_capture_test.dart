@@ -558,6 +558,10 @@ void main() {
               .preflight('spawn').single;
       expect(spawn.assertion['key'], 'pillar_details_next_button');
       expect(spawn.assertion['kind'], 'button');
+      const String producerReady = 'wait --key pillar_producer_address_field'
+          ' --kind field --ready --timeout 30';
+      const String continueReady = 'wait --key pillar_details_next_button'
+          ' --kind button --ready --timeout 30';
       expect(spawn.lines.map((ScreenLine line) => line.words.join(' ')),
           containsAllInOrder(<String>[
             'tap --key nodes_pillar_more',
@@ -565,13 +569,13 @@ void main() {
             'wait --key nodes_spawn_pillar --ready --timeout 30',
             'tap --key nodes_spawn_pillar',
             'type --key pillar_name_field',
-            'wait --key pillar_producer_address_field --ready --timeout 30',
+            producerReady,
             'type --key pillar_producer_address_field',
             'tap --key pillar_use_owner_address --kind button --exact',
             'assert --key pillar_name_field --kind field',
             'assert --key pillar_producer_address_field --kind field',
             'assert --key pillar_reward_address_field --kind field',
-            'wait --key pillar_details_next_button --ready --timeout 30',
+            continueReady,
             'assert --key pillar_details_next_button --kind button',
           ]));
       expect(
