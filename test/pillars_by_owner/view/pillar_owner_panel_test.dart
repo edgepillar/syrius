@@ -236,6 +236,7 @@ void main() {
           find.byKey(const Key('pillar_owner_object')),
         );
         final Rect locked = tester.getRect(find.text('LOCKED'));
+        expect(panel.height, lessThan(220));
         expect(artwork.size, const Size.square(132));
         expect(artwork.top - panel.top, closeTo(8, 0.01));
         expect(
@@ -245,6 +246,20 @@ void main() {
         expect(
           rtl ? panel.right - locked.right : locked.left - panel.left,
           closeTo(156, 0.01),
+        );
+        final Rect deposited = tester.getRect(find.text('DEPOSITED'));
+        final Rect depositValue = tester.getRect(
+          find.text('Unavailable').at(1),
+        );
+        expect(
+          rtl
+              ? deposited.left - depositValue.right
+              : depositValue.left - deposited.right,
+          closeTo(20, 0.01),
+        );
+        expect(
+          tester.getRect(find.text('REGISTRATION COST')).top,
+          greaterThan(tester.getRect(find.text('WEIGHT')).bottom),
         );
         for (final (String first, String second) in <(String, String)>[
           ('LOCKED', 'DEPOSITED'),

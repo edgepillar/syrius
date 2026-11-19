@@ -492,24 +492,38 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
         ),
       ),
       (context.l10n.weight, _amount(context, snapshot.weight, qsr: false)),
-      (
-        context.l10n.pillarOwnerSlotCost,
-        _qsrFact(context, snapshot.registrationCostQsr),
-      ),
     ];
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final double labelSize = tokens.ledgerText.fontSize!;
         final double labelScale =
             MediaQuery.textScalerOf(context).scale(labelSize) / labelSize;
-        return _buildFactGrid(
-          tokens,
-          left,
-          right,
-          // Use the same breakpoint as the full-size artwork column.
-          paired:
-              constraints.maxWidth - _artworkOutsets.horizontal >=
-              tokens.pillarOwnerActionsWidth * 2 * labelScale,
+        // Use the same breakpoint as the full-size artwork column.
+        final bool paired =
+            constraints.maxWidth - _artworkOutsets.horizontal >=
+            tokens.pillarOwnerActionsWidth * 2 * labelScale;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            _buildFactGrid(tokens, left, right, paired: paired),
+            Wrap(
+              alignment: paired ? WrapAlignment.end : WrapAlignment.start,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: tokens.pillarOwnerFactColumnGap,
+              children: <Widget>[
+                Text(
+                  context.l10n.pillarOwnerSlotCost.toUpperCase(),
+                  style: tokens.ledgerText,
+                ),
+                _qsrFact(
+                  context,
+                  snapshot.registrationCostQsr,
+                  loadingWidth: 88,
+                ),
+              ],
+            ),
+          ],
         );
       },
     );
@@ -537,20 +551,14 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
           for (int i = 0; i < right.length; i++)
             TableRow(
               children: <Widget>[
-                if (i < left.length)
-                  ..._buildFactCells(tokens, left[i])
-                else ...<Widget>[
-                  const SizedBox.shrink(),
-                  const SizedBox.shrink(),
-                ],
+                ..._buildFactCells(tokens, left[i]),
                 const SizedBox.shrink(),
                 ..._buildFactCells(tokens, right[i]),
               ],
             )
         else
           for (int i = 0; i < right.length; i++) ...<TableRow>[
-            if (i < left.length)
-              TableRow(children: _buildFactCells(tokens, left[i])),
+            TableRow(children: _buildFactCells(tokens, left[i])),
             TableRow(children: _buildFactCells(tokens, right[i])),
           ],
       ],
@@ -562,7 +570,7 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
     return <Widget>[
       Padding(
         padding: EdgeInsetsDirectional.only(
-          end: tokens.cardGap,
+          end: tokens.pillarOwnerFactColumnGap,
           bottom: tokens.pillarOwnerFactRowGap,
         ),
         child: Text(label.toUpperCase(), style: tokens.ledgerText),
@@ -581,16 +589,19 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
     ),
   );
 
-  Widget _qsrFact(BuildContext context, PillarOwnerFact<BigInt> fact) =>
-      switch (fact.state) {
-        PillarOwnerFactState.loading => const Skeleton(),
-        PillarOwnerFactState.unavailable => _unavailable(context),
-        PillarOwnerFactState.available => _amount(
-          context,
-          fact.value!,
-          qsr: true,
-        ),
-      };
+  Widget _qsrFact(
+    BuildContext context,
+    PillarOwnerFact<BigInt> fact, {
+    double? loadingWidth,
+  }) => switch (fact.state) {
+    PillarOwnerFactState.loading => Skeleton(width: loadingWidth),
+    PillarOwnerFactState.unavailable => _unavailable(context),
+    PillarOwnerFactState.available => _amount(
+      context,
+      fact.value!,
+      qsr: true,
+    ),
+  };
 
   Widget _amount(BuildContext context, BigInt amount, {required bool qsr}) {
     final AppTokens tokens = AppTokens.of(context);
