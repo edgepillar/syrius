@@ -25,7 +25,7 @@ EXIT_FIELDS = {*cold.EXIT_FLAGS, 'exit_code', 'error_codes'}
 READOUT_FIELDS = {*EXIT_FIELDS, 'output_bytes', 'seconds', 'success'}
 
 
-def sample_receipts(value):
+def sample_receipts(value, *, allow_tap_release=False):
     if value == {}:
         return {}, False, False, False
     required = {'attempt', 'observation', 'profile_stable', 'success'}
@@ -68,8 +68,11 @@ def sample_receipts(value):
     observed = False
     if observation != {}:
         required = {'phase', 'lab_revalidations', 'entry', 'windows', 'success'}
+        optional = {'action_progress', 'preparation_failure'}
+        if allow_tap_release:
+            optional.add('tap_release_us')
         archive.need(type(observation) is dict
-            and required <= set(observation) <= required | {'action_progress', 'preparation_failure'}
+            and required <= set(observation) <= required | optional
             and type(observation['phase']) is str and observation['phase'] in OBSERVATION_PHASES
             and type(observation['success']) is bool
             and pair.shared.launch.startup.integer(observation['lab_revalidations'], 0, 3))
@@ -114,6 +117,12 @@ def sample_receipts(value):
         archive.need(not windows or entry_closed and observation['lab_revalidations'] >= 2)
         archive.need(all(pair.actions.MIN_WINDOW_US <= window['windowUs']
                          <= pair.actions.MAX_WINDOW_US for window in windows.values()))
+        if 'tap_release_us' in observation:
+            releases = observation['tap_release_us']
+            archive.need(type(releases) is dict and 0 < len(releases) <= len(windows)
+                and set(releases) <= set(windows)
+                and all(pair.shared.launch.startup.integer(offset, 0, windows[name]['windowUs'] - 1)
+                        for name, offset in releases.items()))
         observed = (observation['phase'] == 'complete' and observation['lab_revalidations'] == 3
                     and entry_closed and set(windows) == set(pair.WINDOWS))
         archive.need(observation['success'] is observed)
@@ -121,6 +130,14 @@ def sample_receipts(value):
     success = completed and observed and value['profile_stable']
     archive.need(value['success'] is success)
     return windows, closed, entry_closed, success
+
+
+def _window_diagnostics(window, tap_release_us):
+    result = cold.window_diagnostics(window, peak_starts=True)
+    if tap_release_us is not None:
+        result['tap_release_us'] = tap_release_us
+        result['peak_raster_offset_from_tap_us'] = result['peak_raster_start_us'] - tap_release_us
+    return result
 
 
 def project(raw, item, *, head, tree, run_id, lab, expected_entry):
@@ -180,7 +197,8 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
              and inputs == cold.P06_INPUTS and all(cold.digest(p06[key]) for key in cold.BINARY_HASHES)))
     samples = report['samples']
     archive.need(type(samples) is dict and set(samples) <= {'current', 'p06'})
-    windows, current_closed, current_entry, current_passed = sample_receipts(samples.get('current', {}))
+    windows, current_closed, current_entry, current_passed = sample_receipts(
+        samples.get('current', {}), allow_tap_release=True)
     old, p06_closed, p06_entry, p06_passed = sample_receipts(samples.get('p06', {}))
     archive.need((not report['commands'] or current_passed)
         and ('p06' not in samples or current_passed and verified)
@@ -248,7 +266,8 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
             name: value['no_frame_number_gaps'] for name,value in comparisons.items()},
         verified_comparisons=comparisons,
         verified_window_diagnostics={
-            label: {name: cold.window_diagnostics(window, peak_starts=True)
+            label: {name: _window_diagnostics(
+                        window, samples[label]['observation'].get('tap_release_us', {}).get(name))
                     for name, window in frame_windows.items()}
             for label, frame_windows in (('current', windows), ('p06', old))
         } if complete else None)

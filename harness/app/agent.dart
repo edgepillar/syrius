@@ -4590,6 +4590,7 @@ class HarnessAgent {
       }
     }
 
+    int? frameWindowTapReleaseUs;
     if (c['right'] == true) {
       await _click(
         t.point,
@@ -4599,7 +4600,23 @@ class HarnessAgent {
     } else if (c['long'] == true) {
       await _click(t.point, holdMs: 700, requireAdmission: admission);
     } else {
-      await _click(t.point, requireAdmission: admission);
+      final int? started =
+          c['settleMs'] == 0 &&
+              c['double'] != true &&
+              (c['tab'] == 'settings' || c['key'] == 'about_licences_toggle')
+          ? _interactiveStartUs
+          : null;
+      await _click(
+        t.point,
+        requireAdmission: admission,
+        afterRelease: started == null
+            ? null
+            : () {
+                if (_interactiveStartUs != started) return;
+                final int elapsed = dev.Timeline.now - started;
+                if (elapsed >= 0) frameWindowTapReleaseUs = elapsed;
+              },
+      );
       if (c['double'] == true) {
         await Future<void>.delayed(const Duration(milliseconds: 60));
         await _click(t.point, requireAdmission: admission);
@@ -4609,6 +4626,7 @@ class HarnessAgent {
     return <String, Object?>{
       'at': <int>[t.point.dx.round(), t.point.dy.round()],
       if (n != null) 'target': n.toJson(),
+      'frameWindowTapReleaseUs': ?frameWindowTapReleaseUs,
     };
   }
 
@@ -5935,6 +5953,7 @@ class HarnessAgent {
   static bool get _isLaunchTiming =>
       _frameTimingMode == 'launch' || _frameTimingMode == _pairedLaunchTiming;
   HarnessFrameWindow? _frameWindow;
+  int? _interactiveStartUs;
   final List<int> _startupPhaseUs = <int>[];
 
   void _observeStartupPhases(HarnessFrameWindow window, int startUs) {
@@ -5984,10 +6003,13 @@ class HarnessAgent {
         if (_frameTimingMode != 'interactive' || window != null) {
           throw HarnessError(refusal);
         }
-        _frameWindow = HarnessFrameWindow(dev.Timeline.now);
+        final int started = dev.Timeline.now;
+        _frameWindow = HarnessFrameWindow(started);
+        _interactiveStartUs = started;
         return <String, Object?>{'frameWindow': 'collecting'};
       case 'end':
         if (window == null) throw refused('notCollecting');
+        _interactiveStartUs = null;
         if (_isLaunchTiming) {
           if (!booted) throw refused('launchNotBooted');
           final List<_Node> fields = _matches(

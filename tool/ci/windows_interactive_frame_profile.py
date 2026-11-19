@@ -527,8 +527,13 @@ def owned_profile(send, run_entry, revalidate, measure, confirm_address, *,
         progress['returned'] = True
         return value
 
-    measure(observed_send, launch.frame_timing_window, size=list(launch.TIMING_SIZE),
-            windows=report['windows'])
+    tap_releases = {}
+    try:
+        measure(observed_send, launch.frame_timing_window, size=list(launch.TIMING_SIZE),
+                windows=report['windows'], tap_releases=tap_releases)
+    finally:
+        if tap_releases:
+            report['tap_release_us'] = tap_releases
     need(set(report['windows']) == {'page_change', 'disclosure'}, 'FRAME_REFUSED')
     for window in report['windows'].values():
         launch.frame_timing_window(window)

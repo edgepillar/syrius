@@ -262,6 +262,8 @@ class InteractiveFramePairTests(unittest.TestCase):
 
     def test_retained_process_and_window_durations_are_bounded_observations(self):
         offered = fixture()
+        observation = offered['samples']['current']['observation']
+        observation['tap_release_us'] = {'page_change': 5000}
         result = self.project(offered)
         self.assertEqual(result['entry_process_seconds'], {'current': 10, 'p06': 10})
         self.assertEqual(result['observation_phases'], {'current': 'complete', 'p06': 'complete'})
@@ -289,6 +291,20 @@ class InteractiveFramePairTests(unittest.TestCase):
                 self.assertEqual(actual['peak_total_parts_us'], dict(
                     build=build, raster=raster, outside_build_raster=total - build - raster))
         self.assertTrue(result['timing_criterion_passed'])
+        page = result['verified_window_diagnostics']['current']['page_change']
+        self.assertEqual(page['tap_release_us'], 5000)
+        self.assertEqual(page['peak_raster_offset_from_tap_us'], page['peak_raster_start_us'] - 5000)
+        self.assertNotIn('tap_release_us', result['verified_window_diagnostics']['p06']['page_change'])
+        for offset in (-1, True, 1_000_000):
+            observation['tap_release_us']['page_change'] = offset
+            with self.subTest(offset=offset), self.assertRaises(archive.Refused):
+                self.project(offered)
+        observation['tap_release_us']['page_change'] = 5000
+        previous_observation = offered['samples']['p06']['observation']
+        previous_observation['tap_release_us'] = {'page_change': 5000}
+        with self.assertRaises(archive.Refused):
+            self.project(offered)
+        del previous_observation['tap_release_us']
         offered['samples']['p06'].update(profile_stable=False, success=False)
         offered.update(phase='p06_interactive', success=False, comparisons=None,
                        error_codes=['PROFILE_REFUSED'])
@@ -565,7 +581,7 @@ class InteractiveFramePairTests(unittest.TestCase):
 
     def test_normal_about_content_uses_visible_licences_and_keeps_scroll_outside_timing(self):
         window = fixture()['samples']['current']['observation']['windows']['page_change']
-        for fault in (None, 'closed', 'content', 'address', 'scroll'):
+        for fault in (None, 'closed', 'content', 'address', 'scroll', 'tap_offset'):
             calls, validated, pauses = [], [], []
             tab, opened, collecting = 'dashboard', False, False
 
@@ -593,13 +609,15 @@ class InteractiveFramePairTests(unittest.TestCase):
                     if command.get('tab') == 'settings':
                         self.assertTrue(collecting)
                         tab = 'settings'
-                        return dict(ok=True, target=dict(tab=tab))
+                        return dict(ok=True, target=dict(tab=tab), frameWindowTapReleaseUs=50_000)
                     key = command['key']
                     self.assertIn(key, ('settings_about', 'about_licences_toggle'))
                     if key == 'about_licences_toggle':
                         self.assertTrue(collecting)
                         self.assertFalse(opened)
                         opened = True
+                        return dict(ok=True, target=dict(key=key),
+                            frameWindowTapReleaseUs=-1 if fault == 'tap_offset' else 60_000)
                     else:
                         self.assertFalse(collecting)
                     return dict(ok=True, target=dict(key=key))
@@ -622,7 +640,7 @@ class InteractiveFramePairTests(unittest.TestCase):
                 return dict(ok=True, target=dict(path=['Other'] if fault == 'content'
                                                        else ['AboutCard', 'Licences', 'Text']))
 
-            windows = {}
+            windows, tap_releases = {}, {}
 
             def validate(value):
                 pair.shared.launch.frame_timing_window(value)
@@ -631,17 +649,21 @@ class InteractiveFramePairTests(unittest.TestCase):
             with self.subTest(fault=fault):
                 if fault is None:
                     result = pair.actions.observe_interactive(send, validate,
-                        size=[1280, 780], windows=windows, sleep=pauses.append)
+                        size=[1280, 780], windows=windows,
+                        tap_releases=tap_releases, sleep=pauses.append)
                     self.assertIs(result, windows)
                     self.assertEqual(set(windows), set(pair.WINDOWS))
                     self.assertEqual(len(calls), 16)
                     self.assertEqual(pauses, [0.6, 0.6])
                     self.assertEqual(len(validated), 2)
+                    self.assertEqual(tap_releases, {'page_change': 50_000, 'disclosure': 60_000})
                 else:
                     with self.assertRaises(pair.actions.FrameActionRefused):
                         pair.actions.observe_interactive(send, validate,
-                            size=[1280, 780], windows=windows, sleep=pauses.append)
+                            size=[1280, 780], windows=windows,
+                            tap_releases=tap_releases, sleep=pauses.append)
                     self.assertEqual(set(windows), {'page_change'})
+                    self.assertEqual(tap_releases, {'page_change': 50_000})
                 self.assertFalse(collecting)
                 self.assertFalse(any(call.get('key') in ('about_page', 'about_licences_list')
                                      for call in calls))
@@ -1001,9 +1023,10 @@ class InteractiveFramePairTests(unittest.TestCase):
                 return profile.baseline.Outcome(exit_code=0, exit_observed=True,
                     output_complete=True, output_bytes=len(output), seconds=1, output=output)
 
-            def measure(request, validate, *, size, windows):
+            def measure(request, validate, *, size, windows, tap_releases):
                 request(dict(cmd='wait', key='about_page'))
                 windows.update(dict.fromkeys(pair.WINDOWS, window))
+                tap_releases.update(page_change=50_000, disclosure=60_000)
 
             with mock.patch.object(profile.wallet_tour, 'public_fixture', return_value='fixture words'):
                 arguments = (send, run_entry,
@@ -1022,6 +1045,8 @@ class InteractiveFramePairTests(unittest.TestCase):
                     profile.owned_profile(*arguments, **options)
                     self.assertTrue(report['success'])
             self.assertEqual(report['action_progress'], dict(index=1, command='wait', returned=not failed))
+            self.assertEqual(report.get('tap_release_us'),
+                             None if failed else {'page_change': 50_000, 'disclosure': 60_000})
             encoded = cold.canonical(report)
             self.assertNotIn(b'synthetic private failure', encoded)
             self.assertNotIn(b'fixture words', encoded)
@@ -1163,6 +1188,8 @@ class InteractiveFramePairTests(unittest.TestCase):
             sample['shutdown_trace'] = dict(status='observed', phase='exitRequested',
                 failed=False, event_count=20, output_complete=True,
                 elapsed_ms=120_000, max_gap_ms=110_000, max_gap_after='windowPositionRead')
+        offered['samples']['current']['observation']['tap_release_us'] = dict.fromkeys(
+            pair.WINDOWS, pair.actions.MAX_WINDOW_US - 1)
         offered['comparisons'] = {name: pair.shared.compare_windows(full, full)
                                  for name in pair.WINDOWS}
         self.assertLessEqual(len(cold.canonical(offered)) + 1, pair.MAX_MANIFEST)
