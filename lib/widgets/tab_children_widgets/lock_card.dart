@@ -320,19 +320,20 @@ class _LockCardState extends State<LockCard>
     BorderRadius radius,
   ) => DecoratedBox(
     position: DecorationPosition.foreground,
+    // The dark highlight sits on the outline, above the first film row.
     decoration: BoxDecoration(
-      borderRadius: radius,
-      border: Border.all(color: tokens.line),
+      border: Theme.brightnessOf(context) == Brightness.dark
+          ? Border(top: tokens.glassTopEdge)
+          : null,
     ),
-    child: Padding(
-      padding: EdgeInsets.all(tokens.glassTopEdge.width),
-      // The shared glass composition clips a separate top edge.
-      // A rounded border cannot paint different side colours.
-      child: DecoratedBox(
-        position: DecorationPosition.foreground,
-        decoration: BoxDecoration(
-          border: Border(top: tokens.glassTopEdge),
-        ),
+    child: DecoratedBox(
+      position: DecorationPosition.foreground,
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        border: Border.all(color: tokens.line),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(tokens.glassTopEdge.width),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,

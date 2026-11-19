@@ -210,29 +210,34 @@ void main() {
       );
       expect(frost.sigma, tokens.panelBlur);
       expect(frost.borderRadius, BorderRadius.circular(tokens.dialogRadius));
-      final List<BoxDecoration> glassPaint = tester
+      final DecoratedBox outline = tester
           .widgetList<DecoratedBox>(
             find.descendant(
               of: find.byType(FrostedSurface),
               matching: find.byType(DecoratedBox),
             ),
           )
-          .map<Decoration>((DecoratedBox box) => box.decoration)
-          .whereType<BoxDecoration>()
-          .toList();
-      final BoxDecoration outline = glassPaint.firstWhere(
-        (BoxDecoration paint) =>
-            paint.borderRadius == frost.borderRadius && paint.border != null,
-      );
-      expect(outline.border!.isUniform, isTrue);
-      expect((outline.border! as Border).top.color, tokens.line);
+          .firstWhere((DecoratedBox box) {
+            final Decoration paint = box.decoration;
+            return paint is BoxDecoration &&
+                paint.borderRadius == frost.borderRadius &&
+                paint.border != null;
+          });
+      final BoxDecoration outlinePaint = outline.decoration as BoxDecoration;
+      expect(outlinePaint.border!.isUniform, isTrue);
+      expect((outlinePaint.border! as Border).top.color, tokens.line);
       expect(
-        glassPaint.any(
-          (BoxDecoration paint) =>
-              paint.borderRadius == null &&
-              paint.border == Border(top: tokens.glassTopEdge),
+        find.ancestor(
+          of: find.byWidget(outline),
+          matching: find.byWidgetPredicate(
+            (Widget widget) =>
+                widget is DecoratedBox &&
+                widget.position == DecorationPosition.foreground &&
+                widget.decoration ==
+                    BoxDecoration(border: Border(top: tokens.glassTopEdge)),
+          ),
         ),
-        isTrue,
+        light ? findsNothing : findsOneWidget,
       );
       final DecoratedBox pill = tester.widget<DecoratedBox>(
         find

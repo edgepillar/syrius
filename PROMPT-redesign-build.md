@@ -729,6 +729,15 @@ The preferred phase varies by region and theme. The results identify 1.5 s
 as a candidate for a paired right-side comparison, with the six-second
 sample retained as the capture contract. Whole-image verdicts remain open.
 
+The six retained [Lock captures](https://github.com/edgepillar/syrius/actions/runs/44579867208/job/135757308518)
+have black film at columns 431 through 848 in both themes. The first black
+row is 210 on Lock, 188 on Wrong Password and 118 on the picker. Their
+references start at 209, 187 and 117. Each pair shares its last black row.
+The Lock card now paints its dark glass highlight on the outer outline,
+above the film content. The light outline uses its normal line colour.
+Both theme cases check the outline and its relationship to the highlight.
+Fresh Windows captures are needed for the pixel comparison.
+
 ### Receive at rest at `06eda3f7`
 
 The latest private comparison records verdicts for all 62 locally available
