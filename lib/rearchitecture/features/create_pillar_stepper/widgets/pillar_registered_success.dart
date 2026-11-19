@@ -12,14 +12,14 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.
 class PillarRegisteredSuccess extends StatelessWidget {
   /// Existing callbacks retain their navigation and explicit reset meanings.
   const PillarRegisteredSuccess({
-    required this.onRegisterAnotherPressed,
     required this.onViewPillarsPressed,
+    this.onRegisterAnotherPressed,
     this.confirmation,
     super.key,
   });
 
-  /// Starts another registration only after this one is confirmed.
-  final VoidCallback onRegisterAnotherPressed;
+  /// Allows an explicit reset when the caller can start another registration.
+  final VoidCallback? onRegisterAnotherPressed;
 
   /// Returns to the pillar owner view.
   final VoidCallback onViewPillarsPressed;

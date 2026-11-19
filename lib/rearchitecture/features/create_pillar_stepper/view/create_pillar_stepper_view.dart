@@ -159,7 +159,10 @@ class _MainPillarState extends State<CreatePillarStepperView> {
               ),
               receipt: PillarRegisteredSuccess(
                 confirmation: _confirmation,
-                onRegisterAnotherPressed: _onDeployAnotherPillarButtonPressed,
+                // The shell's owner route admits one pillar for this address.
+                onRegisterAnotherPressed: widget.onViewPillars == null
+                    ? _onDeployAnotherPillarButtonPressed
+                    : null,
                 onViewPillarsPressed:
                     widget.onViewPillars ?? () => Navigator.pop(context),
               ),

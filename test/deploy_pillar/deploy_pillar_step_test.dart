@@ -79,11 +79,18 @@ void main() {
     final Row depositRow = tester
         .element(deposit)
         .findAncestorWidgetOfExactType<Row>()!;
-    final Finder depositMark = find.byWidget(depositRow.children.first);
-    expect(tester.getSize(depositMark), const Size.square(22));
+    final Row detailsRow = tester
+        .element(details)
+        .findAncestorWidgetOfExactType<Row>()!;
+    for (final Row step in <Row>[depositRow, detailsRow]) {
+      final Finder mark = find.byWidget(step.children.first);
+      expect(tester.getSize(mark), const Size.square(22));
+    }
+    // The default test font may wrap a label. Measure the actual row gap.
     expect(
-      tester.getCenter(details).dy - tester.getCenter(deposit).dy,
-      closeTo(36, .01),
+      tester.getTopLeft(find.byWidget(detailsRow)).dy -
+          tester.getBottomLeft(find.byWidget(depositRow)).dy,
+      closeTo(14, .01),
     );
 
     final Finder name = find.byKey(const Key('pillar_name_field'));

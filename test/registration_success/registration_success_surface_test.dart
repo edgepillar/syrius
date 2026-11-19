@@ -64,7 +64,6 @@ void main() {
           final Widget surface = switch (asset) {
             AppLottieAsset.pillar => PillarRegisteredSuccess(
               confirmation: fixture.confirmation,
-              onRegisterAnotherPressed: () => another++,
               onViewPillarsPressed: () {},
             ),
             AppLottieAsset.sentinel => SentinelRegisteredSuccess(
@@ -116,6 +115,11 @@ void main() {
           );
           expect(checks, findsNWidgets(4));
           if (pillar) {
+            expect(find.text('View pillar'), findsOneWidget);
+            expect(
+              find.byKey(const Key('registration_another')),
+              findsNothing,
+            );
             final IconButton explorer = tester.widget<IconButton>(
               blockExplorer,
             );
