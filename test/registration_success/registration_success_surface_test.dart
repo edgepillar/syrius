@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_pillar_stepper/widgets/pillar_registered_success.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_sentinel_stepper/widgets/sentinel_registered_success.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_created_success.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/widgets/amount_text.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/registration_success/registration_confirmation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/registration_success/registration_success_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
@@ -84,12 +85,16 @@ void main() {
           final Finder blockExplorer = find.byKey(
             const Key('registration_block_explorer'),
           );
+          final Finder chain = find.text('CHAIN');
+          final Finder address = find.text('ADDRESS');
           expect(find.byKey(const Key('registration_waiting')), findsOneWidget);
           expect(find.byType(AppLottie), findsNothing);
           expect(caption, findsNothing);
           expect(checks, findsNWidgets(3));
           expect(find.byKey(const Key('registration_another')), findsNothing);
           expect(blockExplorer, findsNothing);
+          expect(chain, findsOneWidget);
+          expect(address, findsOneWidget);
           expect(find.text('LOCKED'), findsNothing);
           if (pillar) expect(find.text('COLLATERAL'), findsOneWidget);
           expect(fixture.requests, <(int, Hash)>[(chainId, fixture.hash)]);
@@ -206,20 +211,29 @@ void main() {
             ),
           );
           final Finder table = find.byType(Table);
-          final Finder chain = find.text('CHAIN');
-          final Finder chainValue = find.text('$chainId');
+          expect(chain, pillar ? findsNothing : findsOneWidget);
+          expect(address, pillar ? findsNothing : findsOneWidget);
+          final Finder fact = pillar ? find.text('LOCKED') : chain;
+          final Finder factValue = pillar
+              ? find.byType(AmountText)
+              : find.text('$chainId');
           final Finder blockValue = find.text(
             pillar ? '6666…6666' : '666666…6666',
           );
-          expect(find.descendant(of: table, matching: chain), findsOneWidget);
-          expect(tester.widget<Text>(chainValue).style!.fontSize, 13);
+          expect(find.descendant(of: table, matching: fact), findsOneWidget);
+          expect(
+            pillar
+                ? tester.widget<AmountText>(factValue).style.fontSize
+                : tester.widget<Text>(factValue).style!.fontSize,
+            13,
+          );
           expect(tester.widget<Text>(blockValue).style!.fontSize, 13);
           expect(
-            tester.getCenter(chain).dy,
-            closeTo(tester.getCenter(chainValue).dy, .01),
+            tester.getCenter(fact).dy,
+            closeTo(tester.getCenter(factValue).dy, .01),
           );
           expect(
-            tester.getTopLeft(chainValue).dx,
+            tester.getTopLeft(factValue).dx,
             tester.getTopLeft(blockValue).dx,
           );
           final Element original = tester.element(find.byType(AppLottie));
@@ -231,8 +245,8 @@ void main() {
           );
           expect(table, findsNothing);
           expect(
-            tester.getTopLeft(chainValue).dy,
-            greaterThan(tester.getBottomLeft(chain).dy),
+            tester.getTopLeft(factValue).dy,
+            greaterThan(tester.getBottomLeft(fact).dy),
           );
           expect(tester.element(find.byType(AppLottie)), same(original));
           expect(another, 0);

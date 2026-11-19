@@ -161,6 +161,8 @@ class RegistrationSuccessSurface extends StatelessWidget {
   Widget _buildBody(BuildContext context, {required bool confirmed}) {
     final AppTokens tokens = AppTokens.of(context);
     final RegistrationPublication? publication = confirmation?.publication;
+    // The finished Pillar step shows costs and the original block link.
+    final bool showWalletContext = !confirmed || asset != AppLottieAsset.pillar;
     final List<RegistrationReceiptFact> receiptFacts =
         <RegistrationReceiptFact>[
           for (final RegistrationReceiptFact fact in facts)
@@ -182,19 +184,21 @@ class RegistrationSuccessSurface extends StatelessWidget {
                 confirmed: confirmed,
               ),
             ),
-            RegistrationReceiptFact(
-              label: context.l10n.address,
-              value: _Identifier(publication.ownerAddress),
-            ),
-            RegistrationReceiptFact(
-              label: context.l10n.registrationChain,
-              value: Ltr(
-                child: Text(
-                  '${publication.chainId}',
-                  style: tokens.registrationFactText,
+            if (showWalletContext) ...<RegistrationReceiptFact>[
+              RegistrationReceiptFact(
+                label: context.l10n.address,
+                value: _Identifier(publication.ownerAddress),
+              ),
+              RegistrationReceiptFact(
+                label: context.l10n.registrationChain,
+                value: Ltr(
+                  child: Text(
+                    '${publication.chainId}',
+                    style: tokens.registrationFactText,
+                  ),
                 ),
               ),
-            ),
+            ],
           ],
         ];
     return Row(
