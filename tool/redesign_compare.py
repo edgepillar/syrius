@@ -5,6 +5,7 @@
     python tool/redesign_compare.py --actual-dir <shots> --output-dir <report>
     python tool/redesign_compare.py --actual-manifest <captures.json>
     python tool/redesign_compare.py --actual-manifest <captures.json> --target-source <commit>
+    python tool/redesign_compare.py --actual-manifest <archive-captures.json> --serve
     python tool/redesign_compare.py --actual-manifest <first.json> --actual-manifest <second.json> --target-source <commit> --require-current-captures --no-diff-images
     python tool/redesign_compare.py --reviews <reviews.json> --require-reviewed
     python tool/redesign_compare.py --no-diff-images --output-dir <compact-report>
@@ -25,7 +26,14 @@ content-addressed file named by its digest. Missing entries remain visible.
 Pass one manifest per verified batch. For an overlapping screen and theme,
 an exact target capture takes precedence. Multiple distinct files with
 equal precedence require an explicit selection in the input manifests.
-On Windows, place the report and all selected images on the same drive.
+For a static report on Windows, place the report and all images on the same drive.
+
+To compare from a retained ZIP, use its path in "path" and include the
+archive's SHA-256 under "archive_sha256" and the literal PNG name under
+"archive_member". Keep the original PNG's "sha256" and producer "source_sha".
+Use --serve to view such a report on loopback. The gallery reads only the
+registered originals directly from their archives. By default, --serve writes
+the page to compare/served, alongside the static report.
 
 Manual reviews use screenshot stems as keys. For example:
 {
@@ -52,22 +60,26 @@ import argparse
 import ast
 from collections import Counter
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 from functools import reduce
 import hashlib
 from html import escape
 from html.parser import HTMLParser
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import io
 import json
 import os
 from pathlib import Path
 import re
+import secrets
 import stat
 import sys
 from tempfile import NamedTemporaryFile
 from urllib.parse import quote
 import warnings
+import zipfile
+import zlib
 
 from PIL import Image, ImageChops, ImageStat
 
@@ -77,6 +89,7 @@ THEMES = ("dark", "light")
 SCREEN_COUNT = 47
 IMAGE_SIZE = (1280, 780)
 MAX_IMAGE_BYTES = 16 * 1024 * 1024
+MAX_ARCHIVE_BYTES = 16 * 1024 * 1024
 MAX_CAPTURE_MANIFEST_BYTES = 256 * 1024
 MAX_IMAGE_PIXELS = 4096 * 4096
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
@@ -108,6 +121,8 @@ class Capture:
     path: Path
     sha256: str | None = None
     source_sha: str | None = None
+    archive_member: str | None = None
+    archive_sha256: str | None = None
 
 
 class ScreenParser(HTMLParser):
@@ -194,10 +209,11 @@ def load_actual_manifest(source: Path, stems: set[str]) -> dict[str, Capture]:
 
     captures: dict[str, Capture] = {}
     for stem, entry in data["actual"].items():
-        if (
-            stem not in stems or not isinstance(entry, dict)
-            or entry.keys() not in ({"path", "sha256"}, {"path", "sha256", "source_sha"})
-        ):
+        if stem not in stems or not isinstance(entry, dict):
+            raise ReportError("Invalid capture manifest entry")
+        fields = entry.keys()
+        archived = fields == {"path", "sha256", "source_sha", "archive_member", "archive_sha256"}
+        if not archived and fields not in ({"path", "sha256"}, {"path", "sha256", "source_sha"}):
             raise ReportError("Invalid capture manifest entry")
         name, digest = entry["path"], entry["sha256"]
         source_sha = entry.get("source_sha")
@@ -211,13 +227,23 @@ def load_actual_manifest(source: Path, stems: set[str]) -> dict[str, Capture]:
         ):
             raise ReportError("Capture source must be a full lowercase Git commit SHA")
         path = Path(name)
-        if path.name not in (f"{stem}.png", digest):
+        member = entry.get("archive_member")
+        archive_digest = entry.get("archive_sha256")
+        if archived:
+            if (
+                member != f"{stem}.png"
+                or not isinstance(archive_digest, str)
+                or SHA256.fullmatch(archive_digest) is None
+                or (path.suffix.lower() != ".zip" and path.name != archive_digest)
+            ):
+                raise ReportError("Invalid ZIP member or archive SHA-256")
+        elif path.name not in (f"{stem}.png", digest):
             raise ReportError("Capture file must use its literal name or SHA-256")
         try:
             resolved = (source.parent / path).resolve()
         except (OSError, RuntimeError) as error:
             raise ReportError("Cannot resolve the capture path") from error
-        captures[stem] = Capture(resolved, digest, source_sha)
+        captures[stem] = Capture(resolved, digest, source_sha, member, archive_digest)
     return captures
 
 
@@ -243,22 +269,118 @@ def relative_url(target: Path, output: Path) -> str:
     return quote(Path(os.path.relpath(target, output)).as_posix(), safe="/")
 
 
+def bounded_bytes(path: Path, limit: int) -> bytes:
+    metadata = path.stat()
+    if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > limit:
+        raise ValueError("Expected a regular file within the input limit")
+    with path.open("rb") as stream:
+        data = stream.read(limit + 1)
+    if len(data) > limit:
+        raise ValueError("File exceeds the input limit")
+    return data
+
+
+def capture_bytes(capture: Capture) -> bytes:
+    if capture.archive_member is None:
+        return bounded_bytes(capture.path, MAX_IMAGE_BYTES)
+    raw = bounded_bytes(capture.path, MAX_ARCHIVE_BYTES)
+    if hashlib.sha256(raw).hexdigest() != capture.archive_sha256:
+        raise ValueError("ZIP does not match the capture manifest SHA-256")
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        entries = [info for info in archive.infolist()
+                   if info.filename == capture.archive_member]
+        if len(entries) != 1:
+            raise ValueError("ZIP must contain one copy of the named PNG")
+        info = entries[0]
+        if (
+            info.orig_filename != info.filename
+            or info.is_dir() or info.flag_bits & 1
+            or stat.S_IFMT(info.external_attr >> 16) not in (0, stat.S_IFREG)
+            or not 0 < info.file_size <= MAX_IMAGE_BYTES
+            or info.compress_type not in (zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED)
+        ):
+            raise ValueError("ZIP PNG is unsupported or exceeds the input limit")
+        with archive.open(info) as stream:
+            data = stream.read(MAX_IMAGE_BYTES + 1)
+        if len(data) != info.file_size:
+            raise ValueError("ZIP PNG size differs from its directory entry")
+        return data
+
+
+class ReportGallery:
+    """Serve the exact assets of one private comparison on loopback."""
+
+    def __init__(self) -> None:
+        self.assets: dict[str, tuple[Capture, str]] = {}
+
+    def add(self, url: str, capture: Capture, media_type: str = "image/png") -> None:
+        self.assets[url] = capture, media_type
+
+    def add_file(self, url: str, path: Path, media_type: str = "image/png") -> None:
+        if url not in self.assets:
+            digest = hashlib.sha256(bounded_bytes(path, MAX_IMAGE_BYTES)).hexdigest()
+            self.add(url, Capture(path, digest), media_type)
+
+    def serve(self, output: Path) -> None:
+        self.add_file("index.html", output / "index.html", "text/html; charset=utf-8")
+        prefix = "/" + secrets.token_urlsafe(24) + "/"
+        assets = self.assets
+
+        class GalleryHandler(BaseHTTPRequestHandler):
+            timeout = 5
+
+            def log_message(self, format: str, *args: object) -> None:
+                pass
+
+            def do_GET(self) -> None:
+                host, port = self.server.server_address
+                if self.headers.get("Host") != f"{host}:{port}" or not self.path.startswith(prefix):
+                    self.send_error(404)
+                    return
+                entry = assets.get(self.path[len(prefix):])
+                if entry is None:
+                    self.send_error(404)
+                    return
+                capture, media_type = entry
+                try:
+                    data = capture_bytes(capture)
+                    if hashlib.sha256(data).hexdigest() != capture.sha256:
+                        raise ValueError("Asset has changed")
+                except (OSError, ValueError, zipfile.BadZipFile, zlib.error):
+                    self.send_error(404)
+                    return
+                self.send_response(200)
+                self.send_header("Content-Type", media_type)
+                self.send_header("Content-Length", str(len(data)))
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("X-Content-Type-Options", "nosniff")
+                self.send_header("Referrer-Policy", "no-referrer")
+                self.send_header(
+                    "Content-Security-Policy",
+                    "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; frame-ancestors 'none'",
+                )
+                self.end_headers()
+                self.wfile.write(data)
+
+        with HTTPServer(("127.0.0.1", 0), GalleryHandler) as server:
+            host, port = server.server_address
+            print(f"Private comparison page at http://{host}:{port}{prefix}index.html", flush=True)
+            try:
+                server.serve_forever()
+            except KeyboardInterrupt:
+                return
+
+
 def read_image(
-    path: Path | None, output: Path, required_sha256: str | None = None,
+    capture: Capture | None, output: Path, *, url: str | None = None,
 ) -> tuple[dict[str, object], Image.Image | None]:
-    if path is None:
+    if capture is None:
         return {"state": "missing", "reason": "Image missing"}, None
-    info: dict[str, object] = {"url": relative_url(path, output)}
+    info: dict[str, object] = {"url": url or relative_url(capture.path, output)}
     try:
-        metadata = path.stat()
-        if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > MAX_IMAGE_BYTES:
-            raise ValueError("Expected a regular PNG within the 16 MiB input limit")
-        with path.open("rb") as source:
-            data = source.read(MAX_IMAGE_BYTES + 1)
-        if len(data) > MAX_IMAGE_BYTES:
-            raise ValueError("PNG exceeds the 16 MiB input limit")
+        data = capture_bytes(capture)
         info["sha256"] = hashlib.sha256(data).hexdigest()
-        if required_sha256 is not None and info["sha256"] != required_sha256:
+        if capture.sha256 is not None and info["sha256"] != capture.sha256:
             info.update(state="invalid", reason="Actual PNG does not match the capture manifest SHA-256")
             return info, None
         with warnings.catch_warnings():
@@ -274,9 +396,21 @@ def read_image(
         return info, image
     except FileNotFoundError:
         info.update(state="missing", reason="Image missing")
-    except (OSError, ValueError, SyntaxError, Image.DecompressionBombError, Image.DecompressionBombWarning):
+    except (OSError, ValueError, SyntaxError, zipfile.BadZipFile, zlib.error,
+            Image.DecompressionBombError, Image.DecompressionBombWarning):
         info.update(state="invalid", reason="Unreadable, unsupported or oversized PNG")
     return info, None
+
+
+def gallery_image(
+    capture: Capture | None, output: Path, gallery: ReportGallery | None, url: str,
+) -> tuple[dict[str, object], Image.Image | None]:
+    if gallery is None:
+        return read_image(capture, output)
+    info, image = read_image(capture, output, url=url)
+    if capture is not None and image is not None:
+        gallery.add(url, replace(capture, sha256=info["sha256"]))
+    return info, image
 
 
 def review_status(
@@ -362,12 +496,18 @@ def compare_pair(
     *,
     target_source: str | None = None,
     write_diffs: bool = True,
+    gallery: ReportGallery | None = None,
 ) -> dict[str, object]:
     stem = screen.stem(theme)
-    expected, before = read_image(expected_dir / f"{stem}.png", output)
-    actual, after = read_image(
-        capture.path if capture else None, output, capture.sha256 if capture else None,
+    expected, before = gallery_image(
+        Capture(expected_dir / f"{stem}.png"), output, gallery, f"mockup/{stem}.png",
     )
+    actual, after = gallery_image(capture, output, gallery, f"capture/{stem}.png")
+    if gallery is None:
+        source_url = relative_url(screen.source, output)
+    else:
+        source_url = "source/" + quote(screen.source.name, safe="")
+        gallery.add_file(source_url, screen.source, "text/plain; charset=utf-8")
     source_sha = capture.source_sha if capture else None
     if source_sha is not None:
         actual["source_sha"] = source_sha
@@ -377,7 +517,7 @@ def compare_pair(
         "number": screen.number,
         "title": screen.title,
         "theme": theme,
-        "source_url": relative_url(screen.source, output),
+        "source_url": source_url,
         "expected": expected,
         "actual": actual,
         "diff_url": None,
@@ -424,6 +564,8 @@ def compare_pair(
         }
         if write_diffs:
             pair["diff_url"] = store_diff(mask, output)
+            if gallery is not None:
+                gallery.add_file(pair["diff_url"], output / pair["diff_url"])
         return pair
     finally:
         for image in (before, after):
@@ -528,6 +670,7 @@ def generate_report(
     target_source: str | None = None,
     required_size: tuple[int, int] = IMAGE_SIZE,
     write_diffs: bool = True,
+    gallery: ReportGallery | None = None,
 ) -> dict[str, object]:
     if target_source is not None:
         if GIT_SHA.fullmatch(target_source) is None:
@@ -548,6 +691,8 @@ def generate_report(
     else:
         directory = actual_dir if actual_dir is not None else repo / ".harness" / "shots"
         actuals = {stem: Capture(directory / f"{stem}.png") for stem in stems}
+    if gallery is None and any(capture.archive_member is not None for capture in actuals.values()):
+        raise ReportError("ZIP capture manifests require --serve")
     output.mkdir(parents=True, exist_ok=True)
     pairs = []
     for screen in screens:
@@ -555,6 +700,7 @@ def generate_report(
             pair = compare_pair(
                 screen, theme, expected_dir, actuals.get(screen.stem(theme)), output,
                 reviews, required_size, target_source=target_source, write_diffs=write_diffs,
+                gallery=gallery,
             )
             pair["notes"] = notes[screen.id]
             pairs.append(pair)
@@ -593,22 +739,29 @@ def main() -> int:
     inputs.add_argument("--actual-manifest", type=Path, action="append",
                         help="Private capture paths and SHA-256 pins, repeatable")
     parser.add_argument("--target-source", help="Accept reviews only for captures at this full Git commit")
-    parser.add_argument("--output-dir", type=Path, default=ROOT / "mockups" / "redesign" / "compare")
+    parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--reviews", type=Path, help="Manual, image-hash-bound visual review JSON")
     parser.add_argument("--no-diff-images", action="store_true",
                         help="Link inputs and report scores without writing difference PNGs")
+    parser.add_argument("--serve", action="store_true",
+                        help="Serve a private loopback gallery with support for retained ZIP captures")
     parser.add_argument("--require-reviewed", action="store_true", help="Exit 1 unless all 94 pairs are reviewed matches")
     parser.add_argument("--require-current-captures", action="store_true",
                         help="Exit 1 unless all 94 pairs are available at --target-source")
     args = parser.parse_args()
     if args.require_current_captures and args.target_source is None:
         parser.error("--require-current-captures requires --target-source")
+    gallery = ReportGallery() if args.serve else None
+    default_output = ROOT / "mockups" / "redesign" / "compare"
+    if gallery is not None:
+        default_output /= "served"
+    output = (args.output_dir or default_output).resolve()
     try:
         actual_dir = args.actual_dir.resolve() if args.actual_dir is not None else None
         manifest = generate_report(
-            ROOT, actual_dir, args.output_dir.resolve(), args.reviews,
+            ROOT, actual_dir, output, args.reviews,
             actual_manifest=args.actual_manifest, target_source=args.target_source,
-            write_diffs=not args.no_diff_images,
+            write_diffs=not args.no_diff_images, gallery=gallery,
         )
     except (OSError, UnicodeError, ValueError) as error:
         # Paths and raw diagnostics can contain private profile information.
@@ -623,7 +776,11 @@ def main() -> int:
         print(f"Target pairs available: {target_pairs['available']}/{summary['pairs']}")
     missing_captures = args.require_current_captures and bool(target_pairs["remaining"])
     incomplete_reviews = args.require_reviewed and summary["visual_review"] != "COMPLETE"
-    return int(missing_captures or incomplete_reviews)
+    if missing_captures or incomplete_reviews:
+        return 1
+    if gallery is not None:
+        gallery.serve(output)
+    return 0
 
 
 if __name__ == "__main__":

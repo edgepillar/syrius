@@ -21,10 +21,18 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+import zipfile
 
 from PIL import Image, ImageOps
 
-from redesign_compare import generate_report, main, screen_inventory, screen_notes
+from redesign_compare import (
+    ReportGallery,
+    capture_bytes,
+    generate_report,
+    main,
+    screen_inventory,
+    screen_notes,
+)
 
 
 TEST_ROOT: Path | None = None
@@ -338,6 +346,68 @@ class CompareTests(unittest.TestCase):
                 target_source=current, required_size=(4, 3), write_diffs=False,
             )
         self.assertFalse(conflict.exists())
+
+    def test_zip_gallery_keeps_the_original_bytes_without_extracting(self) -> None:
+        source = "a" * 40
+        name = f"{self.stem}.png"
+        image = (self.expected / name).read_bytes()
+        # A retained archive can be named by its digest instead of a suffix.
+        payload = io.BytesIO()
+        with zipfile.ZipFile(payload, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr(name, image)
+        archive_digest = hashlib.sha256(payload.getvalue()).hexdigest()
+        retained = self.actual / archive_digest
+        retained.write_bytes(payload.getvalue())
+        capture_path = self.repo / "captures.json"
+        entry = {
+            "path": f"actual/{retained.name}",
+            "sha256": hashlib.sha256(image).hexdigest(),
+            "source_sha": source,
+            "archive_sha256": archive_digest,
+            "archive_member": name,
+        }
+        capture_path.write_text(json.dumps({"actual": {self.stem: entry}}))
+
+        with self.assertRaisesRegex(ValueError, "ZIP capture manifests require"):
+            generate_report(self.repo, None, self.output, actual_manifest=capture_path)
+        self.assertFalse(self.output.exists())
+
+        gallery = ReportGallery()
+        report = generate_report(
+            self.repo, None, self.output, actual_manifest=capture_path,
+            target_source=source, required_size=(4, 3), gallery=gallery,
+        )
+        pair = report["pairs"][0]
+        url = f"capture/{name}"
+        self.assertEqual(pair["actual"]["url"], url)
+        self.assertEqual(pair["state"], "unreviewed")
+        self.assertEqual(pair["score"]["changed_pixels"], 0)
+        self.assertEqual(report["summary"]["target_pairs"]["available"], 1)
+        descriptor, media_type = gallery.assets[url]
+        self.assertEqual(media_type, "image/png")
+        self.assertEqual(capture_bytes(descriptor), image)
+        self.assertIn(pair["diff_url"], gallery.assets)
+        self.assertIn(url, (self.output / "index.html").read_text())
+        self.assertNotIn(archive_digest, (self.output / "index.html").read_text())
+        self.assertFalse((self.output / "capture").exists())
+        self.assertEqual(list(self.actual.iterdir()), [retained])
+
+        for field in ("sha256", "archive_sha256"):
+            with self.subTest(wrong_pin=field):
+                invalid = ReportGallery()
+                bad_entry = dict(entry, **{field: "0" * 64})
+                # Use a normal ZIP filename so either content pin can be checked.
+                zip_file = self.actual / "archive.zip"
+                zip_file.write_bytes(payload.getvalue())
+                bad_entry["path"] = "actual/archive.zip"
+                capture_path.write_text(json.dumps({"actual": {self.stem: bad_entry}}))
+                report = generate_report(
+                    self.repo, None, self.output, actual_manifest=capture_path,
+                    target_source=source, required_size=(4, 3), gallery=invalid,
+                )
+                self.assertEqual(report["pairs"][0]["state"], "invalid")
+                self.assertEqual(report["summary"]["target_pairs"]["available"], 0)
+                self.assertNotIn(url, invalid.assets)
 
     def test_current_capture_gate_distinguishes_coverage_from_visual_review(self) -> None:
         target = "a" * 40
