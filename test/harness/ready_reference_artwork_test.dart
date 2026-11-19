@@ -237,6 +237,29 @@ void main() {
     await tester.pumpAndSettle();
     expect(tooltip, findsOneWidget);
     await mouse.removePointer();
+    Tooltip.dismissAllToolTips();
+    await tester.pumpAndSettle();
+    expect(tooltip, findsNothing);
+
+    final TooltipState parkedTooltip = tester.state<TooltipState>(
+      find.ancestor(of: find.byKey(address), matching: find.byType(Tooltip)),
+    );
+    bool lateTooltipOpened = false;
+    WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+      lateTooltipOpened = parkedTooltip.ensureTooltipVisible();
+    });
+    final bool clear = await _finish(
+      tester,
+      frames,
+      artwork.capture(
+        frames: frames.gate,
+        readback: () async => tooltip.evaluate().isEmpty,
+      ),
+    );
+    expect(lateTooltipOpened, isTrue);
+    expect(clear, isTrue);
+    expect(tester.element(lottie), same(renderer));
+    expect(tester.widget<Lottie>(lottie).controller, same(original));
   });
 
   testWidgets('Originals samples the film and its eight Lotties', (

@@ -141,9 +141,13 @@ class PillarReferenceArtwork {
     const Duration budget = Duration(seconds: 1);
     final Stopwatch elapsed = Stopwatch()..start();
     // The native mouse can keep a receipt tooltip open after the scripted tap.
-    // Wait for Flutter's own dismissal animation before holding the artwork.
+    // A pending hover can open on the next frame. Observe a full clear frame
+    // after Flutter's own dismissal before holding the artwork.
+    bool clearBeforeFrame = false;
     while (_current()) {
-      if (!Tooltip.dismissAllToolTips()) return;
+      final bool clear = !Tooltip.dismissAllToolTips();
+      if (clear && clearBeforeFrame) return;
+      clearBeforeFrame = clear;
       final Duration remaining = budget - elapsed.elapsed;
       if (remaining <= Duration.zero) break;
       await WidgetsBinding.instance.endOfFrame.timeout(remaining);
