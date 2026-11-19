@@ -111,6 +111,21 @@ void main() {
         final AppTokens tokens = AppTokens.of(
           tester.element(find.byKey(const Key('addresses_settings_page'))),
         );
+        final Finder selected = find.byKey(
+          const Key('addresses_selected_label'),
+        );
+        expect(
+          find.descendant(of: selected, matching: find.text('Selected')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: selected, matching: find.byIcon(Icons.check)),
+          findsNothing,
+        );
+        expect(
+          tester.getSize(selected).height,
+          variant.$3 == 1 ? 20 : greaterThan(20),
+        );
         for (final (String, int) heading in <(String, int)>[
           ('Your addresses', source.members.length),
           ('Contacts', 1),

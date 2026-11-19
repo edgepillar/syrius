@@ -1,10 +1,15 @@
-import '../app/fixtures/send_warning_draft.dart' show sendWarningKnownAddress;
+import '../app/fixtures/send_warning_draft.dart'
+    show sendWarningKnownAddress, sendWarningTypedAddress;
 import 'harness.dart' as cli;
 import 'readonly_inspection_session.dart';
 
 /// The original edit action for the isolated synthetic contact.
 String get readonlyCatalogContactEditKey =>
     'addresses_edit_contact_$sendWarningKnownAddress';
+
+/// The original edit action for the second synthetic Settings contact.
+String get readonlyCatalogSecondContactEditKey =>
+    'addresses_edit_contact_$sendWarningTypedAddress';
 
 /// Enters the draft through the real field and requires its exact reply.
 Future<void> typeReadonlyCatalogField(
@@ -31,11 +36,15 @@ Future<void> prepareReadonlyCatalogContact(
   await cli.goto(instance, 'dashboard');
 }
 
-/// Saves the fixed synthetic contact from the already opened Addresses page.
+/// Saves one of the fixed synthetic contacts from the open Addresses page.
 Future<void> saveReadonlyCatalogContact(
   cli.Instance instance, {
   required String name,
+  bool second = false,
 }) async {
+  final String editKey = second
+      ? readonlyCatalogSecondContactEditKey
+      : readonlyCatalogContactEditKey;
   await cli.waitForTarget(instance, cli.Args(<String>[
     '--key', 'addresses_add_contact', '--kind', 'button',
     '--exact', '--ready', '--timeout', '20',
@@ -50,13 +59,15 @@ Future<void> saveReadonlyCatalogContact(
   ]));
   await typeReadonlyCatalogField(instance, 'addresses_contact_name', name);
   await typeReadonlyCatalogField(
-    instance, 'addresses_contact_address', sendWarningKnownAddress,
+    instance,
+    'addresses_contact_address',
+    second ? sendWarningTypedAddress : sendWarningKnownAddress,
   );
   await cli.call(instance, <String, Object?>{
     'cmd': 'tap', 'key': 'addresses_save_contact', 'exact': true,
   });
   await cli.waitForTarget(instance, cli.Args(<String>[
-    '--key', readonlyCatalogContactEditKey,
+    '--key', editKey,
     '--kind', 'button',
     '--exact', '--ready', '--timeout', '10',
   ]));

@@ -812,32 +812,28 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
                     children: <Widget>[
                       Text(label, style: tokens.bodyText),
                       if (selected)
-                        DecoratedBox(
+                        Container(
+                          key: const Key('addresses_selected_label'),
+                          constraints: BoxConstraints(
+                            minHeight: tokens.addressesSelectedMinHeight,
+                          ),
+                          padding: const EdgeInsetsDirectional.symmetric(
+                            horizontal: 11,
+                          ),
                           decoration: BoxDecoration(
-                            color: tokens.znn.withValues(alpha: .12),
+                            color: tokens.znn.withValues(alpha: .14),
                             borderRadius: BorderRadius.circular(
                               tokens.pillRadius,
                             ),
                           ),
-                          child: Padding(
-                            padding: EdgeInsetsDirectional.symmetric(
-                              horizontal: tokens.fieldLabelGap,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Icon(
-                                  Icons.check,
-                                  size: tokens.settingsIconSize,
-                                  color: tokens.znnInk,
-                                ),
-                                Text(
-                                  context.l10n.addressesSelected,
-                                  style: tokens.addressesSelectedText.copyWith(
-                                    color: tokens.znnInk,
-                                  ),
-                                ),
-                              ],
+                          child: Center(
+                            widthFactor: 1,
+                            heightFactor: 1,
+                            child: Text(
+                              context.l10n.addressesSelected,
+                              style: tokens.addressesSelectedText.copyWith(
+                                color: tokens.znnInk,
+                              ),
                             ),
                           ),
                         ),

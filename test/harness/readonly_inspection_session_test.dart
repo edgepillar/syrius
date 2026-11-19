@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../harness/app/fixtures/home_goto_contact.dart';
 import '../../harness/app/fixtures/send_warning_draft.dart'
-    show sendWarningKnownAddress;
+    show sendWarningKnownAddress, sendWarningTypedAddress;
 import '../../harness/bin/ci_wallet_inspection.dart'
     show awaitReadonlyInspectionLab, readonlyInspectionCatalogFamily;
 import '../../harness/bin/ci_wallet_tour.dart' show awaitWalletTourLab;
@@ -1196,6 +1196,7 @@ void main() {
       ..setUint32(20, 780);
     for (final String fault in <String>[
       'unbound', 'none', 'first', 'shot', 'return', 'late', 'png',
+      'second-contact',
     ]) {
       final _CatalogStdout output = _CatalogStdout();
       final Directory repository = Directory.systemTemp.createTempSync(
@@ -1250,7 +1251,12 @@ void main() {
               expect(targetKey, isIn(<String>{
                 'addresses_add_contact', 'addresses_save_contact',
               }));
-              if (targetKey == 'addresses_save_contact') contactSaves++;
+              if (targetKey == 'addresses_save_contact') {
+                if (fault == 'second-contact' && contactSaves == 1) {
+                  return negative;
+                }
+                contactSaves++;
+              }
             }
           }
           if (name == 'tap' && command['text'] == 'English') {
@@ -1285,9 +1291,10 @@ void main() {
               expect(languageMenuOpen, isFalse);
             }
             if (selected == 'set-addresses') {
-              expect(contactSaves, 1);
+              expect(contactSaves, 2);
               expect(command['expect'], <String, Object?>{
-                'key': readonlyCatalogContactEditKey, 'exact': true,
+                'key': readonlyCatalogSecondContactEditKey,
+                'exact': true,
               });
             }
             if (fault == 'shot' || fault == 'late' && shots == 5) {
@@ -1374,18 +1381,30 @@ void main() {
         expect(progress.last.step, ScreenCaptureStep.complete);
       } else {
         await expectLater(capture(), throwsA(isA<ScreenCaptureError>()));
-        expect(shots, fault == 'return' || fault == 'png' ? 1 :
-            fault == 'late' ? 5 : 0);
-        expect(returned, fault == 'late' ? 5 : 0);
+        expect(shots, switch (fault) {
+          'return' || 'png' => 1,
+          'late' => 5,
+          'second-contact' => 10,
+          _ => 0,
+        });
+        expect(returned, switch (fault) {
+          'late' => 5,
+          'second-contact' => 10,
+          _ => 0,
+        });
         expect(restoredWindow, isFalse);
         final ScreenCaptureObservation last = progress.last;
         expect(last.step, switch (fault) {
-          'first' => ScreenCaptureStep.scriptLine,
+          'first' || 'second-contact' => ScreenCaptureStep.scriptLine,
           'return' => ScreenCaptureStep.afterCaptureLine,
           'png' => ScreenCaptureStep.shotValidation,
           _ => ScreenCaptureStep.shotRequest,
         });
-        expect(last.screen, fault == 'late' ? 'set-display' : 'set-node');
+        expect(last.screen, switch (fault) {
+          'late' => 'set-display',
+          'second-contact' => 'set-addresses',
+          _ => 'set-node',
+        });
         expect(last.theme, fault == 'late' ? 'light' : 'dark');
         expect(readonlySettingsFailureDiagnostic(last), isNotNull);
         // Original binding stays recorded; the held lane refuses later input.
@@ -1410,15 +1429,14 @@ void main() {
       final List<Map<String, Object?>> scrolls = commands.where(
         (Map<String, Object?> value) => value['cmd'] == 'scroll',
       ).toList();
-      expect(scrolls, hasLength(switch (fault) {
+      final int peerPreparations = switch (fault) {
         'first' => 0,
-        'none' => 8,
-        'late' => 6,
-        'shot' || 'return' || 'png' => 3,
+        'none' || 'late' || 'second-contact' => 2,
+        'shot' || 'return' || 'png' => 1,
         _ => throw StateError('Unexpected bound capture fault'),
-      }));
+      };
       expect(scrolls, equals(<Map<String, Object?>>[
-        for (int pair = 0; pair < scrolls.length ~/ 3; pair++)
+        for (int pair = 0; pair < peerPreparations; pair++)
           ...<Map<String, Object?>>[
             <String, Object?>{'cmd': 'scroll', 'dy': -1000000},
             <String, Object?>{
@@ -1426,28 +1444,53 @@ void main() {
             },
             <String, Object?>{'cmd': 'scroll', 'dy': -1000000},
           ],
-        if (fault == 'none') ...<Map<String, Object?>>[
+        if (fault == 'none' || fault == 'second-contact') ...<Map<String, Object?>>[
           <String, Object?>{'cmd': 'scroll', 'dy': 440},
           <String, Object?>{'cmd': 'scroll', 'dy': -1000000},
+          <String, Object?>{'cmd': 'scroll', 'dy': 440},
+          if (fault == 'none') <String, Object?>{'cmd': 'scroll', 'dy': -1000000},
         ],
       ]));
       final List<Map<String, Object?>> hovers = commands.where(
         (Map<String, Object?> value) => value['cmd'] == 'hover',
       ).toList();
       expect(hovers, <Map<String, Object?>>[
-        for (int pair = 0; pair < scrolls.length ~/ 3; pair++)
+        for (int pair = 0; pair < peerPreparations; pair++)
           <String, Object?>{'cmd': 'hover', 'at': <int>[0, 0]},
       ]);
       expect(commands.every((Map<String, Object?> value) => <String>{
         'readonly-wallet-bind', 'state', 'tree', 'tap', 'theme', 'window',
         'wait', 'assert', 'shot', 'scroll', 'hover', 'type',
       }.contains(value['cmd'])), isTrue);
-      expect(contactSaves, fault == 'none' ? 1 : 0);
+      expect(contactSaves, switch (fault) {
+        'none' => 2,
+        'second-contact' => 1,
+        _ => 0,
+      });
       expect(
         commands.where((Map<String, Object?> value) => value['cmd'] == 'type')
-            .map((Map<String, Object?> value) => value['key']),
+            .map((Map<String, Object?> value) => (value['key'], value['value'])),
+        fault == 'none' || fault == 'second-contact'
+            ? <(String, String)>[
+                ('addresses_contact_name', 'Sample contact'),
+                ('addresses_contact_address', sendWarningKnownAddress),
+                ('addresses_contact_name', 'Sample exchange'),
+                ('addresses_contact_address', sendWarningTypedAddress),
+              ]
+            : isEmpty,
+      );
+      expect(
+        commands.where((Map<String, Object?> value) => value['cmd'] == 'assert')
+            .map((Map<String, Object?> value) => value['key'])
+            .where((Object? key) => key == readonlyCatalogContactEditKey ||
+                key == readonlyCatalogSecondContactEditKey),
         fault == 'none'
-            ? <String>['addresses_contact_name', 'addresses_contact_address']
+            ? <String>[
+                readonlyCatalogContactEditKey,
+                readonlyCatalogSecondContactEditKey,
+                readonlyCatalogContactEditKey,
+                readonlyCatalogSecondContactEditKey,
+              ]
             : isEmpty,
       );
       expect(output.lines.every((Object? line) => line is String &&

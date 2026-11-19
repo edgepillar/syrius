@@ -1031,6 +1031,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The selected account's quiet label.
   TextStyle get addressesSelectedText => bodyText.copyWith(fontSize: 11);
 
+  /// The selected account pill grows if its text needs more height.
+  double get addressesSelectedMinHeight => 20;
+
   /// Directional inset shared by address and contact rows.
   EdgeInsetsDirectional get addressesTablePadding =>
       const EdgeInsetsDirectional.fromSTEB(16, 9, 16, 9);
