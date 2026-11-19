@@ -166,8 +166,8 @@ void main() {
     await tester.pump(const Duration(seconds: 3));
 
     final Finder lottie = find.byType(Lottie);
-    final Animation<double> original =
-        tester.widget<Lottie>(lottie).controller!;
+    final Element renderer = tester.element(lottie);
+    final Animation<double> original = (renderer.widget as Lottie).controller!;
     expect(original.status, AnimationStatus.completed);
     final Element owner = tester.element(find.byKey(receipt));
     final PillarReferenceArtwork artwork = PillarReferenceArtwork(
@@ -186,7 +186,7 @@ void main() {
       artwork.capture(
         frames: frames.gate,
         readback: () async {
-          final Lottie held = tester.widget<Lottie>(lottie);
+          final Lottie held = renderer.widget as Lottie;
           return (
             reading: artwork.isReadingSample(owner),
             controller: held.controller,
@@ -201,6 +201,7 @@ void main() {
     expect(sample.frame, closeTo(118, .0001));
     expect(sample.originalStatus, AnimationStatus.completed);
     expect(artwork.isReadingSample(owner), isFalse);
+    expect(tester.element(lottie), same(renderer));
     expect(tester.widget<Lottie>(lottie).controller, same(original));
   });
 
