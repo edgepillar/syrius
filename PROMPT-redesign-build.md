@@ -733,6 +733,13 @@ Its reader reports any observed startup phases and separates samples by their
 raster-start bounds around Lock arrival. The paired launch window and its
 16 ms acceptance criterion retain their original timing.
 
+The [standalone run at `fb26b74d`](https://github.com/edgepillar/syrius/actions/runs/44600017140/job/135828554100)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44602312077/job/135836704446)
+verify 115 retained frames and two normal exits. Twenty-four raster starts
+fall at or after the observed Lock arrival. Eighteen exceed 16 ms and the
+longest takes 138.403 ms. The original window has 62 missing frame numbers.
+The paired P06 comparison remains open under V02.
+
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
 | Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Native late and settled samples. | Observe the early handoff and complete 400 ms settle. |
