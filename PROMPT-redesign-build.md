@@ -833,6 +833,18 @@ The [rerun at `6abdb54e`](https://github.com/edgepillar/syrius/actions/runs/4461
 passes the focused Ready suite, including the covered raster case, and the
 full non-chain unit and widget suite.
 
+The [paired Windows run at `e033916a`](https://github.com/edgepillar/syrius/actions/runs/44612332339/job/135871920029)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44615655646/job/135883507243)
+verify 95 redesign frames, 1,083 P06 frames and five normal exits. Both
+windows report zero builds over 16 ms. The raster and distinct-frame comparisons
+fail, and the windows have 22 and 663 frame-number gaps, respectively. Peak
+total spans are 319.329 ms in the redesign and 137.734 ms in P06. The redesign
+peak raster is 260.746 ms and starts between 459.583 and 517.651 ms into the
+window, after the observed first film frame at 304.092 ms and before the
+observed film end at 3,590.920 ms. Three raster starts follow observed Lock
+arrival. All three exceed 16 ms and the maximum is 46.876 ms. These timings
+locate the peak within playback. The responsible raster work remains unknown.
+
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
 calls `jumpTo` only when the extent differs from the current offset, avoiding
