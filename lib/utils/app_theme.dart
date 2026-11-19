@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
 
 import 'package:material_ui/material_ui.dart';
@@ -2412,9 +2413,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
 }
 
 /// CSS 100 degrees is ten degrees clockwise from a left-to-right fill.
-/// Rotation keeps that angle in canvas space when a button is very wide.
 const LinearGradient kPlasmaGradient = LinearGradient(
-  transform: GradientRotation(0.17453292519943295),
+  transform: _PlasmaGradientTransform(),
   colors: <Color>[
     AppColors.znnColor,
     AppColors.plasmaMiddle,
@@ -2422,6 +2422,28 @@ const LinearGradient kPlasmaGradient = LinearGradient(
   ],
   stops: <double>[0, 0.55, 1],
 );
+
+class _PlasmaGradientTransform extends GradientRotation {
+  const _PlasmaGradientTransform() : super(math.pi / 18);
+
+  @override
+  Matrix4 transform(Rect bounds, {TextDirection? textDirection}) {
+    final Matrix4 rotation = super.transform(
+      bounds,
+      textDirection: textDirection,
+    );
+    if (bounds.isEmpty) return rotation;
+
+    // The gradient line spans the projection of both sides onto its axis.
+    final double scale =
+        math.cos(radians) + math.sin(radians) * bounds.height / bounds.width;
+    final Offset center = bounds.center;
+    return rotation
+      ..translateByDouble(center.dx, center.dy, 0, 1)
+      ..scaleByDouble(scale, scale, 1, 1)
+      ..translateByDouble(-center.dx, -center.dy, 0, 1);
+  }
+}
 
 /// A one-pixel line with no additional vertical or horizontal inset.
 const DividerThemeData kDefaultDividerThemeData = DividerThemeData(

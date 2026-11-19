@@ -155,7 +155,7 @@ void main() {
         }
       });
 
-      test('the primary gradient keeps its colours, stop and angle', () {
+      test('the primary gradient reaches both corners', () {
         final RegExpMatch gradient = RegExp(
           r'^linear-gradient\(([\d.]+)deg,var\(--znn\),'
           r'(#[\da-fA-F]{6}) ([\d.]+)%,var\(--qsr\)\)$',
@@ -181,6 +181,33 @@ void main() {
             1e-12,
           ),
         );
+        for (final Rect bounds in <Rect>[
+          const Rect.fromLTWH(24, 48, 92, 38),
+          const Rect.fromLTWH(24, 48, 480, 46),
+        ]) {
+          final Matrix4 matrix = rotation.transform(bounds);
+          final Offset start = MatrixUtils.transformPoint(
+            matrix,
+            bounds.centerLeft,
+          );
+          final Offset end = MatrixUtils.transformPoint(
+            matrix,
+            bounds.centerRight,
+          );
+          final Offset line = end - start;
+          final Offset axis = line / line.distance;
+          final Offset firstCorner = bounds.topLeft - start;
+          final Offset lastCorner = bounds.bottomRight - end;
+          expect(axis.direction, closeTo(rotation.radians, 1e-12));
+          expect(
+            firstCorner.dx * axis.dx + firstCorner.dy * axis.dy,
+            closeTo(0, 1e-9),
+          );
+          expect(
+            lastCorner.dx * axis.dx + lastCorner.dy * axis.dy,
+            closeTo(0, 1e-9),
+          );
+        }
       });
 
       test('data and ledger styles keep mono, figures and tracking', () {
