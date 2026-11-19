@@ -85,7 +85,10 @@ class _OriginalsTiles extends StatelessWidget {
                 ),
               ],
             ),
-            Text(context.l10n.originalsHover, style: tokens.settingsHintText),
+            Text(
+              context.l10n.originalsHover,
+              style: tokens.settingsHintText.copyWith(color: tokens.faint),
+            ),
           ],
         ),
       ],
@@ -310,6 +313,7 @@ class _OriginalsMiniState extends State<_OriginalsMini>
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    final bool eye = widget.asset == AppLottieAsset.eye;
     final double size = widget.asset == AppLottieAsset.noData
         ? tokens.originalsEmptyMarkSize
         : tokens.originalsMiniMarkSize;
@@ -317,22 +321,16 @@ class _OriginalsMiniState extends State<_OriginalsMini>
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         SizedBox(
-          width: size,
+          width: eye ? tokens.originalsMiniEyeWidth : size,
           height: size,
           child: widget.animate
               ? ClipRect(
                   child: OverflowBox(
-                    maxWidth: widget.asset == AppLottieAsset.eye
-                        ? tokens.originalsEyeSize
-                        : size,
-                    maxHeight: widget.asset == AppLottieAsset.eye
-                        ? tokens.originalsEyeSize
-                        : size,
+                    maxWidth: eye ? tokens.originalsEyeSize : size,
+                    maxHeight: eye ? tokens.originalsEyeSize : size,
                     child: AppLottie(
                       widget.asset,
-                      size: widget.asset == AppLottieAsset.eye
-                          ? tokens.originalsEyeSize
-                          : size,
+                      size: eye ? tokens.originalsEyeSize : size,
                       controller: _clock,
                       onLoaded: _loaded,
                       originalsReferenceProgress: switch (widget.asset) {
@@ -346,7 +344,12 @@ class _OriginalsMiniState extends State<_OriginalsMini>
               : const SizedBox.shrink(),
         ),
         SizedBox(width: tokens.originalsMiniMarkGap),
-        Flexible(child: Text(widget.label, style: tokens.settingsHintText)),
+        Flexible(
+          child: Text(
+            widget.label,
+            style: tokens.compactText.copyWith(color: tokens.dim),
+          ),
+        ),
       ],
     );
   }

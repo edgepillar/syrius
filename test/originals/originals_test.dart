@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/originals_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 
@@ -219,12 +220,27 @@ void main() {
                 findsOneWidget,
               );
             }
-            expect(
-              find.text('Generating plasma, in the strip'),
-              findsOneWidget,
+            final Finder eyeLabel = find.text('Hidden balances');
+            final AppTokens tokens = AppTokens.of(tester.element(eyeLabel));
+            for (final String label in <String>[
+              'Generating plasma, in the strip',
+              'Hidden balances',
+              'Empty lists',
+            ]) {
+              final Text text = tester.widget<Text>(find.text(label));
+              expect(text.style!.fontSize, 13);
+              expect(text.style!.color, tokens.dim);
+            }
+            final Rect label = tester.getRect(eyeLabel);
+            final Rect group = tester.getRect(
+              find.ancestor(of: eyeLabel, matching: find.byType(Row)).first,
             );
-            expect(find.text('Hidden balances'), findsOneWidget);
-            expect(find.text('Empty lists'), findsOneWidget);
+            expect(
+              scaledRtl ? group.right - label.right : label.left - group.left,
+              closeTo(32, 0.001),
+            );
+            final Text hover = tester.widget<Text>(find.text('Hover to play'));
+            expect(hover.style!.color, tokens.faint);
             expect(find.text('Play launch'), findsOneWidget);
             expect(tester.takeException(), isNull);
           } finally {

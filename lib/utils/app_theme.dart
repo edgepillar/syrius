@@ -1143,8 +1143,11 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Space between a small original and its use in the wallet.
   double get originalsMiniMarkGap => 8;
 
-  /// The plasma and eye originals' compact viewport.
+  /// The plasma mark's size and the eye viewport height.
   double get originalsMiniMarkSize => 22;
+
+  /// The visible width of the eye's cropped gallery viewport.
+  double get originalsMiniEyeWidth => 24;
 
   /// The original empty-list mark's viewport.
   double get originalsEmptyMarkSize => 18;
