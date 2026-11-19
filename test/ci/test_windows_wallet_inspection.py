@@ -354,7 +354,8 @@ class InspectionTests(unittest.TestCase):
             self.assertEqual(lab.READONLY_CATALOG_SCHEMAS[
                 lab.readonly_catalog_family(selected)], schema)
         for value in (None, True, 1, '', 'Home', 'all', 'home,navigation',
-                      '../home', 'launch', 'launch-settle', 'startup-catalog', 'launch-timing', 'launch-timing-pair', 'interactive-timing-pair',
+                      '../home', 'launch', 'launch-settle', 'launch-motion', 'startup-catalog',
+                      'launch-timing', 'launch-timing-pair', 'interactive-timing-pair',
                       'lock-catalog', 'lock-seams', 'quiz-catalog', 'seeded-states',
                       'seeded-states-visual', 'stake-draft', 'project-detail', 'pillar-spawn',
                       'pillar-done', 'swap-seeded'):
@@ -370,11 +371,22 @@ class InspectionTests(unittest.TestCase):
             ['home', 'home-seams', 'surface-seams', 'home-bell', 'home-zap-preview', 'settings', 'settings-seams',
              'navigation', 'details', 'token-draft',
              'send-confirm', 'send-warn', 'swap-start', 'wallet-ready', 'earn',
-             'sentinel-fixture', 'launch', 'launch-settle', 'startup-catalog', 'launch-timing', 'launch-timing-pair', 'interactive-timing-pair',
+             'sentinel-fixture', 'launch', 'launch-settle', 'launch-motion', 'startup-catalog',
+             'launch-timing', 'launch-timing-pair', 'interactive-timing-pair',
              'lock-catalog', 'lock-seams', 'quiz-catalog', 'seeded-states',
              'seeded-states-visual', 'swap-seeded', 'stake-draft', 'project-detail', 'pillar-spawn',
              'pillar-done'])
         self.assertIn('SYRIUS_READONLY_CATALOG_FAMILY: ${{ inputs.readonly_catalog_family }}', workflow)
+        motion = workflow.split('      - name: Retain bounded launch motion samples\n', 1)[1]
+        upload = motion.split('\n      - name:', 1)[0]
+        self.assertIn("inputs.readonly_catalog_family == 'launch-motion'", upload)
+        self.assertEqual([line.strip() for line in upload.splitlines()
+                          if line.strip().startswith('.harness/')], [
+            '.harness/ci-launch-motion/manifest.json',
+            '.harness/ci-launch-motion/00-early.png',
+            '.harness/ci-launch-motion/01-late.png',
+            '.harness/ci-launch-motion/02-settled.png',
+        ])
         for family in ('send-warn', 'settings-seams', 'home-seams', 'surface-seams'):
             scoped = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=family,
                 SYRIUS_HOSTED_RUNNER='github-hosted', GITHUB_ACTIONS='true',
