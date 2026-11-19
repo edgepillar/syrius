@@ -966,7 +966,7 @@ const Set<String> _spawnLines = <String>{
 const Set<String> _pillarDoneLines = <String>{
   'wait --key pillar_registration_confirmed --ready --timeout 60',
   'wait --key registration_confirmation_caption --timeout 10',
-  'hover --key registration_confirmation_caption --kind text',
+  'tap --key registration_confirmation_caption --kind text --exact',
   'assert --key pillar_registration_confirmed',
 };
 
@@ -1330,7 +1330,9 @@ Future<Map<String, Object>> _captureSeededCatalog(
         case 'tap':
           await cli.call(instance, <String, Object?>{
             'cmd': 'tap',
-            if (pillarSpawn) ...assertion(args) else ...<String, Object?>{
+            if (pillarSpawn || pillarDone)
+              ...assertion(args)
+            else ...<String, Object?>{
               'key': args.last, 'exact': true,
             },
           });

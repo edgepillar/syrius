@@ -602,7 +602,7 @@ void main() {
           <String>[
             'wait --key pillar_registration_confirmed --ready --timeout 60',
             'wait --key registration_confirmation_caption --timeout 10',
-            'hover --key registration_confirmation_caption --kind text',
+            'tap --key registration_confirmation_caption --kind text --exact',
             'assert --key pillar_registration_confirmed',
           ]);
       expect(done.afterCapture, isEmpty);

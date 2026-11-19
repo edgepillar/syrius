@@ -2,5 +2,6 @@
 # Both themes wait for the original receipt artwork to reach its final frame.
 wait --key pillar_registration_confirmed --ready --timeout 60
 wait --key registration_confirmation_caption --timeout 10
-hover --key registration_confirmation_caption --kind text
+# Tap the passive caption to dismiss tooltips from either mouse device.
+tap --key registration_confirmation_caption --kind text --exact
 assert --key pillar_registration_confirmed
