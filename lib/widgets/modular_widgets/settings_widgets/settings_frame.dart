@@ -63,6 +63,7 @@ class SettingsFrame extends StatelessWidget {
     required this.selected,
     required this.onSelected,
     required this.child,
+    this.isolateTransitionPaint = true,
     super.key,
   });
 
@@ -74,6 +75,9 @@ class SettingsFrame extends StatelessWidget {
 
   /// The selected section's page.
   final Widget child;
+
+  /// Gives the section stack a boundary when its host has no page boundary.
+  final bool isolateTransitionPaint;
 
   @override
   Widget build(BuildContext context) {
@@ -108,6 +112,7 @@ class SettingsFrame extends StatelessWidget {
         SizedBox(width: tokens.pageGap),
         Expanded(
           child: RiseSwitcher(
+            isolateTransitionPaint: isolateTransitionPaint,
             child: KeyedSubtree(
               key: ValueKey<SettingsSectionId>(selected),
               child: child,

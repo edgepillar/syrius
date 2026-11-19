@@ -78,6 +78,8 @@ class _SettingsTabChildState extends State<SettingsTabChild> {
   Widget build(BuildContext context) {
     return SettingsFrame(
       selected: _section,
+      // The shell switcher already gives the whole Settings tab a boundary.
+      isolateTransitionPaint: false,
       onSelected: (SettingsSectionId section) {
         if (section == _section) return;
         setState(() {

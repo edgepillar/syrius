@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/rise_switcher.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_frame.dart';
 
@@ -10,6 +11,7 @@ Widget _app({
   bool light = false,
   bool rtl = false,
   bool disableAnimations = false,
+  bool hostOwnsPaint = false,
   double textScale = 1,
   double? height,
   ValueChanged<SettingsSectionId>? onAction,
@@ -26,13 +28,21 @@ Widget _app({
     child: child!,
   ),
   home: Scaffold(
-    body: SizedBox(height: height, child: _Demo(onAction: onAction)),
+    body: SizedBox(
+      height: height,
+      child: hostOwnsPaint
+          ? RepaintBoundary(
+              child: _Demo(onAction: onAction, hostOwnsPaint: true),
+            )
+          : _Demo(onAction: onAction),
+    ),
   ),
 );
 
 class _Demo extends StatefulWidget {
-  const _Demo({this.onAction});
+  const _Demo({this.onAction, this.hostOwnsPaint = false});
   final ValueChanged<SettingsSectionId>? onAction;
+  final bool hostOwnsPaint;
 
   @override
   State<_Demo> createState() => _DemoState();
@@ -44,6 +54,7 @@ class _DemoState extends State<_Demo> {
   @override
   Widget build(BuildContext context) => SettingsFrame(
     selected: selected,
+    isolateTransitionPaint: !widget.hostOwnsPaint,
     onSelected: (SettingsSectionId value) => setState(() => selected = value),
     child: Center(
       key: const Key('settings_page'),
@@ -226,18 +237,30 @@ void main() {
   ) async {
     _window(tester);
     final List<SettingsSectionId> actions = <SettingsSectionId>[];
-    await tester.pumpWidget(_app(onAction: actions.add));
+    await tester.pumpWidget(_app(onAction: actions.add, hostOwnsPaint: true));
     await tester.pumpAndSettle();
+    final Finder switcher = find.byType(RiseSwitcher);
+    final Finder boundaries = find.descendant(
+      of: switcher,
+      matching: find.byType(RepaintBoundary),
+    );
+    expect(
+      tester.widget<RiseSwitcher>(switcher).isolateTransitionPaint,
+      isFalse,
+    );
+    expect(boundaries, findsOneWidget);
     final Offset oldAction = tester.getCenter(
       find.byKey(const Key('action_addresses')),
     );
     await tester.tap(_section(SettingsSectionId.apps));
     await tester.pump();
+    expect(boundaries, findsNWidgets(2));
     expect(find.text('Page addresses'), findsOneWidget);
     await tester.tapAt(oldAction);
     await tester.pump();
     expect(actions, isEmpty);
     await tester.pumpAndSettle();
+    expect(boundaries, findsOneWidget);
     expect(find.text('Page addresses'), findsNothing);
     await tester.tap(find.byKey(const Key('action_apps')));
     expect(actions, <SettingsSectionId>[SettingsSectionId.apps]);
