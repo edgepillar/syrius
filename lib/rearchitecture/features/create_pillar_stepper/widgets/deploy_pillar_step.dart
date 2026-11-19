@@ -61,6 +61,10 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
   final TextEditingController _pillarNameController = TextEditingController();
   final TextEditingController _pillarRewardAddressController =
       TextEditingController();
+  final FocusNode _rewardAddressFocus = FocusNode(
+    canRequestFocus: false,
+    skipTraversal: true,
+  );
   final TextEditingController _pillarMomentumController =
       TextEditingController();
 
@@ -112,6 +116,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
   void dispose() {
     _pillarNameController.dispose();
     _pillarRewardAddressController.dispose();
+    _rewardAddressFocus.dispose();
     _pillarMomentumController.dispose();
     _momentumRewardPercentage.dispose();
     _delegateRewardPercentage.dispose();
@@ -127,6 +132,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
           _pillarNameController,
           _pillarMomentumController,
           _pillarRewardAddressController,
+          _rewardAddressFocus,
           _momentumRewardPercentage,
           _delegateRewardPercentage,
         ]),
@@ -457,6 +463,9 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
     // An address reads left to right in every language.
     final TextStyle address = accFieldTextStyle(context, mono: true);
     final TextAlign addressAlign = ltrTextAlign(context);
+    final bool showRewardTools =
+        _rewardAddressFocus.hasFocus ||
+        _pillarRewardAddressController.text != widget.ownerAddress;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -517,37 +526,60 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
         AccField(
           label: context.l10n.pillarRewardAddress,
           help: context.l10n.addressToCollectRewards,
-          child: TextField(
-            key: const Key('pillar_reward_address_field'),
-            controller: _pillarRewardAddressController,
-            readOnly: _isSending,
-            style: address,
-            textDirection: TextDirection.ltr,
-            textAlign: addressAlign,
-            decoration: InputDecoration(
-              errorText: _pillarRewardAddressController.text.isNotEmpty
-                  ? _pillarRewardAddressError
-                  : null,
-              suffixIconConstraints: BoxConstraints(
-                minHeight: tokens.fieldHeight,
-              ),
-              suffixIcon: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  TextButton(
-                    key: const Key('pillar_use_owner_address'),
-                    style: TextButton.styleFrom(
-                      minimumSize: Size(0, tokens.fieldHeight),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.standard,
-                    ),
-                    onPressed: _canUseOwnerAddress ? _useOwnerAddress : null,
-                    child: Text(context.l10n.tokensThisAddress),
+          child: Focus.withExternalFocusNode(
+            focusNode: _rewardAddressFocus,
+            child: TextField(
+              key: const Key('pillar_reward_address_field'),
+              controller: _pillarRewardAddressController,
+              readOnly: _isSending,
+              style: address,
+              textDirection: TextDirection.ltr,
+              textAlign: addressAlign,
+              decoration: InputDecoration(
+                errorText: _pillarRewardAddressController.text.isNotEmpty
+                    ? _pillarRewardAddressError
+                    : null,
+                suffixIconConstraints: BoxConstraints(
+                  minHeight: tokens.fieldHeight,
+                ),
+                suffixIcon: Padding(
+                  padding: EdgeInsetsDirectional.only(
+                    end: tokens.sendFieldPadding.end,
                   ),
-                  FieldSuffixButtons(
-                    controller: _pillarRewardAddressController,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      OutlinedButton(
+                        key: const Key('pillar_use_owner_address'),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(0, 22),
+                          padding: tokens.transferChipPadding,
+                          textStyle: tokens.transferChipText.copyWith(
+                            height: 1.25,
+                          ),
+                          foregroundColor: tokens.dim,
+                          backgroundColor: Colors.transparent,
+                          side: BorderSide(color: tokens.line),
+                          shape: const StadiumBorder(),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.standard,
+                        ),
+                        onPressed: _canUseOwnerAddress
+                            ? _useOwnerAddress
+                            : null,
+                        child: Text(context.l10n.tokensThisAddress),
+                      ),
+                      Visibility(
+                        visible: showRewardTools,
+                        // Keep a pending clipboard read tied to this editor.
+                        maintainState: true,
+                        child: FieldSuffixButtons(
+                          controller: _pillarRewardAddressController,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),

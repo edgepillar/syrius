@@ -135,6 +135,11 @@ void main() {
       const Key('pillar_producer_address_field'),
     );
     final Finder reward = find.byKey(const Key('pillar_reward_address_field'));
+    final Finder ownerChip = find.byKey(const Key('pillar_use_owner_address'));
+    final Finder rewardTools = find.descendant(
+      of: reward,
+      matching: find.byType(ClearContentButton),
+    );
     final Finder detailsNext = find.byKey(
       const Key('pillar_details_next_button'),
     );
@@ -162,8 +167,15 @@ void main() {
     await tester.tap(back);
     expect(exits, 1);
 
+    expect(tester.widget(ownerChip), isA<OutlinedButton>());
+    expect(tester.getSize(ownerChip).height, closeTo(22, .01));
+    expect(rewardTools, findsNothing);
+    await tester.tap(reward);
+    await tester.pump();
+    expect(rewardTools.hitTestable(), findsOneWidget);
     await tester.enterText(name, '?invalid');
     await tester.pump();
+    expect(rewardTools, findsNothing);
     expect(nameValid, findsNothing);
     await tester.enterText(name, 'pillar');
     await tester.enterText(producer, owner);
@@ -178,7 +190,7 @@ void main() {
     await tester.enterText(producer, pillarAddress.toString());
     await tester.enterText(reward, plasmaAddress.toString());
     await tester.pump();
-    await tester.tap(find.byKey(const Key('pillar_use_owner_address')));
+    await tester.tap(ownerChip);
     await tester.pump();
     expect(tester.widget<TextField>(reward).controller!.text, owner);
     expect(tester.getSize(reward).height, closeTo(tokens.fieldHeight, .01));
