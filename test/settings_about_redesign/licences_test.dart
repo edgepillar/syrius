@@ -110,10 +110,28 @@ void main() {
         expect(name, findsOneWidget);
         expect(tester.widget<Text>(name).style?.fontWeight, FontWeight.w400);
         final Finder row = find.byKey(const Key('about_licence_alpha_toggle'));
-        final Rect rowBounds = tester.getRect(row);
-        final Rect chevron = tester.getRect(
-          find.descendant(of: row, matching: find.byType(RotationTransition)),
+        final Finder chevronFinder = find.descendant(
+          of: row,
+          matching: find.byType(RotationTransition),
         );
+        final ListView list = tester.widget<ListView>(
+          find.byKey(const Key('about_licences_list')),
+        );
+        expect(
+          (list.childrenDelegate as SliverChildBuilderDelegate)
+              .addRepaintBoundaries,
+          isTrue,
+        );
+        expect(
+          find.descendant(of: row, matching: find.byType(RepaintBoundary)),
+          findsNothing,
+        );
+        expect(
+          tester.widget<RotationTransition>(chevronFinder).turns.value,
+          variant.$2 ? .25 : -.25,
+        );
+        final Rect rowBounds = tester.getRect(row);
+        final Rect chevron = tester.getRect(chevronFinder);
         expect(
           variant.$2
               ? chevron.left - rowBounds.left
@@ -145,6 +163,7 @@ void main() {
         expect(verifiedReads, 0);
         expect(reads, 0);
         await _open(tester, 'alpha');
+        expect(tester.widget<RotationTransition>(chevronFinder).turns.value, 0);
         expect(reads, 1);
         expect(
           find.text('Complete raw notice text continues.'),

@@ -128,6 +128,7 @@ class Disclosure extends StatefulWidget {
     this.headerPadding = _kHeaderPadding,
     this.headerMinHeight = _kHeaderHeight,
     this.titleStyle,
+    this.isolateChevronPaint = true,
     super.key,
   }) : assert(
          summaryColumnPercent == null ||
@@ -152,6 +153,7 @@ class Disclosure extends StatefulWidget {
        summaryColumnPercent = null,
        keyPrefix = null,
        titleStyle = null,
+       isolateChevronPaint = false,
        headerPadding = _kHeaderPadding;
 
   /// The heading. Null only for [Disclosure.bare], which has no header.
@@ -209,6 +211,9 @@ class Disclosure extends StatefulWidget {
 
   /// Optional title style for disclosures embedded in a form.
   final TextStyle? titleStyle;
+
+  /// Gives the chevron a layer when its parent row has no paint boundary.
+  final bool isolateChevronPaint;
 
   @override
   State<Disclosure> createState() => _DisclosureState();
@@ -374,6 +379,7 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
               summary: widget.summary,
               summaryColumnPercent: widget.summaryColumnPercent,
               turned: _turned,
+              isolateChevronPaint: widget.isolateChevronPaint,
               open: _open,
               onToggle: () => _setOpen(!_open),
             ),
@@ -441,6 +447,7 @@ class _DisclosureHeader extends StatefulWidget {
     required this.summary,
     required this.summaryColumnPercent,
     required this.turned,
+    required this.isolateChevronPaint,
     required this.open,
     required this.onToggle,
   });
@@ -456,6 +463,8 @@ class _DisclosureHeader extends StatefulWidget {
 
   /// 0 closed, 1 open: what the chevron turns with.
   final Animation<double> turned;
+
+  final bool isolateChevronPaint;
 
   /// Where the disclosure is going, for a screen reader.
   final bool open;
@@ -575,7 +584,10 @@ class _DisclosureHeaderState extends State<_DisclosureHeader> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    _DisclosureChevron(turned: widget.turned),
+                    _DisclosureChevron(
+                      turned: widget.turned,
+                      isolatePaint: widget.isolateChevronPaint,
+                    ),
                   ],
                 ),
               ),
@@ -594,24 +606,24 @@ class _DisclosureHeaderState extends State<_DisclosureHeader> {
 /// Right to left it starts from the other side, as the row does, and both
 /// arrive at the same place.
 class _DisclosureChevron extends StatelessWidget {
-  const _DisclosureChevron({required this.turned});
+  const _DisclosureChevron({required this.turned, required this.isolatePaint});
 
   /// 0 closed, 1 open.
   final Animation<double> turned;
+  final bool isolatePaint;
 
   @override
   Widget build(BuildContext context) {
     final bool rtl = Directionality.of(context) == TextDirection.rtl;
-    // A turn dirties only the glyph's paint, beside the static header text.
-    return RepaintBoundary(
-      child: RotationTransition(
-        turns: Tween<double>(begin: rtl ? 0.25 : -0.25, end: 0).animate(turned),
-        child: ShellSymbol(
-          'chev',
-          size: AppTokens.disclosureChevronSize,
-          color: AppTokens.of(context).faint,
-        ),
+    final Widget chevron = RotationTransition(
+      turns: Tween<double>(begin: rtl ? 0.25 : -0.25, end: 0).animate(turned),
+      child: ShellSymbol(
+        'chev',
+        size: AppTokens.disclosureChevronSize,
+        color: AppTokens.of(context).faint,
       ),
     );
+    // Isolate a standalone header's turning glyph from its surrounding paint.
+    return isolatePaint ? RepaintBoundary(child: chevron) : chevron;
   }
 }

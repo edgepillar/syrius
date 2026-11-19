@@ -512,6 +512,8 @@ class _LicenceRow extends StatelessWidget {
         keyPrefix: 'about_licence_${package.name}',
         headerMinHeight: tokens.aboutLicenceRowHeight,
         headerPadding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
+        // The lazy list already isolates each painted row.
+        isolateChevronPaint: false,
         onChanged: (bool open) {
           if (open) {
             try {
