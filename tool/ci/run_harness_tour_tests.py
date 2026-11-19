@@ -324,6 +324,10 @@ def main():
         asset_fidelity = parent.get('SYRIUS_STARTUP_ASSET_FIDELITY') == 'true'
         debug.need(not asset_fidelity or
             parent.get('SYRIUS_WINDOWS_STARTUP_PROBE') == 'true', 'ENVIRONMENT_REFUSED')
+        # Ordinary suites use independent fixtures. Keep the profile that
+        # decodes the full launch master on a single worker.
+        workers = 1 if asset_fidelity else 2
+        report['worker_count'] = workers
         repo = Path(parent['GITHUB_WORKSPACE'])
         debug.need(repo.resolve() == Path.cwd().resolve(), 'ENVIRONMENT_REFUSED')
         debug.bounded.verify_source(repo, source, parent)
@@ -369,7 +373,8 @@ def main():
             report['commands'].append(row)
             timeout = group_command_timeout(command_started, time.monotonic())
             outcome = run_bounded([str(dart), '--packages=' + str(packages), str(snapshot),
-                'test', '--no-pub', '--reporter', 'json', '--concurrency=1', *group],
+                'test', '--no-pub', '--reporter', 'json',
+                f'--concurrency={workers}', *group],
                 cwd=repo, env=fresh_environment(repo, parent), timeout=timeout, cap=4 * 1024**2)
             row['command'] = dict(**outcome.public(),
                 output_sha256=hashlib.sha256(outcome.output).hexdigest())

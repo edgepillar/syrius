@@ -144,7 +144,7 @@ class HarnessAdmissionTests(unittest.TestCase):
             'test/launch_film/launch_decode_observation_test.dart'), 1)
         self.assertEqual(self.command_argv.count(
             'test/launch_film/launch_webp_frames_test.dart'), 1)
-        self.assertIn('--concurrency=1', self.command_argv)
+        self.assertEqual(self.command_argv.count('--concurrency=2'), 2)
         self.assertEqual(self.command_argv.count(
             'test/harness/agent_input_test.dart'), 1)
         self.assertEqual(self.command_argv.count(
@@ -156,6 +156,8 @@ class HarnessAdmissionTests(unittest.TestCase):
         code, report, _, _ = self.run_case(passed=ASSET_CASES, asset_fidelity=True)
         self.assertEqual(code, 0)
         self.assertTrue(report['launch_asset_fidelity'])
+        self.assertEqual(report['worker_count'], 1)
+        self.assertEqual(self.command_argv.count('--concurrency=1'), 2)
         self.assertEqual(self.command_argv.count(
             'test/launch_film/launch_asset_test.dart'), 1)
         for passed in (1340, 1350, 1351, 1353, 1354, 1352, 1358, 1359, 1360,
@@ -323,13 +325,14 @@ class HarnessAdmissionTests(unittest.TestCase):
         code, report, source, tree = self.run_case()
         self.assertEqual((code, report['schema'], source, tree), (0, 2, 3, 3))
         self.assertEqual(report['groups_expected'], 2)
+        self.assertEqual(report['worker_count'], 2)
         self.assertEqual([row['selected_suites'] for row in report['commands']], [57, 56])
         self.assertEqual([row['first_suite_index'] for row in report['commands']], [1, 58])
         self.assertEqual(report['total_command_limit_seconds'], 600)
         for call in self.command_groups:
             self.assertEqual(call.kwargs['timeout'], 300)
             self.assertEqual(call.kwargs['cap'], 4 * 1024**2)
-            self.assertEqual(call.args[0].count('--concurrency=1'), 1)
+            self.assertEqual(call.args[0].count('--concurrency=2'), 1)
         self.assertEqual(len(set(self.selected_paths)), 113)
         self.assertEqual(self.selected_paths.count(
             'test/toast/event_toast_test.dart'), 1)
