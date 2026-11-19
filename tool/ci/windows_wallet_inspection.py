@@ -1914,7 +1914,14 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *,
                             requested=seam_pilot[2], observed=[dict(row) for row in seam_pointers],
                             probe_failure=seam_failure, complete=seam_failure is None
                                 and len(seam_pointers) == seam_pilot[2])
-        lab_current()
+        final_phase = 'complete'
+        try:
+            lab_current()
+        except Exception as error:
+            # The entry is waiting at FINISH after its completed capture.
+            # Record the failed admission before retiring both actors normally.
+            final_phase = report['phase']
+            report['errors'].append(inspection_failure_code(error, final_phase))
         report['phase'] = 'ordinary_close'
         close_attempted = True
         closed = transport.exchange(dict(cmd='quit'), token, 5)
@@ -1940,7 +1947,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *,
         report['forced_cleanup'] = report['auxiliary_cleanup']['forced']
         need(debug.helper_cleanup_complete(report['auxiliary_cleanup']), 'HELPER_CLOSE_UNCONFIRMED')
         report['checks']['auxiliary_cleanup'] = True
-        report['phase'] = 'complete'
+        report['phase'] = final_phase
         if seam_failure is not None and seam_failure not in report['errors']:
             report['errors'].append(seam_failure)
     except (Exception, KeyboardInterrupt) as error:

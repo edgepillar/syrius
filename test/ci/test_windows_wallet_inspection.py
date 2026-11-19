@@ -1223,6 +1223,13 @@ class InspectionTests(unittest.TestCase):
             change(value)
             self.assertFalse(inspection.completed(value))
 
+        value = report()
+        value.update(phase='lab_revalidation', lab_revalidations=1,
+                     errors=['PRODUCTION_UNPROVEN'], success=False,
+                     inspection_qualified=False)
+        self.assertFalse(inspection.completed(value))
+        inspection.public_manifest(value)
+
     def test_exact_auxiliary_termination_remains_separate_from_required_actors(self):
         value = report()
         value['forced_cleanup'] = value['auxiliary_cleanup']['forced'] = True
