@@ -705,6 +705,30 @@ Registering the retained Import backdrop to the reference gives a closer
 fit near the start of the drift than at the existing six-second sample.
 The exact reference phase and whole-image verdicts remain open under V01.
 
+#### Lock and Import backdrop phase at `06eda3f7`
+
+The exact [Lock](https://github.com/edgepillar/syrius/actions/runs/44579867208/job/135757308518)
+and [Import](https://github.com/edgepillar/syrius/actions/runs/44582250018/job/135765713115)
+originals and their reference PNGs were compared directly from retained
+archives after verifying their digests. The comparison samples columns
+96 through 312 and 978 through 1194 at 24 px intervals, and rows 144 through
+676 at 28 px intervals. It registers the known six-second sample against
+the 20-second reference drift in half-second steps using the authored
+translation, rotation and easing. The palette estimate maps the sampled
+RGB blend from the approved brand colours to the mockup colours in memory.
+
+| Theme and region | RGB mean absolute error at 6 s | After palette estimate at 6 s | Lowest error after palette estimate |
+| --- | ---: | ---: | --- |
+| Dark left, both screens | 2.113 | 0.498 | 0.495 at 5 s |
+| Light left, Lock | 2.122 | 0.612 | 0.533 at 1.5 s |
+| Light left, Import | 2.122 | 0.612 | 0.553 at 4.5 s |
+| Dark right, both screens | 0.770 | 0.830 | 0.577 at 1.5 s |
+| Light right, both screens | 1.058 | 0.912 | 0.677 at 1.5 s |
+
+The preferred phase varies by region and theme. The results identify 1.5 s
+as a candidate for a paired right-side comparison, with the six-second
+sample retained as the capture contract. Whole-image verdicts remain open.
+
 ### Receive at rest at `06eda3f7`
 
 The latest private comparison records verdicts for all 62 locally available
@@ -801,7 +825,8 @@ The test controller reported frame 1 while the test binding was idle. The
 fixture now reports both frame indices from a scheduled frame callback,
 matching the production ticker phase.
 The [rerun at `6abdb54e`](https://github.com/edgepillar/syrius/actions/runs/44613154803/job/135874750402)
-passes the focused Ready suite, including the covered raster case.
+passes the focused Ready suite, including the covered raster case, and the
+full non-chain unit and widget suite.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
