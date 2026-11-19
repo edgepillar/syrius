@@ -101,7 +101,7 @@ void main() {
     expect(requests, isEmpty);
     expect(nameValid, findsNothing);
 
-    await tester.enterText(name, 'x');
+    await tester.enterText(name, '?invalid');
     await tester.pump();
     expect(nameValid, findsNothing);
     await tester.enterText(name, 'pillar');
