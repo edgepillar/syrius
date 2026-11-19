@@ -48,7 +48,12 @@ class RegistrationRetainedFlow extends StatelessWidget {
             ignoring: published,
             child: ExcludeSemantics(
               excluding: published,
-              child: Offstage(offstage: published, child: form),
+              // A tooltip animates in the overlay even though its trigger
+              // belongs to the form. Retire it before keeping the form idle.
+              child: TooltipVisibility(
+                visible: !published && TooltipVisibility.of(context),
+                child: Offstage(offstage: published, child: form),
+              ),
             ),
           ),
         ),

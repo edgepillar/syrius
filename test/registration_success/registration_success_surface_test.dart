@@ -26,6 +26,7 @@ Widget _host(
   Widget child, {
   bool light = false,
   double textScale = 1,
+  bool tickersEnabled = false,
 }) => MaterialApp(
   theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
   localizationsDelegates: appLocalizationsDelegates,
@@ -39,7 +40,7 @@ Widget _host(
   home: Scaffold(
     // Playback has its own F14 tests. This fixture inspects assembly admission
     // and element identity without decoding the original image masters.
-    body: TickerMode(enabled: false, child: child),
+    body: TickerMode(enabled: tickersEnabled, child: child),
   ),
 );
 
@@ -308,17 +309,21 @@ void main() {
                         published.value = true;
                       },
                     ),
-                    receipt: PillarRegisteredSuccess(
-                      confirmation: fixture.confirmation,
-                      onRegisterAnotherPressed: () {
-                        if (fixture.confirmation.resetForAnother()) {
-                          published.value = false;
-                        }
-                      },
-                      onViewPillarsPressed: () {},
+                    receipt: TickerMode(
+                      enabled: false,
+                      child: PillarRegisteredSuccess(
+                        confirmation: fixture.confirmation,
+                        onRegisterAnotherPressed: () {
+                          if (fixture.confirmation.resetForAnother()) {
+                            published.value = false;
+                          }
+                        },
+                        onViewPillarsPressed: () {},
+                      ),
                     ),
                   ),
             ),
+            tickersEnabled: true,
           ),
         );
         final _RetainedProbeState original = probe.currentState!;
@@ -328,12 +333,23 @@ void main() {
         );
         final Finder register = find.byKey(const Key('retained_register'));
         final Offset oldAction = tester.getCenter(register);
+        const String hint = 'The retained step hint';
+        final Finder tooltip = find.byTooltip(hint);
+        final TooltipState originalTooltip = tester.state<TooltipState>(
+          tooltip,
+        );
+        expect(originalTooltip.ensureTooltipVisible(), isTrue);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(find.text(hint), findsOneWidget);
         await tester.tap(register);
         await tester.pump();
         expect(presses, 1);
         events.add(null);
         expect(probe.currentState, same(original));
         expect(original.eventsReceived, 1);
+        expect(find.text(hint), findsNothing);
+        expect(Tooltip.dismissAllToolTips(), isFalse);
         expect(register, findsNothing);
         expect(find.text('Register'), findsOneWidget);
         await tester.tapAt(oldAction);
@@ -345,6 +361,11 @@ void main() {
         expect(probe.currentState, same(original));
         expect(original.eventsReceived, 1);
         expect(original.draft.text, 'Kept draft');
+        expect(tester.state<TooltipState>(tooltip), same(originalTooltip));
+        expect(originalTooltip.ensureTooltipVisible(), isTrue);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(find.text(hint), findsOneWidget);
         await tester.tap(find.byKey(const Key('retained_first')));
         await tester.sendKeyEvent(LogicalKeyboardKey.tab);
         await tester.pump();
@@ -557,6 +578,10 @@ class _RetainedProbeState extends State<_RetainedProbe> {
           controller: draft,
         ),
         TextField(key: const Key('retained_second'), focusNode: second),
+        const Tooltip(
+          message: 'The retained step hint',
+          child: Text('Original step details'),
+        ),
         TextButton(
           key: const Key('retained_register'),
           onPressed: widget.onPress,
