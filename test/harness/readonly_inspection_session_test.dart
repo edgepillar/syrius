@@ -1435,6 +1435,8 @@ void main() {
         'shot' || 'return' || 'png' => 1,
         _ => throw StateError('Unexpected bound capture fault'),
       };
+      final bool attemptedContacts =
+          fault == 'none' || fault == 'second-contact';
       expect(scrolls, equals(<Map<String, Object?>>[
         for (int pair = 0; pair < peerPreparations; pair++)
           ...<Map<String, Object?>>[
@@ -1444,12 +1446,12 @@ void main() {
             },
             <String, Object?>{'cmd': 'scroll', 'dy': -1000000},
           ],
-        if (fault == 'none' || fault == 'second-contact') ...<Map<String, Object?>>[
+        if (attemptedContacts) ...<Map<String, Object?>>[
           <String, Object?>{'cmd': 'scroll', 'dy': 440},
           <String, Object?>{'cmd': 'scroll', 'dy': -1000000},
           <String, Object?>{'cmd': 'scroll', 'dy': 440},
-          if (fault == 'none') <String, Object?>{'cmd': 'scroll', 'dy': -1000000},
         ],
+        if (fault == 'none') <String, Object?>{'cmd': 'scroll', 'dy': -1000000},
       ]));
       final List<Map<String, Object?>> hovers = commands.where(
         (Map<String, Object?> value) => value['cmd'] == 'hover',
@@ -1468,9 +1470,12 @@ void main() {
         _ => 0,
       });
       expect(
-        commands.where((Map<String, Object?> value) => value['cmd'] == 'type')
-            .map((Map<String, Object?> value) => (value['key'], value['value'])),
-        fault == 'none' || fault == 'second-contact'
+        commands
+            .where((Map<String, Object?> value) => value['cmd'] == 'type')
+            .map((Map<String, Object?> value) {
+              return (value['key'], value['value']);
+            }),
+        attemptedContacts
             ? <(String, String)>[
                 ('addresses_contact_name', 'Sample contact'),
                 ('addresses_contact_address', sendWarningKnownAddress),
