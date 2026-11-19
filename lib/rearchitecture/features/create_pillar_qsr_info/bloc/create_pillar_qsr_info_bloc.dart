@@ -21,6 +21,7 @@ class CreatePillarQsrInfoBloc extends FetchBloc<CreatePillarQsrInfoData> {
     return CreatePillarQsrInfoData(
       deposit: deposit,
       cost: cost,
+      observedAddress: address.toString(),
     );
   }
 }

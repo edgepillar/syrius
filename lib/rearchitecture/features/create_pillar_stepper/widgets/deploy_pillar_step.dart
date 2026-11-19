@@ -142,7 +142,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
                   ) => _buildBody(
                     context,
                     state is FetchPopulated<CreatePillarQsrInfoData>
-                        ? state.data.cost
+                        ? state.data
                         : null,
                   ),
             ),
@@ -150,13 +150,13 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
     );
   }
 
-  Widget _buildBody(BuildContext context, BigInt? slotFee) {
+  Widget _buildBody(BuildContext context, CreatePillarQsrInfoData? qsrInfo) {
     final AppTokens tokens = AppTokens.of(context);
     final bool active = widget.active && StepInteraction.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        _buildRail(context, slotFee),
+        _buildRail(context, qsrInfo),
         Expanded(
           child: Align(
             alignment: AlignmentDirectional.topStart,
@@ -174,7 +174,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
                   children: <Widget>[
                     _buildDetails(context, active),
                     _buildSharing(context, active),
-                    _buildReview(context, active, slotFee),
+                    _buildReview(context, active, qsrInfo?.cost),
                   ],
                 ),
               ),
@@ -292,8 +292,14 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
     );
   }
 
-  Widget _buildRail(BuildContext context, BigInt? slotFee) {
+  Widget _buildRail(BuildContext context, CreatePillarQsrInfoData? qsrInfo) {
     final AppTokens tokens = AppTokens.of(context);
+    final bool feeDeposited =
+        qsrInfo != null &&
+        qsrInfo.observedAddress == widget.ownerAddress &&
+        kSelectedAddress == widget.ownerAddress &&
+        qsrInfo.cost > BigInt.zero &&
+        qsrInfo.deposit >= qsrInfo.cost;
     return Container(
       width: tokens.registrationRailWidth,
       decoration: BoxDecoration(
@@ -310,12 +316,15 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
             Column(
               spacing: tokens.registrationGap,
               children: <Widget>[
-                if (slotFee != null)
+                if (qsrInfo != null)
                   _buildRailAmount(
                     tokens,
                     context.l10n.createPillarSlotFeeLabel,
-                    slotFee,
+                    qsrInfo.cost,
                     kQsrCoin,
+                    note: feeDeposited
+                        ? context.l10n.pillarOwnerDeposited
+                        : null,
                   ),
                 _buildRailAmount(
                   tokens,
@@ -399,21 +408,35 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
     AppTokens tokens,
     String label,
     BigInt amount,
-    Token token,
-  ) => Row(
+    Token token, {
+    String? note,
+  }) => Row(
     spacing: tokens.inlineGap,
     children: <Widget>[
-      Expanded(child: Text(label, style: tokens.registrationCaptionText)),
+      Expanded(child: Text(label.toUpperCase(), style: tokens.ledgerText)),
       Flexible(
         flex: 2,
         child: FittedBox(
-          alignment: AlignmentDirectional.centerEnd,
+          alignment: AlignmentDirectional.centerStart,
           fit: BoxFit.scaleDown,
-          child: AmountText(
-            amount,
-            decimals: token.decimals,
-            symbol: token.symbol,
-            style: tokens.dataText,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: tokens.inlineGap,
+            children: <Widget>[
+              AmountText(
+                amount,
+                decimals: token.decimals,
+                symbol: token.symbol,
+                style: tokens.registrationFactText,
+              ),
+              if (note != null)
+                Text(
+                  note,
+                  style: tokens.registrationFactText.copyWith(
+                    color: tokens.znnInk,
+                  ),
+                ),
+            ],
           ),
         ),
       ),

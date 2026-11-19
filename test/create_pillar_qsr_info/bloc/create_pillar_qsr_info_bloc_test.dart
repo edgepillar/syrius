@@ -36,6 +36,7 @@ void main() {
       data = CreatePillarQsrInfoData(
         cost: BigInt.from(1000),
         deposit: BigInt.from(500),
+        observedAddress: emptyAddress.toString(),
       );
 
       when(() => mockZenon.embedded).thenReturn(mockEmbedded);
@@ -62,6 +63,11 @@ void main() {
       verify: (_) {
         verify(() => mockPillar.getDepositedQsr(emptyAddress)).called(1);
         verify(() => mockPillar.getQsrRegistrationCost()).called(1);
+        final CreatePillarQsrInfoData cached =
+            CreatePillarQsrInfoData.fromJson(data.toJson());
+        expect(cached.cost, data.cost);
+        expect(cached.deposit, data.deposit);
+        expect(cached.observedAddress, isNull);
       },
       expect: () => <FetchState<CreatePillarQsrInfoData>>[
         FetchPopulated<CreatePillarQsrInfoData>(data: data),

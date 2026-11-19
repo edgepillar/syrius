@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,9 +37,14 @@ void main() {
 
     final _Deploy deploy = _Deploy();
     final _SlotFee slotFee = _SlotFee();
+    final StreamController<FetchState<CreatePillarQsrInfoData>> qsrUpdates =
+        StreamController<FetchState<CreatePillarQsrInfoData>>.broadcast();
+    addTearDown(qsrUpdates.close);
     when(() => deploy.state).thenReturn(const DeployPillarInitial());
-    when(() => slotFee.state).thenReturn(
-      const FetchInitial<CreatePillarQsrInfoData>(),
+    whenListen(
+      slotFee,
+      qsrUpdates.stream,
+      initialState: const FetchInitial<CreatePillarQsrInfoData>(),
     );
     final DeployPillarRequested expected = DeployPillarRequested(
       blockProducingAddress: pillarAddress,
@@ -75,6 +82,28 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+
+    final Finder deposited = find.text('Deposited');
+    expect(deposited, findsNothing);
+    for (final (String? address, int amount, bool visible) in
+        <(String?, int, bool)>[
+          (null, 100, false),
+          (plasmaAddress.toString(), 100, false),
+          (owner, 99, false),
+          (owner, 100, true),
+        ]) {
+      qsrUpdates.add(
+        FetchPopulated<CreatePillarQsrInfoData>(
+          data: CreatePillarQsrInfoData(
+            cost: BigInt.from(100),
+            deposit: BigInt.from(amount),
+            observedAddress: address,
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(deposited, visible ? findsOneWidget : findsNothing);
+    }
 
     final Finder deposit = find.text('Deposit QSR');
     final Finder details = find.text('Name and addresses');

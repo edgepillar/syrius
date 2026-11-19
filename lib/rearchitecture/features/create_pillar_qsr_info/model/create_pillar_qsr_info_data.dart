@@ -6,6 +6,7 @@ class CreatePillarQsrInfoData extends Equatable {
   const CreatePillarQsrInfoData({
     required this.cost,
     required this.deposit,
+    this.observedAddress,
   });
 
   /// Creates pillar QSR info data from JSON.
@@ -22,6 +23,9 @@ class CreatePillarQsrInfoData extends Equatable {
   /// QSR amount deposited for pillar creation.
   final BigInt deposit;
 
+  /// The address used for a live read. The node cache omits this field.
+  final String? observedAddress;
+
   /// Converts this data to JSON.
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -31,5 +35,5 @@ class CreatePillarQsrInfoData extends Equatable {
   }
 
   @override
-  List<Object?> get props => <Object?>[cost, deposit];
+  List<Object?> get props => <Object?>[cost, deposit, observedAddress];
 }
