@@ -147,6 +147,35 @@ def raster_start_bounds(row, origin_us=0):
     return relative_start + build, relative_start + total - raster
 
 
+def raster_rank_overruns(baseline_window, current_window):
+    """Locate the original raster samples that exceed their paired duration."""
+    budget = pair.FRAME_BUDGET_US
+    baseline = sorted((row[3] for row in pair.launch.frame_timing_rows(
+        baseline_window, allow_packed=True) if row[3] > budget), reverse=True)
+    current = sorted((row for row in pair.launch.frame_timing_rows(
+        current_window, allow_packed=True) if row[3] > budget), key=lambda row: -row[3])
+    offsets = current_window.get(pair.launch.STARTUP_PHASE_FIELD)
+    phase_names = ('before_film', 'film', 'covered', 'handoff', 'lock', 'crossing')
+    phases = dict.fromkeys(phase_names, 0) if offsets is not None else None
+    count, unpaired, worst = 0, 0, None
+    for index, row in enumerate(current):
+        before = baseline[index] if index < len(baseline) else None
+        excess = row[3] - (budget if before is None else before)
+        if excess <= 0:
+            continue
+        count += 1
+        unpaired += before is None
+        earliest, latest = raster_start_bounds(row)
+        if phases is not None:
+            first, last = bisect_right(offsets, earliest), bisect_right(offsets, latest)
+            phase = phase_names[first] if first == last else 'crossing'
+            phases[phase] += 1
+        if worst is None or excess > worst['excess_us']:
+            worst = dict(rank=index + 1, baseline_us=before, current_us=row[3],
+                         excess_us=excess, start_us=[earliest, latest])
+    return dict(count=count, unpaired=unpaired, by_phase=phases, worst=worst)
+
+
 def window_diagnostics(window, *, peak_starts=False):
     """Describe every reported sample without changing the acceptance test."""
     rows = pair.launch.frame_timing_rows(window, allow_packed=True)
@@ -289,6 +318,9 @@ def project(raw, expected_sha, expected_size, *, head, tree, run_id, pins,
         result['window_diagnostics'] = dict(scope='reported_frames_only',
             percentiles=[50, 95, 99, 100],
             windows={name: window_diagnostics(window) for name, window in windows.items()})
+        if comparison is not None and 'raster' in comparison['exceeded']:
+            result['window_diagnostics']['raster_rank_overruns'] = raster_rank_overruns(
+                windows['p06'], windows['current'])
     return result
 
 

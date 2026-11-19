@@ -381,6 +381,21 @@ class PairInspectionTests(unittest.TestCase):
         self.assertEqual(diagnostics['settled_raster_starts'], dict(
             columns=['samples', 'slow_raster', 'max_raster_us'], before=[1, 0, 500],
             crossing=[1, 1, 16001], at_or_after=[1, 1, 17000]))
+        self.assertEqual(result['window_diagnostics']['raster_rank_overruns'], dict(
+            count=1, unpaired=1,
+            by_phase=dict(before_film=0, film=0, covered=0, handoff=0, lock=0, crossing=1),
+            worst=dict(rank=2, baseline_us=None, current_us=16001, excess_us=1,
+                       start_us=[9700, 11500]),
+        ))
+        baseline = frame((0, 1, 0, 16002, 16002))
+        value['samples'][1]['frame_window'] = baseline
+        value['comparison'] = pair.compare_windows(baseline, current)
+        overruns = self.project(value, diagnostics=True)['window_diagnostics']['raster_rank_overruns']
+        self.assertEqual(overruns['count'], 2)
+        self.assertEqual(overruns['unpaired'], 1)
+        self.assertEqual(overruns['by_phase']['lock'], 1)
+        self.assertEqual(overruns['worst'], dict(rank=1, baseline_us=16002,
+            current_us=17000, excess_us=998, start_us=[10200, 10200]))
 
     def test_packed_pair_preserves_all_frames_and_rejects_corrupt_payloads(self):
         count = pair.launch.MAX_PAIRED_TIMING_FRAMES

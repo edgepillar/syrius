@@ -1063,6 +1063,11 @@ while the handoff moves. All three starts after observed Lock arrival exceed
 16 ms and peak at 51.882 ms. The earlier redesign sample peaked at 267.408 ms.
 The measurements leave the effect of the paint change on its own unestablished.
 
+For a failed raster comparison, the independent reader now identifies which
+ranked durations exceed their P06 counterpart. It groups the original
+raster start bounds by launch phase and retains the largest excess. It uses
+the same ranked durations and 16 ms budget as the acceptance comparison.
+
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
 calls `jumpTo` only when the extent differs from the current offset, avoiding
