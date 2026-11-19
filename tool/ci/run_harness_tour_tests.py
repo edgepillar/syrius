@@ -34,7 +34,8 @@ except ImportError:
 # Includes the Token pane navigation and covered Issue cases.
 # Includes the dark and light Home card wash cases.
 # Includes the original Launch and eight Lottie restoration case.
-EXPECTED_DART_CASES = 1526
+# Includes the confirmed Pillar reference frame and restoration case.
+EXPECTED_DART_CASES = 1527
 LAUNCH_ASSET_DART_CASES = 2
 GROUP_COMMAND_LIMIT_SECONDS = 300
 TOTAL_COMMAND_LIMIT_SECONDS = GROUP_COMMAND_LIMIT_SECONDS * 2
