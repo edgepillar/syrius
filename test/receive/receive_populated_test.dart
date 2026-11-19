@@ -471,6 +471,21 @@ void main() {
           _payload(tester),
           'znn:$_second?zts=${kZnnCoin.tokenStandard}&amount=1250000000',
         );
+        final Container well = tester.widget<Container>(
+          find.byKey(const Key('receive_qr_screen_marker')),
+        );
+        expect(
+          (well.decoration! as BoxDecoration).borderRadius,
+          BorderRadius.circular(8),
+        );
+        final Finder hint = find.text('The QR carries the amount.');
+        final TextStyle hintStyle = tester.widget<Text>(hint).style!;
+        expect(hintStyle.fontSize, 12.5);
+        expect(hintStyle.color, tokens.faint);
+        expect(
+          tester.getTopLeft(hint).dy - tester.getBottomLeft(picker).dy,
+          closeTo(12, .01),
+        );
         await receiveTestDispose(tester);
       },
       timeout: const Timeout(Duration(seconds: 30)),

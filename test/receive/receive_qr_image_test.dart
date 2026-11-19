@@ -10,6 +10,8 @@ import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:zenon_syrius_wallet_flutter/services/windows_image_clipboard.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/receive_qr_image.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 
 import 'receive_test_support.dart';
 
@@ -121,9 +123,27 @@ void main() {
           ),
         ),
       );
-      await tester.tap(find.byKey(const Key('receive_share_image')));
+      final Finder copy = find.byKey(const Key('receive_share_image'));
+      final Finder save = find.byKey(const Key('receive_save_image'));
+      const Set<WidgetState> resting = <WidgetState>{};
+      for (final Finder action in <Finder>[copy, save]) {
+        final TextButton button = tester.widget<TextButton>(action);
+        final ButtonStyle style = button.style!;
+        expect(style.minimumSize!.resolve(resting), const Size(0, 26));
+        expect(
+          style.padding!.resolve(resting),
+          const EdgeInsetsDirectional.symmetric(horizontal: 10),
+        );
+        expect(style.textStyle!.resolve(resting)!.fontWeight, FontWeight.w500);
+        final Finder symbol = find.descendant(
+          of: action,
+          matching: find.byType(ShellSymbol),
+        );
+        expect(tester.getSize(symbol), const Size.square(12));
+      }
+      await tester.tap(copy);
       await tester.pump();
-      await tester.tap(find.byKey(const Key('receive_save_image')));
+      await tester.tap(save);
       await tester.pump();
       expect(sizes, <int>[150, 150]);
       expect(copied, <List<int>>[

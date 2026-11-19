@@ -1871,7 +1871,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
   double get receiveQrWellWidth => 210;
 
   /// Compact image actions may share the QR well and still wrap when needed.
-  double get receiveQrActionInset => receiveMicroGap / 2;
+  double get receiveQrActionInset => 10;
 
   /// QR pixels keep a clear border.
   double get receiveQrInset => 12;

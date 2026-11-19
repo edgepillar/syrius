@@ -133,6 +133,16 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
     }
     final QrImage? qrImage = image;
     final PrettyQrDecoration? qrDecoration = decoration;
+    final ButtonStyle actionStyle = TextButton.styleFrom(
+      foregroundColor: tokens.dim,
+      backgroundColor: Colors.transparent,
+      textStyle: tokens.captionText.copyWith(fontWeight: FontWeight.w500),
+      minimumSize: Size(0, tokens.smallButtonHeight),
+      visualDensity: VisualDensity.standard,
+      padding: EdgeInsetsDirectional.symmetric(
+        horizontal: tokens.receiveQrActionInset,
+      ),
+    );
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -161,16 +171,7 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
               TextButton.icon(
                 // Preserve the existing capture key for this image action.
                 key: const Key('receive_share_image'),
-                style: TextButton.styleFrom(
-                  foregroundColor: tokens.dim,
-                  backgroundColor: Colors.transparent,
-                  textStyle: tokens.captionText,
-                  minimumSize: Size(0, tokens.smallButtonHeight),
-                  visualDensity: VisualDensity.standard,
-                  padding: EdgeInsetsDirectional.symmetric(
-                    horizontal: tokens.receiveQrActionInset,
-                  ),
-                ),
+                style: actionStyle,
                 onPressed: _exporting || !widget.enabled
                     ? null
                     : () => unawaited(
@@ -180,21 +181,12 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
                           action: (Uint8List bytes, _) => copyImage(bytes),
                         ),
                       ),
-                icon: ShellSymbol('copy', size: tokens.heroCopyIconSize),
+                icon: ShellSymbol('copy', size: tokens.inlineGlyphSize),
                 label: Text(context.l10n.receiveCopyImage),
               ),
               TextButton.icon(
                 key: const Key('receive_save_image'),
-                style: TextButton.styleFrom(
-                  foregroundColor: tokens.dim,
-                  backgroundColor: Colors.transparent,
-                  textStyle: tokens.captionText,
-                  minimumSize: Size(0, tokens.smallButtonHeight),
-                  visualDensity: VisualDensity.standard,
-                  padding: EdgeInsetsDirectional.symmetric(
-                    horizontal: tokens.receiveQrActionInset,
-                  ),
-                ),
+                style: actionStyle,
                 onPressed: _exporting || !widget.enabled
                     ? null
                     : () => unawaited(
@@ -206,10 +198,7 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
                               _saveImage(bytes, current),
                         ),
                       ),
-                icon: ShellSymbol(
-                  'dl',
-                  size: tokens.heroCopyIconSize,
-                ),
+                icon: ShellSymbol('dl', size: tokens.inlineGlyphSize),
                 label: Text(context.l10n.commonSave),
               ),
             ],

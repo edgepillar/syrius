@@ -470,7 +470,7 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
       padding: EdgeInsetsDirectional.all(tokens.receiveQrInset),
       decoration: BoxDecoration(
         color: tokens.card2,
-        borderRadius: BorderRadius.circular(tokens.transferControlRadius),
+        borderRadius: BorderRadius.circular(tokens.cardRadius),
       ),
       child: payload == null
           ? SizedBox.square(
@@ -617,10 +617,10 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
             if (_qrPresent &&
                 _amountController.text.isNotEmpty &&
                 _payload != null) ...<Widget>[
-              SizedBox(height: tokens.receiveMicroGap),
+              SizedBox(height: tokens.transferFormGap),
               Text(
                 context.l10n.receiveRequestAmountHint,
-                style: tokens.captionText,
+                style: tokens.settingsHintText.copyWith(color: tokens.faint),
               ),
             ],
           ],
