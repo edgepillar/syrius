@@ -473,6 +473,7 @@ void main() {
                 .raster;
         final OuterShadowRaster? originalShadowRaster = shadowRaster();
         expect(originalShadowRaster, isNotNull);
+        expect(tester.widget<CustomPaint>(shadowPaint).isComplex, isFalse);
         final Finder card = find.byKey(
           const ValueKey<String>('lock_card_surface'),
         );

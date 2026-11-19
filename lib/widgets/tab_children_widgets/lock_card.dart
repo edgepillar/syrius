@@ -443,6 +443,7 @@ class _LockCardState extends State<LockCard>
             child: RepaintBoundary(
               key: const ValueKey<String>('lock_card_shadow'),
               child: CustomPaint(
+                // The shadow painter already retains a device-pixel bitmap.
                 painter: OuterShadowPainter(
                   borderRadius: radius,
                   shadows: shadows,
@@ -450,7 +451,6 @@ class _LockCardState extends State<LockCard>
                   raster: _shadowRaster,
                   pixelRatio: pixelRatio,
                 ),
-                isComplex: true,
               ),
             ),
           ),
