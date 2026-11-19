@@ -598,30 +598,37 @@ def staking_empty_bands(raw):
     return dict(column=column, scan_rows=[top, bottom], themes=themes)
 
 
-def address_selector_bounds(raw):
-    """Measure green ink in the address selection column of verified captures."""
-    left, right = 288, 321
-    top, bottom = 90, 315
+def _selector_bounds(zipped, screen, columns, lines):
+    left, right = columns
+    top, bottom = lines
     themes = {}
-    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
-        for theme in producer.settings.THEMES:
-            name = '35-set-addresses-' + theme + '.png'
-            encoded = base64.b64encode(zipped.read(name)).decode('ascii')
-            rows, channels = windows._png_crop(encoded, (left, right), (top, bottom))
-            points = []
-            if windows._opaque(rows, channels):
-                for y, row in enumerate(rows, top):
-                    for index in range(0, len(row), channels):
-                        red, green, blue = row[index:index + 3]
-                        if green - red >= 45 and green - blue >= 31:
-                            points.append((left + index // channels, y))
-            themes[theme] = None
-            if points:
-                columns, lines = zip(*points)
-                x1, x2, y1, y2 = min(columns), max(columns), min(lines), max(lines)
-                if left < x1 <= x2 < right - 1 and top < y1 <= y2 < bottom - 1:
-                    themes[theme] = dict(left=x1, top=y1, right=x2, bottom=y2)
+    for theme in producer.settings.THEMES:
+        name = f'{screen}-{theme}.png'
+        encoded = base64.b64encode(zipped.read(name)).decode('ascii')
+        rows, channels = windows._png_crop(encoded, columns, lines)
+        points = []
+        if windows._opaque(rows, channels):
+            for y, row in enumerate(rows, top):
+                for index in range(0, len(row), channels):
+                    red, green, blue = row[index:index + 3]
+                    if green - red >= 45 and green - blue >= 31:
+                        points.append((left + index // channels, y))
+        themes[theme] = None
+        if points:
+            xs, ys = zip(*points)
+            x1, x2, y1, y2 = min(xs), max(xs), min(ys), max(ys)
+            if left < x1 <= x2 < right - 1 and top < y1 <= y2 < bottom - 1:
+                themes[theme] = dict(left=x1, top=y1, right=x2, bottom=y2)
     return themes
+
+
+def settings_selector_bounds(raw):
+    """Measure selected green ink in the verified Addresses and Node images."""
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        return dict(
+            address_selector_bounds=_selector_bounds(zipped, '35-set-addresses', (288, 321), (90, 315)),
+            node_selector_bounds=_selector_bounds(zipped, '30-set-node', (284, 319), (88, 256)),
+        )
 
 
 def artifact(listing, name, head, run_id):
@@ -808,7 +815,7 @@ def main(parent=None):
             catalog = producer.settings.unpack(catalog_archive,
                 item['digest'][7:], item['size_in_bytes'], head, tree, run_id,
                 settings_reference, pins)
-            catalog['address_selector_bounds'] = address_selector_bounds(catalog_archive)
+            catalog.update(settings_selector_bounds(catalog_archive))
             del catalog_archive
         else:
             PHASE = 'home_catalog_artifact'

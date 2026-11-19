@@ -817,7 +817,14 @@ The original captures and references were read directly in memory.
 The selected Node radio spans 18 by 19 painted pixels in the retained images.
 The outline now sits inside its 16 px control and uses the same 2 px outline
 and 7 px centre as Addresses. The existing Node radio control still owns
-selection and keyboard input. The new paint bounds await a native capture.
+selection and keyboard input. The independent Settings reader measures the
+Node and Addresses selection ink from the original archive.
+
+The retained Wallet images have empty selection tracks in all three Modes
+controls. The mockup highlights Pillar Auto, Sentinel Auto and Sporks Off.
+The Wallet view now draws those highlights inside the existing operator
+modes seam. The controls still refuse changes and expose the disabled
+seam to assistive technology. The new highlights await native capture.
 
 ### Receive at rest at `06eda3f7`
 

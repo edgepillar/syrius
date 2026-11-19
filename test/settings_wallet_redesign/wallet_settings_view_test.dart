@@ -308,13 +308,20 @@ void main() {
     final Iterable<Segment<String>> modes = tester.widgetList<Segment<String>>(
       find.byType(Segment<String>),
     );
-    expect(modes, hasLength(3));
+    expect(
+      modes.map((Segment<String> choices) => choices.selected),
+      <String>['auto', 'auto', 'off'],
+    );
     for (final Segment<String> choices in modes) {
-      expect(choices.selected, isNull);
       expect(
         choices.items.every((SegmentItem<String> item) => !item.enabled),
         isTrue,
       );
+      final Finder thumb = find.descendant(
+        of: find.byWidget(choices),
+        matching: find.byType(SegmentThumb),
+      );
+      expect(tester.getSize(thumb).width, greaterThan(0));
       choices.onChanged('on');
     }
     expect(source.store.writes, hasLength(1));

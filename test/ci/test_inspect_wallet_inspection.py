@@ -1144,20 +1144,25 @@ class ReaderTests(unittest.TestCase):
         self.assertFalse(observed['wallet_qualified'])
         self.assertEqual(observed['visual_matches'], 0)
         self.assertEqual(observed['address_selector_bounds'], dict(dark=None, light=None))
+        self.assertEqual(observed['node_selector_bounds'], dict(dark=None, light=None))
         packed = io.BytesIO()
         with zipfile.ZipFile(packed, 'w') as zipped:
             for theme, green in (('dark', (0, 213, 87)), ('light', (22, 138, 53))):
                 background = bytes((100, 100, 100, 255))
                 ordinary = b'\0' + background * 1280
-                selected = (b'\0' + background * 298 + bytes((*green, 255)) * 16
-                            + background * 966)
-                pixels = ordinary * 164 + selected * 16 + ordinary * 600
-                image = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
-                         + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
-                zipped.writestr('35-set-addresses-' + theme + '.png', image)
-        bounds = dict(left=298, top=164, right=313, bottom=179)
-        self.assertEqual(reader.address_selector_bounds(packed.getvalue()),
-                         dict(dark=bounds, light=bounds))
+                for screen, left, top in (('35-set-addresses', 298, 164), ('30-set-node', 288, 214)):
+                    selected = (b'\0' + background * left + bytes((*green, 255)) * 16
+                                + background * (1280 - left - 16))
+                    pixels = ordinary * top + selected * 16 + ordinary * (780 - top - 16)
+                    image = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
+                             + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
+                    zipped.writestr(f'{screen}-{theme}.png', image)
+        address = dict(left=298, top=164, right=313, bottom=179)
+        node = dict(left=288, top=214, right=303, bottom=229)
+        self.assertEqual(reader.settings_selector_bounds(packed.getvalue()), dict(
+            address_selector_bounds=dict(dark=address, light=address),
+            node_selector_bounds=dict(dark=node, light=node),
+        ))
         value, calls, text = self.run_main(navigation_catalog=True)
         self.assertTrue(value['native_inspection_qualified'])
         self.assertEqual(value['verified_catalog_png_count'], 14)

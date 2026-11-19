@@ -405,10 +405,10 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
             runSpacing: AppTokens.of(context).inlineGap,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: <Widget>[
-              for (final String label in <String>[
-                context.l10n.pillar,
-                context.l10n.sentinel,
-                context.l10n.nodeSettingsSporks,
+              for (final (String label, String preview) in <(String, String)>[
+                (context.l10n.pillar, 'auto'),
+                (context.l10n.sentinel, 'auto'),
+                (context.l10n.nodeSettingsSporks, 'off'),
               ])
                 Row(
                   mainAxisSize: MainAxisSize.min,
@@ -433,9 +433,9 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
                             enabled: false,
                           ),
                       ],
-                      // No backing policy exists, so no effective mode
-                      // is claimed.
-                      selected: null,
+                      // Paint the reference under the disabled seam. The
+                      // preview is never read from or applied to a policy.
+                      selected: preview,
                       onChanged: (_) => runUnlessSeamed(
                         seam: Seam.operatorModes,
                         action: () {},
