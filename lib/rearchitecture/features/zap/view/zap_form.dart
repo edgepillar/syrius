@@ -369,17 +369,16 @@ class _ZapFormState extends State<ZapForm> {
   Widget _buildRecipient(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
     final bool empty = widget.recipientStatus == ZapRecipientStatus.empty;
+    final EdgeInsetsDirectional pickPadding = EdgeInsetsDirectional.symmetric(
+      horizontal: tokens.cardPadding.left + 1,
+    );
     final Widget field = Semantics(
       label: context.l10n.recipientAddress,
       child: Container(
         key: const Key('zap_recipient_field'),
         constraints: BoxConstraints(minHeight: tokens.fieldHeight),
         padding: EdgeInsetsDirectional.symmetric(
-          horizontal: tokens.zapMessagePadding
-              .resolve(
-                Directionality.of(context),
-              )
-              .left,
+          horizontal: tokens.transferFieldPadding.start,
         ),
         decoration: BoxDecoration(
           color: tokens.card2,
@@ -404,6 +403,10 @@ class _ZapFormState extends State<ZapForm> {
                 tooltip: context.l10n.zapCopyRecipient,
                 onPressed: _refuseMissingAction,
                 visualDensity: VisualDensity.compact,
+                style: IconButton.styleFrom(
+                  alignment: AlignmentDirectional.centerEnd,
+                  padding: EdgeInsets.zero,
+                ),
                 icon: _ZapSymbol(
                   symbol: 'copy',
                   size: tokens.zapSmallGlyphSize,
@@ -429,9 +432,7 @@ class _ZapFormState extends State<ZapForm> {
         style: OutlinedButton.styleFrom(
           visualDensity: VisualDensity.standard,
           minimumSize: Size(0, tokens.fieldHeight),
-          padding: EdgeInsetsDirectional.symmetric(
-            horizontal: tokens.cardPadding.left,
-          ),
+          padding: pickPadding,
           textStyle: tokens.buttonText,
           foregroundColor: tokens.foreground,
           backgroundColor: tokens.card2,
@@ -450,7 +451,7 @@ class _ZapFormState extends State<ZapForm> {
             ) +
             tokens.zapGlyphSize +
             tokens.inlineGap +
-            tokens.cardPadding.horizontal;
+            pickPadding.horizontal;
         if (constraints.maxWidth <
             pickWidth + tokens.fieldHeight * 2 + tokens.transferFieldGap) {
           return Column(
@@ -636,6 +637,7 @@ class _ZapFormState extends State<ZapForm> {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Semantics(

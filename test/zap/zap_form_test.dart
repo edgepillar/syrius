@@ -170,6 +170,24 @@ void main() {
               tester.widget<Container>(_key(key)).decoration! as BoxDecoration;
           expect(decoration.borderRadius, BorderRadius.circular(8));
         }
+        final Rect recipient = tester.getRect(_key('zap_recipient_field'));
+        final IconButton copy = tester.widget<IconButton>(
+          _key('zap_copy_recipient'),
+        );
+        expect(
+          recipient.right - tester.getRect(find.byWidget(copy.icon)).right,
+          closeTo(13, .01),
+        );
+        final Finder pick = _key('zap_pick_another');
+        expect(tester.getRect(pick).left - recipient.right, closeTo(10, .01));
+        expect(
+          tester
+              .widget<OutlinedButton>(pick)
+              .style!
+              .padding!
+              .resolve(const <WidgetState>{}),
+          const EdgeInsetsDirectional.symmetric(horizontal: 17),
+        );
         for (final (String key, String symbol) in <(String, String)>[
           ('zap_znn_control', 'ZNN'),
           ('zap_qsr_control', 'QSR'),
@@ -179,10 +197,10 @@ void main() {
           );
           expect(suffix.style?.color, tokens.dim);
         }
-        expect(
-          tester.getSize(_key('zap_message_area')).height,
-          greaterThanOrEqualTo(72),
-        );
+        final Rect area = tester.getRect(_key('zap_message_area'));
+        final Rect counter = tester.getRect(_key('zap_message_bytes'));
+        expect(area.height, greaterThanOrEqualTo(72));
+        expect(area.bottom - counter.bottom, closeTo(11, .01));
         final Finder notice = _key('zap_node_notice');
         final Finder action = _key('zap_submit_button');
         expect(
