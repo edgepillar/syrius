@@ -80,6 +80,9 @@ class PillarOwnerPanel extends StatefulWidget {
 }
 
 class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
+  static const EdgeInsetsDirectional _artworkOutsets =
+      EdgeInsetsDirectional.fromSTEB(14, 8, 8, 8);
+
   int _epoch = 0;
   bool _disposed = false;
   bool _visible = true;
@@ -377,12 +380,6 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
     final PillarOwnerSnapshot snapshot = widget.snapshot;
     final int epoch = _epoch;
     final double objectSize = tokens.pillarOwnerObjectSize;
-    const EdgeInsetsDirectional artworkOutsets = EdgeInsetsDirectional.fromSTEB(
-      14,
-      8,
-      8,
-      8,
-    );
     return CallbackShortcuts(
       bindings: <ShortcutActivator, VoidCallback>{
         const SingleActivator(LogicalKeyboardKey.escape): () =>
@@ -407,14 +404,14 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
                     // The reference keeps the full artwork and uses its
                     // negative margins when placing the ledger beside it.
                     child: SizedBox(
-                      width: objectSize - artworkOutsets.horizontal,
-                      height: objectSize - artworkOutsets.vertical,
+                      width: objectSize - _artworkOutsets.horizontal,
+                      height: objectSize - _artworkOutsets.vertical,
                       child: Stack(
                         clipBehavior: Clip.none,
                         children: <Widget>[
                           PositionedDirectional(
-                            start: -artworkOutsets.start,
-                            top: -artworkOutsets.top,
+                            start: -_artworkOutsets.start,
+                            top: -_artworkOutsets.top,
                             child: AppLottie(
                               AppLottieAsset.pillar,
                               key: const Key('pillar_owner_object'),
@@ -509,8 +506,9 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
           tokens,
           left,
           right,
+          // Use the same breakpoint as the full-size artwork column.
           paired:
-              constraints.maxWidth >=
+              constraints.maxWidth - _artworkOutsets.horizontal >=
               tokens.pillarOwnerActionsWidth * 2 * labelScale,
         );
       },

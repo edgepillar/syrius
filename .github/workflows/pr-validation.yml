@@ -76,7 +76,11 @@ jobs:
         run: |
           report="$(mktemp "$RUNNER_TEMP/syrius-dart-tests.XXXXXX")"
           trap 'rm -f "$report"' EXIT
-          flutter test test --exclude-tags chain --file-reporter "json:$report"
+          flutter test test --exclude-tags chain --file-reporter "json:$report" || {
+            test_exit=$?
+            python3 -B -m tool.ci.check_tour_test_count --project-failures "$report" || true
+            exit "$test_exit"
+          }
           python3 -B -m tool.ci.check_tour_test_count "$report"
 
       - name: Check generated files are up to date

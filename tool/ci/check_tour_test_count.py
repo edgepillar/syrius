@@ -5,11 +5,51 @@ import json
 import posixpath
 from pathlib import Path
 
+from . import dart_test_failure
 from .dart_test_progress import _path
 from .run_harness_tour_tests import EXPECTED_DART_CASES, TOUR_TEST_PATHS
 
 MAX_LINE_BYTES = 1024**2
 MAX_REPORT_BYTES = 16 * 1024**2
+
+
+def _events(stream):
+    size = 0
+    for line in iter(lambda: stream.readline(MAX_LINE_BYTES + 1), b''):
+        size += len(line)
+        if len(line) > MAX_LINE_BYTES or size > MAX_REPORT_BYTES:
+            raise ValueError('Dart report exceeded its byte limit')
+        if line.strip():
+            event = json.loads(line)
+            if type(event) is not dict:
+                raise ValueError('Invalid Dart report event')
+            yield event
+
+
+def observed_failure_locations(stream):
+    """Select fixed suite and frame labels from reported errors only."""
+    suites, tests = {}, {}
+    locations = []
+    for event in _events(stream):
+        kind = event.get('type')
+        if kind == 'suite':
+            suite = event['suite']
+            path = suite.get('path')
+            if type(path) is str:
+                name = path.replace('\\', '/').rsplit('/', 1)[-1]
+                if name in dart_test_failure.ROOT_TEST_FILES:
+                    suites[suite['id']] = name
+        elif kind == 'testStart':
+            test = event['test']
+            tests[test['id']] = suites.get(test['suiteID'])
+        elif kind == 'error' and len(locations) < 3:
+            suite = tests.get(event.get('testID'))
+            frame = dart_test_failure.location(event['stackTrace'], tests_only=True)
+            if suite is not None or frame is not None:
+                locations.append(dict(suite=suite,
+                    file=frame[1] if frame else None,
+                    line=frame[2] if frame else None))
+    return locations
 
 
 def selected_passes(stream, *, repo, paths):
@@ -22,15 +62,8 @@ def selected_passes(stream, *, repo, paths):
     tests = {}
     outcomes = {}
     complete = False
-    size = 0
-    for line in iter(lambda: stream.readline(MAX_LINE_BYTES + 1), b''):
-        size += len(line)
-        if len(line) > MAX_LINE_BYTES or size > MAX_REPORT_BYTES:
-            raise ValueError('Dart report exceeded its byte limit')
-        if not line.strip():
-            continue
-        event = json.loads(line)
-        if complete or type(event) is not dict:
+    for event in _events(stream):
+        if complete:
             raise ValueError('Invalid Dart report event')
         kind = event.get('type')
         if kind == 'suite':
@@ -73,11 +106,20 @@ def selected_passes(stream, *, repo, paths):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('report', type=Path)
+    parser.add_argument('--project-failures', action='store_true')
     args = parser.parse_args()
     try:
         with args.report.open('rb') as stream:
+            if args.project_failures:
+                locations = observed_failure_locations(stream)
+                print('::notice title=Linux Dart failure locations::'
+                      + json.dumps(locations, separators=(',', ':')))
+                return 0
             passed = selected_passes(stream, repo=Path.cwd(), paths=TOUR_TEST_PATHS)
     except (KeyError, OSError, RecursionError, TypeError, ValueError):
+        if args.project_failures:
+            print('::notice title=Linux Dart failure locations::Report unavailable')
+            return 1
         print('The Linux Dart report could not verify the Windows tour case count.')
         return 1
     print(f'Windows tour suites passed {passed} cases on Linux '

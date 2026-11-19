@@ -4,7 +4,7 @@ from pathlib import Path, PureWindowsPath
 import unittest
 from unittest.mock import patch
 
-from tool.ci.check_tour_test_count import selected_passes
+from tool.ci.check_tour_test_count import observed_failure_locations, selected_passes
 
 
 class TourTestCountTests(unittest.TestCase):
@@ -51,3 +51,21 @@ class TourTestCountTests(unittest.TestCase):
         for invalid in (events[1:], events[:-1], events[:-2] + events[-1:]):
             with self.subTest(events=len(invalid)), self.assertRaises(ValueError):
                 self.count(invalid)
+
+    def test_failure_projection_keeps_known_locations_without_raw_details(self):
+        events = [
+            {'type': 'suite', 'suite': {'id': 1,
+                'path': '/private/root/pillar_owner_panel_test.dart'}},
+            {'type': 'testStart', 'test': {'id': 2, 'suiteID': 1,
+                'name': 'private test title'}},
+            {'type': 'error', 'testID': 2, 'error': 'private failure value',
+                'stackTrace': '/private/root/pillar_owner_panel_test.dart:42:7'},
+            {'type': 'error', 'testID': 3, 'error': 'unknown failure',
+                'stackTrace': '/private/root/unlisted_test.dart:14:2'},
+            {'type': 'done', 'success': False},
+        ]
+        report = '\n'.join(json.dumps(event) for event in events).encode()
+        self.assertEqual(observed_failure_locations(io.BytesIO(report)), [
+            {'suite': 'pillar_owner_panel_test.dart',
+             'file': 'pillar_owner_panel_test.dart', 'line': 42},
+        ])
