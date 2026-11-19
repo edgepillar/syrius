@@ -685,6 +685,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The visible stroke of an owned-fusion selection mark.
   double get plasmaCheckboxStrokeWidth => 1.5;
 
+  /// Aligns ledger labels and the first separator with the Plasma reference.
+  EdgeInsetsDirectional get plasmaHeadingPadding =>
+      const EdgeInsetsDirectional.fromSTEB(16, 7, 16, 8);
+
   /// Separates the available and aggregate owner-fused figures.
   double get plasmaStripGap => 28;
 

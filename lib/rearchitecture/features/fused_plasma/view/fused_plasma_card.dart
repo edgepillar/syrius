@@ -192,7 +192,7 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
               _ => Column(
                 children: <Widget>[
                   Padding(
-                    padding: tokens.pillarHeadingPadding,
+                    padding: tokens.plasmaHeadingPadding,
                     child: _columns(
                       check: const SizedBox.shrink(),
                       amount: Text(
@@ -608,9 +608,8 @@ class _Expiry extends StatelessWidget {
       child: ConstrainedBox(
         constraints: BoxConstraints(minHeight: tokens.smallButtonHeight),
         child: Padding(
-          // The reference's 10 px content inset includes a transparent
-          // one-pixel border. Let the badge grow for accessible text sizes.
-          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 3),
+          // Keep the painted width of the reference and let larger text fit.
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[

@@ -247,6 +247,11 @@ void main() {
             tester.getTopLeft(find.text('EXPIRES')).dx - left,
             dark ? 442 : 498,
           );
+          expect(
+            tester.getTopLeft(find.text('EXPIRES')).dy -
+                tester.getRect(divider).bottom,
+            7,
+          );
           final AppTokens tokens = dark ? AppTokens.dark : AppTokens.light;
           for (final int id in <int>[1, 2]) {
             final Finder row = find.byKey(
@@ -268,6 +273,14 @@ void main() {
             );
             expect(badge, findsOneWidget);
             expect(tester.getSize(badge).height, 26);
+            final Finder badgeRow = find.descendant(
+              of: badge,
+              matching: find.byType(Row),
+            );
+            expect(
+              tester.getSize(badge).width - tester.getSize(badgeRow).width,
+              20,
+            );
             final Text status = tester.widget<Text>(
               find.descendant(of: badge, matching: find.byType(Text)),
             );
