@@ -1927,6 +1927,7 @@ void main() {
       int closedFuse = 0;
       final Set<int> checkedFusions = <int>{};
       bool tappedFuseAmount = false;
+      bool clearedFuseHover = false;
       int closedToken = 0;
       int canceledSend = 0;
       int swapWarnings = 0;
@@ -1957,10 +1958,15 @@ void main() {
             expanded = !expanded;
           }
           if (name == 'hover') {
-            expect(selected, 'set-licences');
+            expect(selected, anyOf('set-licences', 'plasma-fuse'));
             expect(command, <String, Object?>{
               'cmd': 'hover', 'at': <int>[0, 0],
             });
+            if (selected == 'plasma-fuse') {
+              expect(tappedFuseAmount, isTrue);
+              expect(afterShot, isFalse);
+              clearedFuseHover = true;
+            }
           }
           if (name == 'tap' && command['type'] == 'Checkbox') {
             expect(selected, 'plasma-fuse');
@@ -2102,7 +2108,9 @@ void main() {
             if (selected == 'plasma-fuse') {
               expect(checkedFusions, <int>{1, 2});
               expect(tappedFuseAmount, isTrue);
+              expect(clearedFuseHover, isTrue);
               tappedFuseAmount = false;
+              clearedFuseHover = false;
               expect(command['expect'], <String, Object?>{
                 'text': 'Cancel 2 fuses', 'key': 'plasma_cancel_selected',
                 'kind': 'button', 'exact': true,
