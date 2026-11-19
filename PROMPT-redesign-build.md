@@ -851,8 +851,12 @@ closed disclosure below the version strip is displaced by one row. The
 About strip now reserves 47 px for the rounded text lines and uses 11.5 px
 above and below, giving 70 px at standard scale. The strip can still grow
 with scaled text. The independent Settings reader reports the pixel ranges
-of all four panels directly from the verified archive. The visual result
-awaits a fresh Windows capture.
+of all four panels directly from the verified archive. In the
+[Windows capture at `1d5e4ffa`](https://github.com/edgepillar/syrius/actions/runs/44630625025/job/135935972072),
+both themes now match the reference's four panel ranges at column 700.
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44633912950/job/135947427497)
+verifies the fourteen original PNGs and their parent process closure. The
+full About comparison still needs the verified release presentation.
 The [Linux run at `1d5e4ffa`](https://github.com/edgepillar/syrius/actions/runs/44630593552/job/135935863012)
 passes analysis, the About height assertions at standard and scaled text
 sizes, 5,124 tests with one skip, and generated-file verification.
@@ -879,6 +883,9 @@ Receive and Zap now share that outline, a 26 px minimum and the same
 compact icon. The sender and receiver keep their original menu owners.
 Zap remains gated. The new paint awaits native capture.
 [Verified Details images](https://github.com/edgepillar/syrius/actions/runs/44563737357/artifacts/14552043899).
+The [Linux run at `0659e0bb`](https://github.com/edgepillar/syrius/actions/runs/44632799095/job/135943576249)
+passes the three header height assertions, the full non-chain suite with
+5,124 passes and one skip, and generated-file verification.
 
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
