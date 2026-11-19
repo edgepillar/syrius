@@ -3094,13 +3094,13 @@ abstract class AppLocalizations {
   /// No description provided for @createPillarNameHelp.
   ///
   /// In en, this message translates to:
-  /// **'Up to 40 characters. Use letters and numbers, with a hyphen, period or underscore between them.'**
+  /// **'Up to 40 characters. Use -, . or _ between letters or numbers.'**
   String get createPillarNameHelp;
 
   /// No description provided for @createPillarProducerHelp.
   ///
   /// In en, this message translates to:
-  /// **'Use the node\'s address from znn-controller, generated from a different seed than this wallet.'**
+  /// **'Use the node\'s znn-controller address from a seed other than this wallet\'s.'**
   String get createPillarProducerHelp;
 
   /// Label in the review before a Pillar is registered or updated: the percentage of its momentum rewards the Pillar gives to its delegators. The percentage follows on the same line.

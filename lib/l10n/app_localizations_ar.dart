@@ -1851,11 +1851,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get createPillarNameHelp =>
-      'Up to 40 characters. Use letters and numbers, with a hyphen, period or underscore between them.';
+      'Up to 40 characters. Use -, . or _ between letters or numbers.';
 
   @override
   String get createPillarProducerHelp =>
-      'Use the node\'s address from znn-controller, generated from a different seed than this wallet.';
+      'Use the node\'s znn-controller address from a seed other than this wallet\'s.';
 
   @override
   String get createPillarMomentumShareLabel => 'Momentum share';

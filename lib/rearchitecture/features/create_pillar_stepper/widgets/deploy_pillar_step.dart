@@ -208,6 +208,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
           inputDecorationTheme: theme.inputDecorationTheme.copyWith(
             isDense: true,
             contentPadding: tokens.sendFieldPadding,
+            helperStyle: tokens.captionText.copyWith(fontSize: 12.5),
             constraints: BoxConstraints(minHeight: tokens.fieldHeight),
           ),
           iconButtonTheme: IconButtonThemeData(

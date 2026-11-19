@@ -1233,8 +1233,8 @@
   },
   "createPillarPaneTitle": "Spawn a pillar",
   "createPillarNameAndAddresses": "Name and addresses",
-  "createPillarNameHelp": "Up to 40 characters. Use letters and numbers, with a hyphen, period or underscore between them.",
-  "createPillarProducerHelp": "Use the node's address from znn-controller, generated from a different seed than this wallet.",
+  "createPillarNameHelp": "Up to 40 characters. Use -, . or _ between letters or numbers.",
+  "createPillarProducerHelp": "Use the node's znn-controller address from a seed other than this wallet's.",
   "createPillarMomentumShareLabel": "Momentum share",
   "@createPillarMomentumShareLabel": {
     "description": "Label in the review before a Pillar is registered or updated: the percentage of its momentum rewards the Pillar gives to its delegators. The percentage follows on the same line."
