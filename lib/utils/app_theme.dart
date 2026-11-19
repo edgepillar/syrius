@@ -1075,7 +1075,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
   int get aboutLicenceSummaryPercent => 59;
 
   /// The reference type column for the two rows above Originals.
-  int get aboutOriginalsLicenceSummaryPercent => 43;
+  int get aboutOriginalsLicenceSummaryPercent => 44;
 
   /// Two genuine final rows and the existing end hook precede Originals.
   double get aboutOriginalsLicencesHeight =>

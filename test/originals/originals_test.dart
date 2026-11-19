@@ -276,11 +276,18 @@ void main() {
       await tester.pump(const Duration(milliseconds: 560));
       originalFocus.requestFocus();
       await tester.pump();
-      final VoidCallback replay = tester
-          .widget<OutlinedButton>(
-            find.byKey(const Key('originals_play_launch')),
-          )
-          .onPressed!;
+      final Finder action = find.byKey(const Key('originals_play_launch'));
+      final OutlinedButton button = tester.widget<OutlinedButton>(action);
+      expect(tester.getSize(action).height, 26);
+      expect(
+        button.style!.padding!.resolve(<WidgetState>{}),
+        const EdgeInsetsDirectional.symmetric(horizontal: 10),
+      );
+      expect(
+        button.style!.textStyle!.resolve(<WidgetState>{})!.fontWeight,
+        FontWeight.w500,
+      );
+      final VoidCallback replay = button.onPressed!;
       replay();
       replay();
       await tester.pump();

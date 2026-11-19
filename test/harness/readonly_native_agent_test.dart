@@ -1099,6 +1099,10 @@ void main() {
         expect(registryReads, 1);
         await tester.pump();
         expect(find.byKey(const Key('originals_card')), findsOneWidget);
+        final RawScrollbar scrollbar = tester.widget<RawScrollbar>(
+          find.ancestor(of: list, matching: find.byType(RawScrollbar)),
+        );
+        expect(scrollbar.minThumbLength, 30);
         for (int frame = 0; frame < 4; frame++) {
           await tester.pump();
         }

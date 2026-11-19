@@ -365,7 +365,7 @@ class _LicencesState extends State<Licences> {
         trackRadius: const Radius.circular(2),
         mainAxisMargin: 6,
         crossAxisMargin: 4,
-        minThumbLength: 46,
+        minThumbLength: widget.preserveEndOnReveal ? 30 : 46,
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
           child: ListView.builder(

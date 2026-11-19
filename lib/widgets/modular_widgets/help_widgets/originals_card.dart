@@ -361,7 +361,7 @@ class _OriginalsCardState extends State<OriginalsCard>
                         style: panelTitleStyle(context),
                       ),
                       Wrap(
-                        spacing: tokens.settingsActionGap,
+                        spacing: tokens.inlineGap,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: <Widget>[
                           Text(
@@ -374,16 +374,18 @@ class _OriginalsCardState extends State<OriginalsCard>
                               style: OutlinedButton.styleFrom(
                                 minimumSize: Size(0, tokens.smallButtonHeight),
                                 visualDensity: VisualDensity.standard,
-                                padding: EdgeInsetsDirectional.symmetric(
-                                  horizontal: tokens.receiveMicroGap,
+                                padding: const EdgeInsetsDirectional.symmetric(
+                                  horizontal: 10,
                                 ),
-                                textStyle: tokens.captionText,
+                                textStyle: tokens.captionText.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                               onPressed: () => _replay(current),
                               icon: buildShellSymbol(
                                 context,
                                 'refresh',
-                                size: tokens.settingsIconSize,
+                                size: tokens.inlineGlyphSize,
                                 color: tokens.dim,
                               ),
                               label: Text(context.l10n.originalsPlayLaunch),
