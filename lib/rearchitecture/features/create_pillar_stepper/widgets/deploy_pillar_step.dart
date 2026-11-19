@@ -8,6 +8,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/registration
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -377,6 +379,8 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
   Widget _buildTextFields(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
     final TextStyle text = accFieldTextStyle(context);
+    final bool hasName = _pillarNameController.text.isNotEmpty;
+    final String? nameError = hasName ? _pillarNameError : null;
     // An address reads left to right in every language.
     final TextStyle address = accFieldTextStyle(context, mono: true);
     final TextAlign addressAlign = ltrTextAlign(context);
@@ -395,8 +399,20 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
             decoration: InputDecoration(
               helperText: context.l10n.createPillarNameHelp,
               helperMaxLines: 3,
-              errorText: _pillarNameController.text.isNotEmpty
-                  ? _pillarNameError
+              errorText: nameError,
+              suffixIconConstraints: const BoxConstraints.tightFor(
+                width: 36,
+                height: 32,
+              ),
+              suffixIcon: hasName && nameError == null
+                  ? Center(
+                      child: ShellSymbol(
+                        'check',
+                        size: tokens.smallActionGlyphSize,
+                        color: tokens.znnInk,
+                        key: const Key('pillar_name_valid'),
+                      ),
+                    )
                   : null,
             ),
           ),

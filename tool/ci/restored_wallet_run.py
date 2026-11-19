@@ -1228,7 +1228,9 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                 seed_input = dict(action='SEED_PILLAR_DONE', actor=fixture.actor,
                                   producer=fixture.producer, reward=fixture.reward)
             else:
-                seed_input = dict(action='SEED_PILLAR_SPAWN', actor=fixture.actor)
+                seed_input = dict(
+                    action='SEED_PILLAR_SPAWN', actor=fixture.actor,
+                    producer=fixture.producer)
         else:
             chosen = seeds.counterparty(genesis, origin.members)
             seed_input = dict(action='SEED', counterparty=chosen)

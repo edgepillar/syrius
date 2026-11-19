@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import '../app/fixtures/seed_policy.dart'
-    show pillarDepositRecipeId, pillarRegistrationRecipeId,
+    show labPillarRegistrationName, pillarDepositRecipeId,
+        pillarRegistrationRecipeId,
         seedHash, seedIssuedTokenStandard;
 import '../app/readonly_native_commands.dart'
     show readonlyAgedFuseFixtureCommand;
@@ -944,7 +945,16 @@ const Set<String> _spawnLines = <String>{
   'wait --key pillar_znn_next_button --ready --timeout 30',
   'tap --key pillar_znn_next_button',
   'wait --key pillar_name_field --kind field --ready --exact --timeout 30',
-  'assert --key pillar_name_field',
+  'type --key pillar_name_field',
+  'wait --key pillar_producer_address_field --kind field --ready '
+  '--exact --timeout 30',
+  'type --key pillar_producer_address_field',
+  'tap --key pillar_use_owner_address --kind button --exact',
+  'assert --key pillar_name_field --kind field',
+  'assert --key pillar_producer_address_field --kind field',
+  'assert --key pillar_reward_address_field --kind field',
+  'wait --key pillar_details_next_button --kind button --ready --timeout 30',
+  'assert --key pillar_details_next_button --kind button',
   'tap --key pillar_create_close --kind button --exact',
   'wait --key pillar_name_field --gone --timeout 10',
   'wait --key nodes_pillar_owner_close --ready --timeout 10',
@@ -1163,10 +1173,11 @@ Future<Map<String, Object>> _captureSeededCatalog(
   required void Function(PreparedSurfaceOperation) onPreparedOperation,
   required bool observeSeededSeams,
   Future<PreparedTokenHolder> Function()? prepareTokenHolder,
-  bool pillarSpawn = false,
+  String? pillarSpawnProducer,
   bool pillarDone = false,
   bool swapList = false,
 }) async {
+  final bool pillarSpawn = pillarSpawnProducer != null;
   final ({
     int schema,
     List<String> screens,
@@ -1204,6 +1215,13 @@ Future<Map<String, Object>> _captureSeededCatalog(
           ['hash']!;
   final bool stakeDraft = selection == RestoredSeedSelection.stakeDraft;
   final bool projectDetail = selection == RestoredSeedSelection.projectDetail;
+  final Map<String, String> pillarDraftValues = <String, String>{
+    if (pillarSpawnProducer != null) ...<String, String>{
+      'pillar_name_field': labPillarRegistrationName,
+      'pillar_producer_address_field': pillarSpawnProducer,
+      'pillar_reward_address_field': beneficiary,
+    },
+  };
   final String? stake =
       projectDetail || pillarSpawn || pillarDone || swapList
           ? null : confirmed('stake');
@@ -1323,17 +1341,20 @@ Future<Map<String, Object>> _captureSeededCatalog(
             throw const FormatException('token page refresh refused');
           }
         case 'type':
-          final String amount = stakeDraft ? '300' : '5000';
+          final (String key, String value) = switch (selection) {
+            _ when pillarSpawn => (args.last, pillarDraftValues[args.last]!),
+            RestoredSeedSelection.stakeDraft =>
+              ('create_stake_amount_field', '300'),
+            _ => ('mint_amount_field', '5000'),
+          };
           final Map<String, dynamic> typed = await cli.call(
             instance, <String, Object?>{
-              'cmd': 'type', 'exact': true, 'value': amount,
-              'key': stakeDraft
-                  ? 'create_stake_amount_field' : 'mint_amount_field',
-              if (stakeDraft) 'kind': 'field',
+              'cmd': 'type', 'exact': true, 'value': value, 'key': key,
+              if (stakeDraft || pillarSpawn) 'kind': 'field',
             },
           );
-          if (typed['value'] != amount) {
-            throw const FormatException('seeded draft amount refused');
+          if (typed['value'] != value) {
+            throw const FormatException('seeded draft input refused');
           }
         case 'assert':
           final Map<String, Object?> selector = assertion(args);
@@ -1352,12 +1373,20 @@ Future<Map<String, Object>> _captureSeededCatalog(
           final String? expectedValue = switch (key) {
             'mint_beneficiary_field' => beneficiary,
             'mint_amount_field' => '5000',
+            final String field => pillarDraftValues[field],
             _ => null,
           };
           if (expectedValue != null) {
             final Object? target = asserted['target'];
             if (target is! Map || target['value'] != expectedValue) {
               throw const FormatException('seeded draft field refused');
+            }
+          }
+          if (pillarSpawn && key == 'pillar_details_next_button') {
+            final Object? target = asserted['target'];
+            if (target is! Map || target['kind'] != 'button' ||
+                (target['enabled'] ?? true) != true) {
+              throw const FormatException('Pillar draft readiness refused');
             }
           }
       }
@@ -1521,7 +1550,7 @@ Future<void> main() async {
       final RegExp address =
           RegExp(r'^z1[023456789acdefghjklmnpqrstuvwxyz]{38}$');
       final List<String> roles = <String>[
-        'actor', if (pillarDone) ...<String>['producer', 'reward'],
+        'actor', 'producer', if (pillarDone) 'reward',
       ];
       final String action =
           pillarDone ? 'SEED_PILLAR_DONE' : 'SEED_PILLAR_SPAWN';
@@ -1630,7 +1659,9 @@ Future<void> main() async {
         emitMarker: marker,
         onPreparedOperation: (PreparedSurfaceOperation operation) =>
             surfaceOperation = operation,
-        pillarSpawn: pillarSpawn, pillarDone: pillarDone,
+        pillarSpawnProducer:
+            pillarSpawn ? seedInput['producer'] as String : null,
+        pillarDone: pillarDone,
       );
       if (pillarDone) {
         const Map<String, Object?> view = <String, Object?>{

@@ -17,7 +17,15 @@ tap --key pillar_qsr_next_button
 wait --key pillar_znn_next_button --ready --timeout 30
 tap --key pillar_znn_next_button
 wait --key pillar_name_field --kind field --ready --exact --timeout 30
-assert --key pillar_name_field
+type --key pillar_name_field
+wait --key pillar_producer_address_field --kind field --ready --exact --timeout 30
+type --key pillar_producer_address_field
+tap --key pillar_use_owner_address --kind button --exact
+assert --key pillar_name_field --kind field
+assert --key pillar_producer_address_field --kind field
+assert --key pillar_reward_address_field --kind field
+wait --key pillar_details_next_button --kind button --ready --timeout 30
+assert --key pillar_details_next_button --kind button
 # after-capture: tap --key pillar_create_close --kind button --exact
 # after-capture: wait --key pillar_name_field --gone --timeout 10
 # after-capture: wait --key nodes_pillar_owner_close --ready --timeout 10

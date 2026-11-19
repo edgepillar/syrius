@@ -75,6 +75,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final Finder name = find.byKey(const Key('pillar_name_field'));
+    final Finder nameValid = find.byKey(const Key('pillar_name_valid'));
     final Finder producer = find.byKey(
       const Key('pillar_producer_address_field'),
     );
@@ -98,10 +99,15 @@ void main() {
     expect(register.hitTestable(), findsNothing);
     expect(slider.hitTestable(), findsNothing);
     expect(requests, isEmpty);
+    expect(nameValid, findsNothing);
 
+    await tester.enterText(name, 'x');
+    await tester.pump();
+    expect(nameValid, findsNothing);
     await tester.enterText(name, 'pillar');
     await tester.enterText(producer, owner);
     await tester.pump();
+    expect(nameValid, findsOneWidget);
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     expect(sharingNext.hitTestable(), findsNothing);
     await tester.enterText(producer, pillarAddress.toString());

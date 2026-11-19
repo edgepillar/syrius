@@ -556,14 +556,33 @@ void main() {
       final ScreenScript spawn =
           ownedCapture(project: false, pillarSpawn: true)
               .preflight('spawn').single;
-      expect(spawn.assertion['key'], 'pillar_name_field');
+      expect(spawn.assertion['key'], 'pillar_details_next_button');
+      expect(spawn.assertion['kind'], 'button');
       expect(spawn.lines.map((ScreenLine line) => line.words.join(' ')),
           containsAllInOrder(<String>[
             'tap --key nodes_pillar_more',
             'tap --key nodes_pillar_owner',
             'wait --key nodes_spawn_pillar --ready --timeout 30',
             'tap --key nodes_spawn_pillar',
+            'type --key pillar_name_field',
+            'type --key pillar_producer_address_field',
+            'tap --key pillar_use_owner_address --kind button --exact',
+            'assert --key pillar_name_field --kind field',
+            'assert --key pillar_producer_address_field --kind field',
+            'assert --key pillar_reward_address_field --kind field',
+            'wait --key pillar_details_next_button --kind button '
+                '--ready --timeout 30',
+            'assert --key pillar_details_next_button --kind button',
           ]));
+      expect(
+        spawn.lines
+            .where((ScreenLine line) => line.words.first == 'tap')
+            .expand((ScreenLine line) => line.words),
+        isNot(anyOf(
+          contains('pillar_details_next_button'),
+          contains('pillar_register_button'),
+        )),
+      );
       expect(spawn.afterCapture.map((ScreenLine line) => line.words.join(' ')),
           containsAllInOrder(<String>[
             'tap --key pillar_create_close --kind button --exact',
