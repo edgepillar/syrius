@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'dart:ui' show PathMetric;
+import 'dart:ui' show PathMetric, Tangent;
 
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -321,29 +321,46 @@ class _ImportDropBorderPainter extends CustomPainter {
     final int count = (perimeter / nominalInterval).round();
     // Spread the fractional gap around the closed border.
     final double interval = count > 0 ? perimeter / count : nominalInterval;
-    final Path dashes = Path();
-    for (double start = 0; start < metric.length; start += interval) {
-      dashes.addPath(
-        metric.extractPath(start, math.min(start + dash, metric.length)),
-        Offset.zero,
-      );
-    }
     final RRect outside = RRect.fromRectAndRadius(Offset.zero & size, curve);
     final RRect inside = outside.deflate(width);
     final Path ring = Path()
       ..fillType = PathFillType.evenOdd
       ..addRRect(outside);
     if (!inside.isEmpty) ring.addRRect(inside);
+
+    final double halfStroke = width * 1.1;
+    final Path curvedDashes = Path();
+    final Paint fill = Paint()..color = color;
     canvas
       ..save()
-      ..clipPath(ring)
+      ..clipPath(ring);
+    for (double start = 0; start < metric.length; start += interval) {
+      final double end = math.min(start + dash, metric.length);
+      final Tangent from = metric.getTangentForOffset(start)!;
+      final Tangent to = metric.getTangentForOffset(end)!;
+      final Offset direction = from.vector;
+      // Rectangles retain fractional coverage at the ends of straight dashes.
+      if (direction == to.vector &&
+          (direction.dx == 0 && from.position.dx == to.position.dx ||
+              direction.dy == 0 && from.position.dy == to.position.dy)) {
+        final Offset normal = Offset(direction.dy.abs(), direction.dx.abs());
+        final Offset spread = normal * halfStroke;
+        canvas.drawRect(
+          Rect.fromPoints(from.position - spread, to.position + spread),
+          fill,
+        );
+      } else {
+        curvedDashes.addPath(metric.extractPath(start, end), Offset.zero);
+      }
+    }
+    canvas
       ..drawPath(
-        dashes,
+        curvedDashes,
         Paint()
           ..color = color
           ..style = PaintingStyle.stroke
           // The clip sets the visible thickness and covers the inner edge.
-          ..strokeWidth = width * 2.2,
+          ..strokeWidth = halfStroke * 2,
       )
       ..restore();
   }
