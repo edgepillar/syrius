@@ -699,6 +699,11 @@ lighting and other whole-screen differences remain under V01 review.
 The later private comparison holds 62 pairs and 30 current mismatch verdicts.
 The two Security themes retain the shared-app-data warning. Display retains
 the selected theme and the Explorer state for the isolated chain.
+A follow-up review adds 12 Lock, Welcome, Import and Ready verdicts. The
+shared backdrop differs in the same sampled regions across all six screens.
+Registering the retained Import backdrop to the reference gives a closer
+fit near the start of the drift than at the existing six-second sample.
+The exact reference phase and whole-image verdicts remain open under V01.
 
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
@@ -770,6 +775,9 @@ one pixel below the references. The Stakes card begins at row 119 and its
 divider is at row 162. The references place them at rows 118 and 161.
 The empty summary now uses an 11 px top inset to align these elements.
 The existing two-theme widget cases check the inset.
+The readonly Earn reader samples the strip, divider and card edges at column
+1000 in the two verified Staking Empty PNGs. The in-memory reference check
+reads both themes at the same column.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |

@@ -97,6 +97,20 @@ def jobs(*, positive=True):
 
 
 class ReaderTests(unittest.TestCase):
+    def test_staking_empty_bands_read_the_reference_edges_in_both_themes(self):
+        shots = Path('mockups/redesign/shots')
+        packed = io.BytesIO()
+        with zipfile.ZipFile(packed, 'w') as zipped:
+            for theme in ('dark', 'light'):
+                name = '15-staking-empty-' + theme + '.png'
+                zipped.writestr(name, (shots / name).read_bytes())
+        bands = reader.staking_empty_bands(packed.getvalue())
+        self.assertEqual(bands['column'], 1000)
+        self.assertEqual(bands['scan_rows'], [35, 711])
+        expected = dict(status='observed', summary=[36, 106],
+            stakes=[118, 654], divider=[161, 162], rewards=[666, 710])
+        self.assertEqual(bands['themes'], dict(dark=expected, light=expected))
+
     def test_actual_http_client_keeps_default_and_full_capture_request_budgets(self):
         class Response:
             status = 200

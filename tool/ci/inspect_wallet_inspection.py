@@ -14,6 +14,7 @@ import zipfile
 from functools import cache
 
 from . import inspect_chain321 as archive
+from . import inspect_windows_qualification as windows
 from . import windows_wallet_inspection as producer
 
 
@@ -569,6 +570,34 @@ def selected_job(value, head, run_id):
     return job
 
 
+def staking_empty_bands(raw):
+    """Observe the strip and both cards in the verified Earn archive."""
+    column, top, bottom = 1000, 35, 711
+    themes = {}
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        for theme in producer.details.THEMES:
+            name = '15-staking-empty-' + theme + '.png'
+            encoded = base64.b64encode(zipped.read(name)).decode('ascii')
+            rows, channels = windows._png_crop(
+                encoded, (column, column + 1), (top, bottom))
+            bands = [(top, rows[0])]
+            for y, row in enumerate(rows[1:], top + 1):
+                if row != bands[-1][1]:
+                    bands.append((y, row))
+            themes[theme] = dict(status='unavailable')
+            if len(bands) != 9 or not windows._opaque(rows, channels):
+                continue
+            positions, colors = zip(*bands)
+            base, card, divider = colors[0], colors[1], colors[4]
+            if (base == card or divider in (base, card) or
+                    colors != (base, card, base, card, divider, card, base, card, base)):
+                continue
+            themes[theme] = dict(status='observed', summary=list(positions[1:3]),
+                stakes=[positions[3], positions[6]], divider=list(positions[4:6]),
+                rewards=list(positions[7:9]))
+    return dict(column=column, scan_rows=[top, bottom], themes=themes)
+
+
 def artifact(listing, name, head, run_id):
     need(type(listing) is dict and type(listing.get('artifacts')) is list
          and type(listing.get('total_count')) is int
@@ -725,9 +754,13 @@ def main(parent=None):
                     files=fixture_sources + tuple(script_paths.values())))
             item = artifact(listing, 'details-catalog-' + head + '-' + text + '-1', head, run_id)
             pins = {name: source_digests[path] for name, path in script_paths.items()}
-            catalog = producer.details.unpack(download(item, producer.details.MAX_ARCHIVE),
+            catalog_archive = download(item, producer.details.MAX_ARCHIVE)
+            catalog = producer.details.unpack(catalog_archive,
                 item['digest'][7:], item['size_in_bytes'], head, tree, run_id,
                 details_reference, pins)
+            if schema == producer.details.FAMILY_SCHEMAS['earn']:
+                catalog['staking_empty_bands'] = staking_empty_bands(catalog_archive)
+            del catalog_archive
         elif navigation_reference is not None:
             PHASE = 'navigation_catalog_artifact'
             item = artifact(listing, 'navigation-catalog-' + head + '-' + text + '-1', head, run_id)
