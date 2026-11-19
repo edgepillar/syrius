@@ -339,6 +339,12 @@ pairs are available, omit `--no-diff-images` for the visual review. Use
 `--require-reviewed` to require all 94 explicit match verdicts. Within one
 report directory, identical heatmaps link to a single verified PNG.
 
+Use `--summary-only` in place of `--no-diff-images` and `--output-dir` to
+check coverage from retained ZIPs and emit JSON to stdout. This checks
+archive and image digests, dimensions, source revision and review pins
+without extracting images, writing reports or opening the gallery.
+`--require-current-captures` and `--require-reviewed` use the same gates.
+
 An explicit `--dir` must not exist. Absolute paths, traversal, links and
 Windows device aliases are refused. Captures use exclusive file creation;
 the directory must remain under this run's sole ownership because Dart's

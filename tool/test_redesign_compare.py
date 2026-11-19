@@ -373,6 +373,31 @@ class CompareTests(unittest.TestCase):
             generate_report(self.repo, None, self.output, actual_manifest=capture_path)
         self.assertFalse(self.output.exists())
 
+        argv = [
+            "redesign_compare.py", "--actual-manifest", str(capture_path),
+            "--target-source", source, "--require-current-captures", "--summary-only",
+        ]
+        with (
+            patch("redesign_compare.ROOT", self.repo),
+            patch("sys.argv", argv),
+            patch(
+                "redesign_compare.generate_report",
+                side_effect=lambda *args, **kwargs: generate_report(
+                    *args, required_size=(4, 3), **kwargs,
+                ),
+            ),
+            patch("redesign_compare.ImageChops.difference", side_effect=AssertionError),
+            redirect_stdout(io.StringIO()) as stdout,
+        ):
+            self.assertEqual(main(), 1)
+        self.assertFalse(self.output.exists())
+        self.assertFalse((self.src.parent / "compare").exists())
+        summary = json.loads(stdout.getvalue())
+        self.assertEqual(summary["target_pairs"]["available"], 1)
+        self.assertEqual(len(summary["target_pairs"]["remaining"]), 93)
+        self.assertEqual(summary["states"], {"unreviewed": 1, "missing": 93})
+        self.assertEqual(summary["visual_review"], "INCOMPLETE")
+
         gallery = ReportGallery()
         report = generate_report(
             self.repo, None, self.output, actual_manifest=capture_path,

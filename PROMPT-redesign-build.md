@@ -688,7 +688,13 @@ at this source. The browser gallery uses the verified PNGs directly and draws
 diffs on demand. The remaining 46 pairs are present in verified CI archives.
 Visual verdicts remain open. The comparison loader also accepts an original
 ZIP member that omits the catalog number and keeps the same screen and theme.
-All 23 comparison tests pass. The four [Welcome and Import originals](https://github.com/edgepillar/syrius/actions/runs/44582250018/job/135765713115)
+That change passed all 23 comparison tests.
+The comparison tool can also check verified archives and print a JSON
+summary without creating a gallery, extracting images or rendering heatmaps.
+The retained Details archive at `fb3b2a01` supplies ten of the 94 target pairs
+to this mode. A different target revision supplies zero, and a deliberately
+wrong image digest excludes that pair. The whole-image verdicts remain open.
+The four [Welcome and Import originals](https://github.com/edgepillar/syrius/actions/runs/44582250018/job/135765713115)
 also read directly from their retained archive at 1280 by 780 using their
 original filenames, with no extracted image copies.
 The six [Lock originals](https://github.com/edgepillar/syrius/actions/runs/44579867208/job/135757308518)
@@ -1153,6 +1159,9 @@ passes all 5,125 executed tests, including the new retained-image case,
 with one existing skip. Its count gate fails after observing 1,528 selected
 cases against an expectation of 1,527. The expected count now includes the
 new case.
+The [Linux rerun at `825af826`](https://github.com/edgepillar/syrius/actions/runs/44639532273/job/135966688004)
+passes the corrected count gate, analysis, the non-chain suite and
+generated-file checks.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now

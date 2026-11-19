@@ -413,11 +413,13 @@ class ReportGallery:
 
 
 def read_image(
-    capture: Capture | None, output: Path, *, url: str | None = None,
+    capture: Capture | None, output: Path | None, *, url: str | None = None,
 ) -> tuple[dict[str, object], Image.Image | None]:
     if capture is None:
         return {"state": "missing", "reason": "Image missing"}, None
-    info: dict[str, object] = {"url": url or relative_url(capture.path, output)}
+    info: dict[str, object] = {}
+    if output is not None:
+        info["url"] = url or relative_url(capture.path, output)
     try:
         data = capture_bytes(capture)
         info["sha256"] = hashlib.sha256(data).hexdigest()
@@ -437,7 +439,7 @@ def read_image(
 
 
 def gallery_image(
-    capture: Capture | None, output: Path, gallery: ReportGallery | None, url: str,
+    capture: Capture | None, output: Path | None, gallery: ReportGallery | None, url: str,
 ) -> tuple[dict[str, object], Image.Image | None]:
     if gallery is None:
         return read_image(capture, output)
@@ -524,7 +526,7 @@ def compare_pair(
     theme: str,
     expected_dir: Path,
     capture: Capture | None,
-    output: Path,
+    output: Path | None,
     reviews: dict[str, object],
     required_size: tuple[int, int] = IMAGE_SIZE,
     *,
@@ -537,7 +539,9 @@ def compare_pair(
         Capture(expected_dir / f"{stem}.png"), output, gallery, f"mockup/{stem}.png",
     )
     actual, after = gallery_image(capture, output, gallery, f"capture/{stem}.png")
-    if gallery is None:
+    if output is None:
+        source_url = None
+    elif gallery is None:
         source_url = relative_url(screen.source, output)
     else:
         source_url = "source/" + quote(screen.source.name, safe="")
@@ -585,6 +589,8 @@ def compare_pair(
             pair["state"] = (
                 f"reviewed-{review['verdict']}" if review["state"] == "current" else "unreviewed"
             )
+        if output is None:
+            return pair
         diff = ImageChops.difference(before, after)
         mean = sum(ImageStat.Stat(diff).mean) / 4
         mask = difference_mask(diff)
@@ -699,7 +705,7 @@ def render_html(manifest: dict[str, object]) -> str:
 def generate_report(
     repo: Path,
     actual_dir: Path | None,
-    output: Path,
+    output: Path | None,
     reviews_path: Path | None = None,
     *,
     actual_manifest: Path | Sequence[Path] | None = None,
@@ -727,9 +733,12 @@ def generate_report(
     else:
         directory = actual_dir if actual_dir is not None else repo / ".harness" / "shots"
         actuals = {stem: Capture(directory / f"{stem}.png") for stem in stems}
-    if gallery is None and any(capture.archive_member is not None for capture in actuals.values()):
-        raise ReportError("ZIP capture manifests require --serve")
-    output.mkdir(parents=True, exist_ok=True)
+    if output is not None:
+        if gallery is None and any(capture.archive_member is not None for capture in actuals.values()):
+            raise ReportError("ZIP capture manifests require --serve when writing a gallery")
+        output.mkdir(parents=True, exist_ok=True)
+    elif gallery is not None:
+        raise ReportError("A gallery requires an output directory")
     pairs = []
     for screen in screens:
         for theme in THEMES:
@@ -753,7 +762,7 @@ def generate_report(
         summary["target_source"] = target_source
         remaining = [
             pair["id"] for pair in pairs
-            if pair["score"] is None or pair["actual"].get("source_sha") != target_source
+            if pair["state"] not in ("unreviewed", "reviewed-match", "reviewed-mismatch")
         ]
         summary["target_pairs"] = {"available": len(pairs) - len(remaining), "remaining": remaining}
     manifest = {
@@ -762,9 +771,10 @@ def generate_report(
         "summary": summary,
         "pairs": pairs,
     }
-    for name, data in (("manifest.json", manifest), ("summary.json", summary)):
-        (output / name).write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    (output / "index.html").write_text(render_html(manifest), encoding="utf-8")
+    if output is not None:
+        for name, data in (("manifest.json", manifest), ("summary.json", summary)):
+            (output / name).write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        (output / "index.html").write_text(render_html(manifest), encoding="utf-8")
     return manifest
 
 
@@ -779,19 +789,24 @@ def main() -> int:
     parser.add_argument("--reviews", type=Path, help="Manual, image-hash-bound visual review JSON")
     parser.add_argument("--no-diff-images", action="store_true",
                         help="Link inputs and report scores without writing difference PNGs")
-    parser.add_argument("--serve", action="store_true",
-                        help="Serve a private loopback gallery with support for retained ZIP captures")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--serve", action="store_true",
+                      help="Serve a private loopback gallery with support for retained ZIP captures")
+    mode.add_argument("--summary-only", action="store_true",
+                      help="Print JSON after checking images without writing a report or diff images")
     parser.add_argument("--require-reviewed", action="store_true", help="Exit 1 unless all 94 pairs are reviewed matches")
     parser.add_argument("--require-current-captures", action="store_true",
                         help="Exit 1 unless all 94 pairs are available at --target-source")
     args = parser.parse_args()
     if args.require_current_captures and args.target_source is None:
         parser.error("--require-current-captures requires --target-source")
+    if args.summary_only and args.output_dir is not None:
+        parser.error("--summary-only prints to stdout and cannot use --output-dir")
     gallery = ReportGallery() if args.serve else None
     default_output = ROOT / "mockups" / "redesign" / "compare"
     if gallery is not None:
         default_output /= "served"
-    output = (args.output_dir or default_output).resolve()
+    output = None if args.summary_only else (args.output_dir or default_output).resolve()
     try:
         actual_dir = args.actual_dir.resolve() if args.actual_dir is not None else None
         manifest = generate_report(
@@ -805,16 +820,19 @@ def main() -> int:
         print(f"Comparison generation failed: {message}", file=sys.stderr)
         return 2
     summary = manifest["summary"]
-    print(f"Comparison generated: 47 screens, 94 pairs; visual review {summary['visual_review']}")
-    print(", ".join(f"{state}: {count}" for state, count in sorted(summary["states"].items())))
     target_pairs = summary.get("target_pairs")
-    if target_pairs is not None:
-        print(f"Target pairs available: {target_pairs['available']}/{summary['pairs']}")
+    if args.summary_only:
+        print(json.dumps(summary, ensure_ascii=False))
+    else:
+        print(f"Comparison generated: 47 screens, 94 pairs; visual review {summary['visual_review']}")
+        print(", ".join(f"{state}: {count}" for state, count in sorted(summary["states"].items())))
+        if target_pairs is not None:
+            print(f"Target pairs available: {target_pairs['available']}/{summary['pairs']}")
     missing_captures = args.require_current_captures and bool(target_pairs["remaining"])
     incomplete_reviews = args.require_reviewed and summary["visual_review"] != "COMPLETE"
     if missing_captures or incomplete_reviews:
         return 1
-    if gallery is not None:
+    if gallery is not None and output is not None:
         gallery.serve(output)
     return 0
 
