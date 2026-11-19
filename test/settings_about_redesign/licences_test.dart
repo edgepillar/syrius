@@ -226,8 +226,12 @@ void main() {
       );
       expect(scrollbar.thickness, 4);
       expect(scrollbar.trackVisibility, isTrue);
-      expect(scrollbar.mainAxisMargin, 6);
-      expect(scrollbar.crossAxisMargin, 4);
+      expect(
+        scrollbar.padding,
+        const EdgeInsetsDirectional.only(top: 6, bottom: 6, end: 4),
+      );
+      expect(scrollbar.mainAxisMargin, 0);
+      expect(scrollbar.crossAxisMargin, 0);
       expect(scrollbar.minThumbLength, 46);
       final Finder scrollable = find.descendant(
         of: list,

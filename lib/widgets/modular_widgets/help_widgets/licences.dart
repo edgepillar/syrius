@@ -363,8 +363,9 @@ class _LicencesState extends State<Licences> {
         thickness: 4,
         radius: const Radius.circular(2),
         trackRadius: const Radius.circular(2),
-        mainAxisMargin: 6,
-        crossAxisMargin: 4,
+        // The track consumes the scrollbar margins. Pad the whole track
+        // instead so the track stays the same width as its thumb.
+        padding: const EdgeInsetsDirectional.only(top: 6, bottom: 6, end: 4),
         minThumbLength: widget.preserveEndOnReveal ? 30 : 46,
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
