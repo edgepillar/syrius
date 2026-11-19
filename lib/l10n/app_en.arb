@@ -2104,7 +2104,12 @@
   "pillarOwnerShares": "{momentum}% block · {delegate}% delegate",
   "@pillarOwnerShares": {"placeholders": {"momentum": {"type": "int"}, "delegate": {"type": "int"}}},
   "pillarOwnerProduction": "{produced} of {expected}",
-  "@pillarOwnerProduction": {"placeholders": {"produced": {"type": "int"}, "expected": {"type": "int"}}},
+  "@pillarOwnerProduction": {
+    "placeholders": {
+      "produced": {"type": "int", "format": "decimalPattern"},
+      "expected": {"type": "int", "format": "decimalPattern"}
+    }
+  },
   "pillarOwnerDepositQsr": "Deposit QSR",
   "pillarOwnerWithdrawQsr": "Withdraw QSR",
   "pillarOwnerDisassemble": "Disassemble",

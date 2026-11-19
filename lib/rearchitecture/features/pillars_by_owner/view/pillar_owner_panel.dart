@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/widgets/amount_text.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pillars/model/pillar_list_data.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pillars_by_owner/model/pillar_owner_snapshot.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/eye_toggle.dart';
@@ -445,6 +446,10 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
     int epoch,
   ) {
     final AppTokens tokens = AppTokens.of(context);
+    final String? uptime = pillarUptimeText(
+      produced: snapshot.producedMomentums,
+      expected: snapshot.expectedMomentums,
+    );
     final List<(String, Widget)> left = <(String, Widget)>[
       (
         context.l10n.pillarOwnerLocked,
@@ -463,10 +468,19 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
       (
         context.l10n.pillarOwnerMomentums,
         Ltr(
-          child: Text(
-            context.l10n.pillarOwnerProduction(
-              snapshot.producedMomentums,
-              snapshot.expectedMomentums,
+          child: Text.rich(
+            TextSpan(
+              text: context.l10n.pillarOwnerProduction(
+                snapshot.producedMomentums,
+                snapshot.expectedMomentums,
+              ),
+              children: <TextSpan>[
+                if (uptime != null)
+                  TextSpan(
+                    text: ' · $uptime',
+                    style: TextStyle(color: tokens.dim),
+                  ),
+              ],
             ),
             style: tokens.dataText,
           ),

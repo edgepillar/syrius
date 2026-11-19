@@ -3069,7 +3069,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String pillarOwnerProduction(int produced, int expected) {
-    return '$produced of $expected';
+    final intl.NumberFormat producedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String producedString = producedNumberFormat.format(produced);
+    final intl.NumberFormat expectedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String expectedString = expectedNumberFormat.format(expected);
+
+    return '$producedString of $expectedString';
   }
 
   @override

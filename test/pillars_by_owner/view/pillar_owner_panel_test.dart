@@ -23,6 +23,8 @@ PillarOwnerSnapshot _snapshot({
   BigInt? lockedZnn,
   PillarOwnerFact<BigInt>? deposit,
   PillarOwnerFact<BigInt>? cost,
+  int producedMomentums = 1760,
+  int expectedMomentums = 1762,
   bool revocable = true,
   bool boundaryAvailable = true,
   DateTime? boundary,
@@ -42,8 +44,8 @@ PillarOwnerSnapshot _snapshot({
       ),
   momentumRewardPercent: 0,
   delegateRewardPercent: 100,
-  producedMomentums: 1760,
-  expectedMomentums: 1762,
+  producedMomentums: producedMomentums,
+  expectedMomentums: expectedMomentums,
   isRevocable: revocable,
   revocationBoundaryUtc: boundaryAvailable
       ? boundary ?? _time.add(const Duration(hours: 1))
@@ -224,7 +226,10 @@ void main() {
         expect(find.textContaining('15,000'), findsNothing);
         expect(find.textContaining('150,000'), findsNothing);
         expect(find.text('0% block · 100% delegate'), findsOneWidget);
-        expect(find.text('1760 of 1762'), findsOneWidget);
+        expect(
+          find.text('1,760 of 1,762 · 99.9%', findRichText: true),
+          findsOneWidget,
+        );
         expect(
           find.byTooltip('z1producer00000000000000000000000000000'),
           findsOneWidget,
@@ -283,7 +288,11 @@ void main() {
   testWidgets('actual zero and cost are separate exact amounts', (
     WidgetTester tester,
   ) async {
-    await _mount(tester);
+    await _mount(
+      tester,
+      snapshot: _snapshot(producedMomentums: 0, expectedMomentums: 0),
+    );
+    expect(find.text('0 of 0', findRichText: true), findsOneWidget);
     final List<AmountText> amounts = tester
         .widgetList<AmountText>(find.byType(AmountText))
         .toList();
