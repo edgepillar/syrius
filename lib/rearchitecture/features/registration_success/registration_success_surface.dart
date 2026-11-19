@@ -228,89 +228,101 @@ class RegistrationSuccessSurface extends StatelessWidget {
                     ),
                     child: Padding(
                       padding: tokens.registrationPadding,
-                      child: Column(
-                        key: confirmed
-                            ? confirmedKey
-                            : const Key('registration_waiting'),
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        spacing: tokens.registrationGap,
-                        children: <Widget>[
-                          if (confirmed)
-                            RegistrationConfirmedArt(
-                              asset: asset,
-                              confirmation: confirmation,
-                            )
-                          else
-                            SizedBox(
-                              width: tokens.registrationArtSize,
-                              height: tokens.registrationArtSize,
-                              child: Center(
-                                child: Icon(
-                                  Icons.hourglass_empty,
-                                  color: tokens.qsr,
-                                  size: tokens.heroIconSize,
-                                ),
-                              ),
-                            ),
-                          Transform.translate(
-                            offset: Offset(0, tokens.registrationHeadingOffset),
-                            child: Column(
-                              spacing: tokens.registrationGap,
-                              children: <Widget>[
-                                Text(
-                                  confirmed
-                                      ? heading
-                                      : context.l10n.registrationWaiting,
-                                  style: tokens.registrationHeadingText,
-                                  textAlign: TextAlign.center,
-                                ),
-                                if (confirmed && caption != null)
-                                  Text(
-                                    caption!,
-                                    key: const Key(
-                                      'registration_confirmation_caption',
-                                    ),
-                                    style: tokens.registrationCaptionText,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    top: tokens.registrationActionGap,
-                                  ),
-                                  child: Wrap(
-                                    spacing: tokens.inlineGap,
-                                    runSpacing: tokens.inlineGap,
-                                    alignment: WrapAlignment.center,
-                                    children: <Widget>[
-                                      if (confirmed)
-                                        PrimaryPill(
-                                          onPressed: () {
-                                            if (confirmation?.isConfirmed ??
-                                                false) {
-                                              onView();
-                                            }
-                                          },
-                                          child: Text(viewLabel),
-                                        ),
-                                      OutlinedButton(
-                                        style: secondaryButtonStyle(context),
-                                        onPressed: onView,
-                                        child: Text(
-                                          context.l10n.registrationDone,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                      child: _buildResult(
+                        context,
+                        tokens,
+                        confirmed: confirmed,
                       ),
                     ),
                   ),
                 ),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResult(
+    BuildContext context,
+    AppTokens tokens, {
+    required bool confirmed,
+  }) {
+    return Column(
+      key: confirmed ? confirmedKey : const Key('registration_waiting'),
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Stack(
+          alignment: Alignment.topCenter,
+          clipBehavior: Clip.none,
+          children: <Widget>[
+            Positioned(
+              left: 0,
+              top: 0,
+              right: 0,
+              height: tokens.registrationArtSize,
+              child: Center(
+                child: confirmed
+                    ? RegistrationConfirmedArt(
+                        asset: asset,
+                        confirmation: confirmation,
+                      )
+                    : Icon(
+                        Icons.hourglass_empty,
+                        color: tokens.qsr,
+                        size: tokens.heroIconSize,
+                      ),
+              ),
+            ),
+            Padding(
+              // Reserve the visible height of the overlapping art and text.
+              padding: EdgeInsets.only(
+                top:
+                    tokens.registrationArtSize +
+                    tokens.registrationGap +
+                    tokens.registrationHeadingOffset,
+              ),
+              child: Column(
+                spacing: tokens.registrationGap,
+                children: <Widget>[
+                  Text(
+                    confirmed ? heading : context.l10n.registrationWaiting,
+                    style: tokens.registrationHeadingText,
+                    textAlign: TextAlign.center,
+                  ),
+                  if (confirmed && caption != null)
+                    Text(
+                      caption!,
+                      key: const Key('registration_confirmation_caption'),
+                      style: tokens.registrationCaptionText,
+                      textAlign: TextAlign.center,
+                    ),
+                  Padding(
+                    padding: EdgeInsets.only(top: tokens.registrationActionGap),
+                    child: Wrap(
+                      spacing: tokens.inlineGap,
+                      runSpacing: tokens.inlineGap,
+                      alignment: WrapAlignment.center,
+                      children: <Widget>[
+                        if (confirmed)
+                          PrimaryPill(
+                            onPressed: () {
+                              if (confirmation?.isConfirmed ?? false) onView();
+                            },
+                            child: Text(viewLabel),
+                          ),
+                        OutlinedButton(
+                          style: secondaryButtonStyle(context),
+                          onPressed: onView,
+                          child: Text(context.l10n.registrationDone),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );

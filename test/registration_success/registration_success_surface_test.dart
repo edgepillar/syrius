@@ -122,6 +122,39 @@ void main() {
           final Text title = tester.widget<Text>(find.text(heading));
           expect(title.style!.fontSize, 22);
           expect(title.style!.fontWeight, FontWeight.w600);
+          final Finder artwork = find.byType(AppLottie);
+          final AppTokens tokens = AppTokens.of(tester.element(artwork));
+          final Rect viewport = tester.getRect(
+            find.ancestor(
+              of: artwork,
+              matching: find.byType(SingleChildScrollView),
+            ),
+          );
+          final Rect actions = tester.getRect(
+            find.ancestor(
+              of: find.widgetWithText(OutlinedButton, 'Done'),
+              matching: find.byType(Wrap),
+            ),
+          );
+          final double artTop = tester.getTopLeft(artwork).dy;
+          expect(
+            artTop - viewport.top - tokens.registrationPadding.top,
+            closeTo(
+              viewport.bottom -
+                  tokens.registrationPadding.bottom -
+                  actions.bottom,
+              .01,
+            ),
+          );
+          expect(
+            tester.getTopLeft(find.text(heading)).dy - artTop,
+            closeTo(
+              tokens.registrationArtSize +
+                  tokens.registrationGap +
+                  tokens.registrationHeadingOffset,
+              .01,
+            ),
+          );
           final Finder table = find.byType(Table);
           final Finder chain = find.text('CHAIN');
           final Finder chainValue = find.text('321');
