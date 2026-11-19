@@ -184,25 +184,10 @@ class RegistrationSuccessSurface extends StatelessWidget {
             padding: EdgeInsets.all(tokens.registrationInset),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: tokens.registrationActionGap,
+              spacing: tokens.registrationRailGap,
               children: <Widget>[
-                for (int i = 0; i < steps.length; i++)
-                  Row(
-                    children: <Widget>[
-                      _buildStepMark(
-                        tokens,
-                        waiting: i == steps.length - 1 && !confirmed,
-                      ),
-                      SizedBox(width: tokens.entryStepGap),
-                      Expanded(
-                        child: Text(
-                          steps[i],
-                          style: tokens.registrationCaptionText,
-                        ),
-                      ),
-                    ],
-                  ),
-                Divider(color: tokens.line),
+                if (steps.isNotEmpty) _buildSteps(tokens, confirmed: confirmed),
+                Divider(height: 1, thickness: 1, color: tokens.line),
                 if (receiptFacts.isNotEmpty)
                   _buildFacts(context, tokens, receiptFacts),
                 if (confirmed && onAnother != null && anotherLabel != null)
@@ -239,6 +224,29 @@ class RegistrationSuccessSurface extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSteps(AppTokens tokens, {required bool confirmed}) {
+    final TextStyle stepText = tokens.compactText.copyWith(color: tokens.faint);
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: tokens.registrationStepListInset),
+      child: Column(
+        spacing: tokens.registrationActionGap,
+        children: <Widget>[
+          for (int i = 0; i < steps.length; i++)
+            Row(
+              children: <Widget>[
+                _buildStepMark(
+                  tokens,
+                  waiting: i == steps.length - 1 && !confirmed,
+                ),
+                SizedBox(width: tokens.entryStepGap),
+                Expanded(child: Text(steps[i], style: stepText)),
+              ],
+            ),
+        ],
+      ),
     );
   }
 

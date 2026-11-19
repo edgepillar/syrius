@@ -118,6 +118,27 @@ void main() {
                 tester.getBottomLeft(find.byWidget(firstRow)).dy,
             closeTo(tokens.registrationActionGap, .01),
           );
+          final Finder rail = find.ancestor(
+            of: checks.first,
+            matching: find.byType(SingleChildScrollView),
+          );
+          final Row lastRow = tester
+              .element(checks.last)
+              .findAncestorWidgetOfExactType<Row>()!;
+          final Finder separator = find.descendant(
+            of: rail,
+            matching: find.byType(Divider),
+          );
+          expect(
+            tester.getTopLeft(find.byWidget(firstRow)).dy -
+                tester.getTopLeft(rail).dy,
+            closeTo(24, .01),
+          );
+          expect(
+            tester.getTopLeft(separator).dy -
+                tester.getBottomLeft(find.byWidget(lastRow)).dy,
+            closeTo(22, .01),
+          );
           final AppLottie art = tester.widget<AppLottie>(
             find.byType(AppLottie),
           );

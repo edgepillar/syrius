@@ -627,6 +627,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The registration ledger's inset follows the stepper mockup.
   double get registrationInset => 20;
 
+  /// Separates the registration step list, separator, and receipt facts.
+  double get registrationRailGap => 18;
+
+  /// Adds the reference's breathing room above and below the step list.
+  double get registrationStepListInset => 4;
+
   /// Inline space between the reference receipt's label and value columns.
   double get registrationFactColumnGap => 18;
 
