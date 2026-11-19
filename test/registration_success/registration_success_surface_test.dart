@@ -102,10 +102,21 @@ void main() {
           );
           expect(checks, findsNWidgets(4));
           expect(tester.getSize(checks.first), const Size.square(12));
+          final AppTokens tokens = AppTokens.of(tester.element(checks.first));
+          final Row firstRow = tester
+              .element(checks.first)
+              .findAncestorWidgetOfExactType<Row>()!;
+          final Row secondRow = tester
+              .element(checks.at(1))
+              .findAncestorWidgetOfExactType<Row>()!;
           expect(
-            tester.getTopLeft(checks.at(1)).dy -
-                tester.getTopLeft(checks.first).dy,
-            closeTo(36, .01),
+            tester.getSize(find.byWidget(firstRow.children.first)),
+            const Size.square(22),
+          );
+          expect(
+            tester.getTopLeft(find.byWidget(secondRow)).dy -
+                tester.getBottomLeft(find.byWidget(firstRow)).dy,
+            closeTo(tokens.registrationActionGap, .01),
           );
           final AppLottie art = tester.widget<AppLottie>(
             find.byType(AppLottie),
@@ -123,7 +134,6 @@ void main() {
           expect(title.style!.fontSize, 22);
           expect(title.style!.fontWeight, FontWeight.w600);
           final Finder artwork = find.byType(AppLottie);
-          final AppTokens tokens = AppTokens.of(tester.element(artwork));
           final Rect viewport = tester.getRect(
             find.ancestor(
               of: artwork,
