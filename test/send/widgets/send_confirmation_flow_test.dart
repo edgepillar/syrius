@@ -490,6 +490,11 @@ void main() {
         expect(find.text('Confirm on your device after Send.'), findsNothing);
         expect(find.text(to), findsWidgets);
         final Finder dialog = find.byKey(const Key('send_confirmation_marker'));
+        final FrostedDialogRoute<bool> route = ModalRoute.of<bool>(
+          tester.element(dialog),
+        ) as FrostedDialogRoute<bool>;
+        expect(route.frostWindowCaption, isTrue);
+        expect(route.barrierDismissible, isFalse);
         final AppTokens tokens = AppTokens.of(tester.element(dialog));
         final Rect surface = tester.getRect(
           find.descendant(of: dialog, matching: find.byType(FrostedSurface)),

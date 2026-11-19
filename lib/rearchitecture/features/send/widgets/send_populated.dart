@@ -878,6 +878,7 @@ class _SendPopulatedState extends State<SendPopulated>
           : (await showFrostedDialog<bool>(
                   context: context,
                   barrierDismissible: false,
+                  frostWindowCaption: true,
                   builder: (BuildContext dialogContext) => SendConfirmation(
                     intent: intent,
                     hardware: session.hardware,
