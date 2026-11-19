@@ -227,7 +227,7 @@ class RegistrationSuccessSurface extends StatelessWidget {
                 if (steps.isNotEmpty) _buildSteps(tokens, confirmed: confirmed),
                 Divider(height: 1, thickness: 1, color: tokens.line),
                 if (receiptFacts.isNotEmpty)
-                  _buildFacts(context, tokens, receiptFacts),
+                  RegistrationFacts(facts: receiptFacts),
                 if (confirmed && onAnother != null && anotherLabel != null)
                   TextButton(
                     key: const Key('registration_another'),
@@ -443,18 +443,25 @@ class RegistrationSuccessSurface extends StatelessWidget {
                 ),
               ),
       );
+}
 
-  Widget _buildFacts(
-    BuildContext context,
-    AppTokens tokens,
-    List<RegistrationReceiptFact> receiptFacts,
-  ) {
+/// The shared label and value columns in a registration rail.
+class RegistrationFacts extends StatelessWidget {
+  /// Displays the current facts and stacks them for enlarged text.
+  const RegistrationFacts({required this.facts, super.key});
+
+  /// The facts in rail order.
+  final List<RegistrationReceiptFact> facts;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppTokens tokens = AppTokens.of(context);
     final double valueSize = tokens.registrationFactText.fontSize!;
     if (MediaQuery.textScalerOf(context).scale(valueSize) > valueSize) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: tokens.registrationActionGap,
-        children: receiptFacts,
+        children: facts,
       );
     }
     return Table(
@@ -464,7 +471,7 @@ class RegistrationSuccessSurface extends StatelessWidget {
         1: FlexColumnWidth(),
       },
       children: <TableRow>[
-        for (final RegistrationReceiptFact fact in receiptFacts)
+        for (final RegistrationReceiptFact fact in facts)
           TableRow(
             children: <Widget>[
               Padding(
@@ -485,7 +492,7 @@ class RegistrationSuccessSurface extends StatelessWidget {
   }
 }
 
-/// One established fact from the original registration receipt.
+/// One labelled fact in a registration draft or receipt.
 class RegistrationReceiptFact extends StatelessWidget {
   /// Values have their own amount or identifier presentation.
   const RegistrationReceiptFact({
@@ -530,7 +537,8 @@ class _Identifier extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String shortened = value.length > 12
-        ? '${value.substring(0, prefixLength)}…${value.substring(value.length - 4)}'
+        ? '${value.substring(0, prefixLength)}…'
+              '${value.substring(value.length - 4)}'
         : value;
     return Tooltip(
       message: value,

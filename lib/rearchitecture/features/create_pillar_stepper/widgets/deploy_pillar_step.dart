@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_pillar_stepper/widgets/pillar_step_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/registration_success/registration_confirmation.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/registration_success/registration_success_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -320,9 +321,8 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
           children: <Widget>[
             _buildRailSteps(context, tokens),
             Divider(height: 1, thickness: 1, color: tokens.line),
-            Column(
-              spacing: tokens.registrationGap,
-              children: <Widget>[
+            RegistrationFacts(
+              facts: <RegistrationReceiptFact>[
                 if (qsrInfo != null)
                   _buildRailAmount(
                     tokens,
@@ -335,7 +335,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
                   ),
                 _buildRailAmount(
                   tokens,
-                  context.l10n.createPillarCollateralLabel,
+                  context.l10n.createPillarLocks,
                   pillarRegisterZnnAmount,
                   kZnnCoin,
                 ),
@@ -411,43 +411,37 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
     );
   }
 
-  Widget _buildRailAmount(
+  RegistrationReceiptFact _buildRailAmount(
     AppTokens tokens,
     String label,
     BigInt amount,
     Token token, {
     String? note,
-  }) => Row(
-    spacing: tokens.inlineGap,
-    children: <Widget>[
-      Expanded(child: Text(label.toUpperCase(), style: tokens.ledgerText)),
-      Flexible(
-        flex: 2,
-        child: FittedBox(
-          alignment: AlignmentDirectional.centerStart,
-          fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: tokens.inlineGap,
-            children: <Widget>[
-              AmountText(
-                amount,
-                decimals: token.decimals,
-                symbol: token.symbol,
-                style: tokens.registrationFactText,
-              ),
-              if (note != null)
-                Text(
-                  note,
-                  style: tokens.registrationFactText.copyWith(
-                    color: tokens.znnInk,
-                  ),
-                ),
-            ],
+  }) => RegistrationReceiptFact(
+    label: label,
+    value: FittedBox(
+      alignment: AlignmentDirectional.centerStart,
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: tokens.inlineGap,
+        children: <Widget>[
+          AmountText(
+            amount,
+            decimals: token.decimals,
+            symbol: token.symbol,
+            style: tokens.registrationFactText,
           ),
-        ),
+          if (note != null)
+            Text(
+              note,
+              style: tokens.registrationFactText.copyWith(
+                color: tokens.znnInk,
+              ),
+            ),
+        ],
       ),
-    ],
+    ),
   );
 
   void _changeStage(_Stage from, _Stage to) {

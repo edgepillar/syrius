@@ -1841,6 +1841,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createPillarCollateralLabel => 'Collateral';
 
   @override
+  String get createPillarLocks => 'Locks';
+
+  @override
   String get createPillarSlotFeeLabel => 'Slot fee';
 
   @override

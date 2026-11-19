@@ -3073,6 +3073,12 @@ abstract class AppLocalizations {
   /// **'Collateral'**
   String get createPillarCollateralLabel;
 
+  /// Draft label for the ZNN amount a successful Pillar registration will lock.
+  ///
+  /// In en, this message translates to:
+  /// **'Locks'**
+  String get createPillarLocks;
+
   /// Label of the QSR amount burned for a Pillar slot, in the review before a Pillar is registered. The amount follows on the same line.
   ///
   /// In en, this message translates to:

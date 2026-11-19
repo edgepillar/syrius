@@ -9,6 +9,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/registration_success/registration_success_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -85,8 +86,8 @@ void main() {
 
     final Finder deposited = find.text('Deposited');
     expect(deposited, findsNothing);
-    for (final (String? address, int amount, bool visible) in
-        <(String?, int, bool)>[
+    for (final (String? address, int amount, bool visible)
+        in <(String?, int, bool)>[
           (null, 100, false),
           (plasmaAddress.toString(), 100, false),
           (owner, 99, false),
@@ -103,6 +104,18 @@ void main() {
       );
       await tester.pump();
       expect(deposited, visible ? findsOneWidget : findsNothing);
+    }
+
+    final Finder facts = find.byType(RegistrationFacts);
+    final Finder amounts = find.descendant(
+      of: facts,
+      matching: find.byType(AmountText),
+    );
+    expect(amounts, findsNWidgets(3));
+    expect(find.text('LOCKS'), findsOneWidget);
+    final double valueStart = tester.getTopLeft(amounts.first).dx;
+    for (int index = 1; index < 3; index++) {
+      expect(tester.getTopLeft(amounts.at(index)).dx, closeTo(valueStart, .01));
     }
 
     final Finder deposit = find.text('Deposit QSR');
