@@ -195,6 +195,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
       active: active && _stage == _Stage.details,
       busy: _isSending,
       onBack: widget.onBackPressed,
+      outlinedBack: true,
       onSubmit: next,
       body: Theme(
         data: theme.copyWith(
@@ -231,6 +232,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
       active: active && _stage == _Stage.sharing,
       busy: _isSending,
       onBack: () => _changeStage(_Stage.sharing, _Stage.details),
+      outlinedBack: true,
       onSubmit: next,
       body: PillarRewardSliders(
         delegateRewardPercentage: _delegateRewardPercentage,
@@ -251,6 +253,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
       active: active && _stage == _Stage.review,
       busy: _isSending,
       onBack: () => _changeStage(_Stage.review, _Stage.sharing),
+      outlinedBack: true,
       // Review requires deliberately choosing Register, including by keyboard.
       focusPrimaryOnOpen: false,
       body: PillarReview(

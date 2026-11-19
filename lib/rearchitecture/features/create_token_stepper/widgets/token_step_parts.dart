@@ -66,6 +66,7 @@ class TokenStepFrame extends StatefulWidget {
     required this.primary,
     this.onSubmit,
     this.onBack,
+    this.outlinedBack = false,
     this.busy = false,
     this.focusPrimaryOnOpen = true,
     super.key,
@@ -86,6 +87,9 @@ class TokenStepFrame extends StatefulWidget {
 
   /// Goes one step back. No Back button when null.
   final VoidCallback? onBack;
+
+  /// Uses the outlined Back pill in the shell's compact registration draft.
+  final bool outlinedBack;
 
   /// Whether the step is sending. Back is disabled meanwhile.
   final bool busy;
@@ -327,11 +331,18 @@ class _TokenStepFrameState extends State<TokenStepFrame>
                 child: Row(
                   children: <Widget>[
                     if (widget.onBack != null) ...<Widget>[
-                      TextButton(
-                        style: quietButtonStyle(context),
-                        onPressed: widget.busy ? null : widget.onBack,
-                        child: Text(context.l10n.goBack),
-                      ),
+                      if (widget.outlinedBack)
+                        OutlinedButton(
+                          style: secondaryButtonStyle(context),
+                          onPressed: widget.busy ? null : widget.onBack,
+                          child: Text(context.l10n.tokenCreateBack),
+                        )
+                      else
+                        TextButton(
+                          style: quietButtonStyle(context),
+                          onPressed: widget.busy ? null : widget.onBack,
+                          child: Text(context.l10n.goBack),
+                        ),
                       const SizedBox(width: 8),
                     ],
                     Focus(

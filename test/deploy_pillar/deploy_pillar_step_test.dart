@@ -48,6 +48,7 @@ void main() {
     );
     registerFallbackValue(expected);
     final List<DeployPillarEvent> requests = <DeployPillarEvent>[];
+    int exits = 0;
     when(() => deploy.add(any())).thenAnswer((Invocation call) {
       requests.add(call.positionalArguments.single as DeployPillarEvent);
     });
@@ -66,6 +67,7 @@ void main() {
                 ownerAddress: owner,
                 availableZnn: BigInt.zero,
                 onDeployDone: () {},
+                onBackPressed: () => exits++,
               ),
             ),
           ),
@@ -109,7 +111,7 @@ void main() {
     final Finder slider = find.byKey(
       const Key('pillar_momentum_reward_slider'),
     );
-    final Finder back = find.widgetWithText(TextButton, 'Go back');
+    final Finder back = find.widgetWithText(OutlinedButton, 'Back');
     final Element originalName = tester.element(name);
     expect(
       tester.getTopLeft(producer).dy,
@@ -119,6 +121,8 @@ void main() {
     expect(slider.hitTestable(), findsNothing);
     expect(requests, isEmpty);
     expect(nameValid, findsNothing);
+    await tester.tap(back);
+    expect(exits, 1);
 
     await tester.enterText(name, '?invalid');
     await tester.pump();
@@ -144,6 +148,7 @@ void main() {
     expect(register.hitTestable(), findsNothing);
     await tester.tap(back);
     await tester.pumpAndSettle();
+    expect(exits, 1);
     expect(tester.element(name), same(originalName));
     expect(tester.widget<TextField>(name).controller!.text, 'pillar');
     expect(
