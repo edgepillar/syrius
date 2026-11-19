@@ -227,16 +227,33 @@ class _NodeSettingsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    final Color disabledChoice = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.38);
     final NodeSettingsNetwork? facts = network;
-    final Widget choice = SizedBox(
-      width: tokens.nodeSettingsChoiceSize,
-      height: tokens.nodeSettingsChoiceSize,
+    final Widget choice = SizedBox.square(
+      dimension: tokens.settingsChoiceSize,
       child: Radio<String>(
         key: ValueKey<String>('node_settings_select_${row.node}'),
         value: row.node,
         enabled: onSelect != null,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         visualDensity: VisualDensity.compact,
+        side: WidgetStateBorderSide.resolveWith((Set<WidgetState> states) {
+          final Color color = states.contains(WidgetState.disabled)
+              ? disabledChoice
+              : states.contains(WidgetState.selected)
+              ? tokens.znn
+              : tokens.faint;
+          // BorderSide keeps the stroke inside the circle by default.
+          return BorderSide(
+            color: color,
+            width: tokens.settingsChoiceStroke,
+          );
+        }),
+        innerRadius: WidgetStatePropertyAll<double>(
+          tokens.settingsChoiceDotSize / 2,
+        ),
       ),
     );
     final Widget endpoint = InkWell(
@@ -359,7 +376,7 @@ class _NodeSettingsRow extends StatelessWidget {
                 if (compact)
                   Padding(
                     padding: EdgeInsetsDirectional.only(
-                      start: tokens.nodeSettingsChoiceSize + tokens.pageGap,
+                      start: tokens.settingsChoiceSize + tokens.pageGap,
                       top: tokens.fieldLabelGap,
                     ),
                     child: Wrap(

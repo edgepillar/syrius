@@ -792,21 +792,21 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
                     onPressed: enabled && !selected
                         ? () => unawaited(_select(address, current))
                         : null,
-                    iconSize: tokens.addressesChoiceSize,
+                    iconSize: tokens.settingsChoiceSize,
                     icon: SizedBox.square(
-                      dimension: tokens.addressesChoiceSize,
+                      dimension: tokens.settingsChoiceSize,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: choiceInk,
-                            width: tokens.addressesChoiceStroke,
+                            width: tokens.settingsChoiceStroke,
                           ),
                         ),
                         child: selected
                             ? Center(
                                 child: SizedBox.square(
-                                  dimension: tokens.addressesChoiceDotSize,
+                                  dimension: tokens.settingsChoiceDotSize,
                                   child: DecoratedBox(
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,

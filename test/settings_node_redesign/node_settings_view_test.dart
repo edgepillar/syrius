@@ -196,6 +196,26 @@ void main() {
         expect(find.text('9 ms'), findsNothing);
         expect(find.text('41 ms'), findsNothing);
         expect(find.text('Chain 321'), findsNothing);
+        final Finder choice = find.byKey(
+          const Key('node_settings_select_$embeddedNode'),
+        );
+        final Radio<String> radio = tester.widget<Radio<String>>(choice);
+        expect(tester.getSize(choice), const Size.square(16));
+        for (final Set<WidgetState> states in <Set<WidgetState>>[
+          <WidgetState>{},
+          <WidgetState>{WidgetState.selected},
+        ]) {
+          final BorderSide? side = WidgetStateProperty.resolveAs(
+            radio.side,
+            states,
+          );
+          expect(side?.width, 2);
+          expect(side?.strokeAlign, BorderSide.strokeAlignInside);
+        }
+        expect(
+          radio.innerRadius?.resolve(<WidgetState>{WidgetState.selected}),
+          3.5,
+        );
         expect(source.calls, <String>['network:$embeddedNode']);
         expect(tester.takeException(), isNull);
         await close(tester);

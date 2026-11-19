@@ -800,6 +800,11 @@ The original captures and references were read directly in memory.
 | Addresses | Match | Both panels, the populated account and contact rows, the selected label, action columns and collapsed account-chain row align. Fixture values differ. The round selector follows the authored 16 px ring. |
 | About | Review | The version and action groups align. The current update label reports its unverified state, while the references show a verified release badge. |
 
+The selected Node radio spans 18 by 19 painted pixels in the retained images.
+The outline now sits inside its 16 px control and uses the same 2 px outline
+and 7 px centre as Addresses. The existing Node radio control still owns
+selection and keyboard input. The new paint bounds await a native capture.
+
 ### Receive at rest at `06eda3f7`
 
 The latest private comparison records verdicts for all 62 locally available
@@ -944,6 +949,16 @@ uses the same predicate as cold measurement within the original preparation
 budget. A preparation deadline is retained in its own phase. The next cold
 process owns frame measurement. The reader admits the earlier exact
 producer digests for historical evidence.
+
+At [`63a01c7d`](https://github.com/edgepillar/syrius/actions/runs/44621284254/job/135903318459),
+the ordinary P06 warm process exits normally after the readiness deadline.
+The cold P06 measurement is unreached. The
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/44625068882/job/135916603358)
+verifies four normal actor exits and 82 redesign frames. The redesign records
+37 frame-number gaps and a maximum raster of 298.122 ms, starting between
+3,939.198 and 3,970.865 ms after entry and past the film end at 3,843.225 ms.
+Four of six starts after observed Lock arrival exceed 16 ms, with a maximum
+of 65.564 ms. The paired comparison remains open.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now

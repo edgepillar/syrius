@@ -1019,14 +1019,14 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Space for the selected-account indicator.
   double get addressesChoiceWidth => 36;
 
-  /// The reference's account-selection mark.
-  double get addressesChoiceSize => 16;
+  /// The reference's circular account and node selection marks.
+  double get settingsChoiceSize => 16;
 
   /// The circle's outline and its filled centre when selected.
-  double get addressesChoiceStroke => 2;
+  double get settingsChoiceStroke => 2;
 
-  /// The diameter of the selected account's centre mark.
-  double get addressesChoiceDotSize => 7;
+  /// The diameter of the selected choice's centre mark.
+  double get settingsChoiceDotSize => 7;
 
   /// The reference's circular table action and its input area.
   double get addressesActionSize => 32;
@@ -1597,9 +1597,6 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// Separation between independent node summary facts.
   double get nodeSettingsSummaryGap => 16;
-
-  /// The node row's selection mark.
-  double get nodeSettingsChoiceSize => 16;
 
   /// The compact node status chip's base height.
   double get nodeSettingsChipHeight => 26;
