@@ -136,7 +136,12 @@ void main() {
     ) async {
       final _Fixture fixture = _Fixture();
       try {
-        await fixture.show(tester, light: light);
+        final ThemeData desktopTheme =
+            (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
+              platform: TargetPlatform.windows,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            );
+        await fixture.show(tester, theme: desktopTheme);
         expect(_key('zap_form_ready'), findsOneWidget);
         expect(_key('zap_candidates_unavailable'), findsOneWidget);
         expect(_key('zap_recipient_unavailable'), findsOneWidget);
