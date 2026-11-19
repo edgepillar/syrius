@@ -232,11 +232,28 @@ void main() {
       );
       expect(find.byKey(const Key('fixture_hook')).hitTestable(), findsNothing);
       final Finder list = find.byKey(const Key('about_licences_list'));
+      final Finder scrollbarFinder = find.ancestor(
+        of: list,
+        matching: find.byType(RawScrollbar),
+      );
       final RawScrollbar scrollbar = tester.widget<RawScrollbar>(
-        find.ancestor(of: list, matching: find.byType(RawScrollbar)),
+        scrollbarFinder,
       );
       expect(scrollbar.thickness, 4);
       expect(scrollbar.trackVisibility, isTrue);
+      final CustomPaint scrollbarPaint = tester.widget<CustomPaint>(
+        find.descendant(
+          of: scrollbarFinder,
+          matching: find.byWidgetPredicate(
+            (Widget child) =>
+                child is CustomPaint &&
+                child.foregroundPainter is ScrollbarPainter,
+          ),
+        ),
+      );
+      final ScrollbarPainter painter =
+          scrollbarPaint.foregroundPainter! as ScrollbarPainter;
+      expect(painter.fadeoutOpacityAnimation.value, 1);
       expect(
         scrollbar.padding,
         const EdgeInsetsDirectional.only(top: 6, bottom: 6, end: 4),

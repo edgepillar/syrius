@@ -357,6 +357,7 @@ class _LicencesState extends State<Licences> {
         controller: _scroll,
         thumbVisibility: true,
         trackVisibility: true,
+        fadeDuration: Duration.zero,
         thumbColor: tokens.faint,
         trackColor: tokens.line,
         trackBorderColor: Colors.transparent,
