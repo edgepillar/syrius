@@ -736,12 +736,30 @@ void main() {
     WidgetTester tester,
   ) async {
     await _mount(tester, snapshot: _snapshot(revocable: false));
-    expect(
-      tester
-          .widget<OutlinedButton>(_button(PillarOwnerAction.revokeConfirmed))
-          .onPressed,
-      isNull,
+    final Finder countdown = find.byKey(
+      const Key('pillar_owner_revocation_waiting'),
     );
+    final ShapeDecoration decoration =
+        tester.widget<Container>(countdown).decoration! as ShapeDecoration;
+    expect(
+      decoration.color,
+      AppTokens.dark.qsr.withValues(alpha: 0.14),
+    );
+    expect(tester.getSize(countdown).height, 26);
+    expect(
+      find.descendant(of: countdown, matching: find.text('01:00:00')),
+      findsOneWidget,
+    );
+    final OutlinedButton disassemble = tester.widget<OutlinedButton>(
+      _button(PillarOwnerAction.revokeConfirmed),
+    );
+    expect(disassemble.onPressed, isNull);
+    const Set<WidgetState> disabled = <WidgetState>{WidgetState.disabled};
+    expect(
+      disassemble.style!.backgroundColor!.resolve(disabled),
+      Colors.transparent,
+    );
+    expect(disassemble.style!.side!.resolve(disabled), BorderSide.none);
     await tester.tap(
       _button(PillarOwnerAction.revokeConfirmed),
       warnIfMissed: false,

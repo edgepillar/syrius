@@ -15,6 +15,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 
 /// Replaces only the questions in an isolated lifecycle test.
@@ -667,32 +669,58 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
     if (boundary == null) return _unavailable(context);
     final Duration remaining = boundary.difference(_now);
     final bool open = _revocable(snapshot);
-    return Tooltip(
-      message: snapshot.isRevocable
-          ? context.l10n.revocationWindowOpen
-          : context.l10n.untilRevocationWindowOpens,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
+    final bool waiting = !snapshot.isRevocable && remaining > Duration.zero;
+    final Widget countdown = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        if (waiting)
+          ShellSymbol(
+            'clock',
+            size: tokens.inlineGlyphSize,
+            color: tokens.qsrInk,
+          )
+        else
           Icon(
             open ? Icons.check_circle_outline : Icons.schedule,
             color: open ? tokens.znnInk : tokens.warn,
             size: tokens.settingsIconSize,
           ),
-          SizedBox(width: tokens.fieldLabelGap),
-          Flexible(
-            child: Ltr(
-              child: Text(
-                FormatUtils.formatCountdownClock(
-                  context.l10n,
-                  remaining.isNegative ? Duration.zero : remaining,
-                ),
-                style: tokens.dataText,
-              ),
+        SizedBox(width: tokens.fieldLabelGap),
+        Flexible(
+          child: Ltr(
+            child: Text(
+              FormatUtils.formatCountdownClock(context.l10n, remaining),
+              style: waiting
+                  ? tokens.dataText.copyWith(fontSize: 12, color: tokens.qsrInk)
+                  : tokens.dataText,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+    return Tooltip(
+      message: snapshot.isRevocable
+          ? context.l10n.revocationWindowOpen
+          : context.l10n.untilRevocationWindowOpens,
+      child: waiting
+          ? Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Container(
+                key: const Key('pillar_owner_revocation_waiting'),
+                decoration: ShapeDecoration(
+                  color: tokens.qsr.withValues(alpha: 0.14),
+                  shape: const StadiumBorder(),
+                ),
+                constraints: BoxConstraints(
+                  minHeight: tokens.smallButtonHeight,
+                ),
+                padding: EdgeInsetsDirectional.symmetric(
+                  horizontal: tokens.cardGap,
+                ),
+                child: countdown,
+              ),
+            )
+          : countdown,
     );
   }
 
@@ -743,7 +771,19 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
     final AppTokens tokens = AppTokens.of(context);
     final bool enabled = _canStart(action, snapshot, epoch);
     final bool destructive = action == PillarOwnerAction.revokeConfirmed;
-    final ButtonStyle style = secondaryButtonStyle(context).copyWith(
+    final WidgetStatePropertyAll<Color> destructiveInk =
+        WidgetStatePropertyAll<Color>(enabled ? tokens.error : tokens.faint);
+    final ButtonStyle baseStyle = destructive
+        ? quietButtonStyle(context).copyWith(
+            foregroundColor: destructiveInk,
+            iconColor: destructiveInk,
+            backgroundColor: const WidgetStatePropertyAll<Color>(
+              Colors.transparent,
+            ),
+            side: const WidgetStatePropertyAll<BorderSide>(BorderSide.none),
+          )
+        : secondaryButtonStyle(context);
+    final ButtonStyle style = baseStyle.copyWith(
       minimumSize: WidgetStatePropertyAll<Size>(
         Size(0, tokens.compactButtonHeight),
       ),
@@ -752,13 +792,6 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
       ),
       textStyle: WidgetStatePropertyAll<TextStyle>(tokens.compactText),
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      foregroundColor: destructive
-          ? WidgetStateProperty.resolveWith<Color>(
-              (Set<WidgetState> states) => states.contains(WidgetState.disabled)
-                  ? tokens.faint
-                  : tokens.error,
-            )
-          : null,
     );
     return ExcludeFocus(
       excluding: !enabled,
