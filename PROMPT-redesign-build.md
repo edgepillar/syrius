@@ -800,6 +800,13 @@ passes analysis and reports 75 passes and one failure in the focused suite.
 The test controller reported frame 1 while the test binding was idle. The
 fixture now reports both frame indices from a scheduled frame callback,
 matching the production ticker phase.
+The [rerun at `6abdb54e`](https://github.com/edgepillar/syrius/actions/runs/44613154803/job/135874750402)
+passes the focused Ready suite, including the covered raster case.
+
+When Originals opens at the end of the Licences list, the viewport checks
+the lazy scroll extent across its existing four layout observations. It now
+calls `jumpTo` only when the extent differs from the current offset, avoiding
+an idle and ballistic activity reset for an already aligned viewport.
 
 Both Staking Empty captures from X1248 show the summary labels and amounts
 one pixel below the references. The Stakes card begins at row 119 and its

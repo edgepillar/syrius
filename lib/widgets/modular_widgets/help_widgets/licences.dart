@@ -209,14 +209,16 @@ class _LicencesState extends State<Licences> {
         finish();
         return;
       }
-      final int expected = revision + (position.pixels == target ? 0 : 1);
-      position.jumpTo(target);
-      // Only this jump may advance the lease; a reentrant movement revokes it.
-      if (_scrollRevision != expected || position.pixels != target) {
-        finish();
-        return;
+      if (position.pixels != target) {
+        final int expected = revision + 1;
+        position.jumpTo(target);
+        // Only this jump may advance the lease. Other movement revokes it.
+        if (_scrollRevision != expected || position.pixels != target) {
+          finish();
+          return;
+        }
+        revision = expected;
       }
-      revision = expected;
       corrections++;
       if (!current()) {
         finish();
