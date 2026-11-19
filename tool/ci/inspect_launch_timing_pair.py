@@ -308,15 +308,16 @@ def inspect_run(client, *, head, tree, run_id, job):
     archive.need(len(selected) == len(retained) == 1
         and selected[0]['status'] == retained[0]['status'] == 'completed'
         and selected[0]['conclusion'] in ('success', 'failure') and retained[0]['conclusion'] == 'success')
-    for name, module in (('windows_launch_timing_pair.py', pair),
-                         ('windows_launch_catalog.py', pair.launch)):
+    prior_pair = ('fdadca2905a65134927a3b19e6218b99b98cf579b7579a3a3636bf9a058c691c',)
+    prior_launch = (startup_reader.PRE_P06_WARMUP_LAUNCH_PRODUCER_SHA,
+                    startup_reader.PRE_LOCK_SETTLE_LAUNCH_PRODUCER_SHA,
+                    startup_reader.PRE_BATCH_LAUNCH_PRODUCER_SHA,
+                    startup_reader.PRE_PHASE_LAUNCH_PRODUCER_SHA,
+                    startup_reader.PRE_MOTION_LAUNCH_PRODUCER_SHA)
+    for name, module, previous in (('windows_launch_timing_pair.py', pair, prior_pair),
+                                  ('windows_launch_catalog.py', pair.launch, prior_launch)):
         body = source(client, 'tool/ci/' + name, head)
-        prior_launch = (startup_reader.PRE_LOCK_SETTLE_LAUNCH_PRODUCER_SHA,
-                        startup_reader.PRE_BATCH_LAUNCH_PRODUCER_SHA,
-                        startup_reader.PRE_PHASE_LAUNCH_PRODUCER_SHA,
-                        startup_reader.PRE_MOTION_LAUNCH_PRODUCER_SHA)
-        archive.need(body == Path(module.__file__).read_bytes()
-            or (module is pair.launch and archive.sha(body) in prior_launch))
+        archive.need(body == Path(module.__file__).read_bytes() or archive.sha(body) in previous)
     pinned = client.json('/git/commits/' + pair.P06_SOURCE)
     archive.need(pinned['sha'] == pair.P06_SOURCE and pinned['tree']['sha'] == pair.P06_TREE)
     pins = {key: archive.sha(source(client, path.as_posix(), head)) for key, path in (

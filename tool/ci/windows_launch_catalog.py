@@ -334,10 +334,8 @@ class LaunchProcess(startup.StartupProbe):
             self.sleep(min(self.limits.poll, max(0, until - self.clock())))
         raise startup.Failure('STARTUP_DEADLINE')
 
-    def _observe_frame_timing(self, *, paired=False):
-        until = min(self.deadline - 5, self.started + (90 if paired else 50))
-        if not paired:
-            until = min(until, self.clock() + 20)
+    def wait_for_timing_lock(self, until):
+        """Wait for the original enabled Lock field at the measured size."""
         window_pending = False
         # A zero-wait original predicate leaves time for its HTTP reply.
         # P06 and the current agent use different fixed pending messages.
@@ -367,6 +365,12 @@ class LaunchProcess(startup.StartupProbe):
             self.sleep(min(self.limits.poll, max(0, until - self.clock())))
         else:
             raise startup.Failure('WINDOW_INVALID' if window_pending else 'STARTUP_DEADLINE')
+
+    def _observe_frame_timing(self, *, paired=False):
+        until = min(self.deadline - 5, self.started + (90 if paired else 50))
+        if not paired:
+            until = min(until, self.clock() + 20)
+        self.wait_for_timing_lock(until)
         if not paired:
             # Observe the original lock at rest without scheduling any frames.
             self.sleep(LOCK_SETTLE_OBSERVATION_SECONDS)

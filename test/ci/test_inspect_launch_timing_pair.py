@@ -180,6 +180,29 @@ class PairInspectionTests(unittest.TestCase):
         current, baseline = object(), object()
         retained = dict(samples=[], storage={})
         theme = pair.launch.TIMING_THEME
+        warmup = object.__new__(pair._P06Warmup)
+        warmup.deadline = 90
+        warmup.clock, warmup.sleep = lambda: 0, mock.Mock()
+        warmup.limits = pair.launch.LIMITS
+        warmup._show = mock.Mock()
+        warmup._rpc = mock.Mock(return_value=dict(mode=theme, brightness=theme,
+                                                 savedMode='ThemeMode.' + theme))
+        target = dict(key='wallet_password_field', kind='field')
+        warmup._exchange = mock.Mock(side_effect=[
+            (200, dict(ok=True, target=dict(target, enabled=False))),
+            (200, dict(ok=True, target=dict(target, enabled=True))),
+            (200, dict(ok=True, booted=True, walletUnlocked=False, size=[1280, 780])),
+        ])
+        warmup._prepare_theme(theme)
+        warmup._show.assert_called_once_with()
+        warmup._rpc.assert_called_once_with(dict(cmd='theme', mode=theme))
+        wait = dict(cmd='wait', key='wallet_password_field', kind='field',
+                    exact=True, ready=True, timeoutMs=0)
+        self.assertEqual(warmup._exchange.call_args_list, [
+            mock.call(wait, until=85), mock.call(wait, until=85),
+            mock.call(dict(cmd='state'), until=85),
+        ])
+
         with mock.patch.object(pair.launch.entry, 'new_profile', return_value=profile), \
              mock.patch.object(pair.launch.bounded, 'plain', return_value=mock.Mock(st_dev=1, st_ino=2)), \
              mock.patch.object(pair, 'check_space'), \
@@ -188,7 +211,8 @@ class PairInspectionTests(unittest.TestCase):
             self.assertEqual(pair.measure_sample(repo, parent, current, baseline, 'p06', retained), window)
         self.assertEqual(run.call_args_list, [
             mock.call(repo, parent, current, profile, theme, capture=False, settle=True),
-            mock.call(repo, parent, baseline, profile, theme, capture=False, settle=False),
+            mock.call(repo, parent, baseline, profile, theme, capture=False, settle=False,
+                      process_type=pair._P06Warmup),
             mock.call(repo, parent, baseline, profile, theme, capture=True, settle=True,
                       timing=True, lock_diagnostic={}),
         ])

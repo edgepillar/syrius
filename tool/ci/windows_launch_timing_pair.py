@@ -207,6 +207,14 @@ def attempt_outcomes(samples):
                             for attempt in sample['attempts']] for sample in samples}
 
 
+class _P06Warmup(launch.LaunchProcess):
+    def _prepare_theme(self, theme):
+        super()._prepare_theme(theme)
+        # Let the original app finish its normal startup before it saves the
+        # warm profile on exit. The subsequent process owns the cold window.
+        self.wait_for_timing_lock(self.deadline - 5)
+
+
 def measure_sample(repo, parent, current, binaries, name, report):
     theme = launch.TIMING_THEME
     report['phase'] = name + '_prepare_profile'
@@ -223,7 +231,7 @@ def measure_sample(repo, parent, current, binaries, name, report):
     if name == 'p06':
         report['phase'] = 'p06_warm_ordinary_profile'
         warmed, _ = launch.run_process(repo, parent, binaries, profile, theme,
-                                       capture=False, settle=False)
+                                       capture=False, settle=False, process_type=_P06Warmup)
         sample['attempts'].append(warmed)
         launch.need(launch.attempt_passed(warmed))
         check_profile(profile, identity)

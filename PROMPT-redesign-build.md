@@ -900,6 +900,13 @@ and 4,043.508 ms, after the observed film end at 3,847.469 ms. Four of the
 five starts after observed Lock arrival exceed 16 ms. Their maximum is
 48.435 ms. The source of the peak raster work remains open under V02.
 
+The P06 preparation process now waits for its original enabled Lock field
+and the 1280 by 780 client before closing the ordinary profile. The wait
+uses the same predicate as cold measurement within the original preparation
+budget. A preparation deadline is retained in its own phase. The next cold
+process owns frame measurement. The reader admits the earlier exact
+producer digests for historical evidence.
+
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
 calls `jumpTo` only when the extent differs from the current offset, avoiding
