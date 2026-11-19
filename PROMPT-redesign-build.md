@@ -748,6 +748,19 @@ The black rows are 209 through 326 on Lock, 187 through 304 on Wrong
 Password and 117 through 234 on the picker in both themes. Those coordinates
 agree with the six references. Whole-image verdicts remain under V01.
 
+#### Lock at rest at `5b149ee2`
+
+All six original captures were visually compared in both themes, using the
+verified [Lock archive](https://github.com/edgepillar/syrius/actions/runs/44617307764/artifacts/14576822894)
+and the original reference PNGs. The normal Lock pairs match. The card, film,
+fields, action and links align. The remaining variations come from the
+approved brand palette, actual wallet and status values, and rasterized text
+and edges. The wrong-password captures show the reference warning and film
+frame. The light capture also shows the original focused caret. The picker
+shows the intended rows and selection state. Its divider at column 640 is
+on row 487 in both captures and row 488 in both references. The four warning
+and picker verdicts remain open for those comparisons.
+
 The retained Addresses captures at `06eda3f7` show the selected glyph in
 columns 299 through 312 and rows 165 through 178 in both themes. The authored
 selector specifies a 16 px circle with a 2 px ring and a filled centre for the
@@ -1237,8 +1250,9 @@ the difference and its write paths in the note.
 
 X821 through X872 refer to the exact 28f9c121 pairs reviewed independently.
 Other X rows retain their original capture sources. Welcome binds to
-Source901 in X775, Launch to 28f9c121 in X877 and Lock and Ready to
-28f9c121 in X883. The V01 row tracks strict whole-image acceptance.
+Source901 in X775, Launch to 28f9c121 in X877 and Ready to 28f9c121 in X883.
+The Lock rows link to the review at 5b149ee2. The V01 row tracks strict
+whole-image acceptance.
 
 | # | Screen | Dark | Light |
 | --- | --- | --- | --- |
@@ -1282,9 +1296,9 @@ Source901 in X775, Launch to 28f9c121 in X877 and Lock and Ready to
 | 38 | `set-originals` | X1192 | X1192 |
 | 39 | `launch` | match | match |
 | 40 | `launch-settle` | X871 | X872 |
-| 41 | `lock-screen` | match | match |
-| 42 | `lock-wrong` | match | match |
-| 43 | `lock-pick` | match | match |
+| 41 | `lock-screen` | [match](#lock-at-rest-at-5b149ee2) | [match](#lock-at-rest-at-5b149ee2) |
+| 42 | `lock-wrong` | [review](#lock-at-rest-at-5b149ee2) | [review](#lock-at-rest-at-5b149ee2) |
+| 43 | `lock-pick` | [review](#lock-at-rest-at-5b149ee2) | [review](#lock-at-rest-at-5b149ee2) |
 | 44 | `welcome` | match | match |
 | 45 | `import` | X776 | X777 |
 | 46 | `seed-quiz` | match | match |
