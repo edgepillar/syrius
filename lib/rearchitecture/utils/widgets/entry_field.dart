@@ -118,7 +118,7 @@ class _EntryFieldState extends State<EntryField>
     late final AppWindowEntryBackdrop? original;
     original = frame.attachEntryBackdrop(
       owner: this, phase: _captionPhase, repaint: _captionRepaint,
-      paint: (Canvas canvas, Size size) {
+      paint: (Canvas canvas, Size size, Color captionBase) {
         final AppWindowEntryBackdrop? lease = original;
         final _EntryCaptionPaint? request = _captionRequested;
         if (!mounted || lease == null || request == null ||
@@ -130,15 +130,25 @@ class _EntryFieldState extends State<EntryField>
             (size.height - request.height).abs() >= 0.001) {
           return;
         }
+        if (captionBase != request.background || request.background.a != 1) {
+          canvas.drawRect(
+            Offset.zero & size,
+            Paint()..color = request.background,
+          );
+        }
         canvas
           ..save()
           ..translate(0, request.height);
-        _EntryFieldPainter._paintViewport(canvas, request.body,
-          Rect.fromLTWH(0, -request.height,
-              request.body.width, request.height),
-          seconds: request.seconds.value, background: request.background,
-          green: request.green, blue: request.blue, pink: request.pink,
-          raster: _raster, pixelRatio: request.pixelRatio,
+        // The caption painter has already clipped this band.
+        _EntryFieldPainter._paintLights(
+          canvas,
+          request.body,
+          seconds: request.seconds.value,
+          green: request.green,
+          blue: request.blue,
+          pink: request.pink,
+          raster: _raster,
+          pixelRatio: request.pixelRatio,
           captionHeight: request.height,
         );
         canvas.restore();
@@ -415,24 +425,34 @@ class _EntryFieldPainter extends CustomPainter {
   final double captionHeight;
 
   @override
-  void paint(Canvas canvas, Size size) => _paintViewport(
-    canvas, size, Offset.zero & size,
-    seconds: seconds.value, background: background,
-    green: green, blue: blue, pink: pink,
-    raster: raster, pixelRatio: pixelRatio, captionHeight: captionHeight,
-  );
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    canvas.drawRect(Offset.zero & size, Paint()..color = background);
+    _paintLights(
+      canvas,
+      size,
+      seconds: seconds.value,
+      green: green,
+      blue: blue,
+      pink: pink,
+      raster: raster,
+      pixelRatio: pixelRatio,
+      captionHeight: captionHeight,
+    );
+  }
 
-  static void _paintViewport(Canvas canvas, Size size, Rect viewport, {
-    required double seconds, required Color background,
-    required Color green, required Color blue, required Color pink,
-    required _EntryFieldRaster raster, required double pixelRatio,
+  // The body ClipRect and the caption painter each clip their viewport.
+  static void _paintLights(
+    Canvas canvas,
+    Size size, {
+    required double seconds,
+    required Color green,
+    required Color blue,
+    required Color pink,
+    required _EntryFieldRaster raster,
+    required double pixelRatio,
     required double captionHeight,
   }) {
-    if (size.isEmpty || viewport.isEmpty) {
-      return;
-    }
-    canvas.drawRect(viewport, Paint()..color = background);
-
     // CSS inset:-20% enlarges each side by a fraction of the parent, while
     // translate percentages use this enlarged field's own dimensions.
     final Rect field = Rect.fromLTWH(
@@ -448,7 +468,6 @@ class _EntryFieldPainter extends CustomPainter {
     final Offset center = field.center;
     canvas
       ..save()
-      ..clipRect(viewport)
       ..translate(
         center.dx + field.width * (-fieldDriftX + 2 * fieldDriftX * progress),
         center.dy + field.height * (-fieldDriftY + 2 * fieldDriftY * progress),

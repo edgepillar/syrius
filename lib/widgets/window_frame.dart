@@ -23,7 +23,8 @@ enum AppWindowEntryBackdropPhase {
 }
 
 /// Paints only the original entry field inside this frame's caption bounds.
-typedef AppWindowEntryBackdropPaint = void Function(Canvas, Size);
+/// The last argument is the colour already painted underneath the field.
+typedef AppWindowEntryBackdropPaint = void Function(Canvas, Size, Color);
 
 /// One original entry State's paint delegate; it creates no animation clock.
 /// The opaque owner, route checks and builder never leave this process.
@@ -374,7 +375,7 @@ class _AppWindowCaptionPainter extends CustomPainter {
     canvas
       ..save()
       ..clipRect(viewport);
-    original._paint(canvas, size);
+    original._paint(canvas, size, _background);
     canvas.restore();
   }
 
