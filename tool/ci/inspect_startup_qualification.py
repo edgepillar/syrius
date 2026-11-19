@@ -155,6 +155,31 @@ def inspect_run(client, *, head, tree, run_id, job):
     return summaries
 
 
+def lock_film_bounds(encoded):
+    """Measure inclusive black film edges in the original 1280 x 780 capture."""
+    from .inspect_windows_qualification import _opaque, _png_crop
+
+    left, right = 407, 873
+    top, bottom = 76, 394
+    rows, channels = _png_crop(encoded, (left, right), (top, bottom))
+    if not _opaque(rows, channels):
+        return None
+    # The interior stripe is clear of the wordmark and rounded corners.
+    first, last = (448 - left) * channels, (465 - left) * channels
+    black_rows = [y for y, row in enumerate(rows)
+                  if all(max(row[i:i + 3]) <= 5 for i in range(first, last, channels))]
+    if (len(black_rows) < 15 or black_rows[0] == 0 or black_rows[-1] == len(rows) - 1
+            or len(black_rows) != black_rows[-1] - black_rows[0] + 1):
+        return None
+    row = rows[black_rows[0] + 14]
+    black_columns = [left + i // channels for i in range(0, len(row), channels)
+                     if max(row[i:i + 3]) <= 5]
+    if black_columns[0] == left or black_columns[-1] == right - 1:
+        return None
+    return dict(left=black_columns[0], top=top + black_rows[0],
+                right=black_columns[-1], bottom=top + black_rows[-1])
+
+
 def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *,
                    settle=False, lock=False, quiz=False, timing=False, lock_seams=False,
                    motion=False, shared_binaries=None):
@@ -323,6 +348,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                         attemptedSlots=attempted, samples=live_rows), launch.TIMING_THEME)
                 except startup.Failure:
                     raise archive.Refused('INSPECTION_REFUSED') from None
+        film_bounds = []
         for index, (row, name) in enumerate(zip(captures, () if motion else files)):
             theme, phase = divmod(index, per_theme)
             actor = 0 if quiz else 2 * theme + 1
@@ -340,7 +366,11 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                 archive.need(launch.frame_matches(row, settle=settle))
             pixels = zipped.read(name)
             archive.need(len(pixels) == row['bytes'] and archive.sha(pixels) == row['sha256'])
-            launch.entry.png_bytes(base64.b64encode(pixels).decode('ascii'))
+            encoded = base64.b64encode(pixels).decode('ascii')
+            if lock:
+                film_bounds.append(lock_film_bounds(encoded))
+            else:
+                launch.entry.png_bytes(encoded)
         archive.need(set(names) == {'manifest.json', *(row['file'] for row in captures)})
         if lock or quiz:
             archive.need(len({row['sha256'] for row in captures}) == len(captures))
@@ -388,6 +418,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
     elif lock:
         summary['frames'] = 56
         summary['states'] = [{key: row[key] for key in sorted(frame_fields)} for row in captures]
+        summary['film_pixel_bounds'] = film_bounds
     else:
         summary['frames'] = 56
         summary['frame'] = 55 if settle else 23

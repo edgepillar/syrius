@@ -737,6 +737,10 @@ The Lock card now paints its dark glass highlight on the outer outline,
 above the film content. The light outline uses its normal line colour.
 Both theme cases check the outline and its relationship to the highlight.
 Fresh Windows captures are needed for the pixel comparison.
+The Lock reader measures the black film edges directly from the verified
+PNG members and reports inclusive coordinates in capture order. It reproduces
+the six earlier measurements against the exact reference PNGs in memory. The
+geometry reading supports the whole-image review.
 
 ### Receive at rest at `06eda3f7`
 

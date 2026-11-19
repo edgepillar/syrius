@@ -124,15 +124,24 @@ class Client:
         return data
 
 
-def _png(sample=0):
+def _png(sample=0, *, well=None):
     def chunk(kind, data):
         return (struct.pack('>I', len(data)) + kind + data
                 + struct.pack('>I', zlib.crc32(kind + data)))
 
-    row = bytes((0, sample)) + bytes(1280 * 3 - 1)
+    if well is None:
+        row = bytes((0, sample)) + bytes(1280 * 3 - 1)
+        scanlines = row * 780
+    else:
+        left, top, right, bottom = well
+        background = bytes((24, 25, 24))
+        row = b'\0' + background * 1280
+        film = (b'\0' + background * left + bytes(3 * (right - left + 1))
+                + background * (1279 - right))
+        scanlines = row * top + film * (bottom - top + 1) + row * (779 - bottom)
     return (b'\x89PNG\r\n\x1a\n'
         + chunk(b'IHDR', struct.pack('>IIBBBBB', 1280, 780, 8, 2, 0, 0, 0))
-        + chunk(b'IDAT', zlib.compress(row * 780))
+        + chunk(b'IDAT', zlib.compress(scanlines))
         + chunk(b'IEND', b''))
 
 
@@ -812,7 +821,8 @@ class StartupInspectionTests(unittest.TestCase):
             dict(frame=23, frames=56, failures=1, remaining=2, picker_gates=0, masked_chars=0),
             dict(frame=55, frames=56, failures=0, remaining=3, picker_gates=4, masked_chars=0),
         )
-        bodies = {name: _png(index) for index, name in enumerate(catalog.FILES)}
+        bounds = [(431, top, 848, top + 116) for top in (210, 188, 118, 209, 187, 117)]
+        bodies = {name: _png(well=well) for name, well in zip(catalog.FILES, bounds)}
         captures = [dict(file=name, theme=inspect.launch.THEMES[index // 3],
             screen=catalog.SCREENS[index % 3], bytes=len(bodies[name]),
             sha256=inspect.archive.sha(bodies[name]), artwork_seconds=6, **states[index % 3])
@@ -842,6 +852,10 @@ class StartupInspectionTests(unittest.TestCase):
         summary = read(report)
         self.assertTrue(summary['artifact_reported_success'])
         self.assertEqual(summary['verified_png_count'], 6)
+        self.assertEqual(summary['film_pixel_bounds'], [
+            dict(zip(('left', 'top', 'right', 'bottom'), well)) for well in bounds])
+        self.assertIsNone(inspect.lock_film_bounds(base64.b64encode(_png()).decode('ascii')))
+        self.assertLessEqual(len(json.dumps(summary, separators=(',', ':')).encode('ascii')), 3800)
         self.assertEqual(summary['states'][1]['remaining'], 2)
         self.assertEqual([state['artwork_seconds'] for state in summary['states']], [6] * 6)
         for index, change in ((1, dict(failures=0)), (2, dict(picker_gates=3)),
