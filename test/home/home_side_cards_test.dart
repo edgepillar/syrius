@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/cubit/home_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/view/home_side_cards.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/widgets/amount_text.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/dollar_text.dart';
 import 'package:zenon_syrius_wallet_flutter/services/price_feed.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
@@ -851,17 +852,16 @@ void main() {
       await tester.tap(find.byKey(_toggle));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 120));
-      final FadeTransition fade = tester.widget<FadeTransition>(
-        find
-            .ancestor(
-              of: find.byKey(_body),
-              matching: find.byType(FadeTransition),
-            )
-            .first,
+      final Finder reveal = find.ancestor(
+        of: find.byKey(_body),
+        matching: find.byType(DisclosureReveal),
       );
-      expect(fade.opacity.value, greaterThan(0));
-      expect(fade.opacity.value, lessThan(1));
+      final double midwayHeight = tester.getSize(reveal).height;
+      expect(midwayHeight, greaterThan(0));
+      expect(tester.widget<DisclosureReveal>(reveal).isSettled, isFalse);
       await tester.pump(const Duration(milliseconds: 120));
+      expect(tester.getSize(reveal).height, greaterThan(midwayHeight));
+      expect(tester.widget<DisclosureReveal>(reveal).isSettled, isTrue);
       expect(find.byKey(_body), findsOneWidget);
       expect(tester.takeException(), isNull);
     },

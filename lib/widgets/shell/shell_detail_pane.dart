@@ -3,6 +3,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buil
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_dismiss.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 
 /// A detail surface that keeps the current shell rail and status visible.
 class ShellDetailPane extends StatelessWidget {
@@ -87,10 +89,19 @@ class ShellDetailPane extends StatelessWidget {
                     IconButton(
                       key: ValueKey<String>('${keyPrefix}_close'),
                       tooltip: context.l10n.commonClose,
-                      iconSize: 16,
                       color: tokens.faint,
+                      style: IconButton.styleFrom(
+                        minimumSize: Size.square(tokens.panelHeaderHeight),
+                        padding: EdgeInsets.zero,
+                        alignment: AlignmentDirectional.centerEnd,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.standard,
+                      ),
                       onPressed: onClose,
-                      icon: const Icon(Icons.close),
+                      icon: ShellSymbol(
+                        'x',
+                        size: tokens.smallActionGlyphSize,
+                      ),
                     ),
                   ],
                 ),

@@ -9,6 +9,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_command.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_dismiss.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_refresh.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_detail_pane.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 
 Widget _app(
@@ -114,7 +117,13 @@ void main() {
       final NavigatorState pane = Navigator.of(page);
       pane.push<void>(
         MaterialPageRoute<void>(
-          builder: (_) => const Scaffold(body: Text('Detail')),
+          builder: (_) => ShellDetailPane(
+            keyPrefix: 'detail',
+            breadcrumb: 'Page',
+            title: 'Detail',
+            onClose: pane.pop<void>,
+            child: const SizedBox.shrink(),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -122,19 +131,31 @@ void main() {
       expect(find.text(hint), findsNothing);
       expect(tooltip.ensureTooltipVisible(), isFalse);
       expect(target.invoke('delegate'), isFalse);
-      pane.pop<void>();
+      final Finder detail = find.byKey(const Key('detail_pane'));
+      final Finder close = find.byKey(const Key('detail_close'));
+      final Finder closeMark = find.descendant(
+        of: close,
+        matching: find.byType(ShellSymbol),
+      );
+      expect(tester.getSize(close), const Size.square(48));
+      expect(tester.getSize(closeMark), const Size.square(14));
+      expect(
+        tester.getRect(detail).right - tester.getRect(closeMark).right,
+        16,
+      );
+      await tester.tap(close);
       await tester.pumpAndSettle();
       expect(tester.state<TooltipState>(find.byKey(hintKey)), same(tooltip));
       expect(tooltip.ensureTooltipVisible(), isTrue);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
-      final NavigatorState root = Navigator.of(page, rootNavigator: true);
-      root.push<void>(
-        DialogRoute<void>(
-          context: page,
-          builder: (_) => const AlertDialog(content: Text('Confirm')),
-        ),
-      );
+      final NavigatorState root = Navigator.of(page, rootNavigator: true)
+        ..push<void>(
+          DialogRoute<void>(
+            context: page,
+            builder: (_) => const AlertDialog(content: Text('Confirm')),
+          ),
+        );
       await tester.pumpAndSettle();
       expect(find.text(hint), findsNothing);
       expect(tooltip.ensureTooltipVisible(), isFalse);
