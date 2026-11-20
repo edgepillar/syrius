@@ -208,9 +208,11 @@ void main() {
     addTearDown(controller.dispose);
     int clock = 0;
     final Map<int, int> shownAt = <int, int>{};
+    final List<int> holding = <int>[];
     int? doneAt;
     controller.addListener(() {
       shownAt.putIfAbsent(controller.frame, () => clock);
+      if (controller.holdingLastFrame) holding.add(controller.frame);
     });
     await tester.pumpWidget(
       _host(
@@ -237,6 +239,8 @@ void main() {
     }
     // The last frame has its time too before the run is called done.
     expect(doneAt! - shownAt[_last]!, _durations[_last]);
+    expect(holding, <int>[_last]);
+    expect(controller.holdingLastFrame, isFalse);
   });
 
   testWidgets('a late decode shows the next frame, and skips none', (
@@ -328,6 +332,7 @@ void main() {
 
     controller.play(from: 3);
     expect(controller.isDone, isFalse);
+    expect(controller.holdingLastFrame, isFalse);
     // No real time yet, so the new run has decoded nothing: the wordmark
     // stays up, it does not go black.
     await tester.pump(const Duration(milliseconds: 300));

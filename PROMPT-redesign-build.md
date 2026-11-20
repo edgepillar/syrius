@@ -1114,6 +1114,13 @@ verifies the same first observed progress, the late and settled PNGs,
 and two normal exits. The first observation is already past 0.55. The
 early slot remains missing and the original outcome remains a failure.
 
+The hidden entry field can now prepare its existing raster during the
+launch film's final frame hold. Both shipped movies retain their original
+56 frames and the last frame has a 34 ms hold. Playback, the 400 ms handoff
+clock and the visible shader start stay unchanged. The existing timing and
+replay cases check the active final-frame signal. Native timing and the
+early handoff sample remain open.
+
 The [paired cold run at `8935b5ba`](https://github.com/edgepillar/syrius/actions/runs/44593889453/job/135806899165)
 retained 85 current and 810 P06 frames with five normal actor exits. The
 16 ms comparison still fails, and both samples have gaps in frame numbers.

@@ -181,6 +181,9 @@ class LaunchFilmController extends ChangeNotifier {
   /// [play] is called again.
   bool get isDone => _isDone;
 
+  /// Whether the active run is holding its final frame for its own duration.
+  bool get holdingLastFrame => _state?._onLast ?? false;
+
   /// Whether the attached original decoder has accepted a skip request.
   bool get skipRequested => _state?._skipping ?? false;
 
