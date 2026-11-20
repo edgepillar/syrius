@@ -529,6 +529,9 @@ void main() {
     addTearDown(progress.dispose);
     final Finder body = find.byKey(_clipFrame);
     for (final bool light in <bool>[false, true]) {
+      // Each arm starts in its own settled theme. Carrying the MaterialApp
+      // across arms would animate its tokens over a fixed new base color.
+      await tester.pumpWidget(const SizedBox.shrink());
       final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
       final double checkpoint = tokens.launchSettleReference.progress;
       Widget surface(Widget field) => _host(
@@ -545,6 +548,8 @@ void main() {
           Opacity(opacity: weight, child: const EntryField()),
         ));
         await tester.pump();
+        expect(AppTokens.of(tester.element(find.byType(EntryField))).background,
+          tokens.background);
         final Uint8List reference = await _pixels(tester, surface: body);
         await tester.pumpWidget(surface(EntryField(
           captionProgress: progress,
@@ -557,7 +562,8 @@ void main() {
           maxError = math.max(maxError, (paint[i] - reference[i]).abs());
         }
         // Group opacity can introduce one extra 8-bit rounding step.
-        expect(maxError, lessThanOrEqualTo(1), reason: 'weight $weight');
+        expect(maxError, lessThanOrEqualTo(1),
+          reason: '${light ? 'light' : 'dark'} weight $weight');
       }
     }
   });
