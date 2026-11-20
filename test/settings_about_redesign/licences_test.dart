@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/licences.dart';
@@ -199,6 +201,43 @@ void main() {
       },
     );
   }
+
+  aboutTestWidgets('bundled yapf notices share one licence identifier', (
+    WidgetTester tester,
+  ) async {
+    prepareAboutViewport(tester);
+    // The widget test binding leaves the real registry collector disabled.
+    final ByteData? asset = await tester.runAsync(
+      () => rootBundle.load('NOTICES.Z'),
+    );
+    final String bundle = utf8.decode(gzip.decode(
+      asset!.buffer.asUint8List(asset.offsetInBytes, asset.lengthInBytes),
+    ));
+    final List<LicenseEntry> notices = <LicenseEntry>[];
+    for (final String section in bundle.split('\n${'-' * 80}\n')) {
+      final int split = section.indexOf('\n\n');
+      if (split < 0) continue;
+      final List<String> packages = section.substring(0, split).split('\n');
+      if (packages.contains('yapf')) {
+        notices.add(LicenseEntryWithLineBreaks(packages,
+            section.substring(split + 2)));
+      }
+    }
+    expect(notices, hasLength(2));
+    await tester.pumpWidget(
+      aboutHost(
+        Licences(
+          loadLicences: () => Stream<LicenseEntry>.fromIterable(notices),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('Apache-2.0'), findsOneWidget);
+    await _open(tester, 'yapf');
+    for (final LicenseEntry entry in notices) {
+      expect(find.text(entry.paragraphs.first.text), findsOneWidget);
+    }
+  });
 
   aboutTestWidgets(
     'end hook waits for complete enumeration and follows final row',

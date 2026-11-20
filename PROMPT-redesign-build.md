@@ -1503,8 +1503,15 @@ observed film frame. P06's longest build is 15.880 ms. Both windows
 retain frame-number gaps, 23 and 1,543 respectively. V02 remains open.
 The production entry now prepares the immutable light and dark themes
 before scheduling the first Flutter frame. The root uses those theme
-objects with the existing saved theme mode and locale. The timing
-effect needs a fresh paired Windows sample.
+objects with the existing saved theme mode and locale. The
+[Windows producer at `9fdb584e`](https://github.com/edgepillar/syrius/actions/runs/44676555772/job/136089659139)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44678856668/job/136097151897)
+verify 96 redesign frames, 1,735 P06 frames and five normal actor exits.
+The longest totals are 175.308 ms and 248.442 ms. The one slow redesign
+build lasts 16.634 ms and begins 102.624 ms before the first observed film
+frame. P06's longest build is 13.786 ms. The build criterion remains unmet,
+and the two windows retain 34 and 1,685 frame-number gaps. The cause of
+the remaining slow build is open under V02.
 
 The [cold producer at `e2f1c838`](https://github.com/edgepillar/syrius/actions/runs/44655896517/job/136021904094)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44658333571/job/136030014735)
@@ -1608,6 +1615,16 @@ Licences rule occupies row 191 at column 700 in both themes, matching the
 references. All 13 measured divider spans intersect their corresponding
 reference rows in both themes, including the footer at row 627. This
 verifies the divider placement. Whole-image review remains open.
+
+Both Receive QR images from that verified archive show the amount and
+token controls in the reference layout. The actual encoded QR, amount
+hint and status values differ from the illustrations. Both Licences
+images show the end of the bundled registry and a blank type for `yapf`.
+The bundled `yapf` entries include the full Apache-2.0 text and its
+source header. The type lookup now recognizes the exact normalized
+fingerprint of that header, giving both notices the same identifier.
+The widget case opens the bundled row and checks its label and both
+notice texts. Whole-image acceptance stays open under V01.
 
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references

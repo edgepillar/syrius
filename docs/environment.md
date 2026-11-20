@@ -1150,6 +1150,10 @@ reference selects [the same commit as the caller](https://docs.github.com/en/act
 Existing PR, push, tag and release behavior is preserved. A successful build
 does not establish startup, frame times, screen matches or wallet safety.
 
+For a single capture or retained-evidence inspection, set `desktop_builds`,
+`presentation_smoke` and `devnet_tests` to `false` and enable the requested
+job. All three inputs default to `true` for full qualification.
+
 The optional `presentation_smoke` input adds Windows controller unit tests,
 a separate Debug build targeting `harness/app/main.dart`, and a bounded
 presentation probe. The Python 3.9+ standard-library controller requires a

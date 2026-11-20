@@ -18,6 +18,11 @@ typedef AboutLicenceLoader = Stream<LicenseEntry> Function();
 // requires the SHA-256 of the complete normalized notice.
 const Map<int, Map<String, String>>
 _reviewedNoticeTypes = <int, Map<String, String>>{
+  568: <String, String>{
+    // The Apache-2.0 source header bundled alongside the yapf licence.
+    '42ebf0d3ee784ee63ffc6baa96301fb701a23db21591bdedc5d836a30cf4fc33':
+        'Apache-2.0',
+  },
   1082: <String, String>{
     '7a1c6b350f199a0774b3244ec6616af832569ad25d7e8eeb12a944b33d31899f': 'MIT',
     '441207d57c5ad42783aa1a1d0e4d59f7af08d332e3a03ddd2ebbcdf1495f3e53': 'MIT',
