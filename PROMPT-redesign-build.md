@@ -1164,7 +1164,7 @@ passes analysis, the full non-chain suite and the generated-file check.
 
 | Original requirement | Evidence | Remaining work |
 | --- | --- | --- |
-| Windows setup, Debug and Release | The approved setup is recorded in [docs/environment.md](docs/environment.md). An independent reader verified both builds at `06eda3f7`. The [Windows baseline at `650bbb8a`](https://github.com/edgepillar/syrius/actions/runs/44737155697/job/136291317958) is running and precedes the Lock shadow change. | Verify Debug and Release from a clean checkout of the final candidate. |
+| Windows setup, Debug and Release | The approved setup is recorded in [docs/environment.md](docs/environment.md). The [independent Windows reader](https://github.com/edgepillar/syrius/actions/runs/44740753300/job/136303512144) verifies Debug, Release and all 12 baseline checks at `650bbb8a`. This revision precedes the Lock shadow change. | Verify Debug and Release from a clean checkout of the final candidate. |
 | Flutter analysis and tests | The [Linux job at `f3be456a`](https://github.com/edgepillar/syrius/actions/runs/44736080315/job/136287702152) passed the full non-chain suite and generated-file verification. The [Linux job at `590d3717`](https://github.com/edgepillar/syrius/actions/runs/44738668985/job/136296424992) passed application and integration analysis, strict selected analysis, the complete non-chain suite and generated-file verification. | Bind final acceptance to the final source. |
 | All 47 screens in both themes | The current source has 47 nonempty harness scripts, the corresponding 47 ordered review rows and 94 reference PNGs that decode at 1280 by 780. Original filenames for all 94 captures were verified at `06eda3f7`. The Screens table records 20 matches across historical source revisions. Independently verified prepared [Tokens](https://github.com/edgepillar/syrius/actions/runs/44735629079/job/136286170061) and [Swap list](https://github.com/edgepillar/syrius/actions/runs/44692904653/job/136142743531) captures are from `931ec0b5`. | Assemble the side-by-side comparison with diffs at the final source, resolve the differences and record the 94 whole-screen verdicts. |
 | Running motions, shaders and three 16 ms comparisons | The [paired startup comparison at `bd2defd6`](https://github.com/edgepillar/syrius/actions/runs/44736080204/job/136287702700) fails raster and distinct-frame comparisons. The earlier page change and disclosure [at `931ec0b5`](https://github.com/edgepillar/syrius/actions/runs/44692736655/job/136142179945) also fail. The [two-theme launch reader](https://github.com/edgepillar/syrius/actions/runs/44738669362/job/136296427423) verifies five images at `f3be456a`, with the early light image absent. The [latest paired cold run](https://github.com/edgepillar/syrius/actions/runs/44738669076/job/136296426956) and a [fresh launch motion capture](https://github.com/edgepillar/syrius/actions/runs/44740070009/job/136301212359) are running with the Lock shadow change. | Complete the running observations across the Motion and Shaders tables and verify all three original timing comparisons. |
@@ -1661,7 +1661,11 @@ passes [Linux validation](https://github.com/edgepillar/syrius/actions/runs/4473
 including analysis, all non-chain tests and generated-file verification.
 
 The [Windows baseline at `650bbb8a`](https://github.com/edgepillar/syrius/actions/runs/44737155697)
-is running the documented Debug and Release builds and baseline checks.
+passes both the Debug and Release builds with complete output. The
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/44740753300/job/136303512144)
+verifies all 12 checks, zero root analyzer errors and warnings, and
+5,127 passing non-chain tests with one skip. Debug ran in 153.125 s
+and Release in 121.906 s. Final-source builds remain open.
 
 Local Python discovery on macOS reaches two failures and five refusals
 in checkpoint and restored-path fixture tests. Both fixtures use the
