@@ -1956,6 +1956,15 @@ The preceding run has five such starts, with a peak of 82.137 ms. This
 single comparison leaves the effect of retaining the clip unestablished.
 V02 remains open.
 
+The [paired Windows run at `d6f8dfa3`](https://github.com/edgepillar/syrius/actions/runs/44755406584)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44758300388/job/136363788217)
+verify both interaction windows, two normal entry exits, two normal wallet
+exits and five normal node exits. Both arms report zero builds over 16 ms.
+Page change peaks at 165.173 ms total in the redesign and 106.338 ms in P06.
+Disclosure peaks at 95.646 ms and 43.313 ms, respectively. Both comparisons
+exceed the corresponding P06 raster and distinct-frame durations, and all
+four windows retain frame-number gaps. V02 remains open.
+
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references
 use rows 106 and 118. The delegation strip now uses the same compact inset
