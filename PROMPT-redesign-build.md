@@ -1379,6 +1379,15 @@ uses the authored 39.3 pixels, from a 14 px type size, 1.45 line height,
 18 px of padding and a 1 px rule. The [fresh Windows Details producer](https://github.com/edgepillar/syrius/actions/runs/44813112503)
 is needed to verify the effect of this change.
 
+In the verified Staking Empty captures, the summary, stakes card,
+divider and rewards card match the reference bands at column 1000 in
+both themes. In the Pillars captures, the strip, list, tab rule and
+column headings align at column 900. The Owned badge also matches its
+reference bounds. The expanded detail value starts at the reference
+column and ends at column 914 instead of 945. At column 1100, the last
+reference row rule at 394 has no corresponding rule in the captured
+fixture. These component checks leave the complete images open.
+
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
 The rows follow the [mockup motion](mockups/redesign/README.md#motion) and
@@ -2382,6 +2391,11 @@ verified the original collector digest and overlay tree. Strict analysis
 then flagged two inferred callback parameter types in the current
 collector. The callback now declares both types. The Windows comparison
 with the pinned baseline remains pending.
+The [Linux run at `44dbb37b`](https://github.com/edgepillar/syrius/actions/runs/44812699246/job/136553034948)
+passed application and integration analysis, strict selected analysis,
+the non-chain unit and widget tests and generated-file verification.
+The preflight recorded the unchanged P06 overlay tree
+`cd28367a8e7f885a812c847f693effe967649b8e`.
 
 The [cold Windows producer at `b3d2a1d1`](https://github.com/edgepillar/syrius/actions/runs/44786324542/job/136462042874)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44790155159/job/136475393710)
