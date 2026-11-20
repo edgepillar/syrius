@@ -1616,16 +1616,28 @@ decoration and the new painter in memory. All eleven startup widget tests
 pass with complete output, and strict analysis reports no issues in the
 changed Dart files. Native timing and visual verification remain open.
 The [Linux run at `bd2defd6`](https://github.com/edgepillar/syrius/actions/runs/44691745175/job/136138960407)
-passes the full non-chain suite and generated-file checks. The paired
-[Windows producer](https://github.com/edgepillar/syrius/actions/runs/44691744544)
-retains both windows for independent inspection.
+passes the full non-chain suite and generated-file checks. The
+[paired Windows producer](https://github.com/edgepillar/syrius/actions/runs/44691744544/job/136138956945)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44736080204/job/136287702700)
+verify 86 redesign frames, 898 P06 frames and five normal actor exits.
+The build comparison passes. The raster and distinct-frame comparisons
+fail, with two ranked raster durations above their P06 counterparts.
+One starts during the handoff. The other starts after observed Lock
+arrival and takes 63.140 ms, 2.596 ms above the corresponding P06
+duration. The next observed build
+falls before, within or after the preceding raster finish bounds for
+8, 7 and 8 redesign gap keys and 162, 592 and 0 P06 gap keys. V02 remains
+open. The [two-theme launch motion run](https://github.com/edgepillar/syrius/actions/runs/44736246724)
+is acquiring the original early, late and settled images.
 
 Local Python discovery on macOS reaches two failures and five refusals
 in checkpoint and restored-path fixture tests. Both fixtures use the
 default temporary path through a symbolic directory ancestor that the
 production check refuses. The test setup now resolves its own newly
 created fixture directory to the physical path. Product path validation
-continues to require direct directory ancestry.
+continues to require direct directory ancestry. The
+[Linux validation at `f3be456a`](https://github.com/edgepillar/syrius/actions/runs/44736080315)
+rechecks the complete Python suite, including the on-disk hard-link case.
 
 The [cold producer at `e2f1c838`](https://github.com/edgepillar/syrius/actions/runs/44655896517/job/136021904094)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44658333571/job/136030014735)
