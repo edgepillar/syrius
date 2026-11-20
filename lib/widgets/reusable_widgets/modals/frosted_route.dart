@@ -209,6 +209,12 @@ class OuterShadowPainter extends CustomPainter {
   /// Device pixel ratio used to render the retained bitmap.
   final double pixelRatio;
 
+  /// Prepares the same bitmap that the next paint would otherwise create.
+  void prepareRaster(Size size) {
+    if (size.isEmpty || _shadows.isEmpty) return;
+    raster?._imageFor(this, size);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty || _shadows.isEmpty) return;
@@ -263,6 +269,10 @@ final class OuterShadowRaster {
   OuterShadowPainter? _source;
   Size? _size;
   ui.Image? _image;
+
+  /// The bitmap currently retained by the owner.
+  @visibleForTesting
+  ui.Image? get debugRetainedImage => _image;
 
   ui.Image? _imageFor(OuterShadowPainter source, Size size) {
     final OuterShadowPainter? previous = _source;

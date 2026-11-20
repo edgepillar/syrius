@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart' show RenderCustomPaint;
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/entry_field.dart';
@@ -126,6 +127,8 @@ class _LockCardState extends State<LockCard>
 
   late EntryField _startupBackdrop = _buildStartupBackdrop();
   final OuterShadowRaster _shadowRaster = OuterShadowRaster();
+  final GlobalKey _shadowPaintKey = GlobalKey();
+  StartupStageSession? _shadowPreparation;
 
   EntryField _buildStartupBackdrop() => EntryField(
     captionProgress: widget.startup?.motion,
@@ -139,6 +142,8 @@ class _LockCardState extends State<LockCard>
     if (widget.startup != null) {
       // The startup film is already playing in its single overlay host.
       // Skipping here would cut that original movie before it finishes.
+      widget.startup!.addListener(_prepareCoveredShadow);
+      _prepareCoveredShadow();
       return;
     }
     if ((widget.replay?.value ?? 0) > 0) {
@@ -146,6 +151,35 @@ class _LockCardState extends State<LockCard>
     } else {
       _film.skipToEnd();
     }
+  }
+
+  void _prepareCoveredShadow() {
+    final StartupStageSession? startup = widget.startup;
+    if (startup == null ||
+        startup.isClosed ||
+        !startup.film.isDone ||
+        startup.motion.value != 0 ||
+        identical(_shadowPreparation, startup)) {
+      return;
+    }
+    _shadowPreparation = startup;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          !identical(widget.startup, startup) ||
+          startup.isClosed ||
+          startup.motion.value != 0) {
+        return;
+      }
+      final RenderObject? target = _shadowPaintKey.currentContext
+          ?.findRenderObject();
+      if (target is! RenderCustomPaint || !target.attached || !target.hasSize) {
+        _shadowPreparation = null;
+        return;
+      }
+      if (target.painter case final OuterShadowPainter painter) {
+        painter.prepareRaster(target.size);
+      }
+    });
   }
 
   @override
@@ -184,7 +218,11 @@ class _LockCardState extends State<LockCard>
   void didUpdateWidget(LockCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.startup, widget.startup)) {
+      oldWidget.startup?.removeListener(_prepareCoveredShadow);
+      _shadowPreparation = null;
       _startupBackdrop = _buildStartupBackdrop();
+      widget.startup?.addListener(_prepareCoveredShadow);
+      _prepareCoveredShadow();
     }
     if (!oldWidget.busy && widget.busy) _obscure = true;
     if ((oldWidget.busy && !widget.busy) ||
@@ -222,6 +260,7 @@ class _LockCardState extends State<LockCard>
 
   @override
   void dispose() {
+    widget.startup?.removeListener(_prepareCoveredShadow);
     widget.replay?.removeListener(_replay);
     _shake.dispose();
     _film.dispose();
@@ -448,6 +487,7 @@ class _LockCardState extends State<LockCard>
             child: RepaintBoundary(
               key: const ValueKey<String>('lock_card_shadow'),
               child: CustomPaint(
+                key: _shadowPaintKey,
                 // The shadow painter already retains a device-pixel bitmap.
                 painter: OuterShadowPainter(
                   borderRadius: radius,

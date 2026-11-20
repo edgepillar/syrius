@@ -1630,14 +1630,28 @@ falls before, within or after the preceding raster finish bounds for
 open. The [two-theme launch motion run](https://github.com/edgepillar/syrius/actions/runs/44736246724)
 is acquiring the original early, late and settled images.
 
+The Lock card now prepares its existing outer shadow bitmap after the
+film finishes, while the opaque stage still covers the card. Preparation
+uses the original painter and its laid-out bounds. The regular paint
+handles changes in size, theme or device pixel ratio through the same
+cache invalidation. The handoff case checks bitmap creation during the
+covered wait and verifies that the moving card uses the same image. All
+28 startup and Lock widget tests pass with complete output. Strict Dart
+analysis passes for the three changed files. Native timing remains open.
+
+The [Windows baseline at `650bbb8a`](https://github.com/edgepillar/syrius/actions/runs/44737155697)
+is running the documented Debug and Release builds and baseline checks.
+
 Local Python discovery on macOS reaches two failures and five refusals
 in checkpoint and restored-path fixture tests. Both fixtures use the
 default temporary path through a symbolic directory ancestor that the
 production check refuses. The test setup now resolves its own newly
 created fixture directory to the physical path. Product path validation
 continues to require direct directory ancestry. The
-[Linux validation at `f3be456a`](https://github.com/edgepillar/syrius/actions/runs/44736080315)
-rechecks the complete Python suite, including the on-disk hard-link case.
+[Linux validation at `f3be456a`](https://github.com/edgepillar/syrius/actions/runs/44736080315/job/136287702152)
+passes the complete Python suite with 1,244 cases and 17 skips, including
+the passing on-disk hard-link case. Application analysis, the non-chain
+Flutter suite and generated-file verification also pass.
 
 The [cold producer at `e2f1c838`](https://github.com/edgepillar/syrius/actions/runs/44655896517/job/136021904094)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44658333571/job/136030014735)

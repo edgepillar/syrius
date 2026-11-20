@@ -301,9 +301,21 @@ void main() {
       final Finder auth = find.byType(LockTabChild);
       final LockTabChild coveredAuth = tester.widget<LockTabChild>(auth);
       final State<StatefulWidget> authState = tester.state(auth);
+      final CustomPaint shadowPaint = tester.widget<CustomPaint>(
+        find.descendant(
+          of: find.byKey(const ValueKey<String>('lock_card_shadow')),
+          matching: find.byType(CustomPaint),
+        ),
+      );
+      final OuterShadowRaster shadowRaster =
+          (shadowPaint.painter! as OuterShadowPainter).raster!;
       expect(coveredAuth.replay, isNull);
+      expect(shadowRaster.debugRetainedImage, isNull);
       await tester.tapAt(const Offset(100, 100));
       await _until(tester, () => session.film.isDone);
+      expect(session.motion.value, 0);
+      final ui.Image? preparedShadow = shadowRaster.debugRetainedImage;
+      expect(preparedShadow, isNotNull);
       expect(tester.widget<LockTabChild>(auth), same(coveredAuth));
       expect(tester.widget<Material>(caption).color, Colors.black);
       expect(_stageRect(tester), full);
@@ -328,6 +340,7 @@ void main() {
       final Duration referenceTime = Duration(microseconds: high);
       await tester.pump(referenceTime);
       expect(session.motion.value, closeTo(0.4, 0.004));
+      expect(shadowRaster.debugRetainedImage, same(preparedShadow));
       final Rect authored = _stageRect(tester);
       expect(authored.left, closeTo(250, 2));
       expect(authored.top, closeTo(148.6, 2));
