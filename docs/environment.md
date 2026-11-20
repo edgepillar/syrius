@@ -23,8 +23,8 @@ flutter build windows --debug --no-pub --dart-define-from-file=.dart_tool/git_me
 flutter build windows --release --no-pub --dart-define-from-file=.dart_tool/git_metadata.json
 ```
 
-The [independently verified baseline](https://github.com/edgepillar/syrius/actions/runs/44748678289/job/136330550619)
-covers both builds and all 12 baseline checks at `bfb83ea8`. The original
+The [independently verified baseline](https://github.com/edgepillar/syrius/actions/runs/44761180401/job/136373819795)
+covers both builds and all 12 baseline checks at `d6f8dfa3`. The original
 Windows run reports 5,128 passing non-chain tests, one skip and zero analyzer
 errors or warnings. Visual and motion acceptance is tracked in the
 [redesign ledger](../PROMPT-redesign-build.md).
