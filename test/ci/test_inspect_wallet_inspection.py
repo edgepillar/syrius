@@ -1211,6 +1211,7 @@ class ReaderTests(unittest.TestCase):
         self.assertFalse(observed['atomic_frame_qualified'])
         self.assertFalse(observed['wallet_qualified'])
         self.assertEqual(observed['visual_matches'], 0)
+        self.assertEqual(observed['plasma_bolt_bounds'], dict(dark=None, light=None))
         value, calls, text = self.run_main(details_catalog=True)
         self.assertTrue(value['native_inspection_qualified'])
         self.assertEqual(value['verified_catalog_png_count'], 10)
@@ -1227,6 +1228,7 @@ class ReaderTests(unittest.TestCase):
         self.assertFalse(observed['atomic_frame_qualified'])
         self.assertFalse(observed['wallet_qualified'])
         self.assertEqual(observed['visual_matches'], 0)
+        self.assertEqual(observed['plasma_bolt_bounds'], dict(dark=None, light=None))
         self.assertEqual(observed['transfer_address_chip_rows'], {
             name: dict(dark=None, light=None) for name in ('10-receive-qr', '11-zap-form')
         })
@@ -1245,6 +1247,16 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(reader.details_transfer_chip_rows(packed.getvalue()), {
             name: dict(dark=[52, 78], light=[52, 78]) for name in ('10-receive-qr', '11-zap-form')
         })
+        white = b'\0' + background * 211 + b'\xff' * (4 * 36) + background * 1033
+        pixels = ordinary * 94 + white * 47 + ordinary * 639
+        bolt = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
+                + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
+        with zipfile.ZipFile(packed, 'a') as zipped:
+            for theme in ('dark', 'light'):
+                zipped.writestr(f'22-plasma-fuse-{theme}.png', bolt)
+        bounds = dict(left=211, top=94, right=246, bottom=140)
+        self.assertEqual(reader.plasma_bolt_bounds(packed.getvalue(), '22-plasma-fuse'),
+                         dict(dark=bounds, light=bounds))
 
         value, calls, text = self.run_main(catalog_only='send-confirm')
         self.assertTrue(value['native_inspection_qualified'])

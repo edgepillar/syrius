@@ -937,6 +937,8 @@ The prior mask differed at 293 and 290 pixels. This counts pixels where
 the mask's red channel is at most 3 and compares them with reference
 pixels whose RGB channels are all at least 252. The full native shader
 comparison remains open.
+The independent Navigation and Details readers can report those solid
+bolt bounds from the original Windows captures without extracting images.
 
 ### Transfer address chip at `fb3b2a01`
 

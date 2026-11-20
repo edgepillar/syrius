@@ -691,6 +691,13 @@ def settings_catalog_geometry(raw):
         )
 
 
+def plasma_bolt_bounds(raw, screen):
+    """Measure solid white bolt ink in the verified Plasma well."""
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        return _ink_bounds(zipped, screen, (190, 270), (76, 160),
+                           lambda red, green, blue: min(red, green, blue) >= 252)
+
+
 def details_transfer_chip_rows(raw):
     """Read the address chip's painted rows in the verified QR and Zap views."""
     left, right, top, bottom = 860, 974, 44, 84
@@ -878,6 +885,8 @@ def main(parent=None):
                 details_reference, pins)
             if '10-receive-qr-dark.png' in catalog['filenames']:
                 catalog['transfer_address_chip_rows'] = details_transfer_chip_rows(catalog_archive)
+            if '22-plasma-fuse-dark.png' in catalog['filenames']:
+                catalog['plasma_bolt_bounds'] = plasma_bolt_bounds(catalog_archive, '22-plasma-fuse')
             if schema == producer.details.FAMILY_SCHEMAS['earn']:
                 catalog['staking_empty_bands'] = staking_empty_bands(catalog_archive)
             del catalog_archive
@@ -886,9 +895,12 @@ def main(parent=None):
             item = artifact(listing, 'navigation-catalog-' + head + '-' + text + '-1', head, run_id)
             pins = {name: source_digests['harness/screens/' + name + '.txt']
                 for name in producer.navigation.SCREENS}
-            catalog = producer.navigation.unpack(download(item, producer.navigation.MAX_ARCHIVE),
+            catalog_archive = download(item, producer.navigation.MAX_ARCHIVE)
+            catalog = producer.navigation.unpack(catalog_archive,
                 item['digest'][7:], item['size_in_bytes'], head, tree, run_id,
                 navigation_reference, pins)
+            catalog['plasma_bolt_bounds'] = plasma_bolt_bounds(catalog_archive, '21-plasma')
+            del catalog_archive
         elif settings_reference is not None:
             PHASE = 'settings_catalog_artifact'
             if has_catalog_contact:
