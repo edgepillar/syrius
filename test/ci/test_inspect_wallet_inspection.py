@@ -1236,12 +1236,26 @@ class ReaderTests(unittest.TestCase):
             heading: dict(dark=None, light=None)
             for heading in ('links', 'computer', 'licences')
         })
+        self.assertEqual(observed['component_geometry'], dict(
+            licence_dividers=dict(dark=[], light=[]),
+            receive_qsr_mark=dict(dark=None, light=None),
+            receive_qsr_label=dict(dark=None, light=None),
+            plasma_footer_clear=dict(dark=True, light=True)))
         packed = io.BytesIO()
         background = bytes((100, 100, 100, 255))
         ordinary = b'\0' + background * 1280
         outlined = (b'\0' + background * 870 + bytes((125, 125, 125, 255)) * 96
                     + background * 314)
-        pixels = ordinary * 52 + outlined * 26 + ordinary * 702
+        mark_blue = bytes((0, 97, 235, 255))
+        label_dark = bytes((20, 20, 20, 255))
+        token = b'\0' + background * 825 + mark_blue * 22
+        token_mark = token + background * 433
+        token_label = token + background * 9 + label_dark * 25 + background * 399
+        rows = [ordinary] * 780
+        rows[52:78] = [outlined] * 26
+        rows[243:265] = [token_mark] * 22
+        rows[249:261] = [token_label] * 12
+        pixels = b''.join(rows)
         chip = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                 + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
         with zipfile.ZipFile(packed, 'w') as zipped:
@@ -1268,6 +1282,8 @@ class ReaderTests(unittest.TestCase):
                 rows = [ordinary] * 780
                 for top in (54, 110, 167):
                     rows[top:top + 3] = [painted] * 3
+                for divider in (388, 428, 468):
+                    rows[divider] = b'\0' + ink * 1280
                 chevrons = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                             + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
                 zipped.writestr(f'37-set-licences-{theme}.png', chevrons)
@@ -1276,6 +1292,13 @@ class ReaderTests(unittest.TestCase):
                       for theme in ('dark', 'light')}
             for heading, top in (('links', 54), ('computer', 110), ('licences', 167))
         })
+        mark = dict(left=825, top=243, right=846, bottom=264)
+        label = dict(left=856, top=249, right=880, bottom=260)
+        self.assertEqual(reader.details_component_geometry(packed.getvalue()), dict(
+            licence_dividers=dict(dark=[388, 428, 468], light=[388, 428, 468]),
+            receive_qsr_mark=dict(dark=mark, light=mark),
+            receive_qsr_label=dict(dark=label, light=label),
+            plasma_footer_clear=dict(dark=True, light=True)))
 
         value, calls, text = self.run_main(catalog_only='send-confirm')
         self.assertTrue(value['native_inspection_qualified'])

@@ -714,6 +714,49 @@ def details_licence_header_chevrons(raw):
         }
 
 
+def _details_licence_dividers(zipped):
+    column, top, bottom = 700, 188, 645
+    themes = {}
+    for theme in producer.details.THEMES:
+        name = f'37-set-licences-{theme}.png'
+        encoded = base64.b64encode(zipped.read(name)).decode('ascii')
+        rows, channels = windows._png_crop(encoded, (column, column + 1), (top, bottom))
+        themes[theme] = None
+        if windows._opaque(rows, channels):
+            background = Counter(bytes(row[:3]) for row in rows).most_common(1)[0][0]
+            dividers = [y for y, row in enumerate(rows, top)
+                        if max(abs(value - base) for value, base in zip(row, background)) >= 8]
+            if len(dividers) <= 16:
+                themes[theme] = dividers
+    return themes
+
+
+def _details_plasma_footer_clear(zipped):
+    left, right = 71, 260
+    themes = {}
+    for theme in producer.details.THEMES:
+        encoded = base64.b64encode(zipped.read(f'22-plasma-fuse-{theme}.png')).decode('ascii')
+        rows, channels = windows._png_crop(encoded, (left, right), (271, 295))
+        themes[theme] = None
+        if windows._opaque(rows, channels):
+            background = rows[0][:channels] * (right - left)
+            themes[theme] = all(row == background for row in rows)
+    return themes
+
+
+def details_component_geometry(raw):
+    """Measure the changed components together from the original Details archive."""
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        return dict(
+            licence_dividers=_details_licence_dividers(zipped),
+            receive_qsr_mark=_ink_bounds(zipped, '10-receive-qr', (814, 849), (235, 274),
+                lambda red, green, blue: blue - red > 90 and blue - green > 25),
+            receive_qsr_label=_ink_bounds(zipped, '10-receive-qr', (850, 906), (241, 265),
+                lambda red, green, blue: min(red, green, blue) >= 80, relative_to_background=True),
+            plasma_footer_clear=_details_plasma_footer_clear(zipped),
+        )
+
+
 def details_transfer_chip_rows(raw):
     """Read the address chip's painted rows in the verified QR and Zap views."""
     left, right, top, bottom = 860, 974, 44, 84
@@ -905,6 +948,9 @@ def main(parent=None):
                 catalog['plasma_bolt_bounds'] = plasma_bolt_bounds(catalog_archive, '22-plasma-fuse')
             if '37-set-licences-dark.png' in catalog['filenames']:
                 catalog['licence_header_chevrons'] = details_licence_header_chevrons(catalog_archive)
+            if {'10-receive-qr-dark.png', '22-plasma-fuse-dark.png',
+                    '37-set-licences-dark.png'} <= set(catalog['filenames']):
+                catalog['component_geometry'] = details_component_geometry(catalog_archive)
             if schema == producer.details.FAMILY_SCHEMAS['earn']:
                 catalog['staking_empty_bands'] = staking_empty_bands(catalog_archive)
             del catalog_archive

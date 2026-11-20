@@ -951,6 +951,10 @@ with a cumulative shift across the visible rows. The full registry now
 uses the reference spacing. The two compact Originals rows use their
 separate 40 px spacing. Existing cases check the full row in both themes
 and in a scaled RTL layout. Native comparison is pending.
+The Details reader measures the registry dividers, Receive QSR mark and
+label, and the blank Plasma footer region from one verified archive. The
+retained `fb3b2a01` captures and both mockup themes confirm the measurement
+regions. The new Details run can check the three changes together.
 
 Both Originals images show the cleared discovery field required by the
 mockup README. The reference images still show the entered digits. The
@@ -1341,6 +1345,15 @@ The [first Linux test run at `521d9745`](https://github.com/edgepillar/syrius/ac
 stops at the two startup cases before the expected backdrop motion. The
 fixture now schedules the frame for its simulated route mount and checks
 that the post-frame adoption ran before advancing the clock.
+The [paired Windows run at `521d9745`](https://github.com/edgepillar/syrius/actions/runs/44652011455/job/136008952771)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44654631004/job/136017728456)
+verify 83 redesign frames, 342 P06 frames and five normal exits. The
+build comparison meets the criterion. The slowest redesign build starts
+before the first observed film frame. Raster and distinct-frame comparisons
+fail and both windows retain frame-number gaps. Twenty-eight of 34 ranked
+raster excesses occur during film playback. The largest excess is 6.983 ms
+and also occurs during playback. The effect of the shell change on its own
+remains unestablished across these runs.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
