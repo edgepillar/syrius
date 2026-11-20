@@ -1101,7 +1101,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The licence registry remains scrollable in a short window.
   double get aboutLicencesMinHeight => 220;
 
-  /// The reference table uses 20.3 px of text, 18 px of padding and a 1 px rule.
+  /// Combines the reference text line height, padding and 1 px rule.
   double get aboutLicenceRowHeight => 39.3;
 
   /// The two rows above Originals use the compact reference spacing.

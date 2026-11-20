@@ -146,7 +146,10 @@ void main() {
           final double top = tester.getTopLeft(rule).dy;
           if (name == 'mixed') {
             final double physicalTop = top * ratio;
-            expect((physicalTop - physicalTop.round()).abs(), greaterThan(.01));
+            expect(
+              (physicalTop - physicalTop.round()).abs(),
+              greaterThan(.01),
+            );
           }
           expect(
             rule,
