@@ -1870,6 +1870,14 @@ source-pinned references in memory.
 
 All fourteen pairs have pixel differences. This review remains bound to
 `b6159f6e` and leaves the final-source verdicts open under V01.
+For Addresses, the selected mark in both reference PNGs occupies columns
+288 through 291 and rows 160 through 181. Both Windows captures occupy
+columns 298 through 313 and rows 163 through 179. The samples use the
+same green-channel threshold in a fixed crop. The reference markup applies
+16 px width and height to an inline span with no display override, which
+explains the narrow painted border in the PNG. The application follows the
+authored circular selector and retains its existing hit area and checked
+semantics. The rendered difference stays recorded under V01.
 
 Comparing their measured geometry with the source-pinned references confirms
 the Receive QR QSR mark and label, Originals footer rows, Plasma footer
