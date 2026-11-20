@@ -1714,7 +1714,13 @@ verifies all four original archives and all 12 PNGs against that source.
 The six Lock film rectangles match the authored reference edges, and both
 picker dividers match reference row 488. The comparison uses the reader's
 measurements and the reference PNGs at the same source.
-The whole-screen comparisons remain open under V01.
+All six Lock pairs were also viewed side by side from the retained archive.
+The form, wrong-password feedback and picker are visible in their expected
+states. Example wallet labels and the live status contents differ. The
+backdrop light distribution also differs, especially around the left glow
+in the light theme. The six captures sample the backdrop at six seconds.
+The contribution of phase to the remaining differences is unresolved, so
+these observations leave whole-screen acceptance open under V01.
 
 The [Windows navigation run at `fb956740`](https://github.com/edgepillar/syrius/actions/runs/44748087100)
 captures both themes for Send, Receive, Pillars, Plasma, Tokens, Swap and
