@@ -1744,7 +1744,11 @@ boundaries, the Pillars table headings and the ownership badge. The Pillars
 momentum label and value are two pixels below the reference in both themes.
 The expanded detail moves two pixels up by transferring top padding to the
 bottom, keeping its total height. The original counts and localization
-stay in use. A fresh Windows capture is needed to verify placement.
+stay in use. The [independent Windows reader at `d6f8dfa3`](https://github.com/edgepillar/syrius/actions/runs/44758803814/job/136365574450)
+verifies all 14 Navigation PNGs and normal parent closure. The measured
+label spans rows 248 through 255 and the value spans 247 through 259 in
+both themes. These vertical bounds match the references. Whole-screen
+comparison remains open under V01.
 
 The shell now mounts the working rail on its first unlock and retains it on
 later locks. A cold Lock still lays out the original authentication owner
@@ -1963,7 +1967,12 @@ exits and five normal node exits. Both arms report zero builds over 16 ms.
 Page change peaks at 165.173 ms total in the redesign and 106.338 ms in P06.
 Disclosure peaks at 95.646 ms and 43.313 ms, respectively. Both comparisons
 exceed the corresponding P06 raster and distinct-frame durations, and all
-four windows retain frame-number gaps. V02 remains open.
+four windows retain frame-number gaps. The longest page-change raster takes
+129.146 ms and starts within the nominal transition window. The largest
+page-change total includes 113.178 ms outside build and raster. All five
+disclosure raster starts confirmed after the observed settled layout exceed
+16 ms and peak at 49.934 ms. The retained timing records locate these peaks
+without identifying their rendering layers. V02 remains open.
 
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references
