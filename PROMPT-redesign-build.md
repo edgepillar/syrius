@@ -1834,8 +1834,12 @@ The rules now round their painted top to the physical pixel grid while
 retaining the original row geometry. The [Linux check at `512605b7`](https://github.com/edgepillar/syrius/actions/runs/44780664144/job/136442213920)
 passes the fractional-position paint assertions, registry selection and
 disclosure checks, analysis, the full non-chain suite and generated-file
-verification. The [fresh Windows capture](https://github.com/edgepillar/syrius/actions/runs/44781226275)
-will measure the raster result in both themes.
+verification. The [independent Windows reader at `512605b7`](https://github.com/edgepillar/syrius/actions/runs/44785090282/job/136457713333)
+verifies all ten Details images and normal parent closure. At column 700
+all thirteen rules now occupy one raster row in both themes. Nine rows
+match their exact reference positions. The other four begin one pixel
+below the reference, at rows 235, 274, 392 and 549. The whole-screen
+verdicts remain open.
 
 The [Go To measurement reader](https://github.com/edgepillar/syrius/actions/runs/44772348282/job/136413021368)
 reads the original verified Home archive at `d7ad6b44` on the hosted runner.
