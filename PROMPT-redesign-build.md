@@ -1125,8 +1125,22 @@ The hidden entry field can now prepare its existing raster during the
 launch film's final frame hold. Both shipped movies retain their original
 56 frames and the last frame has a 34 ms hold. Playback, the 400 ms handoff
 clock and the visible shader start stay unchanged. The existing timing and
-replay cases check the active final-frame signal. Native timing and the
-early handoff sample remain open.
+replay cases check the active final-frame signal.
+
+The [natural handoff reader at `4676ed64`](https://github.com/edgepillar/syrius/actions/runs/44666219918/job/136056064011)
+verifies two normal exits and the late and settled images. Its first
+positive post-frame observation is at progress 0.729. The early slot is
+missing and the producer retains `LAUNCH_HANDOFF_FRAME_MISSED`.
+The [paired cold producer](https://github.com/edgepillar/syrius/actions/runs/44664282336/job/136049681462)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44666599583/job/136057289816)
+verify five normal exits and 87 redesign frames against 434 P06 frames.
+The longest total times are 208.287 ms and 286.858 ms. The build, raster
+and distinct-frame comparisons fail the original 16 ms criterion. The
+windows retain 37 and 521 frame-number gaps, respectively. The redesign's
+peak raster runs for 158.689 ms in the handoff. Four of five raster starts
+confirmed at or after observed Lock arrival exceed 16 ms, up to 54.086 ms.
+These runs leave the timing effect of prewarming undetermined. V02 remains
+open.
 
 The [paired cold run at `8935b5ba`](https://github.com/edgepillar/syrius/actions/runs/44593889453/job/135806899165)
 retained 85 current and 810 P06 frames with five normal actor exits. The
