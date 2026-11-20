@@ -2598,6 +2598,20 @@ fails it, with one frame above 16 ms in each window and peaks of
 build begins 2.954 s before recorded shell authentication arrival.
 Both windows retain frame-key gaps. V02 remains open.
 
+The [second independent read](https://github.com/edgepillar/syrius/actions/runs/44836362264/job/136633648571)
+finds that the 23.196 ms build starts 111.781 ms before the first
+observed film frame. Across the 92 frames whose builds start at or
+after that observation, the longest builds in the film, covered wait,
+handoff and settled Lock phases are 1.412, 7.512, 2.549 and 2.290 ms,
+respectively. The comparison still fails for build time. The phase
+measurements do not identify which widgets account for the earlier build.
+
+The [Windows baseline at `1aaae34c`](https://github.com/edgepillar/syrius/actions/runs/44832360134/job/136620198243)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44836362130/job/136633648461)
+confirm all 12 baseline checks, both Debug and Release builds,
+5,129 passing tests and one skip. Application and vendored analysis
+report zero errors and warnings. The final V06 audit remains open.
+
 The [cold Windows producer at `b3d2a1d1`](https://github.com/edgepillar/syrius/actions/runs/44786324542/job/136462042874)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44790155159/job/136475393710)
 verify 84 redesign frames and four normal process exits. The original
