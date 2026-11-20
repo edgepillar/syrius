@@ -1223,6 +1223,13 @@ catalog match `590d3717`. The palette source changes its insertion mark
 height, with its width set in the theme. The final interface still needs
 an executed seam check.
 
+The [Home interface reader at `4fe764d5`](https://github.com/edgepillar/syrius/actions/runs/44786391136/job/136462272115)
+verifies six of eleven requested refusal observations before the original
+`ENTRY_REFUSED` outcome. These cover Home Zap, Activity address scope,
+Go To Zap including keyboard refusal, both Activity Message preview
+themes and the dark Home update notice. Application and entry processes
+exit normally. This evidence leaves the five unobserved cases open.
+
 The [independent clean Windows reader at `512605b7`](https://github.com/edgepillar/syrius/actions/runs/44785850020/job/136460390319)
 verifies Debug and Release, all twelve baseline checks, 5,129 passing
 tests and one skip, and zero analyzer errors or warnings. This source
