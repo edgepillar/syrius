@@ -932,13 +932,18 @@ farther toward the trailing edge than the reference. The compact licence
 rows and Play launch button in Originals align horizontally after X1192.
 About now gives the three main headers the same 16 px trailing inset as
 the licence rows. The existing layout test checks the rendered inset in
-LTR and RTL. A fresh Windows comparison is pending.
+LTR and RTL. The whole-screen comparison is pending.
 
 The Details reader now measures the Links, This computer and Licences
 header chevrons directly from the verified archive. In both references,
 the first two span columns 1238 through 1242 and the Licences chevron
 spans 1237 through 1244. The retained `fb3b2a01` archive places each
 four pixels farther toward the trailing edge in both themes.
+The [reader applied to `8386f9b9`](https://github.com/edgepillar/syrius/actions/runs/44653413437/job/136013637556)
+finds all six horizontal bounds at the reference columns. Links and
+This computer also match the measured vertical bounds. At the eight-level
+contrast threshold, the expanded Licences symbol starts one row earlier
+in dark and ends one row earlier in light.
 
 Both Originals images show the cleared discovery field required by the
 mockup README. The reference images still show the entered digits. The
