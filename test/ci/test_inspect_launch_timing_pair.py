@@ -190,10 +190,14 @@ class PairInspectionTests(unittest.TestCase):
         current, baseline = object(), object()
         retained = dict(samples=[], storage={})
         theme = pair.launch.TIMING_THEME
-        warmup = object.__new__(pair._P06Warmup)
-        warmup.deadline = 90
+        with mock.patch.object(pair.launch.LaunchProcess, '__init__',
+                               return_value=None) as initialize:
+            warmup = pair._P06Warmup(limits=pair.launch.LIMITS)
+        warmup.limits = initialize.call_args.kwargs['limits']
+        self.assertEqual(warmup.limits.total, 120)
+        self.assertEqual(warmup.limits.ready, pair.launch.LIMITS.ready)
+        warmup.deadline = warmup.limits.total
         warmup.clock, warmup.sleep = lambda: 0, mock.Mock()
-        warmup.limits = pair.launch.LIMITS
         warmup._show = mock.Mock()
         warmup._rpc = mock.Mock(return_value=dict(mode=theme, brightness=theme,
                                                  savedMode='ThemeMode.' + theme))
@@ -209,8 +213,8 @@ class PairInspectionTests(unittest.TestCase):
         wait = dict(cmd='wait', key='wallet_password_field', kind='field',
                     exact=True, ready=True, timeoutMs=0)
         self.assertEqual(warmup._exchange.call_args_list, [
-            mock.call(wait, until=85), mock.call(wait, until=85),
-            mock.call(dict(cmd='state'), until=85),
+            mock.call(wait, until=115), mock.call(wait, until=115),
+            mock.call(dict(cmd='state'), until=115),
         ])
 
         with mock.patch.object(pair.launch.entry, 'new_profile', return_value=profile), \
@@ -228,7 +232,7 @@ class PairInspectionTests(unittest.TestCase):
         ])
         self.assertEqual(retained['samples'], [sample])
 
-    def test_p06_warmup_retains_the_original_deadline_and_its_diagnostic(self):
+    def test_p06_warmup_retains_a_readiness_deadline_and_its_diagnostic(self):
         value = report(self.pins)
         value.update(success=False, phase='p06_warm_ordinary_profile', comparison=None,
                      error_codes=['STARTUP_OBSERVATION_REFUSED'])
@@ -240,7 +244,7 @@ class PairInspectionTests(unittest.TestCase):
         diagnostic = dict(status='unavailable', error_code='ENTRY_UNAVAILABLE')
 
         warmup = object.__new__(pair._P06Warmup)
-        warmup.deadline = 90
+        warmup.deadline = 120
         failure = pair.launch.startup.Failure('STARTUP_DEADLINE')
         warmup.wait_for_timing_lock = mock.Mock(side_effect=failure)
         warmup._lock_diagnostic = mock.Mock(return_value=diagnostic)
@@ -254,9 +258,9 @@ class PairInspectionTests(unittest.TestCase):
         with mock.patch.object(pair.launch.LaunchProcess, '_prepare_theme'), \
              mock.patch.object(pair.launch.LaunchProcess, 'run_launch', side_effect=run_prepare):
             warmup.run_launch(pair.launch.TIMING_THEME, capture=False, settle=False)
-        warmup.wait_for_timing_lock.assert_called_once_with(85)
+        warmup.wait_for_timing_lock.assert_called_once_with(115)
         warmup._lock_diagnostic.assert_called_once_with()
-        self.assertEqual(warmup.deadline, 95)
+        self.assertEqual(warmup.deadline, 125)
         result = self.project(value)
         self.assertEqual(result['normal_actor_exits'], 4)
         self.assertEqual(result['attempt_outcomes']['p06'][-1]['lock_diagnostic'], diagnostic)

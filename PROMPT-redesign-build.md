@@ -2197,6 +2197,11 @@ window at the target size, a disabled Lock field and frame index 44 of
 The redesign has 23 frame-key gaps, a maximum total span of 184.944 ms
 and a peak raster of 159.988 ms. Four observed raster starts after the
 settled boundary exceed 16 ms. No paired timing comparison is established.
+Only the unmeasured P06 preparation process now has a 120-second total
+budget instead of 90 seconds. It still waits for the original enabled Lock
+field and target window geometry, exits normally, and ends five seconds
+early for shutdown. The current and P06 measured windows retain their
+original deadlines and the 16 ms criterion is unchanged.
 
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references

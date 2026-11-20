@@ -1,5 +1,6 @@
 """Compare ordinary cold lock frame windows on one hosted Windows runner."""
 
+from dataclasses import replace
 import json
 import os
 from pathlib import Path
@@ -209,6 +210,11 @@ def attempt_outcomes(samples):
 
 class _P06Warmup(launch.LaunchProcess):
     preparation_diagnostic = None
+
+    def __init__(self, *args, limits, **kwargs):
+        # The unmeasured preparation can outlast the ordinary launch budget
+        # while P06 is still playing the film. Cold windows keep their limits.
+        super().__init__(*args, limits=replace(limits, total=120), **kwargs)
 
     def _prepare_theme(self, theme):
         super()._prepare_theme(theme)

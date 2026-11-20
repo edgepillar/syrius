@@ -372,7 +372,8 @@ def inspect_run(client, *, head, tree, run_id, job):
         and selected[0]['status'] == retained[0]['status'] == 'completed'
         and selected[0]['conclusion'] in ('success', 'failure') and retained[0]['conclusion'] == 'success')
     prior_pair = ('7c39d88355a696f5580c45282eac38aa11ef4eb54d56bd85b1b691878b2c13a3',
-                  'fdadca2905a65134927a3b19e6218b99b98cf579b7579a3a3636bf9a058c691c')
+                  'fdadca2905a65134927a3b19e6218b99b98cf579b7579a3a3636bf9a058c691c',
+                  '608c10ae1ab014842e14a8c8a848245f6de29c544f2d8f334473859372087610')
     prior_launch = (startup_reader.PRE_AUTH_PHASE_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_LIGHT_MOTION_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_FIRST_PROGRESS_LAUNCH_PRODUCER_SHA,
