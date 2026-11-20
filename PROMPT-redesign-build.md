@@ -1466,6 +1466,13 @@ field with Enter, keeping the pointer off Unlock while the observer
 retains frame 23 after one failed attempt. Fresh native pairs are needed
 to check both changes.
 
+The [Ready producer at `4e370ffb`](https://github.com/edgepillar/syrius/actions/runs/44824632661)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44826720079/job/136601077349)
+verify two original PNGs with the pointer move in place. The fresh
+button pixel comparison remains open. [Linux validation at `ebf17f76`](https://github.com/edgepillar/syrius/actions/runs/44824977641)
+passes strict selected analysis, the complete non-chain suite and
+generated-file verification with both capture changes.
+
 All six [Lock captures at `e94d5b07`](https://github.com/edgepillar/syrius/actions/runs/44797941432)
 were reopened from the verified archive and viewed beside their
 references. The film rectangles match for the normal, wrong-password and
