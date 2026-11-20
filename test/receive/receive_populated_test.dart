@@ -419,6 +419,17 @@ void main() {
           size: 14,
           color: tokens.faint,
         );
+        final Rect mark = tester.getRect(
+          find.byKey(const Key('receive_token_mark')),
+        );
+        final Finder tokenInput = find
+            .descendant(
+              of: picker,
+              matching: find.byType(EditableText),
+            )
+            .first;
+        expect(mark.left - tester.getRect(picker).left, closeTo(13, .01));
+        expect(tester.getRect(tokenInput).left - mark.right, closeTo(8, .01));
         for (final Finder control in <Finder>[
           amount,
           picker,
@@ -874,6 +885,18 @@ void main() {
       TextDirection.ltr,
     );
     expect(_payload(tester), endsWith('&amount=50000000'));
+    final Finder picker = find.byKey(const Key('receive_token_picker'));
+    final Rect mark = tester.getRect(
+      find.byKey(const Key('receive_token_mark')),
+    );
+    final Finder tokenInput = find
+        .descendant(
+          of: picker,
+          matching: find.byType(EditableText),
+        )
+        .first;
+    expect(tester.getRect(picker).right - mark.right, closeTo(13, .01));
+    expect(mark.left - tester.getRect(tokenInput).right, closeTo(8, .01));
     await receiveTestDispose(tester);
   });
 

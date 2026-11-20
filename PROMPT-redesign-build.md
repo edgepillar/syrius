@@ -1007,6 +1007,14 @@ both themes. Their last painted row is 78, one below the reference. The
 26 px widget height passed on Linux. The remaining raster difference and
 whole-image comparisons are open.
 
+In both retained `fb3b2a01` Receive QR themes, the QSR mark begins at
+column 822 and the label ink at column 859. The references start them
+at columns 825 and 856. The Receive token picker now uses a 13 px
+leading mark inset and an 8 px gap to the input. Its existing tests
+check both themes and a narrow RTL layout. The designation and request
+data come from the original selected token. A fresh Windows measurement
+remains open.
+
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
 The rows follow the [mockup motion](mockups/redesign/README.md#motion) and

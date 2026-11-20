@@ -692,64 +692,74 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
   String _tokenLabel(Token token) =>
       token.isCoin ? token.symbol : '${token.symbol} (${token.tokenStandard})';
 
-  Widget _buildTokenPicker(AppTokens tokens) => DropdownMenu<Token>(
-    key: const Key('receive_token_picker'),
-    inputDecorationTheme: _buildInputTheme(
+  Widget _buildTokenPicker(AppTokens tokens) {
+    const EdgeInsetsDirectional markPadding = EdgeInsetsDirectional.only(
+      start: 13,
+      end: 4,
+    );
+    final Widget? mark = buildTransferTokenMark(
+      _selectedToken.tokenStandard.toString(),
       tokens,
-      radius: tokens.transferFieldRadius,
-    ).copyWith(
-      contentPadding: tokens.transferFieldPadding,
-      prefixIconConstraints: BoxConstraints.tightFor(
-        width: tokens.fieldHeight,
-        height: tokens.fieldHeight,
-      ),
-      suffixIconConstraints: BoxConstraints.tightFor(
-        width: tokens.fieldHeight,
-        height: tokens.fieldHeight,
-      ),
-    ),
-    controller: _tokenController,
-    initialSelection: _selectedToken,
-    expandedInsets: EdgeInsets.zero,
-    enableFilter: true,
-    textStyle: tokens.bodyText,
-    trailingIcon: ShellSymbol(
-      'chev',
-      size: tokens.smallActionGlyphSize,
-      color: tokens.faint,
-    ),
-    selectedTrailingIcon: RotatedBox(
-      quarterTurns: 2,
-      child: ShellSymbol(
+      markKey: const Key('receive_token_mark'),
+    );
+    return DropdownMenu<Token>(
+      key: const Key('receive_token_picker'),
+      inputDecorationTheme:
+          _buildInputTheme(
+            tokens,
+            radius: tokens.transferFieldRadius,
+          ).copyWith(
+            contentPadding: tokens.transferFieldPadding,
+            prefixIconConstraints: BoxConstraints.tightFor(
+              width: tokens.transferTokenMarkSize + markPadding.horizontal,
+              height: tokens.fieldHeight,
+            ),
+            suffixIconConstraints: BoxConstraints.tightFor(
+              width: tokens.fieldHeight,
+              height: tokens.fieldHeight,
+            ),
+          ),
+      controller: _tokenController,
+      initialSelection: _selectedToken,
+      expandedInsets: EdgeInsets.zero,
+      enableFilter: true,
+      textStyle: tokens.bodyText,
+      trailingIcon: ShellSymbol(
         'chev',
         size: tokens.smallActionGlyphSize,
         color: tokens.faint,
       ),
-    ),
-    leadingIcon: buildTransferTokenMark(
-      _selectedToken.tokenStandard.toString(),
-      tokens,
-      markKey: const Key('receive_token_mark'),
-    ),
-    dropdownMenuEntries: <DropdownMenuEntry<Token>>[
-      for (final Token token in _tokens)
-        DropdownMenuEntry<Token>(value: token, label: _tokenLabel(token)),
-    ],
-    filterCallback: (List<DropdownMenuEntry<Token>> entries, String query) =>
-        entries.where((DropdownMenuEntry<Token> entry) {
-          final String term = query.toLowerCase();
-          return entry.label.toLowerCase().contains(term) ||
-              entry.value.tokenStandard.toString().contains(term);
-        }).toList(),
-    onSelected: (Token? token) {
-      if (token == null) return;
-      setState(() {
-        _requestRevision += 1;
-        _selectedToken = token;
-        _tokenController.text = _tokenLabel(token);
-      });
-    },
-  );
+      selectedTrailingIcon: RotatedBox(
+        quarterTurns: 2,
+        child: ShellSymbol(
+          'chev',
+          size: tokens.smallActionGlyphSize,
+          color: tokens.faint,
+        ),
+      ),
+      leadingIcon: mark == null
+          ? null
+          : Padding(padding: markPadding, child: mark),
+      dropdownMenuEntries: <DropdownMenuEntry<Token>>[
+        for (final Token token in _tokens)
+          DropdownMenuEntry<Token>(value: token, label: _tokenLabel(token)),
+      ],
+      filterCallback: (List<DropdownMenuEntry<Token>> entries, String query) =>
+          entries.where((DropdownMenuEntry<Token> entry) {
+            final String term = query.toLowerCase();
+            return entry.label.toLowerCase().contains(term) ||
+                entry.value.tokenStandard.toString().contains(term);
+          }).toList(),
+      onSelected: (Token? token) {
+        if (token == null) return;
+        setState(() {
+          _requestRevision += 1;
+          _selectedToken = token;
+          _tokenController.text = _tokenLabel(token);
+        });
+      },
+    );
+  }
 
   Widget _buildError(String message, AppTokens tokens) => Semantics(
     liveRegion: true,
