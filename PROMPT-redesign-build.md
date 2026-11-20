@@ -1426,6 +1426,18 @@ Licences rules now match the reference rows at the measured column in
 both themes. The remaining whole-screen differences are still under
 review.
 
+All ten captures from the newer Details archive were opened alongside
+their references. Receive shows a generated QR, both image actions and
+the 100 QSR request. The reference uses an illustrative QR and a longer
+helper line. Zap shows the two asset fields and preview, with the
+recipient unavailable in the isolated fixture. Plasma Fuse retains two
+selected rows and the batch action. The fixture does not reproduce the
+reference's locked fuse and additional addresses. Licences shows the
+installed package names and its measured row rules align. Originals
+shows the reference tile layout and an empty focused discovery field
+where the reference paints example input. The complete image verdicts
+remain open.
+
 In the verified Staking Empty captures, the summary, stakes card,
 divider and rewards card match the reference bands at column 1000 in
 both themes. In the Pillars captures, the strip, list, tab rule and
