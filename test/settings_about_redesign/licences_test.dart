@@ -1,9 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/licences.dart';
@@ -206,13 +205,12 @@ void main() {
     WidgetTester tester,
   ) async {
     prepareAboutViewport(tester);
-    // The widget test binding leaves the real registry collector disabled.
-    final ByteData? asset = await tester.runAsync(
-      () => rootBundle.load('NOTICES.Z'),
+    // Read the SDK notice source that Flutter uses to assemble the registry.
+    final Uri? skyEngine = Isolate.resolvePackageUriSync(
+      Uri.parse('package:sky_engine/_empty.dart'),
     );
-    final String bundle = utf8.decode(gzip.decode(
-      asset!.buffer.asUint8List(asset.offsetInBytes, asset.lengthInBytes),
-    ));
+    final String bundle = File.fromUri(skyEngine!.resolve('../LICENSE'))
+        .readAsStringSync();
     final List<LicenseEntry> notices = <LicenseEntry>[];
     for (final String section in bundle.split('\n${'-' * 80}\n')) {
       final int split = section.indexOf('\n\n');
@@ -235,7 +233,14 @@ void main() {
     expect(find.text('Apache-2.0'), findsOneWidget);
     await _open(tester, 'yapf');
     for (final LicenseEntry entry in notices) {
-      expect(find.text(entry.paragraphs.first.text), findsOneWidget);
+      final String firstParagraph = entry.paragraphs.first.text;
+      expect(
+        find.byWidgetPredicate(
+          (Widget widget) => widget is SelectableText &&
+              widget.data == firstParagraph,
+        ),
+        findsOneWidget,
+      );
     }
   });
 

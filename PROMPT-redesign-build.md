@@ -1513,6 +1513,12 @@ frame. P06's longest build is 13.786 ms. The build criterion remains unmet,
 and the two windows retain 34 and 1,685 frame-number gaps. The cause of
 the remaining slow build is open under V02.
 
+Native mode observations now update the caption without rebuilding the
+client body. The [first timing run at `0ae5a960`](https://github.com/edgepillar/syrius/actions/runs/44679592743/job/136099537347)
+stops before native execution in the extended window frame case. The
+fixture now checks its explicitly pending initial query before completing
+it and rechecking caption and body behavior. Fresh timing remains pending.
+
 The [cold producer at `e2f1c838`](https://github.com/edgepillar/syrius/actions/runs/44655896517/job/136021904094)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44658333571/job/136030014735)
 verify five normal actor exits and both original measurement windows.
@@ -1623,8 +1629,11 @@ images show the end of the bundled registry and a blank type for `yapf`.
 The bundled `yapf` entries include the full Apache-2.0 text and its
 source header. The type lookup now recognizes the exact normalized
 fingerprint of that header, giving both notices the same identifier.
-The widget case opens the bundled row and checks its label and both
-notice texts. Whole-image acceptance stays open under V01.
+The [first Linux widget run](https://github.com/edgepillar/syrius/actions/runs/44679195330/job/136098264561)
+reports one failure in the new fixture, with 5,126 passes and one skip.
+The fixture now uses the pinned engine's original licence source and
+checks the label and both selectable notice texts. Whole-image acceptance
+stays open under V01.
 
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references
@@ -1773,7 +1782,13 @@ completes and retains the archive with the fresh captures. The
 [first independent read](https://github.com/edgepillar/syrius/actions/runs/44680069245/job/136101059739)
 passes 124 controls and refuses at producer source binding. The reader
 now binds the earlier Navigation script adapter by its verified Git blob
-before opening the archive. Fresh independent results are pending.
+before opening the archive. The [corrected independent read](https://github.com/edgepillar/syrius/actions/runs/44680301801/job/136101823497)
+verifies ten PNGs and normal closure. At all four sampled distances, the
+Plasma halo differs from the reference by at most one RGB level per
+channel in both themes. The Cancel controls share the reference right
+edge, with their left edges within two pixels. At column 1000, the
+Originals divider spans rows 512 to 513 and the card ends at 561 in both
+themes, matching the references. Whole-image verdicts remain open.
 
 The [seeded visual run at `11398595`](https://github.com/edgepillar/syrius/actions/runs/44672157292/job/136075382385)
 builds the native wallet and retains the six-image catalog. The

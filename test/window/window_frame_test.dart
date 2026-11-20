@@ -140,7 +140,7 @@ void main() {
         .setMockMethodCallHandler(channel, null);
   });
 
-  Future<void> settle(WidgetTester tester) async {
+  Future<void> settle(WidgetTester tester, {bool queryPending = false}) async {
     await tester.pumpAndSettle(
       const Duration(milliseconds: 16),
       EnginePhase.sendSemanticsUpdate,
@@ -149,7 +149,7 @@ void main() {
     final AppWindowStatus? status = tester
         .state<AppWindowFrameState>(find.byType(AppWindowFrame))
         .windowStatus;
-    expect(status?.queryPending ?? false, isFalse);
+    expect(status?.queryPending ?? false, queryPending);
     expect(status?.actionPending ?? false, isFalse);
   }
 
@@ -161,6 +161,7 @@ void main() {
     GlobalKey<NavigatorState>? navigator,
     NavigatorObserver? observer,
     Object? owner,
+    bool queryPending = false,
   }) async {
     tester.view
       ..physicalSize = size
@@ -188,7 +189,7 @@ void main() {
         ),
       ),
     );
-    await settle(tester);
+    await settle(tester, queryPending: queryPending);
     return tester.state<_OwnedPageState>(find.byType(_OwnedPage));
   }
 
@@ -740,7 +741,7 @@ void main() {
       effectChangesMode = true;
       final Completer<Object?> initialMode = Completer<Object?>();
       pending['isMaximized'] = initialMode;
-      await mount(tester);
+      await mount(tester, queryPending: true);
       final Finder body = find.byKey(const ValueKey<String>('window-body'));
       final Widget originalBody = tester.widget(body);
       expect(
