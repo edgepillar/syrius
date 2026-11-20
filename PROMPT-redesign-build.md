@@ -1817,6 +1817,10 @@ receipts link those image pairs to 21 producer revisions. The check also
 rehashes 44 original image members and their manifests from 18 retained
 archives. These objects support historical comparison. Current-source
 verdicts still require the designated current captures under V01.
+The target-commit report can combine current and retained historical
+manifests. Where competing older captures have no current replacement,
+the report leaves the pair in the target backlog. A conflict between
+eligible captures at the target commit still stops report generation.
 
 The [Windows entry run at `d6f8dfa3`](https://github.com/edgepillar/syrius/actions/runs/44755690292)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44756776284/job/136358466527)

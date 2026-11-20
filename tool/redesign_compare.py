@@ -298,13 +298,20 @@ def select_actual_captures(
 
     selected: dict[str, Capture] = {}
     for stem, choices in candidates.items():
-        if target_source is not None:
-            choices = {choice for choice in choices if choice.source_sha == target_source} or choices
+        exact = {
+            choice for choice in choices
+            if target_source is not None and choice.source_sha == target_source
+        }
+        choices = exact or choices
         choices = {
             choice for choice in choices
             if not choice.is_diagnostic(stem, require_catalog_family=target_source is not None)
         } or choices
         if len(choices) != 1:
+            # Ambiguous history cannot qualify the requested revision. Keep
+            # this pair in the target coverage backlog without choosing one.
+            if target_source is not None and not exact:
+                continue
             raise ReportError(f"Capture manifests select multiple files for {stem}")
         selected[stem] = next(iter(choices))
     return selected

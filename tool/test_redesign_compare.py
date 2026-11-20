@@ -37,6 +37,7 @@ from redesign_compare import (
     main,
     screen_inventory,
     screen_notes,
+    select_actual_captures,
 )
 
 
@@ -135,6 +136,31 @@ class ArchiveReadCacheTests(unittest.TestCase):
 
 
 class CaptureCatalogTests(unittest.TestCase):
+    def test_ambiguous_history_does_not_abort_exact_target_coverage(self) -> None:
+        target = "a" * 40
+        exact = Capture(Path("present.png"), source_sha=target)
+        old = Capture(Path("old.png"), source_sha="b" * 40)
+        older = Capture(Path("older.png"), source_sha="c" * 40)
+        manifests = {
+            Path("one.json"): {"present": exact, "historical": old, "single": old},
+            Path("two.json"): {"present": old, "historical": older},
+        }
+        with patch(
+            "redesign_compare.load_actual_manifest",
+            side_effect=lambda path, _: manifests[path],
+        ):
+            self.assertEqual(
+                select_actual_captures(tuple(manifests), set(), target),
+                {"present": exact, "single": old},
+            )
+            with self.assertRaisesRegex(ValueError, "multiple files"):
+                select_actual_captures(tuple(manifests), set(), None)
+            manifests[Path("two.json")]["present"] = Capture(
+                Path("conflict.png"), source_sha=target,
+            )
+            with self.assertRaisesRegex(ValueError, "multiple files for present"):
+                select_actual_captures(tuple(manifests), set(), target)
+
     def test_prepared_capture_replaces_diagnostic_only_at_the_target_source(self) -> None:
         repo = Path("catalog-fixture")
         screen = Screen(7, "send-rest", "Send", repo / "transfer.html")
