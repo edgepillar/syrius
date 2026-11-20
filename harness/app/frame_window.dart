@@ -164,7 +164,7 @@ class HarnessFrameWindow {
       'windowUs': duration,
       if (_includePeakBuildWait)
         'peakBuildWaitUs': _samples
-            .reduce((a, b) => a.total >= b.total ? a : b)
+            .reduce((_Sample a, _Sample b) => a.total >= b.total ? a : b)
             .waitForBuild,
       'frames': <List<int>>[
         for (final _Sample sample in _samples)

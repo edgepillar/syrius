@@ -1322,6 +1322,11 @@ The next [Pillar Done](https://github.com/edgepillar/syrius/actions/runs/4480962
 and [Pillar Spawn](https://github.com/edgepillar/syrius/actions/runs/44810452587)
 producers use `a76ddc26`, which differs from the visual capture source
 only in this Markdown file.
+The [second Pillar Done reader](https://github.com/edgepillar/syrius/actions/runs/44811836132/job/136550123909)
+verified another preflight refusal. Both transports advanced from height
+six to seven with a new hash while the observed timestamp fell by 20
+seconds. The requested images were absent. The existing advance check
+requires a higher height and timestamp and a different hash.
 
 The four Welcome and Import images have been viewed alongside their
 references. The visible backdrop differs. In 9,126 unobstructed edge
@@ -2346,6 +2351,19 @@ between 185.162 and 240.005 ms after pointer release. In the disclosure
 window, all four raster starts confirmed after settlement exceed 16 ms,
 with a maximum of 81.556 ms. These timings locate the slowdown without
 identifying a rendering-layer cause. V02 remains open.
+
+The current interactive collector now retains one additional duration for
+the longest frame in each window, from vsync to build start. The reader
+checks the duration against the same frame's total, build and raster
+values and can derive the build-to-raster wait. Historical records retain
+the original combined wait. The first [Linux preflight](https://github.com/edgepillar/syrius/actions/runs/44811779331/job/136549920985)
+refused because the P06 overlay still read the modified current collector.
+P06 now reads the original bytes from its pinned fixture. The
+[next Linux preflight](https://github.com/edgepillar/syrius/actions/runs/44812235454)
+verified the original collector digest and overlay tree. Strict analysis
+then flagged two inferred callback parameter types in the current
+collector. The callback now declares both types. The Windows comparison
+with the pinned baseline remains pending.
 
 The [cold Windows producer at `b3d2a1d1`](https://github.com/edgepillar/syrius/actions/runs/44786324542/job/136462042874)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44790155159/job/136475393710)
