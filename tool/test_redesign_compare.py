@@ -130,17 +130,22 @@ class CaptureCatalogTests(unittest.TestCase):
             png = data.getvalue()
         digest = hashlib.sha256(png).hexdigest()
         navigation = repo / "navigation.json"
+        unclassified = repo / "unclassified.json"
         prepared = repo / "prepared.json"
         older = repo / "older.json"
         conflicting = repo / "conflicting.json"
 
-        def manifest(family: str, directory: str, source: str) -> bytes:
-            return json.dumps({"catalog_family": family, "actual": {
+        def manifest(family: str | None, directory: str, source: str) -> bytes:
+            entry: dict[str, object] = {"actual": {
                 stem: {"path": f"{directory}/{stem}.png", "sha256": digest, "source_sha": source},
-            }}).encode()
+            }}
+            if family is not None:
+                entry["catalog_family"] = family
+            return json.dumps(entry).encode()
 
         inputs = {
             navigation: manifest("navigation", "plain", target),
+            unclassified: manifest(None, "unknown", target),
             prepared: manifest("send-confirm", "filled", target),
             older: manifest("send-confirm", "prior", previous),
             conflicting: manifest("send-confirm", "conflict", target),
@@ -157,14 +162,20 @@ class CaptureCatalogTests(unittest.TestCase):
             patch("redesign_compare.load_reviews", return_value=review),
             patch("redesign_compare.bounded_bytes", return_value=png),
         ):
-            def report(*sources: Path) -> dict[str, object]:
+            def report(*sources: Path, exact: bool = True) -> dict[str, object]:
                 return generate_report(repo, None, None, actual_manifest=sources,
-                                       target_source=target, required_size=(4, 3))
+                                       target_source=target if exact else None,
+                                       required_size=(4, 3))
 
             diagnostic = report(navigation, older)
             self.assertEqual(diagnostic["pairs"][0]["state"], "diagnostic-capture")
             self.assertEqual(diagnostic["summary"]["target_pairs"]["available"], 0)
-            selected = report(navigation, older, prepared)
+            unknown = report(unclassified, older)
+            self.assertEqual(unknown["pairs"][0]["state"], "diagnostic-capture")
+            self.assertEqual(unknown["summary"]["target_pairs"]["available"], 0)
+            self.assertEqual(report(unclassified, exact=False)["pairs"][0]["state"],
+                             "reviewed-match")
+            selected = report(navigation, unclassified, older, prepared)
             self.assertEqual(selected["pairs"][0]["actual"]["catalog_family"], "send-confirm")
             self.assertEqual(selected["pairs"][0]["state"], "reviewed-match")
             self.assertEqual(selected["summary"]["target_pairs"]["available"], 1)

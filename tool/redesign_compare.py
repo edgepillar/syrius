@@ -27,8 +27,9 @@ Pass one manifest per verified batch. Add the optional top-level
 "catalog_family" from the verified producer to identify prepared captures.
 For an overlapping screen and theme, an exact target capture takes
 precedence. At that source the prepared Send, Tokens, Swap and Voting
-catalogs take precedence over their alternate captures. An alternate without
-its prepared counterpart can still be viewed as a diagnostic capture.
+catalogs take precedence over their alternate captures. A target-source
+comparison counts these four states only when their manifests identify the
+prepared catalog. Other captures of the same state remain visible for diagnosis.
 Multiple distinct files with equal precedence require an explicit selection.
 For a static report on Windows, place the report and all images on the same drive.
 
@@ -144,10 +145,10 @@ class Capture:
     archive_sha256: str | None = None
     catalog_family: str | None = None
 
-    def is_diagnostic(self, stem: str) -> bool:
+    def is_diagnostic(self, stem: str, *, require_catalog_family: bool = False) -> bool:
         prepared = PREPARED_CATALOGS.get(stem.rsplit("-", 1)[0])
-        return (prepared is not None and self.catalog_family is not None
-                and self.catalog_family != prepared)
+        return (prepared is not None and self.catalog_family != prepared
+                and (require_catalog_family or self.catalog_family is not None))
 
 
 @dataclass(frozen=True)
@@ -297,7 +298,10 @@ def select_actual_captures(
     for stem, choices in candidates.items():
         if target_source is not None:
             choices = {choice for choice in choices if choice.source_sha == target_source} or choices
-        choices = {choice for choice in choices if not choice.is_diagnostic(stem)} or choices
+        choices = {
+            choice for choice in choices
+            if not choice.is_diagnostic(stem, require_catalog_family=target_source is not None)
+        } or choices
         if len(choices) != 1:
             raise ReportError(f"Capture manifests select multiple files for {stem}")
         selected[stem] = next(iter(choices))
@@ -647,7 +651,9 @@ def compare_pair(
                 pair.update(state="unknown-source", reason="Actual capture has no source commit")
             else:
                 pair.update(state="other-source", reason="Actual capture is from another commit")
-        elif capture is not None and capture.is_diagnostic(stem):
+        elif capture is not None and capture.is_diagnostic(
+            stem, require_catalog_family=target_source is not None,
+        ):
             family = PREPARED_CATALOGS[stem.rsplit("-", 1)[0]]
             pair.update(state="diagnostic-capture", reason=f"Prepared {family} capture required")
         else:

@@ -735,6 +735,11 @@ The existing Navigation and Details archives at `61e72335` exercise this
 path directly. The report has 16 designated pairs, eight diagnostic images
 and 70 missing images. Both archives are read without extracting PNGs or
 writing a report, and the whole-image verdicts remain open.
+A target-source report now counts the prepared Send, Tokens, Swap and
+Voting states only when the manifest identifies their designated catalog.
+An unlabelled image stays visible as a diagnostic. The prepared capture
+at the target source takes precedence over both unlabelled and alternate
+captures. Existing image hashes still bind any visual verdict.
 The designated Send draft comes from the Send confirmation catalog. The
 [independent reader at `06eda3f7`](https://github.com/edgepillar/syrius/actions/runs/44582555309/job/135766788891)
 verifies both filled drafts and both separate confirmation images. The
@@ -1706,6 +1711,8 @@ for its complete notices. Each paragraph retains its indentation and text
 style without an editable text widget. The focused cases exercise copy
 across paragraphs in both the default and scaled RTL views. Those cases
 pass in the [focused stage at `2508fe12`](https://github.com/edgepillar/syrius/actions/runs/44686460129/job/136121854410).
+The same Linux run passes the full non-chain suite and generated-file
+verification.
 The paired Windows timing measurement remains open under V02.
 
 At column 900, the earlier verified Pillars frames place the delegation
