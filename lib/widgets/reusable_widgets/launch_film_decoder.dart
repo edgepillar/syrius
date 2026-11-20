@@ -35,14 +35,23 @@ abstract class LaunchFilmDecoder {
   static Future<LaunchFilmDecoder> fromData(
     ByteData data, {
     int? targetWidth,
-  }) => fromBytes(Uint8List.sublistView(data), targetWidth: targetWidth);
+    bool preferEngine = false,
+  }) => fromBytes(
+    Uint8List.sublistView(data),
+    targetWidth: targetWidth,
+    preferEngine: preferEngine,
+  );
 
-  /// Selects rectangle composition only for the supported opaque subset.
+  /// Selects rectangle composition for the supported opaque subset unless
+  /// [preferEngine] requests the original Flutter codec directly.
   static Future<LaunchFilmDecoder> fromBytes(
     Uint8List bytes, {
     int? targetWidth,
+    bool preferEngine = false,
   }) async {
-    final LaunchWebpFrames? frames = LaunchWebpFrames.tryParse(bytes);
+    final LaunchWebpFrames? frames = preferEngine
+        ? null
+        : LaunchWebpFrames.tryParse(bytes);
     if (frames != null) return _RectangleDecoder(frames);
     return fromBuffer(
       await ui.ImmutableBuffer.fromUint8List(bytes),

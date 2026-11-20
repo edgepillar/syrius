@@ -103,11 +103,15 @@ Future<void> _decode(String path, int width, int height) async {
       ).readAsBytesSync(),
   };
 
-  final ui.Codec codec = await ui.instantiateImageCodec(bytes);
+  final LaunchFilmDecoder codec = await LaunchFilmDecoder.fromBytes(
+    bytes,
+    preferEngine: true,
+  );
   final LaunchFilmDecoder rectangles = await LaunchFilmDecoder.fromBytes(bytes);
   ui.Image? heldEnding;
   bool rectanglesClosed = false;
   try {
+    expect(codec.usesFrameRectangles, isFalse);
     expect(rectangles.usesFrameRectangles, isTrue);
     expect(codec.frameCount, _frameCount);
     // The file's loop count is 1, and the engine reports the repeats after
@@ -121,7 +125,7 @@ Future<void> _decode(String path, int width, int height) async {
     ui.Image? previous;
     for (int index = 0; index < _frameCount; index++) {
       decoding.start();
-      final ui.FrameInfo info = await codec.getNextFrame();
+      final LaunchFilmFrame info = await codec.getNextFrame();
       decoding.stop();
       final ui.Image image = info.image;
       final LaunchFilmFrame rectangle = await rectangles.getNextFrame();

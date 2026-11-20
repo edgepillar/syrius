@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
@@ -595,6 +596,11 @@ class _LaunchFilmState extends State<LaunchFilm>
               ),
               // Keep the original canvas until the existing shrink.
               targetWidth: width,
+              // The engine can decode this film without reading back a
+              // separate full-size Skia picture for every changed patch.
+              preferEngine: defaultTargetPlatform == TargetPlatform.windows &&
+                  asset == LaunchFilm.defaultAsset &&
+                  width == null,
             ),
           );
       codec = filmCodec;

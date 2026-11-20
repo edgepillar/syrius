@@ -1435,6 +1435,17 @@ decoded pixels while adding that layer. The existing handoff cases
 check both paint states and retain the final image-layer and owner
 assertions.
 
+The 2560 by 1440 startup film uses Flutter's original animated WebP
+codec on Windows. The rectangle renderer creates 50 full-canvas
+`Picture.toImage` snapshots across its 56 frames after two full-frame
+decodes and four repeated patches. In the pinned
+[Flutter Skia implementation](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/snapshot_controller_skia.cc#L24-L44),
+each picture snapshot returns a host image. Using the engine codec for
+the original bytes bypasses the app-side snapshot for those frames.
+The existing fidelity cases exercise both codec paths and compare every
+pixel and frame duration. The running build still needs a paired
+Windows timing measurement.
+
 The [cold producer at `e2f1c838`](https://github.com/edgepillar/syrius/actions/runs/44655896517/job/136021904094)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44658333571/job/136030014735)
 verify five normal actor exits and both original measurement windows.
