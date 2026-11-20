@@ -1802,6 +1802,15 @@ at 50/52/50 and 215/218/215 versus 56/58/56 and 213/216/213. The
 comparison records this panel position under V01. Whole-screen verdicts
 remain open.
 
+All eight Home captures at `d7ad6b44` were viewed beside their pinned
+references from the same verified archive. Resting Home shows the balance
+eye and Notifications tooltip. Expanded Home shows the open rail and Tokens
+disclosure. Hidden Home masks the balance and activity value in both themes.
+The isolated activity scope, available rewards, token rows and pending
+items differ from the reference examples. Go To shows the address lane and
+caption frost in both themes. Its background and edge colors still differ.
+The eight whole-screen comparisons remain mismatches under V01.
+
 The [Windows navigation run at `fb956740`](https://github.com/edgepillar/syrius/actions/runs/44748087100)
 captures both themes for Send, Receive, Pillars, Plasma, Tokens, Swap and
 Accelerator. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44751622378/job/136340695267)
