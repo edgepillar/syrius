@@ -299,7 +299,7 @@ void main() {
       await mouse.moveTo(bellCenter);
       await tester.pumpAndSettle();
       final Rect notificationTip = tester.getRect(
-        _shownTooltip('Notifications'),
+        find.text('Notifications', findRichText: true),
       );
       expect(notificationTip.left, greaterThan(_rail(tester).right));
       expect(notificationTip.center.dy, closeTo(bellCenter.dy + 7, 1));
