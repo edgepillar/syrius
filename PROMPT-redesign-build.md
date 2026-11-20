@@ -1728,15 +1728,40 @@ the left band's mean absolute RGB error from 2.064 to 0.501 in dark and
 from 1.947 to 0.605 in light. Right-band error is 0.839 and 0.899 after
 the same estimate. This isolates a shared backdrop discrepancy across
 the three states. The estimate does not establish the reference phase.
+Registering the same retained pixels against the authored drift in
+half-second steps gives the lowest right-band error at 1.5 s in both
+themes. Against the six-second sample, the modeled error falls from 0.789
+to 0.571 in dark and from 0.904 to 0.725 in light. The left band has
+different minima across themes. This supports a paired right-band capture
+at 1.5 s for diagnosis. The six-second catalog sample remains the evidence
+for its original capture condition.
+
+A read-only check of the retained historical gallery verifies all 94 PNG
+objects at 1280 by 780 and unchanged current reference digests. Nine closed
+receipts link those image pairs to 21 producer revisions. The check also
+rehashes 44 original image members and their manifests from 18 retained
+archives. These objects support historical comparison. Current-source
+verdicts still require the designated current captures under V01.
 
 The [Windows entry run at `d6f8dfa3`](https://github.com/edgepillar/syrius/actions/runs/44755690292)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44756776284/job/136358466527)
-verify the four original Welcome and empty Import PNGs and complete output
+verify the four original Welcome and prepared Import PNGs and complete output
 from the normally exiting application. In both Import themes the sampled
 step connector occupies the reference row across all 108 columns. The four
 drop-border edges have mean coverage error at most 6,497 ppm against the
-25,000 ppm tolerance originally exceeded in X776 and X777. Whole-screen
-comparison remains open under V01.
+25,000 ppm tolerance originally exceeded in X776 and X777. All four pairs
+were viewed side by side from the digest-verified retained archive. Welcome
+shows the expected globe and three actions. Import shows the expected
+fixture draft, one-row connectors and drop outline. The shared backdrop
+distribution still differs, including the light theme's left glow.
+Whole-screen acceptance remains open under V01.
+
+Independent Windows readers verify the [eight Home PNGs](https://github.com/edgepillar/syrius/actions/runs/44765737077/job/136389745160),
+[ten Details PNGs](https://github.com/edgepillar/syrius/actions/runs/44765742529/job/136389763108)
+and [four prepared Send PNGs](https://github.com/edgepillar/syrius/actions/runs/44765748064/job/136389783471)
+at `d7ad6b44`, and the [fourteen Settings PNGs](https://github.com/edgepillar/syrius/actions/runs/44765938608/job/136390461705)
+at `b6159f6e`. All four catalogs verify the original parent closure. These
+receipts verify captures and leave the visual verdicts open.
 
 The [Windows navigation run at `fb956740`](https://github.com/edgepillar/syrius/actions/runs/44748087100)
 captures both themes for Send, Receive, Pillars, Plasma, Tokens, Swap and
