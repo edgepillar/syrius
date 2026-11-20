@@ -32,6 +32,7 @@ VERSIONED_INPUTS = frozenset((
     'pubspec.yaml', 'pubspec.lock',
     'harness/screens/plasma-fuse.txt', 'harness/screens/set-licences.txt',
     'harness/screens/token-new.txt',
+    'tool/ci/hosted_chain321.py',
     'tool/ci/run_harness_tour_tests.py',
     'tool/ci/windows_wallet_inspection.py',
     'harness/bin/ci_wallet_inspection.dart',

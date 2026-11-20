@@ -689,8 +689,10 @@ class OriginalHandleTests(unittest.TestCase):
         process.poll.side_effect = [None, None, 1]
         original = self.original(process, [self.drain(b"private"), self.drain()])
         commands = lab.Commands(Path("fixture"), {})
+        error = PermissionError(13, "private", "/private/temp")
+        error.winerror = 32
         with mock.patch.object(lab, "Original", return_value=original), \
-             mock.patch.object(lab, "sample_storage", side_effect=PermissionError("private")):
+             mock.patch.object(lab, "sample_storage", side_effect=error):
             with self.assertRaises(lab.Failure) as raised:
                 commands.run(["go", "test"], cwd=Path("fixture"))
         self.assertEqual(str(raised.exception), "STORAGE_SAMPLE_OS_ERROR")
@@ -698,6 +700,7 @@ class OriginalHandleTests(unittest.TestCase):
         self.assertEqual(original.receipt["exit_code"], 1)
         self.assertTrue(original.receipt["forced"])
         self.assertTrue(original.receipt["output_complete"])
+        self.assertEqual(original.receipt["storage_sample_error"], dict(errno=13, winerror=32))
         self.assertNotIn("private", json.dumps(original.receipt))
         process.kill.assert_called_once_with()
         process.wait.assert_called_once_with(timeout=10)

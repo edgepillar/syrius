@@ -850,6 +850,7 @@ class Commands:
         original = Original(argv, cwd=cwd, env=self.env, cap=cap)
         self.originals.append(original)
         end, next_sample = time.monotonic() + timeout, 0.0
+        storage_error = None
         try:
             while original.process.poll() is None:
                 original.healthy()
@@ -858,7 +859,12 @@ class Commands:
                 if now >= next_sample:
                     try:
                         sample_storage(self.root)
-                    except OSError:
+                    except OSError as error:
+                        storage_error = {}
+                        for key in ("errno", "winerror"):
+                            number = getattr(error, key, None)
+                            storage_error[key] = (
+                                number if type(number) is int and 0 <= number < 2**32 else None)
                         raise Failure("STORAGE_SAMPLE_OS_ERROR") from None
                     next_sample = now + 2
                 time.sleep(0.2)
@@ -870,6 +876,8 @@ class Commands:
                 original.process.wait(timeout=10)
             if original.receipt is None:
                 original.finish(success=False)
+            if storage_error is not None:
+                original.receipt["storage_sample_error"] = storage_error
             if argv[:2] == ["go", "build"]:
                 original.receipt["compiler_diagnostics"] = compiler_diagnostics(
                     bytes(original.drains[1].data))

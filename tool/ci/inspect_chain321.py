@@ -168,6 +168,12 @@ def preparation_command_tail(commands):
             item.update(status="OBSERVED", exit_code=code,
                 output_complete=command["output_complete"], forced=command["forced"],
                 streams=selected)
+            if "storage_sample_error" in command:
+                storage_error = command["storage_sample_error"]
+                need(type(storage_error) is dict and set(storage_error) == {"errno", "winerror"}
+                     and all(value is None or (type(value) is int and 0 <= value < 2**32)
+                             for value in storage_error.values()))
+                item["storage_sample_error"] = dict(storage_error)
         tail.append(item)
     return dict(count=len(commands), tail=tail)
 
@@ -584,8 +590,10 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *,
         # The validated prefix length is implied by its fixed phase. One label
         # leaves room for all five original exits in the bounded notice.
         result['asset_phase'] = progress['phase'] if progress['status'] == 'OBSERVED' else progress['status']
-    interrupted_patch_test = patch_summary is not None and patch_summary["phase"] == "unpatched_test"
-    if not checks["started"] and ("COMMAND_TIMEOUT" in errors or interrupted_patch_test):
+    interrupted_patch_test = patch_summary is not None and patch_summary["phase"] in (
+        "unpatched_test", "patched_test")
+    monitor_refusal = any(code in errors for code in ("COMMAND_TIMEOUT", "STORAGE_SAMPLE_OS_ERROR"))
+    if not checks["started"] and (monitor_refusal or interrupted_patch_test):
         result["preparation_commands"] = preparation_command_tail(commands)
     if docker_shutdown is not None:
         result["docker_shutdown"] = docker_shutdown

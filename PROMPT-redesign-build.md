@@ -725,6 +725,11 @@ stops during the patched node tests with `STORAGE_SAMPLE_OS_ERROR`.
 The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44670023930/job/136068497836)
 verifies the retained failure and zero catalog PNGs. The original error
 does not identify the failing filesystem operation.
+The lab now records bounded numeric OS error codes on the original
+command receipt when storage sampling fails. The reader can review
+the last three command receipts from either interrupted node test,
+including older runs that have no numeric error data. Storage admission
+and failure handling continue to use the existing limits.
 The four [Welcome and Import originals](https://github.com/edgepillar/syrius/actions/runs/44582250018/job/135765713115)
 also read directly from their retained archive at 1280 by 780 using their
 original filenames, with no extracted image copies.
@@ -1585,6 +1590,9 @@ heading still reserved 48 px around the 46 px tab row. It now uses the
 same `tabHeaderHeight` as the segment. Apps, Addresses and Swaps reserve
 their existing 48 px title rows explicitly. The original alignment,
 divider and text scaling assertions remain in the suite.
+The [Linux run at `18ee10f1`](https://github.com/edgepillar/syrius/actions/runs/44669205840/job/136065846781)
+passes the full non-chain suite, including both alignment cases, and
+the generated-file check.
 
 The Navigation reader now measures the Pillars tab divider and column
 heading boundary in the same crop as the strip and list edges. At column

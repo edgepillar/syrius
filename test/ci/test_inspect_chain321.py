@@ -715,7 +715,7 @@ class InspectionTests(unittest.TestCase):
         self.assertFalse(result["artifact_reported_success"])
         self.assertFalse(result["runtime_started"])
 
-    def test_interrupted_unpatched_control_keeps_bounded_command_receipts(self):
+    def test_interrupted_patch_tests_keep_bounded_command_receipts(self):
         report = self.corrected_manifest()
         report["checks"]["build"] = False
         report.update(producer_task_patch=dict(producer_patch.pending(), phase="unpatched_test"),
@@ -735,6 +735,35 @@ class InspectionTests(unittest.TestCase):
                 self.assertNotIn("private", json.dumps(value))
                 value.update(archive_sha256="e" * 64, manifest_sha256="f" * 64)
                 inspect.observation_frames(value)
+
+        report = self.corrected_manifest()
+        report["checks"]["build"] = False
+        patch = dict(producer_patch.pending(), phase="patched_test", unpatched_exit=1,
+            unpatched_expected_panic=True, compiled_tree=producer_patch.COMPILED_TREE)
+        report.update(producer_task_patch=patch, compiled_node_tree=None,
+            upstream_stop_regressions=None, error_codes=["STORAGE_SAMPLE_OS_ERROR"],
+            commands=self.preparation_timeout_report()["commands"])
+        last = report["commands"][-1]
+        result = inspect.project(report, "native", "a" * 40, 123,
+            inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+        self.assertTrue(result["preparation_commands"]["tail"][-1]["forced"])
+        self.assertNotIn("storage_sample_error", result["preparation_commands"]["tail"][-1])
+        last["storage_sample_error"] = dict(errno=13, winerror=32)
+        result = inspect.project(report, "native", "a" * 40, 123,
+            inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+        tail = result["preparation_commands"]["tail"]
+        self.assertEqual(tail[-1]["storage_sample_error"], dict(errno=13, winerror=32))
+        self.assertFalse(result["artifact_reported_success"])
+        self.assertFalse(result["runtime_started"])
+        self.assertNotIn("private", json.dumps(result))
+        result.update(archive_sha256="e" * 64, manifest_sha256="f" * 64)
+        inspect.observation_frames(result)
+        for invalid in (dict(errno=True, winerror=32),
+                        dict(errno=13, winerror=32, path="/private/temp")):
+            last["storage_sample_error"] = invalid
+            with self.subTest(invalid=invalid), self.assertRaises(inspect.Refused):
+                inspect.project(report, "native", "a" * 40, 123,
+                    inspect.UPSTREAM_NODE_SHA, expected_patched=True)
 
     def test_corrected_panic_notice_keeps_provenance_and_all_failures_in_its_cap(self):
         report = self.corrected_manifest()
