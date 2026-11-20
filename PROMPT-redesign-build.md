@@ -1627,8 +1627,13 @@ arrival and takes 63.140 ms, 2.596 ms above the corresponding P06
 duration. The next observed build
 falls before, within or after the preceding raster finish bounds for
 8, 7 and 8 redesign gap keys and 162, 592 and 0 P06 gap keys. V02 remains
-open. The [two-theme launch motion run](https://github.com/edgepillar/syrius/actions/runs/44736246724)
-is acquiring the original early, late and settled images.
+open. The [two-theme launch motion producer at `f3be456a`](https://github.com/edgepillar/syrius/actions/runs/44736246724/job/136288279930)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44738669362/job/136296427423)
+verify three dark images and two light images, with two normal actor exits
+in each theme. The first observed dark progress is 0.391. Light is first
+observed at 0.558, past the early slot's 0.55 limit. The light capture
+retains its original `LAUNCH_HANDOFF_FRAME_MISSED` outcome and its verified
+late and settled images.
 
 The Lock card now prepares its existing outer shadow bitmap after the
 film finishes, while the opaque stage still covers the card. Preparation
@@ -1637,7 +1642,10 @@ handles changes in size, theme or device pixel ratio through the same
 cache invalidation. The handoff case checks bitmap creation during the
 covered wait and verifies that the moving card uses the same image. All
 28 startup and Lock widget tests pass with complete output. Strict Dart
-analysis passes for the three changed files. Native timing remains open.
+analysis passes for the three changed files. The
+[paired Windows timing run at `590d3717`](https://github.com/edgepillar/syrius/actions/runs/44738669076)
+and [Linux validation](https://github.com/edgepillar/syrius/actions/runs/44738668985)
+are running at the source containing the shadow change.
 
 The [Windows baseline at `650bbb8a`](https://github.com/edgepillar/syrius/actions/runs/44737155697)
 is running the documented Debug and Release builds and baseline checks.
