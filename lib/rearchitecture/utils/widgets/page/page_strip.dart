@@ -11,8 +11,8 @@ const double kStripLeadSize = 48;
 /// Text-only strips keep the mockup's smaller content minimum.
 const double kStripTextContentHeight = 46;
 
-/// The ordinary text figure's line boxes, including accessible text scaling.
-double stripTextHeight(BuildContext context) {
+/// The text figure's height with padding, including accessible text scaling.
+double stripTextHeight(BuildContext context, {EdgeInsetsGeometry? padding}) {
   final AppTokens tokens = AppTokens.of(context);
   final TextScaler scaler = MediaQuery.textScalerOf(context);
   final TextStyle label = ledgerLabelStyle(context);
@@ -37,7 +37,7 @@ double stripTextHeight(BuildContext context) {
   // and height multipliers can undersize the fixed row by half a pixel.
   final double content = lineHeight(label) + 3 + lineHeight(value);
   return math.max(kStripTextContentHeight, content) +
-      tokens.stripPadding.vertical;
+      (padding ?? tokens.stripPadding).vertical;
 }
 
 /// The style of a figure's value in a [PageStrip].

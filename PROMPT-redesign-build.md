@@ -1389,7 +1389,18 @@ image layer. The final image gets its own layer for the handoff and the
 manual replay in the well. A byte-identical final frame keeps its
 decoded pixels while adding that layer. The existing handoff cases
 check both paint states and retain the final image-layer and owner
-assertions. Windows timing for this change is pending.
+assertions.
+
+The [cold producer at `e2f1c838`](https://github.com/edgepillar/syrius/actions/runs/44655896517/job/136021904094)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44658333571/job/136030014735)
+verify five normal actor exits and both original measurement windows.
+The redesign reports 88 frames and P06 reports 423. The longest total
+times are 225.797 ms and 304.246 ms, respectively. Both windows have
+frame-number gaps (41 and 505), and the build, raster and distinct-frame
+comparisons all exceed the original 16 ms criterion. Thirty-two of the
+40 ranked redesign raster excesses occur during film playback. The
+largest excess is 8.352 ms, also during playback. The redesign's peak
+raster starts during the handoff. V02 remains open.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
@@ -1418,6 +1429,15 @@ and its [updated reader](https://github.com/edgepillar/syrius/actions/runs/44609
 verify the reference bands at that column in both themes. The summary fills
 rows 36–105, Stakes rows 118–653, the divider row 161 and Rewards rows 666–709.
 The whole-image verdicts remain under V01.
+
+The [Navigation reader at `06eda3f7`](https://github.com/edgepillar/syrius/actions/runs/44580184381/job/135758423183)
+verifies the original Tokens and Accelerator images. In both themes the
+Windows strip labels occupy rows 52-59, compared with rows 51-58 in the
+references. At column 900 the strip and list transitions are rows 107/119
+versus 106/118. Both pages now use the compact strip inset with the same
+70 px floor. Accelerator measures the accessible line boxes with that inset.
+The existing layout cases check the new height. Native comparison of the
+change and whole-image verdicts remain pending under V01.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |

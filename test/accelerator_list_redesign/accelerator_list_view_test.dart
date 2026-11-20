@@ -104,7 +104,7 @@ void main() {
             find.byKey(const Key('accelerator_list')),
           );
           expect(ledger.top - strip.bottom, 12);
-          expect(strip.height, inInclusiveRange(70, 71));
+          expect(strip.height, 70);
           expect(tester.getRect(
             find.byKey(const Key('accelerator_toolbar')),
           ).height, 59);

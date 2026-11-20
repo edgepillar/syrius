@@ -432,7 +432,7 @@ class _Strip extends StatelessWidget {
           key: const Key('staking_strip'),
           minimumContentHeight: 46,
           figureGap: 28,
-          padding: empty ? tokens.stakingEmptyStripPadding : null,
+          padding: empty ? tokens.compactStripPadding : null,
           figures: <StripFigure>[
             StripFigure(
               label: context.l10n.stakingStaked,

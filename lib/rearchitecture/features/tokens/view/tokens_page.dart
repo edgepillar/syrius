@@ -157,7 +157,9 @@ class _TokensPageState extends State<_TokenSourcePage> {
       children: <Widget>[
         PageStrip(
           key: const Key('tokens_strip'),
-          minimumContentHeight: kStripTextContentHeight,
+          // Keep the 70 px strip floor with the shorter top inset.
+          minimumContentHeight: kStripTextContentHeight + 1,
+          padding: tokens.compactStripPadding,
           leadSize: tokens.tokenStripLeadSize,
           leadGap: tokens.tokenStripLeadGap,
           lead: OverflowBox(
@@ -281,18 +283,16 @@ class _TokensPageState extends State<_TokenSourcePage> {
           );
         },
       );
-      unawaited(navigator.push<void>(pane));
+      navigator.push<void>(pane);
       return;
     }
     final VoidCallback showNotification =
         widget.options.onStepperNotificationSeeMorePressed;
-    unawaited(
-      navigator.push<void>(
-        MaterialPageRoute<void>(
-          builder: (BuildContext context) => StepperScreen(
-            stepper: CreateTokenStepperPage(sender: sender),
-            onStepperNotificationSeeMorePressed: showNotification,
-          ),
+    navigator.push<void>(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) => StepperScreen(
+          stepper: CreateTokenStepperPage(sender: sender),
+          onStepperNotificationSeeMorePressed: showNotification,
         ),
       ),
     );

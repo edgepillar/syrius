@@ -155,7 +155,7 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
         PageRow.fixed(
           math.max(
             tokens.acceleratorStripHeight,
-            stripTextHeight(context),
+            stripTextHeight(context, padding: tokens.compactStripPadding),
           ),
           <PageCell>[
             PageCell(

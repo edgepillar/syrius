@@ -2135,8 +2135,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
   EdgeInsetsDirectional get stripPadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 18, vertical: 12);
 
-  /// Empty Staking uses one pixel less above its two ledger figures.
-  EdgeInsetsDirectional get stakingEmptyStripPadding =>
+  /// Compact text strips reserve one pixel less above their ledger figures.
+  EdgeInsetsDirectional get compactStripPadding =>
       const EdgeInsetsDirectional.fromSTEB(18, 11, 18, 12);
 
   /// The overlay and glass surfaces have different blur strengths.

@@ -460,13 +460,13 @@ void main() {
         artwork.left - strip.left,
         closeTo(tokens.stripPadding.start - 6, 0.01),
       );
-      expect(artwork.center.dy, closeTo(strip.center.dy, 0.01));
+      expect(artwork.center.dy, closeTo(strip.center.dy - 0.5, 0.01));
       expect(
         tester.getRect(find.byKey(const Key('tokens_figure_held'))).left -
             strip.left,
         closeTo(tokens.stripPadding.start + 38 + 28, 0.01),
       );
-      expect(strip.height, inInclusiveRange(70, 71));
+      expect(strip.height, 70);
       expect(tester.getSize(find.byType(TokenListHeader)).height, 32);
       expect(tester.takeException(), isNull);
       expect(

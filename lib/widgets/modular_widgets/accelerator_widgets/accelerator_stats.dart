@@ -71,6 +71,7 @@ class AcceleratorStats extends StatelessWidget {
     return PageStrip(
       key: const Key('accelerator_strip'),
       minimumContentHeight: kStripTextContentHeight,
+      padding: tokens.compactStripPadding,
       figures: <StripFigure>[
         StripFigure(
           label: context.l10n.acceleratorFund,
