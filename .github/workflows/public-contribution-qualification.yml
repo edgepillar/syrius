@@ -382,6 +382,7 @@ jobs:
         run: python -B -m tool.ci.windows_launch_catalog
 
       - name: Retain bounded launch motion samples
+        id: retain_dark_launch_motion
         if: always() && inputs.readonly_catalog_family == 'launch-motion' && hashFiles('.harness/ci-launch-motion/manifest.json') != ''
         uses: actions/upload-artifact@v7
         with:
@@ -394,6 +395,30 @@ jobs:
             .harness/ci-launch-motion/00-early.png
             .harness/ci-launch-motion/01-late.png
             .harness/ci-launch-motion/02-settled.png
+
+      - name: Sample the natural Windows launch handoff in light
+        if: >-
+          ${{ !cancelled() && inputs.readonly_catalog_family == 'launch-motion' &&
+              steps.retain_dark_launch_motion.outcome == 'success' }}
+        timeout-minutes: 5
+        env:
+          SYRIUS_WINDOWS_LAUNCH_CATALOG: 'launch-motion'
+          SYRIUS_WINDOWS_LAUNCH_MOTION_THEME: 'light'
+        run: python -B -m tool.ci.windows_launch_catalog
+
+      - name: Retain bounded light launch motion samples
+        if: always() && inputs.readonly_catalog_family == 'launch-motion' && hashFiles('.harness/ci-launch-motion-light/manifest.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-launch-motion-light-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: |
+            .harness/ci-launch-motion-light/manifest.json
+            .harness/ci-launch-motion-light/00-early.png
+            .harness/ci-launch-motion-light/01-late.png
+            .harness/ci-launch-motion-light/02-settled.png
 
       - name: Retain only finite startup observations
         if: always() && hashFiles('.harness/ci-startup-probe/manifest.json') != ''

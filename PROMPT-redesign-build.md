@@ -1176,6 +1176,12 @@ verifies all three natural dark-mode handoff images and two normal actor
 exits. The first observed progress is 0.391. The retained slots show
 early motion, late motion and the original film settled in the well.
 The images remain available for visual review under V02.
+The same Release build now samples natural launch motion in both themes
+using fresh profiles. Each theme keeps its own finite archive and partial
+captures. The independent reader checks the original capture steps,
+actor exits and shared executable and payload hashes. The new light
+capture remains pending under V02.
+
 The [paired cold producer](https://github.com/edgepillar/syrius/actions/runs/44664282336/job/136049681462)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44666599583/job/136057289816)
 verify five normal exits and 87 redesign frames against 434 P06 frames.
@@ -1525,7 +1531,13 @@ Native mode observations now update the caption without rebuilding the
 client body. The [first timing run at `0ae5a960`](https://github.com/edgepillar/syrius/actions/runs/44679592743/job/136099537347)
 stops before native execution in the extended window frame case. The
 fixture now checks its explicitly pending initial query before completing
-it and rechecking caption and body behavior. Fresh timing remains pending.
+it and rechecking caption and body behavior. The
+[producer at `4e9e83e0`](https://github.com/edgepillar/syrius/actions/runs/44680953931/job/136103948644)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44682976416/job/136110538665)
+verify 87 redesign frames, 867 P06 frames and five normal actor exits.
+The redesign peak build is 25.214 ms and the P06 peak build is 16.774 ms.
+The original 16 ms build comparison fails and both windows retain
+frame-number gaps. V02 remains open.
 
 The [cold producer at `e2f1c838`](https://github.com/edgepillar/syrius/actions/runs/44655896517/job/136021904094)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44658333571/job/136030014735)

@@ -21,6 +21,7 @@ from . import windows_startup_probe as startup
 OUTPUT = Path('.harness/ci-launch-catalog')
 SETTLE_OUTPUT = Path('.harness/ci-launch-settle-catalog')
 MOTION_OUTPUT = Path('.harness/ci-launch-motion')
+MOTION_LIGHT_OUTPUT = Path('.harness/ci-launch-motion-light')
 TIMING_OUTPUT = Path('.harness/ci-launch-timing')
 TIMING_SCREEN = 'launch-timing'
 TIMING_SCOPE = 'original_cold_lock_frame_timing'
@@ -71,6 +72,10 @@ JOB_STEP = 'Capture the original cold launch in both themes'
 SETTLE_JOB_STEP = 'Capture the original launch handoff in both themes'
 MOTION_JOB_STEP = 'Sample the natural Windows launch handoff'
 MOTION_RETAIN_STEP = 'Retain bounded launch motion samples'
+MOTION_LIGHT_JOB_STEP = 'Sample the natural Windows launch handoff in light'
+MOTION_LIGHT_RETAIN_STEP = 'Retain bounded light launch motion samples'
+MOTION_ARTIFACT_PREFIX = 'windows-launch-motion-'
+MOTION_LIGHT_ARTIFACT_PREFIX = 'windows-launch-motion-light-'
 SCOPE = 'original_cold_launch_catalog'
 SETTLE_SCOPE = 'original_launch_settle_catalog'
 LAUNCH_REFUSALS = {
@@ -141,7 +146,7 @@ def launch_pixels(reply, theme, *, settle=False):
 
 def motion_pixels(reply, theme):
     """Read finite samples of the natural handoff, including missing slots."""
-    need(theme == TIMING_THEME and type(reply) is dict
+    need(theme in THEMES and type(reply) is dict
          and set(reply) - {'firstObservedProgress'} == {
              'ok', 'status', 'theme', 'frame', 'frames', 'lockHandoff',
              'attemptedSlots', 'samples'})
@@ -547,8 +552,10 @@ def run_process(repo, parent, binaries, profile, theme, *, capture, settle,
 
 def main():
     requested = os.environ.get('SYRIUS_WINDOWS_LAUNCH_CATALOG')
+    motion_option = os.environ.get('SYRIUS_WINDOWS_LAUNCH_MOTION_THEME')
     timing = requested == TIMING_SCREEN
     motion = requested == MOTION_SCREEN
+    motion_theme = TIMING_THEME if motion_option is None else motion_option
     settle = requested in (SETTLE_SCREEN, TIMING_SCREEN, MOTION_SCREEN)
     scope = {TIMING_SCREEN: TIMING_SCOPE, MOTION_SCREEN: MOTION_SCOPE,
              SETTLE_SCREEN: SETTLE_SCOPE}.get(requested, SCOPE)
@@ -570,6 +577,7 @@ def main():
              and parent.get('GITHUB_RUN_ATTEMPT') == '1'
              and parent.get('SYRIUS_WINDOWS_STARTUP_PROBE') == 'true'
              and requested in ('true', SETTLE_SCREEN, TIMING_SCREEN, MOTION_SCREEN)
+             and (motion_option is None or motion and motion_theme in THEMES)
              and (not (timing or motion) or parent.get('GITHUB_REPOSITORY') == 'edgepillar/syrius')
              and (not motion or parent.get('GITHUB_REF') == 'refs/heads/redesign'),
              'ENVIRONMENT_REFUSED')
@@ -590,11 +598,12 @@ def main():
         if settle:
             report['profile_sha256'] = sha((repo / SETTLE_PROFILE_SOURCE).read_bytes())
         entry.private_root(repo)
-        output_directory = repo / {TIMING_SCREEN: TIMING_OUTPUT, MOTION_SCREEN: MOTION_OUTPUT,
+        motion_output = MOTION_LIGHT_OUTPUT if motion_theme == 'light' else MOTION_OUTPUT
+        output_directory = repo / {TIMING_SCREEN: TIMING_OUTPUT, MOTION_SCREEN: motion_output,
                                    SETTLE_SCREEN: SETTLE_OUTPUT}.get(requested, OUTPUT)
         output_directory.mkdir(mode=0o700)
         destination = output_directory
-        samples = ((TIMING_THEME, None),) if timing or motion else zip(
+        samples = ((motion_theme, None),) if timing or motion else zip(
             THEMES, SETTLE_FILES if settle else FILES)
         for theme, filename in samples:
             profile = entry.new_profile(repo)
@@ -656,6 +665,8 @@ def main():
     else:
         title = {MOTION_SCREEN: 'Original launch motion samples',
                  SETTLE_SCREEN: 'Original launch handoff catalog'}.get(requested, 'Original cold launch catalog')
+        if motion and motion_theme == 'light':
+            title = 'Original light launch motion samples'
         summary = report
     print('::notice title=' + title + '::' + json.dumps(summary, separators=(',', ':')))
     return 0 if report['success'] else 1

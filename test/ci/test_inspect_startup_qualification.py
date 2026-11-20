@@ -548,6 +548,46 @@ class StartupInspectionTests(unittest.TestCase):
         self.assertEqual(status, 1)
         reader.assert_not_called()
 
+        for light_success in (True, False):
+            with self.subTest(light_success=light_success):
+                client = Batch()
+                launch = inspect.launch
+                light_outcome = 'success' if light_success else 'failure'
+                client.job.update(name=inspect.JOB_NAME, conclusion=light_outcome)
+                client.job['steps'] = [
+                    dict(name=name, status='completed', conclusion=outcome)
+                    for name, outcome in (
+                        ('Build the ordinary Release harness target', 'success'),
+                        (launch.MOTION_JOB_STEP, 'success'),
+                        (launch.MOTION_RETAIN_STEP, 'success'),
+                        (launch.MOTION_LIGHT_JOB_STEP, light_outcome),
+                        (launch.MOTION_LIGHT_RETAIN_STEP, 'success'),
+                    )
+                ]
+                client.artifacts = [dict(name=f'{prefix}{HEAD}-9-1', id=index)
+                    for index, prefix in enumerate(
+                        (launch.MOTION_ARTIFACT_PREFIX, launch.MOTION_LIGHT_ARTIFACT_PREFIX), 1)]
+                with mock.patch.object(inspect, '_inspect_launch_artifact', side_effect=[
+                        dict(theme='dark', artifact_reported_success=True, verified_png_count=3),
+                        dict(theme='light', artifact_reported_success=light_success,
+                             verified_png_count=3 if light_success else 2),
+                ]) as reader:
+                    status, output = self.read_windows(client)
+                self.assertEqual(status, 0)
+                *notices, batch = [json.loads(line.split('::', 2)[-1])
+                                   for line in output.splitlines() if line.startswith('::notice')]
+                self.assertEqual([row['theme'] for row in notices], ['dark', 'light'])
+                self.assertEqual(notices[1]['original_capture_conclusion'], light_outcome)
+                self.assertEqual(batch['scope'], 'retained_windows_launch_motion_batch')
+                self.assertEqual(batch['complete'], light_success)
+                self.assertEqual(batch['verified_png_count'], 6 if light_success else 5)
+                dark, light = [call.kwargs for call in reader.call_args_list]
+                self.assertEqual(dark['item']['id'], 1)
+                self.assertEqual(light['item']['id'], 2)
+                self.assertTrue(dark['motion'] and light['motion'])
+                self.assertEqual(light['motion_theme'], 'light')
+                self.assertIs(dark['shared_binaries'], light['shared_binaries'])
+
     def test_launch_timing_refuses_unlocked_or_non_numeric_samples(self):
         launch = inspect.launch
         process = object.__new__(launch.LaunchProcess)
@@ -604,18 +644,19 @@ class StartupInspectionTests(unittest.TestCase):
 
         pins = dict(recipe_sha256='c' * 64, capture_source_sha256='d' * 64,
                     profile_sha256='a' * 64)
-        actor = dict(theme='dark', action_complete=True, exit_observed=True,
+        actor = dict(action_complete=True, exit_observed=True,
             checks=dict.fromkeys(launch.ATTEMPT_CHECKS, True), exit_code=0,
             forced_kill=False, output_complete=True, output_overflow=False, error_codes=[])
 
-        def read_motion(observation, *, complete, extra=False):
-            slots, observed, first = launch.motion_pixels(observation, 'dark')
+        def read_motion(observation, *, complete, extra=False, expected='dark'):
+            theme = observation['theme']
+            slots, observed, first = launch.motion_pixels(observation, theme)
             report = dict(schema=1, scope=launch.MOTION_SCOPE, success=complete,
                 source_stable=True, error_codes=[] if complete else ['LAUNCH_HANDOFF_FRAME_MISSED'],
                 source_sha=HEAD, source_tree=TREE, run_id=str(RUN), run_attempt='1',
                 runner_sha256='e' * 64, payload_sha256='f' * 64,
-                attempts=[dict(actor, role=role) for role in ('prepare', 'capture')],
-                attempted_slots=slots, captures=[dict(theme='dark', file=launch.MOTION_FILES[row['slot']],
+                attempts=[dict(actor, theme=theme, role=role) for role in ('prepare', 'capture')],
+                attempted_slots=slots, captures=[dict(theme=theme, file=launch.MOTION_FILES[row['slot']],
                     bytes=len(pixels), sha256=inspect.archive.sha(pixels), **row)
                     for pixels, row in observed], **pins)
             if first is not None:
@@ -629,12 +670,21 @@ class StartupInspectionTests(unittest.TestCase):
                         zipped.writestr('unregistered.png', raw)
                 payload = buffer.getvalue()
             return inspect.launch_archive(payload, inspect.archive.sha(payload), len(payload),
-                HEAD, TREE, RUN, pins, motion=True)
+                HEAD, TREE, RUN, pins, motion=True, motion_theme=expected)
 
         verified = read_motion(live, complete=True)
         self.assertEqual(verified['verified_png_count'], 3)
         self.assertEqual(verified['normal_actor_exits'], 2)
         self.assertNotIn('first_observed_progress', verified)
+        light = dict(live, theme='light')
+        verified_light = read_motion(light, complete=True, expected='light')
+        self.assertEqual(verified_light['theme'], 'light')
+        self.assertEqual(verified_light['normal_actor_exits'], 2)
+        self.assertEqual(verified_light['verified_png_count'], 3)
+        with self.assertRaises(inspect.archive.Refused):
+            read_motion(light, complete=True)
+        with self.assertRaises(inspect.startup.Failure):
+            launch.motion_pixels(light, 'dark')
         retained = read_motion(partial, complete=False)
         self.assertFalse(retained['artifact_reported_success'])
         self.assertEqual(retained['verified_png_count'], 2)

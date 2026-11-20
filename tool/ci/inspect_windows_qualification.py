@@ -508,6 +508,16 @@ def main():
                     motion = name == startup.launch.MOTION_JOB_STEP
                     if motion:
                         archive.need(run['head_branch'] == 'redesign')
+                        if any(step['name'] == startup.launch.MOTION_LIGHT_JOB_STEP
+                               for step in job['steps']):
+                            batch_client = archive.Client(parent.get('GH_TOKEN'),
+                                                          max_calls=startup.BATCH_REQUESTS)
+                            batch, results = startup.inspect_motion_batch(
+                                batch_client, head=head, tree=tree, run_id=run_id, job=job)
+                            for result in results:
+                                emit(launch_titles[name], result)
+                            emit('Hosted shared Windows launch motion inspection', batch)
+                            return 0
                     summary = startup.inspect_launch_run(
                         client, head=head, tree=tree, run_id=run_id, job=job,
                         settle=name == startup.launch.SETTLE_JOB_STEP,

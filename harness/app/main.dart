@@ -90,7 +90,8 @@ Future<void> main() async {
       (!Platform.isWindows || env['GITHUB_ACTIONS'] != 'true' ||
           readonlyNative || presentation != null ||
           launchScreen != null && !launchSettle && !launchLock && !launchQuiz ||
-          launchMotion && launchTheme != null && launchTheme != 'dark' ||
+          launchMotion && launchTheme != null &&
+              launchTheme != 'dark' && launchTheme != 'light' ||
           launchQuiz && launchTheme != 'dark' ||
           launchTheme != null && launchTheme != 'dark' &&
               launchTheme != 'light')) {

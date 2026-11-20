@@ -29,6 +29,7 @@ PRE_LOCK_SETTLE_LAUNCH_PRODUCER_SHA = 'd83f34f0be461f80f350917c97b8dd2cff71e0b8d
 PRE_BATCH_LAUNCH_PRODUCER_SHA = '166cd2d6a070c53fef5e41d3e7d65fb7bf7e65cab53148da576f5338fe2d1f74'
 PRE_PHASE_LAUNCH_PRODUCER_SHA = '83e89caefc7b68ad03450013544f98d234d5f01bbd9fa30c77e5c19765a80170'
 PRE_MOTION_LAUNCH_PRODUCER_SHA = '34e0f9e31655e61d9299a0c3002f99f921ca2e2ad7fe3c7c7cc728ca072f3ae4'
+PRE_LIGHT_MOTION_LAUNCH_PRODUCER_SHA = '090cfbe23429e293c5e7b9c7eef93c2ee903ad29b06ecfa08423dcf557925ecb'
 # The timing lane preserves earlier launch, lock and quiz producers.
 PRE_TIMING_LAUNCH_PRODUCER_SHA = 'e579d76e178e69189069f5269a0ba8981f3e435a10e0f80f69bb2d559b4761a2'
 FIRST_TIMING_LAUNCH_PRODUCER_SHA = '6880559d501bc59bff26865155af96efe56322a61a587a04edccc37b41a487a5'
@@ -199,11 +200,12 @@ def lock_picker_divider_row(encoded, theme):
 
 def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *,
                    settle=False, lock=False, quiz=False, timing=False, lock_seams=False,
-                   motion=False, shared_binaries=None):
+                   motion=False, motion_theme=launch.TIMING_THEME, shared_binaries=None):
     """Bind startup evidence to its exact original closed actors."""
     archive.need(not timing or not (settle or lock or quiz))
     archive.need(not lock_seams or not (settle or lock or quiz or timing))
     archive.need(not motion or not (settle or lock or quiz or timing or lock_seams))
+    archive.need(motion_theme in launch.THEMES and (motion or motion_theme == launch.TIMING_THEME))
     cap = launch.TIMING_MAX_ARCHIVE if timing else lock_catalog.MAX_ARCHIVE if lock else launch.MAX_ARCHIVE
     if quiz:
         cap = quiz_catalog.MAX_ARCHIVE
@@ -289,7 +291,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         captures = [] if timing else report['captures']
         if timing or lock_seams or motion:
             action = 'capture' if motion else 'observe' if lock_seams else 'timing'
-            roles = [(launch.TIMING_THEME, role) for role in ('prepare', action)]
+            roles = [(motion_theme, role) for role in ('prepare', action)]
         else:
             roles = ([('dark', 'capture')] if quiz else
                      [(theme, role) for theme in launch.THEMES for role in ('prepare', 'capture')])
@@ -357,7 +359,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                 archive.need(type(row) is dict and set(row) == {
                     'theme', 'file', 'bytes', 'sha256'} | frame_fields
                     and type(row['slot']) is int and 0 <= row['slot'] < len(files)
-                    and row['theme'] == launch.TIMING_THEME and row['file'] == files[row['slot']]
+                    and row['theme'] == motion_theme and row['file'] == files[row['slot']]
                     and row['file'] in names and type(row['bytes']) is int)
                 pixels = zipped.read(row['file'])
                 archive.need(len(pixels) == row['bytes'] and archive.sha(pixels) == row['sha256'])
@@ -366,9 +368,9 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
             if attempted:
                 archive.need(len(attempts) == 2 and all(launch.attempt_passed(row) for row in attempts))
                 try:
-                    launch.motion_pixels(dict(ok=True, status='captured', theme=launch.TIMING_THEME,
+                    launch.motion_pixels(dict(ok=True, status='captured', theme=motion_theme,
                         lockHandoff=True, frame=55, frames=56,
-                        attemptedSlots=attempted, samples=live_rows, **progress), launch.TIMING_THEME)
+                        attemptedSlots=attempted, samples=live_rows, **progress), motion_theme)
                 except startup.Failure:
                     raise archive.Refused('INSPECTION_REFUSED') from None
         film_bounds, picker_divider_rows = [], {}
@@ -432,6 +434,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
             and row['output_complete'] and not row['output_overflow'] and not row['forced_kill']
             and all(row['checks'].values()) for row in attempts)
     elif motion:
+        summary['theme'] = motion_theme
         summary['attempted_slots'] = attempted
         if 'first_observed_progress' in report:
             summary['first_observed_progress'] = report['first_observed_progress']
@@ -486,7 +489,7 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
 
 def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=False,
                              quiz=False, timing=False, lock_seams=False, motion=False, item=None,
-                             shared_binaries=None):
+                             motion_theme=launch.TIMING_THEME, shared_binaries=None):
     pins = {}
     sources = [('tool/ci/windows_launch_catalog.py', None)]
     if timing:
@@ -537,10 +540,12 @@ def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=F
                                                                PRE_P06_FILM_FLAGS_LAUNCH_PRODUCER_SHA))
             before_first_progress = (name == 'tool/ci/windows_launch_catalog.py'
                                      and archive.sha(body) == PRE_FIRST_PROGRESS_LAUNCH_PRODUCER_SHA)
-            archive.need(body == current or before_lock_settle
-                         or before_p06_diagnostics or before_first_progress
-                         or not motion and (before_phase_capture
-                             or shared_binaries is None and archive.sha(body) in prior))
+            before_light_motion = (name == 'tool/ci/windows_launch_catalog.py'
+                                   and archive.sha(body) == PRE_LIGHT_MOTION_LAUNCH_PRODUCER_SHA)
+            legacy = (before_lock_settle or before_p06_diagnostics or before_first_progress
+                      or before_light_motion or not motion and (before_phase_capture
+                          or shared_binaries is None and archive.sha(body) in prior))
+            archive.need(body == current or motion_theme == launch.TIMING_THEME and legacy)
         else:
             pins[key] = archive.sha(body)
     if item is None:
@@ -557,7 +562,9 @@ def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=F
     elif lock_seams:
         prefix, cap = lock_catalog.SEAM_ARTIFACT_PREFIX, lock_catalog.SEAM_MAX_ARCHIVE
     elif motion:
-        prefix, cap = 'windows-launch-motion-', launch.MOTION_MAX_ARCHIVE
+        prefix = (launch.MOTION_LIGHT_ARTIFACT_PREFIX if motion_theme == 'light'
+                  else launch.MOTION_ARTIFACT_PREFIX)
+        cap = launch.MOTION_MAX_ARCHIVE
     archive.need(item['name'] == prefix + head + '-' + str(run_id) + '-1'
         and item['expired'] is False and item['workflow_run']['id'] == run_id
         and item['workflow_run']['head_sha'] == head and type(item['id']) is int and item['id'] > 0
@@ -567,14 +574,12 @@ def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=F
     raw = client.read(location, authenticated=False, cap=cap)
     return launch_archive(raw, item['digest'][7:], item['size_in_bytes'],
         head, tree, run_id, pins, settle=settle, lock=lock, quiz=quiz, timing=timing,
-        lock_seams=lock_seams, motion=motion, shared_binaries=shared_binaries)
+        lock_seams=lock_seams, motion=motion, motion_theme=motion_theme,
+        shared_binaries=shared_binaries)
 
 
 def inspect_catalog_batch(client, *, head, tree, run_id, job):
     """Bind each archive to its original step and compare the shared binaries."""
-    archive.need(job['name'] == BATCH_JOB_NAME and job['labels'] == ['windows-latest']
-        and job['head_sha'] == head and job['run_id'] == run_id
-        and job['status'] == 'completed' and job['conclusion'] in ('success', 'failure'))
     lanes = (
         (launch.JOB_STEP, 'Retain the original cold launch manifest and PNGs',
          'windows-launch-catalog-', {}),
@@ -585,6 +590,26 @@ def inspect_catalog_batch(client, *, head, tree, run_id, job):
         (quiz_catalog.JOB_STEP, 'Retain the synthetic seed quiz manifest and PNGs',
          quiz_catalog.ARTIFACT_PREFIX, {'quiz': True}),
     )
+    return _inspect_catalog_lanes(client, head, tree, run_id, job, lanes,
+                                  BATCH_JOB_NAME, 'retained_windows_startup_catalog_batch')
+
+
+def inspect_motion_batch(client, *, head, tree, run_id, job):
+    """Verify each theme against its original step and the same Release binaries."""
+    lanes = (
+        (launch.MOTION_JOB_STEP, launch.MOTION_RETAIN_STEP,
+         launch.MOTION_ARTIFACT_PREFIX, {'motion': True}),
+        (launch.MOTION_LIGHT_JOB_STEP, launch.MOTION_LIGHT_RETAIN_STEP,
+         launch.MOTION_LIGHT_ARTIFACT_PREFIX, {'motion': True, 'motion_theme': 'light'}),
+    )
+    return _inspect_catalog_lanes(client, head, tree, run_id, job, lanes,
+                                  JOB_NAME, 'retained_windows_launch_motion_batch')
+
+
+def _inspect_catalog_lanes(client, head, tree, run_id, job, lanes, job_name, scope):
+    archive.need(job['name'] == job_name and job['labels'] == ['windows-latest']
+        and job['head_sha'] == head and job['run_id'] == run_id
+        and job['status'] == 'completed' and job['conclusion'] in ('success', 'failure'))
     steps = {}
     for step in job['steps']:
         name = step['name']
@@ -615,7 +640,7 @@ def inspect_catalog_batch(client, *, head, tree, run_id, job):
         summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'],
                        original_capture_conclusion=outcome)
         results.append(summary)
-    batch = dict(schema=1, scope='retained_windows_startup_catalog_batch',
+    batch = dict(schema=1, scope=scope,
         source_head=head, source_tree=tree, source_run_id=run_id, source_attempt=1,
         original_job_id=job['id'], original_job_conclusion=job['conclusion'],
         complete=ran_all and job['conclusion'] == 'success', verified_catalogs=len(results),
