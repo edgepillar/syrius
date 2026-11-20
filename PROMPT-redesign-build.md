@@ -1486,6 +1486,16 @@ while the shell finishes initialization. Adoption refreshes the replay
 signal and display data on the same authentication State. The existing
 caption and handoff case exercises the unchanged input guards and retained
 owner across both boundaries.
+The [Linux run at `f1118467`](https://github.com/edgepillar/syrius/actions/runs/44672699978)
+passes the startup cases, full non-chain suite, and generated-file check.
+The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/44672700571/job/136077150706)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44675070484/job/136084859063)
+verify five normal exits and 92 redesign frames against 1,583 P06 frames.
+Peak total times are 209.806 ms and 243.315 ms. The raster and
+distinct-frame comparisons meet the ranking criterion. The redesign's
+one slow build lasts 18.782 ms and begins 248.158 ms before the first
+observed film frame. P06's longest build is 15.880 ms. Both windows
+retain frame-number gaps, 23 and 1,543 respectively. V02 remains open.
 
 The [cold producer at `e2f1c838`](https://github.com/edgepillar/syrius/actions/runs/44655896517/job/136021904094)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44658333571/job/136030014735)
