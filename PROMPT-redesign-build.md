@@ -1706,6 +1706,16 @@ the sampled blurred profile with a single radial paint. A 120 px
 mark has a 78 px halo radius. Playback keeps its original shader and
 bolt geometry. Fresh native frames and whole-image verdicts remain open.
 
+Both [verified Plasma Fuse captures at `61e72335`](https://github.com/edgepillar/syrius/actions/runs/44666922943/job/136058352824)
+paint the row Cancel buttons from columns 1176 through 1247, against
+1187 through 1247 in the references. The batch button ends at column
+1255, eight pixels beyond the reference. The table now gives the row
+button its intrinsic width inside the existing action column. The
+heading uses the row's trailing inset for both the batch button and
+selection hint. The widget cases check the common trailing edge,
+26 px button height and original column widths. Fresh comparisons
+remain open under V01.
+
 The [seeded visual run at `11398595`](https://github.com/edgepillar/syrius/actions/runs/44672157292/job/136075382385)
 builds the native wallet and retains the six-image catalog. The
 [first reader](https://github.com/edgepillar/syrius/actions/runs/44674674172/job/136083570019)

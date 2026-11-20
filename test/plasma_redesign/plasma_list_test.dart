@@ -307,6 +307,22 @@ void main() {
             final OutlinedButton button = tester.widget<OutlinedButton>(
               cancel,
             );
+            final Finder actionSlot = find.ancestor(
+              of: cancel,
+              matching: find.byWidgetPredicate(
+                (Widget widget) => widget is Align &&
+                    widget.alignment == AlignmentDirectional.centerEnd,
+              ),
+            ).first;
+            expect(tester.getSize(actionSlot).width, 72);
+            expect(
+              tester.getRect(actionSlot).right,
+              tester.getRect(row).right - 16,
+            );
+            expect(
+              tester.getRect(cancel).right,
+              tester.getRect(actionSlot).right,
+            );
             expect(tester.getSize(cancel).height, 26);
             expect(
               button.style!.textStyle!.resolve(<WidgetState>{})!.fontSize,
@@ -322,21 +338,15 @@ void main() {
           await tester.tap(eligible);
           await tester.pump();
           expect(fixture.owner.selected, <String>{plasmaTestHash(1)});
-          expect(
-            find.byKey(const Key('plasma_cancel_selected')),
-            findsOneWidget,
-          );
+          final Finder batch = find.byKey(const Key('plasma_cancel_selected'));
+          expect(batch, findsOneWidget);
           expect(find.text('1 selected'), findsOneWidget);
           expect(
             tester.getTopLeft(divider).dy - tester.getTopLeft(list).dy,
             48,
           );
-          expect(
-            tester
-                .getSize(find.byKey(const Key('plasma_cancel_selected')))
-                .height,
-            26,
-          );
+          expect(tester.getSize(batch).height, 26);
+          expect(tester.getRect(batch).right, tester.getRect(list).right - 16);
           expect(fixture.transport.calls, isEmpty);
           expect(tester.takeException(), isNull);
         });

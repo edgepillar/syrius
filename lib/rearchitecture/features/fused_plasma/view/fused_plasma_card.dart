@@ -169,6 +169,10 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
                 key: const Key('plasma_batch_summary'),
                 style: tokens.plasmaSelectionText,
               ),
+            SizedBox(
+              width:
+                  tokens.panelHeaderPadding.end - tokens.tabHeaderPadding.end,
+            ),
           ],
           child: ListEntrance(
             itemKeys: <LocalKey>[
@@ -359,19 +363,22 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
         ),
         action: SizedBox(
           width: tokens.plasmaCheckboxWidth * 2,
-          child: Tooltip(
-            message: entry.hash,
-            child: OutlinedButton(
-              key: ValueKey<String>('plasma_cancel_${entry.hash}'),
-              style: _cancelButtonStyle(context),
-              onPressed: eligible
-                  ? () {
-                      if (current()) {
-                        unawaited(_confirm(entry.hash));
+          child: Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: Tooltip(
+              message: entry.hash,
+              child: OutlinedButton(
+                key: ValueKey<String>('plasma_cancel_${entry.hash}'),
+                style: _cancelButtonStyle(context),
+                onPressed: eligible
+                    ? () {
+                        if (current()) {
+                          unawaited(_confirm(entry.hash));
+                        }
                       }
-                    }
-                  : null,
-              child: Text(context.l10n.cancel),
+                    : null,
+                child: Text(context.l10n.cancel),
+              ),
             ),
           ),
         ),
