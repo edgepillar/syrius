@@ -2547,6 +2547,14 @@ The switcher retains the visible page's motion through the fade and
 mutes the hidden incoming page until its own fade begins. The experiment
 was withdrawn and provides no accepted performance result.
 
+The [separate launch-motion reader at `72590ad3`](https://github.com/edgepillar/syrius/actions/runs/44831164982/job/136616174911)
+verifies both themes against the original producer, with two normal
+actor exits per theme. Light retains early, late and settled samples,
+first observed at progress 0.391. Dark retains the late and settled
+samples, first observed at 0.818. Its early slot remains missing and
+the original `LAUNCH_HANDOFF_FRAME_MISSED` outcome is retained. The
+two-theme motion check remains open under V02.
+
 The [cold Windows producer at `b3d2a1d1`](https://github.com/edgepillar/syrius/actions/runs/44786324542/job/136462042874)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44790155159/job/136475393710)
 verify 84 redesign frames and four normal process exits. The original
