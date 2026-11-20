@@ -1,6 +1,6 @@
 #version 460 core
 
-// The glow of the Syrius plasma mark: heat that rises through the bolt.
+// The glow of the Syrius plasma mark: heat that rises around the white bolt.
 //
 // Ported for Flutter by Kostia Sokolovskyi (paper_heatmap_logo, MIT,
 // https://github.com/ksokolovskyi/paper_heatmap_logo) from Paper's heatmap
@@ -234,12 +234,9 @@ void main() {
   vec3 color = gradient.rgb * outerShape;
   float opacity = gradient.a * outerShape;
 
-  // Keep the bolt visible through the cooler phases of the moving heat.
-  float coreOpacity = (1. - shape) * .72 * (1. - opacity);
-  color += colors[4].rgb * coreOpacity;
-  opacity += coreOpacity;
-
   // Grain follows the mark's coverage. Transparent pixels emit no colour.
   float grain = .02 * (fract(sin(dot(uv + 1., vec2(12.9898, 78.233))) * 43758.5453123) - .5);
-  fragColor = vec4(clamp(color + grain * opacity, vec3(0.), vec3(opacity)), opacity);
+  vec4 glow = vec4(clamp(color + grain * opacity, vec3(0.), vec3(opacity)), opacity);
+  // The original mask is anti-aliased, so the white core blends at its edge.
+  fragColor = mix(glow, vec4(1.), 1. - shape);
 }

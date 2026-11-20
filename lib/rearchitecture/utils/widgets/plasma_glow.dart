@@ -41,7 +41,7 @@ class _PlasmaGlowAssets {
   }
 }
 
-/// The Syrius plasma mark, glowing: heat rising through the lightning bolt.
+/// The Syrius plasma mark with moving heat around the white lightning bolt.
 ///
 /// A fragment shader (see `assets/shaders/heatmap.frag`) over a texture of
 /// the bolt made by `tool/heatmap_texture.dart`. While [active] the heat

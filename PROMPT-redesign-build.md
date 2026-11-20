@@ -861,7 +861,12 @@ verified archive without extracting the images.
 The [Linux run at `2debedd8`](https://github.com/edgepillar/syrius/actions/runs/44640247993/job/135969170925)
 passes analysis, the standard and scaled Node cases, the non-chain suite
 and generated-file checks.
-The updated native row positions and whole-screen verdict remain open.
+The [Windows producer at `2debedd8`](https://github.com/edgepillar/syrius/actions/runs/44640560613/job/135970238623)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44644169105/job/135982433862)
+verify all fourteen original images and normal parent closure. At column
+700 the row boundaries are 84, 141, 198 and 255 in both themes. Each row
+occupies 57 px and the table ends on the reference row. The verified update
+presentation and whole-screen verdict remain open.
 
 At column 700, both original About images at `cc574e9a` fill rows 36 through
 106 in the version strip. Both references fill rows 36 through 105. Each
@@ -916,6 +921,15 @@ one-line To receive card. The card boundaries, section dividers and action
 rows agree. The address, live status, approved brand colors and rasterized
 text and edges account for the remaining differences. [Original Windows capture](https://github.com/edgepillar/syrius/actions/runs/44576665310)
 [Independent catalog reader](https://github.com/edgepillar/syrius/actions/runs/44580184381/job/135758423183).
+
+### Plasma Fuse bolt at `fb3b2a01`
+
+Both [verified Details images](https://github.com/edgepillar/syrius/actions/runs/44566985609/job/135711334988)
+show a pink bolt with blue glow. The reference has a white bolt through
+the pink and blue glow in both themes. The heatmap now composites a white
+core through the original anti-aliased mask. The existing clock and outer
+heat remain in use. The original silhouette and fresh native comparison
+remain open.
 
 ### Transfer address chip at `fb3b2a01`
 
