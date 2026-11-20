@@ -314,6 +314,13 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
         return;
       }
       if (walletReady) {
+        if (words case ['hover', '@0,0']) {
+          await cli.call(instance, const <String, Object?>{
+            'cmd': 'hover',
+            'at': <int>[0, 0],
+          });
+          return;
+        }
         if (words.length != 3 || words[0] != 'assert' ||
             words[1] != '--key' || !const <String>{
               'wallet_ready_screen_marker', 'wallet_ready_card',

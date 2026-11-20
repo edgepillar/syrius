@@ -1454,6 +1454,15 @@ and map are visibly aligned. The Open wallet button occupies columns
 threshold. The step accents, button colors, backdrop and fixture address
 differ. Whole-screen review remains open.
 
+Across 6,972 interior pixels per theme, the Ready button matches the
+approved gradient at approximately 92.2% strength plus a constant tint,
+with a mean absolute error below 0.35 RGB levels per channel. The normal
+Lock button matches the full-strength gradient in both themes, while
+the wrong-password Lock button has the same reduced strength and tint
+as Ready. This agrees with the Material outlined button's 8% hover
+overlay. The Ready capture script moves the pointer to the empty corner
+before capture. A fresh native pair is needed to check that change.
+
 All six [Lock captures at `e94d5b07`](https://github.com/edgepillar/syrius/actions/runs/44797941432)
 were reopened from the verified archive and viewed beside their
 references. The film rectangles match for the normal, wrong-password and

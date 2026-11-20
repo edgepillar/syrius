@@ -1,5 +1,7 @@
 # prerequisite: original-new-wallet-ready
 # no credentials, seed, file path or funded identity belongs in this script
+# The reference shows the primary action at rest.
+hover @0,0
 assert --key wallet_ready_screen_marker
 assert --key wallet_ready_card
 assert --key wallet_ready_address
