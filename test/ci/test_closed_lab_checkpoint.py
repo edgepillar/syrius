@@ -126,7 +126,7 @@ class FilesystemTests(unittest.TestCase):
     def setUp(self):
         self.fixture = tempfile.TemporaryDirectory(prefix='syrius-closed-checkpoint-regression-')
         self.addCleanup(self.fixture.cleanup)
-        self.parent = Path(self.fixture.name)
+        self.parent = Path(self.fixture.name).resolve(strict=True)
         self.roots = {role: self.parent / role for role in checkpoint.ROLES}
         for path in self.roots.values():
             path.mkdir()

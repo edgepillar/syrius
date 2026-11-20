@@ -165,12 +165,22 @@ class PairInspectionTests(unittest.TestCase):
         self.assertEqual(derived['frame_key_gaps'], 3)
         self.assertEqual(derived['maximum_frame_key_gap'], 2)
         self.assertEqual(derived['maximum_build_start_gap_us'], 1000000)
+        self.assertEqual(reader.frame_gap_context(observed), dict(
+            before_earliest_end=0, within_end_bounds=0, at_or_after_latest_end=3))
         single = reader.window_diagnostics(frame((0, 0, 0, 0, 0)))
         self.assertEqual(single['quarter_frames'], [1, 0, 0, 0])
         self.assertEqual(single['build_us'], [0, 0, 0, 0])
         for field in ('frame_key_gaps', 'maximum_frame_key_gap',
                       'maximum_build_start_gap_us'):
             self.assertEqual(single[field], 0)
+
+    def test_gap_context_uses_the_following_build_and_prior_raster_end_bounds(self):
+        observed = frame((0, 0, 10, 20, 60), (2, 29, 5, 20, 60),
+                         (5, 60, 10, 20, 60), (9, 120, 1, 2, 3))
+        derived = reader.window_diagnostics(observed)
+        self.assertEqual(derived['frame_key_gaps'], 6)
+        self.assertEqual(reader.frame_gap_context(observed), dict(
+            before_earliest_end=1, within_end_bounds=2, at_or_after_latest_end=3))
 
     def test_p06_warmup_and_measurement_use_the_selected_baseline_binary(self):
         _, sample = report(self.pins)['samples']
@@ -359,6 +369,7 @@ class PairInspectionTests(unittest.TestCase):
         self.assertEqual(result['window_diagnostics']['windows']['p06']['quarter_frames'],
                          [0, 0, 0, 512])
         result.update(original_job_id=2**63 - 1, original_job_conclusion='success')
+        self.assertEqual(result.pop('frame_gap_context')['p06']['before_earliest_end'], 2**32 - 512)
         self.assertLessEqual(len(json.dumps(result, sort_keys=True).encode('ascii')), 3800)
 
     def test_raster_start_can_follow_lock_arrival_without_a_later_build(self):
@@ -438,6 +449,8 @@ class PairInspectionTests(unittest.TestCase):
         with self.assertRaises(reader.archive.Refused):
             self.project(value)
         result.update(original_job_id=2**63 - 1, original_job_conclusion='success')
+        self.assertEqual(result.pop('frame_gap_context')['p06']['before_earliest_end'],
+                         2**32 - count)
         self.assertLessEqual(len(json.dumps(result, sort_keys=True).encode('ascii')), 3800)
 
         ordinary = dict(schema=1, scope='harness_frame_window',
@@ -542,7 +555,8 @@ class PairInspectionTests(unittest.TestCase):
              mock.patch.object(pair, 'COLLECTOR_SHA256', offered.pins['collector_sha256']), \
              contextlib.redirect_stdout(io.StringIO()) as output:
             status = windows.main()
-        return status, json.loads(output.getvalue().splitlines()[0])
+        return status, [json.loads(line) for line in output.getvalue().splitlines()
+                        if line.startswith('{')]
 
     def test_pair_routes_only_the_exact_source_and_one_archive_in_twelve_calls(self):
         for offered, expected, calls in ((Client(), 0, 12),
@@ -550,7 +564,7 @@ class PairInspectionTests(unittest.TestCase):
                                           (Client(alter_source=True), 1, 4),
                                           (Client(extra_job=True), 1, 3)):
             with self.subTest(expected=expected, calls=calls, jobs=len(offered.jobs)):
-                status, first = self.read_original_run(offered)
+                status, (first, *additional) = self.read_original_run(offered)
                 self.assertEqual(status, expected)
                 self.assertEqual(len(offered.calls), calls)
                 if expected == 0:
@@ -558,7 +572,16 @@ class PairInspectionTests(unittest.TestCase):
                     self.assertEqual(first['original_job_id'], 4)
                     self.assertEqual(first['window_diagnostics']['scope'], 'reported_frames_only')
                     self.assertEqual(first['window_diagnostics']['windows']['current']['samples'], 2)
+                    empty_counts = dict(before_earliest_end=0, within_end_bounds=0,
+                                        at_or_after_latest_end=0)
+                    self.assertEqual(additional, [dict(
+                        scope='reported_frames_only', source_head=HEAD, source_tree=TREE,
+                        source_run_id=RUN, source_attempt=1,
+                        archive_sha256=first['archive_sha256'],
+                        manifest_sha256=first['manifest_sha256'],
+                        windows=dict.fromkeys(('current', 'p06'), empty_counts))])
                 else:
+                    self.assertFalse(additional)
                     self.assertNotIn('memory-location', offered.calls)
 
     def test_other_executed_jobs_cannot_masquerade_as_the_two_older_readers(self):
@@ -578,7 +601,7 @@ class PairInspectionTests(unittest.TestCase):
             offered = Client(read_old_evidence=True)
             change(offered)
             with self.subTest(change=index):
-                status, result = self.read_original_run(offered)
+                status, (result,) = self.read_original_run(offered)
                 self.assertEqual(status, 1)
                 self.assertEqual(result['phase'], 'job_metadata')
                 self.assertEqual(len(offered.calls), 3)
@@ -595,7 +618,7 @@ class PairInspectionTests(unittest.TestCase):
             batch = dict(scope='retained_windows_startup_catalog_batch', complete=True)
             with self.subTest(inspection_outcome=inspection_outcome), mock.patch.object(
                     windows.startup, 'inspect_catalog_batch', return_value=(batch, [])) as read:
-                status, result = self.read_original_run(offered)
+                status, (result,) = self.read_original_run(offered)
                 if inspection_outcome == 'failure':
                     self.assertEqual(status, 0)
                     self.assertEqual(result['parallel_windows_reader'],

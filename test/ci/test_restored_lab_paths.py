@@ -106,7 +106,7 @@ class FilesystemTests(unittest.TestCase):
     def setUp(self):
         self.fixture = tempfile.TemporaryDirectory(prefix='syrius-node-path-binding-regression-')
         self.addCleanup(self.fixture.cleanup)
-        parent = Path(self.fixture.name)
+        parent = Path(self.fixture.name).resolve(strict=True)
         self.home = parent / 'checkpoint'
         self.original = {role: parent / 'original' / role for role in paths.NODES}
         self.restored = {role: self.home / 'restored' / role for role in paths.NODES}

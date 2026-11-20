@@ -748,6 +748,12 @@ Swap filenames at this source come from the general Navigation catalog.
 The [prepared Tokens run](https://github.com/edgepillar/syrius/actions/runs/44690411870)
 and [prepared Swap run](https://github.com/edgepillar/syrius/actions/runs/44690411577)
 target the newer `931ec0b5` source.
+The [independent Swap reader](https://github.com/edgepillar/syrius/actions/runs/44692904653/job/136142743531)
+verifies both designated Swap list PNGs at that source and the required
+normal parent exits. The [independent Tokens reader](https://github.com/edgepillar/syrius/actions/runs/44735629079/job/136286170061)
+verifies both designated Tokens PNGs, both populated Staking and both
+Token Mine PNGs, and the required normal parent exits at the same source.
+Whole-screen verdicts remain open.
 Working directly from the verified [Navigation](https://github.com/edgepillar/syrius/actions/runs/44580184381/job/135758423183)
 and [Lock](https://github.com/edgepillar/syrius/actions/runs/44579867208/job/135757308518)
 archives at `06eda3f7`, the report reads 20 PNGs with 12 designated pairs
@@ -1591,6 +1597,17 @@ takes 153.907 ms and starts 62.526 to 100.303 ms after the first observed
 handoff frame. All six raster starts after observed Lock arrival exceed
 16 ms and peak at 64.423 ms.
 
+The pinned Flutter engine allocates frame keys before rasterization. The
+animator can retry when the render pipeline is full, and the shell reports
+timings after rasterization. A gap therefore leaves its cause and timing
+unobserved in the Dart receipt. The cold reader reports where the next
+observed build falls relative to the prior raster's earliest and latest
+finish times. It keeps this context in a second bounded notice with the
+same producer and archive pins. The existing comparison is unchanged.
+[Frame keys](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/flow/frame_timings.cc#L41-L49)
+[Animator](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/animator.cc#L76-L112)
+[Timing delivery](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/shell.cc#L1747-L1771)
+
 The moving film shadow uses the original animated bounds, blur and
 colour. Its paint excludes the part fully covered by the opaque film
 and marks the changing shadow for the compositor. The existing
@@ -1598,6 +1615,17 @@ handoff test compares the composited reference pixels from the original
 decoration and the new painter in memory. All eleven startup widget tests
 pass with complete output, and strict analysis reports no issues in the
 changed Dart files. Native timing and visual verification remain open.
+The [Linux run at `bd2defd6`](https://github.com/edgepillar/syrius/actions/runs/44691745175/job/136138960407)
+passes the full non-chain suite and generated-file checks. The paired
+[Windows producer](https://github.com/edgepillar/syrius/actions/runs/44691744544)
+retains both windows for independent inspection.
+
+Local Python discovery on macOS reaches two failures and five refusals
+in checkpoint and restored-path fixture tests. Both fixtures use the
+default temporary path through a symbolic directory ancestor that the
+production check refuses. The test setup now resolves its own newly
+created fixture directory to the physical path. Product path validation
+continues to require direct directory ancestry.
 
 The [cold producer at `e2f1c838`](https://github.com/edgepillar/syrius/actions/runs/44655896517/job/136021904094)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44658333571/job/136030014735)
@@ -1760,8 +1788,18 @@ confirmed after the observed settled layout exceed 16 ms, with a peak of
 The shell retains the page's rounded clip inside the page's repaint
 boundary. The existing shell cases check the clip, page and status geometry
 in both directions with scrollable and fixed content. They also trigger a
-status-only repaint and check the page paint counts. The native timing
-effect needs a fresh paired Windows run.
+status-only repaint and check the page paint counts. The
+[Windows producer at `931ec0b5`](https://github.com/edgepillar/syrius/actions/runs/44689849407/job/136132783605)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44692736655/job/136142179945)
+verify both paired windows, two normal entry exits, two normal wallet
+exits and five normal node exits. Page change peaks at 299.157 ms total
+versus 160.470 ms on P06. Disclosure peaks at 128.605 ms versus 70.553 ms.
+Both still fail raster and distinct-frame comparisons and retain frame
+key gaps. Disclosure also fails its build comparison. The sole raster
+confirmed to start after the observed settled layout takes 58.560 ms.
+The preceding run has five such starts, with a peak of 82.137 ms. This
+single comparison leaves the effect of retaining the clip unestablished.
+V02 remains open.
 
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references

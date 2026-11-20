@@ -504,7 +504,9 @@ def main():
                 if name == paired_timing.pair.JOB_STEP:
                     summary = paired_timing.inspect_run(
                         client, head=head, tree=tree, run_id=run_id, job=job)
+                    gap_context = summary.pop('frame_gap_context', None)
                 else:
+                    gap_context = None
                     motion = name == startup.launch.MOTION_JOB_STEP
                     if motion:
                         archive.need(run['head_branch'] == 'redesign')
@@ -527,6 +529,12 @@ def main():
                         lock_seams=name == startup.lock_catalog.SEAM_STEP,
                         **({'motion': True} if motion else {}))
                 emit(launch_titles[name], summary)
+                if gap_context is not None:
+                    emit('Hosted cold lock frame key gaps', dict(
+                        scope='reported_frames_only', source_head=head, source_tree=tree,
+                        source_run_id=run_id, source_attempt=summary['source_attempt'],
+                        archive_sha256=summary['archive_sha256'],
+                        manifest_sha256=summary['manifest_sha256'], windows=gap_context))
                 return 0
             for summary in startup.inspect_run(
                     client, head=head, tree=tree, run_id=run_id, job=job):

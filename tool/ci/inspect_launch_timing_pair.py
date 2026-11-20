@@ -176,6 +176,26 @@ def raster_rank_overruns(baseline_window, current_window):
     return dict(count=count, unpaired=unpaired, by_phase=phases, worst=worst)
 
 
+def frame_gap_context(window):
+    """Place the following build relative to the preceding raster finish."""
+    rows = pair.launch.frame_timing_rows(window, allow_packed=True)
+    counts = dict(before_earliest_end=0, within_end_bounds=0, at_or_after_latest_end=0)
+    for previous, current in zip(rows, rows[1:]):
+        missing_keys = current[0] - previous[0] - 1
+        if not missing_keys:
+            continue
+        earliest, latest = raster_start_bounds(previous)
+        following_build = current[1]
+        raster = previous[3]
+        if following_build < earliest + raster:
+            counts['before_earliest_end'] += missing_keys
+        elif following_build >= latest + raster:
+            counts['at_or_after_latest_end'] += missing_keys
+        else:
+            counts['within_end_bounds'] += missing_keys
+    return counts
+
+
 def window_diagnostics(window, *, peak_starts=False):
     """Describe every reported sample without changing the acceptance test."""
     rows = pair.launch.frame_timing_rows(window, allow_packed=True)
@@ -323,6 +343,9 @@ def project(raw, expected_sha, expected_size, *, head, tree, run_id, pins,
         result['window_diagnostics'] = dict(scope='reported_frames_only',
             percentiles=[50, 95, 99, 100],
             windows={name: window_diagnostics(window) for name, window in windows.items()})
+        if windows:
+            result['frame_gap_context'] = {
+                name: frame_gap_context(window) for name, window in windows.items()}
         if comparison is not None and 'raster' in comparison['exceeded']:
             result['window_diagnostics']['raster_rank_overruns'] = raster_rank_overruns(
                 windows['p06'], windows['current'])
