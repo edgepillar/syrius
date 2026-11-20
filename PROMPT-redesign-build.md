@@ -783,6 +783,12 @@ verifies both Swap list PNGs, a completed restored session and normal
 required actor closure. The original twelve-page tour also completes.
 Both reference comparisons remain open.
 
+The [prepared Tokens reader at `2d9a1b80`](https://github.com/edgepillar/syrius/actions/runs/44786108959/job/136461297632)
+verifies six fresh captures of Staking, Tokens and Token Mine in both
+themes. The twelve-page tour and restored session complete. The original
+entry and all five nodes exit normally. The earlier Stake refusal remains
+recorded at its original source. The six new pairs await visual review.
+
 The [Accelerator reader](https://github.com/edgepillar/syrius/actions/runs/44772163816/job/136412376168)
 verifies the prepared Voting and Project Detail captures in both themes
 from the [Windows run at `e9d3c9d4`](https://github.com/edgepillar/syrius/actions/runs/44768760920).
