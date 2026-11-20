@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/rendering.dart'
     show Layer, OffsetLayer, RenderImage, RenderRepaintBoundary;
 import 'package:flutter/services.dart';
@@ -21,6 +23,38 @@ import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 
 const String _asset = 'test/launch_film/fixtures/film.webp';
 const MethodChannel _window = MethodChannel('window_manager');
+
+Future<Uint8List> _stageShadowPixels(
+  Size size,
+  BorderRadius radius,
+  void Function(Canvas) paintShadow,
+) async {
+  const double margin = 160;
+  final ui.PictureRecorder recorder = ui.PictureRecorder();
+  final Canvas canvas = Canvas(recorder)
+    ..drawColor(const Color(0xff383838), BlendMode.src)
+    ..translate(margin, margin);
+  paintShadow(canvas);
+  canvas.drawRRect(
+    radius.toRRect(Offset.zero & size),
+    Paint()..color = Colors.black,
+  );
+  final ui.Picture picture = recorder.endRecording();
+  try {
+    final ui.Image image = await picture.toImage(
+      (size.width + 2 * margin).ceil(),
+      (size.height + 2 * margin).ceil(),
+    );
+    try {
+      final ByteData? pixels = await image.toByteData();
+      return Uint8List.sublistView(pixels!);
+    } finally {
+      image.dispose();
+    }
+  } finally {
+    picture.dispose();
+  }
+}
 
 class _FilmBundle extends CachingAssetBundle {
   @override
@@ -305,13 +339,54 @@ void main() {
             .resolve(TextDirection.ltr).topLeft.x,
         closeTo(14, 0.15),
       );
-      final DecoratedBox frame = tester.widget<DecoratedBox>(
-        find.ancestor(of: stage, matching: find.byType(DecoratedBox)).first,
+      final CustomPaint frame = tester.widget<CustomPaint>(
+        find.ancestor(of: stage, matching: find.byType(CustomPaint)).first,
       );
-      final BoxShadow shadow =
-          (frame.decoration as BoxDecoration).boxShadow!.single;
-      expect(shadow.offset.dy, closeTo(30, 0.3));
-      expect(shadow.color.a, closeTo(0.55, 0.01));
+      expect(frame.willChange, isTrue);
+      final BorderRadius radius = tester
+          .widget<ClipRRect>(stage)
+          .borderRadius
+          .resolve(TextDirection.ltr);
+      final LaunchSettleReference reference = tokens.launchSettleReference;
+      final double progress = session.motion.value;
+      final bool approaching = progress <= reference.progress;
+      final double fraction = approaching
+          ? progress / reference.progress
+          : (progress - reference.progress) / (1 - reference.progress);
+      final double weight = approaching ? fraction : 1 - fraction;
+      final BoxShadow shadow = reference.shadow;
+      final BoxPainter original = BoxDecoration(
+        borderRadius: radius,
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: shadow.color.withValues(alpha: shadow.color.a * weight),
+            offset: shadow.offset * weight,
+            blurRadius: shadow.blurRadius * weight,
+          ),
+        ],
+      ).createBoxPainter();
+      addTearDown(original.dispose);
+      final bool? pixelsMatch = await tester.runAsync(() async {
+        final Uint8List before = await _stageShadowPixels(
+          authored.size,
+          radius,
+          (Canvas canvas) => original.paint(
+            canvas,
+            Offset.zero,
+            ImageConfiguration(
+              size: authored.size,
+              textDirection: TextDirection.ltr,
+            ),
+          ),
+        );
+        final Uint8List after = await _stageShadowPixels(
+          authored.size,
+          radius,
+          (Canvas canvas) => frame.painter!.paint(canvas, authored.size),
+        );
+        return listEquals(before, after);
+      });
+      expect(pixelsMatch, isTrue);
       final OverflowBox artwork = tester.widget<OverflowBox>(
         find.descendant(of: stage, matching: find.byType(OverflowBox)),
       );

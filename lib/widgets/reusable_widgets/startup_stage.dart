@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show ClipOp;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -499,21 +500,21 @@ class _StartupStageState extends State<_StartupStage>
     final BoxShadow shadow = reference.shadow;
     return Positioned.fromRect(
       rect: _stageRect(full, progress, tokens),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: radius,
-          boxShadow: weight > 0
-              ? <BoxShadow>[
-                  BoxShadow(
-                    color: shadow.color.withValues(
-                      alpha: shadow.color.a * weight,
-                    ),
-                    offset: shadow.offset * weight,
-                    blurRadius: shadow.blurRadius * weight,
+      child: CustomPaint(
+        willChange: weight > 0,
+        painter: weight > 0
+            ? _LaunchStageShadow(
+                radius: radius,
+                opaqueStage: tokens.launchStageBackground.a == 1,
+                shadow: BoxShadow(
+                  color: shadow.color.withValues(
+                    alpha: shadow.color.a * weight,
                   ),
-                ]
-              : null,
-        ),
+                  offset: shadow.offset * weight,
+                  blurRadius: shadow.blurRadius * weight,
+                ),
+              )
+            : null,
         child: ClipRRect(
           key: const ValueKey<String>('startup_stage_rect'),
           borderRadius: radius,
@@ -627,4 +628,39 @@ class _StartupStageState extends State<_StartupStage>
     _focus.dispose();
     super.dispose();
   }
+}
+
+class _LaunchStageShadow extends CustomPainter {
+  const _LaunchStageShadow({
+    required this.radius,
+    required this.opaqueStage,
+    required this.shadow,
+  });
+
+  final BorderRadius radius;
+  final bool opaqueStage;
+  final BoxShadow shadow;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Rect bounds = Offset.zero & size;
+    final Rect interior = bounds.deflate(radius.topLeft.x + 1);
+    canvas.save();
+    if (opaqueStage && !interior.isEmpty) {
+      // Keep the shadow under the antialiased edge. The film covers the rest.
+      canvas.clipRect(interior, clipOp: ClipOp.difference, doAntiAlias: false);
+    }
+    canvas
+      ..drawRRect(
+        radius.toRRect(bounds.shift(shadow.offset)),
+        shadow.toPaint(),
+      )
+      ..restore();
+  }
+
+  @override
+  bool shouldRepaint(_LaunchStageShadow oldDelegate) =>
+      oldDelegate.radius != radius ||
+      oldDelegate.opaqueStage != opaqueStage ||
+      oldDelegate.shadow != shadow;
 }

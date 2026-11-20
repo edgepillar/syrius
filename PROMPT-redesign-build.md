@@ -1591,6 +1591,14 @@ takes 153.907 ms and starts 62.526 to 100.303 ms after the first observed
 handoff frame. All six raster starts after observed Lock arrival exceed
 16 ms and peak at 64.423 ms.
 
+The moving film shadow uses the original animated bounds, blur and
+colour. Its paint excludes the part fully covered by the opaque film
+and marks the changing shadow for the compositor. The existing
+handoff test compares the composited reference pixels from the original
+decoration and the new painter in memory. All eleven startup widget tests
+pass with complete output, and strict analysis reports no issues in the
+changed Dart files. Native timing and visual verification remain open.
+
 The [cold producer at `e2f1c838`](https://github.com/edgepillar/syrius/actions/runs/44655896517/job/136021904094)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44658333571/job/136030014735)
 verify five normal actor exits and both original measurement windows.
