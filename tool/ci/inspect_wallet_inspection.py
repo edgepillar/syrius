@@ -733,8 +733,19 @@ def _about_card_bands(zipped):
     return dict(column=column, scan_rows=[top, bottom], themes=themes)
 
 
+def _wallet_panel_fills(zipped):
+    column, wallets_row, maintenance_row = 650, 325, 392
+    themes = {}
+    for theme in producer.settings.THEMES:
+        bands = _vertical_bands(zipped, f'33-set-wallet-{theme}.png',
+                                column, wallets_row, maintenance_row + 1)
+        themes[theme] = (dict(wallets=list(bands[0][1][:3]),
+                              maintenance=list(bands[-1][1][:3])) if bands else None)
+    return dict(column=column, rows=[wallets_row, maintenance_row], themes=themes)
+
+
 def settings_catalog_geometry(raw):
-    """Measure the Node rows, selectors and About panels after verification."""
+    """Measure the Settings rows, selectors and panels after verification."""
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         return dict(
             address_selector_bounds=_ink_bounds(
@@ -742,6 +753,7 @@ def settings_catalog_geometry(raw):
             node_selector_bounds=_ink_bounds(
                 zipped, '30-set-node', (284, 319), (88, 256), _selection_ink),
             node_table_rows=_node_table_rows(zipped),
+            wallet_panel_fills=_wallet_panel_fills(zipped),
             about_card_bands=_about_card_bands(zipped),
             about_update_badge_bounds=_ink_bounds(
                 zipped, '36-set-about', (740, 1248), (47, 95), _update_badge_ink,

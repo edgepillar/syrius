@@ -1275,6 +1275,9 @@ class ReaderTests(unittest.TestCase):
             ):
                 background = bytes((100, 100, 100, 255))
                 ordinary = b'\0' + background * 1280
+                image = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
+                         + chunk(b'IDAT', zlib.compress(ordinary * 780)) + chunk(b'IEND', b''))
+                zipped.writestr(f'33-set-wallet-{theme}.png', image)
                 for screen, left, top in (('35-set-addresses', 298, 164), ('30-set-node', 288, 214)):
                     selected = (b'\0' + background * left + bytes((*green, 255)) * 16
                                 + background * (1280 - left - 16))
@@ -1311,6 +1314,10 @@ class ReaderTests(unittest.TestCase):
             node_selector_bounds=dict(dark=node, light=node),
             node_table_rows=dict(column=700, scan_rows=[35, 330],
                                  themes=dict(dark=[84, 141, 198, 255], light=[84, 141, 198, 255])),
+            wallet_panel_fills=dict(column=650, rows=[325, 392], themes={
+                theme: dict(wallets=[100, 100, 100], maintenance=[100, 100, 100])
+                for theme in ('dark', 'light')
+            }),
             about_card_bands=dict(column=700, scan_rows=[35, 279], themes=dict(dark=about, light=about)),
             about_update_badge_bounds=dict(dark=badge_bounds, light=badge_bounds),
         ))
