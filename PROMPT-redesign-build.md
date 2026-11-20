@@ -1700,6 +1700,10 @@ builds the native wallet and retains the six-image catalog. The
 requests both backends and refuses the native-only artifact set.
 Native-only inspection allows one additional original script pin for
 the held Tokens view and retains the independent archive bounds.
+The [corrected reader](https://github.com/edgepillar/syrius/actions/runs/44674895604/job/136084280204)
+verifies the Staking, Tokens and Token Mine PNGs in both themes, the
+original capture assertions and normal required closure. The held
+Tokens disclosure is ready for whole-screen comparison.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
