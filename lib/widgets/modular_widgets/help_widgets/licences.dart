@@ -512,10 +512,8 @@ class _LicenceRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: tokens.line)),
-      ),
+    return CustomPaint(
+      painter: _LicenceRulePainter(tokens.line),
       child: Disclosure(
         title: package.name.isEmpty ? context.l10n.aboutUnknown : package.name,
         titleStyle: tokens.bodyText,
@@ -573,4 +571,25 @@ class _LicenceRow extends StatelessWidget {
       ),
     ),
   );
+}
+
+class _LicenceRulePainter extends CustomPainter {
+  const _LicenceRulePainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Fractional list offsets should not spread a one-pixel rule over two rows.
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, 1),
+      Paint()
+        ..color = color
+        ..isAntiAlias = false,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_LicenceRulePainter oldDelegate) =>
+      color != oldDelegate.color;
 }

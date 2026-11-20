@@ -1762,6 +1762,15 @@ and [four prepared Send PNGs](https://github.com/edgepillar/syrius/actions/runs/
 at `d7ad6b44`, and the [fourteen Settings PNGs](https://github.com/edgepillar/syrius/actions/runs/44765938608/job/136390461705)
 at `b6159f6e`. All four catalogs verify the original parent closure. These
 receipts verify captures and leave the visual verdicts open.
+Comparing their measured geometry with the source-pinned references confirms
+the Receive QR QSR mark and label, Originals footer rows, Plasma footer
+clearance and About card bands in both themes. Several interior Licences
+rules span two raster rows in the native captures where the references show
+one. The first and last measured rule positions agree. The row now paints
+its one-logical-pixel rule as an unantialiased rectangle. Row extents and
+scroll behavior use the existing layout. The licence tests check the paint
+and existing row height. A fresh Windows capture must verify the resulting
+raster rows. Whole-screen verdicts remain open.
 
 The [Windows navigation run at `fb956740`](https://github.com/edgepillar/syrius/actions/runs/44748087100)
 captures both themes for Send, Receive, Pillars, Plasma, Tokens, Swap and
