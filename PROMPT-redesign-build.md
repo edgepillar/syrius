@@ -2236,6 +2236,18 @@ field and target window geometry, exits normally, and ends five seconds
 early for shutdown. The current and P06 measured windows retain their
 original deadlines and the 16 ms criterion is unchanged.
 
+The [producer at `4055c536`](https://github.com/edgepillar/syrius/actions/runs/44791157119/job/136478855862)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44794191118/job/136489337767)
+verify both original windows and five normal process exits. The redesign
+reports 92 frames and P06 reports 1,728, with 16 and 1,041 frame-key gaps.
+Neither records a build over 16 ms. One redesign raster at handoff
+exceeds its corresponding P06 rank, at 128.277 ms versus 105.633 ms.
+All other observed raster ranks meet the comparison. The raster and
+distinct-frame criteria still fail. The remaining peak begins between
+2,788.131 and 2,822.571 ms into the redesign window, after the first
+positive handoff observation at 2,766.037 ms. Its rendering work remains
+unattributed. V02 remains open.
+
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references
 use rows 106 and 118. The delegation strip now uses the same compact inset
