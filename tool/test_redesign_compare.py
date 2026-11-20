@@ -19,6 +19,7 @@ import io
 import json
 from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 import zipfile
@@ -27,6 +28,7 @@ from PIL import Image, ImageOps
 
 from redesign_compare import (
     ReportGallery,
+    _ArchiveReadCache,
     capture_bytes,
     generate_report,
     load_actual_manifest,
@@ -37,6 +39,29 @@ from redesign_compare import (
 
 
 TEST_ROOT: Path | None = None
+
+
+class ArchiveReadCacheTests(unittest.TestCase):
+    def test_reuses_verified_bytes_until_the_archive_identity_changes(self) -> None:
+        original, replacement = b"original", b"replaced"
+        digest = hashlib.sha256(original).hexdigest()
+        path = Path("capture.zip")
+        metadata = SimpleNamespace(
+            st_dev=1, st_ino=2, st_size=len(original),
+            st_mtime_ns=3, st_ctime_ns=4,
+        )
+        cache = _ArchiveReadCache()
+        with (
+            patch.object(Path, "stat", return_value=metadata),
+            patch("redesign_compare.bounded_bytes", side_effect=[original, replacement]) as load,
+        ):
+            self.assertEqual(cache.read(path, digest), original)
+            self.assertEqual(cache.read(path, digest), original)
+            self.assertEqual(load.call_count, 1)
+            metadata.st_ino = 5
+            with self.assertRaisesRegex(ValueError, "manifest SHA-256"):
+                cache.read(path, digest)
+            self.assertEqual(load.call_count, 2)
 
 
 class CompareTests(unittest.TestCase):

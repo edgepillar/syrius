@@ -37,6 +37,9 @@ Use --serve to view such a report on loopback. The gallery reads only the
 registered originals directly from their archives and renders difference PNGs
 on request. By default, --serve writes the page to compare/served, alongside
 the static report.
+During report generation a read of an unchanged archive can serve several
+adjacent pairs. Each PNG still has its own SHA-256 check. Gallery requests
+verify the current bytes on disk again.
 
 Manual reviews use screenshot stems as keys. For example:
 {
@@ -291,12 +294,37 @@ def bounded_bytes(path: Path, limit: int) -> bytes:
     return data
 
 
-def capture_bytes(capture: Capture) -> bytes:
+def _verified_archive_bytes(path: Path, digest: str | None) -> bytes:
+    raw = bounded_bytes(path, MAX_ARCHIVE_BYTES)
+    if hashlib.sha256(raw).hexdigest() != digest:
+        raise ValueError("ZIP does not match the capture manifest SHA-256")
+    return raw
+
+
+class _ArchiveReadCache:
+    """Reuse one verified archive during report generation."""
+
+    def __init__(self) -> None:
+        self._key: tuple[Path, str | None, int, int, int, int, int] | None = None
+        self._raw = b""
+
+    def read(self, path: Path, digest: str | None) -> bytes:
+        info = path.stat()
+        key = (path, digest, info.st_dev, info.st_ino, info.st_size,
+               info.st_mtime_ns, info.st_ctime_ns)
+        if key != self._key:
+            self._raw = b""
+            self._key = None
+            self._raw = _verified_archive_bytes(path, digest)
+            self._key = key
+        return self._raw
+
+
+def capture_bytes(capture: Capture, archive_cache: _ArchiveReadCache | None = None) -> bytes:
     if capture.archive_member is None:
         return bounded_bytes(capture.path, MAX_IMAGE_BYTES)
-    raw = bounded_bytes(capture.path, MAX_ARCHIVE_BYTES)
-    if hashlib.sha256(raw).hexdigest() != capture.archive_sha256:
-        raise ValueError("ZIP does not match the capture manifest SHA-256")
+    read_archive = _verified_archive_bytes if archive_cache is None else archive_cache.read
+    raw = read_archive(capture.path, capture.archive_sha256)
     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
         entries = [info for info in archive.infolist()
                    if info.filename == capture.archive_member]
@@ -414,6 +442,7 @@ class ReportGallery:
 
 def read_image(
     capture: Capture | None, output: Path | None, *, url: str | None = None,
+    archive_cache: _ArchiveReadCache | None = None,
 ) -> tuple[dict[str, object], Image.Image | None]:
     if capture is None:
         return {"state": "missing", "reason": "Image missing"}, None
@@ -421,7 +450,7 @@ def read_image(
     if output is not None:
         info["url"] = url or relative_url(capture.path, output)
     try:
-        data = capture_bytes(capture)
+        data = capture_bytes(capture, archive_cache)
         info["sha256"] = hashlib.sha256(data).hexdigest()
         if capture.sha256 is not None and info["sha256"] != capture.sha256:
             info.update(state="invalid", reason="Actual PNG does not match the capture manifest SHA-256")
@@ -440,10 +469,11 @@ def read_image(
 
 def gallery_image(
     capture: Capture | None, output: Path | None, gallery: ReportGallery | None, url: str,
+    archive_cache: _ArchiveReadCache | None = None,
 ) -> tuple[dict[str, object], Image.Image | None]:
     if gallery is None:
-        return read_image(capture, output)
-    info, image = read_image(capture, output, url=url)
+        return read_image(capture, output, archive_cache=archive_cache)
+    info, image = read_image(capture, output, url=url, archive_cache=archive_cache)
     if capture is not None and image is not None:
         gallery.add(url, replace(capture, sha256=info["sha256"]))
     return info, image
@@ -533,12 +563,15 @@ def compare_pair(
     target_source: str | None = None,
     write_diffs: bool = True,
     gallery: ReportGallery | None = None,
+    archive_cache: _ArchiveReadCache | None = None,
 ) -> dict[str, object]:
     stem = screen.stem(theme)
     expected, before = gallery_image(
         Capture(expected_dir / f"{stem}.png"), output, gallery, f"mockup/{stem}.png",
     )
-    actual, after = gallery_image(capture, output, gallery, f"capture/{stem}.png")
+    actual, after = gallery_image(
+        capture, output, gallery, f"capture/{stem}.png", archive_cache,
+    )
     if output is None:
         source_url = None
     elif gallery is None:
@@ -739,13 +772,14 @@ def generate_report(
         output.mkdir(parents=True, exist_ok=True)
     elif gallery is not None:
         raise ReportError("A gallery requires an output directory")
+    archive_cache = _ArchiveReadCache()
     pairs = []
     for screen in screens:
         for theme in THEMES:
             pair = compare_pair(
                 screen, theme, expected_dir, actuals.get(screen.stem(theme)), output,
                 reviews, required_size, target_source=target_source, write_diffs=write_diffs,
-                gallery=gallery,
+                gallery=gallery, archive_cache=archive_cache,
             )
             pair["notes"] = notes[screen.id]
             pairs.append(pair)

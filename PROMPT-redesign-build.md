@@ -695,6 +695,11 @@ The retained Details archive at `fb3b2a01` supplies ten of the 94 target pairs
 to this mode. A different target revision supplies zero, and a deliberately
 wrong image digest excludes that pair. The whole-image verdicts remain open.
 All 23 comparison tests pass with the summary mode at `962bd1dc`.
+One verified archive can now supply adjacent pairs during report
+generation. Changed file identity invalidates that buffer. Gallery
+requests still check the original archive and PNG digests on disk.
+The retained ten-image Details archive at `fb3b2a01` supplies all ten
+pairs in one archive read, with the individual PNG digest checks intact.
 The four [Welcome and Import originals](https://github.com/edgepillar/syrius/actions/runs/44582250018/job/135765713115)
 also read directly from their retained archive at 1280 by 780 using their
 original filenames, with no extracted image copies.
@@ -1072,6 +1077,10 @@ post-frame observation is at progress 0.662. Both later slots have
 verified images. The observer never received an earlier positive clock
 before its first late sample in this run. The cause of the missing
 earlier frame remains open.
+The [reader at `4cecf40f`](https://github.com/edgepillar/syrius/actions/runs/44655493765/job/136020574098)
+verifies a first observation at 0.558, with two captured images and two
+normal exits. The early slot remains missing, so the native result keeps
+its original failure.
 
 The [paired cold run at `8935b5ba`](https://github.com/edgepillar/syrius/actions/runs/44593889453/job/135806899165)
 retained 85 current and 810 P06 frames with five normal actor exits. The
