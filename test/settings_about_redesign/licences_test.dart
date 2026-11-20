@@ -230,14 +230,22 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(find.text('Apache-2.0'), findsOneWidget);
+    // The full engine notice also applies to other packages in the list.
+    final Finder row = find.byKey(const Key('about_licence_yapf'));
+    expect(
+      find.descendant(of: row, matching: find.text('Apache-2.0')),
+      findsOneWidget,
+    );
     await _open(tester, 'yapf');
     for (final LicenseEntry entry in notices) {
       final String firstParagraph = entry.paragraphs.first.text;
       expect(
-        find.byWidgetPredicate(
-          (Widget widget) => widget is SelectableText &&
-              widget.data == firstParagraph,
+        find.descendant(
+          of: row,
+          matching: find.byWidgetPredicate(
+            (Widget widget) => widget is SelectableText &&
+                widget.data == firstParagraph,
+          ),
         ),
         findsOneWidget,
       );

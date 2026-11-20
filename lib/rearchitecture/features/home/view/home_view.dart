@@ -82,6 +82,13 @@ class HomeView extends StatelessWidget {
           openTransfer: openTransfer,
           collection: collection,
           collectionSession: collectionSession,
+          // Activity subscribes to its own ledger bloc. Snapshot reads only
+          // need to rebuild the balance and collection surfaces.
+          activity: LatestTransactionsCard(
+            type: CardType.latestTransactionsDashboard,
+            address: address,
+            chainId: collection?.chainId,
+          ),
         ),
       );
     },
@@ -92,6 +99,7 @@ class _View extends StatelessWidget {
   const _View({
     required this.address,
     required this.changePage,
+    required this.activity,
     this.openTransfer,
     this.collection,
     this.collectionSession,
@@ -99,6 +107,7 @@ class _View extends StatelessWidget {
 
   final String address;
   final void Function(Tabs) changePage;
+  final Widget activity;
   final ValueChanged<TransferMode>? openTransfer;
   final HomeCollectionController? collection;
   final HomeCollectionSession? Function()? collectionSession;
@@ -167,14 +176,7 @@ class _View extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  Expanded(
-                    flex: 8,
-                    child: LatestTransactionsCard(
-                      type: CardType.latestTransactionsDashboard,
-                      address: address,
-                      chainId: collection?.chainId,
-                    ),
-                  ),
+                  Expanded(flex: 8, child: activity),
                   SizedBox(width: gap),
                   Expanded(flex: 5, child: _buildSideCards(context, state)),
                 ],

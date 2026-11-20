@@ -1552,6 +1552,12 @@ peaks at 172.299 ms versus 68.629 ms. Raster and distinct-frame
 comparisons fail in both windows. Disclosure also fails the build
 comparison, and both pairs retain frame-number gaps. V02 remains open.
 
+Home now keeps the Activity widget across balance and reward reads.
+Activity subscribes to the existing transaction bloc for ledger updates.
+The selected address and chain still determine the widget when Home is
+built. This removes a redundant Activity rebuild during a snapshot
+update. The page-change timing effect needs a fresh Windows measurement.
+
 The earlier [paired reader at `3b360fbc`](https://github.com/edgepillar/syrius/actions/runs/44469179488/job/135374186038)
 measures the Licences experiment with the row repaint boundaries disabled.
 Disclosure reaches 135.842 ms against 68.243 ms on P06. The
@@ -1639,9 +1645,12 @@ source header. The type lookup now recognizes the exact normalized
 fingerprint of that header, giving both notices the same identifier.
 The [first Linux widget run](https://github.com/edgepillar/syrius/actions/runs/44679195330/job/136098264561)
 reports one failure in the new fixture, with 5,126 passes and one skip.
-The fixture now uses the pinned engine's original licence source and
-checks the label and both selectable notice texts. Whole-image acceptance
-stays open under V01.
+The fixture uses the pinned engine's original licence source. The
+[follow-up run](https://github.com/edgepillar/syrius/actions/runs/44680953416/job/136103946816)
+also reports one failure in this case. The complete notice is shared by
+several engine packages. The widget case now checks the identifier and
+both selectable notice texts within the `yapf` row. Whole-image
+acceptance stays open under V01.
 
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references
