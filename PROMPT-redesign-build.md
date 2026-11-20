@@ -2057,6 +2057,13 @@ and all fourteen diff PNGs. Assembly reads the archive once and the
 gallery reads it once more for the full sequence of requests. This checks
 the comparison path for the retained source.
 
+A mixed-source gallery check renders all 94 pairs and generates all 94
+difference PNGs in memory from retained, digest-verified inputs. It uses
+40 captures at `e94d5b07` and 54 captures at other verified revisions,
+including the updated Details set. The report keeps the 54 captures marked
+as other-source. All 40 target-source pairs in this run await recorded
+verdicts. This check leaves whole-screen acceptance open under V01.
+
 The [Windows entry run at `d6f8dfa3`](https://github.com/edgepillar/syrius/actions/runs/44755690292)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44756776284/job/136358466527)
 verify the four original Welcome and prepared Import PNGs and complete output
