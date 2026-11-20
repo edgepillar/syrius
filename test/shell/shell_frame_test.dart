@@ -1,3 +1,5 @@
+import 'package:flutter/rendering.dart'
+    show RenderBox, RenderClipRRect, RenderRepaintBoundary;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/entry_status.dart';
@@ -172,6 +174,25 @@ void main() {
           expect(
             tester.getRect(find.byKey(status)),
             Rect.fromLTWH(pageLeft, 722, 1204, 44),
+          );
+          final RenderClipRRect pageClip = tester.renderObject(
+            find.ancestor(
+              of: find.byKey(page),
+              matching: find.byType(ClipRRect),
+            ),
+          );
+          expect(pageClip.clipBehavior, Clip.antiAlias);
+          final RenderRepaintBoundary pagePaint =
+              pageClip.parent! as RenderRepaintBoundary;
+          expect(pagePaint.child, same(pageClip));
+          final int initialPaints = pagePaint.debugAsymmetricPaintCount +
+              pagePaint.debugSymmetricPaintCount;
+          tester.renderObject<RenderBox>(find.byKey(status)).markNeedsPaint();
+          await tester.pump();
+          expect(
+            pagePaint.debugAsymmetricPaintCount +
+                pagePaint.debugSymmetricPaintCount,
+            initialPaints,
           );
           expect(tester.takeException(), isNull);
         },

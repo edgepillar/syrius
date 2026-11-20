@@ -1731,6 +1731,12 @@ The disclosure build comparison also fails. All five raster starts
 confirmed after the observed settled layout exceed 16 ms, with a peak of
 82.137 ms. V02 remains open.
 
+The shell retains the page's rounded clip inside the page's repaint
+boundary. The existing shell cases check the clip, page and status geometry
+in both directions with scrollable and fixed content. They also trigger a
+status-only repaint and check the page paint counts. The native timing
+effect needs a fresh paired Windows run.
+
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references
 use rows 106 and 118. The delegation strip now uses the same compact inset
@@ -1771,9 +1777,14 @@ reference edge at 140. The owned label now uses a 9 px gap after the
 name. The two theme cases check that gap and the original badge height.
 The [first Navigation attempt at `2e57227c`](https://github.com/edgepillar/syrius/actions/runs/44687014761/job/136123665193)
 stops at admission before SDK allocation because the required runner
-option was missing. The [corrected dispatch](https://github.com/edgepillar/syrius/actions/runs/44687166980)
-is running with the required native inspection inputs. The updated
-badge and cursor position still need original Windows images.
+option was missing. The [corrected dispatch](https://github.com/edgepillar/syrius/actions/runs/44687166980/job/136124143439)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44689404731/job/136131363952)
+verify 14 original images and normal parent closure. The badge occupies
+columns 140 through 193 and rows 209 through 230 in both themes, matching
+the reference. At column 1100 the third live row uses the regular closed
+row fill in both themes. The Momentums value begins at column 768 as in
+the reference, and its label begins at 678 with the reference at 677.
+Whole-image verdicts remain open under V01.
 
 In the earlier verified `61e72335` Pillars shots, the Momentums text starts
 at column 669 and its value starts at 759 in both themes. The reference

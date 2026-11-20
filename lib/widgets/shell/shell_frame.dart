@@ -80,10 +80,11 @@ class _ShellFrameState extends State<ShellFrame> {
                 children: <Widget>[
                   LayoutId(
                     id: _ShellSurface.page,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(tokens.cardRadius),
-                      clipBehavior: locked ? Clip.none : Clip.antiAlias,
-                      child: RepaintBoundary(
+                    // Retain the rounded clip with the page's paint.
+                    child: RepaintBoundary(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(tokens.cardRadius),
+                        clipBehavior: locked ? Clip.none : Clip.antiAlias,
                         child: NotificationListener<EntryStatusVisibility>(
                           onNotification: _showEntryStatus,
                           child: widget.page,
