@@ -17,7 +17,7 @@ class ShellFrame extends StatefulWidget {
   /// Entry mode removes rail interaction and gives the page the whole field.
   final ValueListenable<bool> locked;
 
-  /// The rail retains its collapse choice while it is hidden at entry.
+  /// The rail mounts on first unlock and keeps its state on later locks.
   final Widget rail;
 
   /// The current page retains its state across a lock-status change.
@@ -32,6 +32,7 @@ class ShellFrame extends StatefulWidget {
 
 class _ShellFrameState extends State<ShellFrame> {
   final ValueNotifier<bool> _entryStatusVisible = ValueNotifier<bool>(true);
+  bool _railMounted = false;
 
   bool _showEntryStatus(EntryStatusVisibility notification) {
     _entryStatusVisible.value = notification.visible;
@@ -48,26 +49,30 @@ class _ShellFrameState extends State<ShellFrame> {
   Widget build(BuildContext context) => ValueListenableBuilder<bool>(
     valueListenable: widget.locked,
     builder: (BuildContext context, bool locked, _) {
+      if (!locked) _railMounted = true;
       final AppTokens tokens = AppTokens.of(context);
       return Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Offstage(
-            offstage: locked,
-            child: TickerMode(
-              enabled: !locked,
-              child: ExcludeFocus(
-                excluding: locked,
-                child: ExcludeSemantics(
+          if (_railMounted)
+            Offstage(
+              offstage: locked,
+              child: TickerMode(
+                enabled: !locked,
+                child: ExcludeFocus(
                   excluding: locked,
-                  child: IgnorePointer(
-                    ignoring: locked,
-                    child: RepaintBoundary(child: widget.rail),
+                  child: ExcludeSemantics(
+                    excluding: locked,
+                    child: IgnorePointer(
+                      ignoring: locked,
+                      child: RepaintBoundary(child: widget.rail),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
+            )
+          else
+            const SizedBox.shrink(),
           SizedBox(width: locked ? 0 : tokens.shellRailGap),
           Expanded(
             child: Padding(

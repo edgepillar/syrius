@@ -49,13 +49,14 @@ void main() {
       addTearDown(statusFocus.dispose);
       int created = 0;
       int disposed = 0;
+      const Key rail = ValueKey<String>('working rail');
       const Key status = ValueKey<String>('retained entry status');
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: ShellFrame(
               locked: locked,
-              rail: const SizedBox(width: 76),
+              rail: const SizedBox(key: rail, width: 76),
               page: _Owner(
                 onCreate: () => created++,
                 onDispose: () => disposed++,
@@ -70,6 +71,8 @@ void main() {
       );
       final _OwnerState owner = tester.state<_OwnerState>(find.byType(_Owner));
       final Element statusElement = tester.element(find.byKey(status));
+      final Finder retainedRail = find.byKey(rail, skipOffstage: false);
+      expect(retainedRail, findsNothing);
       await tester.enterText(find.byType(TextField), 'local fixture');
       final Rect entryBounds = tester.getRect(find.byType(_Owner));
       for (final bool visible in <bool>[false, true, false]) {
@@ -86,10 +89,15 @@ void main() {
         expect(owner.password.text, 'local fixture');
         expect(created, 1);
         expect(disposed, 0);
+        expect(retainedRail, findsNothing);
       }
+      Element? railElement;
       for (final bool value in <bool>[false, true, false]) {
         locked.value = value;
         await tester.pump();
+        railElement ??= tester.element(retainedRail);
+        expect(tester.element(retainedRail), same(railElement));
+        expect(find.byKey(rail), value ? findsNothing : findsOneWidget);
         expect(tester.state(find.byType(_Owner)), same(owner));
         expect(owner.password.text, 'local fixture');
         expect(created, 1);
