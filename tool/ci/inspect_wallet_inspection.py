@@ -591,6 +591,22 @@ def _vertical_bands(zipped, name, column, top, bottom):
     return bands
 
 
+def home_goto_footer(raw):
+    """Report the first color change below the undisturbed Go To footer."""
+    column, top, bottom = 450, 440, 476
+    themes = {}
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        for theme in producer.THEMES:
+            bands = _vertical_bands(zipped, f'05-home-goto-{theme}.png',
+                                    column, top, bottom)
+            themes[theme] = None
+            if len(bands) >= 2 and top + 6 <= bands[1][0] <= bottom - 3:
+                edge, edge_color = bands[1]
+                themes[theme] = dict(edge_row=edge, footer_rgb=list(bands[0][1][:3]),
+                                     edge_rgb=list(edge_color[:3]))
+    return dict(column=column, scan_rows=[top, bottom], themes=themes)
+
+
 def staking_empty_bands(raw):
     """Observe the strip and both cards in the verified Earn archive."""
     column, top, bottom = 1000, 35, 711
@@ -1118,9 +1134,13 @@ def main(parent=None):
                 source_digests.update(source_files(repo, producer_tree, tree,
                     files=(producer.HOME_BELL_SCRIPT.as_posix(),)))
             item = artifact(listing, 'home-catalog-' + head + '-' + text + '-1', head, run_id)
-            catalog = unpack_home_catalog(download(item, MAX_HOME_ARCHIVE), item['digest'][7:],
+            catalog_archive = download(item, MAX_HOME_ARCHIVE)
+            catalog = unpack_home_catalog(catalog_archive, item['digest'][7:],
                 item['size_in_bytes'], head, tree, run_id, reference,
                 home_script_source_pins(source_digests, reference['schema']))
+            if reference['schema'] == producer.HOME_CAPTURE_SCHEMAS['home']:
+                catalog['goto_footer'] = home_goto_footer(catalog_archive)
+            del catalog_archive
         viewport_name = 'viewport-observation-' + head + '-' + text + '-1'
         PHASE = 'viewport_artifact'
         sampling_scope = summary.get('sampling_scope')
