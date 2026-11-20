@@ -588,17 +588,22 @@ class _LicenceRow extends StatelessWidget {
 class _LicenceRulePainter extends CustomPainter {
   const _LicenceRulePainter(this.color, this.pixelRatio, this.globalTop);
 
+  static const double _ruleHeight = 1;
+
   final Color color;
   final double pixelRatio;
   final double Function() globalTop;
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Snap the painted edge while preserving the fractional list geometry.
+    // The reference table's collapsed border straddles the row boundary.
+    // Snap its leading edge without shifting the row or its hit target.
     final double top = globalTop();
-    final double snappedTop = (top * pixelRatio).roundToDouble() / pixelRatio;
+    final double leadingEdge = top - _ruleHeight / 2;
+    final double snappedTop =
+        (leadingEdge * pixelRatio).roundToDouble() / pixelRatio;
     canvas.drawRect(
-      Rect.fromLTWH(0, snappedTop - top, size.width, 1),
+      Rect.fromLTWH(0, snappedTop - top, size.width, _ruleHeight),
       Paint()
         ..color = color
         ..isAntiAlias = false,
