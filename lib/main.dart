@@ -206,7 +206,7 @@ Future<void> runSyriusApp({Widget Function(Widget)? wrapRoot}) async {
     }),
   );
 
-  const Widget root = MyApp();
+  final Widget root = MyApp._startup();
   runApp(wrapRoot?.call(root) ?? root);
 }
 
@@ -318,7 +318,13 @@ Route<dynamic>? _buildErrorRoute(RouteSettings settings) {
 /// The production application shell and its process-level desktop listeners.
 class MyApp extends StatefulWidget {
   /// Builds routes without accessing a wallet from this widget constructor.
-  const MyApp({super.key});
+  const MyApp({super.key}) : _themes = null;
+
+  // Build the immutable themes before runApp schedules the first frame.
+  MyApp._startup()
+    : _themes = (light: AppTheme.lightTheme, dark: AppTheme.darkTheme);
+
+  final ({ThemeData light, ThemeData dark})? _themes;
 
   @override
   State<StatefulWidget> createState() {
@@ -348,6 +354,9 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
   @override
   Widget build(BuildContext context) {
+    final ({ThemeData light, ThemeData dark}) themes =
+        widget._themes ??
+        (light: AppTheme.lightTheme, dark: AppTheme.darkTheme);
     return MultiBlocProvider(
       providers: <SingleChildWidget>[
         BlocProvider<LatestTransactionsBloc>(
@@ -460,8 +469,8 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                                   title: 's y r i u s',
                                   navigatorKey: globalNavigatorKey,
                                   debugShowCheckedModeBanner: false,
-                                  theme: AppTheme.lightTheme,
-                                  darkTheme: AppTheme.darkTheme,
+                                  theme: themes.light,
+                                  darkTheme: themes.dark,
                                   themeMode: appThemeNotifier.currentThemeMode,
                                   initialRoute: SplashScreen.route,
                                   scrollBehavior: RemoveOverscrollEffect(),

@@ -1496,6 +1496,10 @@ distinct-frame comparisons meet the ranking criterion. The redesign's
 one slow build lasts 18.782 ms and begins 248.158 ms before the first
 observed film frame. P06's longest build is 15.880 ms. Both windows
 retain frame-number gaps, 23 and 1,543 respectively. V02 remains open.
+The production entry now prepares the immutable light and dark themes
+before scheduling the first Flutter frame. The root uses those theme
+objects with the existing saved theme mode and locale. The timing
+effect needs a fresh paired Windows sample.
 
 The [cold producer at `e2f1c838`](https://github.com/edgepillar/syrius/actions/runs/44655896517/job/136021904094)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44658333571/job/136030014735)
