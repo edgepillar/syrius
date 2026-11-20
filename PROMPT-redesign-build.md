@@ -1240,6 +1240,15 @@ probing the original APR gate. Focused tests cover delayed visibility
 and stop before the APR probe when the menu item is absent. A fresh
 Windows observation remains required.
 
+The [follow-up producer at `5ca69709`](https://github.com/edgepillar/syrius/actions/runs/44787765713/job/136467059730)
+returns the state reply after the Weight item wait and still refuses at
+command 64 before dispatching the APR probe. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44791839878/job/136481250115)
+verifies the same six observations and both normal exits. The Nodes pane
+owns the popup route, while the harness state reports the root route.
+The controller now checks the stable root and the original Weight item's
+absence, appearance, persistence through the APR attempt and disappearance
+after Escape. A fresh Windows observation remains required.
+
 The [independent clean Windows reader at `512605b7`](https://github.com/edgepillar/syrius/actions/runs/44785850020/job/136460390319)
 verifies Debug and Release, all twelve baseline checks, 5,129 passing
 tests and one skip, and zero analyzer errors or warnings. This source

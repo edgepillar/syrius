@@ -314,6 +314,7 @@ class ReadonlyOwnerSurfaces:
         self.tab, self.route, self.address = 'dashboard', '/dashboard', 'fixture-owner'
         self.mode, self.saved, self.brightness = 'system', None, 'light'
         self.warning_accepted = False
+        self.pillars_menu_open = False
         self.calls = []
         self.original_error = ValueError('private original failure')
 
@@ -351,8 +352,7 @@ class ReadonlyOwnerSurfaces:
             if key == 'nodes_tab_pillars':
                 self.route = '/pillars'
             elif key == 'pillars_sort':
-                if self.fault != 'menu-delayed':
-                    self.route = '/pillars/menu'
+                self.pillars_menu_open = self.fault not in ('menu-delayed', 'menu-absent')
             elif key == 'p2p_start_swap':
                 self.route = '/p2pSwap/' + ('draft' if self.warning_accepted else 'warning')
             elif key == 'p2p_warning_continue':
@@ -365,10 +365,11 @@ class ReadonlyOwnerSurfaces:
             return dict(target=dict(key=key, kind='button'))
         if name == 'wait':
             if command['key'] == 'pillars_sort_weight':
-                if self.fault == 'menu-absent':
-                    return {}
-                if self.fault == 'menu-delayed':
-                    self.route = '/pillars/menu'
+                if self.fault == 'menu-delayed' and not command.get('gone'):
+                    self.pillars_menu_open = True
+                if self.pillars_menu_open:
+                    return dict(target=dict(key='pillars_sort_weight', kind='button'))
+                return {}
             return {} if command.get('gone') else dict(target=dict(
                 key=command['key'], kind=command.get('kind', 'button')))
         if name == 'tree':
@@ -397,7 +398,8 @@ class ReadonlyOwnerSurfaces:
                     raise self.original_error
             return reply
         if name == 'key' and command['key'] == 'escape':
-            self.route = '/pillars'
+            if self.fault != 'menu-stays-open':
+                self.pillars_menu_open = False
             return {}
         raise AssertionError('Unexpected command')
 
@@ -476,6 +478,14 @@ class ReadonlyOwnerSeamProbeTests(unittest.TestCase):
                     self.assertEqual(len(observed), 1)
                     self.assertFalse(any(command.get('seam') == 'pillarAprEstimate'
                                          for command in original.calls))
+
+    def test_pillars_probe_requires_the_menu_to_close_before_navigating(self):
+        original, observed = ReadonlyOwnerSurfaces('menu-stays-open'), []
+        with self.assertRaises(inspect.Refused):
+            inspect.observe_readonly_owner_seams(original.send, observed)
+        self.assertEqual(len(observed), 1)
+        self.assertFalse(any(command.get('tab') == 'p2pSwap'
+                             for command in original.calls))
 
     def test_theme_read_selection_and_restore_require_actual_observations(self):
         for fault in ('theme-original', 'theme-selected', 'theme-restored'):

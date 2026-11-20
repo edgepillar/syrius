@@ -1299,13 +1299,15 @@ def observe_readonly_owner_seams(send, observed):
         wait('nodes_tab_pillars', 'pillars', expected=pillars)
         need(tap('nodes_tab_pillars', 'pillars', pillars) == pillars, 'ENTRY_REFUSED')
         wait('nodes_pillars_strip', 'pillars', expected=pillars)
-        tap('pillars_sort', 'pillars', pillars)
-        menu = wait('pillars_sort_weight', 'pillars')
-        need(menu != pillars, 'ENTRY_REFUSED')
-        probe('pillarAprEstimate', 'pillars_sort_apr_gate', 'pillars', menu)
-        same('pillars', menu)
+        # The sort route belongs to the Nodes pane. Its visible Weight
+        # item distinguishes it while the original host route stays current.
+        wait('pillars_sort_weight', 'pillars', expected=pillars, gone=True)
+        need(tap('pillars_sort', 'pillars', pillars) == pillars, 'ENTRY_REFUSED')
+        wait('pillars_sort_weight', 'pillars', expected=pillars)
+        probe('pillarAprEstimate', 'pillars_sort_apr_gate', 'pillars', pillars)
+        wait('pillars_sort_weight', 'pillars', expected=pillars)
         send(dict(cmd='key', key='escape'))
-        same('pillars', pillars)
+        wait('pillars_sort_weight', 'pillars', expected=pillars, gone=True)
         observed.append(dict(panel='pillars', seam='pillarAprEstimate', theme=theme))
 
         swaps = navigate('p2pSwap', 'pillars', pillars)
