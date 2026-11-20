@@ -765,6 +765,13 @@ the normal entry exit and all five normal node exits. Neither run produced
 a prepared catalog. The prepared PNGs at `931ec0b5` remain evidence for that
 source. The newer captures and whole-screen verdicts remain open under V01.
 
+The Swap warning fixture now waits for the original dialog entrance before
+pressing Continue. The [first corrected Windows test run](https://github.com/edgepillar/syrius/actions/runs/44774126023/job/136419269506)
+records 707 and 822 passing cases in complete streams, with no failed
+cases and no native wallet execution. Its combined case count was still
+pinned to 1,528. The gate now expects 1,529, including the new warning
+case. A further run must reach the prepared Swap capture.
+
 The [Accelerator reader](https://github.com/edgepillar/syrius/actions/runs/44772163816/job/136412376168)
 verifies the prepared Voting and Project Detail captures in both themes
 from the [Windows run at `e9d3c9d4`](https://github.com/edgepillar/syrius/actions/runs/44768760920).
