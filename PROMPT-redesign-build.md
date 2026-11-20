@@ -1288,6 +1288,13 @@ includes the palette caret and Licences pixel alignment. The combined
 end-state decision still requires the final visual, motion and interface
 evidence.
 
+The [Windows baseline reader at `4e550bfd`](https://github.com/edgepillar/syrius/actions/runs/44818293745/job/136572255104)
+verifies all twelve checks, including clean Debug and Release builds.
+Both builds exit zero with complete output. Root and vendored analysis
+have zero errors and warnings. The non-chain suite records 5,129 passes
+and one skip. The receipt is pinned to the code before the Notifications
+tooltip offset. V06 remains open.
+
 ### Windows visual capture audit at `e94d5b07` (2026-11-20)
 
 The capture plan assigns each of the 47 reference states to one producer
@@ -1394,6 +1401,19 @@ state the hero amounts and the visible Activity value are masked. Both
 Go To captures show Pages, Actions and Addresses, with one fixture
 contact and the original footer shortcuts. All eight pairs retain
 whole-screen differences under V01.
+The Notifications tooltip in the two Home rest captures begins at
+row 649. Both references begin at row 656. The new offset moves only
+the Notifications tooltip seven pixels towards that position and
+preserves its viewport clamp. The [new Windows Home job at `d67a9451`](https://github.com/edgepillar/syrius/actions/runs/44817614221)
+will verify the rendered position.
+
+The six designated Navigation images were also opened alongside their
+references. Receive shows Copy address and Show QR in both themes. The
+Pillars view shows the expanded owned row with three fixture entries
+and no current delegation. The reference shows a longer list and a
+delegated state. Plasma shows three cancellable fuses and a full meter.
+The reference shows four fuses, two of which are still locked. These
+observations leave the complete Navigation pairs open.
 
 The Details reader measures the same Receive QSR mark and label bounds
 and Originals divider and card end as the references. At the measured
