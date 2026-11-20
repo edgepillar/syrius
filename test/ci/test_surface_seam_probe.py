@@ -351,7 +351,8 @@ class ReadonlyOwnerSurfaces:
             if key == 'nodes_tab_pillars':
                 self.route = '/pillars'
             elif key == 'pillars_sort':
-                self.route = '/pillars/menu'
+                if self.fault != 'menu-delayed':
+                    self.route = '/pillars/menu'
             elif key == 'p2p_start_swap':
                 self.route = '/p2pSwap/' + ('draft' if self.warning_accepted else 'warning')
             elif key == 'p2p_warning_continue':
@@ -363,6 +364,11 @@ class ReadonlyOwnerSurfaces:
                 raise AssertionError('Unexpected action')
             return dict(target=dict(key=key, kind='button'))
         if name == 'wait':
+            if command['key'] == 'pillars_sort_weight':
+                if self.fault == 'menu-absent':
+                    return {}
+                if self.fault == 'menu-delayed':
+                    self.route = '/pillars/menu'
             return {} if command.get('gone') else dict(target=dict(
                 key=command['key'], kind=command.get('kind', 'button')))
         if name == 'tree':
@@ -453,6 +459,23 @@ class ReadonlyOwnerSeamProbeTests(unittest.TestCase):
             'readonly-seam-pointer', 'key') for c in original.calls))
         self.assertFalse(any(set(c) & {'value', 'amount', 'seed', 'force'} for c in original.calls))
         self.assertNotIn('private response detail', str(observed))
+
+    def test_pillars_probe_waits_for_the_original_menu_item(self):
+        for fault in ('menu-delayed', 'menu-absent'):
+            original, observed = ReadonlyOwnerSurfaces(fault), []
+            with self.subTest(fault=fault):
+                if fault == 'menu-delayed':
+                    inspect.observe_readonly_owner_seams(original.send, observed)
+                    self.assertEqual(len(observed), 6)
+                    for theme in ('dark', 'light'):
+                        self.assertIn(dict(panel='pillars', seam='pillarAprEstimate',
+                                           theme=theme), observed)
+                else:
+                    with self.assertRaises(inspect.Refused):
+                        inspect.observe_readonly_owner_seams(original.send, observed)
+                    self.assertEqual(len(observed), 1)
+                    self.assertFalse(any(command.get('seam') == 'pillarAprEstimate'
+                                         for command in original.calls))
 
     def test_theme_read_selection_and_restore_require_actual_observations(self):
         for fault in ('theme-original', 'theme-selected', 'theme-restored'):

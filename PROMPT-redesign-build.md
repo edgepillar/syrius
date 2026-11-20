@@ -1230,6 +1230,16 @@ Go To Zap including keyboard refusal, both Activity Message preview
 themes and the dark Home update notice. Application and entry processes
 exit normally. This evidence leaves the five unobserved cases open.
 
+The [original Home producer](https://github.com/edgepillar/syrius/actions/runs/44783466547/job/136452011623)
+records a reply to state command 61 with no probe deadline. Replaying
+the exact controller sequence places this read immediately after the
+Pillars Sort tap and before any APR pointer attempt. The reply does not
+identify the failed predicate. The revised controller waits for the
+existing Weight menu item before requiring a distinct menu route and
+probing the original APR gate. Focused tests cover delayed visibility
+and stop before the APR probe when the menu item is absent. A fresh
+Windows observation remains required.
+
 The [independent clean Windows reader at `512605b7`](https://github.com/edgepillar/syrius/actions/runs/44785850020/job/136460390319)
 verifies Debug and Release, all twelve baseline checks, 5,129 passing
 tests and one skip, and zero analyzer errors or warnings. This source

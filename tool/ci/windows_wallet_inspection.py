@@ -1299,7 +1299,8 @@ def observe_readonly_owner_seams(send, observed):
         wait('nodes_tab_pillars', 'pillars', expected=pillars)
         need(tap('nodes_tab_pillars', 'pillars', pillars) == pillars, 'ENTRY_REFUSED')
         wait('nodes_pillars_strip', 'pillars', expected=pillars)
-        menu = tap('pillars_sort', 'pillars', pillars)
+        tap('pillars_sort', 'pillars', pillars)
+        menu = wait('pillars_sort_weight', 'pillars')
         need(menu != pillars, 'ENTRY_REFUSED')
         probe('pillarAprEstimate', 'pillars_sort_apr_gate', 'pillars', menu)
         same('pillars', menu)
@@ -1348,7 +1349,8 @@ class SeamProbeTrace:
         'home_hero': 'home', 'strip_update_button': 'update',
         SURFACE_TOKEN_ROW: 'token_row', 'token_explorer_control': 'token_explorer',
         'nodes_tab_pillars': 'pillars_tab', 'nodes_pillars_strip': 'pillars_strip',
-        'pillars_sort': 'pillars_sort', 'pillars_sort_apr_gate': 'pillar_apr',
+        'pillars_sort': 'pillars_sort', 'pillars_sort_weight': 'pillars_sort_weight',
+        'pillars_sort_apr_gate': 'pillar_apr',
         'p2p_swaps_strip': 'swaps_strip', 'p2p_start_swap': 'swap_start',
         'p2p_warning_continue': 'swap_warning',
         'swap_counterparty_input': 'swap_draft', 'swap_start_terms_gate': 'swap_terms',
