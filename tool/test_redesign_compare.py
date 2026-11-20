@@ -27,7 +27,9 @@ import zipfile
 from PIL import Image, ImageOps
 
 from redesign_compare import (
+    Capture,
     ReportGallery,
+    Screen,
     _ArchiveReadCache,
     capture_bytes,
     generate_report,
@@ -62,6 +64,54 @@ class ArchiveReadCacheTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "manifest SHA-256"):
                 cache.read(path, digest)
             self.assertEqual(load.call_count, 2)
+
+    def test_interleaved_zip_members_keep_the_catalog_order(self) -> None:
+        root = Path("comparison-fixture")
+        src = root / "mockups" / "redesign" / "src" / "screens.html"
+        first, second = Screen(1, "first", "First", src), Screen(2, "second", "Second", src)
+        first_dark = first.stem("dark")
+        first_light = first.stem("light")
+        second_dark = second.stem("dark")
+        with io.BytesIO() as data, Image.new("RGBA", (4, 3)) as image:
+            image.save(data, format="PNG")
+            png = data.getvalue()
+        png_digest = hashlib.sha256(png).hexdigest()
+        captures, archives = {}, {}
+        for name, members in (("a.zip", (first_dark, second_dark)), ("b.zip", (first_light,))):
+            path = root / name
+            with io.BytesIO() as data:
+                with zipfile.ZipFile(data, "w") as archive:
+                    for stem in members:
+                        archive.writestr(f"{stem}.png", png)
+                archives[path] = data.getvalue()
+            digest = hashlib.sha256(archives[path]).hexdigest()
+            for stem in members:
+                captures[stem] = Capture(
+                    path, png_digest if stem != second_dark else "0" * 64,
+                    "a" * 40, f"{stem}.png", digest,
+                )
+        stat_result = SimpleNamespace(
+            st_dev=1, st_ino=2, st_size=3, st_mtime_ns=4, st_ctime_ns=5,
+        )
+        with (
+            patch.object(Path, "stat", return_value=stat_result),
+            patch("redesign_compare.screen_inventory", return_value=[first, second]),
+            patch("redesign_compare.screen_notes", return_value={"first": [], "second": []}),
+            patch("redesign_compare.select_actual_captures", return_value=captures),
+            patch("redesign_compare.bounded_bytes",
+                  side_effect=lambda path, _: archives.get(path, png)) as load,
+        ):
+            report = generate_report(
+                root, None, None, actual_manifest=root / "inputs.json",
+                target_source="a" * 40, required_size=(4, 3),
+            )
+        self.assertEqual([call.args[0] for call in load.call_args_list
+                          if call.args[0] in archives], list(archives))
+        self.assertEqual([pair["id"] for pair in report["pairs"]],
+                         [first_dark, first_light, second_dark, second.stem("light")])
+        self.assertEqual([pair["state"] for pair in report["pairs"]],
+                         ["unreviewed", "unreviewed", "invalid", "missing"])
+        self.assertEqual(report["summary"]["target_pairs"]["available"], 2)
 
 
 class CompareTests(unittest.TestCase):

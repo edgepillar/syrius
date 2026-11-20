@@ -37,9 +37,10 @@ Use --serve to view such a report on loopback. The gallery reads only the
 registered originals directly from their archives and renders difference PNGs
 on request. By default, --serve writes the page to compare/served, alongside
 the static report.
-During report generation a read of an unchanged archive can serve several
-adjacent pairs. Each PNG still has its own SHA-256 check. Gallery requests
-verify the current bytes on disk again.
+Report generation reads each unchanged archive together, with one archive
+buffer in memory. The report keeps its original screen and theme order.
+Each PNG has its own SHA-256 check. Gallery requests verify the current
+bytes on disk again.
 
 Manual reviews use screenshot stems as keys. For example:
 {
@@ -64,7 +65,7 @@ from __future__ import annotations
 
 import argparse
 import ast
-from collections import Counter
+from collections import Counter, defaultdict
 from collections.abc import Sequence
 from contextlib import closing
 from dataclasses import dataclass, replace
@@ -772,17 +773,31 @@ def generate_report(
         output.mkdir(parents=True, exist_ok=True)
     elif gallery is not None:
         raise ReportError("A gallery requires an output directory")
-    archive_cache = _ArchiveReadCache()
-    pairs = []
+    archive_groups: dict[
+        tuple[Path, str | None] | None,
+        list[tuple[Screen, str, Capture | None]],
+    ] = defaultdict(list)
     for screen in screens:
         for theme in THEMES:
+            capture = actuals.get(screen.stem(theme))
+            archive = (
+                (capture.path, capture.archive_sha256)
+                if capture is not None and capture.archive_member is not None
+                else None
+            )
+            archive_groups[archive].append((screen, theme, capture))
+    archive_cache = _ArchiveReadCache()
+    pairs = []
+    for group in archive_groups.values():
+        for screen, theme, capture in group:
             pair = compare_pair(
-                screen, theme, expected_dir, actuals.get(screen.stem(theme)), output,
+                screen, theme, expected_dir, capture, output,
                 reviews, required_size, target_source=target_source, write_diffs=write_diffs,
                 gallery=gallery, archive_cache=archive_cache,
             )
             pair["notes"] = notes[screen.id]
             pairs.append(pair)
+    pairs.sort(key=lambda pair: (pair["number"], THEMES.index(pair["theme"])))
     states = dict(Counter(pair["state"] for pair in pairs))
     summary = {
         "screens": len(screens),

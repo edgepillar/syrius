@@ -99,6 +99,34 @@ def jobs(*, positive=True):
 
 
 class ReaderTests(unittest.TestCase):
+    def test_navigation_measures_strip_edges_and_owned_badge(self):
+        files = []
+        background, card, ink = (100, 100, 100, 255), (120, 120, 120, 255), (80, 130, 90, 255)
+        empty = b'\0' + bytes(background) * 1280
+        surface = b'\0' + bytes(card) * 1280
+        badge = b'\0' + bytes(background) * 140 + bytes(ink) * 54 + bytes(background) * 1086
+        for theme in ('dark', 'light'):
+            for name in ('16-pillars', '23-tokens', '28-az'):
+                rows = [empty] * 780
+                if name == '16-pillars':
+                    rows[209:231] = [badge] * 22
+                else:
+                    rows[36:106] = [surface] * 70
+                    rows[118:150] = [surface] * 32
+                    if name == '28-az' and theme == 'light':
+                        rows[112] = surface
+                png = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
+                       + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
+                files.append((f'{name}-{theme}.png', png, stat.S_IFREG))
+        geometry = reader.navigation_component_geometry(packed(files))
+        strip = dict(strip_end=106, list_start=118)
+        self.assertEqual(geometry['strip_boundaries']['screens'], {
+            '23-tokens': dict(dark=strip, light=strip),
+            '28-az': dict(dark=strip, light=None),
+        })
+        self.assertEqual(geometry['pillar_owned_badge_bounds'], dict.fromkeys(
+            ('dark', 'light'), dict(left=140, top=209, right=193, bottom=230)))
+
     def test_actual_http_client_keeps_default_and_full_capture_request_budgets(self):
         class Response:
             status = 200
@@ -1212,6 +1240,8 @@ class ReaderTests(unittest.TestCase):
         self.assertFalse(observed['wallet_qualified'])
         self.assertEqual(observed['visual_matches'], 0)
         self.assertEqual(observed['plasma_bolt_bounds'], dict(dark=None, light=None))
+        self.assertEqual(observed['component_geometry']['pillar_owned_badge_bounds'],
+                         dict(dark=None, light=None))
         value, calls, text = self.run_main(details_catalog=True)
         self.assertTrue(value['native_inspection_qualified'])
         self.assertEqual(value['verified_catalog_png_count'], 10)

@@ -702,6 +702,26 @@ def plasma_bolt_bounds(raw, screen):
                            lambda red, green, blue: min(red, green, blue) >= 252)
 
 
+def navigation_component_geometry(raw):
+    """Measure the strip boundaries and owned badge in verified Navigation PNGs."""
+    column, top, bottom = 900, 100, 125
+    strips = {}
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        for screen in ('23-tokens', '28-az'):
+            themes = {}
+            for theme in producer.navigation.THEMES:
+                name = f'{screen}-{theme}.png'
+                bands = _vertical_bands(zipped, name, column, top, bottom)
+                themes[theme] = None
+                if len(bands) == 3 and bands[0][1] == bands[2][1]:
+                    themes[theme] = dict(strip_end=bands[1][0], list_start=bands[2][0])
+            strips[screen] = themes
+        badge = _ink_bounds(zipped, '16-pillars', (130, 221), (201, 239),
+                            lambda red, green, blue: green - red > 10 and green - blue > 7)
+    return dict(strip_boundaries=dict(column=column, scan_rows=[top, bottom], screens=strips),
+                pillar_owned_badge_bounds=badge)
+
+
 def details_licence_header_chevrons(raw):
     """Measure the three header icons on the verified Licences screen."""
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
@@ -971,6 +991,7 @@ def main(parent=None):
                 item['digest'][7:], item['size_in_bytes'], head, tree, run_id,
                 navigation_reference, pins)
             catalog['plasma_bolt_bounds'] = plasma_bolt_bounds(catalog_archive, '21-plasma')
+            catalog['component_geometry'] = navigation_component_geometry(catalog_archive)
             del catalog_archive
         elif settings_reference is not None:
             PHASE = 'settings_catalog_artifact'

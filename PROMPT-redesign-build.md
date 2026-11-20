@@ -701,6 +701,13 @@ requests still check the original archive and PNG digests on disk.
 The retained ten-image Details archive at `fb3b2a01` supplies all ten
 pairs in one archive read, with the individual PNG digest checks intact.
 All 24 comparison tests pass at `7aa2cdf9`.
+Report generation now processes interleaved pairs from each archive together
+with one archive buffer. A read-only check combines the verified Navigation
+and Details archives and reduces six archive reads to two, with identical
+94-row output and individual PNG digest checks. With no review file
+supplied, the 14 Navigation PNGs appear as unreviewed at their source.
+The ten Details PNGs retain their different source. The focused cache
+cases pass.
 The four [Welcome and Import originals](https://github.com/edgepillar/syrius/actions/runs/44582250018/job/135765713115)
 also read directly from their retained archive at 1280 by 780 using their
 original filenames, with no extracted image copies.
@@ -1446,6 +1453,12 @@ label, 11 px side insets and 22 px height floor. Larger text can grow the
 badge. The same ownership predicate and localized label still apply.
 The two existing theme cases check the badge. Native comparison and the
 whole-image verdicts remain open.
+
+The Navigation archive reader now reports these strip boundaries and badge
+bounds after the original artifact checks. It reproduces the earlier Windows
+and reference measurements in both themes. A strip with an unexpected band
+pattern has no reported boundary. The complete reader gate passes 124 cases.
+These component measurements leave the whole-image verdicts open.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
