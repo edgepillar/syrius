@@ -1681,7 +1681,9 @@ pass zero, half and full fade comparisons in both themes within one
 8-bit channel level. The first comparison reported a difference of 103
 with a fixture that reused the MaterialApp across themes. The corrected
 fixture starts each arm in its own settled theme and verifies the base
-color before capturing pixels.
+color before capturing pixels. The same Linux job passes application and
+integration analysis, the full non-chain test suite and generated-file
+verification.
 The [Windows motion capture](https://github.com/edgepillar/syrius/actions/runs/44744098640)
 and [Debug and Release baseline](https://github.com/edgepillar/syrius/actions/runs/44744248162)
 are running at the source containing the fade change.
