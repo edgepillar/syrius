@@ -2129,6 +2129,17 @@ disclosure raster starts confirmed after the observed settled layout exceed
 16 ms and peak at 49.934 ms. The retained timing records locate these peaks
 without identifying their rendering layers. V02 remains open.
 
+The [paired Windows reader at `22865948`](https://github.com/edgepillar/syrius/actions/runs/44781590135/job/136445387853)
+verifies both original windows after moving the licence rules outside
+the row paint boundaries. Page change peaks at 297.411 ms total versus
+169.633 ms for P06. Disclosure peaks at 139.065 ms versus 68.176 ms.
+Page change fails the ranked raster and distinct-frame comparisons.
+Disclosure also fails build, with one 25.670 ms build against zero
+P06 builds over 16 ms. Five raster starts at or after the observed
+settled disclosure exceed 16 ms and peak at 71.502 ms. All four windows
+retain frame-key gaps. This run leaves V02 open and does not isolate
+the timing effect of the paint-boundary change.
+
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references
 use rows 106 and 118. The delegation strip now uses the same compact inset
