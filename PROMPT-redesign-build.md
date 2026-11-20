@@ -740,6 +740,14 @@ Voting states only when the manifest identifies their designated catalog.
 An unlabelled image stays visible as a diagnostic. The prepared capture
 at the target source takes precedence over both unlabelled and alternate
 captures. Existing image hashes still bind any visual verdict.
+Working directly from the verified [Navigation](https://github.com/edgepillar/syrius/actions/runs/44580184381/job/135758423183)
+and [Lock](https://github.com/edgepillar/syrius/actions/runs/44579867208/job/135757308518)
+archives at `06eda3f7`, the report reads 20 PNGs with 12 designated pairs
+and eight diagnostic captures. In normal Lock, 770,284 dark and 787,221
+light pixels differ. Of those, 13,945 and 14,231 differ by at least 16 in
+one channel. The light Pillars image has 163,863 such pixels out of
+234,896 differing pixels. The report now includes that count to guide
+whole-image review.
 The designated Send draft comes from the Send confirmation catalog. The
 [independent reader at `06eda3f7`](https://github.com/edgepillar/syrius/actions/runs/44582555309/job/135766788891)
 verifies both filled drafts and both separate confirmation images. The

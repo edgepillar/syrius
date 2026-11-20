@@ -75,6 +75,13 @@ class ArchiveReadCacheTests(unittest.TestCase):
         with io.BytesIO() as data, Image.new("RGBA", (4, 3)) as image:
             image.save(data, format="PNG")
             png = data.getvalue()
+            image.putpixel((0, 0), (15, 0, 0, 0))
+            image.putpixel((1, 0), (0, 16, 0, 0))
+            image.putpixel((2, 0), (0, 0, 0, 17))
+            data.seek(0)
+            data.truncate()
+            image.save(data, format="PNG")
+            changed_png = data.getvalue()
         png_digest = hashlib.sha256(png).hexdigest()
         captures, archives = {}, {}
         for name, members in (("a.zip", (first_dark, second_dark)), ("b.zip", (first_light,))):
@@ -94,13 +101,18 @@ class ArchiveReadCacheTests(unittest.TestCase):
             st_dev=1, st_ino=2, st_size=3, st_mtime_ns=4, st_ctime_ns=5,
         )
         gallery = ReportGallery()
+
+        def read(path: Path, _: int) -> bytes:
+            if path in archives:
+                return archives[path]
+            return changed_png if path.name == f"{first_light}.png" else png
+
         with (
             patch.object(Path, "stat", return_value=stat_result),
             patch("redesign_compare.screen_inventory", return_value=[first, second]),
             patch("redesign_compare.screen_notes", return_value={"first": [], "second": []}),
             patch("redesign_compare.select_actual_captures", return_value=captures),
-            patch("redesign_compare.bounded_bytes",
-                  side_effect=lambda path, _: archives.get(path, png)) as load,
+            patch("redesign_compare.bounded_bytes", side_effect=read) as load,
         ):
             report = generate_report(
                 root, None, None, actual_manifest=root / "inputs.json",
@@ -114,6 +126,9 @@ class ArchiveReadCacheTests(unittest.TestCase):
                          ["unreviewed", "unreviewed", "invalid", "missing"])
         self.assertEqual(report["summary"]["target_pairs"]["available"], 2)
         self.assertEqual(report["pairs"][0]["score"]["changed_pixels"], 0)
+        self.assertEqual(report["pairs"][0]["score"]["changed_pixels_at_least_16"], 0)
+        self.assertEqual(report["pairs"][1]["score"]["changed_pixels"], 3)
+        self.assertEqual(report["pairs"][1]["score"]["changed_pixels_at_least_16"], 2)
         self.assertIn(f"capture/{first_dark}.png", gallery.assets)
         self.assertIn(f"diff/{first_light}.png", gallery.assets)
         self.assertNotIn(f"capture/{second_dark}.png", gallery.assets)

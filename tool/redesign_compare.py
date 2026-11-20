@@ -64,6 +64,8 @@ Manual reviews use screenshot stems as keys. For example:
 The other verdict is "mismatch". A review applies only to those two exact
 images. A pixel score, including 100%, leaves a pair unreviewed. This report
 does not update the prompt's Progress table or qualify motion or Windows.
+The score also counts pixels where at least one channel differs by 16 or
+more. This helps distinguish small colour differences from larger ones.
 """
 
 from __future__ import annotations
@@ -668,12 +670,14 @@ def compare_pair(
         mean = sum(ImageStat.Stat(diff).mean) / 4
         mask = difference_mask(diff)
         pixels = before.width * before.height
-        changed = pixels - mask.histogram()[0]
+        histogram = mask.histogram()
+        changed = pixels - histogram[0]
         pair["score"] = {
             "similarity_pct": round(100 * (1 - mean / 255), 4),
             "mean_absolute_error_rgba": round(mean, 4),
             "changed_pixels": changed,
             "changed_pct": round(100 * changed / pixels, 4),
+            "changed_pixels_at_least_16": sum(histogram[16:]),
         }
         if write_diffs:
             if gallery is None:
@@ -712,6 +716,9 @@ def render_html(manifest: dict[str, object]) -> str:
             if score is None
             else f"Pixel similarity {score['similarity_pct']:.4f}%; changed pixels {score['changed_pct']:.4f}%"
         )
+        if score is not None and "changed_pixels_at_least_16" in score:
+            count = score["changed_pixels_at_least_16"]
+            description += f". {count:,} pixels have a channel difference of at least 16"
         source = pair["actual"].get("source_sha")
         actual_label = f"Actual at {source[:12]}" if source is not None else "Actual"
         figures = image_cell("Mockup", pair["expected"]) + image_cell(actual_label, pair["actual"])
