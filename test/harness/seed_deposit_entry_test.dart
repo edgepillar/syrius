@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/p2p_swap_warning_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/start_native_swap_modal.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../harness/app/agent.dart';
