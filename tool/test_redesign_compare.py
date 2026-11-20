@@ -713,8 +713,13 @@ class CompareTests(unittest.TestCase):
                 self.assertEqual(summary["visual_review"], "INCOMPLETE")
                 self.assertFalse((self.output / "diffs").exists())
                 page = (self.output / "index.html").read_text(encoding="utf-8")
-                self.assertEqual("Pairs still needed at this commit" in page, wrong_size)
-                self.assertEqual(f'href="#{self.stem}"' in page, wrong_size)
+                needed_heading = "Pairs still needed at this commit"
+                self.assertEqual(needed_heading in page, wrong_size)
+                if wrong_size:
+                    needed = page.split(needed_heading, 1)[1].split("</details>", 1)[0]
+                    self.assertIn(f'href="#{self.stem}"', needed)
+                review = page.split("Available pairs to review", 1)[1].split("</details>", 1)[0]
+                self.assertEqual(f'href="#{self.stem}"' in review, not wrong_size)
 
     def test_target_source_requires_manifest_before_output(self) -> None:
         with self.assertRaisesRegex(ValueError, "requires a capture manifest"):
