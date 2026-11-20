@@ -34,7 +34,8 @@ void main() {
         key: const Key('plasma_page_mark'),
         dimension: size,
       );
-      final Widget well = PlasmaWell(child: mark);
+      final double overhang = size * .15;
+      final Widget well = PlasmaWell(overhang: overhang, child: mark);
       Widget under(ThemeData theme) => MaterialApp(
         theme: theme,
         home: Scaffold(body: Center(child: well)),
@@ -57,13 +58,16 @@ void main() {
         expect(halo.shape, BoxShape.circle);
         expect(halo.color, isNull);
         final RadialGradient gradient = halo.gradient! as RadialGradient;
-        expect(
-          gradient.colors.first.withValues(alpha: 1),
-          AppColors.plasmaPink,
-        );
-        expect(gradient.colors[1].withValues(alpha: 1), AppColors.qsrColor);
+        expect(gradient.colors.first.r, greaterThan(gradient.colors[2].r));
+        expect(gradient.colors.first.a, greaterThan(gradient.colors[2].a));
+        expect(gradient.colors[4].withValues(alpha: 1), AppColors.qsrColor);
         expect(gradient.colors.last.a, 0);
-        expect(tester.getRect(haloFinder), tester.getRect(markFinder));
+        final Rect haloBounds = tester.getRect(haloFinder);
+        final Rect markBounds = tester.getRect(markFinder);
+        expect(haloBounds.width, closeTo(size + 2 * overhang, .001));
+        expect(haloBounds.height, closeTo(size + 2 * overhang, .001));
+        expect(haloBounds.center.dx, closeTo(markBounds.center.dx, .001));
+        expect(haloBounds.center.dy, closeTo(markBounds.center.dy, .001));
         expect(tester.getSize(find.byWidget(well)), Size.square(size));
         expect(tester.element(markFinder), same(originalMark));
         expect(

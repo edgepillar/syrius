@@ -159,11 +159,11 @@ class _Mark extends StatelessWidget {
             children: <Widget>[
               // The mark paints in its own layer (PlasmaGlow holds the
               // RepaintBoundary), so its frames repaint nothing else here.
-              // The halo stays as wide as the reference slot;
-              // reducing that slot preserves the heatmap's own proportions.
+              // The halo can extend beyond the bolt without changing layout.
               Center(
                 child: _WithPlasmaGeneration(
                   builder: ({required bool generating}) => PlasmaWell(
+                    overhang: size * .15,
                     child: PlasmaGlow(
                       key: const Key('plasma_page_mark'),
                       size: size,

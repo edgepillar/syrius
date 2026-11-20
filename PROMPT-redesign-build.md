@@ -1685,6 +1685,15 @@ verifies the prepared rest and confirmation captures in both themes and
 normal required closure. The six images are available for whole-screen
 review under V01.
 
+The [verified Navigation capture at `61e72335`](https://github.com/edgepillar/syrius/actions/runs/44667324488/job/136059687285)
+shows a narrower and bluer Plasma halo in both themes. At 38 px from
+the centre, the dark capture averages RGB (34, 46, 61), against
+(55, 54, 87) in the reference. The light capture averages
+(218, 230, 245), against (207, 206, 239). The backing now approximates
+the sampled blurred profile with a single radial paint. A 120 px
+mark has a 78 px halo radius. Playback keeps its original shader and
+bolt geometry. Fresh native frames and whole-image verdicts remain open.
+
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
 | Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Verified native early, late and settled samples. | Inspect the retained images and verify the running 400 ms settle. |

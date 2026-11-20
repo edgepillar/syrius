@@ -13,15 +13,20 @@ class PlasmaWell extends StatelessWidget {
   /// outside the layout so the page around does not move.
   final double overhang;
 
+  // Sample the reference's blurred pink-to-blue profile as a gradient.
+  // Keeping it in one paint avoids a blur layer behind the moving mark.
   static final BoxDecoration _halo = BoxDecoration(
     shape: BoxShape.circle,
     gradient: RadialGradient(
       colors: <Color>[
-        AppColors.plasmaPink.withValues(alpha: .36),
-        AppColors.qsrColor.withValues(alpha: .17),
+        const Color(0x8B9B59CA),
+        const Color(0x7C8D59CB),
+        const Color(0x45635DDA),
+        const Color(0x19355AE3),
+        AppColors.qsrColor.withValues(alpha: .025),
         AppColors.qsrColor.withValues(alpha: 0),
       ],
-      stops: const <double>[0, .45, 1],
+      stops: const <double>[0, .26, .49, .69, .85, 1],
     ),
   );
 
