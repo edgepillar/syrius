@@ -372,6 +372,20 @@ void main() {
     expect(done, 1);
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
     expect(find.text('Click or press a key to skip'), findsNothing);
+    final Finder waiting = find.byKey(
+      const ValueKey<String>('launch_waiting'),
+    );
+    final RenderRepaintBoundary waitingPaint =
+        tester.renderObject<RenderRepaintBoundary>(waiting);
+    expect(
+      tester.getSize(waiting),
+      tester.getSize(find.byType(LinearProgressIndicator)),
+    );
+    await tester.pump();
+    final int priorPaints = waitingPaint.debugAsymmetricPaintCount;
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(waitingPaint.debugAsymmetricPaintCount, greaterThan(priorPaints));
+    expect(session.film.frame, 7);
     await tester.tapAt(const Offset(100, 100));
     await tester.pump(const Duration(seconds: 1));
     expect(done, 1);

@@ -589,10 +589,13 @@ class _StartupStageState extends State<_StartupStage>
                           child: SizedBox(
                             width: tokens.launchWaitingWidth,
                             height: tokens.launchWaitingHeight,
-                            child: LinearProgressIndicator(
-                              color: tokens.znn,
-                              backgroundColor: tokens.line,
-                              minHeight: tokens.launchWaitingHeight,
+                            child: RepaintBoundary(
+                              key: const ValueKey<String>('launch_waiting'),
+                              child: LinearProgressIndicator(
+                                color: tokens.znn,
+                                backgroundColor: tokens.line,
+                                minHeight: tokens.launchWaitingHeight,
+                              ),
                             ),
                           ),
                         ),

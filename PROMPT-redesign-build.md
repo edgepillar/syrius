@@ -1175,6 +1175,12 @@ while it still covers the next view, and one during the handoff.
 The largest excess is 16.493 ms in the covered interval, from a 119.162 ms
 raster against 102.669 ms in P06. V02 remains open.
 
+While the final film frame covers the initializing wallet, the moving
+progress indicator now paints in its own layer. The existing startup test
+checks that it repaints independently and the held frame stays in place.
+The indicator geometry, clock and original initialization are unchanged.
+The timing effect needs a new paired Windows measurement.
+
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
 calls `jumpTo` only when the extent differs from the current offset, avoiding
