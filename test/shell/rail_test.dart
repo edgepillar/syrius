@@ -46,7 +46,9 @@ Finder _tooltip(String name, [String? shortcut]) => find.byWidgetPredicate(
 Finder _shownTooltip(String name, {bool hasShortcut = true}) =>
     find.byWidgetPredicate((Widget widget) {
       if (widget is! RichText) return false;
-      final String text = widget.text.toPlainText(includeSemanticsLabels: false);
+      final String text = widget.text.toPlainText(
+        includeSemanticsLabels: false,
+      );
       return hasShortcut ? text.startsWith('$name\uFFFC') : text == name;
     });
 
