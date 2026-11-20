@@ -1281,6 +1281,13 @@ lab revalidations completes. The original inspection retains its final
 `PRODUCTION_UNPROVEN` failure and incomplete lab closure. The eleven
 observations establish the scoped control outcomes for this source.
 
+The [independent read at `1aaae34c`](https://github.com/edgepillar/syrius/actions/runs/44835172537/job/136629622766)
+verifies all eleven Home, Activity, Go To, Pillars and Swap observations.
+Both lab revalidations complete. The wallet and entry exit zero, and
+the required processes close without forced cleanup. This satisfies the
+scoped interface and lab closure check for that producer source. V06
+still requires the remaining end-state evidence.
+
 The [independent clean Windows reader at `512605b7`](https://github.com/edgepillar/syrius/actions/runs/44785850020/job/136460390319)
 verifies Debug and Release, all twelve baseline checks, 5,129 passing
 tests and one skip, and zero analyzer errors or warnings. This source
