@@ -374,7 +374,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                         attemptedSlots=attempted, samples=live_rows, **progress), motion_theme)
                 except startup.Failure:
                     raise archive.Refused('INSPECTION_REFUSED') from None
-        film_bounds, picker_divider_rows = [], {}
+        film_bounds, picker_divider_rows, wrong_action_gradient = [], {}, {}
         for index, (row, name) in enumerate(zip(captures, () if motion else files)):
             theme, phase = divmod(index, per_theme)
             actor = 0 if quiz else 2 * theme + 1
@@ -397,6 +397,11 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                 film_bounds.append(lock_film_bounds(encoded))
                 if row['screen'] == 'lock-pick':
                     picker_divider_rows[row['theme']] = lock_picker_divider_row(encoded, row['theme'])
+                if row['screen'] == 'lock-wrong':
+                    from .inspect_windows_qualification import primary_gradient_error
+
+                    wrong_action_gradient[row['theme']] = primary_gradient_error(
+                        encoded, (459, 525, 821, 571))
             else:
                 launch.entry.png_bytes(encoded)
         archive.need(set(names) == {'manifest.json', *(row['file'] for row in captures)})
@@ -451,6 +456,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         summary['states'] = [{key: row[key] for key in sorted(frame_fields)} for row in captures]
         summary['film_pixel_bounds'] = film_bounds
         summary['picker_divider_rows'] = picker_divider_rows
+        summary['wrong_action_gradient'] = wrong_action_gradient
     else:
         summary['frames'] = 56
         summary['frame'] = 55 if settle else 23

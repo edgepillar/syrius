@@ -1148,6 +1148,11 @@ def main(parent=None):
             if schema == producer.details.FAMILY_SCHEMAS['sentinel-fixture']:
                 with zipfile.ZipFile(io.BytesIO(catalog_archive)) as zipped:
                     catalog['sentinel_table_edges'] = _nodes_table_edges(zipped, '18-sentinels')
+            if schema == producer.details.FAMILY_SCHEMAS['wallet-ready']:
+                with zipfile.ZipFile(io.BytesIO(catalog_archive)) as zipped:
+                    catalog['primary_gradient'] = {theme: windows.primary_gradient_error(
+                        base64.b64encode(zipped.read(f'47-wallet-ready-{theme}.png')).decode('ascii'),
+                        (403, 464, 877, 510)) for theme in producer.THEMES}
             del catalog_archive
         elif navigation_reference is not None:
             PHASE = 'navigation_catalog_artifact'

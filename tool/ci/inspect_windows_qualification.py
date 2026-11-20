@@ -3,6 +3,7 @@
 import base64
 import io
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -297,6 +298,31 @@ def _png_crop(encoded, columns, lines):
 
 def _opaque(rows, channels):
     return channels == 3 or all(alpha == 255 for row in rows for alpha in row[3::4])
+
+
+def primary_gradient_error(encoded, bounds):
+    """Compare a resting primary action's fill with the approved palette."""
+    left, top, right, bottom = bounds
+    y = (top + bottom) // 2
+    width = right - left
+    columns = [left + width * tenth // 10 for tenth in (1, 2, 8, 9)]
+    rows, channels = _png_crop(encoded, (columns[0], columns[-1] + 1), (y, y + 1))
+    if not _opaque(rows, channels):
+        return None
+    angle = math.pi / 18
+    span = width * math.cos(angle) + (bottom - top) * math.sin(angle)
+    palette = ((0, 213, 87), (53, 183, 160), (0, 97, 235))
+    errors = []
+    for x in columns:
+        position = .5 + ((x + .5 - (left + right) / 2) * math.cos(angle)
+                         + (y + .5 - (top + bottom) / 2) * math.sin(angle)) / span
+        index = int(position >= .55)
+        fraction = position / .55 if index == 0 else (position - .55) / .45
+        offset = (x - columns[0]) * channels
+        errors.extend(abs(value - (start + fraction * (end - start)))
+            for value, start, end in zip(rows[0][offset:offset + 3], palette[index], palette[index + 1]))
+    return dict(max_channel_error_milli=round(max(errors) * 1000),
+                mean_channel_error_milli=round(sum(errors) * 1000 / len(errors)))
 
 
 def _connector_coverage(rows, channels):
