@@ -142,9 +142,11 @@ class ShellSymbol extends StatelessWidget {
 TooltipPositionDelegate _railTooltipBeside(
   TextDirection direction,
   double gap,
+  double verticalOffset,
 ) => (TooltipPositionContext context) {
   final double reach = context.targetSize.width / 2 + gap;
-  final double top = context.target.dy - context.tooltipSize.height / 2;
+  final double top =
+      context.target.dy - context.tooltipSize.height / 2 + verticalOffset;
   final double lowest = math.max(
     0,
     context.overlaySize.height - context.tooltipSize.height,
@@ -522,6 +524,7 @@ class _Rail extends StatelessWidget {
   }
 
   Widget _buildItem(BuildContext context, RailEntry entry, String? shortcut) {
+    final AppTokens tokens = AppTokens.of(context);
     return _RailButton(
       hitKey: ValueKey<String>('nav_${entry.tab.name}'),
       iconKey: ValueKey<String>('rail_icon_${entry.tab.name}'),
@@ -530,7 +533,10 @@ class _Rail extends StatelessWidget {
           entry.buildIcon(context, color: color),
       name: entry.localizedLabel(context),
       shortcut: shortcut,
-      height: AppTokens.of(context).railItemHeight,
+      height: tokens.railItemHeight,
+      tooltipVerticalOffset: entry.tab == Tabs.notifications
+          ? tokens.railNotificationTooltipOffset
+          : 0,
       labelled: labelsVisible,
       labelOpacity: labelOpacity,
       selected: entry.tab == selected,
@@ -562,6 +568,7 @@ class _RailButton extends StatefulWidget {
     this.selected = false,
     this.hasUnseen = false,
     this.quiet = false,
+    this.tooltipVerticalOffset = 0,
   });
 
   final Key hitKey;
@@ -576,6 +583,7 @@ class _RailButton extends StatefulWidget {
   final bool selected;
   final bool hasUnseen;
   final bool quiet;
+  final double tooltipVerticalOffset;
   final VoidCallback onTap;
 
   @override
@@ -701,6 +709,7 @@ class _RailButtonState extends State<_RailButton>
               positionDelegate: _railTooltipBeside(
                 Directionality.of(context),
                 tokens.cardGap,
+                widget.tooltipVerticalOffset,
               ),
               child: Material(
                 type: MaterialType.transparency,

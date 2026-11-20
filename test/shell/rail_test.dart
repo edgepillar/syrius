@@ -294,6 +294,15 @@ void main() {
         tip.center.dy,
         closeTo(tester.getCenter(find.byKey(_nav(Tabs.transfer))).dy, 1),
       );
+      final Finder bell = find.byKey(_nav(Tabs.notifications));
+      final Offset bellCenter = tester.getCenter(bell);
+      await mouse.moveTo(bellCenter);
+      await tester.pumpAndSettle();
+      final Rect notificationTip = tester.getRect(
+        _shownTooltip('Notifications'),
+      );
+      expect(notificationTip.left, greaterThan(_rail(tester).right));
+      expect(notificationTip.center.dy, closeTo(bellCenter.dy + 7, 1));
     });
 
     testWidgets('open labels suppress duplicate floating tooltips', (

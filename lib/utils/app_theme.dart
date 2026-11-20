@@ -349,6 +349,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   EdgeInsets get railTooltipPadding =>
       const EdgeInsets.symmetric(horizontal: 10, vertical: 5);
 
+  /// The Notifications tooltip sits below the centre of its rail item.
+  double get railNotificationTooltipOffset => 7;
+
   /// The short label in the tooltip beside the rail.
   TextStyle get railTooltipText => bodyText.copyWith(fontSize: 12.5);
 
