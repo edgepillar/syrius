@@ -260,6 +260,19 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(result['normal_entry_exits'], 2)
         self.assertTrue(all(result['no_added_reported_slow_frames'].values()))
 
+    def test_peak_total_reports_the_two_observed_waits(self):
+        window = dict(schema=1, scope='harness_frame_window', windowUs=100000,
+                      frames=[[0, 1000, 1000, 2000, 5000],
+                              [1, 5000, 3000, 5000, 16000]])
+        for wait in (0, 3000, 8000):
+            timing = inspect._window_diagnostics(dict(window, peakBuildWaitUs=wait), None, None)
+            self.assertEqual(timing['peak_total_parts_us'], dict(
+                build=3000, raster=5000, outside_build_raster=8000,
+                wait_for_build=wait, wait_for_raster=8000-wait))
+        for refusal in (-1, 8001, True):
+            with self.assertRaises(pair.shared.launch.startup.Failure):
+                pair.shared.launch.frame_timing_rows(dict(window, peakBuildWaitUs=refusal))
+
     def test_retained_process_and_window_durations_are_bounded_observations(self):
         offered = fixture()
         observation = offered['samples']['current']['observation']

@@ -20,8 +20,10 @@ ui.FrameTiming _frame(int number, int start) => ui.FrameTiming(
 
 void main() {
   test('late timings use build time and need a later frame', () async {
-    final HarnessFrameWindow window = HarnessFrameWindow(100000)
-      ..observe(<ui.FrameTiming>[_frame(2, 90000), _frame(3, 100000)]);
+    final HarnessFrameWindow window = HarnessFrameWindow(
+      100000,
+      includePeakBuildWait: true,
+    )..observe(<ui.FrameTiming>[_frame(2, 90000), _frame(3, 100000)]);
     bool requested = false;
     bool delivered = false;
     final Future<Map<String, Object?>> result = window.finish(
@@ -39,6 +41,7 @@ void main() {
     window.observe(<ui.FrameTiming>[_frame(5, 150000), _frame(6, 160000)]);
     final Map<String, Object?> receipt = await result;
     expect(receipt['windowUs'], 50000);
+    expect(receipt['peakBuildWaitUs'], 1000);
     expect(receipt['frames'], <List<int>>[
       <int>[0, 0, 10000, 5000, 17000],
       <int>[1, 49999, 10000, 5000, 17000],

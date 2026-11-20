@@ -6189,7 +6189,7 @@ class HarnessAgent {
           throw HarnessError(refusal);
         }
         final int started = dev.Timeline.now;
-        _frameWindow = HarnessFrameWindow(started);
+        _frameWindow = HarnessFrameWindow(started, includePeakBuildWait: true);
         _interactiveStartUs = started;
         _disclosurePhasesUs.clear();
         return <String, Object?>{'frameWindow': 'collecting'};

@@ -44,6 +44,7 @@ MAX_PAIRED_TIMING_FRAMES = 4096
 MAX_PAIRED_TIMING_US = 120000000
 PAIRED_TIMING_REPLY_CAP = 128 * 1024
 TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frames')
+PEAK_BUILD_WAIT_FIELD = 'peakBuildWaitUs'
 PACKED_TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frameCount', 'packedFrames')
 STARTUP_PHASE_FIELD = 'startupPhaseUs'
 STARTUP_AUTH_FIELD = 'startupAuthInShellUs'
@@ -217,7 +218,8 @@ def frame_timing_rows(value, *, allow_packed=False):
         and value.get('scope') == 'harness_frame_window'
         and startup.integer(value.get('windowUs'), 1, window_limit))
     duration = value['windowUs']
-    if value['schema'] == 1 and set(value) == set(TIMING_FIELDS):
+    fields = set(TIMING_FIELDS)
+    if value['schema'] == 1 and set(value) in (fields, fields | {PEAK_BUILD_WAIT_FIELD}):
         rows = value['frames']
         need(type(rows) is list and 0 < len(rows) <= MAX_TIMING_FRAMES)
     elif allow_packed and value['schema'] == 2:
@@ -242,6 +244,9 @@ def frame_timing_rows(value, *, allow_packed=False):
             and previous_start <= start < duration and start >= 0
             and build >= 0 and raster >= 0 and build + raster <= total <= MAX_TIMING_US)
         previous_id, previous_start = number, start
+    if PEAK_BUILD_WAIT_FIELD in value:
+        _, _, build, raster, total = max(rows, key=lambda row: row[4])
+        need(startup.integer(value[PEAK_BUILD_WAIT_FIELD], 0, total - build - raster))
     return rows
 
 

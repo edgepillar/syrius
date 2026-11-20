@@ -10,6 +10,7 @@ typedef _Sample = ({
   int build,
   int raster,
   int total,
+  int waitForBuild,
 });
 
 /// Fixed reasons the original collector cannot qualify a frame interval.
@@ -45,7 +46,14 @@ class HarnessFrameWindowRefused implements Exception {
 /// reported timings on the same raster stream.
 class HarnessFrameWindow {
   /// Begins collecting at a time on the engine's Dart timeline clock.
-  HarnessFrameWindow(this._startUs, {this._packed = false});
+  ///
+  /// Interactive measurements can retain the wait before build for the
+  /// longest frame, using the engine's vsync and build timestamps.
+  HarnessFrameWindow(
+    this._startUs, {
+    this._packed = false,
+    this._includePeakBuildWait = false,
+  });
 
   /// Maximum samples in the ordinary JSON reply.
   static const int maxFrames = 512;
@@ -58,6 +66,7 @@ class HarnessFrameWindow {
 
   final int _startUs;
   final bool _packed;
+  final bool _includePeakBuildWait;
   int get _windowLimitUs => _packed ? _maxPackedWindowUs : _maxWindowUs;
   final List<_Sample> _samples = <_Sample>[];
   final Completer<void> _delivered = Completer<void>();
@@ -89,6 +98,9 @@ class HarnessFrameWindow {
       final int build = timing.buildDuration.inMicroseconds;
       final int raster = timing.rasterDuration.inMicroseconds;
       final int total = timing.totalSpan.inMicroseconds;
+      final int waitForBuild = _includePeakBuildWait
+          ? start - timing.timestampInMicroseconds(ui.FramePhase.vsyncStart)
+          : 0;
       if (_samples.length == capacity) {
         _refuse(HarnessFrameWindowRefusal.frameLimit);
         return;
@@ -96,7 +108,8 @@ class HarnessFrameWindow {
       if (start - _startUs >= _windowLimitUs ||
           build < 0 ||
           raster < 0 ||
-          total < build + raster ||
+          waitForBuild < 0 ||
+          total < build + raster + waitForBuild ||
           total > _maxWindowUs) {
         _refuse(HarnessFrameWindowRefusal.frameTiming);
         return;
@@ -107,6 +120,7 @@ class HarnessFrameWindow {
         build: build,
         raster: raster,
         total: total,
+        waitForBuild: waitForBuild,
       ));
     }
   }
@@ -148,6 +162,10 @@ class HarnessFrameWindow {
       'schema': 1,
       'scope': 'harness_frame_window',
       'windowUs': duration,
+      if (_includePeakBuildWait)
+        'peakBuildWaitUs': _samples
+            .reduce((a, b) => a.total >= b.total ? a : b)
+            .waitForBuild,
       'frames': <List<int>>[
         for (final _Sample sample in _samples)
           <int>[

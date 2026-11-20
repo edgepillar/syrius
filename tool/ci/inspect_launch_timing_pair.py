@@ -228,6 +228,11 @@ def window_diagnostics(window, *, peak_starts=False):
             # time includes both the wait for build and the wait for raster.
             peak_total_parts_us=dict(
                 build=build, raster=raster, outside_build_raster=total - build - raster))
+        wait_for_build = window.get(pair.launch.PEAK_BUILD_WAIT_FIELD)
+        if wait_for_build is not None:
+            summary['peak_total_parts_us'].update(
+                wait_for_build=wait_for_build,
+                wait_for_raster=total - build - raster - wait_for_build)
     if pair.launch.STARTUP_PHASE_FIELD in window:
         offsets = window[pair.launch.STARTUP_PHASE_FIELD]
         frames, raster, total = [0] * 5, [0] * 5, [0] * 5
