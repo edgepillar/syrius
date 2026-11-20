@@ -38,8 +38,12 @@ class EntryField extends StatefulWidget {
     this.paintCaption = true,
     this.captionProgress,
     this.launchFilm,
+    this.fadeLightsOnOpaqueBase = false,
     super.key,
-  });
+  }) : assert(
+         !fadeLightsOnOpaqueBase || captionProgress != null,
+         'Fading the entry lights requires launch progress.',
+       );
 
   /// Whether this field supplies the native caption backdrop.
   final bool paintCaption;
@@ -49,6 +53,10 @@ class EntryField extends StatefulWidget {
 
   /// The covering film. Preparation starts during its final frame hold.
   final LaunchFilmController? launchFilm;
+
+  /// Fades the lights during launch when the host already paints the opaque
+  /// entry background beneath this field.
+  final bool fadeLightsOnOpaqueBase;
 
   @override
   State<EntryField> createState() => _EntryFieldState();
@@ -372,6 +380,10 @@ class _EntryFieldState extends State<EntryField>
             child: CustomPaint(
               painter: _EntryFieldPainter(
                 seconds: paintedSeconds,
+                reveal: widget.fadeLightsOnOpaqueBase
+                    ? widget.captionProgress
+                    : null,
+                revealPoint: tokens.launchSettleReference.progress,
                 background: tokens.background,
                 green: tokens.znn,
                 blue: tokens.qsr,
@@ -471,6 +483,8 @@ class _EntryFieldRaster {
 class _EntryFieldPainter extends CustomPainter {
   _EntryFieldPainter({
     required this.seconds,
+    required this.reveal,
+    required this.revealPoint,
     required this.background,
     required this.green,
     required this.blue,
@@ -478,9 +492,13 @@ class _EntryFieldPainter extends CustomPainter {
     required this.raster,
     required this.pixelRatio,
     required this.captionHeight,
-  }) : super(repaint: seconds);
+  }) : super(repaint: reveal == null
+          ? seconds
+          : Listenable.merge(<Listenable>[seconds, reveal]));
 
   final ValueListenable<double> seconds;
+  final ValueListenable<double>? reveal;
+  final double revealPoint;
   final Color background;
   final Color green;
   final Color blue;
@@ -492,6 +510,12 @@ class _EntryFieldPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty) return;
+    final double opacity = reveal == null
+        ? 1
+        : (reveal!.value / revealPoint).clamp(0.0, 1.0);
+    if (opacity == 0) return;
+    // The shell already provides this same opaque base. Fading only the
+    // light samples avoids an intermediate layer the size of the window.
     canvas.drawRect(Offset.zero & size, Paint()..color = background);
     _paintLights(
       canvas,
@@ -503,6 +527,7 @@ class _EntryFieldPainter extends CustomPainter {
       raster: raster,
       pixelRatio: pixelRatio,
       captionHeight: captionHeight,
+      opacity: opacity,
     );
   }
 
@@ -517,6 +542,7 @@ class _EntryFieldPainter extends CustomPainter {
     required _EntryFieldRaster raster,
     required double pixelRatio,
     required double captionHeight,
+    double opacity = 1,
   }) {
     final _EntryRasterKey key = _EntryFieldRaster.keyFor(
       size, captionHeight: captionHeight, green: green, blue: blue, pink: pink,
@@ -539,14 +565,18 @@ class _EntryFieldPainter extends CustomPainter {
     final _EntryRasterImage? cached = raster.imageFor(key);
     if (cached == null) {
       // Oversized surfaces keep the original paint instead of downsampling.
-      _paintBlurredField(canvas, field, green: green, blue: blue, pink: pink);
+      _paintBlurredField(
+        canvas, field, green: green, blue: blue, pink: pink, opacity: opacity,
+      );
     } else {
       final ui.Image image = cached.image;
       canvas.drawImageRect(
         image,
         Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
         cached.bounds,
-        Paint()..filterQuality = FilterQuality.low,
+        Paint()
+          ..filterQuality = FilterQuality.low
+          ..color = Colors.white.withValues(alpha: opacity),
       );
     }
     canvas.restore();
@@ -554,6 +584,7 @@ class _EntryFieldPainter extends CustomPainter {
 
   static void _paintBlurredField(Canvas canvas, Rect field, {
     required Color green, required Color blue, required Color pink,
+    double opacity = 1,
   }) {
     // Blur the combined transparent field, then composite it at .35. The
     // window base is outside this layer. Its 60 logical-pixel sigma and the
@@ -561,7 +592,7 @@ class _EntryFieldPainter extends CustomPainter {
     canvas.saveLayer(
       field.inflate(_entryBlurBleed),
       Paint()
-        ..color = const Color.fromRGBO(255, 255, 255, 0.35)
+        ..color = Colors.white.withValues(alpha: 0.35 * opacity)
         ..imageFilter = ui.ImageFilter.blur(
           sigmaX: _entryBlurSigma,
           sigmaY: _entryBlurSigma,
@@ -617,6 +648,8 @@ class _EntryFieldPainter extends CustomPainter {
   @override
   bool shouldRepaint(_EntryFieldPainter old) =>
       old.seconds != seconds ||
+      old.reveal != reveal ||
+      old.revealPoint != revealPoint ||
       old.background != background ||
       old.green != green ||
       old.blue != blue ||

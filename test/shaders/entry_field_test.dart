@@ -521,6 +521,47 @@ void main() {
     },
   );
 
+  testWidgets('launch lights fade over the same opaque shell in both themes', (
+    WidgetTester tester,
+  ) async {
+    _prepare(tester);
+    final ValueNotifier<double> progress = ValueNotifier<double>(0);
+    addTearDown(progress.dispose);
+    final Finder body = find.byKey(_clipFrame);
+    for (final bool light in <bool>[false, true]) {
+      final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
+      final double checkpoint = tokens.launchSettleReference.progress;
+      Widget surface(Widget field) => _host(
+        light: light,
+        enabled: false,
+        child: RepaintBoundary(
+          key: _clipFrame,
+          child: ColoredBox(color: tokens.background, child: field),
+        ),
+      );
+      for (final double weight in <double>[0, 0.5, 1]) {
+        progress.value = checkpoint * weight;
+        await tester.pumpWidget(surface(
+          Opacity(opacity: weight, child: const EntryField()),
+        ));
+        await tester.pump();
+        final Uint8List reference = await _pixels(tester, surface: body);
+        await tester.pumpWidget(surface(EntryField(
+          captionProgress: progress,
+          fadeLightsOnOpaqueBase: true,
+        )));
+        await tester.pump();
+        final Uint8List paint = await _pixels(tester, surface: body);
+        int maxError = 0;
+        for (int i = 0; i < paint.length; i++) {
+          maxError = math.max(maxError, (paint[i] - reference[i]).abs());
+        }
+        // Group opacity can introduce one extra 8-bit rounding step.
+        expect(maxError, lessThanOrEqualTo(1), reason: 'weight $weight');
+      }
+    }
+  });
+
   testWidgets(
     'the blurred paint stays clipped to its actual client rectangle',
     (

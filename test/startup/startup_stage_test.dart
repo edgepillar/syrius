@@ -414,15 +414,10 @@ void main() {
         ).opacity,
         session.motion.value,
       );
-      expect(
-        tester.widget<Opacity>(
-          find.ancestor(
-            of: find.byType(EntryField),
-            matching: find.byType(Opacity),
-          ).first,
-        ).opacity,
-        1,
-      );
+      expect(tester.widget<EntryField>(find.byType(EntryField))
+          .fadeLightsOnOpaqueBase, isTrue);
+      expect(find.ancestor(of: find.byType(EntryField),
+        matching: find.byType(Opacity)), findsNothing);
       await tester.pump(const Duration(milliseconds: 200) - referenceTime);
       expect(_stageRect(tester).width, lessThan(full.width));
       expect(

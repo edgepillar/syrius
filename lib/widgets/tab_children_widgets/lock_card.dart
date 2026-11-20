@@ -133,6 +133,7 @@ class _LockCardState extends State<LockCard>
   EntryField _buildStartupBackdrop() => EntryField(
     captionProgress: widget.startup?.motion,
     launchFilm: widget.startup?.film,
+    fadeLightsOnOpaqueBase: widget.startup != null,
   );
 
   @override
@@ -282,13 +283,7 @@ class _LockCardState extends State<LockCard>
             builder: (_, double progress, Widget? child) => TickerMode(
               // The shader starts with the first visible backdrop frame.
               enabled: progress > 0,
-              child: Opacity(
-                // The reference shows the full-strength field behind the
-                // partially transparent card.
-                opacity: (progress / tokens.launchSettleReference.progress)
-                    .clamp(0.0, 1.0),
-                child: child,
-              ),
+              child: child!,
             ),
           )
         else
