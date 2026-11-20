@@ -1105,7 +1105,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
   double get aboutLicenceRowHeight => 39.25;
 
   /// The two rows above Originals use the compact reference spacing.
-  double get aboutOriginalsLicenceRowHeight => 40;
+  double get aboutOriginalsLicenceRowHeight => 39.5;
 
   /// The reference licence type column in the full registry.
   int get aboutLicenceSummaryPercent => 59;
@@ -1150,9 +1150,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Vertical inset keeps the original field at its specified height.
   double get originalsFieldVerticalInset => 6;
 
-  /// The field sits below the real licence list with its original inset.
+  /// The 22 px top inset begins after the one-pixel painted divider.
   EdgeInsetsDirectional get originalsDiscoveryPadding =>
-      const EdgeInsetsDirectional.fromSTEB(16, 22, 16, 26);
+      const EdgeInsetsDirectional.fromSTEB(16, 23, 16, 26);
 
   /// Internal padding of the original artwork card.
   EdgeInsetsDirectional get originalsBodyPadding =>

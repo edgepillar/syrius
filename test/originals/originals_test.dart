@@ -66,13 +66,21 @@ void main() {
     bool current = true;
     await tester.pumpWidget(
       aboutHost(
-        OriginalsDiscovery(
-          controller: source,
-          isCurrent: () => current,
+        Column(
+          children: <Widget>[
+            OriginalsDiscovery(
+              controller: source,
+              isCurrent: () => current,
+            ),
+          ],
         ),
       ),
     );
     final Finder field = find.byKey(const Key('originals_discovery_field'));
+    final Rect footer = tester.getRect(find.byType(OriginalsDiscovery));
+    final Rect input = tester.getRect(field);
+    expect(input.top - footer.top, 23);
+    expect(footer.bottom - input.bottom, 26);
     final TextField widget = tester.widget<TextField>(field);
     expect(widget.decoration!.labelText, isNull);
     expect(widget.decoration!.hintText, isNull);

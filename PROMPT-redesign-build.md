@@ -965,7 +965,7 @@ In the full Licences list, the reference dividers advance 39.25 px per
 package in both themes. The retained Windows dividers advance 40 px,
 with a cumulative shift across the visible rows. The full registry now
 uses the reference spacing. The two compact Originals rows use their
-separate 40 px spacing. Existing cases check the full row in both themes
+separate compact spacing. Existing cases check the full row in both themes
 and in a scaled RTL layout. Native comparison is pending.
 The Details reader measures the registry dividers, Receive QSR mark and
 label, and the blank Plasma footer region from one verified archive. The
@@ -976,6 +976,11 @@ mark and label match the measured reference bounds in both themes. The
 Plasma Fuse footer region is clear in both. The first divider reading
 is partial in dark and unavailable in light. The reader now groups
 adjacent painted pixels so one fractional divider reports one span.
+The [corrected reading](https://github.com/edgepillar/syrius/actions/runs/44657302651/job/136026583521)
+finds the same twelve divider spans in both themes. The footer begins at
+row 628, one row below the reference. The footer now reserves the
+border pixel before its 22 px top inset. The compact list allocates 79 px
+to its two rows and 83 px to its footer, keeping its total height.
 
 Both Originals images show the cleared discovery field required by the
 mockup README. The reference images still show the entered digits. The
