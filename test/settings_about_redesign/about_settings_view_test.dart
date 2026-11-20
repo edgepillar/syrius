@@ -460,7 +460,20 @@ void main() {
       expect(reads, 0);
       final Finder toggle = find.byKey(const Key('about_licences_toggle'));
       final Finder panel = find.byKey(const Key('about_licences'));
+      final Finder decoration = find.descendant(
+        of: toggle,
+        matching: find.byWidgetPredicate(
+          (Widget widget) =>
+              widget is DecoratedBox &&
+              widget.position == DecorationPosition.foreground,
+        ),
+      ).first;
+      BoxBorder? headerBorder() =>
+          (tester.widget<DecoratedBox>(decoration).decoration as BoxDecoration)
+              .border;
+      final double headerHeight = tester.getSize(toggle).height;
       final double closedHeight = tester.getSize(panel).height;
+      expect(headerBorder(), isNull);
       await tester.ensureVisible(toggle);
       await tester.tap(toggle);
       await tester.pump();
@@ -503,6 +516,9 @@ void main() {
       await tester.pump();
       expect(reads, 1);
       expect(find.text('Fixture end hook'), findsOneWidget);
+      final AppTokens tokens = AppTokens.of(tester.element(toggle));
+      expect(headerBorder(), Border(bottom: BorderSide(color: tokens.line)));
+      expect(tester.getSize(toggle).height, headerHeight);
       final Element originalList = tester.element(find.byType(Licences));
       information.complete(AboutInformation(version: 'late-package-info'));
       await tester.pump();
@@ -518,6 +534,7 @@ void main() {
       expect(find.byKey(const Key('fixture_after')), findsOneWidget);
       await _toggle(tester, 'about_licences_toggle');
       expect(find.text('Fixture end hook').hitTestable(), findsNothing);
+      expect(headerBorder(), isNull);
       await _toggle(tester, 'about_licences_toggle');
       expect(reads, 1);
       expect(find.text('Fixture end hook'), findsOneWidget);

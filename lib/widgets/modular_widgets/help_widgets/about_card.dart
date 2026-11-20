@@ -173,6 +173,7 @@ class _AboutCardState extends State<AboutCard> {
                           title: context.l10n.aboutLicences,
                           keyPrefix: 'about_licences',
                           headerPadding: tokens.aboutGroupHeaderPadding,
+                          showDividerWhenOpen: true,
                           keepAlive: true,
                           onChanged: (bool open) {
                             if (open && !_licencesOpened) {

@@ -127,6 +127,7 @@ class Disclosure extends StatefulWidget {
     this.keyPrefix,
     this.headerPadding = _kHeaderPadding,
     this.headerMinHeight = _kHeaderHeight,
+    this.showDividerWhenOpen = false,
     this.titleStyle,
     this.isolateChevronPaint = true,
     super.key,
@@ -153,6 +154,7 @@ class Disclosure extends StatefulWidget {
        summaryColumnPercent = null,
        keyPrefix = null,
        titleStyle = null,
+       showDividerWhenOpen = false,
        isolateChevronPaint = false,
        headerPadding = _kHeaderPadding;
 
@@ -208,6 +210,9 @@ class Disclosure extends StatefulWidget {
 
   /// Insets for the title and chevron inside the header hit target.
   final EdgeInsetsGeometry headerPadding;
+
+  /// Paints a rule inside the lower edge of an open heading.
+  final bool showDividerWhenOpen;
 
   /// Optional title style for disclosures embedded in a form.
   final TextStyle? titleStyle;
@@ -380,6 +385,7 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
               summaryColumnPercent: widget.summaryColumnPercent,
               turned: _turned,
               isolateChevronPaint: widget.isolateChevronPaint,
+              showDivider: _open && widget.showDividerWhenOpen,
               open: _open,
               onToggle: () => _setOpen(!_open),
             ),
@@ -448,6 +454,7 @@ class _DisclosureHeader extends StatefulWidget {
     required this.summaryColumnPercent,
     required this.turned,
     required this.isolateChevronPaint,
+    required this.showDivider,
     required this.open,
     required this.onToggle,
   });
@@ -465,6 +472,7 @@ class _DisclosureHeader extends StatefulWidget {
   final Animation<double> turned;
 
   final bool isolateChevronPaint;
+  final bool showDivider;
 
   /// Where the disclosure is going, for a screen reader.
   final bool open;
@@ -548,8 +556,12 @@ class _DisclosureHeaderState extends State<_DisclosureHeader> {
             decoration: BoxDecoration(
               border: _focused
                   ? Border.all(color: tokens.focusRing, width: 2)
+                  : widget.showDivider
+                  ? Border(bottom: BorderSide(color: tokens.line))
                   : null,
-              borderRadius: BorderRadius.circular(tokens.cardRadius),
+              borderRadius: _focused
+                  ? BorderRadius.circular(tokens.cardRadius)
+                  : null,
             ),
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: widget.minHeight),

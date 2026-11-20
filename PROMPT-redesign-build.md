@@ -1473,6 +1473,18 @@ and 118 in both themes at column 900. The Pillars badge now matches the
 two pixels below the reference in both themes. Whole-image review remains
 open under V01.
 
+The [Details run at `c54af49a`](https://github.com/edgepillar/syrius/actions/runs/44661009827/job/136038976332)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44663212461/job/136046178596)
+verify all ten original Details PNGs and their parent closure. The Receive QR
+QSR mark and label bounds, Plasma Fuse bolt bounds and clear footer band
+match their references in both themes. The footer divider in Licences is
+at row 627 in both themes. All 12 measured Windows divider spans intersect
+the corresponding reference rows. The reference also has a viewport-top
+rule at row 191. The open Licences header now paints that rule inside its
+existing height. The list viewport, scroll extent and closed header geometry
+stay unchanged. The existing open and close case checks the rule and header
+height. A fresh Windows image and whole-image verdicts remain open.
+
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references
 use rows 106 and 118. The delegation strip now uses the same compact inset
