@@ -1544,6 +1544,12 @@ The [Linux run at `61e72335`](https://github.com/edgepillar/syrius/actions/runs/
 reports 5124 passes, two failures in the segment heading suite and one
 skip. The heading now has one more pixel of room for rounded text line
 boxes. The 46 px assertions and the larger-text cases retain their checks.
+The [Linux run at `e48257c2`](https://github.com/edgepillar/syrius/actions/runs/44666198803/job/136055992943)
+reports the same two failures, 5124 passes and one skip. The failure
+projection now recognizes the heading test file. It reports a matched
+source frame from the structured Flutter report or the known test
+declaration line when no frame is available. The original suite and
+assertions remain in place.
 
 The Navigation reader now measures the Pillars tab divider and column
 heading boundary in the same crop as the strip and list edges. At column
@@ -1555,6 +1561,19 @@ The Sentinel catalog reader now uses the same crop and band checks on the
 two original Sentinel PNGs. At column 900 both Sentinel references use
 the same four transition rows as Pillars. The reader still qualifies
 each original archive and closed session before measuring the pixels.
+
+Both [Navigation](https://github.com/edgepillar/syrius/actions/runs/44667324488/job/136059687285)
+and [Sentinel](https://github.com/edgepillar/syrius/actions/runs/44667410973/job/136059971667)
+readers verify the original `61e72335` captures. The light Pillars table
+matches all four reference transition rows. The dark Pillars table
+starts one pixel lower and its divider and heading boundary are both one
+pixel lower. Both Sentinel frames start the list at row 120 and reach the
+divider and column headings at 166 and 167. The strip ends at 108. Each
+Sentinel transition is two pixels below its reference. Both owner strips
+now use the authored 34 by 36 px footprint for the original 48 px artwork,
+with a 6 px leading overhang and 28 px gap. The Sentinel tests check the
+footprint, image size and alignment. Fresh native evidence and whole-image
+verdicts remain open.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |

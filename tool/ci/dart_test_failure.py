@@ -48,7 +48,7 @@ FILES = ('wallet_tour_test.dart', 'build_output_test.dart',
     'wallet_ready_surface.dart', 'wallet_ready_test.dart',
     'wallet_ready_capture_test.dart',
     'ci_wallet_inspection.dart',
-    'launch_decode_observation_test.dart')
+    'launch_decode_observation_test.dart', 'segment_heading_test.dart')
 # The root baseline also runs suites outside the focused harness. These
 # labels are versioned test basenames, never names taken from error text.
 ROOT_TEST_FILES = (

@@ -41,14 +41,26 @@ def observed_failure_locations(stream):
                     suites[suite['id']] = name
         elif kind == 'testStart':
             test = event['test']
-            tests[test['id']] = suites.get(test['suiteID'])
+            suite = suites.get(test['suiteID'])
+            prefix = 'root_' if test.get('root_url') else ''
+            url, line = test.get(prefix + 'url'), test.get(prefix + 'line')
+            declaration = None
+            if (suite is not None and type(url) is str
+                    and url.replace('\\', '/').rsplit('/', 1)[-1] == suite
+                    and type(line) is int and 0 < line <= 999999):
+                declaration = line
+            tests[test['id']] = suite, declaration
         elif kind == 'error' and len(locations) < 3:
-            suite = tests.get(event.get('testID'))
-            frame = dart_test_failure.location(event['stackTrace'], tests_only=True)
+            suite, declaration = tests.get(event.get('testID'), (None, None))
+            frame = (dart_test_failure.location(event['stackTrace'], tests_only=True)
+                     or dart_test_failure.location(event.get('error', ''), tests_only=True))
             if suite is not None or frame is not None:
-                locations.append(dict(suite=suite,
+                observed = dict(suite=suite,
                     file=frame[1] if frame else None,
-                    line=frame[2] if frame else None))
+                    line=frame[2] if frame else None)
+                if frame is None and declaration is not None:
+                    observed['test_declaration_line'] = declaration
+                locations.append(observed)
     return locations
 
 

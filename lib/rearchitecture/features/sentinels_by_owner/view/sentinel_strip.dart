@@ -103,14 +103,18 @@ class SentinelStrip extends StatelessWidget {
     final Widget strip = PageStrip(
       key: const Key('nodes_sentinels_strip'),
       minimumContentHeight: kStripTextContentHeight,
+      leadSize: NodeStripArtwork.slotSize,
+      leadGap: NodeStripArtwork.gap,
       lead: sentinel == null
           ? null
-          : NodeObject.sentinel(
-              key: ValueKey<(String, int)>((
-                sentinel.owner.toString(),
-                sentinel.registrationTimestamp,
-              )),
-              size: kStripLeadSize,
+          : NodeStripArtwork(
+              child: NodeObject.sentinel(
+                key: ValueKey<(String, int)>((
+                  sentinel.owner.toString(),
+                  sentinel.registrationTimestamp,
+                )),
+                size: kStripLeadSize,
+              ),
             ),
       figures: <StripFigure>[
         StripFigure(

@@ -90,7 +90,7 @@ void main() {
 
   for (final bool light in <bool>[false, true]) {
     testWidgets(
-      'proven ownership leads with the original at48px, light=$light',
+      'proven ownership leads with the original at 48 px, light=$light',
       (
         WidgetTester tester,
       ) async {
@@ -108,6 +108,17 @@ void main() {
           find.byType(NodeObject),
         );
         expect(object.size, 48);
+        final Rect strip = tester.getRect(
+          find.byKey(const Key('nodes_sentinels_strip')),
+        );
+        final Rect artwork = tester.getRect(find.byType(NodeObject));
+        expect(
+          tester.getSize(find.byType(NodeStripArtwork)),
+          const Size(34, 36),
+        );
+        expect(artwork.size, const Size.square(48));
+        expect(artwork.left - strip.left, 12);
+        expect(artwork.center.dy, strip.center.dy);
         final AppLottie animation = tester.widget<AppLottie>(
           find.byType(AppLottie),
         );

@@ -62,10 +62,26 @@ class TourTestCountTests(unittest.TestCase):
                 'stackTrace': '/private/root/pillar_owner_panel_test.dart:42:7'},
             {'type': 'error', 'testID': 3, 'error': 'unknown failure',
                 'stackTrace': '/private/root/unlisted_test.dart:14:2'},
+            {'type': 'suite', 'suite': {'id': 4,
+                'path': '/private/root/segment_heading_test.dart'}},
+            {'type': 'testStart', 'test': {'id': 5, 'suiteID': 4,
+                'name': 'private test title'}},
+            {'type': 'error', 'testID': 5,
+                'error': 'private failure (/private/root/segment_heading_test.dart:164:11)',
+                'stackTrace': ''},
+            {'type': 'testStart', 'test': {'id': 6, 'suiteID': 4,
+                'line': 12, 'url': 'file:///private/source/widget_tester.dart',
+                'root_line': 112, 'root_url': 'file:///private/root/segment_heading_test.dart'}},
+            {'type': 'error', 'testID': 6,
+                'error': 'private failure without a source frame', 'stackTrace': ''},
             {'type': 'done', 'success': False},
         ]
         report = '\n'.join(json.dumps(event) for event in events).encode()
         self.assertEqual(observed_failure_locations(io.BytesIO(report)), [
             {'suite': 'pillar_owner_panel_test.dart',
              'file': 'pillar_owner_panel_test.dart', 'line': 42},
+            {'suite': 'segment_heading_test.dart',
+             'file': 'segment_heading_test.dart', 'line': 164},
+            {'suite': 'segment_heading_test.dart', 'file': None, 'line': None,
+             'test_declaration_line': 112},
         ])

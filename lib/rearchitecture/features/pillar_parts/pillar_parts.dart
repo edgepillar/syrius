@@ -55,6 +55,37 @@ class NodeObject extends StatelessWidget {
   }
 }
 
+/// Fits the strip's original 48 px node artwork into its reference footprint.
+class NodeStripArtwork extends StatelessWidget {
+  /// Paints the original Pillar or Sentinel in the compact strip.
+  const NodeStripArtwork({required this.child, super.key});
+
+  /// The artwork with the reference's negative margins applied.
+  static const Size slotSize = Size(34, 36);
+
+  /// The gap after the artwork's layout footprint.
+  static const double gap = 28;
+
+  /// The node visual and its original animation owner.
+  final NodeObject child;
+
+  @override
+  Widget build(BuildContext context) => OverflowBox(
+    alignment: AlignmentDirectional.centerStart,
+    minWidth: child.size,
+    maxWidth: child.size,
+    minHeight: child.size,
+    maxHeight: child.size,
+    child: Transform.translate(
+      offset: Offset(
+        Directionality.of(context) == TextDirection.rtl ? 6 : -6,
+        0,
+      ),
+      child: child,
+    ),
+  );
+}
+
 /// A card that is waiting for its first answer: bars where its rows will be.
 class NodeCardSkeleton extends StatelessWidget {
   /// Creates [rows] bars in the card's padding.
