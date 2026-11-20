@@ -77,6 +77,7 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
     return Panel(
       key: const Key('p2p_swaps_list'),
       title: context.l10n.swapListTitle,
+      headingMinHeight: tokens.panelHeaderHeight,
       heading: Padding(
         padding: EdgeInsetsDirectional.only(
           start:

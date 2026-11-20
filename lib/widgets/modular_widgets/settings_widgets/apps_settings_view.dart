@@ -234,6 +234,7 @@ class _AppsSettingsViewState extends State<AppsSettingsView>
                 key: const Key('apps_settings_connected'),
                 title: context.l10n.appsSettingsConnected,
                 shrinkWrap: !fillsViewport,
+                headingMinHeight: tokens.panelHeaderHeight,
                 heading: Padding(
                   padding: EdgeInsetsDirectional.only(
                     start:

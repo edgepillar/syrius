@@ -1555,6 +1555,13 @@ projection now recognizes the heading test file. It reports a matched
 source frame from the structured Flutter report or the known test
 declaration line when no frame is available. The original suite and
 assertions remain in place.
+The [Linux run at `ce05cc2c`](https://github.com/edgepillar/syrius/actions/runs/44667886279/job/136061559318)
+reports both failures at the declaration of the Panel alignment cases
+for left-to-right and right-to-left layouts. The default custom Panel
+heading still reserved 48 px around the 46 px tab row. It now uses the
+same `tabHeaderHeight` as the segment. Apps, Addresses and Swaps reserve
+their existing 48 px title rows explicitly. The original alignment,
+divider and text scaling assertions remain in the suite.
 
 The Navigation reader now measures the Pillars tab divider and column
 heading boundary in the same crop as the strip and list edges. At column

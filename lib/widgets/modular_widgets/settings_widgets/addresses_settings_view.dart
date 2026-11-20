@@ -656,6 +656,7 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
   ) {
     final AppTokens tokens = AppTokens.of(context);
     return Panel(
+      headingMinHeight: tokens.panelHeaderHeight,
       heading: Padding(
         padding: EdgeInsetsDirectional.only(
           start:

@@ -101,7 +101,7 @@ class Panel extends StatelessWidget {
   /// The heading. Without one the panel is a bare surface.
   final String? title;
 
-  /// Shared Nodes tabs replace the plain title without duplicating a header.
+  /// A custom heading, such as the Nodes tabs, replaces the plain title.
   final Widget? heading;
 
   /// Minimum height of the custom [heading] row. Text can grow beyond it.
@@ -242,7 +242,7 @@ class Panel extends StatelessWidget {
     // underline away from the card's divider.
     return ConstrainedBox(
       constraints: BoxConstraints(
-        minHeight: headingMinHeight ?? tokens.panelHeaderHeight,
+        minHeight: headingMinHeight ?? tokens.tabHeaderHeight,
       ),
       child: IntrinsicHeight(child: header),
     );
