@@ -197,6 +197,7 @@ class _ViewState extends State<_View> {
           return Panel(
             title: context.l10n.pillars,
             heading: widget.heading,
+            headingMinHeight: AppTokens.of(context).tabHeaderHeight,
             actions: <Widget>[
               _buildSearch(context),
               _buildSort(context),

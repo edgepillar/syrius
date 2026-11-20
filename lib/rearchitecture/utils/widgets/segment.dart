@@ -352,7 +352,7 @@ class _SegmentState<T> extends State<Segment<T>>
                 slide: _slide,
                 textDirection: Directionality.of(context),
                 gap: heading ? tokens.tabGap : 0,
-                minHeight: heading ? tokens.panelHeaderHeight : 0,
+                minHeight: heading ? tokens.tabHeaderHeight : 0,
                 children: <Widget>[
                   SegmentThumb(appearance: widget.appearance),
                   for (final SegmentItem<T> item in widget.items)

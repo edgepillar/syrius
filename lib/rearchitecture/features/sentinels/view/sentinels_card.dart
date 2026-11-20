@@ -102,6 +102,7 @@ class _View extends StatelessWidget {
             key: const Key('sentinels_list'),
             title: context.l10n.sentinels,
             heading: heading,
+            headingMinHeight: tokens.tabHeaderHeight,
             actions: <Widget>[
               TextButton.icon(
                 key: const Key('sentinels_spawn'),

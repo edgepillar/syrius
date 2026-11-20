@@ -158,7 +158,7 @@ void main() {
           final Rect whole = tester.getRect(find.byType(Segment<_Node>));
           final Rect first = tester.getRect(_cell(_Node.pillars));
           expect(first.topLeft, whole.topLeft);
-          expect(first.height, tokens.panelHeaderHeight);
+          expect(first.height, 46);
           expect(
             tester.getRect(_cell(_Node.sentinels)).left - first.right,
             tokens.tabGap,
@@ -363,6 +363,7 @@ void main() {
           width: 600,
           child: Panel(
             heading: _control(pillars: 97, sentinels: 12),
+            headingMinHeight: AppTokens.dark.tabHeaderHeight,
             actions: const <Widget>[
               SizedBox(
                 width: 200,
@@ -384,6 +385,7 @@ void main() {
     await tester.enterText(search, 'exact rows');
     await tester.pump();
     expect(find.text('exact rows'), findsOneWidget);
+    expect(tester.getSize(_cell(_Node.pillars)).height, 46);
     expect(
       tester.getRect(search).center.dy,
       tester.getRect(_cell(_Node.pillars)).center.dy,

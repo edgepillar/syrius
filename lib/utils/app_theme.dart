@@ -2007,8 +2007,11 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Search is constrained beside the Nodes tabs.
   double get pillarSearchWidth => 200;
 
-  /// A card title with actions or a tab row reserves this height.
+  /// A card title with actions reserves this height.
   double get panelHeaderHeight => 48;
+
+  /// The reference Nodes tabs occupy 46 pixels before the card divider.
+  double get tabHeaderHeight => 46;
 
   /// A plain title without actions uses the reference's smaller header.
   double get panelPlainHeaderHeight => 44;
@@ -2024,9 +2027,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Space between the measured heading tabs.
   double get tabGap => 2;
 
-  /// Heading label insets, before the underline's own thickness.
+  /// Heading label insets, with one pixel reserved for the card divider.
   EdgeInsetsDirectional get tabPadding =>
-      const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 12);
+      const EdgeInsetsDirectional.fromSTEB(10, 12, 10, 11);
 
   /// A reported count stays separate from its heading label.
   double get tabCountGap => 6;

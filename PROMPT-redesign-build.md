@@ -1495,8 +1495,10 @@ height. A fresh Windows image and whole-image verdicts remain open.
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references
 use rows 106 and 118. The delegation strip now uses the same compact inset
-and 70 px floor as Tokens. The additional two pixels in the tab header
-remain under review. Fresh Pillars captures are needed for the new inset.
+and 70 px floor as Tokens. The shared Nodes tab heading uses the reference
+46 px minimum and its bottom inset accounts for the separate card rule.
+The existing heading cases check the new height and retained text scaling.
+Fresh Pillars and Sentinels captures are needed for the layout changes.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
