@@ -10,6 +10,7 @@ class OriginalSurfaces:
         self.fault = fault
         self.tab, self.route, self.address = initial_tab, '/' + initial_tab, 'fixture-owner'
         self.token_open = False
+        self.pillars_menu_open = False
         self.calls = []
 
     def send(self, command):
@@ -36,7 +37,7 @@ class OriginalSurfaces:
                 elif key == 'nodes_tab_pillars':
                     self.route = '/pillars'
                 elif key == 'pillars_sort':
-                    self.route = '/pillars/menu'
+                    self.pillars_menu_open = self.fault != 'pillars-menu-missing'
                 elif key == 'p2p_start_swap':
                     self.route = '/p2pSwap/draft'
                 elif key == 'swap_action_close':
@@ -62,6 +63,9 @@ class OriginalSurfaces:
                         self.address = 'replacement-owner'
                     if self.fault == 'ready-route':
                         self.route = '/replacement'
+            if key == 'pillars_sort_weight':
+                return (dict(ok=True, target=dict(key=key))
+                        if self.pillars_menu_open else dict(ok=True))
             if command.get('gone'):
                 if key == 'token_explorer_control' and self.token_open:
                     raise AssertionError('Token disclosure remained open')
@@ -87,8 +91,9 @@ class OriginalSurfaces:
                 if self.fault == 'absorption-refused':
                     result['absorptionObserved'] = False
             return result
-        if kind == 'key' and command['key'] == 'escape' and self.route == '/pillars/menu':
-            self.route = '/pillars'
+        if kind == 'key' and command['key'] == 'escape' and self.pillars_menu_open:
+            if self.fault != 'pillars-menu-stays-open':
+                self.pillars_menu_open = False
             return dict(ok=True)
         if kind == 'logs':
             return dict(logs=[])
@@ -132,6 +137,17 @@ class SurfaceSeamProbeTests(unittest.TestCase):
         with self.assertRaises(inspect.Refused):
             inspect.observe_surface_seams(original.send, observed)
         self.assertEqual(observed, [])
+
+    def test_requires_the_pane_menu_to_open_and_close(self):
+        for fault, attempted in (('pillars-menu-missing', False),
+                                 ('pillars-menu-stays-open', True)):
+            original, observed = OriginalSurfaces(fault), []
+            with self.subTest(fault=fault), self.assertRaises(inspect.Refused):
+                inspect.observe_surface_seams(original.send, observed)
+            self.assertEqual(observed, ['walletUpdateNotice', 'tokenExplorer'])
+            self.assertEqual(any(c.get('seam') == 'pillarAprEstimate'
+                                 for c in original.calls), attempted)
+            self.assertFalse(any(c.get('tab') == 'p2pSwap' for c in original.calls))
 
     def test_changed_settings_owner_or_route_prevents_home_navigation(self):
         for fault in ('settings-owner', 'settings-route'):
