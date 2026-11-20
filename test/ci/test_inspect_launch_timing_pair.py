@@ -67,7 +67,8 @@ class Client:
             'tool/ci/windows_launch_timing_pair.py': Path(pair.__file__).read_bytes(),
             'tool/ci/windows_launch_catalog.py': Path(pair.launch.__file__).read_bytes(),
             pair.PATCH.as_posix(): patch,
-            pair.launch.TIMING_SOURCE.as_posix(): collector,
+            pair.BASELINE_COLLECTOR.as_posix(): collector,
+            pair.launch.TIMING_SOURCE.as_posix(): b'current-frame-collector',
             pair.launch.SETTLE_PROFILE_SOURCE.as_posix(): profile,
         }
         if alter_source:
@@ -572,6 +573,10 @@ class PairInspectionTests(unittest.TestCase):
                 self.assertEqual(status, expected)
                 self.assertEqual(len(offered.calls), calls)
                 if expected == 0:
+                    self.assertIn('/contents/' + pair.BASELINE_COLLECTOR.as_posix()
+                                  + '?ref=' + HEAD, offered.calls)
+                    self.assertNotIn('/contents/' + pair.launch.TIMING_SOURCE.as_posix()
+                                     + '?ref=' + HEAD, offered.calls)
                     self.assertEqual(first['scope'], 'retained_' + pair.SCOPE)
                     self.assertEqual(first['original_job_id'], 4)
                     self.assertEqual(first['window_diagnostics']['scope'], 'reported_frames_only')

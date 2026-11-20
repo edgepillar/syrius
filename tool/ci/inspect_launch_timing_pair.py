@@ -378,7 +378,8 @@ def inspect_run(client, *, head, tree, run_id, job):
         and selected[0]['conclusion'] in ('success', 'failure') and retained[0]['conclusion'] == 'success')
     prior_pair = ('7c39d88355a696f5580c45282eac38aa11ef4eb54d56bd85b1b691878b2c13a3',
                   'fdadca2905a65134927a3b19e6218b99b98cf579b7579a3a3636bf9a058c691c',
-                  '608c10ae1ab014842e14a8c8a848245f6de29c544f2d8f334473859372087610')
+                  '608c10ae1ab014842e14a8c8a848245f6de29c544f2d8f334473859372087610',
+                  'ea5a3a111a9641a0c82cb050c3e8aacbdf008b3c3b1036f5d1ee9a95ee4d4708')
     prior_launch = (startup_reader.PRE_AUTH_PHASE_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_LIGHT_MOTION_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_FIRST_PROGRESS_LAUNCH_PRODUCER_SHA,
@@ -388,14 +389,19 @@ def inspect_run(client, *, head, tree, run_id, job):
                     startup_reader.PRE_BATCH_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_PHASE_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_MOTION_LAUNCH_PRODUCER_SHA)
-    for name, module, previous in (('windows_launch_timing_pair.py', pair, prior_pair),
-                                  ('windows_launch_catalog.py', pair.launch, prior_launch)):
-        body = source(client, 'tool/ci/' + name, head)
-        archive.need(body == Path(module.__file__).read_bytes() or archive.sha(body) in previous)
+    pair_source = source(client, 'tool/ci/windows_launch_timing_pair.py', head)
+    if pair_source == Path(pair.__file__).read_bytes():
+        collector = pair.BASELINE_COLLECTOR
+    else:
+        archive.need(archive.sha(pair_source) in prior_pair)
+        collector = pair.launch.TIMING_SOURCE
+    launch_source = source(client, 'tool/ci/windows_launch_catalog.py', head)
+    archive.need(launch_source == Path(pair.launch.__file__).read_bytes()
+                 or archive.sha(launch_source) in prior_launch)
     pinned = client.json('/git/commits/' + pair.P06_SOURCE)
     archive.need(pinned['sha'] == pair.P06_SOURCE and pinned['tree']['sha'] == pair.P06_TREE)
     pins = {key: archive.sha(source(client, path.as_posix(), head)) for key, path in (
-        ('baseline_patch_sha256', pair.PATCH), ('collector_sha256', pair.launch.TIMING_SOURCE),
+        ('baseline_patch_sha256', pair.PATCH), ('collector_sha256', collector),
         ('profile_sha256', pair.launch.SETTLE_PROFILE_SOURCE))}
     archive.need(pins['baseline_patch_sha256'] == pair.PATCH_SHA256
         and pins['collector_sha256'] == pair.COLLECTOR_SHA256)
