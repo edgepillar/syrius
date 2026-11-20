@@ -251,7 +251,8 @@ class StartupStageSession implements Listenable {
 
   void _changed() {
     if (_closed) return;
-    _entry?.markNeedsBuild();
+    // The mounted stage listens to this signal. Before it mounts, the
+    // overlay builder reads the current session on its first build.
     _changes.changed();
   }
 
