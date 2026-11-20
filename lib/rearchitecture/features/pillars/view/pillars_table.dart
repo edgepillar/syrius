@@ -214,37 +214,24 @@ class _PillarName extends StatelessWidget {
           ),
         ),
         if (own) ...<Widget>[
-          SizedBox(width: tokens.fieldLabelGap),
+          SizedBox(width: tokens.cardGap),
           Tooltip(
             message: context.l10n.pillarsYours,
-            child: DecoratedBox(
+            child: Container(
+              constraints: BoxConstraints(
+                minHeight: tokens.pillarOwnedChipHeight,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 11),
               decoration: ShapeDecoration(
                 color: tokens.znn.withValues(alpha: 0.14),
                 shape: const StadiumBorder(),
               ),
-              child: SizedBox(
-                height: tokens.pillarOwnedChipHeight,
-                child: Padding(
-                  padding: EdgeInsetsDirectional.symmetric(
-                    horizontal: tokens.inlineGap,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Icon(
-                        Icons.check_rounded,
-                        size: tokens.settingsIconSize,
-                        color: tokens.znnInk,
-                      ),
-                      SizedBox(width: tokens.fieldLabelGap),
-                      Text(
-                        context.l10n.pillarsYours,
-                        style: tokens.compactText.copyWith(
-                          color: tokens.znnInk,
-                        ),
-                      ),
-                    ],
-                  ),
+              child: Center(
+                widthFactor: 1,
+                heightFactor: 1,
+                child: Text(
+                  context.l10n.pillarsYours,
+                  style: tokens.captionText.copyWith(color: tokens.znnInk),
                 ),
               ),
             ),

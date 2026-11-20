@@ -322,6 +322,22 @@ void main() {
         expect(label.style?.letterSpacing, 0.66);
         expect(label.style?.color, tokens.faint);
       }
+      final Finder owned = find.byTooltip('Yours');
+      final Finder ownedLabel = find.descendant(
+        of: owned,
+        matching: find.text('Yours'),
+      );
+      expect(tester.getSize(owned).height, 22);
+      expect(
+        tester.getSize(owned).width - tester.getSize(ownedLabel).width,
+        closeTo(22, 0.01),
+      );
+      expect(tester.widget<Text>(ownedLabel).style?.fontSize, 12);
+      expect(tester.widget<Text>(ownedLabel).style?.color, tokens.znnInk);
+      expect(
+        find.descendant(of: owned, matching: find.byType(Icon)),
+        findsNothing,
+      );
       expect(find.text('0% / 100%'), findsOneWidget);
       expect(find.text('99.9%'), findsOneWidget);
       expect(find.text('Unavailable'), findsOneWidget);

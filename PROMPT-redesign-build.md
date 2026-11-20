@@ -1439,6 +1439,14 @@ versus 106/118. Both pages now use the compact strip inset with the same
 The existing layout cases check the new height. Native comparison of the
 change and whole-image verdicts remain pending under V01.
 
+The two verified Pillars images from the same Navigation run show the
+owned-row badge at 70 painted pixels wide. Both references show a
+54-pixel badge with a 12 px label. The list now uses the reference's plain
+label, 11 px side insets and 22 px height floor. Larger text can grow the
+badge. The same ownership predicate and localized label still apply.
+The two existing theme cases check the badge. Native comparison and the
+whole-image verdicts remain open.
+
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
 | Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Verified native early, late and settled samples. | Inspect the retained images and verify the running 400 ms settle. |
