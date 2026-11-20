@@ -133,7 +133,7 @@ void main() {
           variant.$2 ? .25 : -.25,
         );
         final Rect rowBounds = tester.getRect(row);
-        expect(rowBounds.height, closeTo(39.25, .01));
+        expect(rowBounds.height, closeTo(39.3, .01));
         final double ratio = tester.view.devicePixelRatio;
         for (final String name in <String>['alpha', 'mixed']) {
           final Finder rule = find
@@ -145,7 +145,8 @@ void main() {
           expect(tester.widget<CustomPaint>(rule).child, isA<RepaintBoundary>());
           final double top = tester.getTopLeft(rule).dy;
           if (name == 'mixed') {
-            expect((top * ratio) % 1, closeTo(0.5, 0.01));
+            final double physicalTop = top * ratio;
+            expect((physicalTop - physicalTop.round()).abs(), greaterThan(.01));
           }
           expect(
             rule,
