@@ -1673,6 +1673,19 @@ per theme. Dark first observes progress 0.391 and captures all three slots.
 Light first observes progress 0.662 and captures the late and settled slots.
 The early slot remains missing and the original light failure is retained.
 
+The early launch fade now applies alpha to the light samples over the same
+opaque shell background. It removes the window-wide opacity layer while
+retaining the original reveal curve and full-strength checkpoint. The
+[focused Linux checks at `bfb83ea8`](https://github.com/edgepillar/syrius/actions/runs/44743612412/job/136313188575)
+pass zero, half and full fade comparisons in both themes within one
+8-bit channel level. The first comparison reported a difference of 103
+with a fixture that reused the MaterialApp across themes. The corrected
+fixture starts each arm in its own settled theme and verifies the base
+color before capturing pixels.
+The [Windows motion capture](https://github.com/edgepillar/syrius/actions/runs/44744098640)
+and [Debug and Release baseline](https://github.com/edgepillar/syrius/actions/runs/44744248162)
+are running at the source containing the fade change.
+
 The [Windows baseline at `650bbb8a`](https://github.com/edgepillar/syrius/actions/runs/44737155697)
 passes both the Debug and Release builds with complete output. The
 [independent reader](https://github.com/edgepillar/syrius/actions/runs/44740753300/job/136303512144)
