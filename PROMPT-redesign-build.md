@@ -1404,8 +1404,10 @@ whole-screen differences under V01.
 The Notifications tooltip in the two Home rest captures begins at
 row 649. Both references begin at row 656. The new offset moves only
 the Notifications tooltip seven pixels towards that position and
-preserves its viewport clamp. The [new Windows Home job at `d67a9451`](https://github.com/edgepillar/syrius/actions/runs/44817614221)
-will verify the rendered position.
+preserves its viewport clamp. The [independent Home reader at `2b109d8f`](https://github.com/edgepillar/syrius/actions/runs/44827785499/job/136604710915)
+verifies all eight captures with normal parent closure. At column 65,
+the interior fill now occupies rows 657 through 684 in both themes,
+matching the same reference column. The full Home pairs remain open.
 
 The six designated Navigation images were also opened alongside their
 references. Receive shows Copy address and Show QR in both themes. The
