@@ -1400,8 +1400,11 @@ and Originals divider and card end as the references. At the measured
 Licences column, nine of thirteen rules match exactly. The other four
 appear one pixel lower in both themes. The full Licences row height now
 uses the authored 39.3 pixels, from a 14 px type size, 1.45 line height,
-18 px of padding and a 1 px rule. The [fresh Windows Details producer](https://github.com/edgepillar/syrius/actions/runs/44813112503)
-is needed to verify the effect of this change.
+18 px of padding and a 1 px rule. The [new Details reader at `44dbb37b`](https://github.com/edgepillar/syrius/actions/runs/44816649625/job/136566594885)
+verifies ten original PNGs and normal required closure. All thirteen
+Licences rules now match the reference rows at the measured column in
+both themes. The remaining whole-screen differences are still under
+review.
 
 In the verified Staking Empty captures, the summary, stakes card,
 divider and rewards card match the reference bands at column 1000 in
