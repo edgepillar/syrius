@@ -1280,6 +1280,44 @@ includes the palette caret and Licences pixel alignment. The combined
 end-state decision still requires the final visual, motion and interface
 evidence.
 
+### Windows visual capture audit at `e94d5b07` (2026-11-20)
+
+The capture plan assigns each of the 47 reference states to one producer
+and uses its dark and light PNGs. The independent readers have verified 78
+of the 94 designated PNGs at `e94d5b07`. The Navigation producer retained
+14 images. Only the six assigned to Receive, Pillars and Plasma contribute
+to this count. The other states use their designated captures below.
+
+| Verified capture group | Designated PNGs | Independent reader |
+| --- | ---: | --- |
+| Welcome and Import | 4 | [Entry](https://github.com/edgepillar/syrius/actions/runs/44798926459/job/136505660527) |
+| Launch, Lock and Seed Quiz | 12 | [Startup](https://github.com/edgepillar/syrius/actions/runs/44800497451/job/136511067685) |
+| Settings | 14 | [Settings](https://github.com/edgepillar/syrius/actions/runs/44801470770/job/136514430169) |
+| Home, Activity and Go To | 8 | [Home](https://github.com/edgepillar/syrius/actions/runs/44801471044/job/136514427716) |
+| Receive QR, Zap, Plasma Fuse, About and Originals | 10 | [Details](https://github.com/edgepillar/syrius/actions/runs/44802493501/job/136517953490) |
+| Receive, Pillars and Plasma | 6 | [Navigation](https://github.com/edgepillar/syrius/actions/runs/44802969323/job/136519563957) |
+| Send and Send confirmation | 4 | [Prepared Send](https://github.com/edgepillar/syrius/actions/runs/44803415467/job/136521078929) |
+| Accelerator voting and project details | 4 | [Accelerator](https://github.com/edgepillar/syrius/actions/runs/44804694468/job/136525517009) |
+| Staking, Tokens and Token Mine | 6 | [Prepared Staking and Tokens](https://github.com/edgepillar/syrius/actions/runs/44804694397/job/136525518372) |
+| Staking Empty and Pillar Mine | 4 | [Earn](https://github.com/edgepillar/syrius/actions/runs/44805231803/job/136527365450) |
+| Home notifications | 2 | [Home notifications](https://github.com/edgepillar/syrius/actions/runs/44805886223/job/136529652121) |
+| Home Zap preview | 2 | [Home Zap preview](https://github.com/edgepillar/syrius/actions/runs/44806031548/job/136530160456) |
+| Send warning | 2 | [Send warning](https://github.com/edgepillar/syrius/actions/runs/44806542129/job/136531930879) |
+
+The remaining capture groups are token creation, staking draft, Sentinels,
+Swap start, prepared Swap, Wallet Ready, Pillar Spawn and Pillar Done.
+Both theme captures were scheduled for each group at `e94d5b07`.
+
+The four Welcome and Import images have been viewed alongside their
+references. The visible backdrop differs. In 9,126 unobstructed edge
+samples per theme and state, fitting the reference dark and light PNGs
+with their three authored inks and substituting the approved brand colors
+in the fitted mix reduces mean absolute RGB error from 1.378 to 0.687.
+The samples use columns 85–169 and 1120–1194 and rows 150–654, with a stride
+of three in both axes from the crop origin (85, 150). The reference model
+has a mean absolute error of 0.298. This estimate covers the selected
+backdrop bands. Whole-screen verdicts remain open under V01.
+
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
 The rows follow the [mockup motion](mockups/redesign/README.md#motion) and
