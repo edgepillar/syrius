@@ -428,6 +428,10 @@ class _LaunchFilmState extends State<LaunchFilm>
   bool _skipping = false;
   bool _onLast = false;
 
+  // The full-window stage paints the changing frame itself. The final
+  // frame then gets its own layer for the handoff and the smaller well.
+  bool get _isolateImagePaint => !widget.autoplay || !_running || _onLast;
+
   /// When the frame on screen has had its time, on the scheduler's clock.
   /// Null at the start of a run: its first frame waits for nothing.
   Duration? _due;
@@ -713,12 +717,16 @@ class _LaunchFilmState extends State<LaunchFilm>
       // from it: there is nothing decoded ahead to catch up with.
       final bool onTime = due != null && timestamp - due <= next.duration;
       _due = (onTime ? due : timestamp) + next.duration;
+      final bool isolated = _isolateImagePaint;
       _onLast = next.last;
       _next = null;
       _originalsArtwork?.observe(next, _controller.frameCount);
       final ui.Image? shown = _shown;
       if (shown != null && next.image.isCloneOf(shown)) {
         next.image.dispose();
+        if (widget.retainImageLayout && isolated != _isolateImagePaint) {
+          setState(() {});
+        }
       } else {
         // The render object holds its own handle until this build replaces it.
         setState(() {
@@ -794,10 +802,11 @@ class _LaunchFilmState extends State<LaunchFilm>
     if (widget.retainImageLayout) {
       // The launch stage resizes during the handoff. Fit the original image
       // layer at paint time so the held frame keeps its decoded layout size.
+      final Widget image = RawImage(image: frame);
       return FittedBox(
         fit: widget.fit,
         clipBehavior: Clip.hardEdge,
-        child: RepaintBoundary(child: RawImage(image: frame)),
+        child: _isolateImagePaint ? RepaintBoundary(child: image) : image,
       );
     }
     // The frames are drawn on black in both themes, so the box is black

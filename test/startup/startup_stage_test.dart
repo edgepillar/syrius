@@ -436,7 +436,15 @@ void main() {
 
         final ShaderClock originalBackdrop = entryClock();
         expect(originalBackdrop.isRunning, isFalse);
+        final Finder filmBoundary = find.descendant(
+          of: find.byType(LaunchFilm),
+          matching: find.byType(RepaintBoundary),
+        );
+        await _until(tester, () => session.film.frame >= 0);
+        expect(session.film.isDone, isFalse);
+        expect(filmBoundary, findsNothing);
         await _until(tester, () => session.film.isDone);
+        expect(filmBoundary, findsOneWidget);
         expect(originalBackdrop.value, 0);
         final Finder frame = find.descendant(
           of: find.byType(LaunchFilm),

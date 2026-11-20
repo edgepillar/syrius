@@ -1354,6 +1354,12 @@ fail and both windows retain frame-number gaps. Twenty-eight of 34 ranked
 raster excesses occur during film playback. The largest excess is 6.983 ms
 and also occurs during playback. The effect of the shell change on its own
 remains unestablished across these runs.
+The full-window stage now paints changing film frames without an extra
+image layer. The final image gets its own layer for the handoff and the
+manual replay in the well. A byte-identical final frame keeps its
+decoded pixels while adding that layer. The existing handoff cases
+check both paint states and retain the final image-layer and owner
+assertions. Windows timing for this change is pending.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
