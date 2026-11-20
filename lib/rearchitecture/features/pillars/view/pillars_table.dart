@@ -68,16 +68,22 @@ class _PillarsTable extends StatelessWidget {
           PinnedHeaderSliver(
             child: ColoredBox(
               color: tokens.card,
-              child: Padding(
-                padding: tokens.pillarHeadingPadding,
-                child: _PillarColumns(
-                  name: _buildHeading(context, context.l10n.name),
-                  weight: _buildHeading(context, context.l10n.weight),
-                  shares: _buildHeading(context, context.l10n.pillarsShares),
-                  uptime: _buildHeading(context, context.l10n.uptime),
-                  apr: _buildHeading(context, context.l10n.pillarsAprEstimate),
-                  action: const SizedBox.shrink(),
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Padding(
+                    padding: tokens.pillarHeadingPadding,
+                    child: _PillarColumns(
+                      name: _buildHeading(context, context.l10n.name),
+                      weight: _buildHeading(context, context.l10n.weight),
+                      shares: _buildHeading(context, context.l10n.pillarsShares),
+                      uptime: _buildHeading(context, context.l10n.uptime),
+                      apr: _buildHeading(context, context.l10n.pillarsAprEstimate),
+                      action: const SizedBox.shrink(),
+                    ),
+                  ),
+                  Divider(height: 1, color: tokens.line),
+                ],
               ),
             ),
           ),
@@ -91,6 +97,7 @@ class _PillarsTable extends StatelessWidget {
                 child: RowDetail(
                   id: item.name,
                   keyPrefix: 'pillar_${item.name}',
+                  expandedColor: tokens.card2,
                   row: Padding(
                     padding: tokens.pillarCellPadding,
                     child: _PillarColumns(

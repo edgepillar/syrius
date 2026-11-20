@@ -1597,6 +1597,18 @@ and 70 px floor as Tokens. The shared Nodes tab heading uses the reference
 46 px minimum and its bottom inset accounts for the separate card rule.
 The existing heading cases check the new height and retained text scaling.
 Fresh Pillars and Sentinels captures are needed for the layout changes.
+
+The [Navigation reader at `61e72335`](https://github.com/edgepillar/syrius/actions/runs/44667324488/job/136059687285)
+binds both original Pillars captures. Their expanded rows are 109 px high
+against 106 px in the references. The expanded fill is RGB (49, 50, 49)
+in the dark capture and (236, 237, 236) in the light capture. The references
+use (46, 48, 46) and white. The header also lacks the reference's separate
+column rule. The table now uses the theme's raised surface for the open
+row, adds the column rule, and reduces the detail's bottom inset by 3 px.
+The capture moves the pointer off the table after opening the row. Fresh
+comparison remains open, including the differences in delegation and
+the original lab's pillar inventory.
+
 The [Linux run at `61e72335`](https://github.com/edgepillar/syrius/actions/runs/44664606334/job/136050757368)
 reports 5124 passes, two failures in the segment heading suite and one
 skip. The heading now has one more pixel of room for rounded text line

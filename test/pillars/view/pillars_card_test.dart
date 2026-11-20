@@ -11,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/row_detail.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -348,9 +349,21 @@ void main() {
         ),
         findsOneWidget,
       );
-      await tester.tap(find.byKey(const Key('pillar_alpha_row')));
+      final Finder row = find.byKey(const Key('pillar_alpha_row'));
+      final Finder rule = find.descendant(
+        of: find.byType(PinnedHeaderSliver),
+        matching: find.byType(Divider),
+      );
+      expect(tester.getSize(rule).height, 1);
+      expect(tester.getRect(rule).bottom, tester.getRect(row).top);
+      expect(tester.widget<Divider>(rule).color, tokens.line);
+      expect(tester.widget<RowDetail>(find.byType(RowDetail)).expandedColor,
+          tokens.card2);
+      await tester.tap(row);
       await _frames(tester);
-      expect(find.byKey(const Key('pillar_alpha_detail')), findsOneWidget);
+      final Finder detail = find.byKey(const Key('pillar_alpha_detail'));
+      expect(tester.widget<Padding>(detail).padding,
+          const EdgeInsetsDirectional.fromSTEB(42, 2, 16, 14));
       expect(find.text('1,760 of 1,762 expected'), findsOneWidget);
       expect(find.text('Unavailable'), findsNWidgets(2));
       expect(tester.takeException(), isNull);

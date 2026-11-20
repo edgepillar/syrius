@@ -1576,6 +1576,7 @@ void main() {
       int shots = 0;
       int returned = 0;
       bool pillarOpened = false;
+      bool pillarPointerNeutral = false;
       final Set<String> pillarAssertions = <String>{};
       final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
       final List<ScreenCaptureObservation> progress =
@@ -1603,12 +1604,18 @@ void main() {
               pillarOpened = true;
             }
           }
+          if (name == 'hover' && selected == 'pillars') {
+            expect(pillarOpened, isTrue);
+            expect(command['at'], <int>[0, 0]);
+            pillarPointerNeutral = true;
+          }
           if (name == 'tap' && targetTab != null) {
             expect(<String>['dashboard', ...routes], contains(command['tab']));
             if (targetTab != 'dashboard') {
               expect(targetTab, routes[shots ~/ 2]);
               selected = screens[shots ~/ 2];
               pillarOpened = false;
+              pillarPointerNeutral = false;
               pillarAssertions.clear();
             }
             if (command['tab'] == 'dashboard') {
@@ -1626,6 +1633,7 @@ void main() {
             expect(selected, screens[shots ~/ 2]);
             if (selected == 'pillars') {
               expect(pillarOpened, isTrue);
+              expect(pillarPointerNeutral, isTrue);
               expect(pillarAssertions, <String>{
                 'pillar_dev2_row',
                 'pillar_dev3_row',

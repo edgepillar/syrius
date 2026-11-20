@@ -1,6 +1,6 @@
 # prerequisite: unlocked-home
 # Requires the three original pillars on the isolated node's first page.
-# Keep the search clear and open the first pillar's read-only details.
+# Keep the search clear, open the first pillar's details and leave the table.
 goto pillars
 wait --key nodes_tab_pillars --timeout 30
 tap --key nodes_tab_pillars
@@ -10,6 +10,7 @@ wait --key pillar_dev1_row --timeout 30
 wait --key pillar_dev2_row --timeout 30
 wait --key pillar_dev3_row --timeout 30
 tap --key pillar_dev1_row
+hover @0,0
 assert --key pillar_dev2_row
 assert --key pillar_dev3_row
 assert --key pillar_dev1_detail
