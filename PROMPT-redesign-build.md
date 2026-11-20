@@ -2547,6 +2547,13 @@ The switcher retains the visible page's motion through the fade and
 mutes the hidden incoming page until its own fade begins. The experiment
 was withdrawn and provides no accepted performance result.
 
+The [retained experiment measurements](https://github.com/edgepillar/syrius/actions/runs/44831744045/job/136618124367)
+verify both windows and normal exits. The longest page-change frame is
+256.873 ms against 156.729 ms on P06. Disclosure is 108.373 ms against
+63.874 ms. Both 16 ms comparisons fail and all windows have frame-key
+gaps. The [Linux run after restoration at `77a26fbd`](https://github.com/edgepillar/syrius/actions/runs/44830595956/job/136614262015)
+passes strict analysis, 5,129 non-chain tests and generated-file checks.
+
 The [separate launch-motion reader at `72590ad3`](https://github.com/edgepillar/syrius/actions/runs/44831164982/job/136616174911)
 verifies both themes against the original producer, with two normal
 actor exits per theme. Light retains early, late and settled samples,
