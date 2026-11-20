@@ -1707,6 +1707,19 @@ frame-number gaps (21 and 1,196). The longest redesign build takes
 arrival. The observed redesign raster maximum is 140.035 ms. V02 remains
 open.
 
+A single [Windows Release harness run at `fb956740`](https://github.com/edgepillar/syrius/actions/runs/44747641135)
+captures 12 images across Launch, Launch Settle, the three Lock states and
+the synthetic seed quiz. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44750797639/job/136337864449)
+verifies all four original archives and all 12 PNGs against that source.
+The whole-screen comparisons remain open under V01.
+
+The shell now mounts the working rail on its first unlock and retains it on
+later locks. A cold Lock still lays out the original authentication owner
+and status strip. The [Linux run at `2b554082`](https://github.com/edgepillar/syrius/actions/runs/44749555233/job/136333570374)
+passes strict selected analysis, the full non-chain tests and generated-file
+verification. The shell widget test checks the first mount and the retained
+rail and password-field state across later locks. Native timing remains open.
+
 The [Windows baseline at `650bbb8a`](https://github.com/edgepillar/syrius/actions/runs/44737155697)
 passes both the Debug and Release builds with complete output. The
 [independent reader](https://github.com/edgepillar/syrius/actions/runs/44740753300/job/136303512144)
