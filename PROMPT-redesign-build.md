@@ -928,8 +928,15 @@ Both [verified Details images](https://github.com/edgepillar/syrius/actions/runs
 show a pink bolt with blue glow. The reference has a white bolt through
 the pink and blue glow in both themes. The heatmap now composites a white
 core through the original anti-aliased mask. The existing clock and outer
-heat remain in use. The original silhouette and fresh native comparison
-remain open.
+heat remain in use. The mask now follows the authored six-point outline
+with its one-unit stroke in a 54 px viewport within the 120 px slot.
+The raster generator retains the original halo blur radii and texture size.
+Bilinear sampling at 120 px shows that the solid mask differs at 32
+pixels in dark and 41 in light for either Plasma screen.
+The prior mask differed at 293 and 290 pixels. This counts pixels where
+the mask's red channel is at most 3 and compares them with reference
+pixels whose RGB channels are all at least 252. The full native shader
+comparison remains open.
 
 ### Transfer address chip at `fb3b2a01`
 

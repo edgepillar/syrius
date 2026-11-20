@@ -10,43 +10,34 @@
 //   R  the shape itself: 0 inside the mark, 1 outside
 //   G  the shape under a wide blur: drives the inner and outer glow
 //   B  the shape under a tight blur: the hot contour at the edge
-// The sizes follow the same proportions (blur 15% of the mark, padding 2.5
-// blurs), on a square canvas so the widget can be square.
+// The square texture keeps the original blur radii and padding.
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
 
-/// Material Design Icons' lightning-bolt, the bolt Syrius uses for plasma,
-/// on its 24 unit grid: M11 15H6L13 1V9H18L11 23V15Z.
+/// The Plasma and Fuse mockups use M13 2 4 14h7l-1 8 9-12h-7z.
 const List<List<double>> _bolt = <List<double>>[
-  <double>[11, 15],
-  <double>[6, 15],
-  <double>[13, 1],
-  <double>[13, 9],
-  <double>[18, 9],
-  <double>[11, 23],
+  <double>[13, 2],
+  <double>[4, 14],
+  <double>[11, 14],
+  <double>[10, 22],
+  <double>[19, 10],
+  <double>[12, 10],
 ];
 
-const int _mark = 512;
+const int _rasterBase = 512;
 
 void main(List<String> args) {
   if (args.length == 2 && args[0] == '--inspect') {
     _inspect(args[1]);
     return;
   }
-  final int maxBlur = (_mark * 0.15).floor();
+  final int maxBlur = (_rasterBase * 0.15).floor();
   final int padding = (maxBlur * 2.5).ceil();
-  final int size = _mark + 2 * padding;
-
-  // The bolt, centred, as tall as the mark area.
-  final double scale = _mark / 22; // the path spans y 1..23
-  final double offsetX = padding + (_mark - 12 * scale) / 2 - 6 * scale;
-  final double offsetY = padding - 1 * scale;
-  final List<List<double>> polygon = <List<double>>[
-    for (final List<double> p in _bolt)
-      <double>[p[0] * scale + offsetX, p[1] * scale + offsetY],
-  ];
+  final int size = _rasterBase + 2 * padding;
+  final List<List<double>> polygon = _boltOutline(size);
 
   final Uint8List gray = Uint8List(size * size);
   const int samples = 4;
@@ -82,6 +73,35 @@ void main(List<String> args) {
   final File file = File('assets/images/plasma_heatmap.png')
     ..writeAsBytesSync(img.encodePng(out));
   stdout.writeln('${file.path}: ${size}x$size, ${file.lengthSync()} bytes');
+}
+
+List<List<double>> _boltOutline(int textureSize) {
+  // The 24-unit SVG is 54 px square in the reference's 120 px slots.
+  final double scale = textureSize * 54 / (120 * 24);
+  final double offset = (textureSize - 24 * scale) / 2;
+  final List<List<double>> outline = <List<double>>[];
+  for (int i = 0; i < _bolt.length; i++) {
+    final List<double> point = _bolt[i];
+    final (double ax, double ay) =
+        _leftNormal(_bolt[(i + _bolt.length - 1) % _bolt.length], point);
+    final (double bx, double by) =
+        _leftNormal(point, _bolt[(i + 1) % _bolt.length]);
+    // Expand the filled polygon by the reference's 1-unit miter stroke.
+    // All six joins fit inside the SVG default miter limit.
+    final double extension = 0.5 / (1 + ax * bx + ay * by);
+    outline.add(<double>[
+      offset + (point[0] + (ax + bx) * extension) * scale,
+      offset + (point[1] + (ay + by) * extension) * scale,
+    ]);
+  }
+  return outline;
+}
+
+(double, double) _leftNormal(List<double> start, List<double> end) {
+  final double dx = end[0] - start[0];
+  final double dy = end[1] - start[1];
+  final double length = math.sqrt(dx * dx + dy * dy);
+  return (-dy / length, dx / length);
 }
 
 bool _contains(List<List<double>> polygon, double x, double y) {

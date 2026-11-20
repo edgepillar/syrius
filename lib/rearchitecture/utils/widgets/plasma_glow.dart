@@ -58,8 +58,7 @@ class PlasmaGlow extends StatefulWidget {
     super.key,
   });
 
-  /// The side of the square the mark is drawn in. The bolt itself fills
-  /// about 57% of it; the rest is room for the glow.
+  /// The square for the mark and its glow. The bolt's viewport fills 45%.
   final double size;
 
   /// Whether the heat moves.

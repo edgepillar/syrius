@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
@@ -99,7 +100,24 @@ void main() {
       await tester.pump();
     }
     expect(mark, findsOneWidget);
-    expect((await _markPixels(tester, mark)).getUint32(center), 0xffffffff);
+    final ByteData idle = await _markPixels(tester, mark);
+    expect(idle.getUint32(center), 0xffffffff);
+    int left = size;
+    int top = size;
+    int right = 0;
+    int bottom = 0;
+    for (int y = 0; y < size; y++) {
+      for (int x = 0; x < size; x++) {
+        if (idle.getUint32((y * size + x) * 4) != 0xffffffff) continue;
+        left = math.min(left, x);
+        top = math.min(top, y);
+        right = math.max(right, x);
+        bottom = math.max(bottom, y);
+      }
+    }
+    // Allow for texture sampling of the authored 54 px viewport's edges.
+    expect(right - left + 1, closeTo(36, 3));
+    expect(bottom - top + 1, closeTo(48, 3));
     await tester.pumpWidget(host(active: true));
     await tester.pump();
     final ByteData initial = await _markPixels(tester, mark);
