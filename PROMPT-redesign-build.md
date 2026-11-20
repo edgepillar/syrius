@@ -1622,6 +1622,8 @@ The [first updated Navigation run](https://github.com/edgepillar/syrius/actions/
 stops before the wallet build at the capture test's allowed command
 assertion. The capture test now admits the new pointer move only on
 Pillars after opening the original row and checks the exact resting point.
+The [Linux run at `834c6fec`](https://github.com/edgepillar/syrius/actions/runs/44674237549)
+passes the full non-chain suite and generated-file check.
 
 The [Linux run at `61e72335`](https://github.com/edgepillar/syrius/actions/runs/44664606334/job/136050757368)
 reports 5124 passes, two failures in the segment heading suite and one
@@ -1714,6 +1716,14 @@ The [corrected reader](https://github.com/edgepillar/syrius/actions/runs/4467489
 verifies the Staking, Tokens and Token Mine PNGs in both themes, the
 original capture assertions and normal required closure. The held
 Tokens disclosure is ready for whole-screen comparison.
+
+Screen 28 now uses the prepared Voting list from the same catalog as
+screen 29. The [original Accelerator read at `cf584538`](https://github.com/edgepillar/syrius/actions/runs/44406150703/job/135161799781)
+already verifies all four PNGs and required closure. Its Voting list
+asserts that the confirmed project is visible before taking the shot.
+The Navigation pair still shows the original empty state.
+Current-source comparison and whole-image verdicts
+remain open under V01.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
