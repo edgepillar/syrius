@@ -1684,9 +1684,15 @@ fixture starts each arm in its own settled theme and verifies the base
 color before capturing pixels. The same Linux job passes application and
 integration analysis, the full non-chain test suite and generated-file
 verification.
-The [Windows motion capture](https://github.com/edgepillar/syrius/actions/runs/44744098640)
-and [Debug and Release baseline](https://github.com/edgepillar/syrius/actions/runs/44744248162)
-are running at the source containing the fade change.
+The [Windows motion producer at `bfb83ea8`](https://github.com/edgepillar/syrius/actions/runs/44744098640/job/136314823146)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44745879678/job/136320935947)
+verify three light images and two dark images, with two normal actor exits
+per theme. Light first observes progress 0.391 and fills all three slots.
+Dark first observes progress 0.558 and retains its early-slot failure.
+The [Debug and Release baseline](https://github.com/edgepillar/syrius/actions/runs/44744248162)
+is running at `bfb83ea8`. The [paired timing run at `cbcaf91b`](https://github.com/edgepillar/syrius/actions/runs/44746000691)
+samples the same fade code with the original P06 comparison. Only the
+ledger and environment documentation differ between these revisions.
 
 The [Windows baseline at `650bbb8a`](https://github.com/edgepillar/syrius/actions/runs/44737155697)
 passes both the Debug and Release builds with complete output. The
