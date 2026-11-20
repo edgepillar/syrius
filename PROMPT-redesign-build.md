@@ -1662,6 +1662,13 @@ offset starts at the strip's lower edge. The strip now uses the shared
 artwork cases check the compact inset. A fresh Windows comparison
 remains open.
 
+The [Windows run at `7000c750`](https://github.com/edgepillar/syrius/actions/runs/44671388069/job/136072945399)
+completes and retains the new Sentinel archive. The [first independent read](https://github.com/edgepillar/syrius/actions/runs/44673410693/job/136079453711)
+passes all 124 reader cases and refuses during producer source binding.
+The capture runner, Pillars recipe and details catalog have newer blobs
+in the reader checkout. The reader now verifies the original versions
+from the producer tree under its existing caps before opening the archive.
+
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
 | Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Verified native early, late and settled samples. | Inspect the retained images and verify the running 400 ms settle. |

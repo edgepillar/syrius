@@ -30,14 +30,17 @@ MAX_CAPTURE_AGENT_SOURCE = 256 * 1024
 MAX_VERSIONED_BLOB_RESPONSE = 2 * MAX_CAPTURE_AGENT_SOURCE
 VERSIONED_INPUTS = frozenset((
     'pubspec.yaml', 'pubspec.lock',
-    'harness/screens/plasma-fuse.txt', 'harness/screens/set-licences.txt',
+    'harness/screens/pillars.txt', 'harness/screens/plasma-fuse.txt',
+    'harness/screens/set-licences.txt',
     'harness/screens/token-new.txt',
     'tool/ci/hosted_chain321.py',
+    'tool/ci/readonly_details_capture.py',
     'tool/ci/run_harness_tour_tests.py',
     'tool/ci/windows_wallet_inspection.py',
     'harness/bin/ci_wallet_inspection.dart',
     'harness/bin/readonly_catalog_contact.dart',
     'harness/bin/readonly_settings_catalog.dart',
+    'harness/bin/screen_capture.dart',
     'harness/bin/wallet_recipe.dart',
     'lib/rearchitecture/utils/widgets/entry_field.dart',
     'lib/widgets/modular_widgets/help_widgets/about_card.dart',
