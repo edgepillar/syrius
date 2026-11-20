@@ -22,6 +22,7 @@ from . import windows_wallet_inspection as producer
 MAX_ARCHIVE = producer.MAX_CAPTURE_TOTAL + producer.MAX_MANIFEST + 65536
 MAX_HOME_ARCHIVE = producer.MAX_HOME_CAPTURE_TOTAL + producer.MAX_HOME_MANIFEST + 65536
 MAX_TREE = 2 * 1024**2
+MAX_NOTICE_BYTES = 3800
 WORKFLOW_SOURCE = '.github/workflows/public-contribution-qualification.yml'
 MAX_WORKFLOW_SOURCE = 128 * 1024
 MAX_WORKFLOW_RESPONSE = 2 * MAX_WORKFLOW_SOURCE
@@ -947,9 +948,31 @@ def artifact(listing, name, head, run_id):
     return value
 
 
+def encode_notice(value):
+    return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=True)
+
+
+def wallet_inspection_frames(summary):
+    title = 'Retained readonly wallet inspection'
+    if len(encode_notice(summary)) <= MAX_NOTICE_BYTES:
+        return [(title, summary)]
+
+    overview, frames = dict(summary), []
+    pins = {key: summary[key] for key in ('source_head', 'source_tree',
+        'source_run_id', 'source_attempt', 'archive_sha256', 'manifest_sha256',
+        'producer_job_id')}
+    for family in ('home', 'settings'):
+        field = family + '_seam_observations'
+        if field in overview:
+            frames.append((f'Retained readonly {family} seam observations',
+                dict(schema=1, scope='retained_readonly_' + field,
+                     **pins, **{field: overview.pop(field)})))
+    return [(title, overview), *frames]
+
+
 def emit(title, value):
-    raw = json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=True)
-    need(len(raw.encode('ascii')) <= 3800)
+    raw = encode_notice(value)
+    need(len(raw) <= MAX_NOTICE_BYTES)
     print('::notice title=' + title + '::' + raw.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'), flush=True)
 
 
@@ -1188,7 +1211,8 @@ def main(parent=None):
         summary['aged_fuse_fixture_qualified'] = bool(
             summary['native_inspection_qualified']
             and summary['aged_fuse_fixture'] is not None)
-    emit('Retained readonly wallet inspection', summary)
+    for title, frame in wallet_inspection_frames(summary):
+        emit(title, frame)
     if layout is not None and summary['native_inspection_qualified']:
         layout.update(archive_sha256=summary['archive_sha256'],
             manifest_sha256=summary['manifest_sha256'],

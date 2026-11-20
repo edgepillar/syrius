@@ -380,6 +380,10 @@ class ReadonlyOwnerSurfaces:
                 raise AssertionError('Unexpected action')
             return dict(target=dict(key=key, kind='button'))
         if name == 'wait':
+            if (command['key'] == 'swap_counterparty_input'
+                    and command.get('ready') and self.mode == 'light'
+                    and self.fault == 'light-draft-disabled'):
+                return {}
             if command['key'] == 'pillars_sort_weight':
                 if self.fault == 'menu-delayed' and not command.get('gone'):
                     self.pillars_menu_open = True
@@ -389,6 +393,8 @@ class ReadonlyOwnerSurfaces:
             return {} if command.get('gone') else dict(target=dict(
                 key=command['key'], kind=command.get('kind', 'button')))
         if name == 'tree':
+            if self.mode == 'light' and self.fault == 'light-tree-too-large':
+                return dict(nodes=[{}] * 513)
             if self.fault == 'tree-owner':
                 self.address = 'replacement-owner'
             warning = self.route.endswith('/warning')
@@ -477,6 +483,24 @@ class ReadonlyOwnerSeamProbeTests(unittest.TestCase):
             'readonly-seam-pointer', 'key') for c in original.calls))
         self.assertFalse(any(set(c) & {'value', 'amount', 'seed', 'force'} for c in original.calls))
         self.assertNotIn('private response detail', str(observed))
+
+    def test_repeat_swap_uses_a_ready_field_without_a_second_tree_scan(self):
+        for fault in ('light-tree-too-large', 'light-draft-disabled'):
+            original, observed = ReadonlyOwnerSurfaces(fault), []
+            with self.subTest(fault=fault):
+                if fault == 'light-tree-too-large':
+                    inspect.observe_readonly_owner_seams(original.send, observed)
+                    self.assertEqual(len(observed), 6)
+                else:
+                    with self.assertRaises(inspect.Refused):
+                        inspect.observe_readonly_owner_seams(original.send, observed)
+                    self.assertEqual(len(observed), 5)
+                self.assertEqual(sum(c['cmd'] == 'tree' for c in original.calls), 1)
+                self.assertEqual(sum(c.get('key') == 'p2p_warning_continue'
+                                     for c in original.calls), 1)
+                self.assertEqual(sum(c.get('key') == 'swap_counterparty_input'
+                                     and c.get('ready') is True
+                                     for c in original.calls), 2)
 
     def test_pillars_probe_waits_for_the_original_menu_item(self):
         for fault in ('menu-delayed', 'menu-absent'):

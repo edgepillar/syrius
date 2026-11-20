@@ -1252,6 +1252,22 @@ pane-local menu contract. Its focused checks refuse an absent menu before
 the pointer attempt and an unclosed menu before navigating to Swap.
 A fresh Windows observation remains required.
 
+The [next producer at `69bd7899`](https://github.com/edgepillar/syrius/actions/runs/44792124711/job/136482242633)
+records ten of eleven observations and normal wallet and entry exits.
+Pillars qualifies in both themes, along with the dark Swap control.
+The remaining light Swap observation stops after state reply 168 without
+a probe deadline. That trace does not identify the rejected predicate.
+The controller now scans for the original first-use warning only on its
+first opening. The repeat opening waits for the exact enabled draft field
+and retains the original owner, route, pointer and close checks.
+
+The [first independent read of this producer](https://github.com/edgepillar/syrius/actions/runs/44795424969/job/136493605342)
+stops at the notice stage. When the full reader notice exceeds its cap,
+the selected seam observations now have a separate notice with the same
+producer and archive pins. The original prefix and completion status are
+preserved in the returned inspection. Fresh reader and Windows outcomes
+are required.
+
 The [independent clean Windows reader at `512605b7`](https://github.com/edgepillar/syrius/actions/runs/44785850020/job/136460390319)
 verifies Debug and Release, all twelve baseline checks, 5,129 passing
 tests and one skip, and zero analyzer errors or warnings. This source

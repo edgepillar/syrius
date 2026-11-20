@@ -565,6 +565,32 @@ class ReaderTests(unittest.TestCase):
         self.assertNotIn('settings_seam_observations', self.inspect(child, lab,
             [('manifest.json', encode(child), stat.S_IFREG)]))
 
+    def test_oversized_home_seam_notice_keeps_the_original_prefix_and_pins(self):
+        observed = reader.producer.expected_home_seam_observations()[:10]
+        prefix = dict(schema=1, requested=11, observed=observed,
+                      probe_failure='ENTRY_REFUSED', complete=False)
+        summary, _, _ = self.run_main(home_seams=dict(prefix,
+            observed=reader.producer.expected_home_seam_observations(),
+            probe_failure=None, complete=True), auxiliary_forced=True)
+        summary.update(home_seam_observations=prefix, artifact_reported_success=False,
+                       native_inspection_qualified=False, original_errors=['ENTRY_REFUSED'])
+        limit = len(reader.encode_notice(summary)) - 1
+        with mock.patch.object(reader, 'MAX_NOTICE_BYTES', limit):
+            frames = reader.wallet_inspection_frames(summary)
+            stream = io.StringIO()
+            with contextlib.redirect_stdout(stream):
+                for title, frame in frames:
+                    reader.emit(title, frame)
+        self.assertEqual(len(stream.getvalue().splitlines()), 2)
+        overview, detail = [frame for _, frame in frames]
+        self.assertNotIn('home_seam_observations', overview)
+        self.assertFalse(overview['native_inspection_qualified'])
+        self.assertEqual(detail['home_seam_observations'], prefix)
+        self.assertEqual(summary['home_seam_observations'], prefix)
+        for key in ('source_head', 'source_tree', 'source_run_id', 'source_attempt',
+                    'archive_sha256', 'manifest_sha256', 'producer_job_id'):
+            self.assertEqual(detail[key], overview[key])
+
     def test_home_seam_prefix_is_bound_to_the_original_archive_and_cannot_be_healed(self):
         child, lab, files = pair()
         complete = dict(schema=1, requested=11,

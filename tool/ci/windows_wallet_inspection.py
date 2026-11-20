@@ -1240,7 +1240,7 @@ def observe_readonly_owner_seams(send, observed):
         need(type(reply) is dict, 'ENTRY_REFUSED')
         return reply
 
-    def wait(key, tab, *, expected=None, kind=None, gone=False):
+    def wait(key, tab, *, expected=None, kind=None, gone=False, ready=False):
         current = route(tab)
         if expected is not None:
             need(current == expected, 'ENTRY_REFUSED')
@@ -1249,6 +1249,8 @@ def observe_readonly_owner_seams(send, observed):
             command['kind'] = kind
         if gone:
             command['gone'] = True
+        if ready:
+            command['ready'] = True
         reply = send(command)
         current = route(tab)
         if expected is not None:
@@ -1287,7 +1289,7 @@ def observe_readonly_owner_seams(send, observed):
          and 'savedMode' in original_theme
          and (original_theme['savedMode'] is None
               or type(original_theme['savedMode']) is str), 'ENTRY_REFUSED')
-    for theme in THEMES:
+    for index, theme in enumerate(THEMES):
         selected = stable(dict(cmd='theme', mode=theme), 'dashboard', home)
         need(selected.get('mode') == selected.get('brightness') == theme
              and selected.get('savedMode') == 'ThemeMode.' + theme, 'ENTRY_REFUSED')
@@ -1313,14 +1315,18 @@ def observe_readonly_owner_seams(send, observed):
         swaps = navigate('p2pSwap', 'pillars', pillars)
         wait('p2p_swaps_strip', 'p2pSwap', expected=swaps)
         tap('p2p_start_swap', 'p2pSwap', swaps)
-        opening, current = readonly_swap_opening(
-            send, lambda: route('p2pSwap'), swaps)
-        if opening == 'warning':
-            tap('p2p_warning_continue', 'p2pSwap', current)
-            draft = wait('swap_counterparty_input', 'p2pSwap', kind='field')
-        else:
-            draft = wait('swap_counterparty_input', 'p2pSwap',
-                         expected=current, kind='field')
+        # Only the first opening can show the original first-use warning.
+        # After that probe closes the draft, its exact field identifies it.
+        opening_route = None
+        if index == 0:
+            opening, current = readonly_swap_opening(
+                send, lambda: route('p2pSwap'), swaps)
+            if opening == 'warning':
+                tap('p2p_warning_continue', 'p2pSwap', current)
+            else:
+                opening_route = current
+        draft = wait('swap_counterparty_input', 'p2pSwap',
+                     expected=opening_route, kind='field', ready=True)
         need(draft != swaps, 'ENTRY_REFUSED')
         wait('swap_start_terms_gate', 'p2pSwap', expected=draft, kind='button')
         probe('swapTerms', 'swap_start_terms_gate', 'p2pSwap', draft)
