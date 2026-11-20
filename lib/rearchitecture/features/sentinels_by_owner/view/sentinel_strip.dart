@@ -102,7 +102,9 @@ class SentinelStrip extends StatelessWidget {
 
     final Widget strip = PageStrip(
       key: const Key('nodes_sentinels_strip'),
-      minimumContentHeight: kStripTextContentHeight,
+      // Keep the 70 px strip floor with the shorter top inset.
+      minimumContentHeight: kStripTextContentHeight + 1,
+      padding: tokens.compactStripPadding,
       leadSize: NodeStripArtwork.slotSize,
       leadGap: NodeStripArtwork.gap,
       lead: sentinel == null

@@ -118,7 +118,7 @@ void main() {
         );
         expect(artwork.size, const Size.square(48));
         expect(artwork.left - strip.left, 12);
-        expect(artwork.center.dy, strip.center.dy);
+        expect(artwork.center.dy, strip.center.dy - 0.5);
         final AppLottie animation = tester.widget<AppLottie>(
           find.byType(AppLottie),
         );

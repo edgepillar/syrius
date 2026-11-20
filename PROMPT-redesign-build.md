@@ -715,6 +715,13 @@ catalog families. The Navigation, Details and Sentinel runs at `61e72335`
 verify 26 original images, of which 22 are designated comparison pairs.
 Navigation also retains the empty Send form and the read-only Swap list.
 The designated populated Swap state comes from the restored catalog.
+The retained Navigation and Details archives at `61e72335` supplied
+24 digest-verified PNGs. The local comparison read both archives directly
+and compared their 20 designated pairs at 1280 by 780. All 20 contain
+pixel differences. Pillars has the largest difference in both themes
+and uses the undelegated lab state with three rows. Tokens uses an empty
+Held view while the reference shows a populated list. These readings
+retain the original fixtures and leave whole-image verdicts open.
 The designated Send draft comes from the Send confirmation catalog. The
 [independent reader at `06eda3f7`](https://github.com/edgepillar/syrius/actions/runs/44582555309/job/135766788891)
 verifies both filled drafts and both separate confirmation images. The
@@ -730,6 +737,9 @@ command receipt when storage sampling fails. The reader can review
 the last three command receipts from either interrupted node test,
 including older runs that have no numeric error data. Storage admission
 and failure handling continue to use the existing limits.
+The [expanded read of the original run](https://github.com/edgepillar/syrius/actions/runs/44670980327/job/136071607820)
+verifies command 20's forced exit with code 1 and complete output.
+The artifact carries byte counts and stream digests for that command.
 The four [Welcome and Import originals](https://github.com/edgepillar/syrius/actions/runs/44582250018/job/135765713115)
 also read directly from their retained archive at 1280 by 780 using their
 original filenames, with no extracted image copies.
@@ -1617,6 +1627,14 @@ now use the authored 34 by 36 px footprint for the original 48 px artwork,
 with a 6 px leading overhang and 28 px gap. The Sentinel tests check the
 footprint, image size and alignment. Fresh native evidence and whole-image
 verdicts remain open.
+
+The [Sentinel reader at `375a5559`](https://github.com/edgepillar/syrius/actions/runs/44671018840/job/136071731189)
+verifies both PNGs and normal required closure. The measured transitions
+move to rows 107, 119, 165 and 166 in both themes. The remaining one-pixel
+offset starts at the strip's lower edge. The strip now uses the shared
+11 px top inset and retains the 70 px layout floor. The two-theme
+artwork cases check the compact inset. A fresh Windows comparison
+remains open.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
