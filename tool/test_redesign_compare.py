@@ -93,6 +93,7 @@ class ArchiveReadCacheTests(unittest.TestCase):
         stat_result = SimpleNamespace(
             st_dev=1, st_ino=2, st_size=3, st_mtime_ns=4, st_ctime_ns=5,
         )
+        gallery = ReportGallery()
         with (
             patch.object(Path, "stat", return_value=stat_result),
             patch("redesign_compare.screen_inventory", return_value=[first, second]),
@@ -103,7 +104,7 @@ class ArchiveReadCacheTests(unittest.TestCase):
         ):
             report = generate_report(
                 root, None, None, actual_manifest=root / "inputs.json",
-                target_source="a" * 40, required_size=(4, 3),
+                target_source="a" * 40, required_size=(4, 3), gallery=gallery,
             )
         self.assertEqual([call.args[0] for call in load.call_args_list
                           if call.args[0] in archives], list(archives))
@@ -112,6 +113,10 @@ class ArchiveReadCacheTests(unittest.TestCase):
         self.assertEqual([pair["state"] for pair in report["pairs"]],
                          ["unreviewed", "unreviewed", "invalid", "missing"])
         self.assertEqual(report["summary"]["target_pairs"]["available"], 2)
+        self.assertEqual(report["pairs"][0]["score"]["changed_pixels"], 0)
+        self.assertIn(f"capture/{first_dark}.png", gallery.assets)
+        self.assertIn(f"diff/{first_light}.png", gallery.assets)
+        self.assertNotIn(f"capture/{second_dark}.png", gallery.assets)
 
 
 class CaptureCatalogTests(unittest.TestCase):
@@ -525,6 +530,25 @@ class CompareTests(unittest.TestCase):
         self.assertEqual(len(summary["target_pairs"]["remaining"]), 93)
         self.assertEqual(summary["states"], {"unreviewed": 1, "missing": 93})
         self.assertEqual(summary["visual_review"], "INCOMPLETE")
+
+        with (
+            patch("redesign_compare.ROOT", self.repo),
+            patch("sys.argv", [*argv[:-2], "--serve"]),
+            patch(
+                "redesign_compare.generate_report",
+                side_effect=lambda *args, **kwargs: generate_report(
+                    *args, required_size=(4, 3), **kwargs,
+                ),
+            ),
+            patch.object(ReportGallery, "serve", autospec=True) as serve,
+            redirect_stdout(io.StringIO()),
+        ):
+            self.assertEqual(main(), 0)
+        served_gallery, page = serve.call_args.args
+        self.assertIn(f'src="capture/{name}"'.encode(), page)
+        self.assertIn(f'src="diff/{name}"'.encode(), page)
+        self.assertEqual(served_gallery.read_asset(f"capture/{name}"), (image, "image/png"))
+        self.assertFalse((self.src.parent / "compare").exists())
 
         gallery = ReportGallery()
         report = generate_report(

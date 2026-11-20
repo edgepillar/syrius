@@ -39,8 +39,8 @@ The ZIP member may omit the catalog number, as the Windows entry archive
 does. It must otherwise have the same screen and theme as the manifest key.
 Use --serve to view such a report on loopback. The gallery reads only the
 registered originals directly from their archives and renders difference PNGs
-on request. By default, --serve writes the page to compare/served, alongside
-the static report.
+on request. The served page stays in memory unless --output-dir is supplied
+to also save the report.
 Report generation reads each unchanged archive together, with one archive
 buffer in memory. The report keeps its original screen and theme order.
 Each PNG has its own SHA-256 check. Gallery requests verify the current
@@ -421,8 +421,7 @@ class ReportGallery:
             diff = ImageChops.difference(before, after)
             return encode_diff_png(difference_mask(diff)), media_type
 
-    def serve(self, output: Path) -> None:
-        self.add_file("index.html", output / "index.html", "text/html; charset=utf-8")
+    def serve(self, page: bytes) -> None:
         prefix = "/" + secrets.token_urlsafe(24) + "/"
         read_asset = self.read_asset
 
@@ -438,7 +437,11 @@ class ReportGallery:
                     self.send_error(404)
                     return
                 try:
-                    data, media_type = read_asset(self.path[len(prefix):])
+                    asset = self.path[len(prefix):]
+                    if asset == "index.html":
+                        data, media_type = page, "text/html; charset=utf-8"
+                    else:
+                        data, media_type = read_asset(asset)
                 except (KeyError, OSError, ValueError, SyntaxError, zipfile.BadZipFile,
                         zlib.error, Image.DecompressionBombError, Image.DecompressionBombWarning):
                     self.send_error(404)
@@ -472,8 +475,10 @@ def read_image(
     if capture is None:
         return {"state": "missing", "reason": "Image missing"}, None
     info: dict[str, object] = {}
-    if output is not None:
-        info["url"] = url or relative_url(capture.path, output)
+    if url is not None:
+        info["url"] = url
+    elif output is not None:
+        info["url"] = relative_url(capture.path, output)
     try:
         data = capture_bytes(capture, archive_cache)
         info["sha256"] = hashlib.sha256(data).hexdigest()
@@ -597,13 +602,12 @@ def compare_pair(
     actual, after = gallery_image(
         capture, output, gallery, f"capture/{stem}.png", archive_cache,
     )
-    if output is None:
-        source_url = None
-    elif gallery is None:
-        source_url = relative_url(screen.source, output)
-    else:
+    source_url = None
+    if gallery is not None:
         source_url = "source/" + quote(screen.source.name, safe="")
         gallery.add_file(source_url, screen.source, "text/plain; charset=utf-8")
+    elif output is not None:
+        source_url = relative_url(screen.source, output)
     source_sha = capture.source_sha if capture else None
     if source_sha is not None:
         actual["source_sha"] = source_sha
@@ -652,7 +656,7 @@ def compare_pair(
             pair["state"] = (
                 f"reviewed-{review['verdict']}" if review["state"] == "current" else "unreviewed"
             )
-        if output is None:
+        if output is None and gallery is None:
             return pair
         diff = ImageChops.difference(before, after)
         mean = sum(ImageStat.Stat(diff).mean) / 4
@@ -800,8 +804,6 @@ def generate_report(
         if gallery is None and any(capture.archive_member is not None for capture in actuals.values()):
             raise ReportError("ZIP capture manifests require --serve when writing a gallery")
         output.mkdir(parents=True, exist_ok=True)
-    elif gallery is not None:
-        raise ReportError("A gallery requires an output directory")
     archive_groups: dict[
         tuple[Path, str | None] | None,
         list[tuple[Screen, str, Capture | None]],
@@ -863,13 +865,13 @@ def main() -> int:
     inputs.add_argument("--actual-manifest", type=Path, action="append",
                         help="Private capture paths and SHA-256 pins, repeatable")
     parser.add_argument("--target-source", help="Accept reviews only for captures at this full Git commit")
-    parser.add_argument("--output-dir", type=Path)
+    parser.add_argument("--output-dir", type=Path, help="Save the comparison report here")
     parser.add_argument("--reviews", type=Path, help="Manual, image-hash-bound visual review JSON")
     parser.add_argument("--no-diff-images", action="store_true",
                         help="Link inputs and report scores without writing difference PNGs")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--serve", action="store_true",
-                      help="Serve a private loopback gallery with support for retained ZIP captures")
+                      help="Serve a private loopback gallery in memory with support for retained ZIP captures")
     mode.add_argument("--summary-only", action="store_true",
                       help="Print JSON after checking images without writing a report or diff images")
     parser.add_argument("--require-reviewed", action="store_true", help="Exit 1 unless all 94 pairs are reviewed matches")
@@ -882,9 +884,11 @@ def main() -> int:
         parser.error("--summary-only prints to stdout and cannot use --output-dir")
     gallery = ReportGallery() if args.serve else None
     default_output = ROOT / "mockups" / "redesign" / "compare"
-    if gallery is not None:
-        default_output /= "served"
-    output = None if args.summary_only else (args.output_dir or default_output).resolve()
+    output = None
+    if args.output_dir is not None:
+        output = args.output_dir.resolve()
+    elif gallery is None and not args.summary_only:
+        output = default_output.resolve()
     try:
         actual_dir = args.actual_dir.resolve() if args.actual_dir is not None else None
         manifest = generate_report(
@@ -910,8 +914,8 @@ def main() -> int:
     incomplete_reviews = args.require_reviewed and summary["visual_review"] != "COMPLETE"
     if missing_captures or incomplete_reviews:
         return 1
-    if gallery is not None and output is not None:
-        gallery.serve(output)
+    if gallery is not None:
+        gallery.serve(render_html(manifest).encode("utf-8"))
     return 0
 
 

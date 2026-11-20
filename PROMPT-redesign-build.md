@@ -695,6 +695,11 @@ The retained Details archive at `fb3b2a01` supplies ten of the 94 target pairs
 to this mode. A different target revision supplies zero, and a deliberately
 wrong image digest excludes that pair. The whole-image verdicts remain open.
 All 23 comparison tests pass with the summary mode at `962bd1dc`.
+The loopback gallery now renders the page in memory by default. The
+existing output-directory option saves the report when requested. A
+local check renders 94 historical pairs, retrieves a pinned PNG and its
+on-demand diff through loopback, and verifies the existing report files
+were untouched. The historical images remain unreviewed in this run.
 One verified archive can now supply adjacent pairs during report
 generation. Changed file identity invalidates that buffer. Gallery
 requests still check the original archive and PNG digests on disk.
@@ -1180,7 +1185,13 @@ The same Release build now samples natural launch motion in both themes
 using fresh profiles. Each theme keeps its own finite archive and partial
 captures. The independent reader checks the original capture steps,
 actor exits and shared executable and payload hashes. The new light
-capture remains pending under V02.
+capture ran in the [shared Windows job at `cc4c5b2f`](https://github.com/edgepillar/syrius/actions/runs/44683657816/job/136112757291).
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44685563145/job/136118946640)
+verified shared binary hashes, two normal actor exits per theme and
+four PNGs. Both themes retained late and settled frames. Their first
+positive observations were 0.662 in dark and 0.558 in light, above the
+0.55 boundary for the early slot. Both original capture failures remain
+open under V02.
 
 The [paired cold producer](https://github.com/edgepillar/syrius/actions/runs/44664282336/job/136049681462)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44666599583/job/136057289816)
@@ -1571,7 +1582,15 @@ Home now keeps the Activity widget across balance and reward reads.
 Activity subscribes to the existing transaction bloc for ledger updates.
 The selected address and chain still determine the widget when Home is
 built. This removes a redundant Activity rebuild during a snapshot
-update. The page-change timing effect needs a fresh Windows measurement.
+update. The [producer at `757e8849`](https://github.com/edgepillar/syrius/actions/runs/44682629906/job/136109407960)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44685398362/job/136118405733)
+verify two normal entry exits, two normal wallet exits and five normal
+node exits. Page change peaks at 260.361 ms total versus 144.441 ms on
+P06. Disclosure peaks at 140.833 ms versus 64.518 ms. Both fail the
+16 ms raster and distinct-frame comparisons and retain frame-number
+gaps. Disclosure also fails the build comparison. All four redesign
+raster starts confirmed at or after the observed settled layout exceed
+16 ms and the longest takes 79.271 ms. V02 remains open.
 
 The earlier [paired reader at `3b360fbc`](https://github.com/edgepillar/syrius/actions/runs/44469179488/job/135374186038)
 measures the Licences experiment with the row repaint boundaries disabled.
