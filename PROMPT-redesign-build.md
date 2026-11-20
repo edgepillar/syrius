@@ -1471,13 +1471,18 @@ to check both changes.
 The [Ready producer at `4e370ffb`](https://github.com/edgepillar/syrius/actions/runs/44824632661)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44826720079/job/136601077349)
 verify two original PNGs with the pointer move in place. The fresh
-button pixel comparison remains open. [Linux validation at `ebf17f76`](https://github.com/edgepillar/syrius/actions/runs/44824977641)
+button has the same four RGB samples in both themes. The [gradient reader](https://github.com/edgepillar/syrius/actions/runs/44828199008/job/136606102891)
+measures a mean absolute error of 0.205 RGB levels per channel against
+the approved resting gradient. [Linux validation at `ebf17f76`](https://github.com/edgepillar/syrius/actions/runs/44824977641)
 passes strict selected analysis, the complete non-chain suite and
 generated-file verification with both capture changes.
 The [Lock reader at `ebf17f76`](https://github.com/edgepillar/syrius/actions/runs/44827181709/job/136602636784)
 verifies six original PNGs. Enter produces one rejected attempt and the
 observer retains film frame 23 in both themes. The picker divider still
-measures row 488. The new button pixels await comparison.
+measures row 488. The [wrong-password gradient reader](https://github.com/edgepillar/syrius/actions/runs/44828203545/job/136606116841)
+measures a mean error of 0.282 RGB levels per channel in both themes,
+equal to the historical normal Lock control. These component comparisons
+leave the whole-screen verdicts open under V01.
 
 All six [Lock captures at `e94d5b07`](https://github.com/edgepillar/syrius/actions/runs/44797941432)
 were reopened from the verified archive and viewed beside their
