@@ -1101,8 +1101,11 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The licence registry remains scrollable in a short window.
   double get aboutLicencesMinHeight => 220;
 
-  /// A package disclosure keeps the reference table row's minimum.
-  double get aboutLicenceRowHeight => 40;
+  /// The full registry uses the reference table's row spacing.
+  double get aboutLicenceRowHeight => 39.25;
+
+  /// The two rows above Originals use the compact reference spacing.
+  double get aboutOriginalsLicenceRowHeight => 40;
 
   /// The reference licence type column in the full registry.
   int get aboutLicenceSummaryPercent => 59;
@@ -1112,7 +1115,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// Two genuine final rows and the existing end hook precede Originals.
   double get aboutOriginalsLicencesHeight =>
-      2 * aboutLicenceRowHeight +
+      2 * aboutOriginalsLicenceRowHeight +
       originalsDiscoveryHeight +
       originalsDiscoveryPadding.vertical;
 

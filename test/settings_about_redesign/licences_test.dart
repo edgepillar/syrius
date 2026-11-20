@@ -131,6 +131,7 @@ void main() {
           variant.$2 ? .25 : -.25,
         );
         final Rect rowBounds = tester.getRect(row);
+        expect(rowBounds.height, closeTo(39.25, .01));
         final Rect chevron = tester.getRect(chevronFinder);
         expect(
           variant.$2

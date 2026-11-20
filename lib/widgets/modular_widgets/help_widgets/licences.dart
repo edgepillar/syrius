@@ -349,6 +349,9 @@ class _LicencesState extends State<Licences> {
         key: const Key('about_licences_empty'),
       );
     }
+    final double rowHeight = widget.preserveEndOnReveal
+        ? tokens.aboutOriginalsLicenceRowHeight
+        : tokens.aboutLicenceRowHeight;
     return NotificationListener<ScrollMetricsNotification>(
       onNotification: (ScrollMetricsNotification notification) {
         if (notification.depth == 0) _rememberEnd();
@@ -377,9 +380,7 @@ class _LicencesState extends State<Licences> {
             controller: _scroll,
             primary: false,
             // Opening the panel only prepares a short scroll buffer of rows.
-            scrollCacheExtent: ScrollCacheExtent.pixels(
-              2 * tokens.aboutLicenceRowHeight,
-            ),
+            scrollCacheExtent: ScrollCacheExtent.pixels(2 * rowHeight),
             itemCount: packages.length + 1,
             itemBuilder: (BuildContext context, int index) {
               if (index == packages.length) {
@@ -396,6 +397,7 @@ class _LicencesState extends State<Licences> {
               return _LicenceRow(
                 key: ValueKey<String>('about_licence_${package.name}'),
                 package: package,
+                headerHeight: rowHeight,
                 summaryColumnPercent: widget.preserveEndOnReveal
                     ? tokens.aboutOriginalsLicenceSummaryPercent
                     : tokens.aboutLicenceSummaryPercent,
@@ -490,12 +492,14 @@ class _PackageLicence {
 class _LicenceRow extends StatelessWidget {
   const _LicenceRow({
     required this.package,
+    required this.headerHeight,
     required this.summaryColumnPercent,
     required this.onReadFailure,
     super.key,
   });
 
   final _PackageLicence package;
+  final double headerHeight;
   final int summaryColumnPercent;
   final VoidCallback onReadFailure;
 
@@ -512,7 +516,7 @@ class _LicenceRow extends StatelessWidget {
         summary: package.identifier,
         summaryColumnPercent: summaryColumnPercent,
         keyPrefix: 'about_licence_${package.name}',
-        headerMinHeight: tokens.aboutLicenceRowHeight,
+        headerMinHeight: headerHeight,
         headerPadding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
         // The lazy list already isolates each painted row.
         isolateChevronPaint: false,

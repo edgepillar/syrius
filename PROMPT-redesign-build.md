@@ -945,6 +945,13 @@ This computer also match the measured vertical bounds. At the eight-level
 contrast threshold, the expanded Licences symbol starts one row earlier
 in dark and ends one row earlier in light.
 
+In the full Licences list, the reference dividers advance 39.25 px per
+package in both themes. The retained Windows dividers advance 40 px,
+with a cumulative shift across the visible rows. The full registry now
+uses the reference spacing. The two compact Originals rows use their
+separate 40 px spacing. Existing cases check the full row in both themes
+and in a scaled RTL layout. Native comparison is pending.
+
 Both Originals images show the cleared discovery field required by the
 mockup README. The reference images still show the entered digits. The
 Map dot rendering and Globe outlines visibly differ in the retained images,
