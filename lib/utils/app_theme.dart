@@ -718,7 +718,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
   double get tokenRowHeight => 56;
 
   /// The compact token ledger header's minimum height.
-  double get tokenHeaderHeight => 34;
+  double get tokenHeaderHeight => 32;
 
   /// Search stays secondary to the Held, Favorites and All modes.
   double get tokenSearchWidth => 260;

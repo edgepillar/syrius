@@ -700,6 +700,7 @@ generation. Changed file identity invalidates that buffer. Gallery
 requests still check the original archive and PNG digests on disk.
 The retained ten-image Details archive at `fb3b2a01` supplies all ten
 pairs in one archive read, with the individual PNG digest checks intact.
+All 24 comparison tests pass at `7aa2cdf9`.
 The four [Welcome and Import originals](https://github.com/edgepillar/syrius/actions/runs/44582250018/job/135765713115)
 also read directly from their retained archive at 1280 by 780 using their
 original filenames, with no extracted image copies.
@@ -927,6 +928,16 @@ one-line To receive card. The card boundaries, section dividers and action
 rows agree. The address, live status, approved brand colors and rasterized
 text and edges account for the remaining differences. [Original Windows capture](https://github.com/edgepillar/syrius/actions/runs/44576665310)
 [Independent catalog reader](https://github.com/edgepillar/syrius/actions/runs/44580184381/job/135758423183).
+
+### Tokens header at `06eda3f7`
+
+The [verified Navigation images](https://github.com/edgepillar/syrius/actions/runs/44580184381/job/135758423183)
+place the Tokens table dividers at rows 178 and 213 in both themes. Their
+references place the dividers at 177 and 210. The table's header content
+now uses the reference's 32 px minimum. The existing view test checks
+that height with the original Tokens controls and figures. The rest
+capture has no held tokens, so the populated rows and the whole-screen
+comparison remain open.
 
 ### About disclosures and Originals at `fb3b2a01`
 

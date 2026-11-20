@@ -467,6 +467,7 @@ void main() {
         closeTo(tokens.stripPadding.start + 38 + 28, 0.01),
       );
       expect(strip.height, inInclusiveRange(70, 71));
+      expect(tester.getSize(find.byType(TokenListHeader)).height, 32);
       expect(tester.takeException(), isNull);
       expect(
         find.byWidgetPredicate(
