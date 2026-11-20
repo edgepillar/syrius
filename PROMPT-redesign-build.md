@@ -1711,6 +1711,9 @@ A single [Windows Release harness run at `fb956740`](https://github.com/edgepill
 captures 12 images across Launch, Launch Settle, the three Lock states and
 the synthetic seed quiz. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44750797639/job/136337864449)
 verifies all four original archives and all 12 PNGs against that source.
+The six Lock film rectangles match the authored reference edges, and both
+picker dividers match reference row 488. The comparison uses the reader's
+measurements and the reference PNGs at the same source.
 The whole-screen comparisons remain open under V01.
 
 The [Windows navigation run at `fb956740`](https://github.com/edgepillar/syrius/actions/runs/44748087100)
@@ -1720,6 +1723,13 @@ verifies all 14 Navigation PNGs, 24 general inspection PNGs and four
 viewport PNGs. The original application and entry processes exit normally.
 The prepared Tokens and Swap examples and whole-screen verdicts are tracked
 separately under V01.
+
+Measurements from that reader match both Tokens and Accelerator strip
+boundaries, the Pillars table headings and the ownership badge. The Pillars
+momentum label and value are two pixels below the reference in both themes.
+The expanded detail moves two pixels up by transferring top padding to the
+bottom, keeping its total height. The original counts and localization
+stay in use. A fresh Windows capture is needed to verify placement.
 
 The shell now mounts the working rail on its first unlock and retains it on
 later locks. A cold Lock still lays out the original authentication owner

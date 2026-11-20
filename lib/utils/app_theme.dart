@@ -2094,7 +2094,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// Expanded details follow the disclosure inset and the subrow padding.
   EdgeInsetsDirectional get pillarDetailPadding =>
-      const EdgeInsetsDirectional.fromSTEB(42, 2, 16, 14);
+      const EdgeInsetsDirectional.fromSTEB(42, 0, 16, 16);
 
   /// The horizontal gap between a Pillar detail label and its value.
   double get pillarDetailColumnGap => 18;
