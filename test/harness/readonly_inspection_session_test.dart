@@ -1604,7 +1604,9 @@ void main() {
               pillarOpened = true;
             }
           }
-          if (name == 'hover' && selected == 'pillars') {
+          if (name == 'hover') {
+            expect(selected, 'pillars');
+            expect(tab, 'pillars');
             expect(pillarOpened, isTrue);
             expect(command['at'], <int>[0, 0]);
             pillarPointerNeutral = true;
@@ -1772,7 +1774,7 @@ void main() {
       }
       expect(commands.every((Map<String, Object?> value) => <String>{
         'readonly-wallet-bind', 'state', 'tree', 'tap', 'theme', 'window',
-        'wait', 'assert', 'shot', 'type', 'key',
+        'wait', 'assert', 'shot', 'type', 'key', 'hover',
       }.contains(value['cmd'])), isTrue);
       expect(output.lines.every((Object? line) => line is String &&
           line.startsWith('ok')), isTrue);

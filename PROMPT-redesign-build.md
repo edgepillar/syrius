@@ -1608,6 +1608,10 @@ row, adds the column rule, and reduces the detail's bottom inset by 3 px.
 The capture moves the pointer off the table after opening the row. Fresh
 comparison remains open, including the differences in delegation and
 the original lab's pillar inventory.
+The [first updated Navigation run](https://github.com/edgepillar/syrius/actions/runs/44673221916/job/136078833448)
+stops before the wallet build at the capture test's allowed command
+assertion. The capture test now admits the new pointer move only on
+Pillars after opening the original row and checks the exact resting point.
 
 The [Linux run at `61e72335`](https://github.com/edgepillar/syrius/actions/runs/44664606334/job/136050757368)
 reports 5124 passes, two failures in the segment heading suite and one
