@@ -1500,6 +1500,13 @@ and 70 px floor as Tokens. The shared Nodes tab heading uses the reference
 The existing heading cases check the new height and retained text scaling.
 Fresh Pillars and Sentinels captures are needed for the layout changes.
 
+The Navigation reader now measures the Pillars tab divider and column
+heading boundary in the same crop as the strip and list edges. At column
+900 the earlier retained Windows images put these four transitions at
+107, 119, 167 and 168 in both themes. The reference rows are 106, 118,
+164 and 165. The reader leaves the geometry unavailable if the measured
+bands do not have the expected structure.
+
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
 | Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Verified native early, late and settled samples. | Inspect the retained images and verify the running 400 ms settle. |

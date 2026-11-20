@@ -706,6 +706,8 @@ def navigation_component_geometry(raw):
     """Measure the strip boundaries and owned badge in verified Navigation PNGs."""
     column, top, bottom = 900, 100, 125
     strips = {}
+    pillars_bottom = 181
+    pillars = {}
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         for screen in ('23-tokens', '28-az'):
             themes = {}
@@ -716,9 +718,21 @@ def navigation_component_geometry(raw):
                 if len(bands) == 3 and bands[0][1] == bands[2][1]:
                     themes[theme] = dict(strip_end=bands[1][0], list_start=bands[2][0])
             strips[screen] = themes
+        for theme in producer.navigation.THEMES:
+            bands = _vertical_bands(zipped, f'16-pillars-{theme}.png',
+                                    column, top, pillars_bottom)
+            pillars[theme] = None
+            if len(bands) != 5:
+                continue
+            rows, colors = zip(*bands)
+            card, base, line = colors[0], colors[1], colors[3]
+            if line not in (card, base) and colors == (card, base, card, line, card):
+                pillars[theme] = dict(strip_end=rows[1], list_start=rows[2],
+                                      tab_divider=rows[3], column_headings_start=rows[4])
         badge = _ink_bounds(zipped, '16-pillars', (130, 221), (201, 239),
                             lambda red, green, blue: green - red > 10 and green - blue > 7)
     return dict(strip_boundaries=dict(column=column, scan_rows=[top, bottom], screens=strips),
+                pillar_table_edges=dict(column=column, scan_rows=[top, pillars_bottom], themes=pillars),
                 pillar_owned_badge_bounds=badge)
 
 

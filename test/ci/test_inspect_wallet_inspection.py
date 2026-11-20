@@ -104,11 +104,16 @@ class ReaderTests(unittest.TestCase):
         background, card, ink = (100, 100, 100, 255), (120, 120, 120, 255), (80, 130, 90, 255)
         empty = b'\0' + bytes(background) * 1280
         surface = b'\0' + bytes(card) * 1280
+        divider = b'\0' + bytes((155, 156, 155, 255)) * 1280
         badge = b'\0' + bytes(background) * 140 + bytes(ink) * 54 + bytes(background) * 1086
         for theme in ('dark', 'light'):
             for name in ('16-pillars', '23-tokens', '28-az'):
                 rows = [empty] * 780
                 if name == '16-pillars':
+                    rows[36:106] = [surface] * 70
+                    rows[118:164] = [surface] * 46
+                    rows[164] = divider
+                    rows[165:197] = [surface] * 32
                     rows[209:231] = [badge] * 22
                 else:
                     rows[36:106] = [surface] * 70
@@ -124,6 +129,9 @@ class ReaderTests(unittest.TestCase):
             '23-tokens': dict(dark=strip, light=strip),
             '28-az': dict(dark=strip, light=None),
         })
+        self.assertEqual(geometry['pillar_table_edges']['themes'], dict.fromkeys(
+            ('dark', 'light'),
+            dict(strip_end=106, list_start=118, tab_divider=164, column_headings_start=165)))
         self.assertEqual(geometry['pillar_owned_badge_bounds'], dict.fromkeys(
             ('dark', 'light'), dict(left=140, top=209, right=193, bottom=230)))
 
