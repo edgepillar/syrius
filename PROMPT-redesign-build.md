@@ -1215,9 +1215,14 @@ qualifies analysis and tests for the same wallet and Dart test sources.
 The seam registry, seam tests, shortcut definitions and Go To target
 catalog match `590d3717`. The palette source changes its insertion mark
 height, with its width set in the theme. The final interface still needs
-an executed seam check. The clean Windows Debug and Release evidence at
-`d6f8dfa3` predates the palette and Licences changes. The comparison,
-motion observations and final clean Windows build remain open.
+an executed seam check.
+
+The [independent clean Windows reader at `512605b7`](https://github.com/edgepillar/syrius/actions/runs/44785850020/job/136460390319)
+verifies Debug and Release, all twelve baseline checks, 5,129 passing
+tests and one skip, and zero analyzer errors or warnings. This source
+includes the palette caret and Licences pixel alignment. The combined
+end-state decision still requires the final visual, motion and interface
+evidence.
 
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
@@ -2464,7 +2469,7 @@ four images remain bound to `cf584538`.
 | V03 | done | 2026-11-12T03:23Z | Source648 673fe4a19468, Source670 2b2c4abdadae, Source676 5d555665a643 and Source686 15fec4c9120f provide executed native refusals for all fifteen current seam values and pointer/keyboard refusal for the only seamed palette target. No direct missing-feature shortcut or other seamed palette target is registered. All 1,213 current runtime entries match Source686; the sole older token observer difference is covered by its holder trial. Source670's producer control list remains distinct from its legacy reader's context/closure proof. The [Source695 audit](docs/review/source695-seam-coverage.md) closes the original requirement without relabelling the later incomplete eleven-control Home batch or its failures. No new native run or visual match is claimed. |
 | V04 | done | 2026-10-31T23:34Z | All four independently qualified Source265 minimum-window/Arabic originals were actually viewed in both themes. The owned review closes SUCCESS with actual controller exit zero; required original native closure stays source-bound. Minimum controls fit and RTL layout mirrors. English fallback/missing Arabic copy is retained as X414; exact saved locale preference and Arabic glyph quality remain separate unqualified observations |
 | V05 | done | 2026-11-18T13:45Z | fdb88d89 commits the fresh independent review of all 94 exact 28f9c121 pairs and X821 through X875. The visual verdicts guide further comparisons under V01. [Independent review](docs/review/source-28f9c121-independent-visual-review.md). |
-| V06 | review | 2026-11-20 | The [five-item audit](#end-state-audit-at-590d3717-2026-11-20) includes a refresh at `184f4d5a`. The [Windows builds and tests at `d6f8dfa3`](https://github.com/edgepillar/syrius/actions/runs/44761180401/job/136373819795) verify that earlier candidate. Final Windows builds, visual and motion acceptance, and the final interface check remain open. |
+| V06 | review | 2026-11-20 | The [five-item audit](#end-state-audit-at-590d3717-2026-11-20) records the [clean Windows builds and tests at `512605b7`](https://github.com/edgepillar/syrius/actions/runs/44785850020/job/136460390319). Visual and motion acceptance and the final interface check remain open. |
 | X01 | done | 2026-10-21T23:26Z | e13abb387577 restores loading-list sweep ink in lib/rearchitecture/utils/widgets/motion/skeleton.dart; all 19 existing Skeleton tests pass unchanged |
 | X02 | done | 2026-10-21T23:57Z | e13abb387577 keeps the status-strip dot visible at narrow widths and fixes asynchronous visibility tests |
 | X03 | done | 2026-10-21T23:57Z | e13abb387577 parses the bridge test's HTTP head before binary frames; compression refusal assertions retained |
