@@ -1788,8 +1788,19 @@ its one-logical-pixel rule as an unantialiased rectangle. Row extents and
 scroll behavior use the existing layout. The [Linux checks at `e9d3c9d4`](https://github.com/edgepillar/syrius/actions/runs/44766912514/job/136393864069)
 pass the dedicated licence disclosure and selection tests, application and
 integration analysis, strict selected analysis, non-chain unit and widget
-tests, and the generated-file check. A fresh Windows capture must verify the
-resulting raster rows. Whole-screen verdicts remain open.
+tests, and the generated-file check. The [Windows reader at `e9d3c9d4`](https://github.com/edgepillar/syrius/actions/runs/44772221096/job/136412578539)
+verifies all ten Details images and normal parent closure. The same eight of
+thirteen rule spans still occupy two raster rows in both themes. All thirteen
+reference spans occupy one row. The paint change did not resolve the observed
+Windows result. Whole-screen verdicts remain open.
+
+The [Go To measurement reader](https://github.com/edgepillar/syrius/actions/runs/44772348282/job/136413021368)
+reads the original verified Home archive at `d7ad6b44` on the hosted runner.
+At column 450, the footer panel edge is on row 456 in both themes,
+matching the source-pinned reference PNGs. The edge RGB values differ,
+at 50/52/50 and 215/218/215 versus 56/58/56 and 213/216/213. The
+comparison records this panel position under V01. Whole-screen verdicts
+remain open.
 
 The [Windows navigation run at `fb956740`](https://github.com/edgepillar/syrius/actions/runs/44748087100)
 captures both themes for Send, Receive, Pillars, Plasma, Tokens, Swap and
