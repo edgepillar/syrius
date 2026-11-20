@@ -1461,7 +1461,10 @@ Lock button matches the full-strength gradient in both themes, while
 the wrong-password Lock button has the same reduced strength and tint
 as Ready. This agrees with the Material outlined button's 8% hover
 overlay. The Ready capture script moves the pointer to the empty corner
-before capture. A fresh native pair is needed to check that change.
+before capture. The wrong-password capture submits from the password
+field with Enter, keeping the pointer off Unlock while the observer
+retains frame 23 after one failed attempt. Fresh native pairs are needed
+to check both changes.
 
 All six [Lock captures at `e94d5b07`](https://github.com/edgepillar/syrius/actions/runs/44797941432)
 were reopened from the verified archive and viewed beside their

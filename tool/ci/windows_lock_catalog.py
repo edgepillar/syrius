@@ -47,7 +47,8 @@ SHOT_PHASES = ('request', 'readback', 'layer', 'image', 'rgba', 'png',
 STILL_COMMANDS = frozenset(('arm-still', 'still-frame'))
 CAPTURE_COMMANDS = STILL_COMMANDS | {'shot'}
 REFUSAL_COMMANDS = STILL_COMMANDS | frozenset((
-    'ping', 'window', 'theme', 'lock-view', 'type', 'shot', 'lock-catalog', 'tap', 'quit', 'wait',
+    'ping', 'window', 'theme', 'lock-view', 'type', 'shot', 'lock-catalog',
+    'tap', 'key', 'quit', 'wait',
 ))
 REFUSAL_REPLIES = {
     'read-only field': 'field_read_only',
@@ -356,7 +357,8 @@ class LockProcess(launch.LaunchProcess):
         self._type_sample(REFUSED_SAMPLE)
         self._accept('arm-wrong')
         # One actual refusal in this owned profile. An uncertain reply ends the attempt.
-        self._rpc(dict(cmd='tap', key='wallet_unlock_button', settleMs=0))
+        # Submit from the focused field to keep the pointer off the primary action.
+        self._rpc(dict(cmd='key', key='enter', settleMs=0))
         body = self._wait_catalog('wrong-frame', 27)
         need(set(body) == {'ok', 'status', 'theme', 'frame', 'frames',
                            'failures', 'remaining', 'artwork_seconds', 'png'}
