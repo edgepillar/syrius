@@ -1265,8 +1265,13 @@ The [first independent read of this producer](https://github.com/edgepillar/syri
 stops at the notice stage. When the full reader notice exceeds its cap,
 the selected seam observations now have a separate notice with the same
 producer and archive pins. The original prefix and completion status are
-preserved in the returned inspection. Fresh reader and Windows outcomes
-are required.
+preserved in the returned inspection. The [corrected independent reader](https://github.com/edgepillar/syrius/actions/runs/44796239089/job/136496407405)
+passes all 126 reader checks and verifies the ten original observations,
+the failed eleventh observation and both normal exits. Its two notices
+carry identical source, run, job, archive and manifest pins. The original
+Windows inspection remains incomplete. The [fresh Windows run at
+`82ee3fbd`](https://github.com/edgepillar/syrius/actions/runs/44796305941)
+tests the repeat-draft readiness change.
 
 The [independent clean Windows reader at `512605b7`](https://github.com/edgepillar/syrius/actions/runs/44785850020/job/136460390319)
 verifies Debug and Release, all twelve baseline checks, 5,129 passing
