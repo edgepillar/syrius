@@ -2111,6 +2111,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// A known owned row has a compact factual label.
   double get pillarOwnedChipHeight => 22;
 
+  /// The gap between a Pillar name and its ownership label.
+  double get pillarOwnedChipGap => 9;
+
   /// The original owner object plays once within the opened panel.
   double get pillarOwnerObjectSize => 132;
 

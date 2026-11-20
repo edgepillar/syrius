@@ -225,7 +225,7 @@ class _PillarName extends StatelessWidget {
           ),
         ),
         if (own) ...<Widget>[
-          SizedBox(width: tokens.cardGap),
+          SizedBox(width: tokens.pillarOwnedChipGap),
           Tooltip(
             message: context.l10n.pillarsYours,
             child: Container(

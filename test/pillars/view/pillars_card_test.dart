@@ -328,6 +328,11 @@ void main() {
         of: owned,
         matching: find.text('Yours'),
       );
+      expect(
+        tester.getTopLeft(owned).dx -
+            tester.getTopRight(find.text('alpha')).dx,
+        closeTo(9, 0.01),
+      );
       expect(tester.getSize(owned).height, 22);
       expect(
         tester.getSize(owned).width - tester.getSize(ownedLabel).width,

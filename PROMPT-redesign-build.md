@@ -1697,8 +1697,9 @@ When the licence registry finishes, it now computes each package's
 case-insensitive sort key once. An opened package uses one selection area
 for its complete notices. Each paragraph retains its indentation and text
 style without an editable text widget. The focused cases exercise copy
-across paragraphs in both the default and scaled RTL views. Fresh widget
-and paired Windows timing evidence remains open under V02.
+across paragraphs in both the default and scaled RTL views. Those cases
+pass in the [focused stage at `2508fe12`](https://github.com/edgepillar/syrius/actions/runs/44686460129/job/136121854410).
+The paired Windows timing measurement remains open under V02.
 
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references
@@ -1733,6 +1734,12 @@ four Pillars table edges match at rows 106, 118, 164 and 165. The column
 rule starts at 197 and the expanded surface spans rows 198 through 303,
 matching the reference location and fill. The third live row still
 has the hover tint. Its cause and the full-image verdict remain open.
+
+The same verified images put the owned badge on rows 209 through 230,
+matching both references. It begins at column 141, one pixel past the
+reference edge at 140. The owned label now uses a 9 px gap after the
+name. The two theme cases check that gap and the original badge height.
+The updated badge and cursor position need a fresh Navigation capture.
 
 In the earlier verified `61e72335` Pillars shots, the Momentums text starts
 at column 669 and its value starts at 759 in both themes. The reference
