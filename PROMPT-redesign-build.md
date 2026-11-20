@@ -1841,6 +1841,11 @@ and [four prepared Send PNGs](https://github.com/edgepillar/syrius/actions/runs/
 at `d7ad6b44`, and the [fourteen Settings PNGs](https://github.com/edgepillar/syrius/actions/runs/44765938608/job/136390461705)
 at `b6159f6e`. All four catalogs verify the original parent closure. These
 receipts verify captures and leave the visual verdicts open.
+The local Settings transfer at `b6159f6e` records exit zero and a complete
+814,441-byte archive with the exact independently verified SHA-256.
+The local storage metadata wait expired before promotion and task closure.
+The original stream and unfinished record are preserved. Direct visual
+review remains pending.
 Comparing their measured geometry with the source-pinned references confirms
 the Receive QR QSR mark and label, Originals footer rows, Plasma footer
 clearance and About card bands in both themes. Several interior Licences
@@ -2182,6 +2187,16 @@ P06 builds over 16 ms. Five raster starts at or after the observed
 settled disclosure exceed 16 ms and peak at 71.502 ms. All four windows
 retain frame-key gaps. This run leaves V02 open and does not isolate
 the timing effect of the paint-boundary change.
+
+The [cold Windows producer at `b3d2a1d1`](https://github.com/edgepillar/syrius/actions/runs/44786324542/job/136462042874)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44790155159/job/136475393710)
+verify 84 redesign frames and four normal process exits. The original
+P06 warm process reaches its deadline before initialization, with the
+window at the target size, a disabled Lock field and frame index 44 of
+56 while the film is still ticking. No P06 measurement window exists.
+The redesign has 23 frame-key gaps, a maximum total span of 184.944 ms
+and a peak raster of 159.988 ms. Four observed raster starts after the
+settled boundary exceed 16 ms. No paired timing comparison is established.
 
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references
