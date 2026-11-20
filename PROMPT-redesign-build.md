@@ -708,6 +708,13 @@ and Details archives and reduces six archive reads to two, with identical
 supplied, the 14 Navigation PNGs appear as unreviewed at their source.
 The ten Details PNGs retain their different source. The focused cache
 cases pass.
+The reference audit at `ae1fd66e` reads all 94 reference PNGs as 1280 by
+780, verifies the 47 numbered harness scripts in the same order, and
+checks one designated capture assignment per screen across the 21 hosted
+catalog families. The active Navigation, Details and Sentinel runs at
+`61e72335` cover 24 designated pairs if they complete. Navigation also
+captures a read-only Swap list. The designated populated Swap state
+comes from the separate restored catalog.
 The four [Welcome and Import originals](https://github.com/edgepillar/syrius/actions/runs/44582250018/job/135765713115)
 also read directly from their retained archive at 1280 by 780 using their
 original filenames, with no extracted image copies.
@@ -1434,6 +1441,18 @@ peaks at 172.299 ms versus 68.629 ms. Raster and distinct-frame
 comparisons fail in both windows. Disclosure also fails the build
 comparison, and both pairs retain frame-number gaps. V02 remains open.
 
+The earlier [paired reader at `3b360fbc`](https://github.com/edgepillar/syrius/actions/runs/44469179488/job/135374186038)
+measures the Licences experiment with the row repaint boundaries disabled.
+Disclosure reaches 135.842 ms against 68.243 ms on P06. The
+[reader at `99406523`](https://github.com/edgepillar/syrius/actions/runs/44554047665/job/135665189571)
+measures the retained row boundaries with the chevron painted in each row.
+Disclosure reaches 95.666 ms against 43.326 ms on P06. Both original
+comparisons fail and retain frame-number gaps. The effect of the layer
+choice on its own remains unestablished across these source-pinned runs.
+At `a6823bb9`, four raster starts are confirmed after the observed settled
+frame. All four exceed 16 ms and peak at 104.672 ms. Further measurement
+needs to account for the paint after the reveal settles.
+
 Both Staking Empty captures from X1248 show the summary labels and amounts
 one pixel below the references. The Stakes card begins at row 119 and its
 divider is at row 162. The references place them at rows 118 and 161.
@@ -1499,6 +1518,10 @@ and 70 px floor as Tokens. The shared Nodes tab heading uses the reference
 46 px minimum and its bottom inset accounts for the separate card rule.
 The existing heading cases check the new height and retained text scaling.
 Fresh Pillars and Sentinels captures are needed for the layout changes.
+The [Linux run at `61e72335`](https://github.com/edgepillar/syrius/actions/runs/44664606334/job/136050757368)
+reports 5124 passes, two failures in the segment heading suite and one
+skip. The heading now has one more pixel of room for rounded text line
+boxes. The 46 px assertions and the larger-text cases retain their checks.
 
 The Navigation reader now measures the Pillars tab divider and column
 heading boundary in the same crop as the strip and list edges. At column

@@ -2027,9 +2027,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Space between the measured heading tabs.
   double get tabGap => 2;
 
-  /// Heading label insets, with one pixel reserved for the card divider.
+  /// Heading insets leave room for rounded line boxes and the underline.
   EdgeInsetsDirectional get tabPadding =>
-      const EdgeInsetsDirectional.fromSTEB(10, 12, 10, 11);
+      const EdgeInsetsDirectional.fromSTEB(10, 12, 10, 10);
 
   /// A reported count stays separate from its heading label.
   double get tabCountGap => 6;
