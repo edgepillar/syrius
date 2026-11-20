@@ -139,7 +139,6 @@ class _MainAppContainerState extends State<MainAppContainer>
   final WalletMaintenanceOwner _maintenanceOwner = WalletMaintenanceOwner();
   StartupStageSession? _startup;
   bool _startupChecked = false;
-  bool _startupInShell = false;
   int _pageEpoch = 0;
   final Map<(int, String, String), HomeCollectionController> _collections =
       <(int, String, String), HomeCollectionController>{};
@@ -249,7 +248,6 @@ class _MainAppContainerState extends State<MainAppContainer>
         return;
       }
       arguments.moveAuthToShell();
-      setState(() => _startupInShell = true);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && identical(_startup, arguments)) arguments.settle();
       });
@@ -967,7 +965,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   Widget _buildLockPage() {
     final StartupStageSession? startup = _startup;
     if (startup != null && !startup.isClosed) {
-      return _startupInShell ? startup.buildAuth() : const SizedBox.expand();
+      return startup.buildShellAuth();
     }
     return LockTabChild(
       _mainLockCallback,
@@ -979,7 +977,6 @@ class _MainAppContainerState extends State<MainAppContainer>
   void _closeStartup() {
     final StartupStageSession? startup = _startup;
     _startup = null;
-    _startupInShell = false;
     startup?.dispose();
   }
 

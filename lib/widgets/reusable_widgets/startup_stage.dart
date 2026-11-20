@@ -59,6 +59,7 @@ class StartupStageSession implements Listenable {
 
   final GlobalKey _authKey = GlobalKey(debugLabel: 'Startup authentication');
   final _StartupChanges _changes = _StartupChanges();
+  final ValueNotifier<bool> _authInShell = ValueNotifier<bool>(false);
   final Completer<void> _detached = Completer<void>();
   final Completer<void> _cleanup = Completer<void>();
 
@@ -87,7 +88,6 @@ class StartupStageSession implements Listenable {
   VoidCallback? _afterInit;
   ValueListenable<int>? _replay;
   bool _claimed = false;
-  bool _authInShell = false;
   bool _filmInWell = false;
   bool _settleRequested = false;
   bool _handoffReferencePending = false;
@@ -99,7 +99,7 @@ class StartupStageSession implements Listenable {
   bool get claimed => _claimed;
 
   /// The actual authentication State now lives in the shell's Lock slot.
-  bool get authInShell => _authInShell;
+  bool get authInShell => _authInShell.value;
 
   /// The original film has reached and entered the actual Lock well.
   bool get filmInWell => _filmInWell;
@@ -154,14 +154,14 @@ class StartupStageSession implements Listenable {
 
   /// Moves the keyed owner in the same frame that removes its overlay slot.
   void moveAuthToShell() {
-    if (_closed || !_claimed || _authInShell) return;
-    _authInShell = true;
+    if (_closed || !_claimed || authInShell) return;
+    _authInShell.value = true;
     _changed();
   }
 
   /// Called after that owner and its actual well have completed layout.
   void settle() {
-    if (_closed || !_authInShell || !_done || _settleRequested) return;
+    if (_closed || !authInShell || !_done || _settleRequested) return;
     _settleRequested = true;
     _changed();
   }
@@ -181,8 +181,15 @@ class StartupStageSession implements Listenable {
     _changed();
   }
 
-  /// The same subtree is used by the overlay and the shell, never both.
-  Widget buildAuth() => KeyedSubtree(
+  /// Rebuilds only the Lock slot when the original owner enters the shell.
+  Widget buildShellAuth() => ValueListenableBuilder<bool>(
+    valueListenable: _authInShell,
+    builder: (_, bool attached, _) =>
+        attached ? _buildAuth() : const SizedBox.expand(),
+  );
+
+  /// The same subtree is used by the overlay and the shell.
+  Widget _buildAuth() => KeyedSubtree(
     key: _authKey,
     child: Material(
       type: MaterialType.transparency,
@@ -247,7 +254,7 @@ class StartupStageSession implements Listenable {
   }
 
   void _finishHandoff() {
-    if (_closed || _filmInWell || !_authInShell) return;
+    if (_closed || _filmInWell || !authInShell) return;
     _filmInWell = true;
     motion.value = 1;
     final OverlayEntry? entry = _entry;
@@ -277,6 +284,7 @@ class StartupStageSession implements Listenable {
         try {
           film.dispose();
           motion.dispose();
+          _authInShell.dispose();
           _changes.dispose();
           if (filmKey.currentContext != null ||
               _authKey.currentContext != null) {
@@ -562,7 +570,7 @@ class _StartupStageState extends State<_StartupStage>
                   child: Stack(
                     children: <Widget>[
                       if (!widget.session.authInShell)
-                        Positioned.fill(child: widget.session.buildAuth()),
+                        Positioned.fill(child: widget.session._buildAuth()),
                       ValueListenableBuilder<double>(
                         valueListenable: widget.session.motion,
                         child: widget.session.buildFilm(),

@@ -1014,6 +1014,8 @@ leading mark inset and an 8 px gap to the input. Its existing tests
 check both themes and a narrow RTL layout. The designation and request
 data come from the original selected token. A fresh Windows measurement
 remains open.
+The [Linux run at `83bde75d`](https://github.com/edgepillar/syrius/actions/runs/44650253360/job/136003094223)
+passes analysis, the full non-chain suite and the generated-file check.
 
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
@@ -1293,6 +1295,15 @@ the two runs leave the effect of the new sampling scale unestablished.
 The [first expanded read](https://github.com/edgepillar/syrius/actions/runs/44651109056/job/136005922392)
 refuses the preceding producer version. Both readers now admit that exact
 producer digest so they can locate the slow build in the original archive.
+The [corrected read](https://github.com/edgepillar/syrius/actions/runs/44651448310/job/136007071612)
+places the 25.717 ms build 91.122 ms after observed film end and 115.014 ms
+before observed handoff motion. The timing locates the frame within the
+covered wait. Moving the original authentication owner now updates its
+Lock slot directly. The shell providers, rail and status strip were
+previously rebuilt by that move. The existing handoff tests check that
+the shell host keeps its build count and the original authentication and
+film States survive the 400 ms handoff. The new timing effect requires
+a paired Windows measurement.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now

@@ -45,10 +45,10 @@ class _Harness extends StatefulWidget {
 }
 
 class _HarnessState extends State<_Harness> {
-  bool _inShell = false;
   final ValueNotifier<int> _replay = ValueNotifier<int>(0);
   final List<String> unlocks = <String>[];
   int initialized = 0;
+  int shellBuilds = 0;
 
   @override
   void initState() {
@@ -67,11 +67,9 @@ class _HarnessState extends State<_Harness> {
       ),
       isTrue,
     );
-    setState(() {});
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       widget.session.moveAuthToShell();
-      setState(() => _inShell = true);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) widget.session.settle();
       });
@@ -79,18 +77,17 @@ class _HarnessState extends State<_Harness> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    body: Column(
-      children: <Widget>[
-        Expanded(
-          child: _inShell
-              ? widget.session.buildAuth()
-              : const SizedBox.expand(),
-        ),
-        const SizedBox(height: 40),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    shellBuilds++;
+    return Scaffold(
+      body: Column(
+        children: <Widget>[
+          Expanded(child: widget.session.buildShellAuth()),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -459,7 +456,9 @@ void main() {
         expect(paintedFrame.size, decodedSize);
         final Rect originalFrameBounds = tester.getRect(frame);
         final Rect full = _stageRect(tester);
+        final int shellBuilds = host.currentState!.shellBuilds;
         await _begin(tester, host);
+        expect(host.currentState!.shellBuilds, shellBuilds);
         expect(
           identical(tester.state(find.byType(LockTabChild)), auth),
           isTrue,
