@@ -1786,7 +1786,12 @@ The [natural launch run at `9983ffa3`](https://github.com/edgepillar/syrius/acti
 retains the original early-slot failure in dark. Its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44761199614/job/136373883056)
 verifies both later dark images, all three light images and two normal
 actor exits per theme. The first observed progress is 0.558 in dark and
-0.391 in light. V02 remains open.
+0.391 in light. The pinned Flutter cubic and 400 ms clock put those first
+observations at 30.793–31.298 ms and 15.448–16.247 ms, respectively.
+These are inferred clock intervals from the curve's lookup tolerance. The
+observer records progress before image geometry checks, so the dark run
+reached the observer beyond the early slot. The record does not establish
+why an earlier frame was unobserved. V02 remains open.
 
 The [Windows baseline at `650bbb8a`](https://github.com/edgepillar/syrius/actions/runs/44737155697)
 passes both the Debug and Release builds with complete output. The
