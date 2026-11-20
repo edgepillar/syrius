@@ -407,7 +407,7 @@ void main() {
     prepareSwapViewport(tester);
     final SwapUiFixture source = SwapUiFixture();
     int accepted = 0;
-    int pointers = 0;
+    ({Element element, VoidCallback admission})? pointer;
     await tester.pumpWidget(swapHost(Builder(builder: (BuildContext context) {
       return OutlinedButton(
         onPressed: () => unawaited(showCustomDialog(
@@ -422,16 +422,18 @@ void main() {
     await tester.pump(const Duration(milliseconds: 60));
     final SeedDepositEntry original = _capture(tester, source,
       tap: (Element element, VoidCallback admission) async {
-        pointers++;
-        await _pointer(tester, element, admission);
+        admission();
+        pointer = (element: element, admission: admission);
       },
     );
     final Future<void> pending = original.prepare(() {});
     await tester.pump(const Duration(milliseconds: 80));
-    expect(pointers, 0);
+    expect(pointer, isNull);
     expect(accepted, 0);
     await _driveDepositCommand(tester, pending.then((_) => true));
-    expect(pointers, 1);
+    expect(pointer, isNotNull);
+    final ({Element element, VoidCallback admission}) admitted = pointer!;
+    await _pointer(tester, admitted.element, admitted.admission);
     expect(accepted, 1);
     expect(source.mutations, 0);
   });
