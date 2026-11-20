@@ -1694,6 +1694,13 @@ the sampled blurred profile with a single radial paint. A 120 px
 mark has a 78 px halo radius. Playback keeps its original shader and
 bolt geometry. Fresh native frames and whole-image verdicts remain open.
 
+The [seeded visual run at `11398595`](https://github.com/edgepillar/syrius/actions/runs/44672157292/job/136075382385)
+builds the native wallet and retains the six-image catalog. The
+[first reader](https://github.com/edgepillar/syrius/actions/runs/44674674172/job/136083570019)
+requests both backends and refuses the native-only artifact set.
+Native-only inspection allows one additional original script pin for
+the held Tokens view and retains the independent archive bounds.
+
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
 | Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Verified native early, late and settled samples. | Inspect the retained images and verify the running 400 ms settle. |

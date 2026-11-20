@@ -793,7 +793,8 @@ def main():
     backends = selected_backends(parent.get("LAB_INSPECT_BACKEND", "both"))
     expected_choice = parent.get("LAB_INSPECT_NODE_SOURCE", "original")
     expected_node, _ = selected_node_source(expected_choice)
-    client = Client(parent.get("GH_TOKEN"))
+    # A native wallet tour can bind three original seeded capture scripts.
+    client = Client(parent.get("GH_TOKEN"), max_calls=14 if backends == ("native",) else 12)
     PHASE = "source_metadata"
     run = client.json("/actions/runs/" + run_text)
     need(run["id"] == run_id and run["head_sha"] == head and run["run_attempt"] == 1
