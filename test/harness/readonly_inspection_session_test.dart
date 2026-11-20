@@ -1577,6 +1577,7 @@ void main() {
       int returned = 0;
       bool pillarOpened = false;
       bool pillarPointerNeutral = false;
+      final List<String> nativeCursorParks = <String>[];
       final Set<String> pillarAssertions = <String>{};
       final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
       final List<ScreenCaptureObservation> progress =
@@ -1608,6 +1609,7 @@ void main() {
             expect(selected, 'pillars');
             expect(tab, 'pillars');
             expect(pillarOpened, isTrue);
+            expect(nativeCursorParks.last, mode);
             expect(command['at'], <int>[0, 0]);
             pillarPointerNeutral = true;
           }
@@ -1710,6 +1712,13 @@ void main() {
           IOOverrides.runZoned<Future<Map<String, Object>>>(
         () => captureReadonlyNavigationDefaults(
           repository: repository, session: session, onStep: progress.add,
+          parkPillarsCursor: (int processId) {
+            expect(processId, session.processId);
+            expect(tab, 'pillars');
+            expect(pillarOpened, isTrue);
+            expect(pillarPointerNeutral, isFalse);
+            nativeCursorParks.add(mode);
+          },
         ),
         stdout: () => output,
       );
@@ -1718,6 +1727,7 @@ void main() {
             throwsA(isA<ReadonlyInspectionRefused>()));
         expect(commands, isEmpty);
         expect(progress, isEmpty);
+        expect(nativeCursorParks, isEmpty);
         expect(output.lines, isEmpty);
         continue;
       }
@@ -1764,6 +1774,8 @@ void main() {
           'ok': false, 'error': 'Synthetic capture refusal',
         });
       }
+      expect(nativeCursorParks, fault == 'none' || fault == 'late'
+          ? <String>['dark', 'light'] : isEmpty);
       final Directory images = Directory(
         '${repository.path}/$readonlyNavigationCatalogDirectory',
       );

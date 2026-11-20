@@ -1,7 +1,11 @@
 // Manual hosted inspection only. The job owner gates all private input.
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
+
+import 'package:ffi/ffi.dart';
+import 'package:win32/win32.dart';
 
 import '../app/readonly_native_mode.dart'
     show harnessReadonlyHomeZapPreview, harnessReadonlySendWarningCatalog,
@@ -20,6 +24,49 @@ import 'screen_capture.dart';
 import 'wallet_recipe.dart';
 
 const String _surfaceSeamsFamily = 'surface-seams';
+
+void _parkPillarsCursor(int processId) {
+  const ReadonlyInspectionRefused refused =
+      ReadonlyInspectionRefused(ReadonlyInspectionReason.process);
+  using((Arena arena) {
+    final int window = GetForegroundWindow();
+    final Pointer<Uint32> owner = arena<Uint32>();
+    final Pointer<POINT> cursor = arena<POINT>();
+    if (window == 0 ||
+        GetWindowThreadProcessId(window, owner) == 0 ||
+        owner.value != processId ||
+        GetCursorPos(cursor) == 0) {
+      throw refused;
+    }
+    if (GetAncestor(WindowFromPoint(cursor.ref), GA_ROOT) != window) return;
+    final Pointer<RECT> client = arena<RECT>();
+    if (ScreenToClient(window, cursor) == 0 ||
+        GetClientRect(window, client) == 0) {
+      throw refused;
+    }
+    if (cursor.ref.x < client.ref.left ||
+        cursor.ref.x >= client.ref.right ||
+        cursor.ref.y < client.ref.top ||
+        cursor.ref.y >= client.ref.bottom) {
+      return;
+    }
+    // The caption corner is outside the table and the caption controls.
+    final Pointer<POINT> target = arena<POINT>();
+    target.ref
+      ..x = 2
+      ..y = 2;
+    if (client.ref.right <= target.ref.x ||
+        client.ref.bottom <= target.ref.y ||
+        ClientToScreen(window, target) == 0 ||
+        GetAncestor(WindowFromPoint(target.ref), GA_ROOT) != window ||
+        GetForegroundWindow() != window ||
+        SetCursorPos(target.ref.x, target.ref.y) == 0 ||
+        GetCursorPos(cursor) == 0 ||
+        cursor.ref.x != target.ref.x || cursor.ref.y != target.ref.y) {
+      throw refused;
+    }
+  });
+}
 
 /// Keep the original compiled child paused until its owner admits the lab.
 Future<void> awaitReadonlyInspectionLab(
@@ -123,6 +170,7 @@ class _InspectionInstance extends cli.Instance {
       ),
       'navigation' => captureReadonlyNavigationDefaults(
         repository: repository, session: _session, onStep: onStep,
+        parkPillarsCursor: _parkPillarsCursor,
       ),
       _ => throw const ReadonlyInspectionRefused(
         ReadonlyInspectionReason.command,
@@ -176,6 +224,8 @@ Future<void> main() async {
         family == 'home-bell' || (detailsSelection?.catalogOnly ?? false);
     final String name = environment['SYRIUS_CI_INSPECTION_INSTANCE'] ?? '';
     if (!Platform.isWindows || environment['GITHUB_ACTIONS'] != 'true' ||
+        (family == 'navigation' &&
+            environment['RUNNER_ENVIRONMENT'] != 'github-hosted') ||
         environment['SYRIUS_CI_WALLET_INSPECTION'] != 'true' ||
         environment['SYRIUS_CI_WALLET_TOUR'] != null ||
         !RegExp(r'^ci-inspect-[a-f0-9]{24}$').hasMatch(name) ||

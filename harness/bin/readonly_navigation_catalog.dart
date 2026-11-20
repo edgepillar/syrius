@@ -64,23 +64,34 @@ Future<Map<String, Object>> captureReadonlyNavigationDefaults({
   required Directory repository,
   required ReadonlyInspectionSession session,
   void Function(ScreenCaptureObservation step)? onStep,
+  void Function(int processId)? parkPillarsCursor,
 }) async {
   if (!session.walletBound) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.binding);
   }
   final _NavigationInstance instance = _NavigationInstance(session);
+  bool isPillars = false;
   final ScreenCapture capture = ScreenCapture(
     repository: repository,
     call: (Map<String, Object?> command) => cli.call(instance, command),
     prepareHome: session.prepareScreenHome,
-    runLine: (List<String> words) => cli.run(
-      instance, words.first, cli.Args(words.sublist(1)),
-    ),
+    runLine: (List<String> words) {
+      // The script parks the injected device. The isolated desktop can have
+      // a second device whose position is still over the expanded table.
+      if (isPillars && words.length == 2 &&
+          words[0] == 'hover' && words[1] == '@0,0') {
+        parkPillarsCursor?.call(session.processId);
+      }
+      return cli.run(instance, words.first, cli.Args(words.sublist(1)));
+    },
     assertionFor: (List<String> words) =>
         cli.assertionArgs(cli.Args(words.sublist(1))),
     readRailState: session.railExpanded,
     restoreRailState: session.restoreScreenRail,
-    onStep: onStep,
+    onStep: (ScreenCaptureObservation step) {
+      isPillars = step.screen == 'pillars';
+      onStep?.call(step);
+    },
   );
   const List<String> screens = <String>[
     'send-rest',
