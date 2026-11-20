@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/p2p_swap_warning_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/start_native_swap_modal.dart';
 
@@ -56,8 +59,18 @@ SeedDepositEntry captureSeedDepositEntry(
     }
     return SeedDepositEntry.warning(
       originalCurrent: current,
-      tapOriginalContinue: (VoidCallback admission) =>
-          tapOriginal(control, admission),
+      tapOriginalContinue: (VoidCallback admission) async {
+        // The dialog's entrance translates Continue while the original
+        // pointer requires a fixed position between press and release.
+        if (!entryRouteReady(route)) {
+          await _waitForWarningEntrance(route);
+        }
+        admission();
+        if (!entryRouteReady(route)) {
+          throw const SeedRefused('original-deposit-entry-changed');
+        }
+        await tapOriginal(control, admission);
+      },
     );
   }
   if (starts.length == 1 && warnings.isEmpty) {
@@ -82,4 +95,34 @@ SeedDepositEntry captureSeedDepositEntry(
     return SeedDepositEntry.ready(originalCurrent: current);
   }
   throw const SeedRefused('original-deposit-entry-required');
+}
+
+Future<void> _waitForWarningEntrance(ModalRoute<dynamic> route) async {
+  const Duration limit = Duration(seconds: 1);
+  const SeedRefused refusal = SeedRefused('original-deposit-entry-changed');
+  final Completer<void> settled = Completer<void>();
+  void observe(AnimationStatus status) {
+    if (settled.isCompleted) return;
+    if (!route.isCurrent) {
+      settled.completeError(refusal);
+    } else if (entryRouteReady(route)) {
+      settled.complete();
+    }
+  }
+
+  final Animation<double>? entrance = route.animation;
+  final Animation<double>? covering = route.secondaryAnimation;
+  entrance?.addStatusListener(observe);
+  covering?.addStatusListener(observe);
+  try {
+    observe(AnimationStatus.forward);
+    await settled.future.timeout(limit, onTimeout: () => throw refusal);
+    await WidgetsBinding.instance.endOfFrame.timeout(
+      limit,
+      onTimeout: () => throw refusal,
+    );
+  } finally {
+    entrance?.removeStatusListener(observe);
+    covering?.removeStatusListener(observe);
+  }
 }

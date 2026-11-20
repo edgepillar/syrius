@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/p2p_swap_warning_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/start_native_swap_modal.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -399,6 +400,41 @@ void main() {
       expect(newCalls, 0);
     },
   );
+
+  testWidgets('warning Continue waits for the original dialog entrance', (
+    WidgetTester tester,
+  ) async {
+    prepareSwapViewport(tester);
+    final SwapUiFixture source = SwapUiFixture();
+    int accepted = 0;
+    int pointers = 0;
+    await tester.pumpWidget(swapHost(Builder(builder: (BuildContext context) {
+      return OutlinedButton(
+        onPressed: () => unawaited(showCustomDialog(
+          context: context,
+          content: P2PSwapWarningModal(onAccepted: () => accepted++),
+        )),
+        child: const Text('Open warning'),
+      );
+    })));
+    await tester.tap(find.text('Open warning'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+    final SeedDepositEntry original = _capture(tester, source,
+      tap: (Element element, VoidCallback admission) async {
+        pointers++;
+        await _pointer(tester, element, admission);
+      },
+    );
+    final Future<void> pending = original.prepare(() {});
+    await tester.pump(const Duration(milliseconds: 80));
+    expect(pointers, 0);
+    expect(accepted, 0);
+    await _driveDepositCommand(tester, pending.then((_) => true));
+    expect(pointers, 1);
+    expect(accepted, 1);
+    expect(source.mutations, 0);
+  });
 
   testWidgets('covering the original warning revokes its retained entry', (
     WidgetTester tester,
