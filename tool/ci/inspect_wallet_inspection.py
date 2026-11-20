@@ -724,10 +724,17 @@ def _details_licence_dividers(zipped):
         themes[theme] = None
         if windows._opaque(rows, channels):
             background = Counter(bytes(row[:3]) for row in rows).most_common(1)[0][0]
-            dividers = [y for y, row in enumerate(rows, top)
-                        if max(abs(value - base) for value, base in zip(row, background)) >= 8]
-            if len(dividers) <= 16:
-                themes[theme] = dividers
+            spans = []
+            for y, row in enumerate(rows, top):
+                if max(abs(value - base) for value, base in zip(row, background)) < 2:
+                    continue
+                # A one-pixel divider at a fractional position can cover two rows.
+                if spans and spans[-1][1] + 1 == y:
+                    spans[-1][1] = y
+                else:
+                    spans.append([y, y])
+            if len(spans) <= 16 and all(end - start <= 2 for start, end in spans):
+                themes[theme] = spans
     return themes
 
 
@@ -748,7 +755,7 @@ def details_component_geometry(raw):
     """Measure the changed components together from the original Details archive."""
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         return dict(
-            licence_dividers=_details_licence_dividers(zipped),
+            licence_divider_spans=_details_licence_dividers(zipped),
             receive_qsr_mark=_ink_bounds(zipped, '10-receive-qr', (814, 849), (235, 274),
                 lambda red, green, blue: blue - red > 90 and blue - green > 25),
             receive_qsr_label=_ink_bounds(zipped, '10-receive-qr', (850, 906), (241, 265),

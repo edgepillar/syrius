@@ -1237,7 +1237,7 @@ class ReaderTests(unittest.TestCase):
             for heading in ('links', 'computer', 'licences')
         })
         self.assertEqual(observed['component_geometry'], dict(
-            licence_dividers=dict(dark=[], light=[]),
+            licence_divider_spans=dict(dark=[], light=[]),
             receive_qsr_mark=dict(dark=None, light=None),
             receive_qsr_label=dict(dark=None, light=None),
             plasma_footer_clear=dict(dark=True, light=True)))
@@ -1284,6 +1284,8 @@ class ReaderTests(unittest.TestCase):
                     rows[top:top + 3] = [painted] * 3
                 for divider in (388, 428, 468):
                     rows[divider] = b'\0' + ink * 1280
+                faint = bytes((103, 103, 103, 255))
+                rows[429] = b'\0' + faint * 1280
                 chevrons = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                             + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
                 zipped.writestr(f'37-set-licences-{theme}.png', chevrons)
@@ -1295,7 +1297,10 @@ class ReaderTests(unittest.TestCase):
         mark = dict(left=825, top=243, right=846, bottom=264)
         label = dict(left=856, top=249, right=880, bottom=260)
         self.assertEqual(reader.details_component_geometry(packed.getvalue()), dict(
-            licence_dividers=dict(dark=[388, 428, 468], light=[388, 428, 468]),
+            licence_divider_spans=dict(
+                dark=[[388, 388], [428, 429], [468, 468]],
+                light=[[388, 388], [428, 429], [468, 468]],
+            ),
             receive_qsr_mark=dict(dark=mark, light=mark),
             receive_qsr_label=dict(dark=label, light=label),
             plasma_footer_clear=dict(dark=True, light=True)))

@@ -970,7 +970,12 @@ and in a scaled RTL layout. Native comparison is pending.
 The Details reader measures the registry dividers, Receive QSR mark and
 label, and the blank Plasma footer region from one verified archive. The
 retained `fb3b2a01` captures and both mockup themes confirm the measurement
-regions. The new Details run can check the three changes together.
+regions. The [reader at `a6823bb9`](https://github.com/edgepillar/syrius/actions/runs/44656855532/job/136025097271)
+verifies all ten Windows captures and normal required closure. The QSR
+mark and label match the measured reference bounds in both themes. The
+Plasma Fuse footer region is clear in both. The first divider reading
+is partial in dark and unavailable in light. The reader now groups
+adjacent painted pixels so one fractional divider reports one span.
 
 Both Originals images show the cleared discovery field required by the
 mockup README. The reference images still show the entered digits. The
@@ -1387,6 +1392,13 @@ calls `jumpTo` only when the extent differs from the current offset, avoiding
 an idle and ballistic activity reset for an already aligned viewport. The
 [Linux run at `c7df0d8d`](https://github.com/edgepillar/syrius/actions/runs/44613814937/job/135877025155)
 passes analysis, the full non-chain suite and generated-file checks.
+
+The [paired interactive reader at `a6823bb9`](https://github.com/edgepillar/syrius/actions/runs/44657093446/job/136025888946)
+verifies two wallet exits, two entry exits and five node exits. Page
+change peaks at 328.297 ms total versus 165.328 ms on P06. Disclosure
+peaks at 172.299 ms versus 68.629 ms. Raster and distinct-frame
+comparisons fail in both windows. Disclosure also fails the build
+comparison, and both pairs retain frame-number gaps. V02 remains open.
 
 Both Staking Empty captures from X1248 show the summary labels and amounts
 one pixel below the references. The Stakes card begins at row 119 and its
