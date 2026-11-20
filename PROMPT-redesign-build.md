@@ -1693,9 +1693,19 @@ The [Debug and Release baseline at `bfb83ea8`](https://github.com/edgepillar/syr
 passes all 12 checks. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44748678289/job/136330550619)
 verifies exit zero and complete output for Debug (145.156 s) and Release
 (187.328 s). Windows reports 5,128 passing non-chain tests, one skip and
-zero analyzer errors or warnings. The [paired timing run at `cbcaf91b`](https://github.com/edgepillar/syrius/actions/runs/44746000691)
-samples the same fade code with the original P06 comparison. Only the
-ledger and environment documentation differ between these revisions.
+zero analyzer errors or warnings. Only the ledger and environment
+documentation differ between this source and `cbcaf91b`.
+
+The [paired timing run at `cbcaf91b`](https://github.com/edgepillar/syrius/actions/runs/44746000691)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44749273696/job/136332649188)
+verify 93 redesign frames, 1,213 P06 frames and five normal actor exits.
+Over the 16 ms budget the reported build counts are 2 versus 0, raster
+counts are 33 versus 1,160 and distinct-frame counts are 34 versus 1,160.
+Only build exceeds the baseline count in this run. Both windows have
+frame-number gaps (21 and 1,196). The longest redesign build takes
+18.517 ms and starts 34.173 ms before the shell records authentication
+arrival. The observed redesign raster maximum is 140.035 ms. V02 remains
+open.
 
 The [Windows baseline at `650bbb8a`](https://github.com/edgepillar/syrius/actions/runs/44737155697)
 passes both the Debug and Release builds with complete output. The
