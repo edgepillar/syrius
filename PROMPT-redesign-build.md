@@ -1799,8 +1799,11 @@ reads the original verified Home archive at `d7ad6b44` on the hosted runner.
 At column 450, the footer panel edge is on row 456 in both themes,
 matching the source-pinned reference PNGs. The edge RGB values differ,
 at 50/52/50 and 215/218/215 versus 56/58/56 and 213/216/213. The
-comparison records this panel position under V01. Whole-screen verdicts
-remain open.
+top sample at column 450, row 120 and the left sample at column 360,
+row 400 match the authored divider RGB exactly in both themes. The
+measured color difference is at the lower edge. A change to the shared
+divider color would change the already matching edges. Whole-screen
+verdicts remain open.
 
 All eight Home captures at `d7ad6b44` were viewed beside their pinned
 references from the same verified archive. Resting Home shows the balance
