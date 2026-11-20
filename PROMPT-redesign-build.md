@@ -2618,6 +2618,18 @@ confirm all 12 baseline checks, both Debug and Release builds,
 5,129 passing tests and one skip. Application and vendored analysis
 report zero errors and warnings. The final V06 audit remains open.
 
+The [natural launch run at `bc4733c6`](https://github.com/edgepillar/syrius/actions/runs/44836874820/job/136635399504)
+builds the ordinary Windows Release harness. Its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44838758916/job/136641642367)
+verifies the late and settled images and two normal exits per theme.
+The first observed progress is 0.662 in dark and 0.729 in light. Both
+arms retain `LAUNCH_HANDOFF_FRAME_MISSED` for the early slot. The timing
+and running motion acceptance remain open under V02.
+
+The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
+passes application and strict selected analysis, the focused licence
+tests, 5,129 non-chain tests with one skip, and generated-file verification.
+The native comparison for the licence rules remains open.
+
 The [cold Windows producer at `b3d2a1d1`](https://github.com/edgepillar/syrius/actions/runs/44786324542/job/136462042874)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44790155159/job/136475393710)
 verify 84 redesign frames and four normal process exits. The original
