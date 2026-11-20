@@ -1472,6 +1472,10 @@ verify two original PNGs with the pointer move in place. The fresh
 button pixel comparison remains open. [Linux validation at `ebf17f76`](https://github.com/edgepillar/syrius/actions/runs/44824977641)
 passes strict selected analysis, the complete non-chain suite and
 generated-file verification with both capture changes.
+The [Lock reader at `ebf17f76`](https://github.com/edgepillar/syrius/actions/runs/44827181709/job/136602636784)
+verifies six original PNGs. Enter produces one rejected attempt and the
+observer retains film frame 23 in both themes. The picker divider still
+measures row 488. The new button pixels await comparison.
 
 All six [Lock captures at `e94d5b07`](https://github.com/edgepillar/syrius/actions/runs/44797941432)
 were reopened from the verified archive and viewed beside their
@@ -2518,6 +2522,16 @@ Skip visible and the film ticking. The two wallet processes and all
 five test nodes exit normally. The original measurement failure and
 the current-only timing remain recorded. No paired criterion passed
 in this run.
+
+The [paired read at `2b109d8f`](https://github.com/edgepillar/syrius/actions/runs/44827210630/job/136602728216)
+verifies two normal entry exits, two normal wallet exits and five normal
+node exits. Page change peaks at 302.429 ms versus 144.889 ms on P06.
+Disclosure peaks at 153.078 ms versus 60.807 ms. Both 16 ms comparisons
+fail and all four windows retain frame-key gaps. The longest page-change
+frame spends 1.250 ms waiting for build, 4.524 ms building, 197.627 ms
+waiting for raster and 99.028 ms rasterizing. Four disclosure raster starts
+confirmed at or after settlement exceed 16 ms and peak at 86.585 ms.
+These measurements leave the frame-time criterion open under V02.
 
 The [cold Windows producer at `b3d2a1d1`](https://github.com/edgepillar/syrius/actions/runs/44786324542/job/136462042874)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44790155159/job/136475393710)

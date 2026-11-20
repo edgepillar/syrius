@@ -620,6 +620,25 @@ def home_goto_geometry(raw):
                 goto_caret=caret)
 
 
+def home_notifications_geometry(raw):
+    """Observe the settled tooltip fill along a column clear of label ink."""
+    column, top, bottom = 65, 630, 700
+    fills = {'dark': (54, 56, 54), 'light': (238, 240, 238)}
+    themes = {}
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        for theme, fill in fills.items():
+            bands = _vertical_bands(zipped, f'01-home-rest-{theme}.png',
+                                    column, top, bottom)
+            ends = [y for y, _ in bands[1:]] + [bottom]
+            matching = [[start, end - 1] for (start, color), end in zip(bands, ends)
+                        if tuple(color[:3]) == fill and end - start == 28
+                        and top < start and end < bottom]
+            themes[theme] = dict(status='unavailable')
+            if len(matching) == 1:
+                themes[theme] = dict(status='observed', fill_rows=matching[0])
+    return dict(column=column, scan_rows=[top, bottom], themes=themes)
+
+
 def staking_empty_bands(raw):
     """Observe the strip and both cards in the verified Earn archive."""
     column, top, bottom = 1000, 35, 711
@@ -1175,6 +1194,7 @@ def main(parent=None):
                 home_script_source_pins(source_digests, reference['schema']))
             if reference['schema'] == producer.HOME_CAPTURE_SCHEMAS['home']:
                 catalog.update(home_goto_geometry(catalog_archive))
+                catalog['notifications_tooltip'] = home_notifications_geometry(catalog_archive)
             del catalog_archive
         viewport_name = 'viewport-observation-' + head + '-' + text + '-1'
         PHASE = 'viewport_artifact'

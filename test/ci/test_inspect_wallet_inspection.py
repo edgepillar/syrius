@@ -99,6 +99,21 @@ def jobs(*, positive=True):
 
 
 class ReaderTests(unittest.TestCase):
+    def test_home_notifications_geometry_requires_the_complete_tooltip_fill(self):
+        files = []
+        base = b'\0' + bytes((30, 30, 30, 255)) * 1280
+        for theme, rgb, height in (('dark', (54, 56, 54), 28),
+                                   ('light', (238, 240, 238), 27)):
+            fill = b'\0' + bytes((*rgb, 255)) * 1280
+            rows = [base] * 657 + [fill] * height + [base] * (123 - height)
+            pixels = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
+                      + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
+            files.append((f'01-home-rest-{theme}.png', pixels, stat.S_IFREG))
+        self.assertEqual(reader.home_notifications_geometry(packed(files)), dict(
+            column=65, scan_rows=[630, 700], themes=dict(
+                dark=dict(status='observed', fill_rows=[657, 684]),
+                light=dict(status='unavailable'))))
+
     def test_home_goto_geometry_measures_footer_edge_and_visible_caret(self):
         files = []
         footer = b'\0' + bytes((35, 35, 35, 255)) * 1280
