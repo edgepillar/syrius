@@ -1291,11 +1291,14 @@ evidence.
 ### Windows visual capture audit at `e94d5b07` (2026-11-20)
 
 The capture plan assigns each of the 47 reference states to one producer
-and uses its dark and light PNGs. The independent readers have verified 92
-of the 94 designated PNGs, with 90 at `e94d5b07` and two at the
-documentation-only successor `a76ddc26`. The Navigation producer retained
-14 images. Only the six assigned to Receive, Pillars and Plasma contribute
-to this count. The other states use their designated captures below.
+and uses its dark and light PNGs. The independent readers have verified
+all 94 designated PNGs, with 90 at `e94d5b07`, two at the
+documentation-only successor `a76ddc26` and two at `44dbb37b`.
+The Navigation producer retained 14 images. Only the six assigned to
+Receive, Pillars and Plasma contribute to this count. The other states
+use their designated captures below. Each pair retains its producer
+source. Whole-screen visual verdicts and current-source replacement
+captures for changed surfaces remain open.
 
 | Verified capture group | Designated PNGs | Independent reader |
 | --- | ---: | --- |
@@ -1319,6 +1322,7 @@ to this count. The other states use their designated captures below.
 | Swap start | 2 | [Swap start](https://github.com/edgepillar/syrius/actions/runs/44808633632/job/136539122116) |
 | Prepared Swap | 2 | [Prepared Swap](https://github.com/edgepillar/syrius/actions/runs/44810549731/job/136545685110) |
 | Pillar Spawn | 2 | [Pillar Spawn at `a76ddc26`](https://github.com/edgepillar/syrius/actions/runs/44813101511/job/136554422149) |
+| Pillar Done | 2 | [Pillar Done at `44dbb37b`](https://github.com/edgepillar/syrius/actions/runs/44816181528/job/136565021403) |
 
 The first [Pillar Done producer](https://github.com/edgepillar/syrius/actions/runs/44806734839)
 stopped before capture. Its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44809328985/job/136541527090)
@@ -1338,7 +1342,8 @@ six to seven with a new hash while the observed timestamp fell by 20
 seconds. The requested images were absent. The existing advance check
 requires a higher height and timestamp and a different hash. The [third
 Pillar Done producer](https://github.com/edgepillar/syrius/actions/runs/44813247836)
-is pinned to `44dbb37b`.
+ran at `44dbb37b`. The independent reader verifies both original
+PNGs and normal required process closure.
 
 The four Welcome and Import images have been viewed alongside their
 references. The visible backdrop differs. In 9,126 unobstructed edge
