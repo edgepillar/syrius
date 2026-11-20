@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/licences.dart';
@@ -173,22 +174,44 @@ void main() {
         );
         expect(find.text(firstText), findsOneWidget);
         expect(find.text(secondText), findsOneWidget);
-        final SelectableText title = tester.widget<SelectableText>(
-          find.byWidgetPredicate(
-            (Widget widget) =>
-                widget is SelectableText &&
-                widget.data == 'Synthetic notice title',
-          ),
+        final Text title = tester.widget<Text>(
+          find.text('Synthetic notice title'),
         );
         expect(title.textAlign, TextAlign.center);
         expect(title.maxLines, isNull);
-        final SelectableText paragraph = tester.widget<SelectableText>(
-          find.byWidgetPredicate(
-            (Widget widget) =>
-                widget is SelectableText && widget.data == firstText,
+        final Text paragraph = tester.widget<Text>(find.text(firstText));
+        expect(paragraph.maxLines, isNull);
+        final SelectableRegionState selection = tester.state(
+          find.descendant(
+            of: find.byKey(const Key('about_licence_alpha')),
+            matching: find.byType(SelectableRegion),
           ),
         );
-        expect(paragraph.maxLines, isNull);
+        String? copied;
+        final TestDefaultBinaryMessenger messenger =
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+              ..setMockMethodCallHandler(SystemChannels.platform, (
+                MethodCall call,
+              ) async {
+                if (call.method == 'Clipboard.setData') {
+                  final Map<Object?, Object?> data =
+                      call.arguments as Map<Object?, Object?>;
+                  copied = data['text']! as String;
+                }
+                return null;
+              });
+        addTearDown(() {
+          messenger.setMockMethodCallHandler(SystemChannels.platform, null);
+        });
+        selection.selectAll(SelectionChangedCause.keyboard);
+        final ContextMenuButtonItem copy = selection.contextMenuButtonItems
+            .singleWhere(
+              (ContextMenuButtonItem item) =>
+                  item.type == ContextMenuButtonType.copy,
+            );
+        copy.onPressed!();
+        await tester.pump();
+        expect(copied, allOf(contains(firstText), contains(secondText)));
         await _open(tester, 'alpha');
         await _open(tester, 'zeta');
         expect(reads, 1);
@@ -261,10 +284,7 @@ void main() {
       expect(
         find.descendant(
           of: row,
-          matching: find.byWidgetPredicate(
-            (Widget widget) => widget is SelectableText &&
-                widget.data == firstParagraph,
-          ),
+          matching: find.text(firstParagraph),
         ),
         findsOneWidget,
       );

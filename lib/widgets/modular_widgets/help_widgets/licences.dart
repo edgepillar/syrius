@@ -276,15 +276,16 @@ class _LicencesState extends State<Licences> {
         onError: fail,
         onDone: () {
           if (!mounted || epoch != _epoch || _failed) return;
-          final List<String> names = collected.keys.toList()
-            ..sort(
-              (String a, String b) => a.toLowerCase().compareTo(
-                b.toLowerCase(),
-              ),
-            );
+          // Compute the sort keys once when the registry finishes.
+          final List<(String, String)> names = <(String, String)>[
+            for (final String name in collected.keys)
+              (name, name.toLowerCase()),
+          ]..sort(
+            ((String, String) a, (String, String) b) => a.$2.compareTo(b.$2),
+          );
           setState(() {
             _packages = <_PackageLicence>[
-              for (final String name in names)
+              for (final (String name, _) in names)
                 _PackageLicence(
                   name,
                   List<_LicenceText>.unmodifiable(collected[name]!),
@@ -541,31 +542,35 @@ class _LicenceRow extends StatelessWidget {
 
   Widget _buildParagraphs(AppTokens tokens) => Padding(
     padding: tokens.cardPadding,
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        for (final List<LicenseParagraph> entry
-            in package.paragraphs) ...<Widget>[
-          for (final LicenseParagraph paragraph in entry)
-            Padding(
-              padding: EdgeInsetsDirectional.only(
-                start: paragraph.indent > 0
-                    ? tokens.cardGap * paragraph.indent
-                    : 0,
-                bottom: tokens.inlineGap,
+    // Share selection across the notices without mounting an editable text
+    // and a separate focus node for every paragraph as the body opens.
+    child: SelectionArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          for (final List<LicenseParagraph> entry
+              in package.paragraphs) ...<Widget>[
+            for (final LicenseParagraph paragraph in entry)
+              Padding(
+                padding: EdgeInsetsDirectional.only(
+                  start: paragraph.indent > 0
+                      ? tokens.cardGap * paragraph.indent
+                      : 0,
+                  bottom: tokens.inlineGap,
+                ),
+                child: Text(
+                  paragraph.text,
+                  textAlign: paragraph.indent == LicenseParagraph.centeredIndent
+                      ? TextAlign.center
+                      : TextAlign.start,
+                  style: tokens.bodyText,
+                ),
               ),
-              child: SelectableText(
-                paragraph.text,
-                textAlign: paragraph.indent == LicenseParagraph.centeredIndent
-                    ? TextAlign.center
-                    : TextAlign.start,
-                style: tokens.bodyText,
-              ),
-            ),
-          SizedBox(height: tokens.cardGap),
+            SizedBox(height: tokens.cardGap),
+          ],
         ],
-      ],
+      ),
     ),
   );
 }

@@ -1689,7 +1689,16 @@ again reports 5,126 passes, one failure in the same test and one skip.
 The fixture now resolves the original notice file from the generated
 package configuration and scrolls to the lazy row before checking it.
 Both bundled notice fingerprints match the existing identifier mapping.
-The widget rerun and whole-image acceptance under V01 remain open.
+The [Linux run at `8ca869fd`](https://github.com/edgepillar/syrius/actions/runs/44684898888/job/136116776394)
+passes analysis, the full non-chain widget suite and generated-file
+verification. Whole-image acceptance remains open under V01.
+
+When the licence registry finishes, it now computes each package's
+case-insensitive sort key once. An opened package uses one selection area
+for its complete notices. Each paragraph retains its indentation and text
+style without an editable text widget. The focused cases exercise copy
+across paragraphs in both the default and scaled RTL views. Fresh widget
+and paired Windows timing evidence remains open under V02.
 
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references

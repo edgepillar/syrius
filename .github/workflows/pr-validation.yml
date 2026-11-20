@@ -72,6 +72,9 @@ jobs:
           test/startup/startup_stage_test.dart
           test/harness/wallet_recipe_startup_test.dart --no-pub
 
+      - name: Verify licence disclosure and selection
+        run: flutter test test/settings_about_redesign/licences_test.dart --no-pub
+
       - name: Run unit and widget tests
         run: |
           report="$(mktemp "$RUNNER_TEMP/syrius-dart-tests.XXXXXX")"
