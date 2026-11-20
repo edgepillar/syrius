@@ -22,6 +22,7 @@ JOB_NAME = 'Observe original Windows Release startup'
 BATCH_JOB_NAME = 'Capture original Windows startup catalog'
 # One listing, fifteen source reads and two requests per archive.
 BATCH_REQUESTS = 24
+PRE_FIRST_PROGRESS_LAUNCH_PRODUCER_SHA = 'e494d6a5fffc539a9a0c63ccf13c813c3e58a50af507432976c1af109352166c'
 PRE_P06_FILM_FLAGS_LAUNCH_PRODUCER_SHA = '2953d8dc15680d8e2fc5d0eb49fb719be23b32f5c91027f1d0a314b3c72806f5'
 PRE_P06_WARMUP_LAUNCH_PRODUCER_SHA = 'a75408a79109738ba997eef4b09692db7ff3f1354833a1bd022a7160c04b5fc5'
 PRE_LOCK_SETTLE_LAUNCH_PRODUCER_SHA = 'd83f34f0be461f80f350917c97b8dd2cff71e0b8d146a02f67adeda05e6340a4'
@@ -534,8 +535,12 @@ def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=F
             before_p06_diagnostics = (name == 'tool/ci/windows_launch_catalog.py'
                                       and archive.sha(body) in (PRE_P06_WARMUP_LAUNCH_PRODUCER_SHA,
                                                                PRE_P06_FILM_FLAGS_LAUNCH_PRODUCER_SHA))
-            archive.need(body == current or before_lock_settle or before_p06_diagnostics or not motion and (before_phase_capture
-                         or shared_binaries is None and archive.sha(body) in prior))
+            before_first_progress = (name == 'tool/ci/windows_launch_catalog.py'
+                                     and archive.sha(body) == PRE_FIRST_PROGRESS_LAUNCH_PRODUCER_SHA)
+            archive.need(body == current or before_lock_settle
+                         or before_p06_diagnostics or before_first_progress
+                         or not motion and (before_phase_capture
+                             or shared_binaries is None and archive.sha(body) in prior))
         else:
             pins[key] = archive.sha(body)
     if item is None:

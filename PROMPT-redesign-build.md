@@ -1290,6 +1290,9 @@ and distinct-frame counts meet the 16 ms comparison. The one additional
 slow build takes 25.717 ms. The redesign and P06 windows retain 29 and
 1,512 frame-number gaps. V02 remains open. Timing differences between
 the two runs leave the effect of the new sampling scale unestablished.
+The [first expanded read](https://github.com/edgepillar/syrius/actions/runs/44651109056/job/136005922392)
+refuses the preceding producer version. Both readers now admit that exact
+producer digest so they can locate the slow build in the original archive.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
