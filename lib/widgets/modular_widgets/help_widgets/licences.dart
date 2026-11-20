@@ -385,6 +385,9 @@ class _LicencesState extends State<Licences> {
             key: const Key('about_licences_list'),
             controller: _scroll,
             primary: false,
+            // The rules paint in the viewport. Each row still isolates its
+            // disclosure content so a scroll can reuse that content's paint.
+            addRepaintBoundaries: false,
             // Opening the panel only prepares a short scroll buffer of rows.
             scrollCacheExtent: ScrollCacheExtent.pixels(2 * rowHeight),
             itemCount: packages.length + 1,
@@ -392,10 +395,12 @@ class _LicencesState extends State<Licences> {
               if (index == packages.length) {
                 return KeyedSubtree(
                   key: const Key('about_licences_end'),
-                  child: KeyedSubtree(
-                    key: _trailingKey,
-                    child: widget.trailingBuilder?.call(context) ??
-                        SizedBox(height: tokens.cardGap),
+                  child: RepaintBoundary(
+                    child: KeyedSubtree(
+                      key: _trailingKey,
+                      child: widget.trailingBuilder?.call(context) ??
+                          SizedBox(height: tokens.cardGap),
+                    ),
                   ),
                 );
               }
@@ -514,26 +519,27 @@ class _LicenceRow extends StatelessWidget {
     final AppTokens tokens = AppTokens.of(context);
     return CustomPaint(
       painter: _LicenceRulePainter(tokens.line),
-      child: Disclosure(
-        title: package.name.isEmpty ? context.l10n.aboutUnknown : package.name,
-        titleStyle: tokens.bodyText,
-        summary: package.identifier,
-        summaryColumnPercent: summaryColumnPercent,
-        keyPrefix: 'about_licence_${package.name}',
-        headerMinHeight: headerHeight,
-        headerPadding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
-        // The lazy list already isolates each painted row.
-        isolateChevronPaint: false,
-        onChanged: (bool open) {
-          if (open) {
-            try {
-              package.readParagraphs();
-            } on Object {
-              onReadFailure();
+      child: RepaintBoundary(
+        child: Disclosure(
+          title: package.name.isEmpty ? context.l10n.aboutUnknown : package.name,
+          titleStyle: tokens.bodyText,
+          summary: package.identifier,
+          summaryColumnPercent: summaryColumnPercent,
+          keyPrefix: 'about_licence_${package.name}',
+          headerMinHeight: headerHeight,
+          headerPadding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
+          isolateChevronPaint: false,
+          onChanged: (bool open) {
+            if (open) {
+              try {
+                package.readParagraphs();
+              } on Object {
+                onReadFailure();
+              }
             }
-          }
-        },
-        child: Builder(builder: (_) => _buildParagraphs(tokens)),
+          },
+          child: Builder(builder: (_) => _buildParagraphs(tokens)),
+        ),
       ),
     );
   }

@@ -122,7 +122,7 @@ void main() {
         expect(
           (list.childrenDelegate as SliverChildBuilderDelegate)
               .addRepaintBoundaries,
-          isTrue,
+          isFalse,
         );
         expect(
           find.descendant(of: row, matching: find.byType(RepaintBoundary)),
@@ -140,6 +140,7 @@ void main() {
               matching: find.byType(CustomPaint),
             )
             .first;
+        expect(tester.widget<CustomPaint>(rule).child, isA<RepaintBoundary>());
         expect(
           rule,
           paints..something((method, arguments) {
