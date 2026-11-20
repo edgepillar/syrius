@@ -1,5 +1,33 @@
 # Redesign build environment
 
+## Native Windows build
+
+The [Windows baseline workflow](../.github/workflows/public-contribution-qualification.yml)
+uses a clean checkout on `windows-latest`. The runner image supplies Git Bash,
+Python, Visual Studio's desktop C++ workload, the Windows SDK and CMake.
+The workflow provisions Flutter 3.47.7 on the stable channel and uses its
+bundled Dart SDK. See the [recorded tool inventory](#complete-hosted-windows-inventory)
+for the versions observed on the original hosted image.
+
+Run the following from the repository root in Git Bash after provisioning
+the same desktop toolchain. The baseline controller also checks source
+correspondence, runs the non-chain test suite and verifies generated files.
+
+```bash
+flutter config --enable-windows-desktop
+flutter doctor -v
+flutter pub get --enforce-lockfile
+(cd patched_packages/reown_core-1.3.8 && flutter pub get --enforce-lockfile)
+dart run tool/generate_git_metadata.dart
+flutter build windows --debug --no-pub --dart-define-from-file=.dart_tool/git_metadata.json
+flutter build windows --release --no-pub --dart-define-from-file=.dart_tool/git_metadata.json
+```
+
+The [latest independently verified baseline](https://github.com/edgepillar/syrius/actions/runs/44740753300/job/136303512144)
+covers both builds at `650bbb8a`. The [baseline at `bfb83ea8`](https://github.com/edgepillar/syrius/actions/runs/44744248162)
+covers the newer launch candidate and is running. Visual and motion acceptance
+is tracked in the [redesign ledger](../PROMPT-redesign-build.md).
+
 ## Current qualification status (2026-11-18)
 
 PR #6 is [Ready for review](https://github.com/sol-znn/syrius/pull/6).
