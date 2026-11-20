@@ -1536,6 +1536,9 @@ it and rechecking caption and body behavior. The
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44682976416/job/136110538665)
 verify 87 redesign frames, 867 P06 frames and five normal actor exits.
 The redesign peak build is 25.214 ms and the P06 peak build is 16.774 ms.
+The redesign peak build starts 61.867 ms after the observed film end
+and 79.719 ms before the first observed handoff frame. These offsets
+locate the slow build between the two observations.
 The original 16 ms build comparison fails and both windows retain
 frame-number gaps. V02 remains open.
 
@@ -1661,8 +1664,13 @@ The fixture uses the pinned engine's original licence source. The
 [follow-up run](https://github.com/edgepillar/syrius/actions/runs/44680953416/job/136103946816)
 also reports one failure in this case. The complete notice is shared by
 several engine packages. The widget case now checks the identifier and
-both selectable notice texts within the `yapf` row. Whole-image
-acceptance stays open under V01.
+both selectable notice texts within the `yapf` row. The
+[Linux run at `757e8849`](https://github.com/edgepillar/syrius/actions/runs/44682629630/job/136109405329)
+again reports 5,126 passes, one failure in the same test and one skip.
+The fixture now resolves the original notice file from the generated
+package configuration and scrolls to the lazy row before checking it.
+Both bundled notice fingerprints match the existing identifier mapping.
+The widget rerun and whole-image acceptance under V01 remain open.
 
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references
@@ -1705,6 +1713,12 @@ ink begins at columns 677 and 768. The detail table now allocates the
 equally sized value columns. The existing two-theme case checks the gap
 and the value widths. The reader reports the two text bounds from the
 verified PNGs for fresh comparison.
+The [targeted Navigation producer at `4e9e83e0`](https://github.com/edgepillar/syrius/actions/runs/44680982920/job/136104044745)
+reported 14 captured catalog images before the final lab revalidation
+failed with `PRODUCTION_UNPROVEN`. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44684068639/job/136114106096)
+verified the retained receipts and five normal node exits. The run
+retained no catalog archive, so the new text bounds and hover state
+remain unverified.
 
 The [Linux run at `61e72335`](https://github.com/edgepillar/syrius/actions/runs/44664606334/job/136050757368)
 reports 5124 passes, two failures in the segment heading suite and one

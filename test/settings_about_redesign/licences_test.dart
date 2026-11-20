@@ -1,6 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -205,12 +205,24 @@ void main() {
     WidgetTester tester,
   ) async {
     prepareAboutViewport(tester);
-    // Read the SDK notice source that Flutter uses to assemble the registry.
-    final Uri? skyEngine = Isolate.resolvePackageUriSync(
-      Uri.parse('package:sky_engine/_empty.dart'),
+    // Use the SDK source from pub's package configuration. The test embedder
+    // can load an already compiled kernel without resolving package URIs.
+    final File packageConfig = File('.dart_tool/package_config.json');
+    final Map<String, Object?> config =
+        jsonDecode(packageConfig.readAsStringSync()) as Map<String, Object?>;
+    final List<Object?> packages = config['packages']! as List<Object?>;
+    final Map<String, Object?> skyEngine = packages
+        .whereType<Map<String, Object?>>()
+        .singleWhere(
+          (Map<String, Object?> package) => package['name'] == 'sky_engine',
+        );
+    final String root = skyEngine['rootUri']! as String;
+    final Uri engineRoot = packageConfig.absolute.uri.resolve(
+      root.endsWith('/') ? root : '$root/',
     );
-    final String bundle = File.fromUri(skyEngine!.resolve('../LICENSE'))
-        .readAsStringSync();
+    final String bundle = File.fromUri(
+      engineRoot.resolve('LICENSE'),
+    ).readAsStringSync();
     final List<LicenseEntry> notices = <LicenseEntry>[];
     for (final String section in bundle.split('\n${'-' * 80}\n')) {
       final int split = section.indexOf('\n\n');
@@ -231,7 +243,14 @@ void main() {
     );
     await tester.pump();
     // The full engine notice also applies to other packages in the list.
+    final Finder list = find.byKey(const Key('about_licences_list'));
     final Finder row = find.byKey(const Key('about_licence_yapf'));
+    await tester.scrollUntilVisible(
+      row,
+      200,
+      scrollable: find.descendant(of: list, matching: find.byType(Scrollable)),
+      maxScrolls: 10,
+    );
     expect(
       find.descendant(of: row, matching: find.text('Apache-2.0')),
       findsOneWidget,
