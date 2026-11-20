@@ -1283,7 +1283,7 @@ evidence.
 ### Windows visual capture audit at `e94d5b07` (2026-11-20)
 
 The capture plan assigns each of the 47 reference states to one producer
-and uses its dark and light PNGs. The independent readers have verified 88
+and uses its dark and light PNGs. The independent readers have verified 90
 of the 94 designated PNGs at `e94d5b07`. The Navigation producer retained
 14 images. Only the six assigned to Receive, Pillars and Plasma contribute
 to this count. The other states use their designated captures below.
@@ -1308,10 +1308,20 @@ to this count. The other states use their designated captures below.
 | Wallet Ready | 2 | [Wallet Ready](https://github.com/edgepillar/syrius/actions/runs/44808430062/job/136538423605) |
 | Sentinels | 2 | [Sentinels](https://github.com/edgepillar/syrius/actions/runs/44808625163/job/136539090734) |
 | Swap start | 2 | [Swap start](https://github.com/edgepillar/syrius/actions/runs/44808633632/job/136539122116) |
+| Prepared Swap | 2 | [Prepared Swap](https://github.com/edgepillar/syrius/actions/runs/44810549731/job/136545685110) |
 
-Independent verification is pending for [prepared Swap](https://github.com/edgepillar/syrius/actions/runs/44806546914),
-[Pillar Spawn](https://github.com/edgepillar/syrius/actions/runs/44806729608)
-and [Pillar Done](https://github.com/edgepillar/syrius/actions/runs/44806734839).
+The first [Pillar Done producer](https://github.com/edgepillar/syrius/actions/runs/44806734839)
+stopped before capture. Its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44809328985/job/136541527090)
+verified zero captured pages and no advance from height eight across six
+preflight polls. The first [Pillar Spawn producer](https://github.com/edgepillar/syrius/actions/runs/44806729608)
+retained twelve ordinary wallet tour captures with a normal entry exit.
+Its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44810221835/job/136544573813)
+verified the later checkpoint refusal. The exact fuse confirmation or
+effect was still pending and the requested Spawn PNGs were absent.
+The next [Pillar Done](https://github.com/edgepillar/syrius/actions/runs/44809621740)
+and [Pillar Spawn](https://github.com/edgepillar/syrius/actions/runs/44810452587)
+producers use `a76ddc26`, which differs from the visual capture source
+only in this Markdown file.
 
 The four Welcome and Import images have been viewed alongside their
 references. The visible backdrop differs. In 9,126 unobstructed edge
@@ -2319,6 +2329,24 @@ settled disclosure exceed 16 ms and peak at 71.502 ms. All four windows
 retain frame-key gaps. This run leaves V02 open and does not isolate
 the timing effect of the paint-boundary change.
 
+The [paired Windows producer at `e94d5b07`](https://github.com/edgepillar/syrius/actions/runs/44806304076/job/136531105664)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44809982892/job/136543747726)
+verify both measurement windows, two normal entry exits, two normal
+wallet exits and five normal node exits. The 16 ms comparison fails for
+both interactions. Page change retains 10 redesign frames and 18 P06
+frames, with 37 and 25 frame-key gaps. Its longest total frame is
+407.316 ms versus 168.219 ms. Disclosure retains 10 redesign frames
+and 26 P06 frames, with 29 and 16 gaps. Its longest total frame is
+152.892 ms versus 75.897 ms. Page change fails the ranked raster and
+distinct-frame comparisons. Disclosure also fails the build comparison.
+
+The longest page-change frame includes 3.694 ms of build, 121.037 ms of
+raster and 282.585 ms outside both phases. The longest raster starts
+between 185.162 and 240.005 ms after pointer release. In the disclosure
+window, all four raster starts confirmed after settlement exceed 16 ms,
+with a maximum of 81.556 ms. These timings locate the slowdown without
+identifying a rendering-layer cause. V02 remains open.
+
 The [cold Windows producer at `b3d2a1d1`](https://github.com/edgepillar/syrius/actions/runs/44786324542/job/136462042874)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44790155159/job/136475393710)
 verify 84 redesign frames and four normal process exits. The original
@@ -2655,7 +2683,7 @@ four images remain bound to `cf584538`.
 | N06 | done | 2026-10-23T15:54Z | e13abb387577 adds pure Import and the bounded three-word quiz with original decrypt, access release and shared-axis routes; strict and full local checks pass; native authentication and comparison remain unqualified |
 | N07 | done | 2026-10-23T15:54Z | e13abb387577 adds the original map and Ready glass card, captured first address and once-only opening bound to original creation and local initialization; connection mismatch and uncertainty remain distinct from readiness; strict and full local checks pass; native acceptance pending |
 | V01 | review | 2026-11-18T14:53Z | All 94 exact 28f9c121 pairs have strict verdicts. Fourteen pairs match and 80 retain differences. Current-source corrections and same-phase recaptures remain open. [Independent findings](docs/review/source-28f9c121-independent-visual-review.md). |
-| V02 | blocked | 2026-11-13 | Source715 producer 43344313240 and independent reader 43347311411 verify 234 current and 2,274 P06 frames and five normal actor exits. Acquisition passes; the unchanged 16 ms duration comparison fails raster and distinct-frame dominance, and both windows retain frame-number gaps. Page-change, disclosure, Motion and Shaders acceptance remain open. [Executed result](docs/review/source716-details-frame-context.md). Earlier Source698 evidence: Source698 producer 43240640136 and reader 43247422901 preserve STARTUP_DEADLINE in P06 measurement: 337 current frames, zero baseline frames and five normal actor exits. The baseline lock field remains disabled before initialization. No comparison or absence of added slow frames is established. Earlier evidence: Source622 adds opt-in frame windows to `harness/h stalls`. Source627 retains ENTRY_INVALID with two normal actor exits and zero frames in its [original run](https://github.com/edgepillar/syrius/actions/runs/42846425942) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42849507992). Source628 passes its selected analysis, tests and Release build. Its timing actor reports ENTRY_UNAVAILABLE with zero retained frames and both actors exit normally. The [original run](https://github.com/edgepillar/syrius/actions/runs/42851137227) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42853554717) preserve that result. Source629 selects the original password field by key and kind. The paired job builds P06 with the same SDK and locked cache after a valid current window. The three paired native measurements and the running Motion and Shaders review remain open. Source630 retains 270 current frames, P06 HTTP_FAILED with zero frames and five normal actor exits. The next controller polls the same lock predicate without a server-side wait. [Original producer](https://github.com/edgepillar/syrius/actions/runs/42865836277) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42868723130). Source631 retains 182 current frames, zero P06 frames at STARTUP_DEADLINE and five normal exits. The paired controller uses a common absolute readiness bound and records finite post-deadline state. [Producer](https://github.com/edgepillar/syrius/actions/runs/42870190367) and [reader](https://github.com/edgepillar/syrius/actions/runs/42873068988). Source632 retains 171 current frames and P06 COMMAND_FAILED with five normal exits. The next controller records which original request refused while preserving its outcome. [Producer](https://github.com/edgepillar/syrius/actions/runs/42874911893) and [reader](https://github.com/edgepillar/syrius/actions/runs/42878160400). Source633 isolates HTTP 400 at the P06 frame window request after the original lock checks. The next overlay exposes finite refusal reasons for the original request. [Producer](https://github.com/edgepillar/syrius/actions/runs/42879055212) and [reader](https://github.com/edgepillar/syrius/actions/runs/42882219474). |
+| V02 | blocked | 2026-11-20 | The [paired interactive read at `e94d5b07`](https://github.com/edgepillar/syrius/actions/runs/44809982892/job/136543747726) verifies both windows. The 16 ms comparison fails for page change and disclosure, and all four samples have frame-key gaps. The [cold startup comparison at `4055c536`](https://github.com/edgepillar/syrius/actions/runs/44794191118/job/136489337767) retains the raster and distinct-frame failures. The running motion and shader review remains open. Source715 producer 43344313240 and independent reader 43347311411 verify 234 current and 2,274 P06 frames and five normal actor exits. Acquisition passes; the unchanged 16 ms duration comparison fails raster and distinct-frame dominance, and both windows retain frame-number gaps. Page-change, disclosure, Motion and Shaders acceptance remain open. [Executed result](docs/review/source716-details-frame-context.md). Earlier Source698 evidence: Source698 producer 43240640136 and reader 43247422901 preserve STARTUP_DEADLINE in P06 measurement: 337 current frames, zero baseline frames and five normal actor exits. The baseline lock field remains disabled before initialization. No comparison or absence of added slow frames is established. Earlier evidence: Source622 adds opt-in frame windows to `harness/h stalls`. Source627 retains ENTRY_INVALID with two normal actor exits and zero frames in its [original run](https://github.com/edgepillar/syrius/actions/runs/42846425942) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42849507992). Source628 passes its selected analysis, tests and Release build. Its timing actor reports ENTRY_UNAVAILABLE with zero retained frames and both actors exit normally. The [original run](https://github.com/edgepillar/syrius/actions/runs/42851137227) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42853554717) preserve that result. Source629 selects the original password field by key and kind. The paired job builds P06 with the same SDK and locked cache after a valid current window. The three paired native measurements and the running Motion and Shaders review remain open. Source630 retains 270 current frames, P06 HTTP_FAILED with zero frames and five normal actor exits. The next controller polls the same lock predicate without a server-side wait. [Original producer](https://github.com/edgepillar/syrius/actions/runs/42865836277) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42868723130). Source631 retains 182 current frames, zero P06 frames at STARTUP_DEADLINE and five normal exits. The paired controller uses a common absolute readiness bound and records finite post-deadline state. [Producer](https://github.com/edgepillar/syrius/actions/runs/42870190367) and [reader](https://github.com/edgepillar/syrius/actions/runs/42873068988). Source632 retains 171 current frames and P06 COMMAND_FAILED with five normal exits. The next controller records which original request refused while preserving its outcome. [Producer](https://github.com/edgepillar/syrius/actions/runs/42874911893) and [reader](https://github.com/edgepillar/syrius/actions/runs/42878160400). Source633 isolates HTTP 400 at the P06 frame window request after the original lock checks. The next overlay exposes finite refusal reasons for the original request. [Producer](https://github.com/edgepillar/syrius/actions/runs/42879055212) and [reader](https://github.com/edgepillar/syrius/actions/runs/42882219474). |
 | V03 | done | 2026-11-12T03:23Z | Source648 673fe4a19468, Source670 2b2c4abdadae, Source676 5d555665a643 and Source686 15fec4c9120f provide executed native refusals for all fifteen current seam values and pointer/keyboard refusal for the only seamed palette target. No direct missing-feature shortcut or other seamed palette target is registered. All 1,213 current runtime entries match Source686; the sole older token observer difference is covered by its holder trial. Source670's producer control list remains distinct from its legacy reader's context/closure proof. The [Source695 audit](docs/review/source695-seam-coverage.md) closes the original requirement without relabelling the later incomplete eleven-control Home batch or its failures. No new native run or visual match is claimed. |
 | V04 | done | 2026-10-31T23:34Z | All four independently qualified Source265 minimum-window/Arabic originals were actually viewed in both themes. The owned review closes SUCCESS with actual controller exit zero; required original native closure stays source-bound. Minimum controls fit and RTL layout mirrors. English fallback/missing Arabic copy is retained as X414; exact saved locale preference and Arabic glyph quality remain separate unqualified observations |
 | V05 | done | 2026-11-18T13:45Z | fdb88d89 commits the fresh independent review of all 94 exact 28f9c121 pairs and X821 through X875. The visual verdicts guide further comparisons under V01. [Independent review](docs/review/source-28f9c121-independent-visual-review.md). |
