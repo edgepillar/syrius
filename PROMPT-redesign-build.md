@@ -772,6 +772,12 @@ cases and no native wallet execution. Its combined case count was still
 pinned to 1,528. The gate now expects 1,529, including the new warning
 case. A further run must reach the prepared Swap capture.
 
+The [full Linux check at `aba7ba77`](https://github.com/edgepillar/syrius/actions/runs/44776039069/job/136425995285)
+passes strict selected Dart analysis, the Go To and Licences checks,
+the full non-chain test suite and generated-file verification. The
+combined tour count is 1,529 passing cases across 113 files. The fresh
+Windows Home, Swap and Details captures still need visual comparison.
+
 The [Accelerator reader](https://github.com/edgepillar/syrius/actions/runs/44772163816/job/136412376168)
 verifies the prepared Voting and Project Detail captures in both themes
 from the [Windows run at `e9d3c9d4`](https://github.com/edgepillar/syrius/actions/runs/44768760920).
