@@ -340,7 +340,7 @@ def _verified_archive_bytes(path: Path, digest: str | None) -> bytes:
 
 
 class _ArchiveReadCache:
-    """Reuse one verified archive during report generation."""
+    """Reuse one verified archive while its file identity is unchanged."""
 
     def __init__(self) -> None:
         self._key: tuple[Path, str | None, int, int, int, int, int] | None = None
@@ -384,8 +384,8 @@ def capture_bytes(capture: Capture, archive_cache: _ArchiveReadCache | None = No
         return data
 
 
-def verified_bytes(capture: Capture) -> bytes:
-    data = capture_bytes(capture)
+def verified_bytes(capture: Capture, archive_cache: _ArchiveReadCache | None = None) -> bytes:
+    data = capture_bytes(capture, archive_cache)
     if hashlib.sha256(data).hexdigest() != capture.sha256:
         raise ValueError("Asset has changed")
     return data
@@ -407,6 +407,7 @@ class ReportGallery:
 
     def __init__(self) -> None:
         self.assets: dict[str, tuple[Capture | Difference, str]] = {}
+        self._archive_cache = _ArchiveReadCache()
 
     def add(self, url: str, capture: Capture, media_type: str = "image/png") -> None:
         self.assets[url] = capture, media_type
@@ -426,10 +427,10 @@ class ReportGallery:
     def read_asset(self, url: str) -> tuple[bytes, str]:
         asset, media_type = self.assets[url]
         if isinstance(asset, Capture):
-            return verified_bytes(asset), media_type
+            return verified_bytes(asset, self._archive_cache), media_type
         with (
-            closing(decode_png(verified_bytes(asset.expected))) as before,
-            closing(decode_png(verified_bytes(asset.actual))) as after,
+            closing(decode_png(verified_bytes(asset.expected, self._archive_cache))) as before,
+            closing(decode_png(verified_bytes(asset.actual, self._archive_cache))) as after,
         ):
             diff = ImageChops.difference(before, after)
             return encode_diff_png(difference_mask(diff)), media_type

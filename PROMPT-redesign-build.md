@@ -1854,6 +1854,10 @@ The target-commit report can combine current and retained historical
 manifests. Where competing older captures have no current replacement,
 the report leaves the pair in the target backlog. A conflict between
 eligible captures at the target commit still stops report generation.
+The private gallery reuses one verified archive for its image and diff
+requests. It checks the archive's file identity and each requested image
+digest. A focused test verifies that the image and its diff share one archive
+read and that a replaced archive is refused.
 
 The [Windows entry run at `d6f8dfa3`](https://github.com/edgepillar/syrius/actions/runs/44755690292)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44756776284/job/136358466527)

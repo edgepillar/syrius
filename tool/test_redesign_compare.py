@@ -134,6 +134,26 @@ class ArchiveReadCacheTests(unittest.TestCase):
         self.assertIn(f"diff/{first_light}.png", gallery.assets)
         self.assertNotIn(f"capture/{second_dark}.png", gallery.assets)
 
+        with (
+            patch.object(Path, "stat", return_value=stat_result),
+            patch("redesign_compare.bounded_bytes", side_effect=read) as load,
+        ):
+            self.assertEqual(gallery.read_asset(f"capture/{first_dark}.png"), (png, "image/png"))
+            delta, media_type = gallery.read_asset(f"diff/{first_dark}.png")
+            self.assertEqual(media_type, "image/png")
+            with Image.open(io.BytesIO(delta)) as image:
+                self.assertEqual(image.getextrema(), (0, 0))
+            path = captures[first_dark].path
+            self.assertEqual([call.args[0] for call in load.call_args_list
+                              if call.args[0] in archives], [path])
+            stat_result.st_ctime_ns += 1
+            original = archives[path]
+            archives[path] = b"changed"
+            with self.assertRaisesRegex(ValueError, "ZIP does not match"):
+                gallery.read_asset(f"capture/{first_dark}.png")
+            archives[path] = original
+            self.assertEqual(gallery.read_asset(f"capture/{first_dark}.png"), (png, "image/png"))
+
 
 class CaptureCatalogTests(unittest.TestCase):
     def test_ambiguous_history_does_not_abort_exact_target_coverage(self) -> None:
