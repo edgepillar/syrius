@@ -1398,7 +1398,13 @@ The resting Wallets row measures (38, 39, 38) and (246, 247, 246)
 respectively. The differences agree with the disclosure hover tints.
 The Wallet script now parks the injected pointer, and the hosted Settings
 catalog also parks the desktop pointer when the owned window contains it.
-A fresh Windows pair is needed to verify the resting header.
+The [fresh Windows Settings run at `0c5174f6`](https://github.com/edgepillar/syrius/actions/runs/44835243497/job/136629877125)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44838115922/job/136639489062)
+verify all 14 catalog images and normal required process closure. At column
+650, the Wallets and Maintenance headers now both measure RGB (38, 39, 38)
+in dark and (246, 247, 246) in light. This verifies the resting state for
+the two sampled headers. The additional Maintenance group and the
+whole-screen Wallet verdicts remain open under V01.
 
 Using the same crop and threshold for the verified Home catalog and its
 references, the Go To footer edge is at row 456 in both themes. The
