@@ -1226,6 +1226,15 @@ P06, one in the covered wait and one during the handoff. The largest is
 The sample counts and timings vary across runs. The effect of the
 indicator layer on native frame time remains unestablished.
 
+The Entry backdrop now prepares its 60 px blurred texture at half the
+device sampling scale. The original logical blur, drift, viewport crop
+and caption alignment drive both paints. The existing light and dark
+checks compare the cached paint with the analytic fallback at both
+drift endpoints, and verify the lower texture area. At a 1280 by 780
+client with device pixel ratio one, the crop calculation changes from
+1835 by 1328 pixels to 918 by 664. The timing effect needs a native
+paired measurement.
+
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
 calls `jumpTo` only when the extent differs from the current offset, avoiding

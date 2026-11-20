@@ -108,9 +108,8 @@ List<ui.Image> _watchEntryRasters() {
   final ui.ImageEventCallback? previous = ui.Image.onCreate;
   ui.Image.onCreate = (ui.Image image) {
     previous?.call(image);
-    // The field includes its -20% inset and 3-sigma margin. Exclude the
-    // client-sized readback images that _pixels owns and disposes itself.
-    if (image.width > _size.width && image.height > _size.height) {
+    // Exclude the client-sized readbacks that _pixels owns and disposes.
+    if (image.width != _size.width || image.height != _size.height) {
       images.add(image);
     }
   };
@@ -309,7 +308,7 @@ void main() {
         expect(rasters, hasLength(1));
         expect(
           rasters.single.width * rasters.single.height,
-          lessThan(2152 * 1452 * 0.8),
+          lessThan(2152 * 1452 * 0.25),
         );
         expect(rasters.single.debugDisposed, isFalse);
         await tester.pump(const Duration(seconds: 20));
