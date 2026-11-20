@@ -1762,6 +1762,12 @@ asserts that the confirmed project is visible before taking the shot.
 The Navigation pair still shows the original empty state.
 Current-source comparison and whole-image verdicts
 remain open under V01.
+The [later Accelerator producer at `78da714c`](https://github.com/edgepillar/syrius/actions/runs/44675766448/job/136087092917)
+stops before either screen is captured. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44677479339/job/136092654490)
+verifies the original entry failure, zero captured pages and five
+normal node exits. The expected confirmation was absent in all 18
+observations, leaving the operation outcome unresolved. The earlier
+four images remain bound to `cf584538`.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
