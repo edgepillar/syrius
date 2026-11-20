@@ -374,10 +374,10 @@ build.
 | `windows_wallet_inspection` | `home` | 01, 02, 03, 05 |
 | `windows_wallet_inspection` | `home-bell` | 04 |
 | `windows_wallet_inspection` | `home-zap-preview` | 06 |
-| `windows_wallet_inspection` | `navigation` | 07, 09, 16, 21, 23, 28 |
+| `windows_wallet_inspection` | `navigation` | 09, 16, 21, 23, 28 |
 | `windows_wallet_inspection` | `send-warn` | 08 |
 | `windows_wallet_inspection` | `details` | 10, 11, 22, 37, 38 |
-| `windows_wallet_inspection` | `send-confirm` | 12 |
+| `windows_wallet_inspection` | `send-confirm` | 07, 12 |
 | `windows_wallet_tour` | `seeded-states-visual` | 13, 24 |
 | `windows_wallet_tour` | `stake-draft` | 14 |
 | `windows_wallet_inspection` | `earn` | 15, 17 |
@@ -393,8 +393,9 @@ build.
 | `entry_capture_smoke` | Ordinary entry | 44, 45 |
 | `windows_wallet_inspection` | `wallet-ready` | 47 |
 
-Select the populated Swap list from `swap-seeded` for screen 26. The
-`navigation` archive also contains a Swap list from its read-only fixture.
+Select the filled Send draft from `send-confirm` for screen 07 and the
+populated Swap list from `swap-seeded` for screen 26. The `navigation`
+archive also retains the empty Send form and the read-only Swap list.
 The `seeded-states` family additionally requires the original prepared
 holder selection and all eight surface seam observations before closure.
 The `seeded-states-visual` family requires both original seed receipts,

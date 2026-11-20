@@ -711,10 +711,15 @@ cases pass.
 The reference audit at `ae1fd66e` reads all 94 reference PNGs as 1280 by
 780, verifies the 47 numbered harness scripts in the same order, and
 checks one designated capture assignment per screen across the 21 hosted
-catalog families. The active Navigation, Details and Sentinel runs at
-`61e72335` cover 24 designated pairs if they complete. Navigation also
-captures a read-only Swap list. The designated populated Swap state
-comes from the separate restored catalog.
+catalog families. The Navigation, Details and Sentinel runs at `61e72335`
+verify 26 original images, of which 22 are designated comparison pairs.
+Navigation also retains the empty Send form and the read-only Swap list.
+The designated populated Swap state comes from the restored catalog.
+The designated Send draft comes from the Send confirmation catalog. The
+[independent reader at `06eda3f7`](https://github.com/edgepillar/syrius/actions/runs/44582555309/job/135766788891)
+verifies both filled drafts and both separate confirmation images. The
+Send draft still needs whole-image review against its populated reference,
+which also displays recent recipients and incoming rows.
 The four [Welcome and Import originals](https://github.com/edgepillar/syrius/actions/runs/44582250018/job/135765713115)
 also read directly from their retained archive at 1280 by 780 using their
 original filenames, with no extracted image copies.
