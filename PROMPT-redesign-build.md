@@ -2540,6 +2540,13 @@ waiting for raster and 99.028 ms rasterizing. Four disclosure raster starts
 confirmed at or after settlement exceed 16 ms and peak at 86.585 ms.
 These measurements leave the frame-time criterion open under V02.
 
+An experiment at `72590ad3` paused child tickers at navigation input.
+The [Linux shader test](https://github.com/edgepillar/syrius/actions/runs/44828579372/job/136607386851)
+caught the outgoing shader stopping before its page faded off screen.
+The switcher retains the visible page's motion through the fade and
+mutes the hidden incoming page until its own fade begins. The experiment
+was withdrawn and provides no accepted performance result.
+
 The [cold Windows producer at `b3d2a1d1`](https://github.com/edgepillar/syrius/actions/runs/44786324542/job/136462042874)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44790155159/job/136475393710)
 verify 84 redesign frames and four normal process exits. The original

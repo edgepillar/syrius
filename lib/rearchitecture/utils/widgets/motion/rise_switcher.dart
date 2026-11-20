@@ -271,8 +271,8 @@ class _RiseSwitcherState extends State<RiseSwitcher>
                           secondaryAnimation: entry.exit,
                           fillColor: Colors.transparent,
                           child: TickerMode(
-                            // Only the switcher animates the outgoing page.
-                            enabled: interactive,
+                            // Child tickers follow the page's visibility.
+                            enabled: visible,
                             child: child!,
                           ),
                         ),
