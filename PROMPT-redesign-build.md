@@ -939,6 +939,14 @@ mockup README. The reference images still show the entered digits. The
 Map dot rendering and Globe outlines visibly differ in the retained images,
 so both whole-screen verdicts remain open.
 
+The Map and Globe composition data match the reference JSON exactly. Both
+Map players select frame 95 for the comparison. In the light Map tile
+(columns 622 to 756 and rows 320 to 420), five gray levels account for
+13,607 of 13,635 native pixels. The reference spreads edge pixels across
+many intermediate shades. The strongest whole-pixel correlation in a
+three-pixel search in either direction is at zero offset. The measured
+difference is concentrated in coverage and intensity around the dots.
+
 ### Plasma Fuse bolt at `fb3b2a01`
 
 Both [verified Details images](https://github.com/edgepillar/syrius/actions/runs/44566985609/job/135711334988)
@@ -965,8 +973,17 @@ slot pixel before handing it to the shader. The wide and tight heatmap
 blur channels and the runtime assertion remain in place.
 A linear point-sample calculation of the filtered mask at 120 px gives a
 35 by 47 px solid core. Its predicted solid coverage differs from the
-reference at nine dark pixels and eighteen light pixels. The updated
-runtime result is pending.
+reference at nine dark pixels and eighteen light pixels.
+The [Linux run at `62b560c1`](https://github.com/edgepillar/syrius/actions/runs/44646858090/job/135991540272)
+passes the updated runtime assertion and the complete non-chain suite.
+The [Navigation reader](https://github.com/edgepillar/syrius/actions/runs/44649082059/job/135999134551)
+and [Details reader](https://github.com/edgepillar/syrius/actions/runs/44649192803/job/135999507230)
+verify 14 and 10 original catalog images respectively and normal required
+actor and lab closure at the earlier `962bd1dc` source. Its unfiltered
+bolt spans columns 210 to 247 and rows 92 to 143 on both screens and in
+both themes. The [new Details run](https://github.com/edgepillar/syrius/actions/runs/44649434743)
+at `8386f9b9` is acquiring the filtered Plasma Fuse and About images in
+one Windows run. Whole-screen comparisons remain open.
 
 ### Transfer address chip at `fb3b2a01`
 
