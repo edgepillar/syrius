@@ -161,6 +161,7 @@ class _PlasmaPageState extends State<_PlasmaPage> {
           child: PlasmaStatsCard(
             version: PlasmaStatsWidgetVersion.plasmaTab,
             onAddressPicked: _form.open,
+            fuseForm: _form,
           ),
         ),
         SizedBox(width: tokens.pageGap),

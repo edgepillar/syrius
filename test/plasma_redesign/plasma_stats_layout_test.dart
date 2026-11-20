@@ -30,6 +30,7 @@ void main() {
           final SelectedAddressNotifier selection = SelectedAddressNotifier();
           final PlasmaBeneficiaryAddressCubit beneficiary =
               PlasmaBeneficiaryAddressCubit();
+          final DisclosureController fuseForm = DisclosureController();
           final _Stats stats = _Stats();
           final PlasmaInfoWrapper other = PlasmaInfoWrapper(
             address: emptyAddress.toString(),
@@ -62,6 +63,7 @@ void main() {
               await tester.pump();
             } finally {
               await beneficiary.close();
+              fuseForm.dispose();
               selection.dispose();
               kSelectedAddress = previousAddress;
               BalanceVisibility.debugReset();
@@ -92,8 +94,9 @@ void main() {
                         key: const Key('plasma_layout_slot'),
                         width: 340,
                         height: height,
-                        child: const PlasmaStatsCard(
+                        child: PlasmaStatsCard(
                           version: PlasmaStatsWidgetVersion.plasmaTab,
+                          fuseForm: fuseForm,
                         ),
                       ),
                     ),
@@ -111,6 +114,7 @@ void main() {
             const ValueKey<String>('plasma_other_addresses_toggle'),
           );
           final Finder mark = find.byKey(const Key('plasma_page_mark'));
+          final Finder fused = find.text('Fused ');
           final State<PlasmaGlow> glow = tester.state<State<PlasmaGlow>>(mark);
           final Finder disclosure = find.byKey(
             const Key('plasma_other_addresses'),
@@ -119,6 +123,7 @@ void main() {
           expect(tester.getSize(mark), const Size.square(120));
           expect(tester.getTopLeft(mark).dy - card.top, 22);
           expect(tester.getBottomRight(toggle).dy, card.bottom);
+          expect(fused, findsOneWidget);
           final double restingTop = tester.getTopLeft(toggle).dy;
 
           await tester.tap(toggle);
@@ -152,6 +157,18 @@ void main() {
           expect(openMark.height, openMark.width);
           expect(tester.element(disclosure), same(originalDisclosure));
           expect(tester.takeException(), isNull);
+
+          expect(fused, findsOneWidget);
+          final Rect openMarkBounds = tester.getRect(mark);
+          fuseForm.open();
+          await tester.pump();
+          expect(fused, findsNothing);
+          expect(tester.getRect(mark), openMarkBounds);
+          expect(tester.getTopLeft(toggle).dy, openTop);
+          expect(tester.state<State<PlasmaGlow>>(mark), same(glow));
+          fuseForm.close();
+          await tester.pump();
+          expect(fused, findsOneWidget);
 
           await tester.tap(toggle);
           await tester.pump();

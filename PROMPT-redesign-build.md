@@ -985,6 +985,13 @@ both themes. The [new Details run](https://github.com/edgepillar/syrius/actions/
 at `8386f9b9` is acquiring the filtered Plasma Fuse and About images in
 one Windows run. Whole-screen comparisons remain open.
 
+The retained `fb3b2a01` Fuse images show the selected address's fused QSR
+below its meter while the amount form is open. The reference omits that
+footer in the open form. The same Fuse controller now hides the footer on
+open and restores it on close. The existing Plasma layout cases check
+both themes and card heights while the mark and address-list position
+stay fixed. A fresh Windows comparison is pending.
+
 ### Transfer address chip at `fb3b2a01`
 
 Both verified Receive QR captures at `fb3b2a01` show the address chip on

@@ -52,6 +52,7 @@ class PlasmaStatsCard extends StatelessWidget {
   const PlasmaStatsCard({
     this.version = PlasmaStatsWidgetVersion.dashboardTab,
     this.onAddressPicked,
+    this.fuseForm,
     super.key,
   });
 
@@ -62,10 +63,15 @@ class PlasmaStatsCard extends StatelessWidget {
   /// fuse for, so the page can show the form that address went into.
   final VoidCallback? onAddressPicked;
 
+  /// The Plasma page's form controls when the selected-address footer shows.
+  final DisclosureController? fuseForm;
+
   @override
   Widget build(BuildContext context) {
     if (version == PlasmaStatsWidgetVersion.plasmaTab) {
-      return Panel(child: _PageBody(onAddressPicked: onAddressPicked));
+      return Panel(
+        child: _PageBody(onAddressPicked: onAddressPicked, fuseForm: fuseForm),
+      );
     }
     return Panel(
       title: context.l10n.plasma,
@@ -89,9 +95,10 @@ class PlasmaStatsCard extends StatelessWidget {
 /// The Plasma page's card: the mark with the selected address's figures in
 /// the height the other addresses leave, and those at the foot.
 class _PageBody extends StatelessWidget {
-  const _PageBody({required this.onAddressPicked});
+  const _PageBody({required this.onAddressPicked, required this.fuseForm});
 
   final VoidCallback? onAddressPicked;
+  final DisclosureController? fuseForm;
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +111,7 @@ class _PageBody extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            const Expanded(child: _Mark()),
+            Expanded(child: _Mark(fuseForm: fuseForm)),
             const Divider(),
             _OtherAddresses(
               maxHeight: height * tokens.plasmaOtherShare,
@@ -123,7 +130,9 @@ typedef _Reading = ({int current, BigInt fused});
 
 /// The plasma mark, and the selected address's plasma under it.
 class _Mark extends StatelessWidget {
-  const _Mark();
+  const _Mark({required this.fuseForm});
+
+  final DisclosureController? fuseForm;
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +199,8 @@ class _Mark extends StatelessWidget {
                           fused: reading.plasmaInfo.qsrAmount,
                         );
                 },
-                builder: (_, _Reading? reading) => _Figures(reading: reading),
+                builder: (_, _Reading? reading) =>
+                    _Figures(reading: reading, fuseForm: fuseForm),
               ),
             ],
           ),
@@ -204,14 +214,35 @@ class _Mark extends StatelessWidget {
 /// known the same lines stand empty, so the card does not jump when they
 /// arrive; the meter then fills from nothing.
 class _Figures extends StatelessWidget {
-  const _Figures({required this.reading});
+  const _Figures({required this.reading, required this.fuseForm});
 
   final _Reading? reading;
+  final DisclosureController? fuseForm;
 
   @override
   Widget build(BuildContext context) {
     final _Reading? r = reading;
     final AppTokens tokens = AppTokens.of(context);
+    final DisclosureController? form = fuseForm;
+    final Widget addressFused = Row(
+      children: <Widget>[
+        Text('${context.l10n.plasmaPageFused} ', style: tokens.dollarText),
+        Flexible(
+          child: HiddenAmount(
+            style: tokens.dataText,
+            child: r == null
+                ? Text(context.l10n.plasmaPageUnknown, style: tokens.dollarText)
+                : AmountText(
+                    r.fused,
+                    key: const Key('plasma_page_fused'),
+                    decimals: coinDecimals,
+                    style: tokens.dataText,
+                    symbol: kQsrCoin.symbol,
+                  ),
+          ),
+        ),
+      ],
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -251,28 +282,15 @@ class _Figures extends StatelessWidget {
               PlasmaLevelMeter(plasma: r?.current ?? 0, generating: generating),
         ),
         SizedBox(height: tokens.plasmaLevelGap),
-        Row(
-          children: <Widget>[
-            Text('${context.l10n.plasmaPageFused} ', style: tokens.dollarText),
-            Flexible(
-              child: HiddenAmount(
-                style: tokens.dataText,
-                child: r == null
-                    ? Text(
-                        context.l10n.plasmaPageUnknown,
-                        style: tokens.dollarText,
-                      )
-                    : AmountText(
-                        r.fused,
-                        key: const Key('plasma_page_fused'),
-                        decimals: coinDecimals,
-                        style: tokens.dataText,
-                        symbol: kQsrCoin.symbol,
-                      ),
-              ),
-            ),
-          ],
-        ),
+        if (form == null)
+          addressFused
+        else
+          ListenableBuilder(
+            listenable: form,
+            child: addressFused,
+            builder: (_, Widget? child) =>
+                Offstage(offstage: form.isOpen, child: child),
+          ),
       ],
     );
   }
