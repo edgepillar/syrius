@@ -1390,6 +1390,12 @@ references, the Go To footer edge is at row 456 in both themes. The
 Windows caret occupies columns 429–430 and rows 136–152. The dark
 reference occupies columns 430–431 and rows 137–153. The light reference
 paints column 430 and the same row range.
+The authored reference uses a literal vertical-bar glyph after `del`.
+The running palette uses Flutter's editable caret. A side-by-side view
+of the panel shows the same search, selected page, action rows, address
+row and shortcut footer in both themes. The reference Home background
+shows Activity loading skeletons. The native capture shows the settled
+Activity card, which also changes the pixels under the translucent panel.
 
 All eight Home catalog captures were also viewed alongside their
 references from the verified original archive. The settled Home shows
