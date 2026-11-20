@@ -2555,6 +2555,13 @@ samples, first observed at 0.818. Its early slot remains missing and
 the original `LAUNCH_HANDOFF_FRAME_MISSED` outcome is retained. The
 two-theme motion check remains open under V02.
 
+On the authored 400 ms emphasized-decelerate clock, the early cutoff
+at progress 0.55 is about 30 ms after the clock starts. Inverting that
+curve places the first light and dark observations at about 16 ms and
+94 ms, respectively. The light log records 15.625 ms between its early
+and late samples. The inferred dark clock position does not identify
+which frames were rendered or where the startup delay occurred.
+
 The [cold Windows producer at `b3d2a1d1`](https://github.com/edgepillar/syrius/actions/runs/44786324542/job/136462042874)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44790155159/job/136475393710)
 verify 84 redesign frames and four normal process exits. The original
