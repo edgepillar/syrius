@@ -778,6 +778,11 @@ the full non-chain test suite and generated-file verification. The
 combined tour count is 1,529 passing cases across 113 files. The fresh
 Windows Home, Swap and Details captures still need visual comparison.
 
+The [prepared Swap reader at `aba7ba77`](https://github.com/edgepillar/syrius/actions/runs/44780106804/job/136440220509)
+verifies both Swap list PNGs, a completed restored session and normal
+required actor closure. The original twelve-page tour also completes.
+Both reference comparisons remain open.
+
 The [Accelerator reader](https://github.com/edgepillar/syrius/actions/runs/44772163816/job/136412376168)
 verifies the prepared Voting and Project Detail captures in both themes
 from the [Windows run at `e9d3c9d4`](https://github.com/edgepillar/syrius/actions/runs/44768760920).
@@ -1835,6 +1840,14 @@ row 400 match the authored divider RGB exactly in both themes. The
 measured color difference is at the lower edge. A change to the shared
 divider color would change the already matching edges. Whole-screen
 verdicts remain open.
+
+The [Home reader at `aba7ba77`](https://github.com/edgepillar/syrius/actions/runs/44780200046/job/136440542943)
+verifies eight fresh captures and normal parent closure. With the same
+35-level contrast threshold, the updated caret spans columns 429–430
+and rows 136–152 in both themes. The references span columns 430–431 in
+dark and column 430 in light, with rows 137–153 in both. The caret now
+matches the 17-row span; its position and the light width still differ.
+The footer measurements are unchanged. Whole-screen verdicts remain open.
 
 All eight Home captures at `d7ad6b44` were viewed beside their pinned
 references from the same verified archive. Resting Home shows the balance
