@@ -740,6 +740,14 @@ Voting states only when the manifest identifies their designated catalog.
 An unlabelled image stays visible as a diagnostic. The prepared capture
 at the target source takes precedence over both unlabelled and alternate
 captures. Existing image hashes still bind any visual verdict.
+The archive inventory at `06eda3f7` accounts for all 94 filenames across
+24 independently inspected archives. Eight already retained archives
+pass their digest checks and supply 62 distinct filenames. The prepared
+Send and Voting states have separate catalog receipts. The Tokens and
+Swap filenames at this source come from the general Navigation catalog.
+The [prepared Tokens run](https://github.com/edgepillar/syrius/actions/runs/44690411870)
+and [prepared Swap run](https://github.com/edgepillar/syrius/actions/runs/44690411577)
+target the newer `931ec0b5` source.
 Working directly from the verified [Navigation](https://github.com/edgepillar/syrius/actions/runs/44580184381/job/135758423183)
 and [Lock](https://github.com/edgepillar/syrius/actions/runs/44579867208/job/135757308518)
 archives at `06eda3f7`, the report reads 20 PNGs with 12 designated pairs
@@ -1572,6 +1580,16 @@ build's start relative to that observation. The optional observation is
 bounded by the film end and the first positive handoff frame. The
 packed-window and reader tests cover same-frame observations, invalid
 phase order and reading the original four-phase receipts.
+The [producer at `8e1b43c5`](https://github.com/edgepillar/syrius/actions/runs/44687746596/job/136126003254)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44690433619/job/136134661782)
+verify 95 redesign frames, 2,476 P06 frames and five normal actor exits.
+The paired slow-frame comparison reports no added slow frames. The
+windows retain 31 and 2,399 frame-number gaps, so V02 remains open.
+The longest redesign build is 13.139 ms and starts 2,854.378 ms before
+the first observed Lock layout inside the shell. The longest raster
+takes 153.907 ms and starts 62.526 to 100.303 ms after the first observed
+handoff frame. All six raster starts after observed Lock arrival exceed
+16 ms and peak at 64.423 ms.
 
 The [cold producer at `e2f1c838`](https://github.com/edgepillar/syrius/actions/runs/44655896517/job/136021904094)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44658333571/job/136030014735)
