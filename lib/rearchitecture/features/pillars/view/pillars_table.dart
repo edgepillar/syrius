@@ -76,9 +76,13 @@ class _PillarsTable extends StatelessWidget {
                     child: _PillarColumns(
                       name: _buildHeading(context, context.l10n.name),
                       weight: _buildHeading(context, context.l10n.weight),
-                      shares: _buildHeading(context, context.l10n.pillarsShares),
+                      shares: _buildHeading(
+                        context, context.l10n.pillarsShares,
+                      ),
                       uptime: _buildHeading(context, context.l10n.uptime),
-                      apr: _buildHeading(context, context.l10n.pillarsAprEstimate),
+                      apr: _buildHeading(
+                        context, context.l10n.pillarsAprEstimate,
+                      ),
                       action: const SizedBox.shrink(),
                     ),
                   ),
@@ -317,18 +321,18 @@ class _PillarDetail extends StatelessWidget {
       padding: tokens.pillarDetailPadding,
       child: Table(
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-        columnWidths: const <int, TableColumnWidth>{
+        columnWidths: <int, TableColumnWidth>{
           0: labelWidth,
-          2: labelWidth,
+          // Reserve the inter-group gap before dividing the value columns.
+          2: FixedColumnWidth(tokens.pillarDetailColumnGap),
+          3: labelWidth,
         },
         children: <TableRow>[
           TableRow(
             children: <Widget>[
               label(context.l10n.pillarOwnerProducer),
-              Padding(
-                padding: gap,
-                child: _DetailAddress(address: item.producerAddress),
-              ),
+              _DetailAddress(address: item.producerAddress),
+              const SizedBox.shrink(),
               label(context.l10n.pillarsMomentums),
               _buildData(
                 context,
@@ -341,17 +345,15 @@ class _PillarDetail extends StatelessWidget {
           ),
           TableRow(
             children: List<Widget>.filled(
-              4,
+              5,
               SizedBox(height: tokens.fieldLabelGap),
             ),
           ),
           TableRow(
             children: <Widget>[
               label(context.l10n.pillarsReward),
-              Padding(
-                padding: gap,
-                child: _DetailAddress(address: item.withdrawAddress),
-              ),
+              _DetailAddress(address: item.withdrawAddress),
+              const SizedBox.shrink(),
               label(context.l10n.pillarsRegistered),
               // PillarInfo has no registration timestamp or block hash.
               _buildData(context, context.l10n.pillarsUnavailable),

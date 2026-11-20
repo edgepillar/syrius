@@ -106,6 +106,10 @@ class ReaderTests(unittest.TestCase):
         surface = b'\0' + bytes(card) * 1280
         divider = b'\0' + bytes((155, 156, 155, 255)) * 1280
         badge = b'\0' + bytes(background) * 140 + bytes(ink) * 54 + bytes(background) * 1086
+        detail_ink = bytearray(empty)
+        detail_color = bytes((50, 50, 50, 255))
+        detail_ink[1 + 4 * 677:1 + 4 * 740] = detail_color * 63
+        detail_ink[1 + 4 * 768:1 + 4 * 940] = detail_color * 172
         for theme in ('dark', 'light'):
             for name in ('16-pillars', '18-sentinels', '23-tokens', '28-az'):
                 rows = [empty] * 780
@@ -116,6 +120,7 @@ class ReaderTests(unittest.TestCase):
                     rows[165:197] = [surface] * 32
                     if name == '16-pillars':
                         rows[209:231] = [badge] * 22
+                        rows[248:258] = [detail_ink] * 10
                     elif theme == 'light':
                         rows[164] = empty
                 else:
@@ -140,6 +145,12 @@ class ReaderTests(unittest.TestCase):
                              dict(column=900, scan_rows=[100, 181], themes=dict(dark=nodes, light=None)))
         self.assertEqual(geometry['pillar_owned_badge_bounds'], dict.fromkeys(
             ('dark', 'light'), dict(left=140, top=209, right=193, bottom=230)))
+        self.assertEqual(geometry['pillar_detail_ink'], {
+            'momentums_label': dict.fromkeys(
+                ('dark', 'light'), dict(left=677, top=248, right=739, bottom=257)),
+            'momentums_value': dict.fromkeys(
+                ('dark', 'light'), dict(left=768, top=248, right=939, bottom=257)),
+        })
 
     def test_actual_http_client_keeps_default_and_full_capture_request_budgets(self):
         class Response:

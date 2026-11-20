@@ -364,6 +364,15 @@ void main() {
       final Finder detail = find.byKey(const Key('pillar_alpha_detail'));
       expect(tester.widget<Padding>(detail).padding,
           const EdgeInsetsDirectional.fromSTEB(42, 2, 16, 14));
+      final Table detailTable = tester.widget<Table>(
+        find.descendant(of: detail, matching: find.byType(Table)),
+      );
+      final List<Widget> cells = detailTable.children.first.children;
+      final Rect producer = tester.getRect(find.byWidget(cells[1]));
+      final Rect momentumsLabel = tester.getRect(find.byWidget(cells[3]));
+      final Rect momentumsValue = tester.getRect(find.byWidget(cells[4]));
+      expect(momentumsLabel.left - producer.right, closeTo(18, 0.01));
+      expect(producer.width, closeTo(momentumsValue.width, 0.01));
       expect(find.text('1,760 of 1,762 expected'), findsOneWidget);
       expect(find.text('Unavailable'), findsNWidgets(2));
       expect(tester.takeException(), isNull);

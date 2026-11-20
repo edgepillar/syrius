@@ -40,6 +40,7 @@ VERSIONED_INPUTS = frozenset((
     'harness/bin/ci_wallet_inspection.dart',
     'harness/bin/ci_wallet_reopen.dart',
     'harness/bin/readonly_catalog_contact.dart',
+    'harness/bin/readonly_navigation_catalog.dart',
     'harness/bin/readonly_settings_catalog.dart',
     'harness/bin/screen_capture.dart',
     'harness/bin/wallet_recipe.dart',
@@ -742,6 +743,13 @@ def navigation_component_geometry(raw):
         pillars = _nodes_table_edges(zipped, '16-pillars')
         badge = _ink_bounds(zipped, '16-pillars', (130, 221), (201, 239),
                             lambda red, green, blue: green - red > 10 and green - blue > 7)
+        detail_ink = {
+            name: _ink_bounds(zipped, '16-pillars', area, (243, 263),
+                              lambda *difference: max(difference) >= 40,
+                              relative_to_background=True)
+            for name, area in (('momentums_label', (660, 750)),
+                               ('momentums_value', (750, 967)))
+        }
         for theme in producer.navigation.THEMES:
             bands = _vertical_bands(zipped, f'16-pillars-{theme}.png',
                                     detail_column, detail_top, detail_bottom)
@@ -749,6 +757,7 @@ def navigation_component_geometry(raw):
                                   if 2 <= len(bands) <= 10 else None)
     return dict(strip_boundaries=dict(column=column, scan_rows=[top, bottom], screens=strips),
                 pillar_table_edges=pillars, pillar_owned_badge_bounds=badge,
+                pillar_detail_ink=detail_ink,
                 pillar_row_bands=dict(column=detail_column,
                     scan_rows=[detail_top, detail_bottom], themes=pillar_rows))
 

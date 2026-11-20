@@ -1660,6 +1660,14 @@ rule starts at 197 and the expanded surface spans rows 198 through 303,
 matching the reference location and fill. The third live row still
 has the hover tint. Its cause and the full-image verdict remain open.
 
+In the earlier verified `61e72335` Pillars shots, the Momentums text starts
+at column 669 and its value starts at 759 in both themes. The reference
+ink begins at columns 677 and 768. The detail table now allocates the
+18 px gap between the two groups before dividing space across their
+equally sized value columns. The existing two-theme case checks the gap
+and the value widths. The reader reports the two text bounds from the
+verified PNGs for fresh comparison.
+
 The [Linux run at `61e72335`](https://github.com/edgepillar/syrius/actions/runs/44664606334/job/136050757368)
 reports 5124 passes, two failures in the segment heading suite and one
 skip. The heading now has one more pixel of room for rounded text line
@@ -1760,6 +1768,12 @@ stops during lab revalidation with `PRODUCTION_UNPROVEN`. The
 retains the original failure, a final observed height of two and zero
 verified Details images. The updated Halo, Cancel and Originals
 surfaces still require fresh captures.
+The [following Details producer at `4a721e14`](https://github.com/edgepillar/syrius/actions/runs/44677390662/job/136092371032)
+completes and retains the archive with the fresh captures. The
+[first independent read](https://github.com/edgepillar/syrius/actions/runs/44680069245/job/136101059739)
+passes 124 controls and refuses at producer source binding. The reader
+now binds the earlier Navigation script adapter by its verified Git blob
+before opening the archive. Fresh independent results are pending.
 
 The [seeded visual run at `11398595`](https://github.com/edgepillar/syrius/actions/runs/44672157292/job/136075382385)
 builds the native wallet and retains the six-image catalog. The
