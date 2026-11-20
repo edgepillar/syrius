@@ -754,6 +754,17 @@ normal parent exits. The [independent Tokens reader](https://github.com/edgepill
 verifies both designated Tokens PNGs, both populated Staking and both
 Token Mine PNGs, and the required normal parent exits at the same source.
 Whole-screen verdicts remain open.
+
+The newer prepared Tokens and Swap runs at `09bf3b96` both stop with
+`CHECKPOINT_REFUSED`. The [Tokens reader](https://github.com/edgepillar/syrius/actions/runs/44770065483/job/136405033865)
+verifies the original Stake publication reply `seed-prerequisite-or-read-failed`.
+The [Swap reader](https://github.com/edgepillar/syrius/actions/runs/44770135866/job/136405282588)
+verifies a Deposit preparation reply `original-ui-control-changed` before
+the publication call. Both readers verify the original twelve-page tour,
+the normal entry exit and all five normal node exits. Neither run produced
+a prepared catalog. The prepared PNGs at `931ec0b5` remain evidence for that
+source. The newer captures and whole-screen verdicts remain open under V01.
+
 Working directly from the verified [Navigation](https://github.com/edgepillar/syrius/actions/runs/44580184381/job/135758423183)
 and [Lock](https://github.com/edgepillar/syrius/actions/runs/44579867208/job/135757308518)
 archives at `06eda3f7`, the report reads 20 PNGs with 12 designated pairs
