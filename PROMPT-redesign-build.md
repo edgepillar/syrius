@@ -1273,6 +1273,14 @@ Windows inspection remains incomplete. The [fresh Windows run at
 `82ee3fbd`](https://github.com/edgepillar/syrius/actions/runs/44796305941)
 tests the repeat-draft readiness change.
 
+The [independent read of that run](https://github.com/edgepillar/syrius/actions/runs/44800637818/job/136511573794)
+verifies all eleven requested Home, Activity, Go To, Pillars and Swap seam
+observations with no probe failure. The wallet and entry both exit zero,
+as do all five original nodes without forced cleanup. One of the two
+lab revalidations completes. The original inspection retains its final
+`PRODUCTION_UNPROVEN` failure and incomplete lab closure. The eleven
+observations establish the scoped control outcomes for this source.
+
 The [independent clean Windows reader at `512605b7`](https://github.com/edgepillar/syrius/actions/runs/44785850020/job/136460390319)
 verifies Debug and Release, all twelve baseline checks, 5,129 passing
 tests and one skip, and zero analyzer errors or warnings. This source
