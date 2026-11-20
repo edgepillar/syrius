@@ -934,6 +934,12 @@ About now gives the three main headers the same 16 px trailing inset as
 the licence rows. The existing layout test checks the rendered inset in
 LTR and RTL. A fresh Windows comparison is pending.
 
+The Details reader now measures the Links, This computer and Licences
+header chevrons directly from the verified archive. In both references,
+the first two span columns 1238 through 1242 and the Licences chevron
+spans 1237 through 1244. The retained `fb3b2a01` archive places each
+four pixels farther toward the trailing edge in both themes.
+
 Both Originals images show the cleared discovery field required by the
 mockup README. The reference images still show the entered digits. The
 Map dot rendering and Globe outlines visibly differ in the retained images,
@@ -1044,6 +1050,12 @@ For a run with no early image attempt, this distinguishes an early clock
 observation from a first observation already at or beyond 0.55. Older
 archives keep their original fields and outcomes. The 400 ms controller,
 three image slots and image admission checks continue to apply.
+The [next independent read](https://github.com/edgepillar/syrius/actions/runs/44653213991/job/136012985128)
+verifies the `6cdfaadf` failure and two normal exits. Its first positive
+post-frame observation is at progress 0.662. Both later slots have
+verified images. The observer never received an earlier positive clock
+before its first late sample in this run. The cause of the missing
+earlier frame remains open.
 
 The [paired cold run at `8935b5ba`](https://github.com/edgepillar/syrius/actions/runs/44593889453/job/135806899165)
 retained 85 current and 810 P06 frames with five normal actor exits. The

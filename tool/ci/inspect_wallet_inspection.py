@@ -607,7 +607,8 @@ def staking_empty_bands(raw):
     return dict(column=column, scan_rows=[top, bottom], themes=themes)
 
 
-def _ink_bounds(zipped, screen, columns, lines, matches, *, minimum_fill=0):
+def _ink_bounds(zipped, screen, columns, lines, matches, *, minimum_fill=0,
+                relative_to_background=False):
     left, right = columns
     top, bottom = lines
     themes = {}
@@ -617,10 +618,13 @@ def _ink_bounds(zipped, screen, columns, lines, matches, *, minimum_fill=0):
         rows, channels = windows._png_crop(encoded, columns, lines)
         points = []
         if windows._opaque(rows, channels):
+            background = rows[0][:3] if relative_to_background else None
             for y, row in enumerate(rows, top):
                 for index in range(0, len(row), channels):
                     color = tuple(row[index:index + 3])
-                    if matches(*color):
+                    channels_to_match = color if background is None else tuple(
+                        abs(channel - base) for channel, base in zip(color, background))
+                    if matches(*channels_to_match):
                         points.append((color, left + index // channels, y))
         themes[theme] = None
         if points and minimum_fill:
@@ -696,6 +700,18 @@ def plasma_bolt_bounds(raw, screen):
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         return _ink_bounds(zipped, screen, (190, 270), (76, 160),
                            lambda red, green, blue: min(red, green, blue) >= 252)
+
+
+def details_licence_header_chevrons(raw):
+    """Measure the three header icons on the verified Licences screen."""
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        return {
+            heading: _ink_bounds(
+                zipped, '37-set-licences', (1232, 1253), (center - 9, center + 9),
+                lambda red, green, blue: max(red, green, blue) >= 8,
+                relative_to_background=True)
+            for heading, center in (('links', 58), ('computer', 114), ('licences', 170))
+        }
 
 
 def details_transfer_chip_rows(raw):
@@ -887,6 +903,8 @@ def main(parent=None):
                 catalog['transfer_address_chip_rows'] = details_transfer_chip_rows(catalog_archive)
             if '22-plasma-fuse-dark.png' in catalog['filenames']:
                 catalog['plasma_bolt_bounds'] = plasma_bolt_bounds(catalog_archive, '22-plasma-fuse')
+            if '37-set-licences-dark.png' in catalog['filenames']:
+                catalog['licence_header_chevrons'] = details_licence_header_chevrons(catalog_archive)
             if schema == producer.details.FAMILY_SCHEMAS['earn']:
                 catalog['staking_empty_bands'] = staking_empty_bands(catalog_archive)
             del catalog_archive

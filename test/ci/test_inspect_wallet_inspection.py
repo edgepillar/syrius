@@ -1232,6 +1232,10 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(observed['transfer_address_chip_rows'], {
             name: dict(dark=None, light=None) for name in ('10-receive-qr', '11-zap-form')
         })
+        self.assertEqual(observed['licence_header_chevrons'], {
+            heading: dict(dark=None, light=None)
+            for heading in ('links', 'computer', 'licences')
+        })
         packed = io.BytesIO()
         background = bytes((100, 100, 100, 255))
         ordinary = b'\0' + background * 1280
@@ -1257,6 +1261,21 @@ class ReaderTests(unittest.TestCase):
         bounds = dict(left=211, top=94, right=246, bottom=140)
         self.assertEqual(reader.plasma_bolt_bounds(packed.getvalue(), '22-plasma-fuse'),
                          dict(dark=bounds, light=bounds))
+        with zipfile.ZipFile(packed, 'a') as zipped:
+            for theme, level in (('dark', 120), ('light', 80)):
+                ink = bytes((level, level, level, 255))
+                painted = b'\0' + background * 1238 + ink * 5 + background * 37
+                rows = [ordinary] * 780
+                for top in (54, 110, 167):
+                    rows[top:top + 3] = [painted] * 3
+                chevrons = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
+                            + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
+                zipped.writestr(f'37-set-licences-{theme}.png', chevrons)
+        self.assertEqual(reader.details_licence_header_chevrons(packed.getvalue()), {
+            heading: {theme: dict(left=1238, top=top, right=1242, bottom=top + 2)
+                      for theme in ('dark', 'light')}
+            for heading, top in (('links', 54), ('computer', 110), ('licences', 167))
+        })
 
         value, calls, text = self.run_main(catalog_only='send-confirm')
         self.assertTrue(value['native_inspection_qualified'])
