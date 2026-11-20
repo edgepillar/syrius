@@ -184,7 +184,7 @@ def qualify(repo, parent, report):
          'SOURCE_REFUSED')
     report['git_version'] = version
     patch = read_file(repo / timing.PATCH, 16384)
-    collector = read_file(repo / COLLECTOR, 16384)
+    collector = read_file(repo / timing.BASELINE_COLLECTOR, 16384)
     need(sha(patch) == timing.PATCH_SHA256
          and sha(collector) == timing.COLLECTOR_SHA256, 'SOURCE_REFUSED')
     old_paths = re.findall(br'(?m)^--- a/([^\n]+)', patch)
@@ -262,7 +262,8 @@ def qualify(repo, parent, report):
     command('current_index_after', ['diff', '--cached', '--quiet', '--no-ext-diff', 'HEAD', '--'])
     command('current_worktree_after', ['diff', '--quiet', '--no-ext-diff', 'HEAD', '--'])
     need(read_file(repo / timing.PATCH, 16384) == patch
-         and read_file(repo / COLLECTOR, 16384) == collector, 'INPUT_CHANGED')
+         and read_file(repo / timing.BASELINE_COLLECTOR, 16384) == collector,
+         'INPUT_CHANGED')
     report.update(phase='complete', workspace_inputs_unchanged=True,
                   isolated_index=True, success=True)
 

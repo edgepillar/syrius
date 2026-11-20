@@ -31,6 +31,8 @@ P06_TREE = '197785948b180221aa3521b35fcc4def52620ba9'
 P06_OVERLAY_TREE = 'cd28367a8e7f885a812c847f693effe967649b8e'
 PATCH = Path('tool/ci/fixtures/p06-frame-window.patch')
 PATCH_SHA256 = '5ecb9e38a08f0c19639a9708eab6bed6c2a3b7c587a0afe435d6d99ea14e6752'
+# The baseline continues using the original collector after current diagnostics change.
+BASELINE_COLLECTOR = Path('tool/ci/fixtures/p06-frame-window.dart.fixture')
 COLLECTOR_SHA256 = '0dc574f904ebf0233b9381d59f5a60d2ec89890f6092971f570d3e7ba24722ec'
 SAME_INPUTS = ('pubspec.yaml', 'pubspec.lock', 'patched_packages/reown_core-1.3.8',
                'tool/generate_git_metadata.dart', 'windows', 'lib/utils/wallet_file.dart',
@@ -77,7 +79,7 @@ def build_baseline(repo, parent, report):
     storage = report['storage']
     check_space(repo, storage)
     patch = repo / PATCH
-    collector = repo / launch.TIMING_SOURCE
+    collector = repo / BASELINE_COLLECTOR
     for source in (patch, collector):
         info = launch.bounded.plain(source)
         launch.need(stat.S_ISREG(info.st_mode) and 0 < info.st_size <= 16 * 1024,
