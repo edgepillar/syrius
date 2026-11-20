@@ -1853,8 +1853,24 @@ receipts verify captures and leave the visual verdicts open.
 The local Settings transfer at `b6159f6e` records exit zero and a complete
 814,441-byte archive with the exact independently verified SHA-256.
 The local storage metadata wait expired before promotion and task closure.
-The original stream and unfinished record are preserved. Direct visual
-review remains pending.
+The original stream and unfinished record are preserved. A separate owned
+task promoted the verified bytes and closed successfully without another
+download. All fourteen original images were then viewed beside their
+source-pinned references in memory.
+
+| Settings screen | Differences in the two original Windows captures |
+| --- | --- |
+| Node | The connected isolated node and pre-check update state replace the reference node list and verified download state. The window differs by 244,713 dark pixels and 244,348 light pixels. |
+| Security | The controls and collapsed sections align. The failed-password warning names shared app data, and the live status strip differs. |
+| Display | The seven rows align. The light capture selects Light, the reference selects Dark, and the Explorer has the isolated-chain disabled state. |
+| Wallet | The captures show the Maintenance row and different auto-receive and notification selections. The Pillar Auto, Sentinel Auto and Sporks Off segments are visible. |
+| Apps | The panel layout aligns. The isolated profile shows zero sessions and no connected rows. |
+| Addresses | The row and action columns align. The capture uses round selectors, and its names, balances and contact history differ. |
+| About | The four panel bands and update actions align. The placeholder badge, build identity and link count differ. The window differs by 28,689 dark pixels and 27,163 light pixels. |
+
+All fourteen pairs have pixel differences. This review remains bound to
+`b6159f6e` and leaves the final-source verdicts open under V01.
+
 Comparing their measured geometry with the source-pinned references confirms
 the Receive QR QSR mark and label, Originals footer rows, Plasma footer
 clearance and About card bands in both themes. Several interior Licences
