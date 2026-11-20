@@ -43,13 +43,12 @@ Finder _tooltip(String name, [String? shortcut]) => find.byWidgetPredicate(
       (shortcut == null || _tooltipMessage(widget)!.contains(shortcut)),
 );
 
-Finder _shownTooltip(String name) => find.byWidgetPredicate(
-  (Widget widget) =>
-      widget is RichText &&
-      widget.text
-          .toPlainText(includeSemanticsLabels: false)
-          .startsWith('$name\uFFFC'),
-);
+Finder _shownTooltip(String name, {bool hasShortcut = true}) =>
+    find.byWidgetPredicate((Widget widget) {
+      if (widget is! RichText) return false;
+      final String text = widget.text.toPlainText(includeSemanticsLabels: false);
+      return hasShortcut ? text.startsWith('$name\uFFFC') : text == name;
+    });
 
 Widget _host({
   required RailCollapse collapse,
@@ -298,9 +297,9 @@ void main() {
       final Offset bellCenter = tester.getCenter(bell);
       await mouse.moveTo(bellCenter);
       await tester.pumpAndSettle();
-      final Rect notificationTip = tester.getRect(
-        find.text('Notifications', findRichText: true),
-      );
+      final Finder tooltip = _shownTooltip('Notifications', hasShortcut: false);
+      expect(tooltip, findsOneWidget);
+      final Rect notificationTip = tester.getRect(tooltip);
       expect(notificationTip.left, greaterThan(_rail(tester).right));
       expect(notificationTip.center.dy, closeTo(bellCenter.dy + 7, 1));
     });
