@@ -367,8 +367,10 @@ void main() {
       await tester.tap(row);
       await _frames(tester);
       final Finder detail = find.byKey(const Key('pillar_alpha_detail'));
-      expect(tester.widget<Padding>(detail).padding,
-          const EdgeInsetsDirectional.fromSTEB(42, 2, 16, 14));
+      expect(
+        tester.widget<Padding>(detail).padding,
+        const EdgeInsetsDirectional.fromSTEB(42, 0, 16, 16),
+      );
       final Table detailTable = tester.widget<Table>(
         find.descendant(of: detail, matching: find.byType(Table)),
       );
