@@ -1553,6 +1553,13 @@ locate the slow build between the two observations.
 The original 16 ms build comparison fails and both windows retain
 frame-number gaps. V02 remains open.
 
+The cold timing report can now record the first completed layout of the
+original Lock well inside the app shell. The reader reports the longest
+build's start relative to that observation. The optional observation is
+bounded by the film end and the first positive handoff frame. The
+packed-window and reader tests cover same-frame observations, invalid
+phase order and reading the original four-phase receipts.
+
 The [cold producer at `e2f1c838`](https://github.com/edgepillar/syrius/actions/runs/44655896517/job/136021904094)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44658333571/job/136030014735)
 verify five normal actor exits and both original measurement windows.
@@ -1739,7 +1746,11 @@ The same verified images put the owned badge on rows 209 through 230,
 matching both references. It begins at column 141, one pixel past the
 reference edge at 140. The owned label now uses a 9 px gap after the
 name. The two theme cases check that gap and the original badge height.
-The updated badge and cursor position need a fresh Navigation capture.
+The [first Navigation attempt at `2e57227c`](https://github.com/edgepillar/syrius/actions/runs/44687014761/job/136123665193)
+stops at admission before SDK allocation because the required runner
+option was missing. The [corrected dispatch](https://github.com/edgepillar/syrius/actions/runs/44687166980)
+is running with the required native inspection inputs. The updated
+badge and cursor position still need original Windows images.
 
 In the earlier verified `61e72335` Pillars shots, the Momentums text starts
 at column 669 and its value starts at 759 in both themes. The reference

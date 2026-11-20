@@ -235,6 +235,10 @@ def window_diagnostics(window, *, peak_starts=False):
         summary.update(phase_offsets_us=offsets, phase_frames=frames,
                        phase_max_raster_us=raster, phase_max_total_us=total,
                        peak_build_start_us=max(rows, key=lambda row: row[2])[1])
+        if pair.launch.STARTUP_AUTH_FIELD in window:
+            auth = window[pair.launch.STARTUP_AUTH_FIELD]
+            summary.update(auth_in_shell_us=auth,
+                           peak_build_offset_from_auth_us=summary['peak_build_start_us'] - auth)
         # Raster starts can follow arrival even when builds began before it.
         summary['settled_raster_starts'] = dict(
             columns=['samples', 'slow_raster', 'max_raster_us'], **settled_raster)
@@ -346,7 +350,8 @@ def inspect_run(client, *, head, tree, run_id, job):
         and selected[0]['conclusion'] in ('success', 'failure') and retained[0]['conclusion'] == 'success')
     prior_pair = ('7c39d88355a696f5580c45282eac38aa11ef4eb54d56bd85b1b691878b2c13a3',
                   'fdadca2905a65134927a3b19e6218b99b98cf579b7579a3a3636bf9a058c691c')
-    prior_launch = (startup_reader.PRE_LIGHT_MOTION_LAUNCH_PRODUCER_SHA,
+    prior_launch = (startup_reader.PRE_AUTH_PHASE_LAUNCH_PRODUCER_SHA,
+                    startup_reader.PRE_LIGHT_MOTION_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_FIRST_PROGRESS_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_P06_FILM_FLAGS_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_P06_WARMUP_LAUNCH_PRODUCER_SHA,

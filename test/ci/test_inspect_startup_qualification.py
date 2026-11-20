@@ -189,7 +189,8 @@ class StartupInspectionTests(unittest.TestCase):
         process.limits = launch.LIMITS
         lock = dict(kind='field', key='wallet_password_field')
         report = dict(packed_frame_window(3000000, [(0, 10, 200, 300, 500)]),
-                      startupPhaseUs=[100, 200, 300, 400])
+                      startupPhaseUs=[100, 200, 300, 400],
+                      startupAuthInShellUs=200)
         process._exchange = mock.Mock(side_effect=[
             (400, dict(ok=False, error='not there after 0 ms')),
             (400, dict(ok=False, error='not ready after 0 ms')),

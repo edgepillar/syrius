@@ -78,6 +78,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_frame.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_tab_child.dart'
     show LockTabChild, LockViewSource;
@@ -6052,6 +6053,7 @@ class HarnessAgent {
   HarnessFrameWindow? _frameWindow;
   int? _interactiveStartUs;
   final List<int> _startupPhaseUs = <int>[];
+  int? _startupAuthInShellUs;
   final Map<String, int> _disclosurePhasesUs = <String, int>{};
 
   static Element? _findTimingChild(
@@ -6134,6 +6136,19 @@ class HarnessAgent {
       final Object? owner = registry.startup?.startupOwner;
       if (owner is StartupStageSession) {
         if (owner.isClosed || owner.film.cleanupOwnerReplaced) return;
+        int? observedUs;
+        if (_startupAuthInShellUs == null && owner.authInShell) {
+          final BuildContext? well = owner.wellKey.currentContext;
+          final RenderObject? box = well?.findRenderObject();
+          if (box is RenderBox &&
+              box.attached &&
+              box.hasSize &&
+              !box.size.isEmpty &&
+              well?.findAncestorWidgetOfExactType<ShellFrame>() != null) {
+            observedUs = dev.Timeline.now - startUs;
+            _startupAuthInShellUs = observedUs;
+          }
+        }
         final int phase = switch (owner) {
           _ when owner.filmInWell => 4,
           _ when owner.motion.value > 0 => 3,
@@ -6144,7 +6159,7 @@ class HarnessAgent {
         // A skipped observation cannot supply a boundary for that phase.
         if (phase != _startupPhaseUs.length) {
           if (phase != _startupPhaseUs.length + 1) return;
-          final int elapsed = dev.Timeline.now - startUs;
+          final int elapsed = observedUs ?? dev.Timeline.now - startUs;
           if (elapsed <= (_startupPhaseUs.lastOrNull ?? 0)) return;
           _startupPhaseUs.add(elapsed);
           if (phase == 4) return;
@@ -6206,6 +6221,12 @@ class HarnessAgent {
           );
           if (phases != null && !EntryCaptureRegistry.instance.held) {
             result['startupPhaseUs'] = phases;
+            final int? authInShell = _startupAuthInShellUs;
+            if (authInShell != null &&
+                authInShell >= phases[1] &&
+                authInShell <= phases[2]) {
+              result['startupAuthInShellUs'] = authInShell;
+            }
           }
           if (_disclosurePhasesUs.isNotEmpty) {
             result['interactiveDisclosurePhasesUs'] =

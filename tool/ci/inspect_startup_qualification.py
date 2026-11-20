@@ -30,6 +30,7 @@ PRE_BATCH_LAUNCH_PRODUCER_SHA = '166cd2d6a070c53fef5e41d3e7d65fb7bf7e65cab53148d
 PRE_PHASE_LAUNCH_PRODUCER_SHA = '83e89caefc7b68ad03450013544f98d234d5f01bbd9fa30c77e5c19765a80170'
 PRE_MOTION_LAUNCH_PRODUCER_SHA = '34e0f9e31655e61d9299a0c3002f99f921ca2e2ad7fe3c7c7cc728ca072f3ae4'
 PRE_LIGHT_MOTION_LAUNCH_PRODUCER_SHA = '090cfbe23429e293c5e7b9c7eef93c2ee903ad29b06ecfa08423dcf557925ecb'
+PRE_AUTH_PHASE_LAUNCH_PRODUCER_SHA = '7dfdc17484942d61429e0bca2f48085ef9964d70414f3fb75511a942b0c560bc'
 # The timing lane preserves earlier launch, lock and quiz producers.
 PRE_TIMING_LAUNCH_PRODUCER_SHA = 'e579d76e178e69189069f5269a0ba8981f3e435a10e0f80f69bb2d559b4761a2'
 FIRST_TIMING_LAUNCH_PRODUCER_SHA = '6880559d501bc59bff26865155af96efe56322a61a587a04edccc37b41a487a5'
@@ -542,10 +543,13 @@ def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=F
                                      and archive.sha(body) == PRE_FIRST_PROGRESS_LAUNCH_PRODUCER_SHA)
             before_light_motion = (name == 'tool/ci/windows_launch_catalog.py'
                                    and archive.sha(body) == PRE_LIGHT_MOTION_LAUNCH_PRODUCER_SHA)
+            before_auth_phase = (name == 'tool/ci/windows_launch_catalog.py'
+                                 and archive.sha(body) == PRE_AUTH_PHASE_LAUNCH_PRODUCER_SHA)
             legacy = (before_lock_settle or before_p06_diagnostics or before_first_progress
                       or before_light_motion or not motion and (before_phase_capture
                           or shared_binaries is None and archive.sha(body) in prior))
-            archive.need(body == current or motion_theme == launch.TIMING_THEME and legacy)
+            archive.need(body == current or before_auth_phase
+                         or motion_theme == launch.TIMING_THEME and legacy)
         else:
             pins[key] = archive.sha(body)
     if item is None:
