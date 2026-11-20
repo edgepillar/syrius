@@ -54,7 +54,7 @@ class _OriginalsTiles extends StatelessWidget {
             },
           ),
         ),
-        SizedBox(height: tokens.originalsBodyGap),
+        SizedBox(height: tokens.originalsFooterGap),
         const Divider(height: 1),
         SizedBox(height: tokens.originalsBodyGap),
         Wrap(

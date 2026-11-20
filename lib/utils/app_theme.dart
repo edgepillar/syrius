@@ -1173,6 +1173,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Separation before the original small marks.
   double get originalsBodyGap => 14;
 
+  /// Space from the artwork captions to the utility row's divider.
+  double get originalsFooterGap => 13;
+
   /// Group spacing for the three small originals.
   double get originalsMiniGroupGap => 26;
 

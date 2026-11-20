@@ -788,11 +788,27 @@ def _details_plasma_footer_clear(zipped):
     return themes
 
 
+def _details_originals_footer_rows(zipped):
+    column, top, bottom = 1000, 500, 570
+    themes = {}
+    for theme in producer.details.THEMES:
+        bands = _vertical_bands(zipped, f'38-set-originals-{theme}.png', column, top, bottom)
+        themes[theme] = None
+        if len(bands) != 4:
+            continue
+        rows, colors = zip(*bands)
+        card, rule, footer, base = colors
+        if footer == card and card != base and rule not in (card, base):
+            themes[theme] = dict(divider=list(rows[1:3]), card_end=rows[3])
+    return dict(column=column, scan_rows=[top, bottom], themes=themes)
+
+
 def details_component_geometry(raw):
     """Measure the changed components together from the original Details archive."""
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         return dict(
             licence_divider_spans=_details_licence_dividers(zipped),
+            originals_footer_rows=_details_originals_footer_rows(zipped),
             receive_qsr_mark=_ink_bounds(zipped, '10-receive-qr', (814, 849), (235, 274),
                 lambda red, green, blue: blue - red > 90 and blue - green > 25),
             receive_qsr_label=_ink_bounds(zipped, '10-receive-qr', (850, 906), (241, 265),

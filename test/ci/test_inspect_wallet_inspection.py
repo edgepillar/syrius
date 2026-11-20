@@ -1282,6 +1282,8 @@ class ReaderTests(unittest.TestCase):
         })
         self.assertEqual(observed['component_geometry'], dict(
             licence_divider_spans=dict(dark=[], light=[]),
+            originals_footer_rows=dict(column=1000, scan_rows=[500, 570],
+                themes=dict(dark=None, light=None)),
             receive_qsr_mark=dict(dark=None, light=None),
             receive_qsr_label=dict(dark=None, light=None),
             plasma_footer_clear=dict(dark=True, light=True)))
@@ -1333,6 +1335,13 @@ class ReaderTests(unittest.TestCase):
                 chevrons = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                             + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
                 zipped.writestr(f'37-set-licences-{theme}.png', chevrons)
+                rows = [ordinary] * 780
+                rows[512] = b'\0' + ink * 1280
+                if theme == 'dark':
+                    rows[561:] = [b'\0' + faint * 1280] * (780 - 561)
+                originals = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
+                             + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
+                zipped.writestr(f'38-set-originals-{theme}.png', originals)
         self.assertEqual(reader.details_licence_header_chevrons(packed.getvalue()), {
             heading: {theme: dict(left=1238, top=top, right=1242, bottom=top + 2)
                       for theme in ('dark', 'light')}
@@ -1345,6 +1354,8 @@ class ReaderTests(unittest.TestCase):
                 dark=[[388, 388], [428, 429], [468, 468]],
                 light=[[388, 388], [428, 429], [468, 468]],
             ),
+            originals_footer_rows=dict(column=1000, scan_rows=[500, 570],
+                themes=dict(dark=dict(divider=[512, 513], card_end=561), light=None)),
             receive_qsr_mark=dict(dark=mark, light=mark),
             receive_qsr_label=dict(dark=label, light=label),
             plasma_footer_clear=dict(dark=True, light=True)))

@@ -228,6 +228,17 @@ void main() {
                 findsOneWidget,
               );
             }
+            final Finder gallery = find.byType(OriginalsCard);
+            final Rect tiles = tester.getRect(
+              find.ancestor(
+                of: find.byKey(const ValueKey<String>('fixture_art_launch')),
+                matching: find.byType(Wrap),
+              ).first,
+            );
+            final Rect footerRule = tester.getRect(
+              find.descendant(of: gallery, matching: find.byType(Divider)).last,
+            );
+            expect(footerRule.top - tiles.bottom, closeTo(13, 0.001));
             final Finder eyeLabel = find.text('Hidden balances');
             final AppTokens tokens = AppTokens.of(tester.element(eyeLabel));
             for (final String label in <String>[

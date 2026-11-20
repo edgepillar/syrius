@@ -720,6 +720,11 @@ The designated Send draft comes from the Send confirmation catalog. The
 verifies both filled drafts and both separate confirmation images. The
 Send draft still needs whole-image review against its populated reference,
 which also displays recent recipients and incoming rows.
+The [Send producer at `375a5559`](https://github.com/edgepillar/syrius/actions/runs/44668691407/job/136064174959)
+stops during the patched node tests with `STORAGE_SAMPLE_OS_ERROR`.
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44670023930/job/136068497836)
+verifies the retained failure and zero catalog PNGs. The original error
+does not identify the failing filesystem operation.
 The four [Welcome and Import originals](https://github.com/edgepillar/syrius/actions/runs/44582250018/job/135765713115)
 also read directly from their retained archive at 1280 by 780 using their
 original filenames, with no extracted image copies.
@@ -1013,6 +1018,13 @@ Map players select frame 95 for the comparison. In the light Map tile
 many intermediate shades. The strongest whole-pixel correlation in a
 three-pixel search in either direction is at zero offset. The measured
 difference is concentrated in coverage and intensity around the dots.
+At column 1000 the retained utility divider is at row 513 and the card
+ends at row 562 in both themes. Both references place the same edges at
+512 and 561. Originals now uses a 13 px gap before the utility divider
+to account for the rendered tile captions. The existing gallery cases
+check that separation in both themes, including scaled RTL. The retained
+Details reader can measure the rule and card end without extracting images.
+Fresh Windows coverage and whole-image comparisons remain open.
 
 ### Plasma Fuse bolt at `fb3b2a01`
 
