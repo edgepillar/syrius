@@ -1066,10 +1066,13 @@ class ReaderTests(unittest.TestCase):
             GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_REPOSITORY='edgepillar/syrius',
             GITHUB_WORKSPACE='/fixture', WALLET_INSPECT_RUN='1', WALLET_INSPECT_HEAD='a' * 40,
             GH_TOKEN='synthetic private token')
+        local = dict(fixture_bytes)
+        if aged_fuse is True:
+            local['harness/bin/ci_wallet_reopen.dart'] = b'newer reader checkout'
         output = io.StringIO()
         with mock.patch.object(reader.archive, 'Client', Client), \
                 mock.patch.object(reader.producer, 'read_original',
-                    side_effect=lambda path, _: fixture_bytes.get(
+                    side_effect=lambda path, _: local.get(
                         path.relative_to('/fixture').as_posix(), source)), \
                 contextlib.redirect_stdout(output):
             value = reader.main(parent)
@@ -1437,13 +1440,14 @@ class ReaderTests(unittest.TestCase):
                          dict(column=900, scan_rows=[100, 181], themes=dict(dark=None, light=None)))
         with self.assertRaises(reader.archive.Refused):
             self.run_main(catalog_only='sentinel-fixture', extra_viewport=True)
-        current, _, _ = self.run_main(
+        current, aged_calls, _ = self.run_main(
             catalog_only='sentinel-fixture', aged_fuse=True)
         self.assertEqual(current['aged_fuse_fixture'],
             wallet_fixtures.aged_fuse_witness())
         self.assertTrue(current['aged_fuse_fixture_qualified'])
         self.assertEqual(current['producer_source_files_verified'],
             len(reader.SOURCE_FILES) + 3 + len(reader.AGED_FUSE_SOURCES))
+        self.assertEqual(len(aged_calls), 14)
         for malformed in (False,
                 dict(wallet_fixtures.aged_fuse_witness(), cleanup_cleared=False),
                 dict(wallet_fixtures.aged_fuse_witness(), private='Synthetic private data')):

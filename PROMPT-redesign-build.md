@@ -1668,6 +1668,10 @@ passes all 124 reader cases and refuses during producer source binding.
 The capture runner, Pillars recipe and details catalog have newer blobs
 in the reader checkout. The reader now verifies the original versions
 from the producer tree under its existing caps before opening the archive.
+The [second read](https://github.com/edgepillar/syrius/actions/runs/44673623825/job/136080155363)
+passes producer binding and refuses the changed reopen runner while
+binding the retained Fuse fixture. That fixture now uses the same
+bounded blob verification, exercised by the Sentinel reader case.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |

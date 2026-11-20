@@ -38,6 +38,7 @@ VERSIONED_INPUTS = frozenset((
     'tool/ci/run_harness_tour_tests.py',
     'tool/ci/windows_wallet_inspection.py',
     'harness/bin/ci_wallet_inspection.dart',
+    'harness/bin/ci_wallet_reopen.dart',
     'harness/bin/readonly_catalog_contact.dart',
     'harness/bin/readonly_settings_catalog.dart',
     'harness/bin/screen_capture.dart',
@@ -977,7 +978,7 @@ def main(parent=None):
     if 'aged_fuse_fixture' in summary:
         PHASE = 'aged_fuse_source_metadata'
         source_digests.update(source_files(repo, producer_tree, tree,
-            files=AGED_FUSE_SOURCES))
+            read_versioned_blob=read_blob, files=AGED_FUSE_SOURCES))
     if summary['native_inspection_qualified'] and not seams_only:
         need(sum(value is not None for value in
             (reference, settings_reference, navigation_reference, details_reference)) == 1)
