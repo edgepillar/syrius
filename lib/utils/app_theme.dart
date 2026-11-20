@@ -1091,6 +1091,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The height reserved for each closed About disclosure.
   double get aboutGroupHeaderHeight => 44;
 
+  /// The About headers align their chevrons with the licence rows.
+  EdgeInsetsDirectional get aboutGroupHeaderPadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 16);
+
   /// Copy and open actions in About metadata rows.
   double get aboutInfoActionSize => 30;
 

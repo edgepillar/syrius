@@ -923,6 +923,22 @@ rows agree. The address, live status, approved brand colors and rasterized
 text and edges account for the remaining differences. [Original Windows capture](https://github.com/edgepillar/syrius/actions/runs/44576665310)
 [Independent catalog reader](https://github.com/edgepillar/syrius/actions/runs/44580184381/job/135758423183).
 
+### About disclosures and Originals at `fb3b2a01`
+
+The [independent Details reader](https://github.com/edgepillar/syrius/actions/runs/44566985609/job/135711334988)
+verifies the retained Licences and Originals captures. The light Licences
+image shows the Links, This computer and Licences header chevrons four pixels
+farther toward the trailing edge than the reference. The compact licence
+rows and Play launch button in Originals align horizontally after X1192.
+About now gives the three main headers the same 16 px trailing inset as
+the licence rows. The existing layout test checks the rendered inset in
+LTR and RTL. A fresh Windows comparison is pending.
+
+Both Originals images show the cleared discovery field required by the
+mockup README. The reference images still show the entered digits. The
+Map dot rendering and Globe outlines visibly differ in the retained images,
+so both whole-screen verdicts remain open.
+
 ### Plasma Fuse bolt at `fb3b2a01`
 
 Both [verified Details images](https://github.com/edgepillar/syrius/actions/runs/44566985609/job/135711334988)
@@ -1607,8 +1623,8 @@ whole-image acceptance.
 | 34 | `set-apps` | X865 | X866 |
 | 35 | `set-addresses` | [match](#settings-at-cc574e9a) | [match](#settings-at-cc574e9a) |
 | 36 | `set-about` | X498 | X499 |
-| 37 | `set-licences` | X1192 | X1192 |
-| 38 | `set-originals` | X1192 | X1192 |
+| 37 | `set-licences` | X1192 | [X1192 follow-up](#about-disclosures-and-originals-at-fb3b2a01) |
+| 38 | `set-originals` | [X1192 follow-up](#about-disclosures-and-originals-at-fb3b2a01) | [X1192 follow-up](#about-disclosures-and-originals-at-fb3b2a01) |
 | 39 | `launch` | match | match |
 | 40 | `launch-settle` | X871 | X872 |
 | 41 | `lock-screen` | [match](#lock-at-rest-at-47e606a1) | [match](#lock-at-rest-at-47e606a1) |

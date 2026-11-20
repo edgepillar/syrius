@@ -156,6 +156,25 @@ void main() {
             find.byType(Disclosure),
           );
           expect(groups.length, 3);
+          for (final Disclosure group in groups) {
+            final Finder header = find.byKey(
+              ValueKey<String>('${group.keyPrefix}_toggle'),
+            );
+            final Finder chevron = find.descendant(
+              of: header,
+              matching: find.byWidgetPredicate(
+                (Widget widget) =>
+                    widget is RepaintBoundary &&
+                    widget.child is RotationTransition,
+              ),
+            );
+            final Rect headerRect = tester.getRect(header);
+            final Rect chevronRect = tester.getRect(chevron);
+            final double inset = variant.$2
+                ? chevronRect.left - headerRect.left
+                : headerRect.right - chevronRect.right;
+            expect(inset, closeTo(16, 0.01));
+          }
           expect(
             groups.every((Disclosure group) => !group.initiallyOpen),
             isTrue,

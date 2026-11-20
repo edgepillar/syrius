@@ -149,6 +149,7 @@ class _AboutCardState extends State<AboutCard> {
                   title: context.l10n.aboutComputer,
                   summary: context.l10n.aboutComputerHint,
                   keyPrefix: 'about_computer',
+                  headerPadding: tokens.aboutGroupHeaderPadding,
                   keepAlive: true,
                   child: _buildComputer(tokens),
                 ),
@@ -171,6 +172,7 @@ class _AboutCardState extends State<AboutCard> {
                         return Disclosure(
                           title: context.l10n.aboutLicences,
                           keyPrefix: 'about_licences',
+                          headerPadding: tokens.aboutGroupHeaderPadding,
                           keepAlive: true,
                           onChanged: (bool open) {
                             if (open && !_licencesOpened) {

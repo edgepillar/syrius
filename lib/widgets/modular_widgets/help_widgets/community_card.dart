@@ -85,6 +85,7 @@ class CommunityCard extends StatelessWidget {
         summary: context.l10n.aboutLinksHint,
         count: links.length,
         keyPrefix: 'about_links',
+        headerPadding: tokens.aboutGroupHeaderPadding,
         keepAlive: true,
         child: Padding(
           padding: EdgeInsetsDirectional.only(bottom: tokens.cardGap),
