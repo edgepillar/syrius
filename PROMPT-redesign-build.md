@@ -1202,7 +1202,17 @@ While the final film frame covers the initializing wallet, the moving
 progress indicator now paints in its own layer. The existing startup test
 checks that it repaints independently and the held frame stays in place.
 The indicator geometry, clock and original initialization are unchanged.
-The timing effect needs a new paired Windows measurement.
+The [Linux run at `84fa11fb`](https://github.com/edgepillar/syrius/actions/runs/44642771022/job/135977744211)
+passes both the focused startup check and full non-chain validation.
+The [paired Windows producer](https://github.com/edgepillar/syrius/actions/runs/44643205977/job/135979206660)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44645551147/job/135987081954)
+verify 94 redesign frames, 2,155 P06 frames and five normal process exits.
+The 16 ms comparison fails for raster and distinct frames. The windows
+contain 29 and 1,272 frame-number gaps. Two ranked raster times exceed
+P06, one in the covered wait and one during the handoff. The largest is
+141.543 ms against 102.593 ms in P06, a difference of 38.950 ms.
+The sample counts and timings vary across runs. The effect of the
+indicator layer on native frame time remains unestablished.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now
