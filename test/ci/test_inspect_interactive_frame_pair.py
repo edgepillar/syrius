@@ -663,7 +663,8 @@ class InteractiveFramePairTests(unittest.TestCase):
                 inspect.sample_receipts(sample)
 
     def test_normal_about_content_uses_visible_licences_and_keeps_scroll_outside_timing(self):
-        window = fixture()['samples']['current']['observation']['windows']['page_change']
+        window = dict(fixture()['samples']['current']['observation']['windows']['page_change'],
+                      peakBuildWaitUs=0)
         for fault in (None, 'closed', 'content', 'address', 'scroll', 'tap_offset', 'phase_offset'):
             calls, validated, pauses = [], [], []
             tab, opened, collecting = 'dashboard', False, False

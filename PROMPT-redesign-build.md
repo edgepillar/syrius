@@ -1379,6 +1379,17 @@ Windows caret occupies columns 429–430 and rows 136–152. The dark
 reference occupies columns 430–431 and rows 137–153. The light reference
 paints column 430 and the same row range.
 
+All eight Home catalog captures were also viewed alongside their
+references from the verified original archive. The settled Home shows
+the Notifications tooltip. Activity uses the selected address and
+shows one fixture entry. The reference uses All addresses and includes
+pending activity. The open rail and expanded Tokens section appear in
+both themes, with an empty list in the running fixture. In the hidden
+state the hero amounts and the visible Activity value are masked. Both
+Go To captures show Pages, Actions and Addresses, with one fixture
+contact and the original footer shortcuts. All eight pairs retain
+whole-screen differences under V01.
+
 The Details reader measures the same Receive QSR mark and label bounds
 and Originals divider and card end as the references. At the measured
 Licences column, nine of thirteen rules match exactly. The other four
@@ -2404,6 +2415,15 @@ passed application and integration analysis, strict selected analysis,
 the non-chain unit and widget tests and generated-file verification.
 The preflight recorded the unchanged P06 overlay tree
 `cd28367a8e7f885a812c847f693effe967649b8e`.
+
+The [paired Windows read at `44dbb37b`](https://github.com/edgepillar/syrius/actions/runs/44815616184/job/136563041654)
+verifies both windows. The longest total page-change frame is 179.098 ms
+versus 108.317 ms for P06. Disclosure peaks at 64.185 ms versus 46.694 ms.
+Both windows fail the ranked raster and distinct-frame comparisons and
+retain frame-key gaps. The controller retained only the old fields from
+the timing reply, so this run has only the combined waits. The controller
+now retains the optional build wait for independent validation while the
+historical baseline still uses its original receipt.
 
 The [cold Windows producer at `b3d2a1d1`](https://github.com/edgepillar/syrius/actions/runs/44786324542/job/136462042874)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44790155159/job/136475393710)

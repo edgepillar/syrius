@@ -2,6 +2,8 @@
 
 import time
 
+from .windows_launch_catalog import PEAK_BUILD_WAIT_FIELD, TIMING_FIELDS
+
 
 MIN_WINDOW_US = 600_000
 MAX_WINDOW_US = 2_500_000
@@ -60,9 +62,10 @@ def _licences(send, *, gone=False):
 
 def _end(send, validate_window):
     reply = _original(send, cmd='stalls', frameWindow='end')
-    fields = ('schema', 'scope', 'windowUs', 'frames')
-    _require(all(field in reply for field in fields))
-    window = {field: reply[field] for field in fields}
+    _require(all(field in reply for field in TIMING_FIELDS))
+    window = {field: reply[field] for field in TIMING_FIELDS}
+    if PEAK_BUILD_WAIT_FIELD in reply:
+        window[PEAK_BUILD_WAIT_FIELD] = reply[PEAK_BUILD_WAIT_FIELD]
     validate_window(window)
     return window, reply.get('interactiveDisclosurePhasesUs')
 
