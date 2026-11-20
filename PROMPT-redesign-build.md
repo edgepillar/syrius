@@ -1163,6 +1163,11 @@ The [natural handoff reader at `4676ed64`](https://github.com/edgepillar/syrius/
 verifies two normal exits and the late and settled images. Its first
 positive post-frame observation is at progress 0.729. The early slot is
 missing and the producer retains `LAUNCH_HANDOFF_FRAME_MISSED`.
+The [reader at `43888775`](https://github.com/edgepillar/syrius/actions/runs/44677230637/job/136091849940)
+verifies all three natural dark-mode handoff images and two normal actor
+exits. The first observed progress is 0.391. The retained slots show
+early motion, late motion and the original film settled in the well.
+The images remain available for visual review under V02.
 The [paired cold producer](https://github.com/edgepillar/syrius/actions/runs/44664282336/job/136049681462)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44666599583/job/136057289816)
 verify five normal exits and 87 redesign frames against 434 P06 frames.
@@ -1631,6 +1636,12 @@ passes the full non-chain suite and generated-file check.
 The [updated Windows producer](https://github.com/edgepillar/syrius/actions/runs/44674237541/job/136082140505)
 retains the Navigation catalog. Its independent reader samples the
 disclosure and closed row fills in both themes at column 1100.
+The [independent read](https://github.com/edgepillar/syrius/actions/runs/44677032610/job/136091204416)
+verifies all 14 images and normal required closure. In both themes, the
+four Pillars table edges match at rows 106, 118, 164 and 165. The column
+rule starts at 197 and the expanded surface spans rows 198 through 303,
+matching the reference location and fill. The third live row still
+has the hover tint. Its cause and the full-image verdict remain open.
 
 The [Linux run at `61e72335`](https://github.com/edgepillar/syrius/actions/runs/44664606334/job/136050757368)
 reports 5124 passes, two failures in the segment heading suite and one
@@ -1726,6 +1737,12 @@ The independent Details reader measures both themes directly from the
 verified originals. It records four symmetric halo samples and the
 painted column spans of the batch and three row actions. The existing
 fixture covers visible actions and the absence of paint in those bands.
+The [Details producer at `43888775`](https://github.com/edgepillar/syrius/actions/runs/44675493330/job/136086209399)
+stops during lab revalidation with `PRODUCTION_UNPROVEN`. The
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/44677230921/job/136091849887)
+retains the original failure, a final observed height of two and zero
+verified Details images. The updated Halo, Cancel and Originals
+surfaces still require fresh captures.
 
 The [seeded visual run at `11398595`](https://github.com/edgepillar/syrius/actions/runs/44672157292/job/136075382385)
 builds the native wallet and retains the six-image catalog. The
