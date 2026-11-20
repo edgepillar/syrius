@@ -981,9 +981,11 @@ and [Details reader](https://github.com/edgepillar/syrius/actions/runs/446491928
 verify 14 and 10 original catalog images respectively and normal required
 actor and lab closure at the earlier `962bd1dc` source. Its unfiltered
 bolt spans columns 210 to 247 and rows 92 to 143 on both screens and in
-both themes. The [new Details run](https://github.com/edgepillar/syrius/actions/runs/44649434743)
-at `8386f9b9` is acquiring the filtered Plasma Fuse and About images in
-one Windows run. Whole-screen comparisons remain open.
+both themes. The [Details reader at `8386f9b9`](https://github.com/edgepillar/syrius/actions/runs/44652498368/job/136010574314)
+verifies ten original Windows PNGs and normal required closure. The
+filtered Plasma Fuse bolt matches the reference solid bounds in both
+themes. Columns are 211 through 246 and rows are 94 through 140 in
+dark and 94 through 141 in light. Whole-screen comparisons remain open.
 
 The retained `fb3b2a01` Fuse images show the selected address's fused QSR
 below its meter while the amount form is open. The reference omits that
@@ -1311,6 +1313,10 @@ previously rebuilt by that move. The existing handoff tests check that
 the shell host keeps its build count and the original authentication and
 film States survive the 400 ms handoff. The new timing effect requires
 a paired Windows measurement.
+The [first Linux test run at `521d9745`](https://github.com/edgepillar/syrius/actions/runs/44652011355/job/136008951802)
+stops at the two startup cases before the expected backdrop motion. The
+fixture now schedules the frame for its simulated route mount and checks
+that the post-frame adoption ran before advancing the clock.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now

@@ -165,6 +165,8 @@ Future<void> _begin(
   GlobalKey<_HarnessState> host,
 ) async {
   host.currentState!.adopt();
+  // The real route registers adoption during its mounting frame.
+  tester.binding.scheduleFrame();
   await tester.pump();
   await tester.pump();
   await tester.pump();
@@ -458,6 +460,7 @@ void main() {
         final Rect full = _stageRect(tester);
         final int shellBuilds = host.currentState!.shellBuilds;
         await _begin(tester, host);
+        expect(session.authInShell, isTrue);
         expect(host.currentState!.shellBuilds, shellBuilds);
         expect(
           identical(tester.state(find.byType(LockTabChild)), auth),
