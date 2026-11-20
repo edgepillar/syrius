@@ -1468,6 +1468,9 @@ void main() {
       expect(hovers, <Map<String, Object?>>[
         for (int pair = 0; pair < peerPreparations; pair++)
           <String, Object?>{'cmd': 'hover', 'at': <int>[0, 0]},
+        if (fault == 'none' || fault == 'second-contact')
+          for (int theme = 0; theme < 2; theme++)
+            <String, Object?>{'cmd': 'hover', 'at': <int>[0, 0]},
       ]);
       expect(commands.every((Map<String, Object?> value) => <String>{
         'readonly-wallet-bind', 'state', 'tree', 'tap', 'theme', 'window',
