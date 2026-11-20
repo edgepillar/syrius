@@ -263,6 +263,8 @@ void main() {
       expect(find.byType(FadeThroughTransition), findsNWidgets(2));
       expect(_opacity(tester, _page(0)), 1);
       expect(_opacity(tester, _page(1)), 0);
+      expect(TickerMode.valuesOf(tester.element(_page(0))).enabled, isFalse);
+      expect(TickerMode.valuesOf(tester.element(_page(1))).enabled, isFalse);
       final FadeThroughTransition exitTransition = transitionFor(0);
       final FadeThroughTransition hiddenTransition = transitionFor(1);
       await tester.pump(const Duration(milliseconds: 80));
@@ -282,6 +284,7 @@ void main() {
       await tester.pump(const Duration(microseconds: 63999));
       expect(_opacity(tester, _page(1)), greaterThan(0));
       expect(_opacity(tester, _page(1)), lessThan(1));
+      expect(TickerMode.valuesOf(tester.element(_page(1))).enabled, isTrue);
       final OffsetLayer arriving = layerFor(1);
       final Layer? arrivingPaint = arriving.firstChild;
       final FadeThroughTransition visibleTransition = transitionFor(1);
