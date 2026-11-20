@@ -1447,6 +1447,11 @@ column and ends at column 914 instead of 945. At column 1100, the last
 reference row rule at 394 has no corresponding rule in the captured
 fixture. These component checks leave the complete images open.
 
+Both [Wallet Ready captures](https://github.com/edgepillar/syrius/actions/runs/44808430062/job/136538423605)
+have been viewed with their references. The card, four step indicators
+and map are visibly aligned. The step accents, Open wallet gradient,
+backdrop and fixture address differ. Whole-screen review remains open.
+
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
 The rows follow the [mockup motion](mockups/redesign/README.md#motion) and
@@ -2464,6 +2469,19 @@ retain frame-key gaps. The controller retained only the old fields from
 the timing reply, so this run has only the combined waits. The controller
 now retains the optional build wait for independent validation while the
 historical baseline still uses its original receipt.
+
+The [independent read at `768a0009`](https://github.com/edgepillar/syrius/actions/runs/44820049909/job/136578304819)
+verifies 11 current page-change frames and 12 disclosure frames.
+The longest page-change frame has 0.890 ms before build, 4.941 ms
+building, 215.031 ms waiting for raster and 92.838 ms rasterizing.
+The longest disclosure frame has 3.769 ms before build, 0.219 ms
+building, 67.217 ms waiting for raster and 65.318 ms rasterizing.
+The P06 run stops during import preparation after 93.875 seconds.
+Its final original startup observation shows frame 3 of 56, with
+Skip visible and the film ticking. The two wallet processes and all
+five test nodes exit normally. The original measurement failure and
+the current-only timing remain recorded. No paired criterion passed
+in this run.
 
 The [cold Windows producer at `b3d2a1d1`](https://github.com/edgepillar/syrius/actions/runs/44786324542/job/136462042874)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44790155159/job/136475393710)
