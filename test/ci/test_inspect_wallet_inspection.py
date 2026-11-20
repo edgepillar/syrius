@@ -99,22 +99,27 @@ def jobs(*, positive=True):
 
 
 class ReaderTests(unittest.TestCase):
-    def test_home_goto_footer_measures_color_change_within_scan(self):
+    def test_home_goto_geometry_measures_footer_edge_and_visible_caret(self):
         files = []
         footer = b'\0' + bytes((35, 35, 35, 255)) * 1280
         variation = b'\0' + bytes((35, 36, 35, 255)) * 1280
         shadow = b'\0' + bytes((18, 19, 18, 255)) * 1280
+        caret = bytearray(footer)
+        caret[1 + 4 * 429:1 + 4 * 431] = bytes((113, 113, 113, 255)) * 2
         for theme, edge in (('dark', 456), ('light', 442)):
             rows = [footer] * edge + [shadow] * (780 - edge)
             if theme == 'dark':
                 rows[450:edge] = [variation] * (edge - 450)
+                rows[137:154] = [caret] * 17
             pixels = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                       + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
             files.append((f'05-home-goto-{theme}.png', pixels, stat.S_IFREG))
-        self.assertEqual(reader.home_goto_footer(packed(files)), dict(
-            column=450, scan_rows=[440, 476], themes=dict(
+        self.assertEqual(reader.home_goto_geometry(packed(files)), dict(
+            goto_footer=dict(column=450, scan_rows=[440, 476], themes=dict(
                 dark=dict(edge_row=456, footer_rgb=[35, 35, 35], edge_rgb=[18, 19, 18]),
-                light=None)))
+                light=None)),
+            goto_caret=dict(dark=dict(left=429, top=137, right=430, bottom=153),
+                            light=None)))
 
     def test_navigation_and_sentinel_measure_strip_edges(self):
         files = []

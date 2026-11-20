@@ -591,8 +591,8 @@ def _vertical_bands(zipped, name, column, top, bottom):
     return bands
 
 
-def home_goto_footer(raw):
-    """Report the panel edge below the flat Go To footer at one column."""
+def home_goto_geometry(raw):
+    """Measure the panel edge and visible caret of the literal Go To state."""
     column, top, bottom = 450, 440, 476
     themes = {}
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
@@ -611,7 +611,11 @@ def home_goto_footer(raw):
                     themes[theme] = dict(edge_row=edge, footer_rgb=list(footer),
                                          edge_rgb=list(edge_color[:3]))
                 break
-    return dict(column=column, scan_rows=[top, bottom], themes=themes)
+        caret = _ink_bounds(zipped, '05-home-goto', (428, 435), (132, 158),
+                            lambda *difference: max(difference) >= 35,
+                            relative_to_background=True)
+    return dict(goto_footer=dict(column=column, scan_rows=[top, bottom], themes=themes),
+                goto_caret=caret)
 
 
 def staking_empty_bands(raw):
@@ -1146,7 +1150,7 @@ def main(parent=None):
                 item['size_in_bytes'], head, tree, run_id, reference,
                 home_script_source_pins(source_digests, reference['schema']))
             if reference['schema'] == producer.HOME_CAPTURE_SCHEMAS['home']:
-                catalog['goto_footer'] = home_goto_footer(catalog_archive)
+                catalog.update(home_goto_geometry(catalog_archive))
             del catalog_archive
         viewport_name = 'viewport-observation-' + head + '-' + text + '-1'
         PHASE = 'viewport_artifact'
