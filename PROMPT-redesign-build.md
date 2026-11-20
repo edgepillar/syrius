@@ -1283,8 +1283,9 @@ evidence.
 ### Windows visual capture audit at `e94d5b07` (2026-11-20)
 
 The capture plan assigns each of the 47 reference states to one producer
-and uses its dark and light PNGs. The independent readers have verified 90
-of the 94 designated PNGs at `e94d5b07`. The Navigation producer retained
+and uses its dark and light PNGs. The independent readers have verified 92
+of the 94 designated PNGs, with 90 at `e94d5b07` and two at the
+documentation-only successor `a76ddc26`. The Navigation producer retained
 14 images. Only the six assigned to Receive, Pillars and Plasma contribute
 to this count. The other states use their designated captures below.
 
@@ -1309,6 +1310,7 @@ to this count. The other states use their designated captures below.
 | Sentinels | 2 | [Sentinels](https://github.com/edgepillar/syrius/actions/runs/44808625163/job/136539090734) |
 | Swap start | 2 | [Swap start](https://github.com/edgepillar/syrius/actions/runs/44808633632/job/136539122116) |
 | Prepared Swap | 2 | [Prepared Swap](https://github.com/edgepillar/syrius/actions/runs/44810549731/job/136545685110) |
+| Pillar Spawn | 2 | [Pillar Spawn at `a76ddc26`](https://github.com/edgepillar/syrius/actions/runs/44813101511/job/136554422149) |
 
 The first [Pillar Done producer](https://github.com/edgepillar/syrius/actions/runs/44806734839)
 stopped before capture. Its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44809328985/job/136541527090)
@@ -1326,7 +1328,9 @@ The [second Pillar Done reader](https://github.com/edgepillar/syrius/actions/run
 verified another preflight refusal. Both transports advanced from height
 six to seven with a new hash while the observed timestamp fell by 20
 seconds. The requested images were absent. The existing advance check
-requires a higher height and timestamp and a different hash.
+requires a higher height and timestamp and a different hash. The [third
+Pillar Done producer](https://github.com/edgepillar/syrius/actions/runs/44813247836)
+is pinned to `44dbb37b`.
 
 The four Welcome and Import images have been viewed alongside their
 references. The visible backdrop differs. In 9,126 unobstructed edge
@@ -1360,6 +1364,20 @@ The RGB comparison was performed on the original PNGs before scaling the
 side-by-side views. Node has the largest mean absolute RGB difference at
 5.505 in dark and 6.121 in light. These values record rendered differences.
 The fourteen Settings comparisons remain open under V01.
+
+Using the same crop and threshold for the verified Home catalog and its
+references, the Go To footer edge is at row 456 in both themes. The
+Windows caret occupies columns 429–430 and rows 136–152. The dark
+reference occupies columns 430–431 and rows 137–153. The light reference
+paints column 430 and the same row range.
+
+The Details reader measures the same Receive QSR mark and label bounds
+and Originals divider and card end as the references. At the measured
+Licences column, nine of thirteen rules match exactly. The other four
+appear one pixel lower in both themes. The full Licences row height now
+uses the authored 39.3 pixels, from a 14 px type size, 1.45 line height,
+18 px of padding and a 1 px rule. The [fresh Windows Details producer](https://github.com/edgepillar/syrius/actions/runs/44813112503)
+is needed to verify the effect of this change.
 
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
