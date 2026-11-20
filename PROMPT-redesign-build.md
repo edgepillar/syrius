@@ -1722,6 +1722,15 @@ in the light theme. The six captures sample the backdrop at six seconds.
 The contribution of phase to the remaining differences is unresolved, so
 these observations leave whole-screen acceptance open under V01.
 
+The [Windows entry run at `d6f8dfa3`](https://github.com/edgepillar/syrius/actions/runs/44755690292)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44756776284/job/136358466527)
+verify the four original Welcome and empty Import PNGs and complete output
+from the normally exiting application. In both Import themes the sampled
+step connector occupies the reference row across all 108 columns. The four
+drop-border edges have mean coverage error at most 6,497 ppm against the
+25,000 ppm tolerance originally exceeded in X776 and X777. Whole-screen
+comparison remains open under V01.
+
 The [Windows navigation run at `fb956740`](https://github.com/edgepillar/syrius/actions/runs/44748087100)
 captures both themes for Send, Receive, Pillars, Plasma, Tokens, Swap and
 Accelerator. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44751622378/job/136340695267)
