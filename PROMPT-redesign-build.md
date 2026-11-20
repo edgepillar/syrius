@@ -1876,6 +1876,16 @@ observer records progress before image geometry checks, so the dark run
 reached the observer beyond the early slot. The record does not establish
 why an earlier frame was unobserved. V02 remains open.
 
+The same retained light sample advances from the early to the late stage
+in 15.625 ms. Both themes report the same late stage bounds at progress
+0.558. The settled film and well both occupy `[431, 209, 418, 118]`
+in client coordinates. The settled observations occur 390.625 ms after the
+first dark image and 406.250 ms after the first light image. Adding the
+inferred first-clock intervals places the settled observations at
+421.418–421.923 ms in dark and 421.698–422.497 ms in light. These bounds
+include the wait for the laid-out, settled frame and do not establish the
+exact instant at which the 400 ms controller completed.
+
 The [Windows baseline at `650bbb8a`](https://github.com/edgepillar/syrius/actions/runs/44737155697)
 passes both the Debug and Release builds with complete output. The
 [independent reader](https://github.com/edgepillar/syrius/actions/runs/44740753300/job/136303512144)
