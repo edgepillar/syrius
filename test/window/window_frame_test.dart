@@ -738,10 +738,24 @@ void main() {
     'positive fresh mode observation supplies the restore tooltip',
     (WidgetTester tester) async {
       effectChangesMode = true;
+      final Completer<Object?> initialMode = Completer<Object?>();
+      pending['isMaximized'] = initialMode;
       await mount(tester);
+      final Finder body = find.byKey(const ValueKey<String>('window-body'));
+      final Widget originalBody = tester.widget(body);
+      expect(
+        tester.widget<IconButton>(control('window-maximize')).onPressed,
+        isNull,
+      );
+      pending.remove('isMaximized');
+      initialMode.complete(false);
+      await settle(tester);
+      expect(tester.widget(body), same(originalBody));
+      expect(find.byTooltip('Maximize'), findsOneWidget);
       await tester.tap(control('window-maximize'));
       await settle(tester);
       expect(find.byTooltip('Restore'), findsOneWidget);
+      expect(tester.widget(body), same(originalBody));
       expect(
         nativeCalls
             .where((MethodCall call) => call.method == 'maximize')
@@ -751,6 +765,7 @@ void main() {
       await tester.tap(control('window-maximize'));
       await settle(tester);
       expect(find.byTooltip('Maximize'), findsOneWidget);
+      expect(tester.widget(body), same(originalBody));
       expect(
         nativeCalls
             .where((MethodCall call) => call.method == 'unmaximize')

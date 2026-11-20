@@ -88,6 +88,9 @@ class AppWindowFrameState extends State<AppWindowFrame> {
       <AppWindowEntryBackdrop>{};
   final _WindowCaptionRepaint _entryBackdropChanges = _WindowCaptionRepaint();
   final ValueNotifier<bool> _launchCaption = ValueNotifier<bool>(false);
+  late final Listenable _captionChanges = Listenable.merge(
+    <Listenable?>[_window, _launchCaption],
+  );
   Object? _launchCaptionOwner;
   bool _entryBackdropDisposed = false;
 
@@ -177,13 +180,6 @@ class AppWindowFrameState extends State<AppWindowFrame> {
   void initState() {
     super.initState();
     _window = usesAppWindowFrame ? AppWindowController.native() : null;
-    _window?.addListener(_changed);
-  }
-
-  void _changed() {
-    if (mounted) {
-      setState(() {});
-    }
   }
 
   Widget _buildCaption(
@@ -309,10 +305,12 @@ class AppWindowFrameState extends State<AppWindowFrame> {
     final AppWindowController? window = _window;
     if (window == null) return widget.child;
     final AppTokens tokens = AppTokens.of(context);
-    final Widget caption = ValueListenableBuilder<bool>(
-      valueListenable: _launchCaption,
-      builder: (BuildContext context, bool launch, _) =>
-          _buildCaption(context, window, launch),
+    // Native mode and launch changes belong to the caption. The body's
+    // LayoutBuilder already receives actual client size changes.
+    final Widget caption = ListenableBuilder(
+      listenable: _captionChanges,
+      builder: (BuildContext context, _) =>
+          _buildCaption(context, window, _launchCaption.value),
     );
     // Preserve the original Navigator body bounds and View ancestry.
     // Route-owned panels can use the outer overlay's full client bounds.
@@ -357,9 +355,7 @@ class AppWindowFrameState extends State<AppWindowFrame> {
     }
     _entryBackdrops.clear();
     _entryBackdropChanges.dispose();
-    _window
-      ?..removeListener(_changed)
-      ..dispose();
+    _window?.dispose();
     super.dispose();
   }
 }
