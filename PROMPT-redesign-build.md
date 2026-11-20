@@ -1449,8 +1449,18 @@ fixture. These component checks leave the complete images open.
 
 Both [Wallet Ready captures](https://github.com/edgepillar/syrius/actions/runs/44808430062/job/136538423605)
 have been viewed with their references. The card, four step indicators
-and map are visibly aligned. The step accents, Open wallet gradient,
-backdrop and fixture address differ. Whole-screen review remains open.
+and map are visibly aligned. The Open wallet button occupies columns
+403–876 and rows 464–509 in all four images at the same saturation
+threshold. The step accents, button colors, backdrop and fixture address
+differ. Whole-screen review remains open.
+
+All six [Lock captures at `e94d5b07`](https://github.com/edgepillar/syrius/actions/runs/44797941432)
+were reopened from the verified archive and viewed beside their
+references. The film rectangles match for the normal, wrong-password and
+wallet picker states in both themes. The picker divider is on row 488 in
+both themes. The accent and backdrop colors differ, and the normal footer
+and wallet picker show the isolated fixture data. All six whole-screen
+verdicts remain open.
 
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
