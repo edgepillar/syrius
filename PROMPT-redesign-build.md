@@ -1713,6 +1713,14 @@ the synthetic seed quiz. The [independent reader](https://github.com/edgepillar/
 verifies all four original archives and all 12 PNGs against that source.
 The whole-screen comparisons remain open under V01.
 
+The [Windows navigation run at `fb956740`](https://github.com/edgepillar/syrius/actions/runs/44748087100)
+captures both themes for Send, Receive, Pillars, Plasma, Tokens, Swap and
+Accelerator. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44751622378/job/136340695267)
+verifies all 14 Navigation PNGs, 24 general inspection PNGs and four
+viewport PNGs. The original application and entry processes exit normally.
+The prepared Tokens and Swap examples and whole-screen verdicts are tracked
+separately under V01.
+
 The shell now mounts the working rail on its first unlock and retains it on
 later locks. A cold Lock still lays out the original authentication owner
 and status strip. The [Linux run at `2b554082`](https://github.com/edgepillar/syrius/actions/runs/44749555233/job/136333570374)
