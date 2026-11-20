@@ -1672,6 +1672,14 @@ The [second read](https://github.com/edgepillar/syrius/actions/runs/44673623825/
 passes producer binding and refuses the changed reopen runner while
 binding the retained Fuse fixture. That fixture now uses the same
 bounded blob verification, exercised by the Sentinel reader case.
+The [corrected Sentinel read](https://github.com/edgepillar/syrius/actions/runs/44673837879/job/136080842516)
+verifies both images and normal required closure. At column 900, the
+strip end, list start, tab divider, and column heading start are at
+rows 106, 118, 164 and 165 in both themes, matching the references.
+The [Send read at the same source](https://github.com/edgepillar/syrius/actions/runs/44673838016/job/136080843121)
+verifies the prepared rest and confirmation captures in both themes and
+normal required closure. The six images are available for whole-screen
+review under V01.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
