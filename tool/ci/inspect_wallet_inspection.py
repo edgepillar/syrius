@@ -592,7 +592,7 @@ def _vertical_bands(zipped, name, column, top, bottom):
 
 
 def home_goto_footer(raw):
-    """Report the first color change below the undisturbed Go To footer."""
+    """Report the panel edge below the flat Go To footer at one column."""
     column, top, bottom = 450, 440, 476
     themes = {}
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
@@ -600,10 +600,17 @@ def home_goto_footer(raw):
             bands = _vertical_bands(zipped, f'05-home-goto-{theme}.png',
                                     column, top, bottom)
             themes[theme] = None
-            if len(bands) >= 2 and top + 6 <= bands[1][0] <= bottom - 3:
-                edge, edge_color = bands[1]
-                themes[theme] = dict(edge_row=edge, footer_rgb=list(bands[0][1][:3]),
-                                     edge_rgb=list(edge_color[:3]))
+            if not bands:
+                continue
+            footer = bands[0][1][:3]
+            # A one-level blend change can occur within the light footer.
+            for edge, edge_color in bands[1:]:
+                if max(abs(a - b) for a, b in zip(footer, edge_color[:3])) < 4:
+                    continue
+                if top + 6 <= edge <= bottom - 3:
+                    themes[theme] = dict(edge_row=edge, footer_rgb=list(footer),
+                                         edge_rgb=list(edge_color[:3]))
+                break
     return dict(column=column, scan_rows=[top, bottom], themes=themes)
 
 

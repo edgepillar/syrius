@@ -102,9 +102,12 @@ class ReaderTests(unittest.TestCase):
     def test_home_goto_footer_measures_color_change_within_scan(self):
         files = []
         footer = b'\0' + bytes((35, 35, 35, 255)) * 1280
+        variation = b'\0' + bytes((35, 36, 35, 255)) * 1280
         shadow = b'\0' + bytes((18, 19, 18, 255)) * 1280
         for theme, edge in (('dark', 456), ('light', 442)):
             rows = [footer] * edge + [shadow] * (780 - edge)
+            if theme == 'dark':
+                rows[450:edge] = [variation] * (edge - 450)
             pixels = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                       + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
             files.append((f'05-home-goto-{theme}.png', pixels, stat.S_IFREG))

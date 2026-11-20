@@ -765,6 +765,12 @@ the normal entry exit and all five normal node exits. Neither run produced
 a prepared catalog. The prepared PNGs at `931ec0b5` remain evidence for that
 source. The newer captures and whole-screen verdicts remain open under V01.
 
+The [Accelerator reader](https://github.com/edgepillar/syrius/actions/runs/44772163816/job/136412376168)
+verifies the prepared Voting and Project Detail captures in both themes
+from the [Windows run at `e9d3c9d4`](https://github.com/edgepillar/syrius/actions/runs/44768760920).
+The original tour and restored session complete, and the required entry
+and node processes exit normally. The four pairs await visual review.
+
 Working directly from the verified [Navigation](https://github.com/edgepillar/syrius/actions/runs/44580184381/job/135758423183)
 and [Lock](https://github.com/edgepillar/syrius/actions/runs/44579867208/job/135757308518)
 archives at `06eda3f7`, the report reads 20 PNGs with 12 designated pairs
