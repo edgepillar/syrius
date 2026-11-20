@@ -375,7 +375,7 @@ class PairInspectionTests(unittest.TestCase):
                          [0, 0, 0, 512])
         result.update(original_job_id=2**63 - 1, original_job_conclusion='success')
         self.assertEqual(result.pop('frame_gap_context')['p06']['before_earliest_end'], 2**32 - 512)
-        self.assertLessEqual(len(json.dumps(result, sort_keys=True).encode('ascii')), 3800)
+        self.assertLessEqual(len(reader.canonical(result)), 3800)
 
     def test_raster_start_can_follow_lock_arrival_without_a_later_build(self):
         value = report(self.pins)
@@ -392,6 +392,7 @@ class PairInspectionTests(unittest.TestCase):
         self.assertEqual(result['comparison'], value['comparison'])
         diagnostics = result['window_diagnostics']['windows']['current']
         self.assertEqual(diagnostics['phase_frames'][-1], 0)
+        self.assertEqual(diagnostics['phase_max_build_us'], [0, 1000, 0, 400, 0])
         self.assertEqual(diagnostics['peak_build_start_us'], 3000)
         self.assertEqual(diagnostics['peak_raster_start_bounds_us'],
                          dict(earliest=10200, latest=10200))
@@ -447,6 +448,7 @@ class PairInspectionTests(unittest.TestCase):
         self.assertEqual(observed['auth_in_shell_us'], 56000000)
         self.assertEqual(observed['peak_build_offset_from_auth_us'], -56000000)
         self.assertEqual(observed['phase_frames'], [800, 800, 800, 800, 896])
+        self.assertEqual(observed['phase_max_build_us'], [20000000] * 5)
         self.assertEqual(observed['phase_max_raster_us'], [20000000] * 5)
         self.assertEqual(observed['phase_max_total_us'], [60000000] * 5)
         self.assertEqual(result['comparison'], pair.compare_windows(original, current))
@@ -456,7 +458,7 @@ class PairInspectionTests(unittest.TestCase):
         result.update(original_job_id=2**63 - 1, original_job_conclusion='success')
         self.assertEqual(result.pop('frame_gap_context')['p06']['before_earliest_end'],
                          2**32 - count)
-        self.assertLessEqual(len(json.dumps(result, sort_keys=True).encode('ascii')), 3800)
+        self.assertLessEqual(len(reader.canonical(result)), 3800)
 
         ordinary = dict(schema=1, scope='harness_frame_window',
                         windowUs=60000001, frames=[[0, 60000000, 10, 5, 20]])

@@ -235,14 +235,15 @@ def window_diagnostics(window, *, peak_starts=False):
                 wait_for_raster=total - build - raster - wait_for_build)
     if pair.launch.STARTUP_PHASE_FIELD in window:
         offsets = window[pair.launch.STARTUP_PHASE_FIELD]
-        frames, raster, total = [0] * 5, [0] * 5, [0] * 5
+        frames, build, raster, total = [0] * 5, [0] * 5, [0] * 5, [0] * 5
         settled = offsets[-1]
         settled_raster = {relation: [0, 0, 0]
                           for relation in ('before', 'crossing', 'at_or_after')}
         for row in rows:
-            _, start, _, raster_us, total_us = row
+            _, start, build_us, raster_us, total_us = row
             phase = bisect_right(offsets, start)
             frames[phase] += 1
+            build[phase] = max(build[phase], build_us)
             raster[phase] = max(raster[phase], raster_us)
             total[phase] = max(total[phase], total_us)
             earliest, latest = raster_start_bounds(row)
@@ -258,6 +259,7 @@ def window_diagnostics(window, *, peak_starts=False):
         # Offsets are post-frame observations of first film frame, film end,
         # handoff motion and arrival. Groups use each frame's build start.
         summary.update(phase_offsets_us=offsets, phase_frames=frames,
+                       phase_max_build_us=build,
                        phase_max_raster_us=raster, phase_max_total_us=total,
                        peak_build_start_us=max(rows, key=lambda row: row[2])[1])
         if pair.launch.STARTUP_AUTH_FIELD in window:
