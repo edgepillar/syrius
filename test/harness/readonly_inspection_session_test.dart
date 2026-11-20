@@ -1218,6 +1218,7 @@ void main() {
       int contactSaves = 0;
       int englishPicks = 0;
       bool languageMenuOpen = false;
+      final List<String> parked = <String>[];
       final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
       final List<ScreenCaptureObservation> progress =
           <ScreenCaptureObservation>[];
@@ -1290,6 +1291,10 @@ void main() {
               expect(englishPicks, 1);
               expect(languageMenuOpen, isFalse);
             }
+            if (selected == 'set-node' || selected == 'set-wallet') {
+              expect(parked.where((String screen) => screen == selected),
+                  hasLength(shots % 2 + 1));
+            }
             if (selected == 'set-addresses') {
               expect(contactSaves, 2);
               expect(command['expect'], <String, Object?>{
@@ -1352,6 +1357,10 @@ void main() {
           IOOverrides.runZoned<Future<Map<String, Object>>>(
         () => captureReadonlySettingsDefaults(
           repository: repository, session: session, onStep: progress.add,
+          parkCursor: (int processId) {
+            expect(processId, 44);
+            parked.add(selected);
+          },
         ),
         stdout: () => output,
       );

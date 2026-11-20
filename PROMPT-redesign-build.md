@@ -1385,6 +1385,14 @@ side-by-side views. Node has the largest mean absolute RGB difference at
 5.505 in dark and 6.121 in light. These values record rendered differences.
 The fourteen Settings comparisons remain open under V01.
 
+In the original Wallet captures, the Maintenance header fills with
+RGB (49, 50, 49) in dark and (236, 237, 236) in light at row 392.
+The resting Wallets row measures (38, 39, 38) and (246, 247, 246)
+respectively. The differences agree with the disclosure hover tints.
+The Wallet script now parks the injected pointer, and the hosted Settings
+catalog also parks the desktop pointer when the owned window contains it.
+A fresh Windows pair is needed to verify the resting header.
+
 Using the same crop and threshold for the verified Home catalog and its
 references, the Go To footer edge is at row 456 in both themes. The
 Windows caret occupies columns 429–430 and rows 136–152. The dark

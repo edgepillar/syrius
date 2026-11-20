@@ -32,7 +32,7 @@ MAX_VERSIONED_BLOB_RESPONSE = 2 * MAX_CAPTURE_AGENT_SOURCE
 VERSIONED_INPUTS = frozenset((
     'pubspec.yaml', 'pubspec.lock',
     'harness/screens/pillars.txt', 'harness/screens/plasma-fuse.txt',
-    'harness/screens/set-licences.txt',
+    'harness/screens/set-licences.txt', 'harness/screens/set-wallet.txt',
     'harness/screens/token-new.txt',
     'tool/ci/hosted_chain321.py',
     'tool/ci/readonly_details_capture.py',

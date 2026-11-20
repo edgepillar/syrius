@@ -10,6 +10,7 @@ assert --key wallet_settings_desktopNotifications
 assert --key wallet_settings_launchAtStartup
 assert --key wallet_settings_modes_gate
 assert --key wallet_settings_wallets_gate
+hover @0,0
 assert --key wallet_settings_maintenance_toggle
 
 # Return only after a fully retained positive shot.

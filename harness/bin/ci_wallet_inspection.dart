@@ -25,7 +25,7 @@ import 'wallet_recipe.dart';
 
 const String _surfaceSeamsFamily = 'surface-seams';
 
-void _parkPillarsCursor(int processId) {
+void _parkCaptureCursor(int processId) {
   const ReadonlyInspectionRefused refused =
       ReadonlyInspectionRefused(ReadonlyInspectionReason.process);
   using((Arena arena) {
@@ -50,7 +50,7 @@ void _parkPillarsCursor(int processId) {
         cursor.ref.y >= client.ref.bottom) {
       return;
     }
-    // The caption corner is outside the table and the caption controls.
+    // This caption corner is outside the content and the caption controls.
     final Pointer<POINT> target = arena<POINT>();
     target.ref
       ..x = 2
@@ -167,10 +167,11 @@ class _InspectionInstance extends cli.Instance {
       ),
       'settings' => captureReadonlySettingsDefaults(
         repository: repository, session: _session, onStep: onStep,
+        parkCursor: _parkCaptureCursor,
       ),
       'navigation' => captureReadonlyNavigationDefaults(
         repository: repository, session: _session, onStep: onStep,
-        parkPillarsCursor: _parkPillarsCursor,
+        parkPillarsCursor: _parkCaptureCursor,
       ),
       _ => throw const ReadonlyInspectionRefused(
         ReadonlyInspectionReason.command,

@@ -62,6 +62,7 @@ Future<Map<String, Object>> captureReadonlySettingsDefaults({
   required Directory repository,
   required ReadonlyInspectionSession session,
   void Function(ScreenCaptureObservation step)? onStep,
+  void Function(int processId)? parkCursor,
 }) async {
   if (!session.walletBound) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.binding);
@@ -78,6 +79,7 @@ Future<Map<String, Object>> captureReadonlySettingsDefaults({
     call: (Map<String, Object?> command) => cli.call(instance, command),
     prepareHome: session.prepareScreenHome,
     runLine: (List<String> words) async {
+      if (words case ['hover', '@0,0']) parkCursor?.call(session.processId);
       await cli.run(instance, words.first, cli.Args(words.sublist(1)));
       if (words case ['tap', '--key', 'settings_addresses']
           when !contactsSaved) {
