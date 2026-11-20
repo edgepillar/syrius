@@ -1283,7 +1283,7 @@ evidence.
 ### Windows visual capture audit at `e94d5b07` (2026-11-20)
 
 The capture plan assigns each of the 47 reference states to one producer
-and uses its dark and light PNGs. The independent readers have verified 78
+and uses its dark and light PNGs. The independent readers have verified 88
 of the 94 designated PNGs at `e94d5b07`. The Navigation producer retained
 14 images. Only the six assigned to Receive, Pillars and Plasma contribute
 to this count. The other states use their designated captures below.
@@ -1303,10 +1303,15 @@ to this count. The other states use their designated captures below.
 | Home notifications | 2 | [Home notifications](https://github.com/edgepillar/syrius/actions/runs/44805886223/job/136529652121) |
 | Home Zap preview | 2 | [Home Zap preview](https://github.com/edgepillar/syrius/actions/runs/44806031548/job/136530160456) |
 | Send warning | 2 | [Send warning](https://github.com/edgepillar/syrius/actions/runs/44806542129/job/136531930879) |
+| Staking draft | 2 | [Staking draft](https://github.com/edgepillar/syrius/actions/runs/44807670743/job/136535814569) |
+| Token creation | 2 | [Token creation](https://github.com/edgepillar/syrius/actions/runs/44808047357/job/136537122348) |
+| Wallet Ready | 2 | [Wallet Ready](https://github.com/edgepillar/syrius/actions/runs/44808430062/job/136538423605) |
+| Sentinels | 2 | [Sentinels](https://github.com/edgepillar/syrius/actions/runs/44808625163/job/136539090734) |
+| Swap start | 2 | [Swap start](https://github.com/edgepillar/syrius/actions/runs/44808633632/job/136539122116) |
 
-The remaining capture groups are token creation, staking draft, Sentinels,
-Swap start, prepared Swap, Wallet Ready, Pillar Spawn and Pillar Done.
-Both theme captures were scheduled for each group at `e94d5b07`.
+Independent verification is pending for [prepared Swap](https://github.com/edgepillar/syrius/actions/runs/44806546914),
+[Pillar Spawn](https://github.com/edgepillar/syrius/actions/runs/44806729608)
+and [Pillar Done](https://github.com/edgepillar/syrius/actions/runs/44806734839).
 
 The four Welcome and Import images have been viewed alongside their
 references. The visible backdrop differs. In 9,126 unobstructed edge
@@ -1316,7 +1321,30 @@ in the fitted mix reduces mean absolute RGB error from 1.378 to 0.687.
 The samples use columns 85–169 and 1120–1194 and rows 150–654, with a stride
 of three in both axes from the crop origin (85, 150). The reference model
 has a mean absolute error of 0.298. This estimate covers the selected
-backdrop bands. Whole-screen verdicts remain open under V01.
+backdrop bands. In both themes the Welcome heading paints at rows 235–255
+and the introduction at rows 283–295 at a 40-level luminance threshold
+relative to the crop median. Both reference bands start and end one row
+higher. The globe and action crops have their best edge agreement without
+translation. Whole-screen verdicts remain open under V01.
+
+All fourteen original Settings images were opened alongside their
+references from the verified archive. The visual differences below are
+open in both themes unless a row names one theme.
+
+| Settings state | Side-by-side finding |
+| --- | --- |
+| Node | The running panel shows the bundled installer before the update check and includes a source repository field. The reference shows a verified update and an install-and-restart action. |
+| Security | The password, backup and signature rows are present. The failed-password hint also describes shared app data in the running build. |
+| Display | The light capture selects Light. The light reference shows Dark selected. The surrounding rows are closely aligned. |
+| Wallet | Auto-receive and desktop notifications are off in the capture and on in the reference. The capture adds the Maintenance row. |
+| Apps | The capture has an empty connected list and zero sessions or pairings. The reference shows two connected entries. |
+| Addresses | The selected address retains the circular control specified by the authored CSS. The reference PNG shows a narrow marker. Balances and contact contents differ with the fixture. |
+| About | Build, node version, release badge and link count differ. Links, This computer and Licences remain visible in both versions. |
+
+The RGB comparison was performed on the original PNGs before scaling the
+side-by-side views. Node has the largest mean absolute RGB difference at
+5.505 in dark and 6.121 in light. These values record rendered differences.
+The fourteen Settings comparisons remain open under V01.
 
 ### Running motion and shader review at `06eda3f7` (2026-11-19)
 
