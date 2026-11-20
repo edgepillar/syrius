@@ -99,7 +99,7 @@ def jobs(*, positive=True):
 
 
 class ReaderTests(unittest.TestCase):
-    def test_navigation_measures_strip_edges_and_owned_badge(self):
+    def test_navigation_and_sentinel_measure_strip_edges(self):
         files = []
         background, card, ink = (100, 100, 100, 255), (120, 120, 120, 255), (80, 130, 90, 255)
         empty = b'\0' + bytes(background) * 1280
@@ -107,14 +107,17 @@ class ReaderTests(unittest.TestCase):
         divider = b'\0' + bytes((155, 156, 155, 255)) * 1280
         badge = b'\0' + bytes(background) * 140 + bytes(ink) * 54 + bytes(background) * 1086
         for theme in ('dark', 'light'):
-            for name in ('16-pillars', '23-tokens', '28-az'):
+            for name in ('16-pillars', '18-sentinels', '23-tokens', '28-az'):
                 rows = [empty] * 780
-                if name == '16-pillars':
+                if name in ('16-pillars', '18-sentinels'):
                     rows[36:106] = [surface] * 70
                     rows[118:164] = [surface] * 46
                     rows[164] = divider
                     rows[165:197] = [surface] * 32
-                    rows[209:231] = [badge] * 22
+                    if name == '16-pillars':
+                        rows[209:231] = [badge] * 22
+                    elif theme == 'light':
+                        rows[164] = empty
                 else:
                     rows[36:106] = [surface] * 70
                     rows[118:150] = [surface] * 32
@@ -123,15 +126,18 @@ class ReaderTests(unittest.TestCase):
                 png = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                        + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
                 files.append((f'{name}-{theme}.png', png, stat.S_IFREG))
-        geometry = reader.navigation_component_geometry(packed(files))
+        archive = packed(files)
+        geometry = reader.navigation_component_geometry(archive)
         strip = dict(strip_end=106, list_start=118)
         self.assertEqual(geometry['strip_boundaries']['screens'], {
             '23-tokens': dict(dark=strip, light=strip),
             '28-az': dict(dark=strip, light=None),
         })
-        self.assertEqual(geometry['pillar_table_edges']['themes'], dict.fromkeys(
-            ('dark', 'light'),
-            dict(strip_end=106, list_start=118, tab_divider=164, column_headings_start=165)))
+        nodes = dict(strip_end=106, list_start=118, tab_divider=164, column_headings_start=165)
+        self.assertEqual(geometry['pillar_table_edges']['themes'], dict(dark=nodes, light=nodes))
+        with zipfile.ZipFile(io.BytesIO(archive)) as zipped:
+            self.assertEqual(reader._nodes_table_edges(zipped, '18-sentinels'),
+                             dict(column=900, scan_rows=[100, 181], themes=dict(dark=nodes, light=None)))
         self.assertEqual(geometry['pillar_owned_badge_bounds'], dict.fromkeys(
             ('dark', 'light'), dict(left=140, top=209, right=193, bottom=230)))
 
@@ -1414,6 +1420,10 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(value['verified_png_count'], 0)
         self.assertEqual(value['verified_viewport_png_count'], 0)
         self.assertNotIn('Retained readonly viewport observation', text)
+        details = next(json.loads(line.split('::', 2)[-1]) for line in text.splitlines()
+                       if line.startswith('::notice title=Retained readonly Details catalog::'))
+        self.assertEqual(details['sentinel_table_edges'],
+                         dict(column=900, scan_rows=[100, 181], themes=dict(dark=None, light=None)))
         with self.assertRaises(reader.archive.Refused):
             self.run_main(catalog_only='sentinel-fixture', extra_viewport=True)
         current, _, _ = self.run_main(

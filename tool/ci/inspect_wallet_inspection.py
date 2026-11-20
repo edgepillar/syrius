@@ -702,12 +702,26 @@ def plasma_bolt_bounds(raw, screen):
                            lambda red, green, blue: min(red, green, blue) >= 252)
 
 
+def _nodes_table_edges(zipped, screen):
+    column, top, bottom = 900, 100, 181
+    themes = {}
+    for theme in producer.navigation.THEMES:
+        bands = _vertical_bands(zipped, f'{screen}-{theme}.png', column, top, bottom)
+        themes[theme] = None
+        if len(bands) != 5:
+            continue
+        rows, colors = zip(*bands)
+        card, base, line = colors[0], colors[1], colors[3]
+        if line not in (card, base) and colors == (card, base, card, line, card):
+            themes[theme] = dict(strip_end=rows[1], list_start=rows[2],
+                                 tab_divider=rows[3], column_headings_start=rows[4])
+    return dict(column=column, scan_rows=[top, bottom], themes=themes)
+
+
 def navigation_component_geometry(raw):
     """Measure the strip boundaries and owned badge in verified Navigation PNGs."""
     column, top, bottom = 900, 100, 125
     strips = {}
-    pillars_bottom = 181
-    pillars = {}
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         for screen in ('23-tokens', '28-az'):
             themes = {}
@@ -718,22 +732,11 @@ def navigation_component_geometry(raw):
                 if len(bands) == 3 and bands[0][1] == bands[2][1]:
                     themes[theme] = dict(strip_end=bands[1][0], list_start=bands[2][0])
             strips[screen] = themes
-        for theme in producer.navigation.THEMES:
-            bands = _vertical_bands(zipped, f'16-pillars-{theme}.png',
-                                    column, top, pillars_bottom)
-            pillars[theme] = None
-            if len(bands) != 5:
-                continue
-            rows, colors = zip(*bands)
-            card, base, line = colors[0], colors[1], colors[3]
-            if line not in (card, base) and colors == (card, base, card, line, card):
-                pillars[theme] = dict(strip_end=rows[1], list_start=rows[2],
-                                      tab_divider=rows[3], column_headings_start=rows[4])
+        pillars = _nodes_table_edges(zipped, '16-pillars')
         badge = _ink_bounds(zipped, '16-pillars', (130, 221), (201, 239),
                             lambda red, green, blue: green - red > 10 and green - blue > 7)
     return dict(strip_boundaries=dict(column=column, scan_rows=[top, bottom], screens=strips),
-                pillar_table_edges=dict(column=column, scan_rows=[top, pillars_bottom], themes=pillars),
-                pillar_owned_badge_bounds=badge)
+                pillar_table_edges=pillars, pillar_owned_badge_bounds=badge)
 
 
 def details_licence_header_chevrons(raw):
@@ -994,6 +997,9 @@ def main(parent=None):
                 catalog['component_geometry'] = details_component_geometry(catalog_archive)
             if schema == producer.details.FAMILY_SCHEMAS['earn']:
                 catalog['staking_empty_bands'] = staking_empty_bands(catalog_archive)
+            if schema == producer.details.FAMILY_SCHEMAS['sentinel-fixture']:
+                with zipfile.ZipFile(io.BytesIO(catalog_archive)) as zipped:
+                    catalog['sentinel_table_edges'] = _nodes_table_edges(zipped, '18-sentinels')
             del catalog_archive
         elif navigation_reference is not None:
             PHASE = 'navigation_catalog_artifact'

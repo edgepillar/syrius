@@ -1525,6 +1525,14 @@ existing height. The list viewport, scroll extent and closed header geometry
 stay unchanged. The existing open and close case checks the rule and header
 height. A fresh Windows image and whole-image verdicts remain open.
 
+The [Details run at `61e72335`](https://github.com/edgepillar/syrius/actions/runs/44664951521/job/136051868911)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44666922943/job/136058352824)
+verify all ten original PNGs and the normal required closure. The new
+Licences rule occupies row 191 at column 700 in both themes, matching the
+references. All 13 measured divider spans intersect their corresponding
+reference rows in both themes, including the footer at row 627. This
+verifies the divider placement. Whole-image review remains open.
+
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references
 use rows 106 and 118. The delegation strip now uses the same compact inset
@@ -1543,6 +1551,10 @@ heading boundary in the same crop as the strip and list edges. At column
 107, 119, 167 and 168 in both themes. The reference rows are 106, 118,
 164 and 165. The reader leaves the geometry unavailable if the measured
 bands do not have the expected structure.
+The Sentinel catalog reader now uses the same crop and band checks on the
+two original Sentinel PNGs. At column 900 both Sentinel references use
+the same four transition rows as Pillars. The reader still qualifies
+each original archive and closed session before measuring the pixels.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
