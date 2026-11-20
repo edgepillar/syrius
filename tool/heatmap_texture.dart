@@ -7,7 +7,7 @@
 // The shader cannot blur at run time, so the blur is baked into the channels
 // of one image, as Paper's `toProcessedHeatmap` does for the shader this one
 // is ported from (paper-design/shaders, heatmap.ts):
-//   R  the shape itself: 0 inside the mark, 1 outside
+//   R  silhouette coverage: 0 inside the mark, 1 outside
 //   G  the shape under a wide blur: drives the inner and outer glow
 //   B  the shape under a tight blur: the hot contour at the edge
 // The square texture keeps the original blur radii and padding.
@@ -28,6 +28,7 @@ const List<List<double>> _bolt = <List<double>>[
 ];
 
 const int _rasterBase = 512;
+const int _slotSize = 120;
 
 void main(List<String> args) {
   if (args.length == 2 && args[0] == '--inspect') {
@@ -62,12 +63,16 @@ void main(List<String> args) {
 
   final Uint8List wide = _blur(gray, size, size, maxBlur, 3);
   final Uint8List contour = _blur(gray, size, size, 5, 1);
+  // Integrate the silhouette over roughly one pixel at the authored slot
+  // size. A point sample of the unfiltered mask fills the narrow miter tips.
+  final int coverageRadius = (size / (2 * _slotSize)).floor();
+  final Uint8List coverage = _blur(gray, size, size, coverageRadius, 1);
 
   final img.Image out = img.Image(width: size, height: size, numChannels: 4);
   for (int y = 0; y < size; y++) {
     for (int x = 0; x < size; x++) {
       final int i = y * size + x;
-      out.setPixelRgba(x, y, gray[i], wide[i], contour[i], 255);
+      out.setPixelRgba(x, y, coverage[i], wide[i], contour[i], 255);
     }
   }
   final File file = File('assets/images/plasma_heatmap.png')
@@ -77,7 +82,7 @@ void main(List<String> args) {
 
 List<List<double>> _boltOutline(int textureSize) {
   // The 24-unit SVG is 54 px square in the reference's 120 px slots.
-  final double scale = textureSize * 54 / (120 * 24);
+  final double scale = textureSize * 54 / (_slotSize * 24);
   final double offset = (textureSize - 24 * scale) / 2;
   final List<List<double>> outline = <List<double>>[];
   for (int i = 0; i < _bolt.length; i++) {

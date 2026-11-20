@@ -694,6 +694,7 @@ summary without creating a gallery, extracting images or rendering heatmaps.
 The retained Details archive at `fb3b2a01` supplies ten of the 94 target pairs
 to this mode. A different target revision supplies zero, and a deliberately
 wrong image digest excludes that pair. The whole-image verdicts remain open.
+All 23 comparison tests pass with the summary mode at `962bd1dc`.
 The four [Welcome and Import originals](https://github.com/edgepillar/syrius/actions/runs/44582250018/job/135765713115)
 also read directly from their retained archive at 1280 by 780 using their
 original filenames, with no extracted image copies.
@@ -939,6 +940,17 @@ pixels whose RGB channels are all at least 252. The full native shader
 comparison remains open.
 The independent Navigation and Details readers can report those solid
 bolt bounds from the original Windows captures without extracting images.
+The [Linux run at `672dc7a5`](https://github.com/edgepillar/syrius/actions/runs/44644399206/job/135983210231)
+passes the white-core and moving-halo check, with 5,126 tests passed and one
+existing skip. The [authored-mask run at `ea6eeea2`](https://github.com/edgepillar/syrius/actions/runs/44644951884/job/135985051679)
+reports 52 solid rows and fails the new height assertion. The generator
+now filters only the red coverage channel over approximately one 120 px
+slot pixel before handing it to the shader. The wide and tight heatmap
+blur channels and the runtime assertion remain in place.
+A linear point-sample calculation of the filtered mask at 120 px gives a
+35 by 47 px solid core. Its predicted solid coverage differs from the
+reference at nine dark pixels and eighteen light pixels. The updated
+runtime result is pending.
 
 ### Transfer address chip at `fb3b2a01`
 
