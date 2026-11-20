@@ -2590,6 +2590,14 @@ curve places the first light and dark observations at about 16 ms and
 and late samples. The inferred dark clock position does not identify
 which frames were rendered or where the startup delay occurred.
 
+The [cold timing read at `1aaae34c`](https://github.com/edgepillar/syrius/actions/runs/44835779329/job/136631709443)
+verifies 95 redesign frames, 1,163 P06 frames and five normal exits.
+The raster and distinct-frame rankings meet the comparison. Build
+fails it, with one frame above 16 ms in each window and peaks of
+23.196 ms on redesign and 18.038 ms on P06. The redesign's longest
+build begins 2.954 s before recorded shell authentication arrival.
+Both windows retain frame-key gaps. V02 remains open.
+
 The [cold Windows producer at `b3d2a1d1`](https://github.com/edgepillar/syrius/actions/runs/44786324542/job/136462042874)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44790155159/job/136475393710)
 verify 84 redesign frames and four normal process exits. The original
