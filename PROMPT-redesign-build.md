@@ -1736,7 +1736,18 @@ later locks. A cold Lock still lays out the original authentication owner
 and status strip. The [Linux run at `2b554082`](https://github.com/edgepillar/syrius/actions/runs/44749555233/job/136333570374)
 passes strict selected analysis, the full non-chain tests and generated-file
 verification. The shell widget test checks the first mount and the retained
-rail and password-field state across later locks. Native timing remains open.
+rail and password-field state across later locks.
+
+The [paired Windows run at `f08caf4b`](https://github.com/edgepillar/syrius/actions/runs/44751171761)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44754489371/job/136350541599)
+verify 109 redesign frames, 252 P06 frames and five normal actor exits.
+Over 16 ms, both report zero slow build frames. The redesign reports 22
+slow raster and distinct frames, versus 157 for P06. The redesign's
+longest build takes 14.228 ms and its longest raster takes 86.649 ms.
+The comparison finds no added slow frames in the original records.
+The windows retain 17 and 92 frame-number gaps. V02 still requires the
+complete frame windows, the page-change and disclosure comparisons and
+the running motion and shader review.
 
 The [Windows baseline at `650bbb8a`](https://github.com/edgepillar/syrius/actions/runs/44737155697)
 passes both the Debug and Release builds with complete output. The
