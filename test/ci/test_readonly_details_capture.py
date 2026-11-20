@@ -364,10 +364,17 @@ class DetailsCatalogTests(unittest.TestCase):
             (16, ['az', 'az-project'],
                 ['28-az-dark.png', '28-az-light.png',
                  '29-az-project-dark.png', '29-az-project-light.png']),
+            (18, ['staking', 'tokens', 'token-mine'],
+                ['13-staking-dark.png', '13-staking-light.png',
+                 '23-tokens-dark.png', '23-tokens-light.png',
+                 '24-token-mine-dark.png', '24-token-mine-light.png']),
         )
         self.assertEqual(details.catalog_script_name(16, 'az'), 'prepared/az.txt')
         self.assertEqual(details.catalog_script_name(16, 'az-project'), 'az-project.txt')
         self.assertEqual(details.catalog_script_name(7, 'az-project'), 'az-project.txt')
+        self.assertEqual(details.catalog_script_name(18, 'tokens'), 'prepared/tokens.txt')
+        self.assertEqual(details.catalog_script_name(4, 'token-mine'), 'token-mine.txt')
+        self.assertEqual(details.catalog_script_name(18, 'token-mine'), 'token-mine.txt')
         for schema, screens, files in families:
             with self.subTest(schema=schema):
                 pins = {screen: str(index)*64
@@ -396,6 +403,11 @@ class DetailsCatalogTests(unittest.TestCase):
                 extra, _ = bundle(report, dict(images, **{'unexpected.png': png()}))
                 with self.assertRaises(details.Refused):
                     details.unpack(extra, details.sha(extra), len(extra),
+                        HEAD, TREE, RUN, reference, pins)
+                missing, _ = bundle(report, {name: image for name, image in images.items()
+                                            if name != files[-1]})
+                with self.assertRaises(details.Refused):
+                    details.unpack(missing, details.sha(missing), len(missing),
                         HEAD, TREE, RUN, reference, pins)
                 with self.assertRaises(legacy.Refused):
                     legacy.inspection_catalog_reference(dict(schema=4,

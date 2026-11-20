@@ -519,10 +519,13 @@ class ReopenDiagnosticTests(unittest.TestCase):
                       screen='az-project')
         project_catalog = dict(capture, kind='restored_project_catalog_capture_failure',
                                screen='az')
-        for scoped in (draft, detail, project_catalog):
+        held_tokens = dict(capture, kind='restored_seeded_visual_capture_failure',
+                           screen='tokens')
+        for scoped in (draft, detail, project_catalog, held_tokens):
             self.assertEqual(restored.child_failure_projection(dict(child,
                 capture=scoped))['capture'], scoped)
         for wrong in (dict(capture, screen='staking-new'),
+                      dict(capture, screen='tokens'),
                       dict(draft, screen='az-project'), dict(detail, screen='az'),
                       dict(project_catalog, screen='staking')):
             with self.assertRaises(restored.checkpoint.Refused):

@@ -515,6 +515,7 @@ Map<String, Object?>? restoredChildFailure(
   bool pillarSpawn = false,
   bool pillarDone = false,
   bool swapList = false,
+  bool includeTokenList = false,
 }) {
   if (!restoredChildPhases.contains(phase)) return null;
   if (surfaceOperation != null &&
@@ -523,7 +524,7 @@ Map<String, Object?>? restoredChildFailure(
        captureStep?.screen != null || captureStep?.theme != null ||
        captureStep?.line != null ||
        selection != RestoredSeedSelection.seededCatalog ||
-       pillarSpawn || pillarDone || swapList)) {
+       pillarSpawn || pillarDone || swapList || includeTokenList)) {
     return null;
   }
   String kind = 'OTHER_ERROR';
@@ -583,6 +584,8 @@ Map<String, Object?>? restoredChildFailure(
           : pillarDone ? 'restored_pillar_done_capture_failure'
           : pillarSpawn ? 'restored_pillar_spawn_capture_failure'
           : switch (selection) {
+        RestoredSeedSelection.seededCatalog when includeTokenList =>
+          'restored_seeded_visual_capture_failure',
         RestoredSeedSelection.stakeDraft =>
           'restored_stake_draft_capture_failure',
         RestoredSeedSelection.projectDetail =>
@@ -850,6 +853,14 @@ const List<String> _seededFiles = <String>[
   '13-staking-dark.png', '13-staking-light.png',
   '24-token-mine-dark.png', '24-token-mine-light.png',
 ];
+const List<String> _seededVisualScreens = <String>[
+  'staking', 'tokens', 'token-mine',
+];
+const List<String> _seededVisualFiles = <String>[
+  '13-staking-dark.png', '13-staking-light.png',
+  '23-tokens-dark.png', '23-tokens-light.png',
+  '24-token-mine-dark.png', '24-token-mine-light.png',
+];
 const List<String> _stakeDraftScreens = <String>['staking-new'];
 const List<String> _stakeDraftFiles = <String>[
   '14-staking-new-dark.png', '14-staking-new-light.png',
@@ -894,6 +905,12 @@ const Set<String> _seededLines = <String>{
   'assert --key mint_amount_field --kind field',
   'wait --type EventToast --gone --timeout 10',
   'wait --key mint_amount_field --kind field --gone --timeout 10',
+};
+
+const Set<String> _seededVisualLines = <String>{
+  ..._seededLines,
+  'assert --key token_action_mode_mint --exact',
+  'wait --key token_action_mode_mint --gone --timeout 10',
 };
 
 const Set<String> _stakeDraftLines = <String>{
@@ -1174,6 +1191,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
   required Future<void> Function(String) emitMarker,
   required void Function(PreparedSurfaceOperation) onPreparedOperation,
   required bool observeSeededSeams,
+  bool includeTokenList = false,
   Future<PreparedTokenHolder> Function()? prepareTokenHolder,
   String? pillarSpawnProducer,
   bool pillarDone = false,
@@ -1200,6 +1218,9 @@ Future<Map<String, Object>> _captureSeededCatalog(
           files: const <String>['19-spawn-dark.png', '19-spawn-light.png'],
           lines: _spawnLines)
       : switch (selection) {
+    RestoredSeedSelection.seededCatalog when includeTokenList =>
+      (schema: 18, screens: _seededVisualScreens, files: _seededVisualFiles,
+       lines: _seededVisualLines),
     RestoredSeedSelection.seededCatalog =>
       (schema: 4, screens: _seededScreens, files: _seededFiles,
        lines: _seededLines),
@@ -1282,6 +1303,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
   final ScreenCapture capture = ScreenCapture(
     repository: Directory(cli.repo),
     restoredSeeded: true,
+    restoredTokenList: includeTokenList,
     restoredProject: projectDetail,
     restoredPillarSpawn: pillarSpawn,
     restoredPillarDone: pillarDone,
@@ -1447,6 +1469,7 @@ Future<void> main() async {
   bool pillarSpawn = false;
   bool pillarDone = false;
   bool swapList = false;
+  bool includeTokenList = false;
   try {
     final Map<String, String> env = Platform.environment;
     final String name = env['SYRIUS_CI_REOPEN_INSTANCE'] ?? '';
@@ -1470,6 +1493,7 @@ Future<void> main() async {
     pillarSpawn = captureMode == 'pillar-spawn';
     pillarDone = captureMode == 'pillar-done';
     swapList = captureMode == 'swap-seeded';
+    includeTokenList = captureMode == 'seeded-states-visual';
     final bool observeSeededSeams = captureMode == 'true';
     final bool seededCapture =
         pillarSpawn || pillarDone || swapList ||
@@ -1772,6 +1796,7 @@ Future<void> main() async {
         (ScreenCaptureObservation step) => captureStep = step,
         selection: selection,
         observeSeededSeams: observeSeededSeams,
+        includeTokenList: includeTokenList,
         emitMarker: marker,
         swapList: swapList,
         onPreparedOperation: (PreparedSurfaceOperation operation) =>
@@ -1807,7 +1832,7 @@ Future<void> main() async {
       phase, error, captureStep: captureStep,
       surfaceOperation: surfaceOperation,
       selection: selection, pillarSpawn: pillarSpawn, pillarDone: pillarDone,
-      swapList: swapList,
+      swapList: swapList, includeTokenList: includeTokenList,
     );
     if (failure != null) {
       stdout.writeln('CI_REOPEN_FAILURE:${jsonEncode(failure)}');

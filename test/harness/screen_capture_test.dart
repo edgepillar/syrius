@@ -478,6 +478,7 @@ void main() {
           throwsA(isA<ScreenCaptureError>()));
       ScreenCapture ownedCapture({
         required bool project,
+        bool tokenList = false,
         bool pillarSpawn = false,
         bool pillarDone = false,
       }) => ScreenCapture(
@@ -488,6 +489,7 @@ void main() {
         assertionFor: (List<String> words) =>
             cli.assertionArgs(cli.Args(words.sublist(1))),
         restoredSeeded: true,
+        restoredTokenList: tokenList,
         restoredProject: project,
         restoredPillarSpawn: pillarSpawn,
         restoredPillarDone: pillarDone,
@@ -509,6 +511,34 @@ void main() {
       expect(seeded.afterCapture.last.words,
           <String>['wait', '--key', 'mint_amount_field', '--kind', 'field',
                    '--gone', '--timeout', '10']);
+      writeScript('tokens',
+          File('harness/screens/tokens.txt').readAsStringSync());
+      writeScript('prepared/tokens',
+          File('harness/screens/prepared/tokens.txt').readAsStringSync());
+      expect(capture.preflight('tokens').single.assertion['key'],
+          'tokens_search_field');
+      expect(seededCapture.preflight('tokens').single.assertion['key'],
+          'tokens_search_field');
+      final ScreenScript held = ownedCapture(project: false, tokenList: true)
+          .preflight('tokens').single;
+      expect(held.assertion['key'], 'token_action_mode_mint');
+      expect(held.assertion['exact'], isTrue);
+      expect(held.lines.map((ScreenLine line) => line.words.join(' ')),
+          <String>[
+            'goto tokens',
+            'wait --key tokens_filter_held --timeout 30',
+            'tap --key tokens_filter_held',
+            'key ctrl+r',
+            'wait --key @issued-token-row --timeout 30',
+            'tap --key @issued-token-row',
+            'wait --key token_action_mode_mint --timeout 30',
+            'assert --key token_action_mode_mint --exact',
+          ]);
+      expect(held.afterCapture.map((ScreenLine line) => line.words.join(' ')),
+          <String>[
+            'tap --key @issued-token-row',
+            'wait --key token_action_mode_mint --gone --timeout 10',
+          ]);
       writeScript('az-project',
           File('harness/screens/az-project.txt').readAsStringSync());
       expect(() => seededCapture.preflight('az-project'),

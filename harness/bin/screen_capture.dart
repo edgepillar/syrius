@@ -375,6 +375,7 @@ class ScreenCapture {
     this.readonlyEarn = false,
     this.readonlyWalletReady = false,
     this.restoredSeeded = false,
+    this.restoredTokenList = false,
     this.restoredProject = false,
     this.restoredPillarSpawn = false,
     this.restoredPillarDone = false,
@@ -395,6 +396,7 @@ class ScreenCapture {
   final bool readonlyEarn;
   final bool readonlyWalletReady;
   final bool restoredSeeded;
+  final bool restoredTokenList;
   final bool restoredProject;
   final bool restoredPillarSpawn;
   final bool restoredPillarDone;
@@ -464,6 +466,7 @@ class ScreenCapture {
   ScreenScript _script(ScreenSpec screen) {
     final bool prepared = switch (screen.id) {
       'az' => restoredSeeded && restoredProject,
+      'tokens' => restoredSeeded && restoredTokenList && !restoredProject,
       'send-rest' => readonlySendConfirmation,
       _ => false,
     };
@@ -498,7 +501,8 @@ class ScreenCapture {
             screen.id == 'swap-start' &&
             text == '# prerequisite: readonly-lab-swap-start';
         final bool tokenPrepared = restoredSeeded && !restoredProject &&
-            screen.id == 'token-mine' &&
+            (screen.id == 'token-mine' ||
+             (screen.id == 'tokens' && prepared)) &&
             text == '# prerequisite: restored-lab-token';
         final bool projectPrepared = restoredSeeded && restoredProject &&
             (screen.id == 'az' || screen.id == 'az-project') &&

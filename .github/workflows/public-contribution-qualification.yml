@@ -958,7 +958,7 @@ jobs:
           if-no-files-found: error
           path: .harness/ci-wallet-tour/manifest.json
 
-      - name: Retain the four verified restored state captures
+      - name: Retain the verified restored state captures
         if: success() && inputs.windows_wallet_tour && (inputs.readonly_catalog_family == 'seeded-states' || inputs.readonly_catalog_family == 'seeded-states-visual')
         uses: actions/upload-artifact@v7
         with:
@@ -970,6 +970,8 @@ jobs:
             .harness/ci-seeded-catalog/manifest.json
             .harness/ci-seeded-catalog/13-staking-dark.png
             .harness/ci-seeded-catalog/13-staking-light.png
+            ${{ inputs.readonly_catalog_family == 'seeded-states-visual' && '.harness/ci-seeded-catalog/23-tokens-dark.png' || '' }}
+            ${{ inputs.readonly_catalog_family == 'seeded-states-visual' && '.harness/ci-seeded-catalog/23-tokens-light.png' || '' }}
             .harness/ci-seeded-catalog/24-token-mine-dark.png
             .harness/ci-seeded-catalog/24-token-mine-light.png
 
