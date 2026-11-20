@@ -724,9 +724,11 @@ def _nodes_table_edges(zipped, screen):
 
 
 def navigation_component_geometry(raw):
-    """Measure the strip boundaries and owned badge in verified Navigation PNGs."""
+    """Measure strip boundaries, the Pillars table and its expanded row."""
     column, top, bottom = 900, 100, 125
+    detail_column, detail_top, detail_bottom = 1100, 186, 398
     strips = {}
+    pillar_rows = {}
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         for screen in ('23-tokens', '28-az'):
             themes = {}
@@ -740,8 +742,15 @@ def navigation_component_geometry(raw):
         pillars = _nodes_table_edges(zipped, '16-pillars')
         badge = _ink_bounds(zipped, '16-pillars', (130, 221), (201, 239),
                             lambda red, green, blue: green - red > 10 and green - blue > 7)
+        for theme in producer.navigation.THEMES:
+            bands = _vertical_bands(zipped, f'16-pillars-{theme}.png',
+                                    detail_column, detail_top, detail_bottom)
+            pillar_rows[theme] = ([[start, *color[:3]] for start, color in bands]
+                                  if 2 <= len(bands) <= 10 else None)
     return dict(strip_boundaries=dict(column=column, scan_rows=[top, bottom], screens=strips),
-                pillar_table_edges=pillars, pillar_owned_badge_bounds=badge)
+                pillar_table_edges=pillars, pillar_owned_badge_bounds=badge,
+                pillar_row_bands=dict(column=detail_column,
+                    scan_rows=[detail_top, detail_bottom], themes=pillar_rows))
 
 
 def details_licence_header_chevrons(raw):
@@ -808,6 +817,44 @@ def _details_originals_footer_rows(zipped):
     return dict(column=column, scan_rows=[top, bottom], themes=themes)
 
 
+def _details_plasma_fuse_geometry(zipped):
+    distances = (22, 38, 54, 66)
+    center = 230
+    halo_left, halo_right = center - distances[-1], center + distances[-1] + 1
+    action_left, action_right = 1141, 1262
+    action_bands = ((264, 290), (343, 369), (388, 414), (433, 459))
+    themes = {}
+    for theme in producer.details.THEMES:
+        encoded = base64.b64encode(zipped.read(f'22-plasma-fuse-{theme}.png')).decode('ascii')
+        halo, channels = windows._png_crop(encoded, (halo_left, halo_right), (114, 122))
+        samples = None
+        if windows._opaque(halo, channels):
+            samples = [
+                [round(sum(row[(x - halo_left) * channels + channel] for row in halo
+                           for x in (center - distance, center + distance)) / (2 * len(halo)))
+                 for channel in range(3)]
+                for distance in distances
+            ]
+        start, end = action_bands[0][0], action_bands[-1][1]
+        actions, channels = windows._png_crop(encoded, (action_left, action_right), (start, end))
+        bounds = []
+        for index, (top, bottom) in enumerate(action_bands):
+            band = actions[top - start:bottom - start]
+            left = action_left if index == 0 else 1165
+            painted = []
+            if windows._opaque(band, channels):
+                for row in band:
+                    background = row[-channels:][:3]
+                    for x in range(left, action_right - 1):
+                        offset = (x - action_left) * channels
+                        if any(abs(value - base) >= 5
+                               for value, base in zip(row[offset:offset + 3], background)):
+                            painted.append(x)
+            bounds.append([min(painted), max(painted) + 1] if painted else None)
+        themes[theme] = dict(halo_rgb=samples, cancel_columns=bounds)
+    return dict(halo_distances=list(distances), themes=themes)
+
+
 def details_component_geometry(raw):
     """Measure the changed components together from the original Details archive."""
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
@@ -819,6 +866,7 @@ def details_component_geometry(raw):
             receive_qsr_label=_ink_bounds(zipped, '10-receive-qr', (850, 906), (241, 265),
                 lambda red, green, blue: min(red, green, blue) >= 80, relative_to_background=True),
             plasma_footer_clear=_details_plasma_footer_clear(zipped),
+            plasma_fuse=_details_plasma_fuse_geometry(zipped),
         )
 
 

@@ -1259,6 +1259,9 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(observed['plasma_bolt_bounds'], dict(dark=None, light=None))
         self.assertEqual(observed['component_geometry']['pillar_owned_badge_bounds'],
                          dict(dark=None, light=None))
+        self.assertEqual(observed['component_geometry']['pillar_row_bands'],
+                         dict(column=1100, scan_rows=[186, 398],
+                              themes=dict(dark=None, light=None)))
         value, calls, text = self.run_main(details_catalog=True)
         self.assertTrue(value['native_inspection_qualified'])
         self.assertEqual(value['verified_catalog_png_count'], 10)
@@ -1289,7 +1292,11 @@ class ReaderTests(unittest.TestCase):
                 themes=dict(dark=None, light=None)),
             receive_qsr_mark=dict(dark=None, light=None),
             receive_qsr_label=dict(dark=None, light=None),
-            plasma_footer_clear=dict(dark=True, light=True)))
+            plasma_footer_clear=dict(dark=True, light=True),
+            plasma_fuse=dict(halo_distances=[22, 38, 54, 66],
+                themes={theme: dict(halo_rgb=[[0, 0, 0]] * 4,
+                                    cancel_columns=[None] * 4)
+                        for theme in ('dark', 'light')})))
         packed = io.BytesIO()
         background = bytes((100, 100, 100, 255))
         ordinary = b'\0' + background * 1280
@@ -1315,9 +1322,17 @@ class ReaderTests(unittest.TestCase):
             name: dict(dark=[52, 78], light=[52, 78]) for name in ('10-receive-qr', '11-zap-form')
         })
         white = b'\0' + background * 211 + b'\xff' * (4 * 36) + background * 1033
-        pixels = ordinary * 94 + white * 47 + ordinary * 639
+        rows = [ordinary] * 94 + [white] * 47 + [ordinary] * 639
+        halo = bytes((135, 95, 190, 255))
+        halo_row = (b'\0' + background * 208 + halo + background * 2
+                    + b'\xff' * (4 * 36) + background * 5 + halo + background * 1027)
+        rows[114:122] = [halo_row] * 8
+        batch = b'\0' + background * 1141 + mark_blue * 107 + background * 32
+        cancel = b'\0' + background * 1187 + mark_blue * 61 + background * 32
+        rows[264:290] = [batch] * 26
+        rows[343:369] = rows[388:414] = rows[433:459] = [cancel] * 26
         bolt = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
-                + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
+                + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
         with zipfile.ZipFile(packed, 'a') as zipped:
             for theme in ('dark', 'light'):
                 zipped.writestr(f'22-plasma-fuse-{theme}.png', bolt)
@@ -1361,7 +1376,11 @@ class ReaderTests(unittest.TestCase):
                 themes=dict(dark=dict(divider=[512, 513], card_end=561), light=None)),
             receive_qsr_mark=dict(dark=mark, light=mark),
             receive_qsr_label=dict(dark=label, light=label),
-            plasma_footer_clear=dict(dark=True, light=True)))
+            plasma_footer_clear=dict(dark=True, light=True),
+            plasma_fuse=dict(halo_distances=[22, 38, 54, 66],
+                themes={theme: dict(halo_rgb=[[135, 95, 190]] + [[100, 100, 100]] * 3,
+                                    cancel_columns=[[1141, 1248]] + [[1187, 1248]] * 3)
+                        for theme in ('dark', 'light')})))
 
         value, calls, text = self.run_main(catalog_only='send-confirm')
         self.assertTrue(value['native_inspection_qualified'])

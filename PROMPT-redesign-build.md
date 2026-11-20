@@ -1628,6 +1628,9 @@ assertion. The capture test now admits the new pointer move only on
 Pillars after opening the original row and checks the exact resting point.
 The [Linux run at `834c6fec`](https://github.com/edgepillar/syrius/actions/runs/44674237549)
 passes the full non-chain suite and generated-file check.
+The [updated Windows producer](https://github.com/edgepillar/syrius/actions/runs/44674237541/job/136082140505)
+retains the Navigation catalog. Its independent reader samples the
+disclosure and closed row fills in both themes at column 1100.
 
 The [Linux run at `61e72335`](https://github.com/edgepillar/syrius/actions/runs/44664606334/job/136050757368)
 reports 5124 passes, two failures in the segment heading suite and one
@@ -1719,6 +1722,10 @@ heading uses the row's trailing inset for both the batch button and
 selection hint. The widget cases check the common trailing edge,
 26 px button height and original column widths. Fresh comparisons
 remain open under V01.
+The independent Details reader measures both themes directly from the
+verified originals. It records four symmetric halo samples and the
+painted column spans of the batch and three row actions. The existing
+fixture covers visible actions and the absence of paint in those bands.
 
 The [seeded visual run at `11398595`](https://github.com/edgepillar/syrius/actions/runs/44672157292/job/136075382385)
 builds the native wallet and retains the six-image catalog. The
