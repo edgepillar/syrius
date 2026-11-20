@@ -23,10 +23,11 @@ flutter build windows --debug --no-pub --dart-define-from-file=.dart_tool/git_me
 flutter build windows --release --no-pub --dart-define-from-file=.dart_tool/git_metadata.json
 ```
 
-The [latest independently verified baseline](https://github.com/edgepillar/syrius/actions/runs/44740753300/job/136303512144)
-covers both builds at `650bbb8a`. The [baseline at `bfb83ea8`](https://github.com/edgepillar/syrius/actions/runs/44744248162)
-covers the newer launch candidate and is running. Visual and motion acceptance
-is tracked in the [redesign ledger](../PROMPT-redesign-build.md).
+The [independently verified baseline](https://github.com/edgepillar/syrius/actions/runs/44748678289/job/136330550619)
+covers both builds and all 12 baseline checks at `bfb83ea8`. The original
+Windows run reports 5,128 passing non-chain tests, one skip and zero analyzer
+errors or warnings. Visual and motion acceptance is tracked in the
+[redesign ledger](../PROMPT-redesign-build.md).
 
 ## Current qualification status (2026-11-18)
 

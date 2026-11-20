@@ -1689,8 +1689,11 @@ and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44745
 verify three light images and two dark images, with two normal actor exits
 per theme. Light first observes progress 0.391 and fills all three slots.
 Dark first observes progress 0.558 and retains its early-slot failure.
-The [Debug and Release baseline](https://github.com/edgepillar/syrius/actions/runs/44744248162)
-is running at `bfb83ea8`. The [paired timing run at `cbcaf91b`](https://github.com/edgepillar/syrius/actions/runs/44746000691)
+The [Debug and Release baseline at `bfb83ea8`](https://github.com/edgepillar/syrius/actions/runs/44744248162)
+passes all 12 checks. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44748678289/job/136330550619)
+verifies exit zero and complete output for Debug (145.156 s) and Release
+(187.328 s). Windows reports 5,128 passing non-chain tests, one skip and
+zero analyzer errors or warnings. The [paired timing run at `cbcaf91b`](https://github.com/edgepillar/syrius/actions/runs/44746000691)
 samples the same fade code with the original P06 comparison. Only the
 ledger and environment documentation differ between these revisions.
 
