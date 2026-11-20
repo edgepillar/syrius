@@ -114,6 +114,59 @@ class ArchiveReadCacheTests(unittest.TestCase):
         self.assertEqual(report["summary"]["target_pairs"]["available"], 2)
 
 
+class CaptureCatalogTests(unittest.TestCase):
+    def test_prepared_capture_replaces_diagnostic_only_at_the_target_source(self) -> None:
+        repo = Path("catalog-fixture")
+        screen = Screen(7, "send-rest", "Send", repo / "transfer.html")
+        stem = screen.stem("dark")
+        target, previous = "a" * 40, "b" * 40
+        with io.BytesIO() as data, Image.new("RGBA", (4, 3)) as image:
+            image.save(data, format="PNG")
+            png = data.getvalue()
+        digest = hashlib.sha256(png).hexdigest()
+        navigation = repo / "navigation.json"
+        prepared = repo / "prepared.json"
+        older = repo / "older.json"
+        conflicting = repo / "conflicting.json"
+
+        def manifest(family: str, directory: str, source: str) -> bytes:
+            return json.dumps({"catalog_family": family, "actual": {
+                stem: {"path": f"{directory}/{stem}.png", "sha256": digest, "source_sha": source},
+            }}).encode()
+
+        inputs = {
+            navigation: manifest("navigation", "plain", target),
+            prepared: manifest("send-confirm", "filled", target),
+            older: manifest("send-confirm", "prior", previous),
+            conflicting: manifest("send-confirm", "conflict", target),
+        }
+        review = {stem: {"verdict": "match", "reviewer": "Fixture",
+                         "reviewed_at": "2026-11-20T00:00:00Z",
+                         "expected_sha256": digest, "actual_sha256": digest}}
+        with (
+            patch.object(Path, "is_file", return_value=True),
+            patch.object(Path, "open", autospec=True,
+                         side_effect=lambda path, *_: io.BytesIO(inputs[path])),
+            patch("redesign_compare.screen_inventory", return_value=[screen]),
+            patch("redesign_compare.screen_notes", return_value={screen.id: []}),
+            patch("redesign_compare.load_reviews", return_value=review),
+            patch("redesign_compare.bounded_bytes", return_value=png),
+        ):
+            def report(*sources: Path) -> dict[str, object]:
+                return generate_report(repo, None, None, actual_manifest=sources,
+                                       target_source=target, required_size=(4, 3))
+
+            diagnostic = report(navigation, older)
+            self.assertEqual(diagnostic["pairs"][0]["state"], "diagnostic-capture")
+            self.assertEqual(diagnostic["summary"]["target_pairs"]["available"], 0)
+            selected = report(navigation, older, prepared)
+            self.assertEqual(selected["pairs"][0]["actual"]["catalog_family"], "send-confirm")
+            self.assertEqual(selected["pairs"][0]["state"], "reviewed-match")
+            self.assertEqual(selected["summary"]["target_pairs"]["available"], 1)
+            with self.assertRaisesRegex(ValueError, stem):
+                report(navigation, prepared, conflicting)
+
+
 class CompareTests(unittest.TestCase):
     def setUp(self) -> None:
         if TEST_ROOT is None:

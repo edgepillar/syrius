@@ -23,9 +23,13 @@ commit. With --target-source, captures from other or unknown commits remain
 visible for diagnosis and are excluded from acceptance. Supply source pins
 from the capture's verified run record. Use the original filename or a
 content-addressed file named by its digest. Missing entries remain visible.
-Pass one manifest per verified batch. For an overlapping screen and theme,
-an exact target capture takes precedence. Multiple distinct files with
-equal precedence require an explicit selection in the input manifests.
+Pass one manifest per verified batch. Add the optional top-level
+"catalog_family" from the verified producer to identify prepared captures.
+For an overlapping screen and theme, an exact target capture takes
+precedence. At that source the prepared Send, Tokens, Swap and Voting
+catalogs take precedence over their alternate captures. An alternate without
+its prepared counterpart can still be viewed as a diagnostic capture.
+Multiple distinct files with equal precedence require an explicit selection.
 For a static report on Windows, place the report and all images on the same drive.
 
 To compare from a retained ZIP, use its path in "path" and include the
@@ -102,6 +106,13 @@ MAX_CAPTURE_MANIFEST_BYTES = 256 * 1024
 MAX_IMAGE_PIXELS = 4096 * 4096
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 GIT_SHA = re.compile(r"[0-9a-f]{40}\Z")
+CATALOG_FAMILY = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\Z")
+PREPARED_CATALOGS = {
+    "07-send-rest": "send-confirm",
+    "23-tokens": "seeded-states-visual",
+    "26-swap-list": "swap-seeded",
+    "28-az": "project-detail",
+}
 DIFF_PALETTE = bytes(
     intensity * channel // 255
     for intensity in range(256)
@@ -131,6 +142,12 @@ class Capture:
     source_sha: str | None = None
     archive_member: str | None = None
     archive_sha256: str | None = None
+    catalog_family: str | None = None
+
+    def is_diagnostic(self, stem: str) -> bool:
+        prepared = PREPARED_CATALOGS.get(stem.rsplit("-", 1)[0])
+        return (prepared is not None and self.catalog_family is not None
+                and self.catalog_family != prepared)
 
 
 @dataclass(frozen=True)
@@ -218,8 +235,14 @@ def load_actual_manifest(source: Path, stems: set[str]) -> dict[str, Capture]:
         data = json.loads(raw, object_pairs_hook=unique_capture_keys)
     except (OSError, UnicodeError, json.JSONDecodeError, RecursionError) as error:
         raise ReportError("Cannot read the capture manifest JSON") from error
-    if not isinstance(data, dict) or set(data) != {"actual"} or not isinstance(data["actual"], dict):
+    if (not isinstance(data, dict) or not set(data) <= {"actual", "catalog_family"}
+            or not isinstance(data.get("actual"), dict)):
         raise ReportError("Capture manifest must have one actual object keyed by screenshot stem")
+    family = data.get("catalog_family")
+    if "catalog_family" in data and (
+        not isinstance(family, str) or len(family) > 40 or CATALOG_FAMILY.fullmatch(family) is None
+    ):
+        raise ReportError("Capture catalog family is invalid")
 
     captures: dict[str, Capture] = {}
     for stem, entry in data["actual"].items():
@@ -258,7 +281,7 @@ def load_actual_manifest(source: Path, stems: set[str]) -> dict[str, Capture]:
             resolved = (source.parent / path).resolve()
         except (OSError, RuntimeError) as error:
             raise ReportError("Cannot resolve the capture path") from error
-        captures[stem] = Capture(resolved, digest, source_sha, member, archive_digest)
+        captures[stem] = Capture(resolved, digest, source_sha, member, archive_digest, family)
     return captures
 
 
@@ -274,6 +297,7 @@ def select_actual_captures(
     for stem, choices in candidates.items():
         if target_source is not None:
             choices = {choice for choice in choices if choice.source_sha == target_source} or choices
+        choices = {choice for choice in choices if not choice.is_diagnostic(stem)} or choices
         if len(choices) != 1:
             raise ReportError(f"Capture manifests select multiple files for {stem}")
         selected[stem] = next(iter(choices))
@@ -583,6 +607,8 @@ def compare_pair(
     source_sha = capture.source_sha if capture else None
     if source_sha is not None:
         actual["source_sha"] = source_sha
+    if capture is not None and capture.catalog_family is not None:
+        actual["catalog_family"] = capture.catalog_family
     pair: dict[str, object] = {
         "id": stem,
         "screen": screen.id,
@@ -617,6 +643,9 @@ def compare_pair(
                 pair.update(state="unknown-source", reason="Actual capture has no source commit")
             else:
                 pair.update(state="other-source", reason="Actual capture is from another commit")
+        elif capture is not None and capture.is_diagnostic(stem):
+            family = PREPARED_CATALOGS[stem.rsplit("-", 1)[0]]
+            pair.update(state="diagnostic-capture", reason=f"Prepared {family} capture required")
         else:
             review = review_status(reviews.get(stem), expected["sha256"], actual["sha256"])
             pair["review"] = review

@@ -722,6 +722,14 @@ pixel differences. Pillars has the largest difference in both themes
 and uses the undelegated lab state with three rows. Tokens uses an empty
 Held view while the reference shows a populated list. These readings
 retain the original fixtures and leave whole-image verdicts open.
+Comparison manifests can now identify their verified catalog family. For
+Send, Tokens, Swap and Voting, the prepared capture takes precedence at the
+target source. A same-source diagnostic stays visible until its prepared
+counterpart is available. The coverage gate counts the prepared state.
+The existing Navigation and Details archives at `61e72335` exercise this
+path directly. The report has 16 designated pairs, eight diagnostic images
+and 70 missing images. Both archives are read without extracting PNGs or
+writing a report, and the whole-image verdicts remain open.
 The designated Send draft comes from the Send confirmation catalog. The
 [independent reader at `06eda3f7`](https://github.com/edgepillar/syrius/actions/runs/44582555309/job/135766788891)
 verifies both filled drafts and both separate confirmation images. The

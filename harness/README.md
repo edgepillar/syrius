@@ -398,6 +398,11 @@ token disclosure from `seeded-states-visual` for screen 23, the populated
 Swap list from `swap-seeded` for screen 26, and the populated Voting list
 from `project-detail` for screen 28. The `navigation` archive also retains
 the unprepared Send, Tokens, Swap and Accelerator screens.
+Add `"catalog_family"` beside `"actual"` in each input manifest to select
+these prepared pairs automatically. Use the family from the verified
+producer and the full source SHA on every capture. With `--target-source`,
+an unprepared pair at that source remains visible as a diagnostic when the
+designated capture is missing. It does not count toward target coverage.
 The `seeded-states` family additionally requires the original prepared
 holder selection and all eight surface seam observations before closure.
 The `seeded-states-visual` family requires both original seed receipts,
