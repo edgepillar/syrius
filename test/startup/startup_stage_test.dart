@@ -264,13 +264,21 @@ void main() {
       expect(tester.widget<Text>(title).style!.color, const Color(0xFF555555));
       expect(tester.widget<CustomPaint>(backdrop).painter, isNull);
 
+      final Finder auth = find.byType(LockTabChild);
+      final LockTabChild coveredAuth = tester.widget<LockTabChild>(auth);
+      final State<StatefulWidget> authState = tester.state(auth);
+      expect(coveredAuth.replay, isNull);
       await tester.tapAt(const Offset(100, 100));
       await _until(tester, () => session.film.isDone);
+      expect(tester.widget<LockTabChild>(auth), same(coveredAuth));
       expect(tester.widget<Material>(caption).color, Colors.black);
       expect(_stageRect(tester), full);
       expect(tester.widget<ClipRRect>(stage).clipBehavior, Clip.none);
 
       await _begin(tester, host);
+      expect(tester.state(auth), same(authState));
+      expect(tester.widget<LockTabChild>(auth).replay,
+          same(host.currentState!._replay));
       const AppTokens tokens = AppTokens.light;
       final int duration = tokens.launchSettleDuration.inMicroseconds;
       int low = 0;

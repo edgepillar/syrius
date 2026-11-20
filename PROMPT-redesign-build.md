@@ -1470,8 +1470,22 @@ decodes and four repeated patches. In the pinned
 each picture snapshot returns a host image. Using the engine codec for
 the original bytes bypasses the app-side snapshot for those frames.
 The existing fidelity cases exercise both codec paths and compare every
-pixel and frame duration. The running build still needs a paired
-Windows timing measurement.
+pixel and frame duration. The [paired Windows producer at `531c695d`](https://github.com/edgepillar/syrius/actions/runs/44669743137/job/136067597704)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44672186967/job/136075479886)
+verify five normal exits and 82 redesign frames against 1,797 P06 frames.
+The longest total times are 193.324 ms and 252.774 ms. The redesign's
+18.774 ms build exceeds the P06 build of 18.106 ms. It starts 44.058 ms
+after observed film completion and before observed handoff motion. The
+raster and distinct-frame comparisons meet the ranking criterion in this
+pair. The observation windows last 3.451 and 56.151 seconds and retain 23
+and 1,739 frame-number gaps, respectively. V02 remains open.
+
+The authentication subtree now listens for shell adoption and final well
+arrival. Film completion and the covered wait keep its original widget
+while the shell finishes initialization. Adoption refreshes the replay
+signal and display data on the same authentication State. The existing
+caption and handoff case exercises the unchanged input guards and retained
+owner across both boundaries.
 
 The [cold producer at `e2f1c838`](https://github.com/edgepillar/syrius/actions/runs/44655896517/job/136021904094)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44658333571/job/136030014735)

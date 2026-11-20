@@ -60,6 +60,7 @@ class StartupStageSession implements Listenable {
   final GlobalKey _authKey = GlobalKey(debugLabel: 'Startup authentication');
   final _StartupChanges _changes = _StartupChanges();
   final ValueNotifier<bool> _authInShell = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _filmInWell = ValueNotifier<bool>(false);
   final Completer<void> _detached = Completer<void>();
   final Completer<void> _cleanup = Completer<void>();
 
@@ -88,7 +89,6 @@ class StartupStageSession implements Listenable {
   VoidCallback? _afterInit;
   ValueListenable<int>? _replay;
   bool _claimed = false;
-  bool _filmInWell = false;
   bool _settleRequested = false;
   bool _handoffReferencePending = false;
   bool _waiting = false;
@@ -102,10 +102,10 @@ class StartupStageSession implements Listenable {
   bool get authInShell => _authInShell.value;
 
   /// The original film has reached and entered the actual Lock well.
-  bool get filmInWell => _filmInWell;
+  bool get filmInWell => _filmInWell.value;
 
   /// Direct callbacks obey this guard as well as pointer and focus barriers.
-  bool get interactive => !_closed && _filmInWell;
+  bool get interactive => !_closed && filmInWell;
 
   /// A closed session never starts or exposes another authentication flow.
   bool get isClosed => _closed;
@@ -185,16 +185,17 @@ class StartupStageSession implements Listenable {
   Widget buildShellAuth() => ValueListenableBuilder<bool>(
     valueListenable: _authInShell,
     builder: (_, bool attached, _) =>
-        attached ? _buildAuth() : const SizedBox.expand(),
+        attached ? _auth : const SizedBox.expand(),
   );
 
-  /// The same subtree is used by the overlay and the shell.
-  Widget _buildAuth() => KeyedSubtree(
+  // Keep the owner through film completion and the covered wait. Shell
+  // adoption refreshes its replay signal and initialized display data.
+  late final Widget _auth = KeyedSubtree(
     key: _authKey,
     child: Material(
       type: MaterialType.transparency,
       child: ListenableBuilder(
-        listenable: this,
+        listenable: Listenable.merge(<Listenable>[_authInShell, _filmInWell]),
         builder: (BuildContext context, _) => Focus(
           canRequestFocus: false,
           descendantsAreFocusable: interactive,
@@ -213,17 +214,17 @@ class StartupStageSession implements Listenable {
   /// The held image survives reparenting and becomes the well's replay host.
   Widget buildFilm() => LaunchFilm(
     key: filmKey,
-    asset: _filmInWell ? wellAsset : asset,
-    lastFrameAsset: !_filmInWell && asset == LaunchFilm.defaultAsset
+    asset: filmInWell ? wellAsset : asset,
+    lastFrameAsset: !filmInWell && asset == LaunchFilm.defaultAsset
         ? LaunchFilm.defaultLastFrameAsset
         : null,
     bundle: bundle,
     controller: film,
     // The full stage crops like the original mockup; the final well keeps
     // the same 640 by 360 frame inside its own clip.
-    fit: _filmInWell ? BoxFit.contain : BoxFit.cover,
+    fit: filmInWell ? BoxFit.contain : BoxFit.cover,
     retainImageLayout: true,
-    autoplay: !_filmInWell,
+    autoplay: !filmInWell,
     onDone: _filmDone,
   );
 
@@ -254,8 +255,8 @@ class StartupStageSession implements Listenable {
   }
 
   void _finishHandoff() {
-    if (_closed || _filmInWell || !authInShell) return;
-    _filmInWell = true;
+    if (_closed || filmInWell || !authInShell) return;
+    _filmInWell.value = true;
     motion.value = 1;
     final OverlayEntry? entry = _entry;
     _entry = null;
@@ -285,6 +286,7 @@ class StartupStageSession implements Listenable {
           film.dispose();
           motion.dispose();
           _authInShell.dispose();
+          _filmInWell.dispose();
           _changes.dispose();
           if (filmKey.currentContext != null ||
               _authKey.currentContext != null) {
@@ -570,7 +572,7 @@ class _StartupStageState extends State<_StartupStage>
                   child: Stack(
                     children: <Widget>[
                       if (!widget.session.authInShell)
-                        Positioned.fill(child: widget.session._buildAuth()),
+                        Positioned.fill(child: widget.session._auth),
                       ValueListenableBuilder<double>(
                         valueListenable: widget.session.motion,
                         child: widget.session.buildFilm(),
