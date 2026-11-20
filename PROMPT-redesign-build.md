@@ -1109,6 +1109,10 @@ The [reader at `4cecf40f`](https://github.com/edgepillar/syrius/actions/runs/446
 verifies a first observation at 0.558, with two captured images and two
 normal exits. The early slot remains missing, so the native result keeps
 its original failure.
+The [reader at `c54af49a`](https://github.com/edgepillar/syrius/actions/runs/44662866320/job/136045048400)
+verifies the same first observed progress, the late and settled PNGs,
+and two normal exits. The first observation is already past 0.55. The
+early slot remains missing and the original outcome remains a failure.
 
 The [paired cold run at `8935b5ba`](https://github.com/edgepillar/syrius/actions/runs/44593889453/job/135806899165)
 retained 85 current and 810 P06 frames with five normal actor exits. The
@@ -1459,6 +1463,21 @@ bounds after the original artifact checks. It reproduces the earlier Windows
 and reference measurements in both themes. A strip with an unexpected band
 pattern has no reported boundary. The complete reader gate passes 124 cases.
 These component measurements leave the whole-image verdicts open.
+
+The [Navigation run at `c54af49a`](https://github.com/edgepillar/syrius/actions/runs/44659985522/job/136035568424)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44662216837/job/136042910553)
+verify all 14 original PNGs and the normal wallet, entry and lab closure.
+Tokens and Accelerator now match the reference transitions at rows 106
+and 118 in both themes at column 900. The Pillars badge now matches the
+54 by 22 px painted bounds in size. Its origin remains one pixel right and
+two pixels below the reference in both themes. Whole-image review remains
+open under V01.
+
+At column 900, the earlier verified Pillars frames place the delegation
+strip end and list start at rows 107 and 119 in both themes. The references
+use rows 106 and 118. The delegation strip now uses the same compact inset
+and 70 px floor as Tokens. The additional two pixels in the tab header
+remain under review. Fresh Pillars captures are needed for the new inset.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |

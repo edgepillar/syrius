@@ -259,7 +259,9 @@ class _View extends StatelessWidget {
       listenable: BalanceVisibility.instance,
       builder: (BuildContext context, Widget? child) => PageStrip(
         key: const Key('nodes_pillars_strip'),
-        minimumContentHeight: kStripTextContentHeight,
+        // Keep the 70 px strip floor with the shorter top inset.
+        minimumContentHeight: kStripTextContentHeight + 1,
+        padding: tokens.compactStripPadding,
         figures: <StripFigure>[
           StripFigure(
             label: context.l10n.nodesDelegatedTo,
