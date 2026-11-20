@@ -376,6 +376,7 @@ class PairInspectionTests(unittest.TestCase):
         self.assertEqual(result['comparison'], value['comparison'])
         diagnostics = result['window_diagnostics']['windows']['current']
         self.assertEqual(diagnostics['phase_frames'][-1], 0)
+        self.assertEqual(diagnostics['peak_build_start_us'], 3000)
         self.assertEqual(diagnostics['peak_raster_start_bounds_us'],
                          dict(earliest=10200, latest=10200))
         self.assertEqual(diagnostics['settled_raster_starts'], dict(

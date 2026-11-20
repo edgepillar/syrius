@@ -1027,6 +1027,13 @@ actor exits. The early handoff sample is missing. The [cold launch](https://gith
 [page change and disclosure](https://github.com/edgepillar/syrius/actions/runs/44583354667/job/135769611827)
 comparisons against P06 failed the 16 ms acceptance check.
 
+The natural capture now retains the original owner's first positive
+post-frame handoff progress before the window and geometry admission checks.
+For a run with no early image attempt, this distinguishes an early clock
+observation from a first observation already at or beyond 0.55. Older
+archives keep their original fields and outcomes. The 400 ms controller,
+three image slots and image admission checks continue to apply.
+
 The [paired cold run at `8935b5ba`](https://github.com/edgepillar/syrius/actions/runs/44593889453/job/135806899165)
 retained 85 current and 810 P06 frames with five normal actor exits. The
 16 ms comparison still fails, and both samples have gaps in frame numbers.
@@ -1273,8 +1280,16 @@ and caption alignment drive both paints. The existing light and dark
 checks compare the cached paint with the analytic fallback at both
 drift endpoints, and verify the lower texture area. At a 1280 by 780
 client with device pixel ratio one, the crop calculation changes from
-1835 by 1328 pixels to 918 by 664. The timing effect needs a native
-paired measurement.
+1835 by 1328 pixels to 918 by 664.
+The [Linux run at `36ab4cab`](https://github.com/edgepillar/syrius/actions/runs/44647395832/job/135993375790)
+passes the focused backdrop tests, full non-chain suite and generated-file
+check. The [paired Windows producer](https://github.com/edgepillar/syrius/actions/runs/44647768570/job/135994631069)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44650713264/job/136004602611)
+verify 88 redesign frames, 1,555 P06 frames and five normal exits. Raster
+and distinct-frame counts meet the 16 ms comparison. The one additional
+slow build takes 25.717 ms. The redesign and P06 windows retain 29 and
+1,512 frame-number gaps. V02 remains open. Timing differences between
+the two runs leave the effect of the new sampling scale unestablished.
 
 When Originals opens at the end of the Licences list, the viewport checks
 the lazy scroll extent across its existing four layout observations. It now

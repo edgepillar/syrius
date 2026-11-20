@@ -270,6 +270,8 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
             required.add('seam_refusals')
         if motion:
             required.add('attempted_slots')
+            if type(report) is dict and 'first_observed_progress' in report:
+                required.add('first_observed_progress')
         archive.need(type(report) is dict and set(report) == required
             and type(report['schema']) is int and report['schema'] == 1
             and report['scope'] == scope
@@ -345,6 +347,10 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         if motion:
             attempted = report['attempted_slots']
             archive.need(type(attempted) is list and (not captures or attempted))
+            progress = {}
+            if 'first_observed_progress' in report:
+                archive.need(bool(attempted))
+                progress['firstObservedProgress'] = report['first_observed_progress']
             live_rows = []
             for row in captures:
                 archive.need(type(row) is dict and set(row) == {
@@ -361,7 +367,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                 try:
                     launch.motion_pixels(dict(ok=True, status='captured', theme=launch.TIMING_THEME,
                         lockHandoff=True, frame=55, frames=56,
-                        attemptedSlots=attempted, samples=live_rows), launch.TIMING_THEME)
+                        attemptedSlots=attempted, samples=live_rows, **progress), launch.TIMING_THEME)
                 except startup.Failure:
                     raise archive.Refused('INSPECTION_REFUSED') from None
         film_bounds, picker_divider_rows = [], {}
@@ -426,6 +432,8 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
             and all(row['checks'].values()) for row in attempts)
     elif motion:
         summary['attempted_slots'] = attempted
+        if 'first_observed_progress' in report:
+            summary['first_observed_progress'] = report['first_observed_progress']
         summary['samples'] = [{key: row[key] for key in sorted(frame_fields)} for row in captures]
         summary['normal_actor_exits'] = sum(launch.attempt_passed(row) for row in attempts)
     elif quiz:

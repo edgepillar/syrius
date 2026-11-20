@@ -98,6 +98,7 @@ final class NativeLaunchCapture {
   _LaunchHandoff? _handoff;
   final Set<int> _scheduledMotion = <int>{};
   final List<_MotionSample> _motionSamples = <_MotionSample>[];
+  double? _firstObservedMotionProgress;
   int? _motionOriginUs;
   RenderView? _motionView;
   int _motionPending = 0;
@@ -145,6 +146,15 @@ final class NativeLaunchCapture {
     final double progress = owner.motion.value;
     int? motionSlot;
     if (_motion) {
+      // Record the first positive post-frame clock value before applying
+      // the window and geometry checks for an image.
+      if (owner.authInShell && progress > 0) {
+        _referenceOwner ??= owner;
+        if (!identical(_referenceOwner, owner)) {
+          throw const CaptureRefused('original-launch-owner-unavailable');
+        }
+        _firstObservedMotionProgress ??= progress;
+      }
       if (!film.isDone || !owner.authInShell ||
           startup.initialization?.succeeded != true ||
           startup.splashOperation?.succeeded != true || progress <= 0) {
@@ -153,12 +163,8 @@ final class NativeLaunchCapture {
       motionSlot = owner.filmInWell ? 2 : (progress < .55 ? 0 : 1);
       if (progress == 1 && !owner.filmInWell) return false;
       if (_scheduledMotion.contains(motionSlot)) return false;
-      _referenceOwner ??= owner;
       if (film.frame != _filmLength - 1 || (motionSlot == 2 && progress != 1)) {
         throw const CaptureRefused('original-launch-handoff-refused');
-      }
-      if (!identical(_referenceOwner, owner)) {
-        throw const CaptureRefused('original-launch-owner-unavailable');
       }
     } else if (_settle) {
       if (_referenceOwner == null) {
@@ -376,7 +382,9 @@ final class NativeLaunchCapture {
   }
 
   Map<String, Object?> _readMotion() {
-    if (_motionPending != 0 || !_motionFinished || !_settled()) {
+    final double? firstProgress = _firstObservedMotionProgress;
+    if (_motionPending != 0 || !_motionFinished || firstProgress == null ||
+        !_settled()) {
       final String? reason = _refusal;
       return <String, Object?>{
         'status': reason == null ? 'pending' : 'refused',
@@ -392,6 +400,7 @@ final class NativeLaunchCapture {
       'status': 'captured', 'theme': theme, 'frame': _filmLength - 1,
       'frames': _filmLength, 'lockHandoff': true,
       'attemptedSlots': _scheduledMotion.toList()..sort(),
+      'firstObservedProgress': firstProgress,
       'samples': <Map<String, Object>>[
         for (final _MotionSample sample in samples) <String, Object>{
           'slot': sample.slot,

@@ -141,9 +141,10 @@ def launch_pixels(reply, theme, *, settle=False):
 
 def motion_pixels(reply, theme):
     """Read finite samples of the natural handoff, including missing slots."""
-    need(theme == TIMING_THEME and type(reply) is dict and set(reply) == {
-        'ok', 'status', 'theme', 'frame', 'frames', 'lockHandoff',
-        'attemptedSlots', 'samples'})
+    need(theme == TIMING_THEME and type(reply) is dict
+         and set(reply) - {'firstObservedProgress'} == {
+             'ok', 'status', 'theme', 'frame', 'frames', 'lockHandoff',
+             'attemptedSlots', 'samples'})
     need(reply['ok'] is True and reply['status'] == 'captured'
          and reply['theme'] == theme and reply['lockHandoff'] is True
          and type(reply['frame']) is int and reply['frame'] == 55
@@ -152,6 +153,11 @@ def motion_pixels(reply, theme):
     need(type(attempted) is list and len(attempted) in (1, 2, 3)
          and all(type(slot) is int and 0 <= slot < len(MOTION_FILES) for slot in attempted)
          and attempted == sorted(set(attempted)) and attempted[-1] == 2)
+    first_progress = reply.get('firstObservedProgress')
+    if 'firstObservedProgress' in reply:
+        need(type(first_progress) in (int, float) and 0 < first_progress <= 1
+             and (0 not in attempted or first_progress < .55)
+             and (1 not in attempted or first_progress < 1))
     rows = reply['samples']
     need(type(rows) is list and len(rows) <= len(attempted))
     result, previous_slot, previous_offset = [], -1, -1
@@ -162,7 +168,9 @@ def motion_pixels(reply, theme):
         stage, well = row['stage'], row['well']
         need(type(slot) is int and slot in attempted and slot > previous_slot
              and type(offset) is int and previous_offset < offset <= 4_000_000
-             and type(progress) in (int, float) and client_rect(stage) and client_rect(well))
+             and type(progress) in (int, float)
+             and (first_progress is None or progress >= first_progress)
+             and client_rect(stage) and client_rect(well))
         if slot == 2:
             need(progress == 1 and stage == well)
         else:
@@ -174,7 +182,7 @@ def motion_pixels(reply, theme):
         need(0 < len(pixels) <= MOTION_PNG_CAP)
         result.append((pixels, {name: row[name] for name in sorted(fields)}))
         previous_slot, previous_offset = slot, offset
-    return attempted, result
+    return attempted, result, first_progress
 
 
 def _packed_frame_rows(value):
@@ -606,7 +614,9 @@ def main():
                 report['frame_window'] = standalone_frame_timing_window(result)
                 continue
             if motion:
-                report['attempted_slots'], observations = result
+                report['attempted_slots'], observations, first_progress = result
+                if first_progress is not None:
+                    report['first_observed_progress'] = first_progress
                 pictures = [(MOTION_FILES[state['slot']], pixels, state)
                             for pixels, state in observations]
             else:

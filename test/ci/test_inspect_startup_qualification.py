@@ -582,14 +582,18 @@ class StartupInspectionTests(unittest.TestCase):
         ]
         live = dict(ok=True, status='captured', theme='dark', frame=55, frames=56,
                     lockHandoff=True, attemptedSlots=[0, 1, 2], samples=rows)
-        attempted, captured = launch.motion_pixels(live, 'dark')
+        attempted, captured, first_progress = launch.motion_pixels(live, 'dark')
         self.assertEqual(attempted, [0, 1, 2])
+        self.assertIsNone(first_progress)
         self.assertEqual([pixels for pixels, _ in captured], [raw] * 3)
         self.assertEqual([row['offsetUs'] for _, row in captured], [0, 166667, 305000])
         # An absent intermediate frame is observable without fabricating it.
         partial = dict(live, attemptedSlots=[0, 2], samples=[rows[0], rows[2]])
         self.assertEqual([row['slot'] for _, row in launch.motion_pixels(partial, 'dark')[1]], [0, 2])
         for bad in (dict(attemptedSlots=[0, 1, 1]), dict(attemptedSlots=[0, 2]),
+                    dict(firstObservedProgress=True), dict(firstObservedProgress=None),
+                    dict(firstObservedProgress=float('nan')), dict(firstObservedProgress=.55),
+                    dict(firstObservedProgress=.32),
                     dict(samples=[rows[1], rows[0], rows[2]]),
                     dict(samples=[rows[0], dict(rows[1], progress=.3), rows[2]]),
                     dict(samples=[rows[0], dict(rows[1], offsetUs=0), rows[2]]),
@@ -605,7 +609,7 @@ class StartupInspectionTests(unittest.TestCase):
             forced_kill=False, output_complete=True, output_overflow=False, error_codes=[])
 
         def read_motion(observation, *, complete, extra=False):
-            slots, observed = launch.motion_pixels(observation, 'dark')
+            slots, observed, first = launch.motion_pixels(observation, 'dark')
             report = dict(schema=1, scope=launch.MOTION_SCOPE, success=complete,
                 source_stable=True, error_codes=[] if complete else ['LAUNCH_HANDOFF_FRAME_MISSED'],
                 source_sha=HEAD, source_tree=TREE, run_id=str(RUN), run_attempt='1',
@@ -614,6 +618,8 @@ class StartupInspectionTests(unittest.TestCase):
                 attempted_slots=slots, captures=[dict(theme='dark', file=launch.MOTION_FILES[row['slot']],
                     bytes=len(pixels), sha256=inspect.archive.sha(pixels), **row)
                     for pixels, row in observed], **pins)
+            if first is not None:
+                report['first_observed_progress'] = first
             with io.BytesIO() as buffer:
                 with zipfile.ZipFile(buffer, 'w') as zipped:
                     zipped.writestr('manifest.json', json.dumps(report))
@@ -628,9 +634,17 @@ class StartupInspectionTests(unittest.TestCase):
         verified = read_motion(live, complete=True)
         self.assertEqual(verified['verified_png_count'], 3)
         self.assertEqual(verified['normal_actor_exits'], 2)
+        self.assertNotIn('first_observed_progress', verified)
         retained = read_motion(partial, complete=False)
         self.assertFalse(retained['artifact_reported_success'])
         self.assertEqual(retained['verified_png_count'], 2)
+        limited = dict(live, attemptedSlots=[1, 2], samples=rows[1:])
+        for first_progress in (.13, .76):
+            retained = read_motion(
+                dict(limited, firstObservedProgress=first_progress), complete=False)
+            self.assertEqual(retained['attempted_slots'], [1, 2])
+            self.assertEqual(retained['first_observed_progress'], first_progress)
+            self.assertFalse(retained['artifact_reported_success'])
         with self.assertRaises(inspect.archive.Refused):
             read_motion(partial, complete=True)
         with self.assertRaises(inspect.archive.Refused):

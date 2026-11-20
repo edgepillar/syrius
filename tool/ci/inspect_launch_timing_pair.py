@@ -233,7 +233,8 @@ def window_diagnostics(window, *, peak_starts=False):
         # Offsets are post-frame observations of first film frame, film end,
         # handoff motion and arrival. Groups use each frame's build start.
         summary.update(phase_offsets_us=offsets, phase_frames=frames,
-                       phase_max_raster_us=raster, phase_max_total_us=total)
+                       phase_max_raster_us=raster, phase_max_total_us=total,
+                       peak_build_start_us=max(rows, key=lambda row: row[2])[1])
         # Raster starts can follow arrival even when builds began before it.
         summary['settled_raster_starts'] = dict(
             columns=['samples', 'slow_raster', 'max_raster_us'], **settled_raster)
