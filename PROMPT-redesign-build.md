@@ -2628,7 +2628,14 @@ and running motion acceptance remain open under V02.
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.
-The native comparison for the licence rules remains open.
+The [Windows run at the same source](https://github.com/edgepillar/syrius/actions/runs/44837173243/job/136636424344)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44839994529/job/136645721276)
+verify ten Details images and normal required process closure. Centering
+the painted rule corrects four positions and moves six previously aligned
+positions one pixel above the reference in both themes. Exact positions
+fall from nine to seven out of thirteen at column 700 across rows 188
+through 644. The earlier paint rule is restored.
+V01 remains open.
 
 The [cold Windows producer at `b3d2a1d1`](https://github.com/edgepillar/syrius/actions/runs/44786324542/job/136462042874)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44790155159/job/136475393710)

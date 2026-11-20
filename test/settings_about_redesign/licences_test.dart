@@ -157,9 +157,9 @@ void main() {
               if (method != #drawRect) return false;
               final Object? rect = arguments[0];
               final Object? paint = arguments[1];
-              final int snappedTop = ((top - .5) * ratio).round();
               return rect is Rect &&
-                  ((top + rect.top) * ratio - snappedTop).abs() < 0.0001 &&
+                  ((top + rect.top) * ratio - (top * ratio).round()).abs() <
+                      0.0001 &&
                   rect.height == 1 &&
                   paint is Paint &&
                   !paint.isAntiAlias;
