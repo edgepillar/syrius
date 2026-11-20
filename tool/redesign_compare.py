@@ -708,8 +708,12 @@ def render_html(manifest: dict[str, object]) -> str:
         )
 
     sections: list[str] = []
+    review_links: list[str] = []
     for pair in manifest["pairs"]:
         stem = escape(pair["id"], quote=True)
+        title = f'{pair["number"]:02d}. {escape(pair["title"])} ({escape(pair["theme"])})'
+        if pair["state"] in ("unreviewed", "reviewed-mismatch"):
+            review_links.append(f'<li><a href="#{stem}">{title}</a></li>')
         score = pair["score"]
         description = (
             "No pixel score"
@@ -736,8 +740,7 @@ def render_html(manifest: dict[str, object]) -> str:
             review_text = f"Reviewed by {review['reviewer']} at {review['reviewed_at']}. {review['note']}"
         reason = f"<p>{escape(pair['reason'])}</p>" if "reason" in pair else ""
         sections.append(
-            f'<section id="{stem}"><h2>{pair["number"]:02d}. {escape(pair["title"])} '
-            f'({escape(pair["theme"])})</h2><p class="state">{escape(pair["state"])}</p>'
+            f'<section id="{stem}"><h2>{title}</h2><p class="state">{escape(pair["state"])}</p>'
             f"<p>{description}. Scores are diagnostic; acceptance requires visual review.</p>{reason}"
             f"<p>{escape(review_text)}</p><div class=\"images\">{figures}</div>"
             f'<details><summary>Screen notes</summary><ul>{notes}</ul>'
@@ -760,6 +763,10 @@ def render_html(manifest: dict[str, object]) -> str:
                 '<details><summary>Pairs still needed at this commit</summary>'
                 f'<ul>{links}</ul></details>'
             )
+    review_index = (
+        f'<details><summary>Available pairs to review ({len(review_links)})</summary>'
+        f'<ol>{"".join(review_links)}</ol></details>' if review_links else ""
+    )
     return (
         "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\">"
         "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
@@ -777,6 +784,7 @@ def render_html(manifest: dict[str, object]) -> str:
         "<p>Difference images show the largest absolute RGBA channel difference. "
         "Pixel similarity is 100 minus mean absolute RGBA error as a percentage of 255. "
         "Live data, font hinting and animation frames can change scores.</p>"
+        + review_index
         + "".join(sections)
         + "</html>\n"
     )

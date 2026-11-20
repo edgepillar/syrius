@@ -295,6 +295,9 @@ class CompareTests(unittest.TestCase):
         self.assertFalse((compact / "diffs").exists())
         page = (compact / "index.html").read_text(encoding="utf-8")
         self.assertIn("Difference image omitted for this report", page)
+        self.assertIn("Available pairs to review (1)", page)
+        self.assertIn(f'href="#{self.stem}"', page)
+        self.assertNotIn('href="#01-screen-z-light"', page)
 
     def test_indexed_diff_preserves_every_heatmap_color(self) -> None:
         with Image.new("RGBA", (256, 1), (0, 0, 0, 255)) as before:
@@ -365,12 +368,15 @@ class CompareTests(unittest.TestCase):
         page = (self.output / "index.html").read_text(encoding="utf-8")
         self.assertIn("Reviewer &lt;test&gt;", page)
         self.assertIn("Reviewed &lt;layout&gt; &amp; frames", page)
+        self.assertNotIn("Available pairs to review", page)
 
     def test_reviewed_mismatch_does_not_follow_pixel_score(self) -> None:
         self.add_actual()
         pair = self.report(self.review_file(verdict="mismatch"))["pairs"][0]
         self.assertEqual(pair["score"]["similarity_pct"], 100)
         self.assertEqual(pair["state"], "reviewed-mismatch")
+        page = (self.output / "index.html").read_text(encoding="utf-8")
+        self.assertIn(f'href="#{self.stem}"', page)
 
     def test_bad_review_metadata_cannot_grant_acceptance(self) -> None:
         self.add_actual()
