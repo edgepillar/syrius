@@ -1819,6 +1819,12 @@ thirteen rule spans still occupy two raster rows in both themes. All thirteen
 reference spans occupy one row. The paint change did not resolve the observed
 Windows result. Whole-screen verdicts remain open.
 
+The [Details reader at `aba7ba77`](https://github.com/edgepillar/syrius/actions/runs/44779847826/job/136439308175)
+verifies ten fresh images and normal parent closure after moving the rules
+outside the cached row content. Both themes still report the same eight
+two-row spans and five one-row spans at column 700. The measured divider
+raster is unchanged by the layer move. V01 remains open.
+
 The [Go To measurement reader](https://github.com/edgepillar/syrius/actions/runs/44772348282/job/136413021368)
 reads the original verified Home archive at `d7ad6b44` on the hosted runner.
 At column 450, the footer panel edge is on row 456 in both themes,
