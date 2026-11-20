@@ -1683,7 +1683,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   TextStyle get goToQueryText => bodyText.copyWith(fontSize: 16);
 
   /// The reference query uses a thin insertion mark.
-  double get goToCaretWidth => 1;
+  double get goToCaretWidth => 2;
+
+  /// The insertion mark's base height before text scaling.
+  double get goToCaretHeight => 17;
 
   /// The insertion mark inherits the query foreground at forty percent.
   Color get goToCaretColor => foreground.withValues(alpha: 0.4);

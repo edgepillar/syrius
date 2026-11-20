@@ -117,6 +117,12 @@ void main() {
           expect(palette.width, 560);
           expect(palette.top, 120);
           expect(palette.bottom, lessThanOrEqualTo(600 - tokens.goToEdgeInset));
+          final TextField query = tester.widget<TextField>(
+            find.byKey(const Key('go_to_field')),
+          );
+          expect(query.cursorWidth, 2);
+          expect(query.cursorHeight, 17);
+          expect(query.cursorColor, tokens.goToCaretColor);
           for (final (String key, String label) in <(String, String)>[
             ('↑↓', 'move'),
             ('↵', 'open'),

@@ -377,7 +377,7 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
             cursorColor: tokens.goToCaretColor,
             cursorWidth: tokens.goToCaretWidth,
             cursorHeight: MediaQuery.textScalerOf(context).scale(
-              tokens.goToQueryText.fontSize!,
+              tokens.goToCaretHeight,
             ),
             decoration: InputDecoration(
               filled: false,
