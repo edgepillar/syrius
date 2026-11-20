@@ -1721,7 +1721,15 @@ across paragraphs in both the default and scaled RTL views. Those cases
 pass in the [focused stage at `2508fe12`](https://github.com/edgepillar/syrius/actions/runs/44686460129/job/136121854410).
 The same Linux run passes the full non-chain suite and generated-file
 verification.
-The paired Windows timing measurement remains open under V02.
+The [paired Windows run at `2508fe12`](https://github.com/edgepillar/syrius/actions/runs/44686460248/job/136121857006)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44689069959/job/136130268648)
+verify both timing windows, two normal wallet exits and five normal node
+exits. Page change peaks at 313.989 ms total versus 162.922 ms on P06.
+Disclosure peaks at 145.243 ms versus 71.005 ms. Both comparisons fail the
+16 ms raster and distinct-frame criteria and retain frame-number gaps.
+The disclosure build comparison also fails. All five raster starts
+confirmed after the observed settled layout exceed 16 ms, with a peak of
+82.137 ms. V02 remains open.
 
 At column 900, the earlier verified Pillars frames place the delegation
 strip end and list start at rows 107 and 119 in both themes. The references
