@@ -134,26 +134,34 @@ void main() {
         );
         final Rect rowBounds = tester.getRect(row);
         expect(rowBounds.height, closeTo(39.25, .01));
-        final Finder rule = find
-            .descendant(
-              of: find.byKey(const Key('about_licence_alpha')),
-              matching: find.byType(CustomPaint),
-            )
-            .first;
-        expect(tester.widget<CustomPaint>(rule).child, isA<RepaintBoundary>());
-        expect(
-          rule,
-          paints..something((method, arguments) {
-            if (method != #drawRect) return false;
-            final Object? rect = arguments[0];
-            final Object? paint = arguments[1];
-            return rect is Rect &&
-                rect.top == 0 &&
-                rect.height == 1 &&
-                paint is Paint &&
-                !paint.isAntiAlias;
-          }),
-        );
+        final double ratio = tester.view.devicePixelRatio;
+        for (final String name in <String>['alpha', 'mixed']) {
+          final Finder rule = find
+              .descendant(
+                of: find.byKey(ValueKey<String>('about_licence_$name')),
+                matching: find.byType(CustomPaint),
+              )
+              .first;
+          expect(tester.widget<CustomPaint>(rule).child, isA<RepaintBoundary>());
+          final double top = tester.getTopLeft(rule).dy;
+          if (name == 'mixed') {
+            expect((top * ratio) % 1, closeTo(0.5, 0.01));
+          }
+          expect(
+            rule,
+            paints..something((method, arguments) {
+              if (method != #drawRect) return false;
+              final Object? rect = arguments[0];
+              final Object? paint = arguments[1];
+              return rect is Rect &&
+                  ((top + rect.top) * ratio - (top * ratio).round()).abs() <
+                      0.0001 &&
+                  rect.height == 1 &&
+                  paint is Paint &&
+                  !paint.isAntiAlias;
+            }),
+          );
+        }
         final Rect chevron = tester.getRect(chevronFinder);
         expect(
           variant.$2

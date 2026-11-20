@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:cryptography/dart.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/rendering.dart' show ScrollCacheExtent;
+import 'package:flutter/rendering.dart' show RenderBox, ScrollCacheExtent;
 import 'package:hex/hex.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
@@ -518,7 +518,13 @@ class _LicenceRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
     return CustomPaint(
-      painter: _LicenceRulePainter(tokens.line),
+      painter: _LicenceRulePainter(
+        tokens.line,
+        View.of(context).devicePixelRatio,
+        () => (context.findRenderObject() as RenderBox)
+            .localToGlobal(Offset.zero)
+            .dy,
+      ),
       child: RepaintBoundary(
         child: Disclosure(
           title: package.name.isEmpty ? context.l10n.aboutUnknown : package.name,
@@ -580,15 +586,19 @@ class _LicenceRow extends StatelessWidget {
 }
 
 class _LicenceRulePainter extends CustomPainter {
-  const _LicenceRulePainter(this.color);
+  const _LicenceRulePainter(this.color, this.pixelRatio, this.globalTop);
 
   final Color color;
+  final double pixelRatio;
+  final double Function() globalTop;
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Fractional list offsets should not spread a one-pixel rule over two rows.
+    // Snap the painted edge while preserving the fractional list geometry.
+    final double top = globalTop();
+    final double snappedTop = (top * pixelRatio).roundToDouble() / pixelRatio;
     canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, 1),
+      Rect.fromLTWH(0, snappedTop - top, size.width, 1),
       Paint()
         ..color = color
         ..isAntiAlias = false,
@@ -597,5 +607,5 @@ class _LicenceRulePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_LicenceRulePainter oldDelegate) =>
-      color != oldDelegate.color;
+      color != oldDelegate.color || pixelRatio != oldDelegate.pixelRatio;
 }
