@@ -386,6 +386,21 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
         }
         return;
       }
+      if (words case ['assert', '--key', 'send_amount_field',
+          '--kind', 'field', '--exact'] when sendConfirmation) {
+        final Map<String, dynamic> checked = await cli.call(instance,
+          const <String, Object?>{
+            'cmd': 'assert', 'key': 'send_amount_field',
+            'kind': 'field', 'exact': true,
+          },
+        );
+        final Object? target = checked['target'];
+        if (checked['asserted'] != true || target is! Map<String, dynamic> ||
+            target['value'] != '12.5' || target['focused'] == true) {
+          throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
+        }
+        return;
+      }
       if (swapStart && words.first == 'assert') {
         final Map<String, Object?> selector =
             cli.assertionArgs(cli.Args(words.sublist(1)));

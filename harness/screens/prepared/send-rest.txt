@@ -5,6 +5,9 @@ tap --key transfer_mode_send
 wait --key send_recipient_field --kind field --ready --timeout 20
 type --key send_recipient_field @lab-index-0
 type --key send_amount_field 12.5
+# Leave the amount field focused only while entering the draft.
+tap @0,779
+assert --key send_amount_field --kind field --exact
 wait --key send_submit_button --kind button --ready --timeout 20
 assert --key send_submit_button --kind button
 # after-capture: type --key send_recipient_field

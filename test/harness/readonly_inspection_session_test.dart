@@ -1988,6 +1988,8 @@ void main() {
       final List<String> hoveredScreens = <String>[];
       int closedToken = 0;
       int canceledSend = 0;
+      bool restingSendAmountChecked = false;
+      bool restingSendTapped = false;
       int swapWarnings = 0;
       int closedSwaps = 0;
       int closedPillar = 0;
@@ -2011,6 +2013,20 @@ void main() {
           final Object? name = command['cmd'];
           final Object? targetKey = command['key'];
           final Object? targetTab = command['tab'];
+          if (sendConfirmation && name == 'tap' && command['at'] != null) {
+            expect(command['at'], <int>[0, 779]);
+            expect(selected, 'send-rest');
+            expect(afterShot || draftOpen || restingSendTapped, isFalse);
+            expect(draft['send_amount_field'], '12.5');
+            restingSendTapped = true;
+          }
+          if (sendConfirmation && name == 'assert' &&
+              targetKey == 'send_amount_field') {
+            expect(restingSendTapped, isTrue);
+            expect(command['kind'], 'field');
+            expect(command['exact'], isTrue);
+            restingSendAmountChecked = true;
+          }
           if (name == 'tap' && command['key'] == 'rail_toggle') {
             expect(tab, 'dashboard');
             expanded = !expanded;
@@ -2199,6 +2215,9 @@ void main() {
               expect(draftReady, isTrue);
               if (selected == 'send-rest') {
                 expect(draftOpen, isFalse);
+                expect(restingSendAmountChecked, isTrue);
+                restingSendAmountChecked = false;
+                restingSendTapped = false;
                 expect(command['expect'], <String, Object?>{
                   'key': 'send_submit_button', 'kind': 'button', 'exact': true,
                 });
@@ -2368,6 +2387,8 @@ void main() {
                 'key': command['key'], 'rect': <int>[0, 0, 200, 100],
                 if (swapStart && targetKey == 'swap_counterparty_input')
                   'value': draft['recipient'],
+                if (sendConfirmation && targetKey == 'send_amount_field')
+                  'value': draft['send_amount_field'],
               },
             },
             if (name == 'type') ...<String, dynamic>{
