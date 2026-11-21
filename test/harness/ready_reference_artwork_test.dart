@@ -308,40 +308,6 @@ void main() {
       matching: find.byType(RawImage),
     );
     expect(tester.getSize(picture), const Size(420, 236));
-    final Finder mapTile = find.byKey(
-      const ValueKey<String>('originals_tile_map'),
-    );
-    final Finder map = find.descendant(
-      of: mapTile,
-      matching: find.byType(Lottie),
-    );
-    final Finder mapFilter = find.descendant(
-      of: mapTile,
-      matching: find.byType(Transform),
-    );
-    expect(
-      tester.widget<Transform>(mapFilter).filterQuality,
-      FilterQuality.medium,
-    );
-    final AppTokens tokens = AppTokens.of(tester.element(mapTile));
-    expect(tester.getSize(map).width, 2 * tokens.originalsMapWidth);
-    final Rect mapBounds = tester.getRect(map);
-    expect(mapBounds.width, closeTo(tokens.originalsMapWidth, 0.001));
-    expect(
-      mapBounds.height,
-      closeTo(tokens.originalsMapWidth / tokens.originalsWideArtAspect, 0.001),
-    );
-    final Finder mapClip = find.descendant(
-      of: mapTile,
-      matching: find.byWidgetPredicate(
-        (Widget widget) =>
-            widget is Container && widget.clipBehavior == Clip.antiAlias,
-      ),
-    );
-    expect(
-      (mapBounds.center - tester.getCenter(mapClip)).distance,
-      closeTo(0, 0.001),
-    );
     final Element pictureElement = tester.element(picture);
     final ReferenceArtworkFrame preview = film.captureReferenceArtwork()!;
     expect(preview.observation, <String, Object>{

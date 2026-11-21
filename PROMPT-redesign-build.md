@@ -4164,12 +4164,26 @@ filtered bounds and retains the frame restoration cases. Strict local
 analysis passes. [Linux at `4a6ff1e8`](https://github.com/edgepillar/syrius/actions/runs/44935256907/job/136940363741)
 passes application and strict selected analysis, both runs of the gallery
 test, the non-chain suite with 5,131 passes and one skip, and generated-file
-verification. The [Windows Details comparison](https://github.com/edgepillar/syrius/actions/runs/44935256963/job/136940365045)
-is pending. The independent reader now emits mean absolute gray deviation
-from the most common crop color for both PNGs in each theme. On the
-retained `59a1f859` archive, it reproduces 18.886 and 29.323 in light and
-records 0.966 and 0.861 in dark, in wallet and reference order.
-The crop measurement supplements the whole-tile pixel comparison.
+verification. The [Windows Details producer](https://github.com/edgepillar/syrius/actions/runs/44935256963/job/136940365045)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44937320671/job/136946696062)
+verify ten PNGs and normal required closure. The same reader revision
+[measures the earlier archive](https://github.com/edgepillar/syrius/actions/runs/44936369453/job/136943755135)
+against the same reference digests. It reports mean absolute gray deviation
+from the most common crop color and counts Map tile pixels with at least
+one RGB channel difference of 16 or more.
+
+| Theme | Prior Map gray deviation | Candidate | Reference | Prior Map pixels at threshold | Candidate |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Dark | 0.966 | 0.919 | 0.861 | 16 | 16 |
+| Light | 18.886 | 18.771 | 29.323 | 4,197 | 4,098 |
+
+Across the whole Originals image, pixels at the same threshold increase
+from 19,801 to 19,993 in dark and from 24,804 to 24,833 in light. The
+candidate leaves the light dot intensity farther from the reference and
+adds a filtered layer to each painted Map frame. The direct painter and
+its original widget test are restored byte for byte. Both archived
+candidate results and the comparison method remain available. V01
+remains open.
 
 The [first compatibility read of `08ecf715`](https://github.com/edgepillar/syrius/actions/runs/44926305670/job/136913047287)
 reads the original timings and refuses the paired images at the older

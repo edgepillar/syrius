@@ -245,18 +245,6 @@ class _OriginalsTileState extends State<_OriginalsTile>
     final bool wide =
         widget.art == OriginalsArt.globe || widget.art == OriginalsArt.map;
     final double height = wide ? width / tokens.originalsWideArtAspect : width;
-    final Widget animation = AppLottie(
-      asset,
-      controller: _animation,
-      repeat: false,
-      fit: BoxFit.contain,
-      onLoaded: _loaded,
-      originalsReferenceProgress: switch (widget.art) {
-        OriginalsArt.globe => 0.4,
-        OriginalsArt.map => 0.5,
-        _ => 0.99,
-      },
-    );
     // Both bounds override the tile's tight constraints. Object artwork is
     // smaller than some tiles while wide artwork extends beyond their clips.
     return OverflowBox(
@@ -264,22 +252,18 @@ class _OriginalsTileState extends State<_OriginalsTile>
       maxWidth: width,
       minHeight: height,
       maxHeight: height,
-      child: widget.art == OriginalsArt.map
-          ? Transform.scale(
-              // The tiny dots otherwise lose edge coverage when painted
-              // directly at tile size. Filter the larger drawing into the
-              // same centred box under the tile's existing clip.
-              scale: 0.5,
-              filterQuality: FilterQuality.medium,
-              child: OverflowBox(
-                minWidth: width * 2,
-                maxWidth: width * 2,
-                minHeight: height * 2,
-                maxHeight: height * 2,
-                child: animation,
-              ),
-            )
-          : animation,
+      child: AppLottie(
+        asset,
+        controller: _animation,
+        repeat: false,
+        fit: BoxFit.contain,
+        onLoaded: _loaded,
+        originalsReferenceProgress: switch (widget.art) {
+          OriginalsArt.globe => 0.4,
+          OriginalsArt.map => 0.5,
+          _ => 0.99,
+        },
+      ),
     );
   }
 
