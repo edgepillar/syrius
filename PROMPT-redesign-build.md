@@ -4177,6 +4177,12 @@ Licences originals have the same PNG digests as the earlier
 remain mismatches under V01. The comparison tool binds each verdict to
 both original images and keeps captures from another target source separate.
 
+The Details and Navigation recipes now prepare four original members in
+the owned profile, using the existing member derivation and second-address
+selection checks. This gives Plasma the three other addresses shown in
+both references. Fresh native captures must verify the opened and closed
+disclosures. The existing Fuse records still determine the fused-row states.
+
 | Screen | Visible differences in both themes |
 | --- | --- |
 | Receive QR | The card and request controls align. The generated code has a token mark and the amount hint is shorter. |
@@ -4215,8 +4221,13 @@ from 19,801 to 19,993 in dark and from 24,804 to 24,833 in light. The
 candidate leaves the light dot intensity farther from the reference and
 adds a filtered layer to each painted Map frame. The direct painter and
 its original widget test are restored byte for byte. Both archived
-candidate results and the comparison method remain available. V01
-remains open.
+candidate results and the comparison method remain available. In the
+original light Map crop from columns 622–756 and rows 320–420, the two
+images share the exact white background. The native capture contains
+2,805 pixels away from that background, compared with 5,608 in the
+reference. Its five most common gray values account for 13,607 of
+13,635 sampled pixels. The reference uses more intermediate shades.
+The measured difference is in dot coverage. V01 remains open.
 
 The [first compatibility read of `08ecf715`](https://github.com/edgepillar/syrius/actions/runs/44926305670/job/136913047287)
 reads the original timings and refuses the paired images at the older

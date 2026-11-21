@@ -460,13 +460,13 @@ void main() {
 
   test('the original controls derive owned members and select index one once',
       () async {
-    for (final bool settingsCatalog in <bool>[false, true]) {
+    for (final bool requireFourMembers in <bool>[false, true]) {
       final _AddressUi ui = _AddressUi();
       final List<String> members = <String>[
-        _first, _second, if (settingsCatalog) ...<String>[_third, _fourth],
+        _first, _second, if (requireFourMembers) ...<String>[_third, _fourth],
       ];
       expect(await ui.driver().selectLabAddress(
-        settingsCatalog: settingsCatalog,
+        requireFourMembers: requireFourMembers,
       ), <String, Object>{
         'index': 1, 'members': members.length, 'generated': true,
         'selected': true, 'persisted': true,
@@ -474,7 +474,7 @@ void main() {
       expect(ui.taps, <String>[
         'nav_settings', 'settings_addresses',
         'settings_add_address', 'addresses_select_$_second',
-        if (settingsCatalog) ...<String>[
+        if (requireFourMembers) ...<String>[
           'settings_add_address', 'settings_add_address',
         ],
       ]);

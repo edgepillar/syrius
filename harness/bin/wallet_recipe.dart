@@ -407,7 +407,7 @@ class WalletRecipe {
   /// The Settings catalog also prepares four members in the isolated profile.
   /// Each derivation must settle before another action is admitted.
   Future<Map<String, Object>> selectLabAddress({
-    bool settingsCatalog = false,
+    bool requireFourMembers = false,
   }) async {
     final Map<String, dynamic> start = await _observe();
     _policy(start);
@@ -424,14 +424,14 @@ class WalletRecipe {
     _policyNode = start['node'] as String;
     _originalSigningChain = 321;
     WalletAddressContext origin = _addressContext(start);
-    if (!origin.consistent || settingsCatalog && origin.members.length > 4) {
+    if (!origin.consistent || requireFourMembers && origin.members.length > 4) {
       _refuse('wallet-recipe-address-selection-unsettled');
     }
     _addressOrigin = origin;
     bool generated = false;
     final bool selectSecond =
         origin.members.length < 2 || origin.selected != origin.members[1];
-    if (selectSecond || settingsCatalog && origin.members.length < 4) {
+    if (selectSecond || requireFourMembers && origin.members.length < 4) {
       if (start['tab'] != 'settings') {
         await _act('nav_settings');
         await _until((Map<String, dynamic> view) => view['tab'] == 'settings');
@@ -462,7 +462,7 @@ class WalletRecipe {
         origin = _addressContext(selected);
         _addressOrigin = origin;
       }
-      while (settingsCatalog && origin.members.length < 4) {
+      while (requireFourMembers && origin.members.length < 4) {
         origin = await _deriveInspectionMember(origin);
         generated = true;
       }
@@ -472,7 +472,7 @@ class WalletRecipe {
     _policy(finalView);
     if (!finalContext.same(_addressOrigin!) || !finalContext.consistent ||
         finalContext.members.length < 2 ||
-        settingsCatalog && finalContext.members.length != 4 ||
+        requireFourMembers && finalContext.members.length != 4 ||
         finalContext.selected != finalContext.members[1] ||
         finalView['chainId'] != 321 || finalView['signingChainId'] != 321 ||
         finalView['nodeConnected'] != true ||

@@ -1790,8 +1790,11 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *,
                 elif line.startswith(b'SYRIUS_INSPECTION_ADDRESS:'):
                     need(marker == b'CI_INSPECT_DONE' and 'address' not in used, 'ENTRY_REFUSED')
                     used.add('address')
-                    report['address_selection'] = shared.address_selection_receipt(
+                    selection = shared.address_selection_receipt(
                         json.loads(line.partition(b':')[2]))
+                    if family in ('settings', 'node-verified', 'navigation', 'details'):
+                        need(selection['members'] == 4, 'ENTRY_REFUSED')
+                    report['address_selection'] = selection
                 elif line.startswith(b'SYRIUS_INSPECTION_WALLET:'):
                     need('address' in used and 'wallet' not in used, 'ENTRY_REFUSED')
                     used.add('wallet')

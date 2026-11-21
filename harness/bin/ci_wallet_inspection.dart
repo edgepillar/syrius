@@ -379,8 +379,11 @@ Future<void> main() async {
     await instance.requireCleanLogs();
     stage = 'address_selection';
     final Map<String, Object> selection = await recipe.selectLabAddress(
-      settingsCatalog: family == 'settings' ||
-          _detailsSelections[family] == ReadonlyDetailsSelection.nodeVerified,
+      // The original Plasma layouts show three other accounts. Use the
+      // same bounded member preparation as the Settings address catalog.
+      requireFourMembers: const <String>{
+        'settings', 'node-verified', 'navigation', 'details',
+      }.contains(family),
     );
     final String? labRecipient =
         requiresLabRecipient ? recipe.readonlyLabRecipient : null;
