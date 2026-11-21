@@ -335,11 +335,13 @@ class _ShellRailState extends State<ShellRail> with TickerProviderStateMixin {
     value: widget.collapse.value ? 0 : 1,
     animationBehavior: AnimationBehavior.preserve,
   );
+  late bool _labelFadeStarted = !widget.collapse.value;
 
   @override
   void initState() {
     super.initState();
     _width.addStatusListener(_followWidth);
+    _labels.addListener(_followLabelVisibility);
     widget.collapse.addListener(_followChoice);
   }
 
@@ -371,6 +373,12 @@ class _ShellRailState extends State<ShellRail> with TickerProviderStateMixin {
     }
   }
 
+  void _followLabelVisibility() {
+    final bool started = _labels.value > 0;
+    if (started == _labelFadeStarted) return;
+    setState(() => _labelFadeStarted = started);
+  }
+
   double _expansion(AppTokens tokens) =>
       _widthStart +
       (_widthEnd - _widthStart) * tokens.spring.transform(_width.value);
@@ -398,6 +406,7 @@ class _ShellRailState extends State<ShellRail> with TickerProviderStateMixin {
     widget.collapse.removeListener(_followChoice);
     _width.removeStatusListener(_followWidth);
     _width.dispose();
+    _labels.removeListener(_followLabelVisibility);
     _labels.dispose();
     super.dispose();
   }
@@ -410,22 +419,21 @@ class _ShellRailState extends State<ShellRail> with TickerProviderStateMixin {
         .drive(Tween<double>(begin: _widthStart, end: _widthEnd));
     return AnimatedBuilder(
       animation: expansion,
-      child: AnimatedBuilder(
-        animation: _labels,
-        builder: (BuildContext context, Widget? child) => _Rail(
-          selected: widget.selected == Tabs.sentinels
-              ? Tabs.pillars
-              : widget.selected,
-          locked: widget.locked,
-          onSelected: widget.onSelected,
-          onNotifications: widget.onNotifications,
-          hasUnseen: widget.hasUnseen,
-          collapsed: widget.collapse.value,
-          expansion: expansion,
-          labelsVisible: _width.isCompleted && !widget.collapse.value,
-          labelOpacity: tokens.ease.transform(_labels.value),
-          onToggle: widget.collapse.toggle,
-        ),
+      child: _Rail(
+        selected: widget.selected == Tabs.sentinels
+            ? Tabs.pillars
+            : widget.selected,
+        locked: widget.locked,
+        onSelected: widget.onSelected,
+        onNotifications: widget.onNotifications,
+        hasUnseen: widget.hasUnseen,
+        collapsed: widget.collapse.value,
+        expansion: expansion,
+        labelFadeStarted: _labelFadeStarted,
+        labelOpacity: _width.isCompleted && !widget.collapse.value
+            ? _labels.drive(CurveTween(curve: tokens.ease))
+            : null,
+        onToggle: widget.collapse.toggle,
       ),
       // Width changes still lay the page out, while its rail destinations
       // retain their existing buttons during the spring.
@@ -449,7 +457,7 @@ class _Rail extends StatelessWidget {
     required this.hasUnseen,
     required this.collapsed,
     required this.expansion,
-    required this.labelsVisible,
+    required this.labelFadeStarted,
     required this.labelOpacity,
     required this.onToggle,
   });
@@ -461,8 +469,8 @@ class _Rail extends StatelessWidget {
   final bool hasUnseen;
   final bool collapsed;
   final Animation<double> expansion;
-  final bool labelsVisible;
-  final double labelOpacity;
+  final bool labelFadeStarted;
+  final Animation<double>? labelOpacity;
   final VoidCallback onToggle;
 
   @override
@@ -506,8 +514,6 @@ class _Rail extends StatelessWidget {
                         : context.l10n.railCollapse,
                     shortcut: '$_chordName B',
                     height: tokens.railToggleHeight,
-                    labelled: false,
-                    labelOpacity: 0,
                     quiet: true,
                     onTap: () {
                       if (!locked) onToggle();
@@ -555,7 +561,7 @@ class _Rail extends StatelessWidget {
       tooltipVerticalOffset: entry.tab == Tabs.notifications
           ? tokens.railNotificationTooltipOffset
           : 0,
-      labelled: labelsVisible,
+      labelFadeStarted: labelFadeStarted,
       labelOpacity: labelOpacity,
       selected: entry.tab == selected,
       hasUnseen: entry.tab == Tabs.notifications && hasUnseen,
@@ -579,9 +585,9 @@ class _RailButton extends StatefulWidget {
     required this.name,
     required this.shortcut,
     required this.height,
-    required this.labelled,
-    required this.labelOpacity,
     required this.onTap,
+    this.labelFadeStarted = false,
+    this.labelOpacity,
     this.labelKey,
     this.selected = false,
     this.hasUnseen = false,
@@ -596,8 +602,8 @@ class _RailButton extends StatefulWidget {
   final String name;
   final String? shortcut;
   final double height;
-  final bool labelled;
-  final double labelOpacity;
+  final bool labelFadeStarted;
+  final Animation<double>? labelOpacity;
   final bool selected;
   final bool hasUnseen;
   final bool quiet;
@@ -678,6 +684,7 @@ class _RailButtonState extends State<_RailButton>
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    final Animation<double>? labelOpacity = widget.labelOpacity;
     final String tooltip = widget.shortcut == null
         ? widget.name
         : '${widget.name}  ${widget.shortcut}';
@@ -695,7 +702,7 @@ class _RailButtonState extends State<_RailButton>
         onTap: widget.onTap,
         child: ExcludeSemantics(
           child: TooltipVisibility(
-            visible: !widget.labelled || widget.labelOpacity == 0,
+            visible: labelOpacity == null || !widget.labelFadeStarted,
             child: Tooltip(
               richMessage: TextSpan(
                 text: '',
@@ -786,11 +793,11 @@ class _RailButtonState extends State<_RailButton>
                                         _color(_icon),
                                       ),
                                     ),
-                                    if (widget.labelled) ...<Widget>[
+                                    if (labelOpacity != null) ...<Widget>[
                                       SizedBox(width: tokens.railLabelGap),
                                       Expanded(
-                                        child: Opacity(
-                                          opacity: widget.labelOpacity,
+                                        child: FadeTransition(
+                                          opacity: labelOpacity,
                                           child: Text(
                                             widget.name,
                                             key: widget.labelKey,

@@ -3843,6 +3843,12 @@ These are widths within the rail's horizontal insets. The offsets are
 measured from the tap reply and include tree response time. The running
 label fade, chevron and 16 ms comparisons remain open under V02.
 
+The label fade now updates the opacity of the existing text without
+rebuilding the destination buttons on each tick. The tooltip visibility
+still changes when the labels first become visible. The existing rail
+duration case checks that the button widget is reused through the fade
+and retains its original width, opacity and duration assertions.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.

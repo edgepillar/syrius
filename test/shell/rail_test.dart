@@ -96,12 +96,15 @@ Finder _labels() =>
     find.descendant(of: find.byType(ShellRail), matching: find.byType(Text));
 
 double _labelOpacity(WidgetTester tester, Tabs tab) => tester
-    .widget<Opacity>(
+    .widget<FadeTransition>(
       find
-          .ancestor(of: find.byKey(_label(tab)), matching: find.byType(Opacity))
+          .ancestor(
+            of: find.byKey(_label(tab)),
+            matching: find.byType(FadeTransition),
+          )
           .first,
     )
-    .opacity;
+    .opacity.value;
 
 RailCollapse _choice({bool open = false}) {
   final RailCollapse collapse = RailCollapse();
@@ -353,8 +356,12 @@ void main() {
         _labelOpacity(tester, Tabs.dashboard),
         closeTo(AppTokens.dark.ease.transform(0.5), 0.001),
       );
-      await tester.pump(const Duration(microseconds: 75001));
+      final Widget fadingTransferButton = tester.widget(transfer);
+      await tester.pump(const Duration(milliseconds: 40));
+      expect(tester.widget(transfer), same(fadingTransferButton));
+      await tester.pump(const Duration(microseconds: 35001));
       expect(_labelOpacity(tester, Tabs.dashboard), 1);
+      expect(tester.widget(transfer), same(fadingTransferButton));
       expect(tester.getSize(find.byKey(_page)).width, pageCollapsed - 144);
       expect(tester.takeException(), isNull);
     });
