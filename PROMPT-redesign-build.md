@@ -5006,7 +5006,13 @@ verify prepared Staking, Tokens and Token Mine PNGs in both themes. The
 six captures retain atomic frame evidence and normal required closure.
 The [capture index](docs/review/source-f48f3ff2-seeded-captures.json)
 binds the original PNGs to the 340,670-byte retained archive. The
-whole-image comparisons remain open under V01.
+[CI pixel comparison](https://github.com/edgepillar/syrius/actions/runs/44960661172/job/137018515919)
+reads all six originals from that archive. At a difference of at least
+16 levels in any RGB channel, Staking differs at 31,462 dark and 33,113
+light pixels, Tokens at 48,159 and 50,069, and Token Mine at 38,210 and
+46,730. The largest crops are the Staking table, the Tokens table, and
+the open Token Mine row and form. The crops include the isolated wallet's
+actual data. Whole-image verdicts remain open under V01.
 
 | Original requirement | Evidence at this revision |
 | --- | --- |
