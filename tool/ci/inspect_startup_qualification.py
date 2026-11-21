@@ -185,6 +185,27 @@ def lock_film_bounds(encoded):
                 right=black_columns[-1], bottom=top + black_rows[-1])
 
 
+def settle_stage_bounds(encoded):
+    """Measure the black stage on two scan lines away from the wordmark."""
+    from .inspect_windows_qualification import _opaque, _png_crop
+
+    left, right, top, bottom = 225, 1055, 110, 540
+    rows, channels = _png_crop(encoded, (left, right), (top, bottom))
+    if not _opaque(rows, channels):
+        return None
+    across = rows[390 - top]
+    column = (300 - left) * channels
+    xs = [x for x in range(right - left)
+          if max(across[x * channels:x * channels + 3]) <= 5]
+    ys = [y for y, row in enumerate(rows) if max(row[column:column + 3]) <= 5]
+    for indices, limit in ((xs, right - left), (ys, bottom - top)):
+        if (not indices or indices[0] == 0 or indices[-1] == limit - 1
+                or len(indices) != indices[-1] - indices[0] + 1):
+            return None
+    return dict(left=left + xs[0], top=top + ys[0],
+                right=left + xs[-1], bottom=top + ys[-1])
+
+
 def lock_picker_divider_row(encoded, theme):
     """Read the one menu line between the wallet rows and the add action."""
     from .inspect_windows_qualification import _opaque, _png_crop
@@ -374,7 +395,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                         attemptedSlots=attempted, samples=live_rows, **progress), motion_theme)
                 except startup.Failure:
                     raise archive.Refused('INSPECTION_REFUSED') from None
-        film_bounds, picker_divider_rows, wrong_action_gradient = [], {}, {}
+        film_bounds, stage_bounds, picker_divider_rows, wrong_action_gradient = [], {}, {}, {}
         for index, (row, name) in enumerate(zip(captures, () if motion else files)):
             theme, phase = divmod(index, per_theme)
             actor = 0 if quiz else 2 * theme + 1
@@ -402,6 +423,8 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
 
                     wrong_action_gradient[row['theme']] = primary_gradient_error(
                         encoded, (459, 525, 821, 571))
+            elif settle:
+                stage_bounds[row['theme']] = settle_stage_bounds(encoded)
             else:
                 launch.entry.png_bytes(encoded)
         archive.need(set(names) == {'manifest.json', *(row['file'] for row in captures)})
@@ -462,6 +485,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         summary['frame'] = 55 if settle else 23
     if settle:
         summary['handoff_progress'] = [row['progress'] for row in captures]
+        summary['stage_pixel_bounds'] = stage_bounds
     if shared_binaries is not None:
         for key in ('runner_sha256', 'payload_sha256'):
             archive.need(shared_binaries.setdefault(key, report[key]) == report[key])

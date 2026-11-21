@@ -702,7 +702,7 @@ class StartupInspectionTests(unittest.TestCase):
             read_motion(live, complete=True, extra=True)
 
     def _check_launch_catalog(self, *, settle):
-        pixels = _png()
+        pixels = _png(well=(250, 149, 1029, 478)) if settle else _png()
         pins = dict(recipe_sha256='c' * 64, capture_source_sha256='d' * 64)
         if settle:
             pins['profile_sha256'] = 'a' * 64
@@ -762,6 +762,9 @@ class StartupInspectionTests(unittest.TestCase):
             read(dict(report, payload_sha256='a' * 64), shared_binaries=shared_binaries)
         if settle:
             self.assertEqual(actual['handoff_progress'], [.52, .52])
+            self.assertEqual(actual['stage_pixel_bounds'], dict.fromkeys(
+                inspect.launch.THEMES, dict(left=250, top=149, right=1029, bottom=478)))
+            self.assertIsNone(inspect.settle_stage_bounds(base64.b64encode(_png()).decode()))
             with self.assertRaises(inspect.archive.Refused):
                 read(dict(report, captures=[dict(captures[0], lockHandoff=False), captures[1]]))
         failed = dict(attempts[2], action_complete=False, forced_kill=True)
