@@ -4312,9 +4312,11 @@ The prepared Send rest script now uses the neutral client-edge tap before
 capturing the draft. The catalog checks that the amount remains 12.5 and the
 field has lost focus, then checks that Send is still ready. The existing
 session test checks the observation before each rest image. Local strict
-analysis passes. [Linux validation](https://github.com/edgepillar/syrius/actions/runs/44953338896)
-and the [Windows Send recapture](https://github.com/edgepillar/syrius/actions/runs/44953359210)
-are running at `422995b3`.
+analysis passes. [Linux validation at `422995b3`](https://github.com/edgepillar/syrius/actions/runs/44953338896/job/136995907044)
+passes application and strict selected analysis, 5,132 non-chain tests
+with one skip, and tracked generation. The
+[Windows Send recapture](https://github.com/edgepillar/syrius/actions/runs/44953359210)
+is running at the same revision.
 
 | Screen | Visible differences in both themes |
 | --- | --- |
@@ -4476,7 +4478,9 @@ analysis passes. The [first hosted run](https://github.com/edgepillar/syrius/act
 stopped before Flutter or wallet startup because the reader suite still
 expected 131 cases. The count now includes the new Settings archive case.
 The complete local controller suite reports 1,266 tests with 17 skips
-and no failures. Hosted archive savings remain to be measured.
+and no failures. The [corrected hosted run at `e3047adc`](https://github.com/edgepillar/syrius/actions/runs/44954025762)
+passes the isolated controller gate and has started Flutter setup.
+Hosted archive savings remain to be measured.
 
 The comparison tool accepts repeated `--reviews` arguments, so the earlier
 and recent review files can be read together without copying verdicts.
@@ -4861,6 +4865,23 @@ The [clean Windows baseline at `18d42024`](https://github.com/edgepillar/syrius/
 is running against the same application, test, harness and workflow sources
 as `9bce41b6`, with the Send and Settings changes included.
 
+### End-state audit at `e3047adc` (2026-11-21)
+
+The original 80 work rows have 77 completed entries. The application,
+assets, shaders, desktop runners and locked dependencies at this revision
+match `9bce41b6`, `18d42024` and `422995b3`. The newer commits update
+capture scripts, test coverage, archive readers and workflow selection.
+
+| Original requirement | Evidence at this revision |
+| --- | --- |
+| Clean Windows Debug and Release | The [environment guide](docs/environment.md) and completed `83be2bc3` baseline remain available. The [clean Windows run at `18d42024`](https://github.com/edgepillar/syrius/actions/runs/44952696600) builds the current application sources. It remains in progress. |
+| Analysis and tests | [Linux at `422995b3`](https://github.com/edgepillar/syrius/actions/runs/44953338896/job/136995907044) passes analysis, 5,132 non-chain tests with one skip and generation. The current local controller and strict selected Dart checks pass. [Full Linux at `e3047adc`](https://github.com/edgepillar/syrius/actions/runs/44954224819) is running. |
+| All 47 screens in both themes | The [older 94-pair review](docs/review/source-28f9c121-independent-visual-review.md) retains 14 strict matches. The four revised Send pairs still have reviewed differences. Current Windows Send and Settings recaptures are running. The current-source gallery and whole-image acceptance remain open. |
+| Running motion, shaders and P06 timing | The [independent paired read at `9bce41b6`](https://github.com/edgepillar/syrius/actions/runs/44953288126/job/136995755269) verifies page change and disclosure. Both 16 ms comparisons fail. The cold-launch timing and running visual observations remain open. |
+| Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) records the original executed refusals. The registry and seam tests match the audited `564d01ab` paths. |
+
+V01, V02 and V06 remain open.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |
@@ -4944,7 +4965,7 @@ as `9bce41b6`, with the Send and Settings changes included.
 | V03 | done | 2026-11-12T03:23Z | Source648 673fe4a19468, Source670 2b2c4abdadae, Source676 5d555665a643 and Source686 15fec4c9120f provide executed native refusals for all fifteen current seam values and pointer/keyboard refusal for the only seamed palette target. No direct missing-feature shortcut or other seamed palette target is registered. All 1,213 current runtime entries match Source686; the sole older token observer difference is covered by its holder trial. Source670's producer control list remains distinct from its legacy reader's context/closure proof. The [Source695 audit](docs/review/source695-seam-coverage.md) closes the original requirement without relabelling the later incomplete eleven-control Home batch or its failures. No new native run or visual match is claimed. |
 | V04 | done | 2026-10-31T23:34Z | All four independently qualified Source265 minimum-window/Arabic originals were actually viewed in both themes. The owned review closes SUCCESS with actual controller exit zero; required original native closure stays source-bound. Minimum controls fit and RTL layout mirrors. English fallback/missing Arabic copy is retained as X414; exact saved locale preference and Arabic glyph quality remain separate unqualified observations |
 | V05 | done | 2026-11-18T13:45Z | fdb88d89 commits the fresh independent review of all 94 exact 28f9c121 pairs and X821 through X875. The visual verdicts guide further comparisons under V01. [Independent review](docs/review/source-28f9c121-independent-visual-review.md). |
-| V06 | review | 2026-11-21 | The [current five-item audit](#end-state-audit-at-ae94c35a-2026-11-21) records the runtime correspondence, the local generated gallery inventory and the remaining build and motion evidence. |
+| V06 | review | 2026-11-21 | The [current five-item audit](#end-state-audit-at-e3047adc-2026-11-21) records source correspondence, completed Linux checks, and the open Windows and visual requirements. |
 | X01 | done | 2026-10-21T23:26Z | e13abb387577 restores loading-list sweep ink in lib/rearchitecture/utils/widgets/motion/skeleton.dart; all 19 existing Skeleton tests pass unchanged |
 | X02 | done | 2026-10-21T23:57Z | e13abb387577 keeps the status-strip dot visible at narrow widths and fixes asynchronous visibility tests |
 | X03 | done | 2026-10-21T23:57Z | e13abb387577 parses the bridge test's HTTP head before binary frames; compression refusal assertions retained |
