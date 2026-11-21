@@ -3046,6 +3046,13 @@ corrected reader uses the native `lab-fix` selection and the original
 archives. The measurement leaves the independent effect of the texture
 scale unresolved. V01 and V02 remain open.
 
+Settings now gives each existing panel its own sliver so a panel entirely
+outside the viewport skips paint while its mounted contents and input state
+remain available. The About regression checks that scrolling a panel into
+view paints the same mounted element for the first time. Fresh Windows
+timing is needed to measure the effect on the original page and disclosure
+windows. The 16 ms comparison remains open.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.

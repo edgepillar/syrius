@@ -350,17 +350,20 @@ class SettingsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double gap = AppTokens.of(context).pageGap;
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          for (int i = 0; i < children.length; i++) ...<Widget>[
-            if (i > 0) SizedBox(height: gap),
-            children[i],
-          ],
-        ],
-      ),
+    return CustomScrollView(
+      shrinkWrap: true,
+      // Each panel stays mounted so its input survives scrolling. The viewport
+      // only paints the panels that intersect it during a disclosure.
+      slivers: <Widget>[
+        for (final (int index, Widget child) in children.indexed)
+          SliverToBoxAdapter(
+            key: child.key == null ? null : ValueKey<Key?>(child.key),
+            child: Padding(
+              padding: EdgeInsets.only(top: index == 0 ? 0 : gap),
+              child: child,
+            ),
+          ),
+      ],
     );
   }
 }

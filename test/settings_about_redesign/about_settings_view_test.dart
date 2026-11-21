@@ -13,6 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/about_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/about_information.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/licences.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 
 import 'support.dart';
 
@@ -23,6 +24,18 @@ Future<AboutInformation> _information() async => AboutInformation(
 );
 
 Stream<LicenseEntry> _emptyLicences() => const Stream<LicenseEntry>.empty();
+
+class _CountPaint extends CustomPainter {
+  _CountPaint(this.onPaint);
+
+  final VoidCallback onPaint;
+
+  @override
+  void paint(Canvas canvas, Size size) => onPaint();
+
+  @override
+  bool shouldRepaint(_CountPaint oldDelegate) => onPaint != oldDelegate.onPaint;
+}
 
 Text _text(WidgetTester tester, String key) =>
     tester.widget<Text>(find.byKey(ValueKey<String>(key)));
@@ -53,6 +66,38 @@ void main() {
       }
       await fonts.load();
     }
+  });
+
+  aboutTestWidgets('Settings skips offscreen panel paint and keeps its owner', (
+    WidgetTester tester,
+  ) async {
+    prepareAboutViewport(tester);
+    const Key panel = Key('offscreen_settings_panel');
+    int paints = 0;
+    await tester.pumpWidget(
+      aboutHost(
+        SettingsSection(
+          children: <Widget>[
+            const SizedBox(height: 500),
+            SizedBox(
+              height: 100,
+              child: CustomPaint(
+                key: panel,
+                painter: _CountPaint(() => paints++),
+              ),
+            ),
+          ],
+        ),
+        height: 260,
+      ),
+    );
+    final Finder offscreen = find.byKey(panel, skipOffstage: false);
+    final Element original = tester.element(offscreen);
+    expect(paints, 0);
+    await tester.ensureVisible(offscreen);
+    await tester.pumpAndSettle();
+    expect(paints, greaterThan(0));
+    expect(tester.element(offscreen), same(original));
   });
 
   for (final (bool, bool, double) variant in <(bool, bool, double)>[
