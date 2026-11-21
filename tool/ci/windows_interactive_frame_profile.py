@@ -530,10 +530,12 @@ def owned_profile(send, run_entry, revalidate, measure, confirm_address, *,
     tap_releases = {}
     disclosure_phases = {}
     page_phases = {}
+    pointer_phases = {}
     try:
         measure(observed_send, launch.frame_timing_window, size=list(launch.TIMING_SIZE),
                 windows=report['windows'], tap_releases=tap_releases,
-                disclosure_phases=disclosure_phases, page_phases=page_phases)
+                disclosure_phases=disclosure_phases, page_phases=page_phases,
+                pointer_phases=pointer_phases)
     finally:
         if tap_releases:
             report['tap_release_us'] = tap_releases
@@ -541,6 +543,8 @@ def owned_profile(send, run_entry, revalidate, measure, confirm_address, *,
             report['disclosure_phases_us'] = disclosure_phases
         if page_phases:
             report['page_settled_us'] = page_phases['settled']
+        if pointer_phases:
+            report['pointer_phases_us'] = pointer_phases
     need(set(report['windows']) == {'page_change', 'disclosure'}, 'FRAME_REFUSED')
     for window in report['windows'].values():
         launch.frame_timing_window(window)

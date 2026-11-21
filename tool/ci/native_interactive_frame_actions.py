@@ -82,6 +82,13 @@ def valid_page_settlement(value, release, window_us):
     return type(release) is int and type(value) is int and release <= value < window_us
 
 
+def valid_pointer_phases(value, release):
+    return (type(value) is dict and set(value) == {'move_started', 'down'}
+            and type(release) is int
+            and all(type(offset) is int for offset in value.values())
+            and 0 <= value['move_started'] <= value['down'] <= release)
+
+
 def _measure(send, validate_window, sleep, selector, phase_field):
     reply = _original(send, cmd='stalls', frameWindow='begin')
     _require(reply.get('frameWindow') == 'collecting')
@@ -94,12 +101,16 @@ def _measure(send, validate_window, sleep, selector, phase_field):
     release = tap.get(field)
     if field in tap:
         _require(type(release) is int and 0 <= release < window['windowUs'])
-    return window, release, phases
+    pointer_field = 'frameWindowPointerPhasesUs'
+    pointers = tap.get(pointer_field)
+    if pointer_field in tap:
+        _require(valid_pointer_phases(pointers, release))
+    return window, release, phases, pointers
 
 
 def observe_interactive(send, validate_window, *, size, windows=None,
                         tap_releases=None, disclosure_phases=None,
-                        page_phases=None,
+                        page_phases=None, pointer_phases=None,
                         sleep=time.sleep):
     """Observe Home to Settings and the closed About licences disclosure.
 
@@ -113,20 +124,22 @@ def observe_interactive(send, validate_window, *, size, windows=None,
     _require(theme.get('mode') == theme.get('brightness') == 'dark'
              and theme.get('savedMode') == 'ThemeMode.dark')
     address = _wallet(send, 'dashboard', size)
-    page, page_release, page_settlement = _measure(
+    page, page_release, page_settlement, page_pointer = _measure(
         send, validate_window, sleep, {'tab': 'settings'}, 'interactivePageSettledUs')
     _wait(send, 'settings_node')
     _wallet(send, 'settings', size, address)
     windows['page_change'] = page
     if tap_releases is not None and page_release is not None:
         tap_releases['page_change'] = page_release
+    if pointer_phases is not None and page_pointer is not None:
+        pointer_phases['page_change'] = page_pointer
     if page_phases is not None and valid_page_settlement(page_settlement, page_release, page['windowUs']):
         page_phases['settled'] = page_settlement
 
     _target(_original(send, cmd='tap', key='settings_about'), key='settings_about')
     _wait(send, 'about_licences_toggle')
     _licences(send, gone=True)
-    disclosure, disclosure_release, phases = _measure(
+    disclosure, disclosure_release, phases, disclosure_pointer = _measure(
         send, validate_window, sleep, {'key': 'about_licences_toggle'},
         'interactiveDisclosurePhasesUs')
     # The redesigned list can start below the visible scroll area. Reveal it
@@ -141,6 +154,8 @@ def observe_interactive(send, validate_window, *, size, windows=None,
     windows['disclosure'] = disclosure
     if tap_releases is not None and disclosure_release is not None:
         tap_releases['disclosure'] = disclosure_release
+    if pointer_phases is not None and disclosure_pointer is not None:
+        pointer_phases['disclosure'] = disclosure_pointer
     if (disclosure_phases is not None and valid_disclosure_phases(
             phases, disclosure_release, disclosure['windowUs'])):
         disclosure_phases.update(phases)

@@ -73,7 +73,8 @@ def sample_receipts(value, *, allow_tap_release=False):
         required = {'phase', 'lab_revalidations', 'entry', 'windows', 'success'}
         optional = {'action_progress', 'preparation_failure'}
         if allow_tap_release:
-            optional.update(('tap_release_us', 'disclosure_phases_us', 'page_settled_us'))
+            optional.update(('tap_release_us', 'disclosure_phases_us', 'page_settled_us',
+                             'pointer_phases_us'))
         archive.need(type(observation) is dict
             and required <= set(observation) <= required | optional
             and type(observation['phase']) is str and observation['phase'] in OBSERVATION_PHASES
@@ -126,6 +127,12 @@ def sample_receipts(value, *, allow_tap_release=False):
                 and set(releases) <= set(windows)
                 and all(pair.shared.launch.startup.integer(offset, 0, windows[name]['windowUs'] - 1)
                         for name, offset in releases.items()))
+        if 'pointer_phases_us' in observation:
+            pointers = observation['pointer_phases_us']
+            releases = observation.get('tap_release_us', {})
+            archive.need(type(pointers) is dict and pointers and set(pointers) <= set(releases)
+                and all(pair.actions.valid_pointer_phases(item, releases[name])
+                        for name, item in pointers.items()))
         if 'disclosure_phases_us' in observation:
             archive.need('disclosure' in windows and pair.actions.valid_disclosure_phases(
                 observation['disclosure_phases_us'],
@@ -155,7 +162,8 @@ def _record_raster(group, raster):
     group['max_raster_us'] = max(group['max_raster_us'], raster)
 
 
-def _window_diagnostics(window, tap_release_us, motion_us, disclosure_phases=None):
+def _window_diagnostics(window, tap_release_us, motion_us, disclosure_phases=None,
+                        pointer_phases=None):
     result = cold.window_diagnostics(window, peak_starts=True)
     if tap_release_us is not None:
         rows = pair.shared.launch.frame_timing_rows(window, allow_packed=True)
@@ -163,6 +171,16 @@ def _window_diagnostics(window, tap_release_us, motion_us, disclosure_phases=Non
         result['peak_raster_start_bounds_from_tap_us'] = {
             name: offset - tap_release_us
             for name, offset in result.pop('peak_raster_start_bounds_us').items()}
+        if pointer_phases:
+            pointer_offsets = {name: offset - tap_release_us
+                               for name, offset in pointer_phases.items()}
+            peak = result['peak_raster_start_bounds_from_tap_us']
+            result['pointer_offsets_from_tap_us'] = pointer_offsets
+            result['peak_raster_start_relation_to_pointer'] = {
+                name: ('before' if peak['latest'] < offset
+                       else 'at_or_after' if peak['earliest'] >= offset
+                       else 'crossing')
+                for name, offset in pointer_offsets.items()}
         groups = _raster_groups('before', 'within', 'after', 'crossing')
         offsets = {name: offset - tap_release_us
                    for name, offset in (disclosure_phases or {}).items()}
@@ -366,7 +384,8 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
             label: {name: _window_diagnostics(
                         window, samples[label]['observation'].get('tap_release_us', {}).get(name),
                         MOTION_US[name], samples[label]['observation'].get(
-                            'disclosure_phases_us') if name == 'disclosure' else None)
+                            'disclosure_phases_us') if name == 'disclosure' else None,
+                        pointer_phases=samples[label]['observation'].get('pointer_phases_us', {}).get(name))
                     for name, window in frame_windows.items()}
             for label, frame_windows in diagnostic_windows.items()
         } or None)

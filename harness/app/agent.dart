@@ -4444,11 +4444,13 @@ class HarnessAgent {
     int buttons = kPrimaryButton,
     int holdMs = 50,
     void Function()? requireAdmission,
+    VoidCallback? beforeDown,
     VoidCallback? afterRelease,
   }) async {
     await _moveTo(p);
     requireAdmission?.call();
     final int id = ++_pointer;
+    beforeDown?.call();
     _send(
       PointerDownEvent(
         pointer: id,
@@ -4598,6 +4600,7 @@ class HarnessAgent {
     }
 
     int? frameWindowTapReleaseUs;
+    Map<String, int>? frameWindowPointerPhasesUs;
     if (c['right'] == true) {
       await _click(
         t.point,
@@ -4613,15 +4616,32 @@ class HarnessAgent {
               (c['tab'] == 'settings' || c['key'] == 'about_licences_toggle')
           ? _interactiveStartUs
           : null;
+      final int? moved = started == null ? null : dev.Timeline.now - started;
+      int? down;
       await _click(
         t.point,
         requireAdmission: admission,
+        beforeDown: started == null
+            ? null
+            : () {
+                if (_interactiveStartUs == started) {
+                  down = dev.Timeline.now - started;
+                }
+              },
         afterRelease: started == null
             ? null
             : () {
                 if (_interactiveStartUs != started) return;
                 final int elapsed = dev.Timeline.now - started;
-                if (elapsed >= 0) frameWindowTapReleaseUs = elapsed;
+                if (elapsed >= 0) {
+                  frameWindowTapReleaseUs = elapsed;
+                  if ((moved, down) case (final int moveUs, final int downUs)) {
+                    frameWindowPointerPhasesUs = <String, int>{
+                      'move_started': moveUs,
+                      'down': downUs,
+                    };
+                  }
+                }
                 if (c['key'] == 'about_licences_toggle' && n != null) {
                   _observeDisclosurePhases(n.element, started);
                 } else if (c['tab'] == 'settings') {
@@ -4639,6 +4659,7 @@ class HarnessAgent {
       'at': <int>[t.point.dx.round(), t.point.dy.round()],
       if (n != null) 'target': n.toJson(),
       'frameWindowTapReleaseUs': ?frameWindowTapReleaseUs,
+      'frameWindowPointerPhasesUs': ?frameWindowPointerPhasesUs,
     };
   }
 

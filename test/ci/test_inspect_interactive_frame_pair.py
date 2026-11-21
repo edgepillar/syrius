@@ -277,6 +277,9 @@ class InteractiveFramePairTests(unittest.TestCase):
         offered = fixture()
         observation = offered['samples']['current']['observation']
         observation['tap_release_us'] = {'page_change': 5000, 'disclosure': 6000}
+        observation['pointer_phases_us'] = {
+            'page_change': dict(move_started=1000, down=4000),
+        }
         phases = dict(settled=250_000, list_laid_out=347_000)
         observation['disclosure_phases_us'] = phases
         result = self.project(offered)
@@ -307,11 +310,24 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertTrue(result['timing_criterion_passed'])
         page = result['verified_window_diagnostics']['current']['page_change']
         self.assertEqual(page['tap_release_us'], 5000)
+        self.assertEqual(page['pointer_offsets_from_tap_us'],
+                         dict(move_started=-4000, down=-1000))
         current_page = observation['windows']['page_change']
         _, start, build, raster, total = max(
             pair.shared.launch.frame_timing_rows(current_page), key=lambda row: row[3])
         self.assertEqual(page['peak_raster_start_bounds_from_tap_us'], dict(
             earliest=start + build - 5000, latest=start + total - raster - 5000))
+        self.assertEqual(page['peak_raster_start_relation_to_pointer'],
+                         dict(move_started='at_or_after', down='at_or_after'))
+        for invalid in (dict(move_started=4001, down=4000),
+                        dict(move_started=1000, down=5001),
+                        dict(move_started=True, down=4000)):
+            offered_invalid = fixture()
+            invalid_observation = offered_invalid['samples']['current']['observation']
+            invalid_observation['tap_release_us'] = {'page_change': 5000}
+            invalid_observation['pointer_phases_us'] = {'page_change': invalid}
+            with self.subTest(pointer_phases=invalid), self.assertRaises(archive.Refused):
+                self.project(offered_invalid)
         disclosure = result['verified_window_diagnostics']['current']['disclosure']
         self.assertEqual(disclosure['observed_post_frame_offsets_from_tap_us'],
                          dict(settled=244_000, list_laid_out=341_000))
@@ -685,7 +701,8 @@ class InteractiveFramePairTests(unittest.TestCase):
     def test_normal_about_content_uses_visible_licences_and_keeps_scroll_outside_timing(self):
         window = dict(fixture()['samples']['current']['observation']['windows']['page_change'],
                       peakBuildWaitUs=0)
-        for fault in (None, 'closed', 'content', 'address', 'scroll', 'tap_offset', 'phase_offset'):
+        for fault in (None, 'closed', 'content', 'address', 'scroll', 'tap_offset',
+                      'phase_offset', 'pointer_order'):
             calls, validated, pauses = [], [], []
             tab, opened, collecting = 'dashboard', False, False
 
@@ -720,7 +737,8 @@ class InteractiveFramePairTests(unittest.TestCase):
                     if command.get('tab') == 'settings':
                         self.assertTrue(collecting)
                         tab = 'settings'
-                        return dict(ok=True, target=dict(tab=tab), frameWindowTapReleaseUs=50_000)
+                        return dict(ok=True, target=dict(tab=tab), frameWindowTapReleaseUs=50_000,
+                                    frameWindowPointerPhasesUs=dict(move_started=1000, down=2000))
                     key = command['key']
                     self.assertIn(key, ('settings_about', 'about_licences_toggle'))
                     if key == 'about_licences_toggle':
@@ -728,6 +746,8 @@ class InteractiveFramePairTests(unittest.TestCase):
                         self.assertFalse(opened)
                         opened = True
                         return dict(ok=True, target=dict(key=key),
+                            frameWindowPointerPhasesUs=dict(
+                                move_started=2000, down=1000 if fault == 'pointer_order' else 3000),
                             frameWindowTapReleaseUs=-1 if fault == 'tap_offset' else 60_000)
                     else:
                         self.assertFalse(collecting)
@@ -752,6 +772,7 @@ class InteractiveFramePairTests(unittest.TestCase):
                                                        else ['AboutCard', 'Licences', 'Text']))
 
             windows, tap_releases, disclosure_phases, page_phases = {}, {}, {}, {}
+            pointer_phases = {}
 
             def validate(value):
                 pair.shared.launch.frame_timing_window(value)
@@ -763,6 +784,7 @@ class InteractiveFramePairTests(unittest.TestCase):
                         size=[1280, 780], windows=windows,
                         tap_releases=tap_releases,
                         disclosure_phases=disclosure_phases, page_phases=page_phases,
+                        pointer_phases=pointer_phases,
                         sleep=pauses.append)
                     self.assertIs(result, windows)
                     self.assertEqual(set(windows), set(pair.WINDOWS))
@@ -771,15 +793,20 @@ class InteractiveFramePairTests(unittest.TestCase):
                     self.assertEqual(len(validated), 2)
                     self.assertEqual(tap_releases, {'page_change': 50_000, 'disclosure': 60_000})
                     self.assertEqual(page_phases, dict(settled=350_000))
+                    self.assertEqual(pointer_phases, dict(
+                        page_change=dict(move_started=1000, down=2000),
+                        disclosure=dict(move_started=2000, down=3000)))
                     self.assertEqual(disclosure_phases,
                         {} if fault else dict(settled=304_000, list_laid_out=450_000))
                 else:
                     with self.assertRaises(pair.actions.FrameActionRefused):
                         pair.actions.observe_interactive(send, validate,
                             size=[1280, 780], windows=windows,
-                            tap_releases=tap_releases, sleep=pauses.append)
+                            tap_releases=tap_releases, pointer_phases=pointer_phases,
+                            sleep=pauses.append)
                     self.assertEqual(set(windows), {'page_change'})
                     self.assertEqual(tap_releases, {'page_change': 50_000})
+                    self.assertEqual(pointer_phases, {'page_change': dict(move_started=1000, down=2000)})
                 self.assertFalse(collecting)
                 self.assertFalse(any(call.get('key') in ('about_page', 'about_licences_list')
                                      for call in calls))
@@ -1140,12 +1167,13 @@ class InteractiveFramePairTests(unittest.TestCase):
                     output_complete=True, output_bytes=len(output), seconds=1, output=output)
 
             def measure(request, validate, *, size, windows, tap_releases,
-                        disclosure_phases, page_phases):
+                        disclosure_phases, page_phases, pointer_phases):
                 request(dict(cmd='wait', key='about_page'))
                 windows.update(dict.fromkeys(pair.WINDOWS, window))
                 tap_releases.update(page_change=50_000, disclosure=60_000)
                 disclosure_phases.update(settled=304_000)
                 page_phases.update(settled=350_000)
+                pointer_phases.update(page_change=dict(move_started=1000, down=2000))
 
             with mock.patch.object(profile.wallet_tour, 'public_fixture', return_value='fixture words'):
                 arguments = (send, run_entry,
@@ -1167,6 +1195,8 @@ class InteractiveFramePairTests(unittest.TestCase):
             self.assertEqual(report.get('tap_release_us'),
                              None if failed else {'page_change': 50_000, 'disclosure': 60_000})
             self.assertEqual(report.get('page_settled_us'), None if failed else 350_000)
+            self.assertEqual(report.get('pointer_phases_us'),
+                             None if failed else {'page_change': dict(move_started=1000, down=2000)})
             encoded = cold.canonical(report)
             self.assertNotIn(b'synthetic private failure', encoded)
             self.assertNotIn(b'fixture words', encoded)

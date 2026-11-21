@@ -3114,6 +3114,13 @@ comparisons fail the 16 ms criterion and all four streams retain
 frame gaps. The paired run includes a pre-release raster peak and
 leaves the separate effect of skipping offscreen panel paint unresolved.
 
+The measured tap now records when the harness starts moving the
+pointer and when it dispatches pointer down, on the same clock as
+release. The reader checks the event order and compares the bounded
+start of the peak raster with both markers. The new fields contain
+only elapsed times. The original frame windows and 16 ms comparison
+still govern V02.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.
