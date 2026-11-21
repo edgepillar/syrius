@@ -48,7 +48,7 @@ class EntryField extends StatefulWidget {
   /// Whether this field supplies the native caption backdrop.
   final bool paintCaption;
 
-  /// During launch, the caption starts painting when this motion reaches one.
+  /// Reveals the caption lights with the Lock field during the handoff.
   final ValueListenable<double>? captionProgress;
 
   /// The covering film. Preparation starts during its final frame hold.
@@ -77,7 +77,7 @@ class _EntryFieldState extends State<EntryField>
   AppWindowFrameState? _captionFrame;
   ModalRoute<dynamic>? _captionRoute;
   bool _captionTickerEnabled = false;
-  bool _captionEnabled = false;
+  double _captionOpacity = 0;
   AppWindowEntryBackdrop? _captionLease;
   _EntryCaptionPaint? _captionRequested;
   _EntryCaptionPaint? _captionPainted;
@@ -112,7 +112,7 @@ class _EntryFieldState extends State<EntryField>
   }
 
   AppWindowEntryBackdropPhase _captionPhase() {
-    if (!_captionEnabled || !_captionTickerEnabled ||
+    if (_captionOpacity == 0 || !_captionTickerEnabled ||
         !_captionGeometryCurrent()) {
       return AppWindowEntryBackdropPhase.hidden;
     }
@@ -125,7 +125,7 @@ class _EntryFieldState extends State<EntryField>
 
   void _bindCaption() {
     final AppWindowFrameState? frame = _captionFrame;
-    if (!mounted || !_captionEnabled || frame == null ||
+    if (!mounted || !widget.paintCaption || frame == null ||
         !frame.hasClientCaption ||
         _captionLease != null) {
       return;
@@ -166,6 +166,7 @@ class _EntryFieldState extends State<EntryField>
           raster: _raster,
           pixelRatio: request.pixelRatio,
           captionHeight: request.height,
+          opacity: _captionOpacity,
         );
         canvas.restore();
         if (mounted && identical(_captionLease, lease) && lease.isVisible &&
@@ -270,19 +271,18 @@ class _EntryFieldState extends State<EntryField>
     super.initState();
     _clock = ShaderClock(vsync: this)..active = true;
     _captionRepaint = Listenable.merge(<Listenable>[_clock, _captionChanges]);
-    widget.captionProgress?.addListener(_updateCaptionEnabled);
+    widget.captionProgress?.addListener(_updateCaptionOpacity);
     widget.launchFilm?.addListener(_prepareCoveredRaster);
-    _updateCaptionEnabled();
+    _updateCaptionOpacity();
   }
 
-  void _updateCaptionEnabled() {
-    final bool enabled =
-        widget.paintCaption && (widget.captionProgress?.value ?? 1) == 1;
-    if (_captionEnabled == enabled) return;
-    _captionEnabled = enabled;
-    // The full-window launch supplies the caption until the Lock is settled.
-    // Keep the field and its layout ready while leaving the caption paint idle.
-    if (enabled) _bindCaption();
+  void _updateCaptionOpacity() {
+    final double opacity = widget.paintCaption
+        ? _EntryFieldPainter.lightOpacity(widget.captionProgress?.value)
+        : 0;
+    if (_captionOpacity == opacity) return;
+    _captionOpacity = opacity;
+    if (opacity > 0) _bindCaption();
     _captionChanges.markPaint();
   }
 
@@ -309,19 +309,19 @@ class _EntryFieldState extends State<EntryField>
   void didUpdateWidget(EntryField oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.captionProgress != widget.captionProgress) {
-      oldWidget.captionProgress?.removeListener(_updateCaptionEnabled);
-      widget.captionProgress?.addListener(_updateCaptionEnabled);
+      oldWidget.captionProgress?.removeListener(_updateCaptionOpacity);
+      widget.captionProgress?.addListener(_updateCaptionOpacity);
     }
     if (oldWidget.launchFilm != widget.launchFilm) {
       oldWidget.launchFilm?.removeListener(_prepareCoveredRaster);
       widget.launchFilm?.addListener(_prepareCoveredRaster);
     }
-    _updateCaptionEnabled();
+    _updateCaptionOpacity();
   }
 
   @override
   void dispose() {
-    widget.captionProgress?.removeListener(_updateCaptionEnabled);
+    widget.captionProgress?.removeListener(_updateCaptionOpacity);
     widget.launchFilm?.removeListener(_prepareCoveredRaster);
     _captionLease?.dispose();
     _captionLease = null;
@@ -390,7 +390,6 @@ class _EntryFieldState extends State<EntryField>
                 reveal: widget.fadeLightsOnOpaqueBase
                     ? widget.captionProgress
                     : null,
-                revealPoint: tokens.launchSettleReference.progress,
                 background: paintsBackground ? tokens.background : null,
                 green: tokens.znn,
                 blue: tokens.qsr,
@@ -491,7 +490,6 @@ class _EntryFieldPainter extends CustomPainter {
   _EntryFieldPainter({
     required this.seconds,
     required this.reveal,
-    required this.revealPoint,
     required this.background,
     required this.green,
     required this.blue,
@@ -505,7 +503,6 @@ class _EntryFieldPainter extends CustomPainter {
 
   final ValueListenable<double> seconds;
   final ValueListenable<double>? reveal;
-  final double revealPoint;
   final Color? background;
   final Color green;
   final Color blue;
@@ -514,12 +511,14 @@ class _EntryFieldPainter extends CustomPainter {
   final double pixelRatio;
   final double captionHeight;
 
+  static double lightOpacity(double? progress) => progress == null
+      ? 1
+      : (progress / AppTokens.launchSettleReferenceProgress).clamp(0.0, 1.0);
+
   @override
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty) return;
-    final double opacity = reveal == null
-        ? 1
-        : (reveal!.value / revealPoint).clamp(0.0, 1.0);
+    final double opacity = lightOpacity(reveal?.value);
     if (opacity == 0) return;
     // The startup shell already paints its matching opaque base.
     if (background case final Color color) {
@@ -657,7 +656,6 @@ class _EntryFieldPainter extends CustomPainter {
   bool shouldRepaint(_EntryFieldPainter old) =>
       old.seconds != seconds ||
       old.reveal != reveal ||
-      old.revealPoint != revealPoint ||
       old.background != background ||
       old.green != green ||
       old.blue != blue ||

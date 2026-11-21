@@ -458,6 +458,24 @@ void main() {
       expect(green[1], greaterThan(green[2]));
       expect(blue[3], greaterThan(8));
       expect(blue[2], greaterThan(blue[1]));
+      final RenderRepaintBoundary captionPaint = tester.renderObject(
+        find.ancestor(of: backdrop, matching: find.byType(RepaintBoundary))
+            .first,
+      );
+      final List<int>? captionLight = await tester.runAsync(() async {
+        final ui.Image image = await captionPaint.toImage();
+        try {
+          final ByteData bytes = (await image.toByteData(
+            format: ui.ImageByteFormat.rawStraightRgba,
+          ))!;
+          final int offset = (14 * image.width + 640) * 4;
+          return List<int>.generate(4, (int i) => bytes.getUint8(offset + i));
+        } finally {
+          image.dispose();
+        }
+      });
+      expect(captionLight![3], greaterThan(8));
+      expect(captionLight[0], greaterThan(captionLight[1]));
       await tester.pump(const Duration(milliseconds: 200) - referenceTime);
       expect(_stageRect(tester).width, lessThan(full.width));
       expect(
@@ -471,10 +489,6 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
       expect(session.interactive, isTrue);
       expect(tester.widget<EntryField>(field), same(movingField));
-      final RenderRepaintBoundary captionPaint = tester.renderObject(
-        find.ancestor(of: backdrop, matching: find.byType(RepaintBoundary))
-            .first,
-      );
       expect(captionPaint.size.height, tokens.windowCaptionHeight);
       final int priorPaints = captionPaint.debugAsymmetricPaintCount;
       await tester.pump(const Duration(milliseconds: 100));

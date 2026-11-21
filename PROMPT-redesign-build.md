@@ -3588,6 +3588,17 @@ in the redesign and 136.771 ms in P06 during this run. The redesign peak
 starts 60.655 to 73.536 ms after the handoff begins. The windows retain
 16 redesign and 802 P06 frame-number gaps, so V02 remains open.
 
+The [caption crop read at `d5bfd815`](https://github.com/edgepillar/syrius/actions/runs/44896736369/job/136823902101)
+locates 3,041 dark and 2,862 light differences at the 16-level threshold
+in the background between the wordmark and the controls. All four fixed
+caption background points are flat in each handoff capture. The
+[settled comparison at `7581a48e`](https://github.com/edgepillar/syrius/actions/runs/44896736482/job/136823902451)
+finds zero differences at that threshold in the same caption background
+crop in both themes. The reference caption background is the same in the
+handoff and the settled shots. The candidate gives the native caption the
+body's existing light reveal and raster while retaining the full-window
+black caption before the handoff. Fresh Windows capture remains pending.
+
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
 and five normal node exits. The longest page-change totals are 280.034 ms
