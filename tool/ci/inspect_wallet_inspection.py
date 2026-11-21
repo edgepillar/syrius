@@ -1109,9 +1109,9 @@ def main(parent=None):
     text, head = parent.get('WALLET_INSPECT_RUN', ''), parent.get('WALLET_INSPECT_HEAD', '')
     need(type(text) is str and re.fullmatch('[1-9][0-9]{0,19}', text) and digest(head, 40))
     run_id = int(text)
-    # The standard read uses up to 16 requests. Reserve eight more for the
-    # historical blobs, including when both catalogs and parent checks run.
-    client = archive.Client(parent.get('GH_TOKEN'), max_calls=24)
+    # Allow 15 metadata and artifact requests plus ten exact producer blobs,
+    # including the workflow. The metadata reads after transport still apply.
+    client = archive.Client(parent.get('GH_TOKEN'), max_calls=25)
     PHASE = 'producer_metadata'
     run = client.json('/actions/runs/' + text)
     need(type(run.get('id')) is int and run['id'] == run_id and run.get('head_sha') == head
