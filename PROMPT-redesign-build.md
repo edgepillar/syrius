@@ -3060,6 +3060,11 @@ remain available. The About regression checks that scrolling a panel into
 view paints the same mounted element for the first time. Fresh Windows
 timing is needed to measure the effect on the original page and disclosure
 windows. The 16 ms comparison remains open.
+The [first timing attempt at `6943592e`](https://github.com/edgepillar/syrius/actions/runs/44869018824/job/136739104034)
+stops at two About widget test taps before the native build. [Linux](https://github.com/edgepillar/syrius/actions/runs/44869019107)
+reports the same two failures and warns about the Node field tap.
+Those tests now pump the frame requested by the scroll before tapping,
+so the sliver can update its layout and hit-test transform first.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence

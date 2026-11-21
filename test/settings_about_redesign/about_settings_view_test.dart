@@ -40,10 +40,15 @@ class _CountPaint extends CustomPainter {
 Text _text(WidgetTester tester, String key) =>
     tester.widget<Text>(find.byKey(ValueKey<String>(key)));
 
+Future<void> _tapVisible(WidgetTester tester, Finder target) async {
+  await tester.ensureVisible(target);
+  // The sliver's hit-test transform updates during the next layout.
+  await tester.pump();
+  await tester.tap(target);
+}
+
 Future<void> _toggle(WidgetTester tester, String key) async {
-  final Finder toggle = find.byKey(ValueKey<String>(key));
-  await tester.ensureVisible(toggle);
-  await tester.tap(toggle);
+  await _tapVisible(tester, find.byKey(ValueKey<String>(key)));
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 240));
 }
@@ -306,8 +311,7 @@ void main() {
     await _toggle(tester, 'about_links_toggle');
     for (int index = 0; index < expected.length; index++) {
       final Finder row = find.byKey(ValueKey<String>('about_link_$index'));
-      await tester.ensureVisible(row);
-      await tester.tap(row);
+      await _tapVisible(tester, row);
       await tester.pump();
     }
     expect(opened, expected);
@@ -412,8 +416,8 @@ void main() {
       await tester.pump();
       await _toggle(tester, 'about_computer_toggle');
       final Finder cache = find.byKey(const Key('about_info_cache'));
-      await tester.ensureVisible(cache);
-      await tester.tap(
+      await _tapVisible(
+        tester,
         find.descendant(
           of: cache,
           matching: find.byTooltip('Open folder'),
@@ -519,8 +523,7 @@ void main() {
       final double headerHeight = tester.getSize(toggle).height;
       final double closedHeight = tester.getSize(panel).height;
       expect(headerBorder(), isNull);
-      await tester.ensureVisible(toggle);
-      await tester.tap(toggle);
+      await _tapVisible(tester, toggle);
       await tester.pump();
       final List<OffsetLayer> precedingLayers = <OffsetLayer>[];
       for (final String key in <String>[
