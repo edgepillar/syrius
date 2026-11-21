@@ -4180,6 +4180,25 @@ review task closed.
 
 No whole-image verdict changes under V01.
 
+The [Home run at `1ad56434`](https://github.com/edgepillar/syrius/actions/runs/44932698776/job/136932580083)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44934750545/job/136938840976)
+verify eight original Home images and normal required closure. Dark Rest,
+Open and Go To have the exact same PNG digests as at `706cc387`. All eight
+reference digests agree. At the 16-level RGB threshold, the largest
+difference in whole-window counts is 38 fewer pixels in light Open.
+The largest status-region change is also 38 pixels. The Home body counts
+agree in every recorded pair. This retains the earlier visual findings
+and leaves whole-image acceptance open.
+
+The same reader verifies 29 bounded samples of the original status halo
+input. The samples include intermediate phases, seven transparent-hold
+observations and two observed resumes. The two resume intervals are
+2.266935–2.482514 s and 4.550324–4.759336 s after sampling begins.
+The elapsed time between them is bounded by 2.067810–2.492401 s. That
+interval includes the authored 2.4-second pulse. The samples read the
+input to the halo painter. The visual motion review and P06 frame-time
+comparisons remain open under V02.
+
 The existing Windows Home catalog now samples the original toggle width
 on both opening and closing. The observer uses the original pointer and
 tree responses, restores the initial rail state and retains only bounded
@@ -4486,7 +4505,7 @@ and generated-file verification. Native observation remains open under V02.
 | The eye | `test/hidden_balances/hidden_balances_test.dart` checks both original eye segments. | Observe both directions and masked values during the switch. |
 | The bolt | `test/shell/strip/plasma_lifecycle_test.dart` checks repeat during generation and exit to idle. | Watch a complete loop while generation is in progress. |
 | Wrong password | The Lock catalog retains the wrong-password state after input. | See the 200 ms shake and original well replay as the submission is refused. |
-| Sync dot | `test/shell/strip/sync_pulse_test.dart` checks the 2.4 s pulse and the halo phase read from the original widget. The [Home producer at `1ad56434`](https://github.com/edgepillar/syrius/actions/runs/44932698776) samples that input for up to six seconds. The reader reports intermediate phases, the transparent hold and the bounds between observed resumes. [Linux at the same source](https://github.com/edgepillar/syrius/actions/runs/44932698713/job/136932579266) passes both pulse cases, the full non-chain suite with 5,131 passes and one skip, and generated-file verification. | Confirm the retained observations and visually review a full pulse in the running wallet. |
+| Sync dot | `test/shell/strip/sync_pulse_test.dart` checks the 2.4 s pulse and the halo phase read from the original widget. The [Windows reader at `f1364c6a`](https://github.com/edgepillar/syrius/actions/runs/44934750545/job/136938840976) verifies intermediate phases, seven transparent observations and a 2.067810–2.492401 s interval between observed resumes. [Linux at the same source](https://github.com/edgepillar/syrius/actions/runs/44932698713/job/136932579266) passes both pulse cases, the full non-chain suite with 5,131 passes and one skip, and generated-file verification. | Visually review a full pulse in the running wallet. |
 | Skeleton sweep | `test/motion/skeleton_test.dart` checks one shared clock and the 1.4 s sweep. | Watch loading rows sweep in step. |
 
 | Shader | Existing check | Remaining Windows observation |
