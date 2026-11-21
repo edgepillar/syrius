@@ -106,6 +106,20 @@ class WindowsQualificationTests(unittest.TestCase):
             ('welcome-dark.png', 'welcome-light.png'), expected))
         self.assertEqual(measured['visual_matches'], 0)
 
+    def test_entry_back_mark_crops_exclude_surrounding_content(self):
+        rows = [bytes([30] * 63)] * 24
+        middle = bytearray(rows[8])
+        middle[24:36] = bytes([90] * 12)
+        rows[8] = bytes(middle)
+        with mock.patch.object(inspect, '_png_crop', return_value=(rows, 3)) as crop:
+            self.assertEqual(inspect.back_mark_bounds('capture', 'import'),
+                dict(bounds=[375, 233, 379, 234], ink_pixels=4))
+        crop.assert_called_once_with('capture', (367, 388), (225, 249))
+
+        rows[8] = bytes([90] * 63)
+        with mock.patch.object(inspect, '_png_crop', return_value=(rows, 3)):
+            self.assertIsNone(inspect.back_mark_bounds('capture', 'import'))
+
     def test_completed_step_bounds_bind_dark_ink_to_the_green_circle(self):
         left, top, right, bottom = inspect.COMPLETED_STEP_CROPS['seed-quiz'][0]
         green = b'\x00\xd5\x57'

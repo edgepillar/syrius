@@ -304,6 +304,33 @@ def _opaque(rows, channels):
     return channels == 3 or all(alpha == 255 for row in rows for alpha in row[3::4])
 
 
+BACK_MARK_COLUMNS = (367, 388)
+BACK_MARK_ROWS = {'import': (225, 249), 'seed-quiz': (264, 288)}
+BACK_MARK_CONTRAST = 35
+
+
+def back_mark_bounds(encoded, screen):
+    """Measure the Back chevron without the neighboring label."""
+    left, right = BACK_MARK_COLUMNS
+    top, bottom = BACK_MARK_ROWS[screen]
+    rows, channels = _png_crop(encoded, (left, right), (top, bottom))
+    if not _opaque(rows, channels):
+        return None
+    background = rows[0][:3]
+    ink = [(left + offset // channels, y)
+           for y, row in enumerate(rows, top)
+           for offset in range(0, len(row), channels)
+           if any(abs(value - base) >= BACK_MARK_CONTRAST
+                  for value, base in zip(row[offset:offset + 3], background))]
+    if not ink:
+        return None
+    xs, ys = zip(*ink)
+    x0, y0, x1, y1 = min(xs), min(ys), max(xs) + 1, max(ys) + 1
+    if not (left < x0 < x1 < right and top < y0 < y1 < bottom):
+        return None
+    return dict(bounds=[x0, y0, x1, y1], ink_pixels=len(ink))
+
+
 COMPLETED_STEP_CROPS = {
     'seed-quiz': ((337, 285, 397, 351),),
     'wallet-ready': ((382, 284, 449, 351), (492, 284, 574, 351),
@@ -555,7 +582,7 @@ def entry_archive(raw, expected_sha, expected_size, head, tree, run_id, *, refer
         manifest = zipped.read('manifest.json')
         summary = entry_projection(json.loads(manifest), head, tree, run_id)
         archive.need(set(names) == {'manifest.json', *(value['file'] for value in summary['captures'])})
-        connector, drop, welcome, comparisons = {}, {}, {}, {}
+        connector, drop, welcome, comparisons, back = {}, {}, {}, {}, {}
         for value in summary['captures']:
             name = value['file']
             data = zipped.read(name)
@@ -564,6 +591,7 @@ def entry_archive(raw, expected_sha, expected_size, head, tree, run_id, *, refer
             if name in ('import-dark.png', 'import-light.png'):
                 theme = name.removeprefix('import-').removesuffix('.png')
                 connector[name], drop[name] = import_image_coverage(encoded, theme)
+                back[name] = back_mark_bounds(encoded, 'import')
             else:
                 welcome[name] = welcome_text_bounds(encoded)
             if reference_dir is not None:
@@ -573,7 +601,8 @@ def entry_archive(raw, expected_sha, expected_size, head, tree, run_id, *, refer
                 comparisons[name] = entry_pixel_comparison(data, reference, name.split('-', 1)[0])
     summary.update(archive_sha256=archive.sha(raw), manifest_sha256=archive.sha(manifest),
                    import_connector_coverage=connector, import_drop_border_coverage=drop,
-                   welcome_text_bounds=welcome, entry_pixel_comparisons=comparisons)
+                   welcome_text_bounds=welcome, entry_pixel_comparisons=comparisons,
+                   import_back_marks=back)
     return summary
 
 
@@ -659,6 +688,7 @@ def inspect_entry(client, text, head, tree, run_id, job, *, item=None):
     drop = summary.pop('import_drop_border_coverage')
     welcome = summary.pop('welcome_text_bounds')
     comparisons = summary.pop('entry_pixel_comparisons')
+    back = summary.pop('import_back_marks')
     emit('Hosted entry inspection', summary)
     binding = dict(source_head=head, source_tree=tree, source_run_id=run_id,
         source_attempt=1, original_job_id=job['id'], original_job_conclusion=job['conclusion'],
@@ -678,6 +708,10 @@ def inspect_entry(client, text, head, tree, run_id, job, *, item=None):
         emit('Hosted Welcome text bands', dict(scope='retained_welcome_text_bounds',
             **binding, x_range=list(WELCOME_TEXT_X), crops=WELCOME_TEXT_ROWS,
             minimum_luminance_contrast=WELCOME_TEXT_CONTRAST, bounds=welcome))
+    if any(value is not None for value in back.values()):
+        emit('Hosted Import Back mark bounds', dict(scope='retained_import_back_mark_bounds',
+            **binding, columns=BACK_MARK_COLUMNS, rows=BACK_MARK_ROWS['import'],
+            minimum_channel_contrast=BACK_MARK_CONTRAST, marks=back))
     if any(value is not None for value in comparisons.values()):
         emit('Hosted entry pixel comparisons', dict(
             scope='retained_entry_pixel_comparisons', **binding,
