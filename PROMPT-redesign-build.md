@@ -5050,8 +5050,14 @@ actual data. Whole-image verdicts remain open under V01.
 
 The [Windows recapture at `82408f0c`](https://github.com/edgepillar/syrius/actions/runs/44962407153)
 requests all six prepared images in one run after the Staking status
-type and Tokens badge changes. The capture and whole-image verdicts
-remain open.
+type and Tokens badge changes. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44964276819/job/137029666942)
+verifies the original entry closed normally and the restored Stake
+confirmed with a consistent retained journal. The Token attempt reached
+its original publication call. Its bounded confirmation reads record
+three absent observations and fifteen with the expected effect still
+pending. The run retains `CHECKPOINT_REFUSED` and produces no prepared
+catalog. The six earlier `f48f3ff2` captures keep their original source
+and the updated whole-image verdicts remain open.
 
 | Original requirement | Evidence at this revision |
 | --- | --- |
