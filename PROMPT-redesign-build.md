@@ -3137,6 +3137,14 @@ independent reads stop after the comparison notice when the added
 pointer diagnostics exceed the 3,800-byte notice limit. The reader
 now publishes those diagnostics in a separate bounded notice using
 the existing source and archive identities.
+The [corrected reader](https://github.com/edgepillar/syrius/actions/runs/44874914534/job/136757393471)
+verifies the same archives, both frame windows and all nine required
+process exits. The disclosure raster peaks at 68.916 ms versus
+43.615 ms on P06. It starts after pointer down, between 5.432 ms before
+release and 34.289 ms after release. The page raster peaks at
+188.118 ms versus 130.963 ms and starts 184.288–226.870 ms after
+release. Both measurements still exceed the 16 ms comparison and
+have frame-number gaps. V02 remains open.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
