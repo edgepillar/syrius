@@ -355,6 +355,9 @@ class _EntryFieldState extends State<EntryField>
     final AppTokens tokens = AppTokens.of(context);
     final ValueListenable<double> paintedSeconds = _referenceSeconds ?? _clock;
     final double pixelRatio = MediaQuery.devicePixelRatioOf(context);
+    final bool paintsBackground = !widget.fadeLightsOnOpaqueBase ||
+        tokens.background.a != 1 ||
+        Theme.of(context).scaffoldBackgroundColor != tokens.background;
     _paintedSeconds = paintedSeconds;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
@@ -384,7 +387,7 @@ class _EntryFieldState extends State<EntryField>
                     ? widget.captionProgress
                     : null,
                 revealPoint: tokens.launchSettleReference.progress,
-                background: tokens.background,
+                background: paintsBackground ? tokens.background : null,
                 green: tokens.znn,
                 blue: tokens.qsr,
                 pink: tokens.pink,
@@ -499,7 +502,7 @@ class _EntryFieldPainter extends CustomPainter {
   final ValueListenable<double> seconds;
   final ValueListenable<double>? reveal;
   final double revealPoint;
-  final Color background;
+  final Color? background;
   final Color green;
   final Color blue;
   final Color pink;
@@ -514,9 +517,10 @@ class _EntryFieldPainter extends CustomPainter {
         ? 1
         : (reveal!.value / revealPoint).clamp(0.0, 1.0);
     if (opacity == 0) return;
-    // The shell already provides this same opaque base. Fading only the
-    // light samples avoids an intermediate layer the size of the window.
-    canvas.drawRect(Offset.zero & size, Paint()..color = background);
+    // The startup shell already paints its matching opaque base.
+    if (background case final Color color) {
+      canvas.drawRect(Offset.zero & size, Paint()..color = color);
+    }
     _paintLights(
       canvas,
       size,
