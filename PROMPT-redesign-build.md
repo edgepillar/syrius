@@ -3442,6 +3442,22 @@ The original dark capture records `LAUNCH_HANDOFF_FRAME_MISSED` for the
 early slot. Both settled stages match the original well bounds. The natural
 motion batch remains incomplete.
 
+The [same-process backdrop read](https://github.com/edgepillar/syrius/actions/runs/44892680847/job/136811689725)
+samples the five retained natural frames outside the measured film rectangle.
+The light early and late samples each have equal left and right RGB values
+at the fixed mid-body points. The dark late sample does too. The settled
+samples show green on the left and blue on the right in both original
+processes. The light early sample also darkens both upper corners to RGB
+(58, 58, 58), during the shell route entrance.
+
+Flutter 3.47.7 normally applies a snapshot-capable Zoom transition to a
+Windows Material route. The startup shell now sends a completed progress
+value to that route's entrance paint, while the original route still owns
+its lifetime and the film owns the 400 ms visual entrance. The named shell
+route and session argument still bind the same original authentication
+owner. Fresh Windows images are needed to establish the effect.
+[Pinned Flutter route transitions](https://github.com/flutter/flutter/blob/3.47.7/packages/flutter/lib/src/material/page_transitions_theme.dart#L650-L723).
+
 The [startup catalog reader](https://github.com/edgepillar/syrius/actions/runs/44890175196/job/136804074764)
 verifies twelve `a045c1ae` PNGs from the original cold launch, launch settle,
 Lock states and Seed Quiz. The image digests and producer closure qualify.

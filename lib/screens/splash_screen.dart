@@ -174,13 +174,12 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _navigateToHomeScreen() {
     if (kWalletInitCompleted) _startup.dispose();
-    Navigator.of(
-      context,
-      rootNavigator: true,
-    ).pushReplacementNamed<void, void>(
-      MainAppContainer.route,
-      arguments: _startup.isClosed ? null : _startup,
-    );
+    final NavigatorState navigator = Navigator.of(context, rootNavigator: true);
+    if (_startup.isClosed) {
+      navigator.pushReplacementNamed<void, void>(MainAppContainer.route);
+      return;
+    }
+    navigator.pushReplacement<void, void>(_LaunchHandoffRoute(_startup));
   }
 
   void _navigateToNodeManagementScreen() {
@@ -203,5 +202,33 @@ class _SplashScreenState extends State<SplashScreen> {
   void dispose() {
     if (!_startup.claimed) _startup.dispose();
     super.dispose();
+  }
+}
+
+class _LaunchHandoffRoute extends MaterialPageRoute<void> {
+  _LaunchHandoffRoute(StartupStageSession startup)
+    : super(
+        builder: (_) => const MainAppContainer(),
+        settings: RouteSettings(name: MainAppContainer.route, arguments: startup),
+      );
+
+  @override
+  bool canTransitionFrom(TransitionRoute<dynamic> previousRoute) => false;
+
+  @override
+  Widget buildTransitions(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    // The live launch stage owns this entrance. Keep the route's normal
+    // lifetime while avoiding a second transition over its moving backdrop.
+    return super.buildTransitions(
+      context,
+      const AlwaysStoppedAnimation<double>(1),
+      secondaryAnimation,
+      child,
+    );
   }
 }
