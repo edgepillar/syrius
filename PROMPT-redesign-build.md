@@ -4047,7 +4047,25 @@ limits, 16 ms ranking and gap checks are unchanged. The full Python
 controller suite passes with 17 skips, including the new timestamp bounds
 and phase cases. A native pair is required to exercise the new field.
 The [paired Windows run at `34674087`](https://github.com/edgepillar/syrius/actions/runs/44926303060/job/136913038738)
-is pending. The [first compatibility read of `08ecf715`](https://github.com/edgepillar/syrius/actions/runs/44926305670/job/136913047287)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44928408962/job/136919486048)
+verify both interaction windows, two normal entry exits, two normal wallet
+exits and five normal node exits. Both paths fail raster and distinct-frame
+ranking against P06. Disclosure also fails the build comparison. The
+longest totals are 294.100 vs 165.897 ms for the page change and 130.171
+vs 60.954 ms for disclosure. The longest page frame spends 182.437 ms
+waiting after build and before raster starts. All four windows retain
+frame-number gaps.
+
+The page's 189.956 ms peak raster starts 209.142 ms after release.
+The greatest excess over the same P06 raster rank starts 399.160 ms
+after release, before the observed settlement at 404.423 ms. Three slow
+rasters begin after that observation. The disclosure's 71.712 ms peak
+starts at 475.432 ms, after the observed settlement at 322.909 ms.
+Five slow disclosure rasters begin after settlement. The engine
+timestamps resolve the measured frames at both observed phase boundaries.
+The cause of the raster cost and V02 remain open.
+
+The [first compatibility read of `08ecf715`](https://github.com/edgepillar/syrius/actions/runs/44926305670/job/136913047287)
 reads the original timings and refuses the paired images at the older
 producer pin. The [corrected reader at `39239f24`](https://github.com/edgepillar/syrius/actions/runs/44926469990/job/136913544116)
 verifies both original archives, including their matching Release binaries,
