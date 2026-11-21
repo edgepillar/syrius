@@ -3008,8 +3008,13 @@ At column 1000 and rows 285 through 296 the captured header is RGB
 (49, 50, 49) in dark and (236, 237, 236) in light. The original references
 show the resting card colors (38, 39, 38) and (246, 247, 246). The Home
 open script now parks the pointer after the Tokens body becomes visible
-and checks the same original controls before capture. The next Windows
-run needs to verify the resting header. Whole-screen verdicts remain open.
+and checks the same original controls before capture. The
+[first Windows attempt](https://github.com/edgepillar/syrius/actions/runs/44867678300/job/136734911674)
+stopped before the wallet build because two synthetic catalog tests
+still expected only the rest-screen hovers. Both tests now expect the
+parked pointer for every expanded Tokens capture they reach. A new
+Windows run is needed to verify the resting header. Whole-screen
+verdicts remain open.
 
 The same verified Windows Go To captures show a seam within the caption.
 At column 600, light row 20 matches at RGB (152, 152, 152). At row 31
@@ -3019,9 +3024,12 @@ levels and row 32 matches. The reader now preserves every color change
 from row 20 through row 35 in each theme. The gradient is consistent
 with the caption backdrop blur sampling the painted body. The pinned
 [Flutter Skia conversion](https://github.com/flutter/flutter/blob/3.47.7/engine/src/flutter/display_list/skia/dl_sk_conversions.cc#L179-L190)
-passes no sample rectangle to the blur, so a bounded Flutter blur alone
-has no demonstrated effect on this Windows path. A corrected native
-capture is still required for V01.
+passes no sample rectangle to the blur. The client frame now applies
+the modal blur directly to the caption with clamped edges and paints
+the tint above it. The caption and body share the dialog's animation.
+The caption retains its close, drag and other native input. The body
+barrier continues to blur the page backdrop. V01 still requires a
+corrected native capture.
 
 The [paired timing producer](https://github.com/edgepillar/syrius/actions/runs/44862588269)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44863894172/job/136723168084)

@@ -1,4 +1,4 @@
-import 'dart:ui' show ImageFilter;
+import 'dart:ui' show ImageFilter, TileMode;
 
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter/rendering.dart';
@@ -242,17 +242,25 @@ void main() {
               tester.getRect(captionFrost),
               const Rect.fromLTWH(0, 0, 1200, 32),
             );
-            final FrostedBarrier captionBarrier =
-                tester.widget<FrostedBarrier>(captionFrost);
-            final Finder bodyFrost = find.byWidgetPredicate(
-              (Widget widget) => widget is FrostedBarrier && widget.key == null,
+            final Finder caption = find.byKey(
+              const ValueKey<String>('window-caption'),
+            );
+            final ImageFiltered captionFilter = tester.widget<ImageFiltered>(
+              find.ancestor(of: caption, matching: find.byType(ImageFiltered)),
+            );
+            expect(captionFilter.enabled, isTrue);
+            expect(
+              captionFilter.imageFilter,
+              ImageFilter.blur(
+                sigmaX: kFrostSigma,
+                sigmaY: kFrostSigma,
+                tileMode: TileMode.clamp,
+              ),
             );
             expect(
-              captionBarrier.animation,
-              same(tester.widget<FrostedBarrier>(bodyFrost).animation),
-            );
-            expect(
-              tester.widget<BackdropFilter>(_filter(captionFrost)).filter,
+              tester
+                  .widget<BackdropFilter>(_filter(find.byType(FrostedBarrier)))
+                  .filter,
               ImageFilter.blur(sigmaX: kFrostSigma, sigmaY: kFrostSigma),
             );
             expect(
@@ -271,6 +279,15 @@ void main() {
             await tester.sendKeyEvent(LogicalKeyboardKey.escape);
             await tester.pumpAndSettle();
             expect(captionFrost, findsNothing);
+            expect(
+              tester.widget<ImageFiltered>(
+                find.ancestor(
+                  of: caption,
+                  matching: find.byType(ImageFiltered),
+                ),
+              ).enabled,
+              isFalse,
+            );
             expect(tester.takeException(), isNull);
           } finally {
             await tester.pumpWidget(const SizedBox.shrink());

@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/scheduler.dart' show SchedulerPhase;
 import 'package:material_ui/material_ui.dart';
@@ -9,6 +11,12 @@ import 'package:zenon_syrius_wallet_flutter/utils/window_chrome.dart';
 class _WindowCaptionRepaint extends ChangeNotifier {
   void markPaint() => notifyListeners();
 }
+
+typedef _CaptionFrost = ({
+  Animation<double> animation,
+  double sigma,
+  Color tint,
+});
 
 /// The actual original body route's eligibility to paint its own backdrop.
 enum AppWindowEntryBackdropPhase {
@@ -88,14 +96,58 @@ class AppWindowFrameState extends State<AppWindowFrame> {
       <AppWindowEntryBackdrop>{};
   final _WindowCaptionRepaint _entryBackdropChanges = _WindowCaptionRepaint();
   final ValueNotifier<bool> _launchCaption = ValueNotifier<bool>(false);
+  final Map<Object, _CaptionFrost> _captionFrosts = <Object, _CaptionFrost>{};
+  final ValueNotifier<int> _captionFrostRevision = ValueNotifier<int>(0);
   late final Listenable _captionChanges = Listenable.merge(
     <Listenable?>[_window, _launchCaption],
   );
   Object? _launchCaptionOwner;
   bool _entryBackdropDisposed = false;
+  bool _captionFrostUpdatePending = false;
 
   /// Whether this original frame owns a client caption to be painted.
   bool get hasClientCaption => !_entryBackdropDisposed && _window != null;
+
+  /// Shares a dialog's frost with the caption without sampling the body.
+  void setCaptionFrost(
+    Object owner,
+    Animation<double> animation,
+    double sigma,
+    Color tint,
+  ) {
+    if (!hasClientCaption) return;
+    final _CaptionFrost frost = (
+      animation: animation,
+      sigma: sigma,
+      tint: tint,
+    );
+    if (_captionFrosts[owner] == frost) return;
+    _captionFrosts[owner] = frost;
+    _updateCaptionFrost();
+  }
+
+  /// Releases the caption effect belonging to this dialog.
+  void removeCaptionFrost(Object owner) {
+    if (hasClientCaption && _captionFrosts.remove(owner) != null) {
+      _updateCaptionFrost();
+    }
+  }
+
+  void _updateCaptionFrost() {
+    // Dialog barriers register while the Navigator is building or unmounting.
+    // Rebuild the caption on the next frame if that pass is already in flight.
+    if (_captionFrostUpdatePending) return;
+    final WidgetsBinding binding = WidgetsBinding.instance;
+    if (binding.schedulerPhase != SchedulerPhase.persistentCallbacks) {
+      _captionFrostRevision.value++;
+      return;
+    }
+    _captionFrostUpdatePending = true;
+    binding.addPostFrameCallback((_) {
+      _captionFrostUpdatePending = false;
+      if (mounted && hasClientCaption) _captionFrostRevision.value++;
+    });
+  }
 
   /// Lets the original full-window launch own the caption until it settles.
   VoidCallback? holdLaunchCaption() {
@@ -300,6 +352,62 @@ class AppWindowFrameState extends State<AppWindowFrame> {
     );
   }
 
+  Widget _buildCaptionFrost(Widget caption) => ListenableBuilder(
+    listenable: _captionFrostRevision,
+    child: caption,
+    builder: (BuildContext context, Widget? child) {
+      final List<_CaptionFrost> frosts = _captionFrosts.values.toList();
+      return ListenableBuilder(
+        listenable: Listenable.merge(
+          frosts.map((_CaptionFrost f) => f.animation),
+        ),
+        child: child,
+        builder: (BuildContext context, Widget? child) {
+          double variance = 0;
+          Color tint = const Color(0x00000000);
+          for (final _CaptionFrost frost in frosts) {
+            final double t = frost.animation.value.clamp(0.0, 1.0);
+            final double sigma = frost.sigma * t;
+            // Gaussian variances add as dialogs stack. Their tints composite
+            // in the same order over the isolated caption.
+            variance += sigma * sigma;
+            tint = Color.alphaBlend(
+              frost.tint.withValues(alpha: frost.tint.a * t),
+              tint,
+            );
+          }
+          final double sigma = math.sqrt(variance);
+          return ClipRect(
+            child: Stack(
+              children: <Widget>[
+                ImageFiltered(
+                  // Only the caption contributes pixels to this blur. Clamp
+                  // its edges so the body never bleeds into the caption.
+                  enabled: sigma > 0,
+                  imageFilter: ui.ImageFilter.blur(
+                    sigmaX: sigma,
+                    sigmaY: sigma,
+                    tileMode: ui.TileMode.clamp,
+                  ),
+                  child: child,
+                ),
+                if (tint.a > 0)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: ColoredBox(
+                        key: const ValueKey<String>('window-caption-frost'),
+                        color: tint,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
+
   @override
   Widget build(BuildContext context) {
     final AppWindowController? window = _window;
@@ -337,7 +445,10 @@ class AppWindowFrameState extends State<AppWindowFrame> {
           ),
           Positioned.fill(
             child: Overlay.wrap(
-              child: Align(alignment: Alignment.topCenter, child: caption),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: _buildCaptionFrost(caption),
+              ),
             ),
           ),
         ],
@@ -350,6 +461,8 @@ class AppWindowFrameState extends State<AppWindowFrame> {
     _entryBackdropDisposed = true;
     _launchCaptionOwner = null;
     _launchCaption.dispose();
+    _captionFrosts.clear();
+    _captionFrostRevision.dispose();
     for (final AppWindowEntryBackdrop original in _entryBackdrops.toList()) {
       original.dispose();
     }

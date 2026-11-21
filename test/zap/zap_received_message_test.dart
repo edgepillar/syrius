@@ -14,7 +14,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/balances.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modals.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart'
-    show FrostedBarrier;
+    show frostTintOf;
 import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 
 import '../../harness/app/fixtures/home_zap_preview.dart';
@@ -223,12 +223,9 @@ void main() {
             const Offset(640, 390));
         final Finder caption = _key('window-caption-frost');
         expect(tester.getRect(caption), const Rect.fromLTWH(0, 0, 1280, 32));
-        final Finder barrier = find.byWidgetPredicate(
-          (Widget widget) => widget is FrostedBarrier && widget.key == null,
-        );
         expect(
-          tester.widget<FrostedBarrier>(caption).animation,
-          same(tester.widget<FrostedBarrier>(barrier).animation),
+          tester.widget<ColoredBox>(caption).color,
+          frostTintOf(tester.element(caption)),
         );
         expect(_key('window-close').hitTestable(), findsOneWidget);
         await tester.tap(_key('zap_received_nice'));

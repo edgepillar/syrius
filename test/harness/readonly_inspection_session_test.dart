@@ -51,6 +51,36 @@ class _CatalogStdout extends Fake implements Stdout {
   void writeln([Object? object = '']) => lines.add(object);
 }
 
+void _expectHomeCatalogPointer(
+  List<Map<String, Object?>> commands,
+  String fault,
+) {
+  const List<Map<String, Object?>> rest = <Map<String, Object?>>[
+    <String, Object?>{
+      'cmd': 'hover',
+      'at': <int>[0, 0],
+      'settleMs': 0,
+    },
+    <String, Object?>{'cmd': 'hover', 'key': 'nav_notifications'},
+  ];
+  const Map<String, Object?> park = <String, Object?>{
+    'cmd': 'hover',
+    'at': <int>[0, 0],
+    'settleMs': 200,
+  };
+  expect(
+    commands.where((Map<String, Object?> command) => command['cmd'] == 'hover'),
+    <Map<String, Object?>>[
+      ...rest,
+      if (fault != 'negative') ...<Map<String, Object?>>[
+        ...rest,
+        park,
+        if (!fault.startsWith('open-')) park,
+      ],
+    ],
+  );
+}
+
 void main() {
   test('compiled inspection and tour children wait for exact lab admission',
       () async {
@@ -737,17 +767,7 @@ void main() {
         expect(mode, 'light');
         expect(restoredWindow, isTrue);
       }
-      final List<Map<String, Object?>> pointer = commands
-          .where((Map<String, Object?> value) => value['cmd'] == 'hover')
-          .toList();
-      final List<Map<String, Object?>> expectedPointer = <Map<String, Object?>>[
-        <String, Object?>{'cmd': 'hover', 'at': <int>[0, 0], 'settleMs': 0},
-        <String, Object?>{'cmd': 'hover', 'key': 'nav_notifications'},
-      ];
-      expect(pointer, <Map<String, Object?>>[
-        ...expectedPointer,
-        if (fault != 'negative') ...expectedPointer,
-      ]);
+      _expectHomeCatalogPointer(commands, fault);
       final List<Map<String, Object?>> tooltip = commands
           .where((Map<String, Object?> value) => value['cmd'] == 'wait' &&
               value['text'] == 'Notifications')
@@ -1087,17 +1107,7 @@ void main() {
         expect(mode, 'light');
         expect(restoredWindow, isTrue);
       }
-      final List<Map<String, Object?>> pointer = commands
-          .where((Map<String, Object?> value) => value['cmd'] == 'hover')
-          .toList();
-      final List<Map<String, Object?>> expectedPointer = <Map<String, Object?>>[
-        <String, Object?>{'cmd': 'hover', 'at': <int>[0, 0], 'settleMs': 0},
-        <String, Object?>{'cmd': 'hover', 'key': 'nav_notifications'},
-      ];
-      expect(pointer, <Map<String, Object?>>[
-        ...expectedPointer,
-        if (fault != 'negative') ...expectedPointer,
-      ]);
+      _expectHomeCatalogPointer(commands, fault);
       final List<Map<String, Object?>> tooltip = commands
           .where((Map<String, Object?> value) => value['cmd'] == 'wait' &&
               value['text'] == 'Notifications')

@@ -428,32 +428,44 @@ class _CaptionFrost extends StatefulWidget {
 }
 
 class _CaptionFrostState extends State<_CaptionFrost> {
-  final OverlayPortalController _portal = OverlayPortalController()..show();
+  AppWindowFrameState? _frame;
 
   @override
-  Widget build(BuildContext context) => OverlayPortal(
-    controller: _portal,
-    overlayLocation: OverlayChildLocation.rootOverlay,
-    overlayChildBuilder: (BuildContext context) => Align(
-      alignment: Alignment.topCenter,
-      child: SizedBox(
-        width: double.infinity,
-        height: AppTokens.of(context).windowCaptionHeight,
-        // The client caption keeps its native drag and control input.
-        child: IgnorePointer(
-          child: ExcludeSemantics(
-            child: FrostedBarrier(
-              key: const ValueKey<String>('window-caption-frost'),
-              animation: widget.body.animation,
-              sigma: widget.body.sigma,
-              tint: widget.body.tint,
-            ),
-          ),
-        ),
-      ),
-    ),
-    child: widget.body,
-  );
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncCaption();
+  }
+
+  @override
+  void didUpdateWidget(_CaptionFrost oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncCaption();
+  }
+
+  void _syncCaption() {
+    final AppWindowFrameState? frame = TickerMode.valuesOf(context).enabled
+        ? context.findAncestorStateOfType<AppWindowFrameState>()
+        : null;
+    if (!identical(frame, _frame)) {
+      _frame?.removeCaptionFrost(this);
+      _frame = frame;
+    }
+    frame?.setCaptionFrost(
+      this,
+      widget.body.animation,
+      widget.body.sigma,
+      widget.body.tint ?? frostTintOf(context),
+    );
+  }
+
+  @override
+  void dispose() {
+    _frame?.removeCaptionFrost(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.body;
 }
 
 /// `showDialog` with the frost for a barrier: same page, same fade, same
