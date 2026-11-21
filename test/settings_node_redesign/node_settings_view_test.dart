@@ -250,10 +250,12 @@ void main() {
           closeTo(16, 1e-10),
         );
         await tester.tap(find.byKey(const Key('node_settings_add')));
+        await tester.pump();
         await tester.pump(const Duration(milliseconds: 250));
         final Finder endpoint = find.byKey(const Key('node_settings_endpoint'));
         await tester.ensureVisible(endpoint);
         await tester.pump();
+        expect(endpoint.hitTestable(), findsOneWidget);
         await tester.tap(endpoint);
         await tester.enterText(endpoint, 'wss://new.example:35998');
         await tester.pump();
