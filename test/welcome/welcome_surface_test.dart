@@ -142,9 +142,13 @@ void main() {
               tester.getBottomLeft(_action('create')).dy,
           12,
         );
+        final Finder importHint = find.text(
+          'A seed, or a wallet file dropped here',
+        );
+        expect(importHint, findsOneWidget);
         expect(
-          find.text('A seed, or a wallet file dropped here'),
-          findsOneWidget,
+          tester.getTopLeft(importHint).dy,
+          closeTo(tester.getBottomLeft(find.text('Import wallet')).dy - 1, 0.001),
         );
         expect(find.byType(AppLottie), findsNothing);
         expect(find.byType(HeroField), findsNothing);

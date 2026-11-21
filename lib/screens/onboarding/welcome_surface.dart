@@ -520,7 +520,14 @@ class _WelcomeActionState extends State<_WelcomeAction> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(widget.label, style: tokens.welcomeActionText),
-                        Text(widget.hint, style: tokens.welcomeHintText),
+                        // Align the hint ink without moving the heading or row.
+                        Transform.translate(
+                          offset: const Offset(0, -1),
+                          child: Text(
+                            widget.hint,
+                            style: tokens.welcomeHintText,
+                          ),
+                        ),
                       ],
                     ),
                   ),

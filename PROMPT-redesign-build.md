@@ -2236,6 +2236,15 @@ now uses the mockup's `#04140A` foreground through the existing primary
 action token. The existing two-theme test checks the three badge glyph
 colours alongside their fills. Fresh Windows verification remains open.
 
+The [pinned action text comparison](https://github.com/edgepillar/syrius/actions/runs/44861539665/job/136715825335)
+finds zero best shift for all six title samples. All six hint samples
+have their smallest ink-mask difference after moving one pixel up and
+zero horizontally within the tested two-pixel range. The dark hint
+differences sum to 1,563 before the shift and 997 with it. The light sums
+are 1,392 and 880. The Welcome rows now apply that one-pixel paint offset
+to each hint while retaining layout, scaling and interaction. A new
+Windows capture is needed to measure the result in the running UI.
+
 The [Linux validation at `d1eb02a9`](https://github.com/edgepillar/syrius/actions/runs/44851643307/job/136684120771)
 passes strict analysis after the subtitle formatting correction. It
 records 5,129 non-chain tests passed, one skip, and successful generated
