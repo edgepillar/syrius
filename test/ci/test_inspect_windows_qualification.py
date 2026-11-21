@@ -45,7 +45,7 @@ def log(report):
         '2026-10-26T12:00:01.0000000Z ' + json.dumps(report) + '\n').encode()
 
 
-def pixels(*connector_rows, opaque=False):
+def pixels(*connector_rows, opaque=False, welcome_rows=()):
     def chunk(kind, data):
         return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data))
     alpha = 255 if opaque else 0
@@ -53,7 +53,10 @@ def pixels(*connector_rows, opaque=False):
     ink = bytes((60, 60, 60, alpha))
     blank = b'\x00' + fill * 1280
     connector = b'\x00' + fill * 482 + ink * 108 + fill * (1280 - 590)
-    scanlines = b''.join(connector if y in connector_rows else blank for y in range(780))
+    text = b'\x00' + fill * 710 + ink * 8 + fill * (1280 - 718)
+    scanlines = b''.join(
+        connector if y in connector_rows else text if y in welcome_rows else blank
+        for y in range(780))
     return (b'\x89PNG\r\n\x1a\n'
         + chunk(b'IHDR', struct.pack('>IIBBBBB', 1280, 780, 8, 6, 0, 0, 0))
         + chunk(b'IDAT', zlib.compress(scanlines))
@@ -89,6 +92,20 @@ def package(report, data, *, extra=None, omitted=None, duplicate=False):
 
 
 class WindowsQualificationTests(unittest.TestCase):
+    def test_welcome_text_bands_are_bound_to_the_original_pngs(self):
+        data = pixels(opaque=True, welcome_rows=(234, 254, 282, 294))
+        status, _, output = self._read_original(baseline_conclusion='skipped', entry_data=data)
+        self.assertEqual(status, 0)
+        notices = [json.loads(line.split('::', 2)[2]) for line in output.splitlines()
+                   if line.startswith('::notice')]
+        capture = next(value for value in notices if value['scope'] == 'retained_windows_entry_observation')
+        measured = next(value for value in notices if value['scope'] == 'retained_welcome_text_bounds')
+        self.assertEqual(measured['archive_sha256'], capture['archive_sha256'])
+        expected = {'title': [234, 254], 'subtitle': [282, 294]}
+        self.assertEqual(measured['bounds'], dict.fromkeys(
+            ('welcome-dark.png', 'welcome-light.png'), expected))
+        self.assertEqual(measured['visual_matches'], 0)
+
     def test_original_baseline_receipts_preserve_counts_infos_and_scope(self):
         report = baseline()
         value = inspect.baseline_projection(report, HEAD, TREE, RUN)

@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import re
 import stat
+from statistics import median
 import zipfile
 
 from . import inspect_chain321 as archive
@@ -345,6 +346,34 @@ def import_connector_coverage(encoded):
     return _connector_coverage(*_png_crop(encoded, IMPORT_CONNECTOR_X, IMPORT_CONNECTOR_Y))
 
 
+WELCOME_TEXT_X = (690, 1055)
+WELCOME_TEXT_ROWS = {'title': (226, 265), 'subtitle': (275, 306)}
+WELCOME_TEXT_CONTRAST = 40
+
+
+def welcome_text_bounds(encoded):
+    """Measure the first and last ink rows in each Welcome text band."""
+    top = WELCOME_TEXT_ROWS['title'][0]
+    bottom = WELCOME_TEXT_ROWS['subtitle'][1]
+    rows, channels = _png_crop(encoded, WELCOME_TEXT_X, (top, bottom))
+    if not _opaque(rows, channels):
+        return None
+    bounds = {}
+    for name, (start, end) in WELCOME_TEXT_ROWS.items():
+        lightness = [
+            [(299 * row[i] + 587 * row[i + 1] + 114 * row[i + 2] + 500) // 1000
+             for i in range(0, len(row), channels)]
+            for row in rows[start - top:end - top]
+        ]
+        background = median(value for row in lightness for value in row)
+        ink = [y for y, row in enumerate(lightness, start)
+               if sum(abs(value - background) >= WELCOME_TEXT_CONTRAST for value in row) >= 2]
+        if not ink or ink[0] == start or ink[-1] == end - 1:
+            return None
+        bounds[name] = [ink[0], ink[-1]]
+    return bounds
+
+
 def _drop_border_coverage(rows, channels, theme):
     if not _opaque(rows, channels):
         return dict(status='nonopaque', mean_error_ppm=None, model_within_tolerance=False)
@@ -412,7 +441,7 @@ def entry_archive(raw, expected_sha, expected_size, head, tree, run_id):
         manifest = zipped.read('manifest.json')
         summary = entry_projection(json.loads(manifest), head, tree, run_id)
         archive.need(set(names) == {'manifest.json', *(value['file'] for value in summary['captures'])})
-        connector, drop = {}, {}
+        connector, drop, welcome = {}, {}, {}
         for value in summary['captures']:
             name = value['file']
             data = zipped.read(name)
@@ -422,9 +451,10 @@ def entry_archive(raw, expected_sha, expected_size, head, tree, run_id):
                 theme = name.removeprefix('import-').removesuffix('.png')
                 connector[name], drop[name] = import_image_coverage(encoded, theme)
             else:
-                entry.png_bytes(encoded)
+                welcome[name] = welcome_text_bounds(encoded)
     summary.update(archive_sha256=archive.sha(raw), manifest_sha256=archive.sha(manifest),
-                   import_connector_coverage=connector, import_drop_border_coverage=drop)
+                   import_connector_coverage=connector, import_drop_border_coverage=drop,
+                   welcome_text_bounds=welcome)
     return summary
 
 
@@ -644,6 +674,7 @@ def main():
                        producer_sources_equal=True)
         connector = summary.pop('import_connector_coverage')
         drop = summary.pop('import_drop_border_coverage')
+        welcome = summary.pop('welcome_text_bounds')
         emit('Hosted entry inspection', summary)
         binding = dict(source_head=head, source_tree=tree, source_run_id=run_id,
             source_attempt=1, original_job_id=job['id'], original_job_conclusion=job['conclusion'],
@@ -659,6 +690,10 @@ def main():
                 scope='retained_import_drop_border_coverage', **binding,
                 reference_bounds=[IMPORT_DROP_X[0], IMPORT_DROP_Y[0], IMPORT_DROP_X[1], IMPORT_DROP_Y[1]],
                 tolerance_ppm=IMPORT_DROP_TOLERANCE_PPM, edges=drop))
+        if any(bounds is not None for bounds in welcome.values()):
+            emit('Hosted Welcome text bands', dict(scope='retained_welcome_text_bounds',
+                **binding, x_range=list(WELCOME_TEXT_X), crops=WELCOME_TEXT_ROWS,
+                minimum_luminance_contrast=WELCOME_TEXT_CONTRAST, bounds=welcome))
         return 0
     except (Exception, KeyboardInterrupt):
         encoded = json.dumps(dict(scope='retained_windows_qualification_observation',
