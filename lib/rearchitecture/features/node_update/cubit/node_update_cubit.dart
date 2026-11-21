@@ -176,8 +176,8 @@ class NodeUpdateCubit extends Cubit<NodeUpdatePanelState> {
       return;
     }
     if (step
-        case NodeUpdateDownloadReady(:final library) ||
-            NodeUpdateConfirmAsk(:final library)) {
+        case NodeUpdateDownloadReady(:final DownloadedNodeLibrary library) ||
+            NodeUpdateConfirmAsk(:final DownloadedNodeLibrary library)) {
       _updater.discard(library);
     } else if (step is! NodeUpdateUnverifiedAsk) {
       return;
@@ -392,8 +392,8 @@ class NodeUpdateCubit extends Cubit<NodeUpdatePanelState> {
     _cancel?.cancel();
     final NodeUpdateStep step = state.step;
     if (step
-        case NodeUpdateDownloadReady(:final library) ||
-            NodeUpdateConfirmAsk(:final library)) {
+        case NodeUpdateDownloadReady(:final DownloadedNodeLibrary library) ||
+            NodeUpdateConfirmAsk(:final DownloadedNodeLibrary library)) {
       _made?.discard(library);
     }
     _made?.close();

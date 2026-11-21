@@ -480,47 +480,48 @@ class _InstallRow extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            SettingRow(
-              label: l10n.nodeUpdateInstallLabel,
-              hint: l10n.nodeUpdateInstallHint,
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  OutlinedButton(
-                    key: const ValueKey<String>(
-                      'node_update_install_from_file',
-                    ),
-                    style: cardSecondaryButtonStyle(context),
-                    onPressed: state.idle
-                        ? () => unawaited(_onFromFile(cubit))
-                        : null,
-                    child: Text(l10n.nodeUpdateFileLabel),
-                  ),
-                  const SizedBox(width: 8),
-                  OutlinedButton(
-                    key: const ValueKey<String>('node_update_download'),
-                    // The filled main action, at the height of the
-                    // secondary one beside it.
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: Size(
-                        64,
-                        AppTokens.of(context).compactButtonHeight,
+            if (state.step is! NodeUpdateDownloadReady)
+              SettingRow(
+                label: l10n.nodeUpdateInstallLabel,
+                hint: l10n.nodeUpdateInstallHint,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    OutlinedButton(
+                      key: const ValueKey<String>(
+                        'node_update_install_from_file',
                       ),
-                      padding: const EdgeInsetsDirectional.symmetric(
-                        horizontal: 12,
-                      ),
-                      textStyle: kTextButtonTextStyle,
-                      visualDensity: VisualDensity.standard,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      style: cardSecondaryButtonStyle(context),
+                      onPressed: state.idle
+                          ? () => unawaited(_onFromFile(cubit))
+                          : null,
+                      child: Text(l10n.nodeUpdateFileLabel),
                     ),
-                    onPressed: state.idle && _downloadable(state)
-                        ? () => unawaited(cubit.download())
-                        : null,
-                    child: Text(l10n.nodeUpdateDownloadLabel),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      key: const ValueKey<String>('node_update_download'),
+                      // The filled main action, at the height of the
+                      // secondary one beside it.
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: Size(
+                          64,
+                          AppTokens.of(context).compactButtonHeight,
+                        ),
+                        padding: const EdgeInsetsDirectional.symmetric(
+                          horizontal: 12,
+                        ),
+                        textStyle: kTextButtonTextStyle,
+                        visualDensity: VisualDensity.standard,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: state.idle && _downloadable(state)
+                          ? () => unawaited(cubit.download())
+                          : null,
+                      child: Text(l10n.nodeUpdateDownloadLabel),
+                    ),
+                  ],
+                ),
               ),
-            ),
             AnimatedSize(
               duration: Durations.medium1,
               curve: Easing.standard,
@@ -617,13 +618,38 @@ class _VerifiedDownload extends StatelessWidget {
     final AppTokens tokens = AppTokens.of(context);
     final NodeChecksumFileCheck? checksum = library.checksumFile;
     final NodeApiDigestCheck? digest = library.apiDigest;
+    Widget verification(String message, {required bool matches}) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        if (matches) ...<Widget>[
+          buildShellSymbol(
+            context,
+            'check',
+            size: tokens.settingsCompactButtonIconSize,
+            color: tokens.znnInk,
+          ),
+          SizedBox(width: tokens.fieldLabelGap),
+        ],
+        Flexible(
+          child: Text(
+            message,
+            style: tokens.compactText.copyWith(
+              color: matches ? tokens.dim : tokens.warn,
+            ),
+          ),
+        ),
+      ],
+    );
     return Padding(
       padding: tokens.cardPadding,
       child: Material(
         color: tokens.card2,
         borderRadius: BorderRadius.circular(tokens.compactRadius),
         child: Padding(
-          padding: tokens.cardPadding,
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: 14,
+            vertical: 12,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -638,21 +664,13 @@ class _VerifiedDownload extends StatelessWidget {
                 spacing: tokens.cardGap,
                 runSpacing: tokens.inlineGap,
                 children: <Widget>[
-                  Text(
+                  verification(
                     _checksumFileText(l10n, checksum),
-                    style: TextStyle(
-                      color: checksum == NodeChecksumFileCheck.verified
-                          ? tokens.znnInk
-                          : tokens.warn,
-                    ),
+                    matches: checksum == NodeChecksumFileCheck.verified,
                   ),
-                  Text(
+                  verification(
                     _apiDigestText(l10n, digest),
-                    style: TextStyle(
-                      color: digest == NodeApiDigestCheck.verified
-                          ? tokens.znnInk
-                          : tokens.warn,
-                    ),
+                    matches: digest == NodeApiDigestCheck.verified,
                   ),
                 ],
               ),

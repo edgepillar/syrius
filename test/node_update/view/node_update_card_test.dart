@@ -441,6 +441,8 @@ void main() {
         );
         expect(find.text(_matchesChecksumFile), findsOneWidget);
         expect(find.text(_noDigest), findsOneWidget);
+        expect(find.byKey(_download), findsNothing);
+        expect(find.byKey(_fromFile), findsNothing);
         expect(find.byType(DialogCard), findsNothing);
         expect(updater.calls, isNot(contains('stage $kNewSha')));
         await press(tester, _review);
@@ -467,6 +469,8 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byType(DialogCard), findsNothing);
+        expect(_enabled(tester, _download), isTrue);
+        expect(_enabled(tester, _fromFile), isTrue);
         expect(updater.calls.last, 'discard $kNewSha');
         expect(updater.calls, isNot(contains('stage $kNewSha')));
       },

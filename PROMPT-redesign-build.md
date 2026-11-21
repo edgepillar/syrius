@@ -3350,7 +3350,20 @@ and both verification messages, then takes both theme captures. It discards
 each temporary download after its capture. The ordinary Settings script
 keeps its resting-state capture. The new selection is bound to the fork's
 isolated native job and the reader checks the prepared script's original
-blob. The first hosted capture remains pending.
+blob. The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/44901766513/job/136838976703)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44903005756/job/136842669549)
+verify both original images, the prepared script and required process
+closure. At the 16-level RGB threshold, the update crop contains 39,114
+dark and 38,718 light differences. The notice fill at (700, 450) agrees
+with both references. At (700, 546) the capture still paints the update
+notice fill where the reference has reached its first disclosure. Whole
+screen review remains open under V01.
+
+While the verified download is held, its review and discard controls
+replace the redundant download and file controls. The notice uses the
+authored 14 px horizontal inset and separate green marks for successful
+checks. The complete digest, warning text and final confirmation remain
+visible in their original flows. Cancelling restores both idle controls.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
