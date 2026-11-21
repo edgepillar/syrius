@@ -409,6 +409,7 @@ class _LicencesState extends State<Licences> {
                 key: ValueKey<String>('about_licence_${package.name}'),
                 package: package,
                 headerHeight: rowHeight,
+                ruleLeadingOffset: widget.preserveEndOnReveal ? -.5 : 0,
                 summaryColumnPercent: widget.preserveEndOnReveal
                     ? tokens.aboutOriginalsLicenceSummaryPercent
                     : tokens.aboutLicenceSummaryPercent,
@@ -504,6 +505,7 @@ class _LicenceRow extends StatelessWidget {
   const _LicenceRow({
     required this.package,
     required this.headerHeight,
+    required this.ruleLeadingOffset,
     required this.summaryColumnPercent,
     required this.onReadFailure,
     super.key,
@@ -511,6 +513,7 @@ class _LicenceRow extends StatelessWidget {
 
   final _PackageLicence package;
   final double headerHeight;
+  final double ruleLeadingOffset;
   final int summaryColumnPercent;
   final VoidCallback onReadFailure;
 
@@ -521,13 +524,16 @@ class _LicenceRow extends StatelessWidget {
       painter: _LicenceRulePainter(
         tokens.line,
         View.of(context).devicePixelRatio,
-        () => (context.findRenderObject() as RenderBox)
+        ruleLeadingOffset,
+        () => (context.findRenderObject()! as RenderBox)
             .localToGlobal(Offset.zero)
             .dy,
       ),
       child: RepaintBoundary(
         child: Disclosure(
-          title: package.name.isEmpty ? context.l10n.aboutUnknown : package.name,
+          title: package.name.isEmpty
+              ? context.l10n.aboutUnknown
+              : package.name,
           titleStyle: tokens.bodyText,
           summary: package.identifier,
           summaryColumnPercent: summaryColumnPercent,
@@ -586,17 +592,21 @@ class _LicenceRow extends StatelessWidget {
 }
 
 class _LicenceRulePainter extends CustomPainter {
-  const _LicenceRulePainter(this.color, this.pixelRatio, this.globalTop);
+  const _LicenceRulePainter(
+    this.color, this.pixelRatio, this.leadingOffset, this.globalTop,
+  );
 
   final Color color;
   final double pixelRatio;
+  final double leadingOffset;
   final double Function() globalTop;
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Snap the painted edge while preserving the fractional list geometry.
+    // The compact list's table border straddles its row boundary.
     final double top = globalTop();
-    final double snappedTop = (top * pixelRatio).roundToDouble() / pixelRatio;
+    final double snappedTop =
+        ((top + leadingOffset) * pixelRatio).roundToDouble() / pixelRatio;
     canvas.drawRect(
       Rect.fromLTWH(0, snappedTop - top, size.width, 1),
       Paint()
@@ -607,5 +617,6 @@ class _LicenceRulePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_LicenceRulePainter oldDelegate) =>
-      color != oldDelegate.color || pixelRatio != oldDelegate.pixelRatio;
+      color != oldDelegate.color || pixelRatio != oldDelegate.pixelRatio ||
+      leadingOffset != oldDelegate.leadingOffset;
 }

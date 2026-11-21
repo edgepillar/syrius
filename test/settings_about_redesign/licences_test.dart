@@ -142,7 +142,10 @@ void main() {
                 matching: find.byType(CustomPaint),
               )
               .first;
-          expect(tester.widget<CustomPaint>(rule).child, isA<RepaintBoundary>());
+          expect(
+            tester.widget<CustomPaint>(rule).child,
+            isA<RepaintBoundary>(),
+          );
           final double top = tester.getTopLeft(rule).dy;
           if (name == 'mixed') {
             final double physicalTop = top * ratio;
@@ -153,7 +156,7 @@ void main() {
           }
           expect(
             rule,
-            paints..something((method, arguments) {
+            paints..something((Symbol method, List<dynamic> arguments) {
               if (method != #drawRect) return false;
               final Object? rect = arguments[0];
               final Object? paint = arguments[1];
@@ -426,6 +429,40 @@ void main() {
       expect(
         hookTop - rowBottom,
         greaterThanOrEqualTo(-precisionErrorTolerance),
+      );
+      await tester.pumpAndSettle();
+      final Licences original = tester.widget<Licences>(find.byType(Licences));
+      tester.view.devicePixelRatio = 2;
+      tester.view.physicalSize = const Size(2560, 1560);
+      await tester.pumpWidget(
+        aboutHost(
+          Licences(
+            loadLicences: original.loadLicences,
+            trailingBuilder: original.trailingBuilder,
+            preserveEndOnReveal: true,
+          ),
+          width: 700,
+          height: 240,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(hook.hitTestable(), findsOneWidget);
+      final Finder rule = find
+          .descendant(of: finalRow, matching: find.byType(CustomPaint))
+          .first;
+      final double top = tester.getTopLeft(rule).dy;
+      final double ratio = tester.view.devicePixelRatio;
+      expect(tester.getSize(rule).height, closeTo(39.5, .01));
+      expect(
+        rule,
+        paints..something((Symbol method, List<dynamic> arguments) {
+          if (method != #drawRect) return false;
+          final Object? rect = arguments[0];
+          return rect is Rect &&
+              ((top + rect.top) * ratio - ((top - .5) * ratio).round()).abs() <
+                  0.0001 &&
+              rect.height == 1;
+        }),
       );
       expect(tester.takeException(), isNull);
     },

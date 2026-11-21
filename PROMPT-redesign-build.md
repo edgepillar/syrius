@@ -3267,6 +3267,15 @@ footer retain the same difference counts in both themes. The light status
 strip contributes 44 fewer differing pixels. The counts include fixture
 and animation differences. Whole-image acceptance remains open.
 
+In the Originals shot, both references place the middle compact licence
+divider at row 119 at column 700. The [earlier capture](https://github.com/edgepillar/syrius/actions/runs/44881281797/job/136776923062)
+agrees. The [current capture](https://github.com/edgepillar/syrius/actions/runs/44881281703/job/136776921970)
+puts it at row 120 in both themes. The header band and final divider
+stay at rows 79–80 and 159. The compact list now centers its painted
+rule on the row boundary before snapping to a physical pixel. The full
+list keeps its verified placement. The list-end regression checks the
+compact paint at device scale two. Fresh Windows capture is pending.
+
 The [Windows interface run at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44876122524/job/136761087924)
 and its [independent inspection](https://github.com/edgepillar/syrius/actions/runs/44877853952/job/136766426791)
 verify all eleven scoped Home, Activity, Go To, Pillars and Swap seam
