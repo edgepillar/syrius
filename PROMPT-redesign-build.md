@@ -2634,6 +2634,15 @@ Both early slots remain missing. The [Linux suite at the same source](https://gi
 passes strict analysis, 5,129 non-chain tests with one skip, and
 generated-file verification. The effect on frame duration is still open.
 
+The [paired cold run at `88ad0cce`](https://github.com/edgepillar/syrius/actions/runs/44840281800/job/136646661620)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44842912379/job/136655488557)
+verify 89 redesign and 1,156 P06 frames and five normal exits. The reported
+frames meet the 16 ms build, raster and distinct-frame comparisons. Peak
+build time is 13.881 ms versus 20.009 ms on P06. Longest total time is
+169.079 ms versus 202.073 ms. The windows retain 19 and 1,137 frame-number
+gaps, respectively. This is a result for the recorded cold frames.
+Full motion and the other timing comparisons remain open under V02.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.
