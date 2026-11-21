@@ -3258,9 +3258,14 @@ one RGB channel.
 
 The content region accounts for all 11,864 fewer differing Licences
 pixels per theme. The Originals content region accounts for 1,948 and
-2,004 more differing pixels in dark and light. Its gallery and sampled
-artwork phases need visual review. The counts include fixture and
-animation differences. Whole-image acceptance remains open.
+2,004 more differing pixels in dark and light. The
+[current](https://github.com/edgepillar/syrius/actions/runs/44881081042/job/136776285114)
+and [earlier](https://github.com/edgepillar/syrius/actions/runs/44881081189/job/136776285351)
+region counts place that entire increase in the compact Licences area
+above the gallery. The gallery header, all six artwork tiles, labels and
+footer retain the same difference counts in both themes. The light status
+strip contributes 44 fewer differing pixels. The counts include fixture
+and animation differences. Whole-image acceptance remains open.
 
 The [Windows interface run at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44876122524/job/136761087924)
 and its [independent inspection](https://github.com/edgepillar/syrius/actions/runs/44877853952/job/136766426791)

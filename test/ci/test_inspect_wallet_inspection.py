@@ -1431,6 +1431,7 @@ class ReaderTests(unittest.TestCase):
         })
         self.assertEqual(observed['component_geometry'], dict(
             licence_divider_spans=dict(dark=[], light=[]),
+            originals_licence_divider_spans=dict(dark=[], light=[]),
             originals_footer_rows=dict(column=1000, scan_rows=[500, 570],
                 themes=dict(dark=None, light=None)),
             receive_qsr_mark=dict(dark=None, light=None),
@@ -1497,6 +1498,8 @@ class ReaderTests(unittest.TestCase):
                             + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
                 zipped.writestr(f'37-set-licences-{theme}.png', chevrons)
                 rows = [ordinary] * 780
+                for divider in (79, 80, 119, 159):
+                    rows[divider] = b'\0' + ink * 1280
                 rows[512] = b'\0' + ink * 1280
                 if theme == 'dark':
                     rows[561:] = [b'\0' + faint * 1280] * (780 - 561)
@@ -1515,6 +1518,8 @@ class ReaderTests(unittest.TestCase):
                 dark=[[388, 388], [428, 429], [468, 468]],
                 light=[[388, 388], [428, 429], [468, 468]],
             ),
+            originals_licence_divider_spans={theme: [[79, 80], [119, 119], [159, 159]]
+                                             for theme in ('dark', 'light')},
             originals_footer_rows=dict(column=1000, scan_rows=[500, 570],
                 themes=dict(dark=dict(divider=[512, 513], card_end=561), light=None)),
             receive_qsr_mark=dict(dark=mark, light=mark),

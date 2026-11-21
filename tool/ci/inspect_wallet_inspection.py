@@ -910,11 +910,12 @@ def details_licence_header_chevrons(raw):
         }
 
 
-def _details_licence_dividers(zipped):
-    column, top, bottom = 700, 188, 645
+def _details_licence_dividers(zipped, screen='37-set-licences', scan_rows=(188, 645)):
+    column = 700
+    top, bottom = scan_rows
     themes = {}
     for theme in producer.details.THEMES:
-        name = f'37-set-licences-{theme}.png'
+        name = f'{screen}-{theme}.png'
         encoded = base64.b64encode(zipped.read(name)).decode('ascii')
         rows, channels = windows._png_crop(encoded, (column, column + 1), (top, bottom))
         themes[theme] = None
@@ -1005,6 +1006,8 @@ def details_component_geometry(raw):
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         return dict(
             licence_divider_spans=_details_licence_dividers(zipped),
+            originals_licence_divider_spans=_details_licence_dividers(
+                zipped, '38-set-originals', (67, 173)),
             originals_footer_rows=_details_originals_footer_rows(zipped),
             receive_qsr_mark=_ink_bounds(zipped, '10-receive-qr', (814, 849), (235, 274),
                 lambda red, green, blue: blue - red > 90 and blue - green > 25),
