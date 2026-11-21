@@ -3531,6 +3531,11 @@ verify a renamed row and a default row in dark LTR and scaled light RTL.
 passes application and strict selected analysis, generated-file verification,
 and the non-chain suite with 5,131 passes and one skip. A Windows capture
 of a named member is still required for V01.
+The [current combined Node and Addresses run at `835ed3f0`](https://github.com/edgepillar/syrius/actions/runs/44922244072/job/136900597521)
+uses the existing four-member isolated profile. It saves a sample name
+through the third member's original edit control and requires that name
+and the original address number before each theme's capture. Targeted Dart
+analysis passes. The native captures and their independent read are pending.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
@@ -3988,10 +3993,17 @@ crosses its settlement observation, and four later confirmed raster
 starts exceed 16 ms. The samples leave the raster cause open under V02.
 
 The [paired Windows run at `dad44a5e`](https://github.com/edgepillar/syrius/actions/runs/44920385227/job/136894934464)
-uses the application already qualified for the combined launch run. It
-measures Home to Settings and the Licences disclosure against P06. This
-revision predates the Addresses label change. The original result and its
-independent read are pending.
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44922508578/job/136901401608)
+verify the Home-to-Settings and Licences disclosure windows against P06.
+Both entry and wallet actors for each build and all five nodes exit
+normally. The longest spans are 281.646 versus 154.628 ms for page change
+and 119.073 versus 70.131 ms for disclosure. Both comparisons fail raster
+and distinct-frame ranking. Disclosure also fails build, and all four
+windows have frame-number gaps. During the page change the peak raster
+takes 215.391 ms and starts 152.550 to 204.870 ms after release. For
+disclosure the 102.406 ms peak begins 587.266 to 587.887 ms after release,
+after the panel settles at 291.170 ms. These measurements leave the causes
+and V02 open. The source predates the Addresses label change.
 
 The rail width spring now lays out the original destination buttons without
 rebuilding them on its ticks. The toggle still rotates on the same spring,
