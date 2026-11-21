@@ -298,8 +298,8 @@ void main() {
         _downloading(0, 100),
         _downloading(50, 100),
         _downloading(100, 100),
-        _step<NodeUpdateConfirmAsk>(
-          (NodeUpdateConfirmAsk step) => step.library.sha256,
+        _step<NodeUpdateDownloadReady>(
+          (NodeUpdateDownloadReady step) => step.library.sha256,
           kNewSha,
         ),
       ],
@@ -391,11 +391,14 @@ void main() {
       },
       act: (NodeUpdateCubit cubit) async {
         await toDownload(cubit);
+        await cubit.confirmInstall();
         expect(updater.calls, isNot(contains('stage $kNewSha')));
+        cubit.reviewInstall(cubit.state.step as NodeUpdateDownloadReady);
         await cubit.confirmInstall();
       },
       skip: 7,
       expect: () => <Matcher>[
+        _step<NodeUpdateConfirmAsk>(),
         _step<NodeUpdateStaging>(),
         _step<NodeUpdateStepIdle>()
             .having(
@@ -427,8 +430,11 @@ void main() {
       },
       act: (NodeUpdateCubit cubit) async {
         await toDownload(cubit);
+        final NodeUpdateDownloadReady ready =
+            cubit.state.step as NodeUpdateDownloadReady;
         cubit.cancelInstall();
         // The answer has been given; a late yes installs nothing.
+        cubit.reviewInstall(ready);
         await cubit.confirmInstall();
       },
       skip: 7,
@@ -450,9 +456,10 @@ void main() {
       },
       act: (NodeUpdateCubit cubit) async {
         await toDownload(cubit);
+        cubit.reviewInstall(cubit.state.step as NodeUpdateDownloadReady);
         await cubit.confirmInstall();
       },
-      skip: 8,
+      skip: 9,
       expect: () => <Matcher>[
         _step<NodeUpdateStepFailed>(
           (NodeUpdateStepFailed step) => step.error,

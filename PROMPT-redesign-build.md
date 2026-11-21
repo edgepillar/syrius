@@ -3327,6 +3327,13 @@ gaps agree in both themes. Most differences are in the member table
 The strip below the cards has none at that threshold. All four whole-image
 verdicts remain open.
 
+The Node reference presents the verified download in the panel before the
+installation action. A verified release download now shows its asset,
+checksum and individual verification results in an inline card. The
+explicit install action opens the existing confirmation for that exact
+temporary library. Cancel or leaving the page discards the uninstalled
+download. The held-download state awaits a Windows settings capture.
+
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
 with one skip and generated-file verification. That full run includes

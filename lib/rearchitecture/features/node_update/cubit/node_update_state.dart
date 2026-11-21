@@ -135,6 +135,18 @@ final class NodeUpdateUnverifiedAsk extends NodeUpdateStep {
   List<Object?> get props => <Object?>[release, checksumFile];
 }
 
+/// A release download passed verification and awaits review in the panel.
+final class NodeUpdateDownloadReady extends NodeUpdateStep {
+  /// Creates the state.
+  const NodeUpdateDownloadReady(this.library);
+
+  /// The checked temporary library owned by this panel.
+  final DownloadedNodeLibrary library;
+
+  @override
+  List<Object?> get props => <Object?>[library];
+}
+
 /// A library lies in a temporary file and waits for the person's answer.
 /// Nothing is installed yet.
 final class NodeUpdateConfirmAsk extends NodeUpdateStep {

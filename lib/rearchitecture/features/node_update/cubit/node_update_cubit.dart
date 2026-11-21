@@ -94,7 +94,7 @@ class NodeUpdateCubit extends Cubit<NodeUpdatePanelState> {
   }
 
   /// Downloads the library of the release Check found, to a temporary file.
-  /// Ends in [NodeUpdateConfirmAsk], or in [NodeUpdateUnverifiedAsk] when
+  /// Ends in [NodeUpdateDownloadReady], or in [NodeUpdateUnverifiedAsk] when
   /// the release publishes no hash to check it against.
   Future<void> download() async {
     final NodeUpdateCheck check = state.check;
@@ -121,6 +121,12 @@ class NodeUpdateCubit extends Cubit<NodeUpdatePanelState> {
   /// Stops the download under way. Nothing of it stays on disk.
   void cancelDownload() => _cancel?.cancel();
 
+  /// Opens the install confirmation for the exact download shown in the panel.
+  void reviewInstall(NodeUpdateDownloadReady download) {
+    if (isClosed || !identical(state.step, download)) return;
+    emit(state.copyWith(step: NodeUpdateConfirmAsk(download.library)));
+  }
+
   /// Takes a library, or an archive of one, that the person picked. Ends in
   /// [NodeUpdateConfirmAsk].
   Future<void> installFromFile(File file) async {
@@ -145,9 +151,11 @@ class NodeUpdateCubit extends Cubit<NodeUpdatePanelState> {
 
   /// The person's yes to [NodeUpdateConfirmAsk]: stages the library for the
   /// next start.
-  Future<void> confirmInstall() async {
+  Future<void> confirmInstall({NodeUpdateConfirmAsk? expected}) async {
     final NodeUpdateStep step = state.step;
-    if (isClosed || step is! NodeUpdateConfirmAsk) {
+    if (isClosed ||
+        step is! NodeUpdateConfirmAsk ||
+        (expected != null && !identical(step, expected))) {
       return;
     }
     final NodeUpdater updater = _updater;
@@ -161,14 +169,16 @@ class NodeUpdateCubit extends Cubit<NodeUpdatePanelState> {
     await _reload(next);
   }
 
-  /// The person's no to either question. A downloaded library is deleted.
-  void cancelInstall() {
+  /// Cancels the current question or discards the checked temporary download.
+  void cancelInstall({NodeUpdateStep? expected}) {
     final NodeUpdateStep step = state.step;
-    if (isClosed) {
+    if (isClosed || (expected != null && !identical(step, expected))) {
       return;
     }
-    if (step is NodeUpdateConfirmAsk) {
-      _updater.discard(step.library);
+    if (step
+        case NodeUpdateDownloadReady(:final library) ||
+            NodeUpdateConfirmAsk(:final library)) {
+      _updater.discard(library);
     } else if (step is! NodeUpdateUnverifiedAsk) {
       return;
     }
@@ -287,7 +297,9 @@ class NodeUpdateCubit extends Cubit<NodeUpdatePanelState> {
       final NodeUpdateCheck check = state.check;
       emit(
         state.copyWith(
-          step: NodeUpdateConfirmAsk(downloaded),
+          step: !allowUnverified && downloaded.verified
+              ? NodeUpdateDownloadReady(downloaded)
+              : NodeUpdateConfirmAsk(downloaded),
           check: check is NodeUpdateCheckDone && check.release == release
               ? NodeUpdateCheckDone(
                   release: release,
@@ -379,8 +391,10 @@ class NodeUpdateCubit extends Cubit<NodeUpdatePanelState> {
   Future<void> close() {
     _cancel?.cancel();
     final NodeUpdateStep step = state.step;
-    if (step is NodeUpdateConfirmAsk) {
-      _made?.discard(step.library);
+    if (step
+        case NodeUpdateDownloadReady(:final library) ||
+            NodeUpdateConfirmAsk(:final library)) {
+      _made?.discard(library);
     }
     _made?.close();
     _made = null;

@@ -18,6 +18,7 @@ import '../support.dart';
 
 const ValueKey<String> _check = ValueKey<String>('node_update_check');
 const ValueKey<String> _download = ValueKey<String>('node_update_download');
+const ValueKey<String> _review = ValueKey<String>('node_update_review_install');
 const ValueKey<String> _fromFile = ValueKey<String>(
   'node_update_install_from_file',
 );
@@ -199,6 +200,7 @@ void main() {
         expect(updater.calls, isEmpty);
         await press(tester, _check);
         await press(tester, _download);
+        await press(tester, _review);
         expect(_buttonHeight(tester, _dialogCancel), 38);
         expect(_buttonHeight(tester, _dialogInstall), 38);
         expect(_focused(tester, _dialogCancel), isTrue);
@@ -379,6 +381,7 @@ void main() {
 
       await press(tester, _check);
       await press(tester, _download);
+      await press(tester, _review);
       for (final String data in <String>[kRepo, kTag, kAsset, kNewSha]) {
         expect(
           tester.widget<Text>(_inDialog(find.text(data))).textDirection,
@@ -432,6 +435,15 @@ void main() {
         await open(tester);
         await press(tester, _check);
         await press(tester, _download);
+        expect(
+          find.byKey(const Key('node_update_verified_download')),
+          findsOneWidget,
+        );
+        expect(find.text(_matchesChecksumFile), findsOneWidget);
+        expect(find.text(_noDigest), findsOneWidget);
+        expect(find.byType(DialogCard), findsNothing);
+        expect(updater.calls, isNot(contains('stage $kNewSha')));
+        await press(tester, _review);
 
         expect(find.byType(DialogCard), findsOneWidget);
         expect(_inDialog(find.text(kRepo)), findsOneWidget);
@@ -467,6 +479,7 @@ void main() {
       await open(tester);
       await press(tester, _check);
       await press(tester, _download);
+      await press(tester, _review);
       await press(tester, _dialogInstall);
 
       expect(find.byType(DialogCard), findsNothing);
@@ -492,6 +505,7 @@ void main() {
       await open(tester);
       await press(tester, _check);
       await press(tester, _download);
+      await press(tester, _review);
 
       await tester.tapAt(const Offset(4, 4));
       await tester.pumpAndSettle();

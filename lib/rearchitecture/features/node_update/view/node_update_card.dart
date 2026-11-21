@@ -20,6 +20,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/copy_to_clipboard_button.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 
 part '../widgets/node_update_dialogs.dart';
@@ -176,15 +177,15 @@ class _View extends StatelessWidget {
     final NodeUpdateCubit cubit = context.read<NodeUpdateCubit>();
     if (step is NodeUpdateConfirmAsk) {
       if (await _showInstallDialog(context, step.library) ?? false) {
-        await cubit.confirmInstall();
+        await cubit.confirmInstall(expected: step);
       } else {
-        cubit.cancelInstall();
+        cubit.cancelInstall(expected: step);
       }
     } else if (step is NodeUpdateUnverifiedAsk) {
       if (await _showUnverifiedDialog(context, step.release) ?? false) {
         await cubit.downloadUnverified();
       } else {
-        cubit.cancelInstall();
+        cubit.cancelInstall(expected: step);
       }
     }
   }

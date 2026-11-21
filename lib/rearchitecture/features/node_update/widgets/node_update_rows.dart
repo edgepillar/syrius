@@ -558,6 +558,13 @@ class _InstallRow extends StatelessWidget {
           key: ValueKey<String>('node_update_activity_none'),
           width: double.infinity,
         );
+      case final NodeUpdateDownloadReady download:
+        return _VerifiedDownload(
+          key: const ValueKey<String>('node_update_verified_download'),
+          library: download.library,
+          onReview: () => cubit.reviewInstall(download),
+          onCancel: () => cubit.cancelInstall(expected: download),
+        );
       case NodeUpdateDownloading(:final int received, :final int total):
         return _Activity(
           key: const ValueKey<String>('node_update_activity_download'),
@@ -588,6 +595,90 @@ class _InstallRow extends StatelessWidget {
           ),
         );
     }
+  }
+}
+
+/// Shows the verified release while its temporary files are still owned.
+class _VerifiedDownload extends StatelessWidget {
+  const _VerifiedDownload({
+    required this.library,
+    required this.onReview,
+    required this.onCancel,
+    super.key,
+  });
+
+  final DownloadedNodeLibrary library;
+  final VoidCallback onReview;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    final AppTokens tokens = AppTokens.of(context);
+    final NodeChecksumFileCheck? checksum = library.checksumFile;
+    final NodeApiDigestCheck? digest = library.apiDigest;
+    return Padding(
+      padding: tokens.cardPadding,
+      child: Material(
+        color: tokens.card2,
+        borderRadius: BorderRadius.circular(tokens.compactRadius),
+        child: Padding(
+          padding: tokens.cardPadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              _Fact(l10n.nodeUpdateActualLabel, library.asset, data: true),
+              _Fact(
+                l10n.nodeUpdateHashLabel,
+                library.archiveSha256 ?? library.sha256,
+                data: true,
+              ),
+              SizedBox(height: tokens.inlineGap),
+              Wrap(
+                spacing: tokens.cardGap,
+                runSpacing: tokens.inlineGap,
+                children: <Widget>[
+                  Text(
+                    _checksumFileText(l10n, checksum),
+                    style: TextStyle(
+                      color: checksum == NodeChecksumFileCheck.verified
+                          ? tokens.znnInk
+                          : tokens.warn,
+                    ),
+                  ),
+                  Text(
+                    _apiDigestText(l10n, digest),
+                    style: TextStyle(
+                      color: digest == NodeApiDigestCheck.verified
+                          ? tokens.znnInk
+                          : tokens.warn,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: tokens.inlineGap),
+              Wrap(
+                spacing: tokens.inlineGap,
+                runSpacing: tokens.inlineGap,
+                children: <Widget>[
+                  PrimaryPill(
+                    key: const ValueKey<String>('node_update_review_install'),
+                    onPressed: onReview,
+                    child: Text(l10n.nodeUpdateInstallLabel),
+                  ),
+                  OutlinedButton(
+                    key: const ValueKey<String>('node_update_discard_download'),
+                    style: cardSecondaryButtonStyle(context),
+                    onPressed: onCancel,
+                    child: Text(l10n.cancel),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
