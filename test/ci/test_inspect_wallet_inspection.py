@@ -104,10 +104,13 @@ class ReaderTests(unittest.TestCase):
         names = [f'{screen}-{theme}.png' for screen in screens for theme in ('dark', 'light')]
         raw = packed([(name, name.encode(), stat.S_IFREG) for name in names])
         reference_dir = Path('references')
+        measurements = dict(changed_pixels_at_least_16=12,
+                            pixels_at_least_16_by_region={'hero': 12})
         with mock.patch.object(reader.producer, 'read_original',
                 side_effect=lambda path, _: path.name.encode()) as read, \
                 mock.patch.object(reader.windows, 'pixel_comparison',
-                    side_effect=lambda actual, reference, _, **options: actual == reference):
+                    side_effect=lambda actual, reference, _, **options:
+                        measurements if actual == reference else None):
             comparisons = list(reader.home_pixel_comparisons(raw, reference_dir))
         self.assertEqual([row['screen'] for row in comparisons], list(screens))
         self.assertEqual([call.args[0] for call in read.call_args_list],
@@ -117,7 +120,15 @@ class ReaderTests(unittest.TestCase):
         for row in comparisons:
             self.assertEqual(row['region_bounds']['caption'], (0, 0, 1280, 32))
             self.assertEqual(row['region_bounds']['rail'][1], 32)
-        self.assertTrue(all(row['pairs'] == {'dark': True, 'light': True} for row in comparisons))
+        self.assertTrue(all(row['pairs'] == {'dark': measurements, 'light': measurements}
+                            for row in comparisons))
+        summary = reader.catalog_pixel_summary(
+            'Home', 'a' * 40, 123, 'b' * 64, 'c' * 40, comparisons)
+        self.assertIn('actions/runs/123', summary)
+        self.assertIn('c' * 40, summary)
+        for screen in screens:
+            for theme in ('dark', 'light'):
+                self.assertIn(f'| {screen} | {theme} | 12 | hero 12 |', summary)
 
     def test_details_comparison_pairs_each_numbered_capture_with_its_reference(self):
         screens = ('10-receive-qr', '11-zap-form', '22-plasma-fuse',

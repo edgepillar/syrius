@@ -1321,6 +1321,34 @@ def emit(title, value):
     print('::notice title=' + title + '::' + raw.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'), flush=True)
 
 
+def catalog_pixel_summary(family, head, run_id, archive_sha, reference_head,
+                          comparisons):
+    """Render the verified pixel measurements for the Actions job summary."""
+    lines = [
+        f'## Retained {family} pixel comparisons',
+        '',
+        f'Original source `{head}` and reference source `{reference_head}`. '
+        f'[Original run](https://github.com/edgepillar/syrius/actions/runs/{run_id})',
+        '',
+        f'Original archive SHA-256 `{archive_sha}`.',
+        '',
+        '| Screen | Theme | Pixels differing by at least 16 levels in any RGB channel | Differences by region |',
+        '| --- | --- | ---: | --- |',
+    ]
+    for comparison in comparisons:
+        for theme, pair in comparison['pairs'].items():
+            prefix = f"| {comparison['screen']} | {theme} |"
+            if pair is None:
+                lines.append(f'{prefix} Unavailable | Image opacity check |')
+                continue
+            regions = ', '.join(
+                f"{name.replace('_', ' ')} {count:,}"
+                for name, count in pair['pixels_at_least_16_by_region'].items())
+            lines.append(f"{prefix} {pair['changed_pixels_at_least_16']:,} | {regions} |")
+    lines.extend(('', 'Whole-image visual review remains open.', ''))
+    return '\n'.join(lines)
+
+
 def main(parent=None):
     global PHASE
     parent = os.environ if parent is None else parent
@@ -1669,6 +1697,12 @@ def main(parent=None):
                 scope=f'retained_{family.lower()}_pixel_comparison', source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
                 reference_head=reference_head, visual_matches=0, **comparison))
+        step_summary = parent.get('GITHUB_STEP_SUMMARY')
+        if step_summary and catalog_comparisons:
+            with Path(step_summary).open('a', encoding='utf-8') as stream:
+                stream.write(catalog_pixel_summary(
+                    family, head, run_id, catalog['archive_sha256'],
+                    reference_head, catalog_comparisons))
     if viewport_observation is not None:
         viewport_observation.update(viewport_observation_qualified=True, parent_closure_qualified=True,
             producer_job_id=job['id'], metadata_revalidated=True,
