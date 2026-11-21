@@ -70,9 +70,10 @@ class _PendingBundle extends CachingAssetBundle {
 }
 
 class _Harness extends StatefulWidget {
-  const _Harness({required this.session, super.key});
+  const _Harness({required this.session, required this.fillClient, super.key});
 
   final StartupStageSession session;
+  final bool fillClient;
 
   @override
   State<_Harness> createState() => _HarnessState();
@@ -117,7 +118,9 @@ class _HarnessState extends State<_Harness> {
       body: Column(
         children: <Widget>[
           Expanded(child: widget.session.buildShellAuth()),
-          const SizedBox(height: 40),
+          // The real Windows Lock backdrop fills the entire caption body.
+          // Other tests retain a smaller destination slot for reparenting.
+          if (!widget.fillClient) const SizedBox(height: 40),
         ],
       ),
     );
@@ -171,7 +174,7 @@ Future<GlobalKey<_HarnessState>> _show(
         data: MediaQuery.of(context).copyWith(disableAnimations: reduced),
         child: withWindowFrame ? AppWindowFrame(child: child!) : child!,
       ),
-      home: _Harness(key: key, session: session),
+      home: _Harness(key: key, session: session, fillClient: withWindowFrame),
     ),
   );
   await tester.pump();
@@ -351,6 +354,8 @@ void main() {
       final Duration referenceTime = Duration(microseconds: high);
       await tester.pump(referenceTime);
       expect(session.motion.value, closeTo(0.4, 0.004));
+      expect(tester.getRect(find.byType(EntryField)),
+          const Rect.fromLTWH(0, 32, 1280, 748));
       expect(shadowRaster.debugRetainedImage, same(preparedShadow));
       final Rect authored = _stageRect(tester);
       expect(authored.left, closeTo(250, 2));
