@@ -433,6 +433,8 @@ void main() {
       (WidgetTester tester) async {
         updater.downloads.add(downloadedOf());
         await open(tester);
+        const String draftRepository = 'someone/go-zenon';
+        await tester.enterText(find.byKey(_repository), draftRepository);
         await press(tester, _check);
         await press(tester, _download);
         expect(
@@ -443,6 +445,8 @@ void main() {
         expect(find.text(_noDigest), findsOneWidget);
         expect(find.byKey(_download), findsNothing);
         expect(find.byKey(_fromFile), findsNothing);
+        expect(find.byKey(_check), findsNothing);
+        expect(find.byKey(_repository), findsNothing);
         expect(find.byType(DialogCard), findsNothing);
         expect(updater.calls, isNot(contains('stage $kNewSha')));
         await press(tester, _review);
@@ -471,6 +475,12 @@ void main() {
         expect(find.byType(DialogCard), findsNothing);
         expect(_enabled(tester, _download), isTrue);
         expect(_enabled(tester, _fromFile), isTrue);
+        expect(_enabled(tester, _check), isTrue);
+        expect(
+          tester.widget<TextField>(find.byKey(_repository)).controller!.text,
+          draftRepository,
+        );
+        expect(saved, isEmpty);
         expect(updater.calls.last, 'discard $kNewSha');
         expect(updater.calls, isNot(contains('stage $kNewSha')));
       },

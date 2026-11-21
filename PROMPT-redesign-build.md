@@ -3402,6 +3402,12 @@ band at column 700 is rows 438 through 535 in both themes, against
 references. The update crop still contains 39,406 dark and 39,291 light
 differences. Both verdicts and remaining update geometry stay under V01.
 
+The verified review now leaves more room for the release tag and date by
+removing its disabled Check button. The repository editor is also hidden
+while the verified download is held. Cancelling restores the editor and
+its unsaved draft without changing the configured repository. The original
+confirmation case checks those transitions. Fresh Windows pixels remain open.
+
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
 with one skip and generated-file verification. That full run includes

@@ -11,11 +11,17 @@ class _Body extends StatelessWidget {
     return BlocSelector<NodeUpdateCubit, NodeUpdatePanelState, bool>(
       selector: (NodeUpdatePanelState state) =>
           _RollbackRow.offered(state.library),
-      builder: (BuildContext context, bool rollback) => SettingsList(
+      builder: (BuildContext context, bool rollback) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          const _VersionFacts(),
-          _InstallRow(pickFile: _pickFile),
-          if (rollback) const _RollbackRow(),
+          SettingsList(
+            children: <Widget>[
+              const _VersionFacts(),
+              _InstallRow(pickFile: _pickFile),
+              if (rollback) const _RollbackRow(),
+            ],
+          ),
           const _SourceRow(),
         ],
       ),
@@ -343,18 +349,23 @@ class _CheckRow extends StatelessWidget {
     final AppLocalizations l10n = context.l10n;
     return BlocBuilder<NodeUpdateCubit, NodeUpdatePanelState>(
       buildWhen: (NodeUpdatePanelState before, NodeUpdatePanelState now) =>
-          before.check != now.check || before.idle != now.idle,
+          before.check != now.check ||
+          before.idle != now.idle ||
+          (before.step is NodeUpdateDownloadReady) !=
+              (now.step is NodeUpdateDownloadReady),
       builder: (BuildContext context, NodeUpdatePanelState state) {
         return _VersionFact(
           name: l10n.nodeUpdateReleaseLabel,
-          action: OutlinedButton(
-            key: const ValueKey<String>('node_update_check'),
-            style: cardSecondaryButtonStyle(context),
-            onPressed: state.idle
-                ? () => unawaited(context.read<NodeUpdateCubit>().check())
-                : null,
-            child: Text(l10n.nodeUpdateCheckLabel),
-          ),
+          action: state.step is NodeUpdateDownloadReady
+              ? null
+              : OutlinedButton(
+                  key: const ValueKey<String>('node_update_check'),
+                  style: cardSecondaryButtonStyle(context),
+                  onPressed: state.idle
+                      ? () => unawaited(context.read<NodeUpdateCubit>().check())
+                      : null,
+                  child: Text(l10n.nodeUpdateCheckLabel),
+                ),
           child: StateSwitcher(
             alignment: AlignmentDirectional.topStart,
             child: _buildAnswer(context, state.check),
@@ -890,12 +901,20 @@ class _SourceRowState extends State<_SourceRow> {
     final AppLocalizations l10n = context.l10n;
     return BlocBuilder<NodeUpdateCubit, NodeUpdatePanelState>(
       buildWhen: (NodeUpdatePanelState before, NodeUpdatePanelState now) =>
-          before.repository != now.repository || before.idle != now.idle,
+          before.repository != now.repository ||
+          before.idle != now.idle ||
+          (before.step is NodeUpdateDownloadReady) !=
+              (now.step is NodeUpdateDownloadReady),
       builder: (BuildContext context, NodeUpdatePanelState state) {
+        // The verified release cannot change source. Keep its unsaved draft
+        // here while the editor is out of the review layout.
+        if (state.step is NodeUpdateDownloadReady) {
+          return const SizedBox.shrink();
+        }
         final String typed = _controller.text.trim();
         final bool valid = NodeUpdateSource.isValid(typed);
         final bool savable = state.idle && valid && typed != state.repository;
-        return SettingRow(
+        final Widget row = SettingRow(
           label: l10n.nodeUpdateSourceLabel,
           hint: l10n.nodeUpdateSourceHint,
           below: Column(
@@ -962,6 +981,11 @@ class _SourceRowState extends State<_SourceRow> {
               ),
             ],
           ),
+        );
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[const Divider(), row],
         );
       },
     );
