@@ -4130,7 +4130,27 @@ Its application, harness, tests, assets and workflow match `bb4961af`.
 The [first Details dispatch](https://github.com/edgepillar/syrius/actions/runs/44932048744/job/136930594633)
 was refused before SDK setup because the required native shutdown diagnostic
 input was omitted. The new dispatch supplies that input through the
-existing isolated Windows workflow. Capture and visual review are pending.
+existing isolated Windows workflow. The producer completes successfully
+and retains the original Details archive. The [first independent read](https://github.com/edgepillar/syrius/actions/runs/44933663275/job/136935527594)
+stops at the producer-source check after the later status halo change
+modifies the readonly command source. The reader now verifies the exact
+producer blob for that file. All 38 focused reader controls pass.
+The [corrected independent reader](https://github.com/edgepillar/syrius/actions/runs/44933789889/job/136935919828)
+verifies the ten original PNGs and normal required closure.
+
+#### Details at `59a1f859`
+
+All ten originals were viewed beside their exact references. Both
+Licences originals have the same PNG digests as the earlier
+`31b5a23c` captures. The ten pairs retain differences under V01.
+
+| Screen | Visible differences in both themes |
+| --- | --- |
+| Receive QR | The card and request controls align. The generated code has a token mark and the amount hint is shorter. |
+| Zap form | The form bounds align. The unavailable recipient state leaves the selection and count absent. The action uses the approved brand colors. |
+| Plasma Fuse | The bolt, open form and two selected rows are visible. The isolated wallet has one other address and three cancelable fuses. The reference shows three other addresses and a locked fuse. |
+| Licences | The header, list dividers and footer field align. The installed package inventory, licence badges, Links count and status group differ. |
+| Originals | The gallery and footer align. The discovery field is cleared as specified. Globe outlines and Map dot coverage differ, with the clearest Map difference in light. |
 
 The [first compatibility read of `08ecf715`](https://github.com/edgepillar/syrius/actions/runs/44926305670/job/136913047287)
 reads the original timings and refuses the paired images at the older
@@ -4466,7 +4486,7 @@ and generated-file verification. Native observation remains open under V02.
 | The eye | `test/hidden_balances/hidden_balances_test.dart` checks both original eye segments. | Observe both directions and masked values during the switch. |
 | The bolt | `test/shell/strip/plasma_lifecycle_test.dart` checks repeat during generation and exit to idle. | Watch a complete loop while generation is in progress. |
 | Wrong password | The Lock catalog retains the wrong-password state after input. | See the 200 ms shake and original well replay as the submission is refused. |
-| Sync dot | `test/shell/strip/sync_pulse_test.dart` checks the 2.4 s pulse and the halo phase read from the original widget. The [Home producer at `1ad56434`](https://github.com/edgepillar/syrius/actions/runs/44932698776) samples that input for up to six seconds. The reader reports intermediate phases, the transparent hold and the bounds between observed resumes. [Linux validation](https://github.com/edgepillar/syrius/actions/runs/44932698713) is pending. | Confirm the retained observations and visually review a full pulse in the running wallet. |
+| Sync dot | `test/shell/strip/sync_pulse_test.dart` checks the 2.4 s pulse and the halo phase read from the original widget. The [Home producer at `1ad56434`](https://github.com/edgepillar/syrius/actions/runs/44932698776) samples that input for up to six seconds. The reader reports intermediate phases, the transparent hold and the bounds between observed resumes. [Linux at the same source](https://github.com/edgepillar/syrius/actions/runs/44932698713/job/136932579266) passes both pulse cases, the full non-chain suite with 5,131 passes and one skip, and generated-file verification. | Confirm the retained observations and visually review a full pulse in the running wallet. |
 | Skeleton sweep | `test/motion/skeleton_test.dart` checks one shared clock and the 1.4 s sweep. | Watch loading rows sweep in step. |
 
 | Shader | Existing check | Remaining Windows observation |
@@ -4783,8 +4803,8 @@ whole-image acceptance.
 | 07 | `send-rest` | X829 | X830 |
 | 08 | `send-warn` | X889 | X890 |
 | 09 | `receive` | [match](#receive-at-rest-at-06eda3f7) | [match](#receive-at-rest-at-06eda3f7) |
-| 10 | `receive-qr` | X1186 | X1186 |
-| 11 | `zap-form` | X1189 | X1189 |
+| 10 | `receive-qr` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
+| 11 | `zap-form` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
 | 12 | `send-confirm` | X837 | X838 |
 | 13 | `staking` | X891 | X892 |
 | 14 | `staking-new` | X893 | X894 |
@@ -4795,7 +4815,7 @@ whole-image acceptance.
 | 19 | `spawn` | X1150 | X1151 |
 | 20 | `pillar-done` | X1152 | X1153 |
 | 21 | `plasma` | X845 | X846 |
-| 22 | `plasma-fuse` | X1184 | X1184 |
+| 22 | `plasma-fuse` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
 | 23 | `tokens` | X849 | X850 |
 | 24 | `token-mine` | X899 | X900 |
 | 25 | `token-new` | X851 | X852 |
@@ -4810,8 +4830,8 @@ whole-image acceptance.
 | 34 | `set-apps` | X865 | X866 |
 | 35 | `set-addresses` | [review](#node-and-addresses-at-0e3b2f5d) | [review](#node-and-addresses-at-0e3b2f5d) |
 | 36 | `set-about` | X498 | X499 |
-| 37 | `set-licences` | X1192 | [X1192 follow-up](#about-disclosures-and-originals-at-fb3b2a01) |
-| 38 | `set-originals` | [X1192 follow-up](#about-disclosures-and-originals-at-fb3b2a01) | [X1192 follow-up](#about-disclosures-and-originals-at-fb3b2a01) |
+| 37 | `set-licences` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
+| 38 | `set-originals` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
 | 39 | `launch` | match | match |
 | 40 | `launch-settle` | X871 | X872 |
 | 41 | `lock-screen` | [match](#lock-at-rest-at-47e606a1) | [match](#lock-at-rest-at-47e606a1) |
