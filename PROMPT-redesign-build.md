@@ -3495,6 +3495,10 @@ references. The notice now adds 2 px above its surface and 2 px to
 each internal vertical inset. The lower outer inset remains 12 px
 as measured in both references. The widget case verifies the outer
 insets. The new panel positions require a fresh Windows capture.
+[Linux at `fa12934e`](https://github.com/edgepillar/syrius/actions/runs/44914392285/job/136876775136)
+passes the Node and Addresses widget cases, application and strict
+selected analysis, the generated-file check and the non-chain suite,
+with 5,131 passes and one skip.
 
 The new Addresses member, contact and account-chain cards span rows
 36–315, 328–477 and 490–533 in both themes. The references span rows
@@ -3503,8 +3507,13 @@ contact card is one pixel shorter and the account-chain card retains
 the reference height. The row minimums now use 56.5 px for members and
 50.5 px for contacts, with the existing one-pixel dividers. The layout
 case checks the two minimums alongside the action sizes and scaled
-layout. The next native capture must verify the card positions. All
-four strict visual verdicts remain open under V01.
+layout. The [Windows reader at `ae038126`](https://github.com/edgepillar/syrius/actions/runs/44915246614/job/136879352105)
+verifies four original images and normal required closure. The three
+Addresses card edges now match the reference rows at column 700 in
+both themes. With the same reference digests, whole-window counts at
+the 16-level threshold fall from 43,736 to 38,026 in dark and from
+44,391 to 41,572 in light. All four strict visual verdicts remain open
+under V01.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
