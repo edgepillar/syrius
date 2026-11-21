@@ -616,6 +616,17 @@ class InspectionTests(unittest.TestCase):
             with self.assertRaisesRegex(inspection.Refused, 'STORAGE_REFUSED'):
                 inspection.sample_capture_outputs(repo, family='home-bell', catalog_only=True)
 
+            output = repo / inspection.details.OUTPUT
+            children = [output / name for name in (
+                '30-set-node-dark.png', '30-set-node-light.png',
+                '35-set-addresses-dark.png', '35-set-addresses-light.png',
+            )]
+            self.assertEqual(inspection.sample_capture_outputs(
+                repo, family='node-verified', catalog_only=True), 96)
+            children.append(output / 'unregistered.png')
+            with self.assertRaisesRegex(inspection.details.Refused, 'STORAGE_REFUSED'):
+                inspection.sample_capture_outputs(repo, family='node-verified', catalog_only=True)
+
     def test_home_catalog_privacy_geometry_and_fixed_files_are_independent(self):
         pixels = png()
         original = home_manifest(pixels)

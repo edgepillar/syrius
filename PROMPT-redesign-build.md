@@ -3413,7 +3413,17 @@ the populated Addresses panel in both themes from one build and one
 isolated wallet. The Addresses portion uses the existing two synthetic
 contacts and requires both real Edit controls. The independent reader binds
 both scripts and the original contact fixture. Older two-image receipts
-remain verifiable. The four-image batch awaits its first hosted run.
+remain verifiable.
+
+The [first combined Windows run](https://github.com/edgepillar/syrius/actions/runs/44905778531/job/136850919202)
+completed Release and retained the parent receipts with `STORAGE_REFUSED`
+and no catalog archive. The separate free-space sampler reports no refusal.
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44906861309/job/136854203968)
+stopped at its producer-source check. The controller still used the earlier
+two-image schema to account for files and validate the completed receipt.
+It now selects the four-image schema for new runs. The existing control
+accepts those four filenames and refuses an unregistered fifth; the reader
+still validates older two-image archives. Fresh Windows captures remain open.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests

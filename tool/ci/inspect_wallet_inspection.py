@@ -1286,7 +1286,7 @@ def main(parent=None):
                           producer.details.FAMILY_SCHEMAS['wallet-ready'],
                           producer.details.FAMILY_SCHEMAS['send-warn'],
                           producer.details.FAMILY_SCHEMAS['home-zap-preview'],
-                          producer.details.FAMILY_SCHEMAS['node-verified'],
+                          producer.details.NODE_VERIFIED_SCHEMA,
                           producer.details.SETTINGS_REVIEW_SCHEMA,
                           producer.details.SEND_CATALOG_SCHEMA):
                 fixture_sources = {
