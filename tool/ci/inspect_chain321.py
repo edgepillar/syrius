@@ -1055,11 +1055,12 @@ def main():
         encoded = json.dumps(seeded_index, sort_keys=True, separators=(',', ':'))
         need(len(encoded.encode('ascii')) <= 3800)
         print('::notice title=Retained restored catalog image index::' + encoded, flush=True)
-        for comparison in project_comparisons:
+        if project_comparisons:
             pixel_summary = dict(
                 scope='retained_accelerator_pixel_comparison', source_head=head,
                 source_run_id=run_id, archive_sha256=seeded['archive_sha256'],
-                reference_head=reference_head, visual_matches=0, **comparison)
+                reference_head=reference_head, visual_matches=0,
+                comparisons=project_comparisons)
             encoded = json.dumps(pixel_summary, sort_keys=True, separators=(',', ':'))
             need(len(encoded.encode('ascii')) <= 3800)
             print('::notice title=Retained Accelerator pixel comparison::' + encoded,
