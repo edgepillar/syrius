@@ -516,7 +516,7 @@ def artifact_paths(repo, report, *, read_original, parent_completed,
 
 
 def unpack(raw, expected_sha, expected_size, head, tree, run_id,
-                        reference, script_sha):
+           reference, script_sha, *, include_image_pins=False):
     """Verify each literal state; only the caller can bind parent closure."""
     catalog_reference(reference)
     schema = reference['schema']
@@ -557,7 +557,8 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id,
              and _seed_pin(value, schema) == _seed_pin(reference, schema)
              and value['source_tree'] == tree and value['run_id'] == str(run_id)
              and value['run_attempt'] == '1' and value[script_field] == script_sha)
-        for row in capture_records(value['captures'], schema=schema):
+        captures = capture_records(value['captures'], schema=schema)
+        for row in captures:
             pixels = member(row['file'], MAX_CAPTURE_TOTAL)
             need(len(pixels) == row['bytes'] and sha(pixels) == row['sha256'])
             debug.entry.png_bytes(base64.b64encode(pixels).decode('ascii'))
@@ -574,6 +575,8 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id,
         visual_matches=0, **_seed_pin(reference, schema))
     result.update(screens=list(catalog_screens(schema)))
     result[script_field] = script_sha
+    if include_image_pins:
+        result['images'] = {row['file']: row['sha256'] for row in captures}
     if schema == FAMILY_SCHEMAS['home-zap-preview']:
         result['presentation_fixture'] = 'sample_zap_message'
     return result

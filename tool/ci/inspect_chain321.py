@@ -805,7 +805,7 @@ def main():
     need(listing["total_count"] == len(listing["artifacts"]) <= 20)
     wallet_lab = None
     interactive_lab = interactive_result = None
-    seeded = None
+    seeded = seeded_index = None
     surface_seam_summary = None
     owner_page_seam_summary = None
     interactive_items = [item for item in listing['artifacts']
@@ -888,6 +888,7 @@ def main():
                  and item['expired'] is False
                  and item['workflow_run']['id'] == run_id
                  and item['workflow_run']['head_sha'] == head
+                 and type(item['id']) is int and item['id'] > 0
                  and type(item['size_in_bytes']) is int
                  and 0 < item['size_in_bytes'] <= catalog.MAX_ARCHIVE
                  and re.fullmatch(r'sha256:[a-f0-9]{64}', item.get('digest', '')) is not None)
@@ -898,7 +899,17 @@ def main():
             pins = seeded_script_pins(client, head, reference['schema'])
             PHASE = 'projection_seeded'
             seeded = catalog.unpack(raw, item['digest'][7:], item['size_in_bytes'],
-                head, commit['tree']['sha'], run_id, reference, pins)
+                head, commit['tree']['sha'], run_id, reference, pins,
+                include_image_pins=True)
+            schema = reference['schema']
+            family = (catalog.PROJECT_DETAIL_FAMILY if schema == catalog.PROJECT_DETAIL_SCHEMA
+                      else next(name for name, value in catalog.RESTORED_FAMILIES.items()
+                                if schema == value))
+            seeded_index = dict(scope='retained_restored_catalog_image_index',
+                source_head=head, source_run_id=run_id, source_attempt=1,
+                catalog_family=family, artifact_id=item['id'],
+                archive_bytes=item['size_in_bytes'], archive_sha256=seeded['archive_sha256'],
+                manifest_sha256=seeded['manifest_sha256'], images=seeded.pop('images'))
             seeded.update(catalog_capture_qualified=True, parent_closure_qualified=True,
                           atomic_frame_qualified=True)
             surface_seams = reopen.get('seeded_surface_seams')
@@ -1006,6 +1017,9 @@ def main():
         need(len(encoded.encode('ascii')) <= 3800)
         escaped = encoded.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
         print('::notice title=Retained restored seeded catalog::' + escaped, flush=True)
+        encoded = json.dumps(seeded_index, sort_keys=True, separators=(',', ':'))
+        need(len(encoded.encode('ascii')) <= 3800)
+        print('::notice title=Retained restored catalog image index::' + encoded, flush=True)
     if surface_seam_summary is not None:
         encoded = json.dumps(surface_seam_summary, sort_keys=True, separators=(',', ':'))
         need(len(encoded.encode('ascii')) <= 3800)

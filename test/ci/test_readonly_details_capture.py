@@ -427,9 +427,11 @@ class DetailsCatalogTests(unittest.TestCase):
                 images = dict(zip(files, original_images.values()))
                 raw, reference = bundle(report, images)
                 result = details.unpack(raw, details.sha(raw), len(raw),
-                    HEAD, TREE, RUN, reference, pins)
+                    HEAD, TREE, RUN, reference, pins, include_image_pins=True)
                 self.assertEqual(result['scope'], 'retained_restored_seeded_catalog')
                 self.assertEqual(result['filenames'], files)
+                self.assertEqual(result['images'],
+                    {name: details.sha(image) for name, image in images.items()})
                 self.assertEqual(result['seed_receipts_sha256'], '9'*64)
                 self.assertFalse(result['catalog_capture_qualified'])
                 self.assertFalse(result['parent_closure_qualified'])

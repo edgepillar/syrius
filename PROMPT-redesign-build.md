@@ -4218,6 +4218,12 @@ reference. Receive, Pillars and Plasma account for six reviewed mismatches.
 The eight Send, Tokens, Swap and Accelerator images remain diagnostics
 because their populated reference states require the prepared catalogs.
 
+The restored-catalog reader now publishes the original image digests,
+the catalog family and its source run in a bounded index. The index uses
+the PNGs already verified against the original manifest. Existing
+prepared archives can be indexed without another Windows build or a new
+copy of their PNGs. All 118 targeted Python tests pass locally.
+
 | Screen | Visible differences in both themes |
 | --- | --- |
 | Receive QR | The card and request controls align. The generated code has a token mark and the amount hint is shorter. |
