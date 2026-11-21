@@ -328,6 +328,9 @@ class _LockCardState extends State<LockCard>
 
   Widget _buildCard(BuildContext context, AppTokens tokens) {
     final BorderRadius radius = BorderRadius.circular(tokens.dialogRadius);
+    // The rising card uses flat glass. Its blur and shadow belong to the
+    // settled card, after the independent film stage enters the well.
+    final bool settled = widget.startup?.filmInWell ?? true;
     return KeyedSubtree(
       key: const ValueKey<String>('lock_card_surface'),
       child: _withCardShadow(
@@ -335,7 +338,7 @@ class _LockCardState extends State<LockCard>
         tokens.lockCardShadow,
         MediaQuery.devicePixelRatioOf(context),
         FrostedSurface(
-          sigma: tokens.panelBlur,
+          sigma: settled ? tokens.panelBlur : 0,
           borderRadius: radius,
           blurInsetTop: tokens.glassTopEdge.width + tokens.lockWellHeight,
           child: RepaintBoundary(
@@ -344,6 +347,7 @@ class _LockCardState extends State<LockCard>
             child: _buildCardForeground(context, tokens, radius),
           ),
         ),
+        showShadow: settled,
       ),
     );
   }
@@ -450,8 +454,9 @@ class _LockCardState extends State<LockCard>
     BorderRadius radius,
     List<BoxShadow> shadows,
     double pixelRatio,
-    Widget surface,
-  ) {
+    Widget surface, {
+    required bool showShadow,
+  }) {
     Rect shadowBounds = Rect.zero;
     for (final BoxShadow shadow in shadows) {
       // Keep the visible blur inside the shadow's own composited bounds.
@@ -481,17 +486,20 @@ class _LockCardState extends State<LockCard>
           right: -shadowInsets.right,
           bottom: -shadowInsets.bottom,
           child: IgnorePointer(
-            child: RepaintBoundary(
-              key: const ValueKey<String>('lock_card_shadow'),
-              child: CustomPaint(
-                key: _shadowPaintKey,
-                // The shadow painter already retains a device-pixel bitmap.
-                painter: OuterShadowPainter(
-                  borderRadius: radius,
-                  shadows: shadows,
-                  surfaceInsets: shadowInsets,
-                  raster: _shadowRaster,
-                  pixelRatio: pixelRatio,
+            child: Opacity(
+              opacity: showShadow ? 1 : 0,
+              child: RepaintBoundary(
+                key: const ValueKey<String>('lock_card_shadow'),
+                child: CustomPaint(
+                  key: _shadowPaintKey,
+                  // Keep the device-pixel bitmap prepared while covered.
+                  painter: OuterShadowPainter(
+                    borderRadius: radius,
+                    shadows: shadows,
+                    surfaceInsets: shadowInsets,
+                    raster: _shadowRaster,
+                    pixelRatio: pixelRatio,
+                  ),
                 ),
               ),
             ),

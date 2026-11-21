@@ -3549,6 +3549,20 @@ later route entrance change still needs its own timing observation. The
 [Windows preflight at `e7852b58`](https://github.com/edgepillar/syrius/actions/runs/44893396504/job/136813838726)
 passes the explicit startup handoff widget suite on Windows.
 
+The [paired cold read at `e7852b58`](https://github.com/edgepillar/syrius/actions/runs/44894860514/job/136818235447)
+includes the route entrance change. It verifies 91 redesign frames, 1,571
+P06 frames and five normal actor exits. The reported build comparison passes.
+Raster and distinct-frame comparisons fail, with 22 redesign and 944 P06
+frame-number gaps. The 155.793 ms peak raster starts 62.562 to 72.910 ms
+after the handoff begins. The P06 peak raster is 111.570 ms. The reader
+locates the peak in the handoff without identifying its cause.
+
+The Launch Settle reference draws the rising card without the settled
+card's backdrop blur or drop shadow. The candidate keeps both effects
+out of the handoff paint and restores them when the film reaches the well.
+The existing shadow raster can still prepare while the card is covered.
+The candidate needs a fresh image and frame-time comparison.
+
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
 and five normal node exits. The longest page-change totals are 280.034 ms

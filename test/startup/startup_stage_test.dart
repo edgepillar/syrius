@@ -635,9 +635,12 @@ void main() {
         expect(tester.widget<Opacity>(unlockSurface).opacity, 1);
         final Widget renderingFilm = tester.widget(find.byType(LaunchFilm));
         final Widget renderingField = tester.widget(find.byType(EntryField));
-        final Finder shadow = find.byKey(
-          const ValueKey<String>('lock_card_shadow'),
+        const Key shadowKey = ValueKey<String>('lock_card_shadow');
+        final Finder shadow = find.byKey(shadowKey);
+        final Finder shadowOpacity = find.byWidgetPredicate(
+          (Widget widget) => widget is Opacity && widget.child?.key == shadowKey,
         );
+        expect(tester.widget<Opacity>(shadowOpacity).opacity, 0);
         final RenderRepaintBoundary retainedShadow = tester.renderObject(
           shadow,
         );
@@ -659,6 +662,7 @@ void main() {
           of: card,
           matching: find.byType(BackdropFilter),
         );
+        expect(tester.widget<BackdropFilter>(backdrop).enabled, isFalse);
         final RenderObject originalFilter = tester.renderObject(backdrop);
         final Finder foreground = find.byKey(
           const ValueKey<String>('lock_card_foreground'),
@@ -687,9 +691,11 @@ void main() {
         expect(framePaint.debugLayer, same(originalFrameLayer));
         expect(entryClock(), same(originalBackdrop));
         expect(tester.renderObject(shadow), same(retainedShadow));
+        expect(tester.widget<Opacity>(shadowOpacity).opacity, 1);
         expect(shadowRaster(), same(originalShadowRaster));
         expect(tester.renderObject(foreground), same(retainedForeground));
         expect(tester.renderObject(backdrop), same(originalFilter));
+        expect(tester.widget<BackdropFilter>(backdrop).enabled, isTrue);
         final Rect cardBounds = tester.getRect(card);
         final Rect well = tester.getRect(
           find.byKey(const ValueKey<String>('lock_film_well')),
