@@ -4045,6 +4045,14 @@ P06 frame-number gaps, so frame continuity remains open. The two handoff
 images retain the same 16-level difference counts of 5,253 dark and 6,213
 light pixels. V01 and V02 remain open.
 
+For the 24 missing frame numbers at `99fb6e38`, the
+[gap receipt](https://github.com/edgepillar/syrius/actions/runs/44962849619/job/137025264995)
+places the next observed build before the previous raster's earliest
+possible finish for six numbers, within its finish bounds for eight,
+and at or after its latest possible finish for ten. The corresponding
+P06 counts are 718, 1,035 and 23. These groups describe the build after
+each gap. The individual missing frame timestamps remain unobserved.
+
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
 and five normal node exits. The longest page-change totals are 280.034 ms
