@@ -1418,6 +1418,14 @@ row and shortcut footer in both themes. The reference Home background
 shows Activity loading skeletons. The native capture shows the settled
 Activity card, which also changes the pixels under the translucent panel.
 
+The [current Home run at `ce7f0079`](https://github.com/edgepillar/syrius/actions/runs/44847338516/job/136670194491)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44849853937/job/136678364495)
+verify eight original images and normal required process closure. Both
+Notifications tooltip fills retain rows 657 through 684 at column 65.
+Both Go To footer edges remain at row 456 at column 450, and the editable
+caret remains at columns 429 through 430 and rows 136 through 152.
+Whole-screen verdicts remain open under V01.
+
 All eight Home catalog captures were also viewed alongside their
 references from the verified original archive. The settled Home shows
 the Notifications tooltip. Activity uses the selected address and
