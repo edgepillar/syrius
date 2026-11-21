@@ -295,13 +295,25 @@ class InteractiveFramePairTests(unittest.TestCase):
             [5, 35000, 100, 1000, 6000],
             [9, 50000, 100, 1000, 2000],
         ], rasterStartsUs=[20000, 21000, 40000, 51000])
-        self.assertEqual(inspect._frame_gaps_by_previous_raster(gap_window), {
-            'pending': dict(gaps=1, missing_frame_numbers=2),
-            'in_progress': dict(gaps=1, missing_frame_numbers=1),
-            'finished': dict(gaps=1, missing_frame_numbers=3),
-        })
+        self.assertEqual(inspect._frame_gaps_by_previous_raster(gap_window), dict(
+            raster_starts_observed=True,
+            by_previous_raster=dict(
+                pending=dict(gaps=1, missing_frame_numbers=2),
+                in_progress=dict(gaps=1, missing_frame_numbers=1),
+                finished=dict(gaps=1, missing_frame_numbers=3),
+                indeterminate=dict(gaps=0, missing_frame_numbers=0),
+            ),
+        ))
         del gap_window['rasterStartsUs']
-        self.assertIsNone(inspect._frame_gaps_by_previous_raster(gap_window))
+        self.assertEqual(inspect._frame_gaps_by_previous_raster(gap_window), dict(
+            raster_starts_observed=False,
+            by_previous_raster=dict(
+                pending=dict(gaps=0, missing_frame_numbers=0),
+                in_progress=dict(gaps=0, missing_frame_numbers=0),
+                finished=dict(gaps=1, missing_frame_numbers=3),
+                indeterminate=dict(gaps=2, missing_frame_numbers=3),
+            ),
+        ))
 
     def test_retained_process_and_window_durations_are_bounded_observations(self):
         offered = fixture()

@@ -193,27 +193,29 @@ def _record_raster(group, raster):
 
 def _frame_gaps_by_previous_raster(window):
     """Group gaps by the previous reported raster's state at the next build."""
-    if pair.shared.launch.RASTER_STARTS_FIELD not in window:
-        return None
     rows = pair.shared.launch.frame_timing_rows(window, allow_packed=True)
     starts = cold.recorded_raster_starts(rows, window)
     groups = {state: dict(gaps=0, missing_frame_numbers=0) for state in (
-        'finished', 'in_progress', 'pending')}
+        'finished', 'in_progress', 'pending', 'indeterminate')}
     for previous, following in zip(rows, rows[1:]):
         missing = following[0] - previous[0] - 1
         if not missing:
             continue
-        raster_start = starts[previous[0]]
+        earliest, latest = cold.raster_start_bounds(
+            previous, observed_us=starts.get(previous[0]))
         following_build = following[1]
-        if following_build < raster_start:
+        raster_duration = previous[3]
+        if following_build >= latest + raster_duration:
+            state = 'finished'
+        elif following_build < earliest:
             state = 'pending'
-        elif following_build < raster_start + previous[3]:
+        elif latest <= following_build < earliest + raster_duration:
             state = 'in_progress'
         else:
-            state = 'finished'
+            state = 'indeterminate'
         groups[state]['gaps'] += 1
         groups[state]['missing_frame_numbers'] += missing
-    return groups
+    return dict(raster_starts_observed=bool(starts), by_previous_raster=groups)
 
 
 def _window_diagnostics(window, tap_release_us, motion_us, observed_phases=None,
@@ -453,8 +455,8 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         verified_comparisons=comparisons,
         verified_raster_rank_overruns=raster_overruns,
         verified_gap_raster_states={
-            label: {name: groups for name, window in frame_windows.items()
-                    if (groups := _frame_gaps_by_previous_raster(window)) is not None}
+            label: {name: _frame_gaps_by_previous_raster(window)
+                    for name, window in frame_windows.items()}
             for label, frame_windows in diagnostic_windows.items()
         },
         **({'page_settled_us': samples['current']['observation']['page_settled_us']}

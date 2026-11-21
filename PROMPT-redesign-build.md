@@ -4135,6 +4135,14 @@ receipt lacks exact raster-start timestamps for this grouping. The overlap
 describes the recorded neighbours of each gap. It does not establish the
 cause of a missing frame or change the failed 16 ms acceptance result.
 
+The [earlier pair at `3bf40fbd`](https://github.com/edgepillar/syrius/actions/runs/44941860488/job/136960598926)
+shows the same pattern. Its seven page-change gaps cover 30 missing frame
+numbers, and its eleven disclosure gaps cover 25. Every gap is followed
+by a build while the previous reported raster remains in progress. The
+independent reader can also group gaps from windows without exact raster
+starts. It uses the recorded build, raster and total durations to bound
+each previous raster and leaves ambiguous cases indeterminate.
+
 The [Details visual run at `59a1f859`](https://github.com/edgepillar/syrius/actions/runs/44932173389)
 targets five screens in both themes, including Licences and Originals.
 Its application, harness, tests, assets and workflow match `bb4961af`.
