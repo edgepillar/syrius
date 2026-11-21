@@ -615,15 +615,19 @@ def startup_pixel_comparison(name, data):
     with (references / name).open('rb') as stream:
         reference = stream.read(entry.MAX_PNG + 1)
     archive.need(0 < len(reference) <= entry.MAX_PNG)
-    caption = (0, 0, 1280, 32)
-    regions = dict(caption=caption, body=(0, 32, 1280, 780))
+    caption = dict(caption_wordmark=(0, 0, 100, 32),
+                   caption_background=(100, 0, 1144, 32),
+                   caption_controls=(1144, 0, 1280, 32))
+    regions = dict(**caption, body=(0, 32, 1280, 780))
     points = None
     if name in startup.launch.SETTLE_FILES or name.startswith('41-lock-screen-'):
         # The same exterior points also sample the settled Lock backdrop.
-        points = dict(startup.BACKDROP_SAMPLE_POINTS)
+        points = dict(startup.BACKDROP_SAMPLE_POINTS, caption_left=(300, 14),
+                      caption_middle=(640, 14), caption_right=(960, 14),
+                      caption_bottom=(640, 31))
     if name in startup.launch.SETTLE_FILES:
         # Fixed crops use the authored 0.4 checkpoint in the 1280 by 780 client.
-        regions = dict(caption=caption, stage=(250, 149, 1030, 479),
+        regions = dict(**caption, stage=(250, 149, 1030, 479),
                        above_unlock=(430, 479, 850, 510),
                        unlock_band=(430, 510, 850, 556),
                        below_unlock=(430, 556, 850, 668),
