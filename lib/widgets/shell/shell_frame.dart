@@ -11,6 +11,7 @@ class ShellFrame extends StatefulWidget {
     required this.rail,
     required this.page,
     required this.status,
+    this.entryStatusReady,
     super.key,
   });
 
@@ -25,6 +26,9 @@ class ShellFrame extends StatefulWidget {
 
   /// Normal entry shows connection status without wallet flight data.
   final Widget status;
+
+  /// During cold entry, the connection strip appears once the film arrives.
+  final ValueListenable<bool>? entryStatusReady;
 
   @override
   State<ShellFrame> createState() => _ShellFrameState();
@@ -103,18 +107,25 @@ class _ShellFrameState extends State<ShellFrame> {
                       padding: locked
                           ? tokens.lockedStatusPadding
                           : EdgeInsets.zero,
-                      child: ValueListenableBuilder<bool>(
-                        valueListenable: _entryStatusVisible,
+                      child: ListenableBuilder(
+                        listenable: Listenable.merge(<Listenable?>[
+                          _entryStatusVisible,
+                          widget.entryStatusReady,
+                        ]),
                         child: RepaintBoundary(child: widget.status),
-                        builder: (_, bool visible, Widget? child) =>
-                            ExcludeFocus(
-                              excluding: locked && !visible,
-                              child: Visibility(
-                                visible: !locked || visible,
-                                maintainState: true,
-                                child: child!,
-                              ),
+                        builder: (_, Widget? child) {
+                          final bool visible = !locked ||
+                              (_entryStatusVisible.value &&
+                                  (widget.entryStatusReady?.value ?? true));
+                          return ExcludeFocus(
+                            excluding: !visible,
+                            child: Visibility(
+                              visible: visible,
+                              maintainState: true,
+                              child: child!,
                             ),
+                          );
+                        },
                       ),
                     ),
                   ),

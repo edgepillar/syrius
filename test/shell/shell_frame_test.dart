@@ -44,8 +44,10 @@ void main() {
       WidgetTester tester,
     ) async {
       final ValueNotifier<bool> locked = ValueNotifier<bool>(true);
+      final ValueNotifier<bool> entryStatusReady = ValueNotifier<bool>(false);
       final FocusNode statusFocus = FocusNode();
       addTearDown(locked.dispose);
+      addTearDown(entryStatusReady.dispose);
       addTearDown(statusFocus.dispose);
       int created = 0;
       int disposed = 0;
@@ -56,6 +58,7 @@ void main() {
           home: Scaffold(
             body: ShellFrame(
               locked: locked,
+              entryStatusReady: entryStatusReady,
               rail: const SizedBox(key: rail, width: 76),
               page: _Owner(
                 onCreate: () => created++,
@@ -70,18 +73,26 @@ void main() {
         ),
       );
       final _OwnerState owner = tester.state<_OwnerState>(find.byType(_Owner));
-      final Element statusElement = tester.element(find.byKey(status));
+      final Finder retainedStatus = find.byKey(status, skipOffstage: false);
+      final Element statusElement = tester.element(retainedStatus);
+      expect(find.byKey(status), findsNothing);
+      expect(statusFocus.canRequestFocus, isFalse);
       final Finder retainedRail = find.byKey(rail, skipOffstage: false);
       expect(retainedRail, findsNothing);
       await tester.enterText(find.byType(TextField), 'local fixture');
       final Rect entryBounds = tester.getRect(find.byType(_Owner));
+      entryStatusReady.value = true;
+      await tester.pump();
+      expect(tester.element(find.byKey(status)), same(statusElement));
+      expect(statusFocus.canRequestFocus, isTrue);
+      expect(tester.getRect(find.byType(_Owner)), entryBounds);
       for (final bool visible in <bool>[false, true, false]) {
         EntryStatusVisibility(visible: visible).dispatch(owner.context);
         await tester.pump();
         expect(find.byKey(status), visible ? findsOneWidget : findsNothing);
         expect(statusFocus.canRequestFocus, visible);
         expect(
-          tester.element(find.byKey(status, skipOffstage: false)),
+          tester.element(retainedStatus),
           same(statusElement),
         );
         expect(tester.getRect(find.byType(_Owner)), entryBounds);

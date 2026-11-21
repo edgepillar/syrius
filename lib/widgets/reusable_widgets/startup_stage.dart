@@ -105,6 +105,9 @@ class StartupStageSession implements Listenable {
   /// The original film has reached and entered the actual Lock well.
   bool get filmInWell => _filmInWell.value;
 
+  /// The settled Lock can show its connection status after the film arrives.
+  ValueListenable<bool> get entryStatusReady => _filmInWell;
+
   /// Direct callbacks obey this guard as well as pointer and focus barriers.
   bool get interactive => !_closed && filmInWell;
 

@@ -367,6 +367,7 @@ class _MainAppContainerState extends State<MainAppContainer>
         children: <Widget>[
           ShellFrame(
             locked: _locked,
+            entryStatusReady: _startup?.entryStatusReady,
             rail: _buildRail(),
             page: _buildCurrentPage(),
             status: Consumer<SelectedAddressNotifier>(

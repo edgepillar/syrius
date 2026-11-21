@@ -712,8 +712,10 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 298));
     expect(session.interactive, isFalse);
+    expect(session.entryStatusReady.value, isFalse);
     await tester.pump(const Duration(milliseconds: 1));
     expect(session.interactive, isTrue);
+    expect(session.entryStatusReady.value, isTrue);
     expect(tester.getSize(find.byKey(session.wellKey)).height, 118);
     expect(find.byType(LaunchFilm), findsOneWidget);
     expect(tester.takeException(), isNull);
