@@ -3025,6 +3025,16 @@ references. It ends at column 1022 instead of 1021 and occupies rows
 measurements retain the earlier corrections. Whole-image verdicts
 remain open.
 
+The [previous Home reader at `24234fd2`](https://github.com/edgepillar/syrius/actions/runs/44870268108/job/136742995560)
+and the reader at `b462e737` use the same eight reference PNG digests.
+At the 16-level RGB threshold, the later captures have 9,104 fewer
+differing pixels across the eight pairs. The body crop difference
+counts are identical in every pair and remain the largest regional
+count in five of the six rest, open and hidden captures. The hero
+remains the largest region in light Home hidden and in both Go To
+captures. Capture content, background phase and layout can all affect
+these counts. V01 remains open for whole-image verification.
+
 All eight verified captures were viewed beside their references. The
 expanded rail, the live activity row, the hidden amounts and the Go To
 palette are visible. The fixture has no pending row or held tokens. The
