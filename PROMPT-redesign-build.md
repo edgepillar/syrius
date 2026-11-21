@@ -2985,8 +2985,12 @@ Home rest, open and hidden, then restores the original running clock
 binding after every shot. The frame gate checks the sampled and restored
 paints. Go To continues to capture the field held by its actual frosted
 route. The two-theme widget check compares the sampled pixels against the
-same point on the running clock and checks restoration. Fresh Windows
-images and their visual verdicts remain open.
+same point on the running clock and checks restoration. The
+[Linux run at `b732a4a4`](https://github.com/edgepillar/syrius/actions/runs/44865241897/job/136727327913)
+passes strict selected analysis, those two-theme checks, 5,130 non-chain
+tests with one skip, and generated-file verification. The
+[Windows catalog at the same revision](https://github.com/edgepillar/syrius/actions/runs/44865241856)
+is in progress. Visual verdicts remain open.
 
 The [paired timing producer](https://github.com/edgepillar/syrius/actions/runs/44862588269)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44863894172/job/136723168084)
