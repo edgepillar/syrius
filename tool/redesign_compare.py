@@ -6,6 +6,7 @@
     python tool/redesign_compare.py --actual-manifest <captures.json>
     python tool/redesign_compare.py --actual-manifest <captures.json> --target-source <commit>
     python tool/redesign_compare.py --actual-manifest <archive-captures.json> --serve
+    python tool/redesign_compare.py --actual-manifest <archive-index.json> --archive-dir <archive-store> --serve
     python tool/redesign_compare.py --actual-manifest <first.json> --actual-manifest <second.json> --target-source <commit> --require-current-captures --no-diff-images
     python tool/redesign_compare.py --reviews <reviews.json> --require-reviewed
     python tool/redesign_compare.py --no-diff-images --output-dir <compact-report>
@@ -25,6 +26,7 @@ from the capture's verified run record. Use the original filename or a
 content-addressed file named by its digest. Missing entries remain visible.
 Pass one manifest per verified batch. Add the optional top-level
 "catalog_family" from the verified producer to identify prepared captures.
+An index that combines families can set "catalog_family" on each entry.
 For an overlapping screen and theme, an exact target capture takes
 precedence. At that source the prepared Send, Tokens, Swap, Voting, Node and
 Addresses catalogs take precedence over their alternate captures. A
@@ -36,6 +38,9 @@ For a static report on Windows, place the report and all images on the same driv
 To compare from a retained ZIP, use its path in "path" and include the
 archive's SHA-256 under "archive_sha256" and the literal PNG name under
 "archive_member". Keep the original PNG's "sha256" and producer "source_sha".
+An index can use the bare archive digest as its path. With --archive-dir,
+these paths resolve in the supplied archive directory. Other paths retain
+the manifest's usual resolution.
 The ZIP member may omit the catalog number, as the Windows entry archive
 does. It must otherwise have the same screen and theme as the manifest key.
 Use --serve to view such a report on loopback. The gallery reads only the
@@ -229,7 +234,14 @@ def unique_capture_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
     return result
 
 
-def load_actual_manifest(source: Path, stems: set[str]) -> dict[str, Capture]:
+def _valid_catalog_family(value: object) -> bool:
+    return (isinstance(value, str) and len(value) <= 40
+            and CATALOG_FAMILY.fullmatch(value) is not None)
+
+
+def load_actual_manifest(
+    source: Path, stems: set[str], *, archive_dir: Path | None = None,
+) -> dict[str, Capture]:
     try:
         if not source.is_file():
             raise ReportError("Capture manifest must be a regular file")
@@ -244,21 +256,25 @@ def load_actual_manifest(source: Path, stems: set[str]) -> dict[str, Capture]:
             or not isinstance(data.get("actual"), dict)):
         raise ReportError("Capture manifest must have one actual object keyed by screenshot stem")
     family = data.get("catalog_family")
-    if "catalog_family" in data and (
-        not isinstance(family, str) or len(family) > 40 or CATALOG_FAMILY.fullmatch(family) is None
-    ):
+    if "catalog_family" in data and not _valid_catalog_family(family):
         raise ReportError("Capture catalog family is invalid")
 
     captures: dict[str, Capture] = {}
     for stem, entry in data["actual"].items():
         if stem not in stems or not isinstance(entry, dict):
             raise ReportError("Invalid capture manifest entry")
-        fields = entry.keys()
+        fields = entry.keys() - {"catalog_family"}
         archived = fields == {"path", "sha256", "source_sha", "archive_member", "archive_sha256"}
         if not archived and fields not in ({"path", "sha256"}, {"path", "sha256", "source_sha"}):
             raise ReportError("Invalid capture manifest entry")
         name, digest = entry["path"], entry["sha256"]
         source_sha = entry.get("source_sha")
+        capture_family = entry.get("catalog_family", family)
+        if "catalog_family" in entry and (
+            not _valid_catalog_family(capture_family)
+            or (family is not None and capture_family != family)
+        ):
+            raise ReportError("Capture catalog family is invalid or inconsistent")
         if (
             not isinstance(name, str) or not name or "\0" in name
             or not isinstance(digest, str) or SHA256.fullmatch(digest) is None
@@ -283,19 +299,23 @@ def load_actual_manifest(source: Path, stems: set[str]) -> dict[str, Capture]:
         elif path.name not in (f"{stem}.png", digest):
             raise ReportError("Capture file must use its literal name or SHA-256")
         try:
-            resolved = (source.parent / path).resolve()
+            base = source.parent
+            if archived and archive_dir is not None and name == archive_digest:
+                base = archive_dir
+            resolved = (base / path).resolve()
         except (OSError, RuntimeError) as error:
             raise ReportError("Cannot resolve the capture path") from error
-        captures[stem] = Capture(resolved, digest, source_sha, member, archive_digest, family)
+        captures[stem] = Capture(resolved, digest, source_sha, member, archive_digest, capture_family)
     return captures
 
 
 def select_actual_captures(
     sources: Sequence[Path], stems: set[str], target_source: str | None,
+    *, archive_dir: Path | None = None,
 ) -> dict[str, Capture]:
     candidates: dict[str, set[Capture]] = {}
     for source in sources:
-        for stem, capture in load_actual_manifest(source, stems).items():
+        for stem, capture in load_actual_manifest(source, stems, archive_dir=archive_dir).items():
             candidates.setdefault(stem, set()).add(capture)
 
     selected: dict[str, Capture] = {}
@@ -807,11 +827,14 @@ def generate_report(
     reviews_path: Path | None = None,
     *,
     actual_manifest: Path | Sequence[Path] | None = None,
+    archive_dir: Path | None = None,
     target_source: str | None = None,
     required_size: tuple[int, int] = IMAGE_SIZE,
     write_diffs: bool = True,
     gallery: ReportGallery | None = None,
 ) -> dict[str, object]:
+    if archive_dir is not None and actual_manifest is None:
+        raise ReportError("Archive directory requires a capture manifest")
     if target_source is not None:
         if GIT_SHA.fullmatch(target_source) is None:
             raise ReportError("Target source must be a full lowercase Git commit SHA")
@@ -827,7 +850,7 @@ def generate_report(
         if actual_dir is not None:
             raise ReportError("Choose either an actual directory or a capture manifest")
         sources = (actual_manifest,) if isinstance(actual_manifest, Path) else actual_manifest
-        actuals = select_actual_captures(sources, stems, target_source)
+        actuals = select_actual_captures(sources, stems, target_source, archive_dir=archive_dir)
     else:
         directory = actual_dir if actual_dir is not None else repo / ".harness" / "shots"
         actuals = {stem: Capture(directory / f"{stem}.png") for stem in stems}
@@ -895,6 +918,8 @@ def main() -> int:
     inputs.add_argument("--actual-dir", type=Path, help="One capture directory (default: .harness/shots)")
     inputs.add_argument("--actual-manifest", type=Path, action="append",
                         help="Private capture paths and SHA-256 pins, repeatable")
+    parser.add_argument("--archive-dir", type=Path,
+                        help="Directory containing archives named by their SHA-256")
     parser.add_argument("--target-source", help="Accept reviews only for captures at this full Git commit")
     parser.add_argument("--output-dir", type=Path, help="Save the comparison report here")
     parser.add_argument("--reviews", type=Path, help="Manual, image-hash-bound visual review JSON")
@@ -924,7 +949,8 @@ def main() -> int:
         actual_dir = args.actual_dir.resolve() if args.actual_dir is not None else None
         manifest = generate_report(
             ROOT, actual_dir, output, args.reviews,
-            actual_manifest=args.actual_manifest, target_source=args.target_source,
+            actual_manifest=args.actual_manifest, archive_dir=args.archive_dir,
+            target_source=args.target_source,
             write_diffs=not args.no_diff_images, gallery=gallery,
         )
     except (OSError, UnicodeError, ValueError) as error:

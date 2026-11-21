@@ -170,7 +170,7 @@ class CaptureCatalogTests(unittest.TestCase):
                                     catalog_family="node-verified")
                     manifests = {ordinary: {stem: resting}, verified: {stem: ready}}
                     with patch("redesign_compare.load_actual_manifest",
-                               side_effect=lambda path, _: manifests[path]):
+                               side_effect=lambda path, _, **kwargs: manifests[path]):
                         self.assertTrue(resting.is_diagnostic(stem))
                         self.assertEqual(select_actual_captures(
                             (ordinary, verified), {stem}, target), {stem: ready})
@@ -186,7 +186,7 @@ class CaptureCatalogTests(unittest.TestCase):
         }
         with patch(
             "redesign_compare.load_actual_manifest",
-            side_effect=lambda path, _: manifests[path],
+            side_effect=lambda path, _, **kwargs: manifests[path],
         ):
             self.assertEqual(
                 select_actual_captures(tuple(manifests), set(), target),
@@ -199,6 +199,43 @@ class CaptureCatalogTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(ValueError, "multiple files for present"):
                 select_actual_captures(tuple(manifests), set(), target)
+
+    def test_portable_index_preserves_each_capture_family(self) -> None:
+        source = Path("review") / "captures.json"
+        archive_dir = Path("retained") / "objects"
+        digest = "a" * 64
+        entries = {
+            "30-set-node-dark": {
+                "path": digest,
+                "sha256": "b" * 64,
+                "source_sha": "c" * 40,
+                "archive_member": "30-set-node-dark.png",
+                "archive_sha256": digest,
+                "catalog_family": "node-verified",
+            },
+            "30-set-node-light": {
+                "path": "settings/scene.zip",
+                "sha256": "d" * 64,
+                "source_sha": "c" * 40,
+                "archive_member": "30-set-node-light.png",
+                "archive_sha256": "e" * 64,
+                "catalog_family": "settings",
+            },
+        }
+        index = {"actual": entries}
+        with (
+            patch.object(Path, "is_file", return_value=True),
+            patch.object(Path, "open", side_effect=lambda *_: io.BytesIO(json.dumps(index).encode())),
+        ):
+            captures = load_actual_manifest(source, set(entries), archive_dir=archive_dir)
+            self.assertEqual(captures["30-set-node-dark"].path, (archive_dir / digest).resolve())
+            self.assertEqual(captures["30-set-node-dark"].catalog_family, "node-verified")
+            self.assertEqual(captures["30-set-node-light"].path,
+                             (source.parent / "settings/scene.zip").resolve())
+            self.assertEqual(captures["30-set-node-light"].catalog_family, "settings")
+            index["catalog_family"] = "node-verified"
+            with self.assertRaisesRegex(ValueError, "inconsistent"):
+                load_actual_manifest(source, set(entries), archive_dir=archive_dir)
 
     def test_prepared_capture_replaces_diagnostic_only_at_the_target_source(self) -> None:
         repo = Path("catalog-fixture")

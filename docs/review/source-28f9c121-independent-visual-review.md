@@ -13,7 +13,24 @@ The [strict verdict file](source-28f9c121-screen-verdicts.json) records all
 mismatches from the strict Screens table. With the current prepared-catalog
 checks, the same archives yield 14 reviewed matches, 70 reviewed mismatches
 and 10 diagnostic captures. The original archives and reference PNGs were
-read directly; no new screenshots or copies were needed.
+read directly, with no new screenshots or copies.
+
+The [capture index](source-28f9c121-captures.json) references the 24 original
+archives by SHA-256. Set `SYRIUS_ARCHIVE_OBJECTS` to the directory containing
+those verified archive objects. From the repository root, open the private
+comparison on loopback with:
+
+```sh
+python tool/redesign_compare.py \
+  --actual-manifest docs/review/source-28f9c121-captures.json \
+  --archive-dir "$SYRIUS_ARCHIVE_OBJECTS" \
+  --reviews docs/review/source-28f9c121-screen-verdicts.json \
+  --target-source 28f9c121058c89dff1138d4c0f68c6a560f0ab11 \
+  --serve
+```
+
+Use `--summary-only` in place of `--serve` for the source-pinned inventory
+without starting a viewer.
 
 The reviewer reported 42 visual matches and 52 visual mismatches. A visual
 match here means the named state and its material structure were visible.
