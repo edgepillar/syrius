@@ -156,23 +156,24 @@ class ArchiveReadCacheTests(unittest.TestCase):
 
 
 class CaptureCatalogTests(unittest.TestCase):
-    def test_node_review_uses_the_verified_download_for_each_theme(self) -> None:
+    def test_node_and_addresses_use_prepared_settings_in_both_themes(self) -> None:
         target = "a" * 40
         ordinary = Path("settings.json")
         verified = Path("node-verified.json")
-        for theme in ("dark", "light"):
-            with self.subTest(theme=theme):
-                stem = f"30-set-node-{theme}"
-                resting = Capture(Path("rest.png"), source_sha=target,
-                                  catalog_family="settings")
-                ready = Capture(Path("ready.png"), source_sha=target,
-                                catalog_family="node-verified")
-                manifests = {ordinary: {stem: resting}, verified: {stem: ready}}
-                with patch("redesign_compare.load_actual_manifest",
-                           side_effect=lambda path, _: manifests[path]):
-                    self.assertTrue(resting.is_diagnostic(stem))
-                    self.assertEqual(select_actual_captures(
-                        (ordinary, verified), {stem}, target), {stem: ready})
+        for screen in ("30-set-node", "35-set-addresses"):
+            for theme in ("dark", "light"):
+                with self.subTest(screen=screen, theme=theme):
+                    stem = f"{screen}-{theme}"
+                    resting = Capture(Path("rest.png"), source_sha=target,
+                                      catalog_family="settings")
+                    ready = Capture(Path("ready.png"), source_sha=target,
+                                    catalog_family="node-verified")
+                    manifests = {ordinary: {stem: resting}, verified: {stem: ready}}
+                    with patch("redesign_compare.load_actual_manifest",
+                               side_effect=lambda path, _: manifests[path]):
+                        self.assertTrue(resting.is_diagnostic(stem))
+                        self.assertEqual(select_actual_captures(
+                            (ordinary, verified), {stem}, target), {stem: ready})
 
     def test_ambiguous_history_does_not_abort_exact_target_coverage(self) -> None:
         target = "a" * 40

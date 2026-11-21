@@ -3536,6 +3536,9 @@ uses the existing four-member isolated profile. It saves a sample name
 through the third member's original edit control and requires that name
 and the original address number before each theme's capture. Targeted Dart
 analysis passes. The native captures and their independent read are pending.
+The exact-source comparison now selects the prepared archive for Addresses
+as well as Node. Plain Settings captures remain diagnostic when the prepared
+state is missing. Five in-memory archive and capture-selection tests pass.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests

@@ -26,10 +26,10 @@ content-addressed file named by its digest. Missing entries remain visible.
 Pass one manifest per verified batch. Add the optional top-level
 "catalog_family" from the verified producer to identify prepared captures.
 For an overlapping screen and theme, an exact target capture takes
-precedence. At that source the prepared Send, Tokens, Swap and Voting
-catalogs take precedence over their alternate captures. A target-source
-comparison counts these four states only when their manifests identify the
-prepared catalog. Other captures of the same state remain visible for diagnosis.
+precedence. At that source the prepared Send, Tokens, Swap, Voting, Node and
+Addresses catalogs take precedence over their alternate captures. A
+target-source comparison counts these states only when their manifests identify
+the prepared catalog. Alternate captures remain available for diagnosis.
 Multiple distinct files with equal precedence require an explicit selection.
 For a static report on Windows, place the report and all images on the same drive.
 
@@ -116,6 +116,7 @@ PREPARED_CATALOGS = {
     "26-swap-list": "swap-seeded",
     "28-az": "project-detail",
     "30-set-node": "node-verified",
+    "35-set-addresses": "node-verified",
 }
 DIFF_PALETTE = bytes(
     intensity * channel // 255
