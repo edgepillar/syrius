@@ -3377,9 +3377,20 @@ interface checks under V06 open.
 | Analysis and tests | The same Windows baseline reports zero errors and warnings and 5,131 non-chain passes with one skip. [Linux at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633) passes strict selected analysis and generated-file checks. The `c49233e9` harness source passes strict Dart analysis and 48 focused reader cases. |
 | All 47 screens in both themes | The [Settings](https://github.com/edgepillar/syrius/actions/runs/44885343932/job/136789313675) and [Details](https://github.com/edgepillar/syrius/actions/runs/44883459461/job/136783574962) readers verify 24 current-application captures and measured geometry. Whole-image verdicts and the full set of current-source captures remain under V01. |
 | Running motions, shaders and three 16 ms comparisons | [Cold startup at `c49233e9`](https://github.com/edgepillar/syrius/actions/runs/44887652760/job/136796348294) passes the build comparison and fails raster and distinct-frame comparisons. [Page change and disclosure at `31b5a23c`](https://github.com/edgepillar/syrius/actions/runs/44879951385/job/136772833896) fail their 16 ms comparisons. The complete motion and shader review remains under V02. |
-| Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) records the executed seam witnesses. The [Windows interface reader at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44877853952/job/136766426791) verifies eleven scoped observations. A final interface pass still binds these refusals to the accepted revision. |
+| Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) records the executed seam witnesses. The [Home reader](https://github.com/edgepillar/syrius/actions/runs/44887966468/job/136797306551) and [Lock reader](https://github.com/edgepillar/syrius/actions/runs/44887966492/job/136797306090) verify eleven Home observations and two Lock refusals from `564d01ab`. Settings and the standalone surface observations remain pending in this pass. |
 
 V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
+
+The original Home run also retains eight catalog images in both themes. The
+independent reader verifies the image digests and compares the four Home states
+with the same tracked references. Relative to the
+[previous Home run](https://github.com/edgepillar/syrius/actions/runs/44877853952/job/136766426791),
+the largest change in the count of pixels with an RGB channel difference of at
+least 16 is a reduction of 184 in light Home Rest. The eight whole-image
+verdicts remain open. Required application and lab actors closed normally. The
+original receipt separately records forced cleanup of an owned compiler helper.
+The Lock run records two normal actor exits and exercises Wallet Picker and
+Password Recovery without producing screenshots.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
