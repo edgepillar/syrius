@@ -3337,7 +3337,18 @@ film image and handoff offsets. The observer waits on the existing frame
 callbacks and leaves the movie, authentication owner, P06 build and
 16 ms comparison intact. The parser accepts older receipts and bounds the
 new marker at or before the first film observation. Strict harness
-analysis and 48 reader controls pass. Native timing remains pending.
+analysis and 48 reader controls pass.
+
+The [cold run at `c49233e9`](https://github.com/edgepillar/syrius/actions/runs/44885969186/job/136791212475)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44887652760/job/136796348294)
+verify 83 redesigned frames, 1,720 P06 frames and five normal actor exits.
+The longest redesigned build takes 14.288 ms. It starts 14.303 ms before
+the first film-layout observation and finishes 15 microseconds before
+that observation. This bounds the peak to the stage's first observed
+layout interval. The build comparison passes. One ranked raster overrun
+is confirmed during handoff, at 94.319 ms against 73.010 ms on P06. Raster
+and distinct-frame comparisons fail. The windows retain 22 and 1,658
+frame-number gaps. V02 remains open.
 
 The [Windows interface run at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44876122524/job/136761087924)
 and its [independent inspection](https://github.com/edgepillar/syrius/actions/runs/44877853952/job/136766426791)
@@ -3365,7 +3376,7 @@ interface checks under V06 open.
 | Clean Windows Debug and Release | The setup is recorded in [docs/environment.md](docs/environment.md). The [Windows baseline](https://github.com/edgepillar/syrius/actions/runs/44884389804/job/136786402343) and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44886459324/job/136792691869) verify all twelve checks at `2a84a910`, including Debug and Release builds with normal exit, locked restoration and matching runtime library hashes. Application, asset, Windows runner, dependency and setup files have identical Git contents at `c49233e9`. The later revision adds the cold-start harness observation. |
 | Analysis and tests | The same Windows baseline reports zero errors and warnings and 5,131 non-chain passes with one skip. [Linux at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633) passes strict selected analysis and generated-file checks. The `c49233e9` harness source passes strict Dart analysis and 48 focused reader cases. |
 | All 47 screens in both themes | The [Settings](https://github.com/edgepillar/syrius/actions/runs/44885343932/job/136789313675) and [Details](https://github.com/edgepillar/syrius/actions/runs/44883459461/job/136783574962) readers verify 24 current-application captures and measured geometry. Whole-image verdicts and the full set of current-source captures remain under V01. |
-| Running motions, shaders and three 16 ms comparisons | [Cold startup at `38153592`](https://github.com/edgepillar/syrius/actions/runs/44885559757/job/136789966502) fails the build comparison. [Page change and disclosure at `31b5a23c`](https://github.com/edgepillar/syrius/actions/runs/44879951385/job/136772833896) fail their 16 ms comparisons. The [new cold run](https://github.com/edgepillar/syrius/actions/runs/44885969186) adds the film-layout observation. The complete motion and shader review remains under V02. |
+| Running motions, shaders and three 16 ms comparisons | [Cold startup at `c49233e9`](https://github.com/edgepillar/syrius/actions/runs/44887652760/job/136796348294) passes the build comparison and fails raster and distinct-frame comparisons. [Page change and disclosure at `31b5a23c`](https://github.com/edgepillar/syrius/actions/runs/44879951385/job/136772833896) fail their 16 ms comparisons. The complete motion and shader review remains under V02. |
 | Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) records the executed seam witnesses. The [Windows interface reader at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44877853952/job/136766426791) verifies eleven scoped observations. A final interface pass still binds these refusals to the accepted revision. |
 
 V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
