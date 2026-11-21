@@ -611,12 +611,12 @@ def _image_vertical_bands(data, column, top, bottom):
 
 
 def node_update_notice_geometry(raw, reference_dir):
-    """Locate the longest uninterrupted verified-notice fill at a fixed column."""
-    column, top, bottom = 700, 327, 620
+    """Measure the notice fill at the original column and clear of reference text."""
+    column, clear_column, top, bottom = 700, 980, 327, 620
     fills = {'dark': (46, 48, 46), 'light': (255, 255, 255)}
 
-    def span(data, fill):
-        bands = _image_vertical_bands(data, column, top, bottom)
+    def span(data, fill, x):
+        bands = _image_vertical_bands(data, x, top, bottom)
         ends = [start for start, _ in bands[1:]] + [bottom]
         matches = [(start, end) for (start, color), end in zip(bands, ends)
                    if tuple(color[:3]) == fill and top < start and end < bottom]
@@ -626,13 +626,18 @@ def node_update_notice_geometry(raw, reference_dir):
         return [start, end - 1]
 
     themes = {}
+    clear_themes = {}
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         for theme, fill in fills.items():
             name = f'30-set-node-{theme}.png'
+            actual = zipped.read(name)
             reference = producer.read_original(reference_dir / name, producer.debug.entry.MAX_PNG)
-            themes[theme] = dict(actual=span(zipped.read(name), fill),
-                                 reference=span(reference, fill))
-    return dict(column=column, scan_rows=[top, bottom], themes=themes)
+            themes[theme] = dict(actual=span(actual, fill, column),
+                                 reference=span(reference, fill, column))
+            clear_themes[theme] = dict(actual=span(actual, fill, clear_column),
+                                       reference=span(reference, fill, clear_column))
+    return dict(column=column, scan_rows=[top, bottom], themes=themes,
+                clear_column=dict(column=clear_column, themes=clear_themes))
 
 
 def home_goto_geometry(raw):
