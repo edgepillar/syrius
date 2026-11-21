@@ -3531,11 +3531,16 @@ verify a renamed row and a default row in dark LTR and scaled light RTL.
 passes application and strict selected analysis, generated-file verification,
 and the non-chain suite with 5,131 passes and one skip. A Windows capture
 of a named member is still required for V01.
-The [current combined Node and Addresses run at `835ed3f0`](https://github.com/edgepillar/syrius/actions/runs/44922244072/job/136900597521)
-uses the existing four-member isolated profile. It saves a sample name
-through the third member's original edit control and requires that name
-and the original address number before each theme's capture. Targeted Dart
-analysis passes. The native captures and their independent read are pending.
+The [combined Node and Addresses run at `835ed3f0`](https://github.com/edgepillar/syrius/actions/runs/44922244072/job/136900597521)
+passes targeted Dart analysis and the original native capture path. It
+saves a sample name through the third member's edit control and checks
+the name and original address number before each theme's capture. The
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/44924278953/job/136906831428)
+verifies all four PNGs and their source. Both Node notice and enclosing
+panel bounds match at column 980. All three Addresses card bounds match
+at column 700 in both themes. The 16-level RGB comparison counts 38,041
+dark and 41,600 light differences across the Addresses window. Whole-screen
+verdicts remain open.
 The exact-source comparison now selects the prepared archive for Addresses
 as well as Node. Plain Settings captures remain diagnostic when the prepared
 state is missing. Five in-memory archive and capture-selection tests pass.
