@@ -4124,6 +4124,17 @@ two disclosure frames also began building after settlement. This pair
 establishes a timing failure. The variation between runs leaves the
 cause of the higher disclosure peak unresolved.
 
+A [read of the original frame gaps at `40126652`](https://github.com/edgepillar/syrius/actions/runs/44941662762/job/136959990171)
+uses the exact retained raster-start timestamps. In the redesign's page
+change, seven gaps covering 28 missing frame numbers are followed by a
+build while the previous reported raster is still in progress. One gap
+covers four missing numbers after the previous raster finishes. In the
+disclosure, all four gaps, covering 19 missing numbers, are followed by a
+build while the previous reported raster is still in progress. The P06
+receipt lacks exact raster-start timestamps for this grouping. The overlap
+describes the recorded neighbours of each gap. It does not establish the
+cause of a missing frame or change the failed 16 ms acceptance result.
+
 The [Details visual run at `59a1f859`](https://github.com/edgepillar/syrius/actions/runs/44932173389)
 targets five screens in both themes, including Licences and Originals.
 Its application, harness, tests, assets and workflow match `bb4961af`.
