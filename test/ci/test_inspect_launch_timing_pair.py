@@ -450,6 +450,7 @@ class PairInspectionTests(unittest.TestCase):
         self.assertEqual(observed['peak_build_offset_from_auth_us'], -56000000)
         self.assertEqual(observed['stage_laid_out_us'], 2000000)
         self.assertEqual(observed['peak_build_offset_from_stage_us'], -2000000)
+        self.assertEqual(observed['peak_build_end_offset_from_stage_us'], 18000000)
         self.assertEqual(observed['phase_frames'], [800, 800, 800, 800, 896])
         self.assertEqual(observed['phase_max_build_us'], [20000000] * 5)
         self.assertEqual(observed['phase_max_raster_us'], [20000000] * 5)

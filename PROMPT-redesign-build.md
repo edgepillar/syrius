@@ -4009,8 +4009,11 @@ verify the cold timing window and both handoff images. The timing collector
 records five normal actor exits and 88 current frames against 434 on P06.
 The 16 ms raster and distinct-frame comparisons pass for the reported
 samples. The build comparison fails. The current peak build takes
-19.744 ms against 15.350 ms on P06 and starts 19.766 ms before the original
-launch stage is laid out. The windows retain 22 and 525 frame-number gaps.
+19.744 ms against 15.350 ms on P06. It starts 19.766 ms before the original
+launch stage layout observation and ends 22 microseconds before it. This
+places the measured interval immediately before that observation. Which
+startup widget accounts for the build cost remains undetermined. The
+windows retain 22 and 525 frame-number gaps.
 Both handoff captures use progress 0.4 and retain stage pixels in columns
 250 through 1029 and rows 149 through 477. At the 16-level RGB threshold,
 the whole images differ from their references at 5,253 dark and 6,213

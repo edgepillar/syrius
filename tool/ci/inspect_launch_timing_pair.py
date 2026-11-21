@@ -270,18 +270,20 @@ def window_diagnostics(window, *, peak_starts=False):
             counts[2] = max(counts[2], raster_us)
         # Offsets are post-frame observations of first film frame, film end,
         # handoff motion and arrival. Groups use each frame's build start.
+        _, peak_build_start, peak_build_duration, _, _ = max(rows, key=lambda row: row[2])
         summary.update(phase_offsets_us=offsets, phase_frames=frames,
                        phase_max_build_us=build,
                        phase_max_raster_us=raster, phase_max_total_us=total,
-                       peak_build_start_us=max(rows, key=lambda row: row[2])[1])
+                       peak_build_start_us=peak_build_start)
         if pair.launch.STARTUP_STAGE_FIELD in window:
             stage = window[pair.launch.STARTUP_STAGE_FIELD]
             summary.update(stage_laid_out_us=stage,
-                           peak_build_offset_from_stage_us=summary['peak_build_start_us'] - stage)
+                           peak_build_offset_from_stage_us=peak_build_start - stage,
+                           peak_build_end_offset_from_stage_us=peak_build_start + peak_build_duration - stage)
         if pair.launch.STARTUP_AUTH_FIELD in window:
             auth = window[pair.launch.STARTUP_AUTH_FIELD]
             summary.update(auth_in_shell_us=auth,
-                           peak_build_offset_from_auth_us=summary['peak_build_start_us'] - auth)
+                           peak_build_offset_from_auth_us=peak_build_start - auth)
         # Raster starts can follow arrival even when builds began before it.
         summary['settled_raster_starts'] = dict(
             columns=['samples', 'slow_raster', 'max_raster_us'], **settled_raster)
