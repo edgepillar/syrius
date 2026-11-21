@@ -3538,8 +3538,17 @@ The adjacent sample above the button differs by at most two levels in either
 theme. The button's left and right samples differ by up to 30 levels in dark
 and 39 levels in light. The button previously applied its disabled opacity
 inside the handoff opacity. The preview now uses the handoff opacity alone
-while the Unlock callback remains unavailable. The new appearance awaits
-fresh Windows captures.
+while the Unlock callback remains unavailable.
+
+The [standalone Windows handoff reader at `06f08ec2`](https://github.com/edgepillar/syrius/actions/runs/44895716209/job/136820810855)
+verifies both 0.4 captures from the gradient change against the same two
+reference digests. At the 16-level RGB threshold, the Unlock band drops
+from 15,908 to 3,439 pixels in dark and from 16,211 to 3,516 in light.
+All counts outside that band agree with the previous comparison. The
+whole-window counts fall to 8,631 dark and 18,928 light. The light crop
+below the button retains 10,090 differing pixels. Both whole-image
+verdicts remain open. [Linux at the same source](https://github.com/edgepillar/syrius/actions/runs/44894618315)
+passes analysis, unit and widget tests and the generated-file check.
 
 The [paired cold read at `790ec3bc`](https://github.com/edgepillar/syrius/actions/runs/44893975418/job/136815564535)
 verifies 83 redesign frames, 342 P06 frames and five normal actor exits.
