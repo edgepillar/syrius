@@ -560,6 +560,7 @@ void main() {
       String mode = 'light';
       bool hidden = false;
       bool tokensOpen = false;
+      bool tokensPointerParked = false;
       String currentTab = 'dashboard';
       int retainedOpenRestorations = 0;
       final List<bool> tokensAtShot = <bool>[];
@@ -580,6 +581,7 @@ void main() {
             shots++;
             observedAtShot.add(hidden);
             tokensAtShot.add(tokensOpen);
+            if (tokensOpen) expect(tokensPointerParked, isTrue);
             if ((fault == 'negative' && shots == 1) ||
                 (fault == 'hidden-negative' && shots == 5) ||
                 (fault == 'open-negative' && shots == 3)) {
@@ -604,6 +606,12 @@ void main() {
               retainedOpenRestorations++;
             }
             tokensOpen = !tokensOpen;
+            tokensPointerParked = false;
+          }
+          if (name == 'hover' && tokensOpen) {
+            expect(command['at'], <int>[0, 0]);
+            expect(command['settleMs'], 200);
+            tokensPointerParked = true;
           }
           if (name == 'wait' && command['key'] == 'home_tokens_body') {
             expect(tokensOpen, command['gone'] != true);

@@ -3000,6 +3000,17 @@ Dark hero counts change by at most 28 pixels, and all eight body counts
 stay the same. The sampled phase gives mixed agreement with the
 references. Visual verdicts remain open.
 
+All eight verified captures were viewed beside their references. The
+expanded rail, the live activity row, the hidden amounts and the Go To
+palette are visible. The fixture has no pending row or held tokens. The
+expanded Tokens header retained the pointer hover tint in both captures.
+At column 1000 and rows 285 through 296 the captured header is RGB
+(49, 50, 49) in dark and (236, 237, 236) in light. The original references
+show the resting card colors (38, 39, 38) and (246, 247, 246). The Home
+open script now parks the pointer after the Tokens body becomes visible
+and checks the same original controls before capture. The next Windows
+run needs to verify the resting header. Whole-screen verdicts remain open.
+
 The [paired timing producer](https://github.com/edgepillar/syrius/actions/runs/44862588269)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44863894172/job/136723168084)
 verify both original windows and two normal entry, two normal wallet

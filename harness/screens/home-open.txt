@@ -9,6 +9,8 @@ tap --key rail_toggle
 wait --key rail_label_dashboard --timeout 5
 tap --key home_tokens_toggle
 wait --key home_tokens_body --timeout 5
+# Capture the expanded panel after its pointer hover has cleared.
+hover @0,0 --settle 200
 assert --key home_collect_all
 assert --key home_tokens_body
 

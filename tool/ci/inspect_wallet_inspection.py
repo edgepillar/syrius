@@ -32,6 +32,7 @@ MAX_CAPTURE_AGENT_SOURCE = 256 * 1024
 MAX_VERSIONED_BLOB_RESPONSE = 2 * MAX_CAPTURE_AGENT_SOURCE
 VERSIONED_INPUTS = frozenset((
     'pubspec.yaml', 'pubspec.lock',
+    'harness/screens/home-open.txt',
     'harness/screens/pillars.txt', 'harness/screens/plasma-fuse.txt',
     'harness/screens/set-licences.txt', 'harness/screens/set-wallet.txt',
     'harness/screens/token-new.txt',
@@ -641,6 +642,18 @@ def home_notifications_geometry(raw):
     return dict(column=column, scan_rows=[top, bottom], themes=themes)
 
 
+def home_expanded_tokens_header(raw):
+    """Read the fill in the open Tokens header away from text and icons."""
+    column, top, bottom = 1000, 285, 297
+    themes = {}
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        for theme in producer.THEMES:
+            bands = _vertical_bands(zipped, f'02-home-open-{theme}.png',
+                                    column, top, bottom)
+            themes[theme] = list(bands[0][1][:3]) if len(bands) == 1 else None
+    return dict(column=column, scan_rows=[top, bottom], fill_rgb=themes)
+
+
 def home_pixel_comparisons(raw, reference_dir):
     """Compare the verified originals without changing visual verdicts."""
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
@@ -1239,6 +1252,7 @@ def main(parent=None):
                     read_versioned_blob=read_blob, files=(HOME_FIELD_SOURCE,)))
                 catalog.update(home_goto_geometry(catalog_archive))
                 catalog['notifications_tooltip'] = home_notifications_geometry(catalog_archive)
+                catalog['expanded_tokens_header'] = home_expanded_tokens_header(catalog_archive)
                 reference_head = parent.get('WALLET_REFERENCE_HEAD')
                 if reference_head is not None:
                     need(digest(reference_head, 40))
