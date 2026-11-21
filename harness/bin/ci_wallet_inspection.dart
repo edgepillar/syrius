@@ -374,7 +374,8 @@ Future<void> main() async {
     await instance.requireCleanLogs();
     stage = 'address_selection';
     final Map<String, Object> selection = await recipe.selectLabAddress(
-      settingsCatalog: family == 'settings',
+      settingsCatalog: family == 'settings' ||
+          _detailsSelections[family] == ReadonlyDetailsSelection.nodeVerified,
     );
     final String? labRecipient =
         requiresLabRecipient ? recipe.readonlyLabRecipient : null;

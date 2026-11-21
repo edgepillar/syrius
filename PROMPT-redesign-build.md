@@ -3462,6 +3462,14 @@ span rows 36–313, 326–476 and 489–532 in both themes. The reader uses
 the page-color gaps to identify the cards and leaves the measurement
 unavailable when the three bands cannot be distinguished.
 
+The [read of the retained combined capture](https://github.com/edgepillar/syrius/actions/runs/44910533719/job/136865191443)
+locates the members, contacts and account-chain cards at rows 36–199,
+212–361 and 374–417 in both themes. The wallet receipt records two
+members. The 114-pixel difference in the members card agrees with two
+missing 57-pixel rows. The combined catalog now uses the existing Settings
+wallet preparation to derive four members, select and verify the second,
+and save the two synthetic contacts. A fresh comparison is required.
+
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
 with one skip and generated-file verification. That full run includes
