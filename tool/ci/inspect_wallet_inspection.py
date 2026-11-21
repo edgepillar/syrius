@@ -623,31 +623,54 @@ def _image_vertical_bands(data, column, top, bottom):
 def node_update_notice_geometry(raw, reference_dir):
     """Measure the notice fill at the original column and clear of reference text."""
     column, clear_column, top, bottom = 700, 980, 327, 620
+    panel_top = 230
     fills = {'dark': (46, 48, 46), 'light': (255, 255, 255)}
+    backgrounds = {'dark': (27, 28, 27), 'light': (234, 234, 234)}
 
-    def span(data, fill, x):
-        bands = _image_vertical_bands(data, x, top, bottom)
+    def ranges(bands):
         ends = [start for start, _ in bands[1:]] + [bottom]
-        matches = [(start, end) for (start, color), end in zip(bands, ends)
-                   if tuple(color[:3]) == fill and top < start and end < bottom]
+        return [(start, end, tuple(color[:3]))
+                for (start, color), end in zip(bands, ends)]
+
+    def span(bands, fill):
+        matches = [(start, end) for start, end, color in bands
+                   if color == fill and top < start and end < bottom]
         if not matches:
             return None
         start, end = max(matches, key=lambda rows: rows[1] - rows[0])
         return [start, end - 1]
 
+    def enclosing_panel(bands, notice, background):
+        if notice is None:
+            return None
+        gaps = [(start, end) for start, end, color in bands
+                if color == background and end - start >= 8]
+        before = [end for _, end in gaps if end <= notice[0]]
+        after = [start for start, _ in gaps if start > notice[1]]
+        return [max(before), min(after) - 1] if before and after else None
+
     themes = {}
     clear_themes = {}
+    panels = {}
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         for theme, fill in fills.items():
             name = f'30-set-node-{theme}.png'
             actual = zipped.read(name)
             reference = producer.read_original(reference_dir / name, producer.debug.entry.MAX_PNG)
-            themes[theme] = dict(actual=span(actual, fill, column),
-                                 reference=span(reference, fill, column))
-            clear_themes[theme] = dict(actual=span(actual, fill, clear_column),
-                                       reference=span(reference, fill, clear_column))
+            themes[theme] = dict(
+                actual=span(ranges(_image_vertical_bands(actual, column, top, bottom)), fill),
+                reference=span(ranges(_image_vertical_bands(reference, column, top, bottom)), fill))
+            clear_bands = {label: ranges(_image_vertical_bands(data, clear_column, panel_top, bottom))
+                           for label, data in (('actual', actual), ('reference', reference))}
+            clear_themes[theme] = {label: span(bands, fill)
+                                   for label, bands in clear_bands.items()}
+            panels[theme] = {label: enclosing_panel(
+                bands, clear_themes[theme][label], backgrounds[theme])
+                for label, bands in clear_bands.items()}
     return dict(column=column, scan_rows=[top, bottom], themes=themes,
-                clear_column=dict(column=clear_column, themes=clear_themes))
+                clear_column=dict(column=clear_column, themes=clear_themes),
+                enclosing_panel=dict(column=clear_column, scan_rows=[panel_top, bottom],
+                                     themes=panels))
 
 
 def addresses_card_comparison(raw, reference_dir):
