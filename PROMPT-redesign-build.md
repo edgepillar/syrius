@@ -4914,6 +4914,14 @@ are diagnostic because the target state needs additional preparation.
 These are gaps in the older source's eligible inventory. The current
 candidate still needs its own complete gallery.
 
+The next prepared captures use the same source, `84a88c55`, for
+[Node and Addresses](https://github.com/edgepillar/syrius/actions/runs/44955910814),
+[Staking and Tokens](https://github.com/edgepillar/syrius/actions/runs/44956022398),
+and [Accelerator](https://github.com/edgepillar/syrius/actions/runs/44956022506).
+The two restored-catalog jobs use the existing fixture preparation and
+publish the original prepared images with compact tour receipts. All
+three runs are in progress.
+
 | Original requirement | Evidence at this revision |
 | --- | --- |
 | Clean Windows Debug and Release | The [environment guide](docs/environment.md) lists the setup. The [clean Windows run at `18d42024`](https://github.com/edgepillar/syrius/actions/runs/44952696600/job/136993905785) and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44955001234/job/137001041306) verify both builds and DLL correspondence on the current application sources. |
