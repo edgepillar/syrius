@@ -2979,6 +2979,15 @@ The captures include their original data and sampled motion phases.
 The counts locate differences without isolating the texture or granting
 a whole-screen verdict.
 
+The Home catalog now asks the original renderer for the six-second field
+position used by the reference build's capture budget. It does so for
+Home rest, open and hidden, then restores the original running clock
+binding after every shot. The frame gate checks the sampled and restored
+paints. Go To continues to capture the field held by its actual frosted
+route. The two-theme widget check compares the sampled pixels against the
+same point on the running clock and checks restoration. Fresh Windows
+images and their visual verdicts remain open.
+
 The [paired timing producer](https://github.com/edgepillar/syrius/actions/runs/44862588269)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44863894172/job/136723168084)
 verify both original windows and two normal entry, two normal wallet

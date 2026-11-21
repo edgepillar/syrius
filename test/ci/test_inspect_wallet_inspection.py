@@ -542,7 +542,7 @@ class ReaderTests(unittest.TestCase):
         # The original workflow blob is read separately from its pinned Git tree.
         required = (set(reader.SOURCE_FILES) | set(reader.SURFACE_SEAM_SOURCES)
             | set(reader.READY_ARTWORK_SOURCES)
-            | set(reader.HOME_GOTO_CONTACT_SOURCES))
+            | set(reader.HOME_GOTO_CONTACT_SOURCES) | {reader.HOME_FIELD_SOURCE})
         required.remove(reader.WORKFLOW_SOURCE)
         missing = sorted(name for name in required
             if not any(name == path or name.startswith(path + '/') for path in paths))
@@ -1082,6 +1082,8 @@ class ReaderTests(unittest.TestCase):
             workflow_run=dict(id=1, head_sha='a' * 40)) for i in artifact_ids])
         blob = hashlib.sha1(b'blob ' + str(len(source)).encode() + b'\0' + source).hexdigest()
         source_files = reader.SOURCE_FILES
+        if home_schema == 4:
+            source_files += (reader.HOME_FIELD_SOURCE,)
         fixture_bytes = {}
         if surface_seams:
             source_files += reader.SURFACE_SEAM_SOURCES
@@ -1219,7 +1221,8 @@ class ReaderTests(unittest.TestCase):
                 value, calls, text = self.run_main(auxiliary_forced=forced, home_schema=home_schema)
                 self.assertTrue(value['native_inspection_qualified'])
                 self.assertEqual(value['verified_png_count'], 24)
-                self.assertEqual(value['producer_source_files_verified'], len(reader.SOURCE_FILES))
+                expected_sources = len(reader.SOURCE_FILES) + (home_schema == 4)
+                self.assertEqual(value['producer_source_files_verified'], expected_sources)
                 self.assertTrue(value['metadata_revalidated'])
                 messages = [line.split('::', 2)[-1] for line in text.splitlines()
                             if line.startswith('::notice title=Retained readonly shot layout::')]
@@ -1229,7 +1232,7 @@ class ReaderTests(unittest.TestCase):
                 self.assertEqual(measured['producer_job_id'], 44)
                 self.assertTrue(measured['all_original_png_digests_verified'])
                 self.assertTrue(measured['metadata_revalidated'])
-                self.assertEqual(measured['producer_source_files_verified'], len(reader.SOURCE_FILES))
+                self.assertEqual(measured['producer_source_files_verified'], expected_sources)
 
                 self.assertEqual(value['verified_catalog_png_count'], {1: 2, 2: 4, 3: 6, 4: 8}[home_schema])
                 home_notices = [line.split('::', 2)[-1] for line in text.splitlines()

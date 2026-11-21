@@ -27,6 +27,7 @@ WORKFLOW_SOURCE = '.github/workflows/public-contribution-qualification.yml'
 MAX_WORKFLOW_SOURCE = 128 * 1024
 MAX_WORKFLOW_RESPONSE = 2 * MAX_WORKFLOW_SOURCE
 CAPTURE_AGENT_SOURCE = 'harness/app/agent.dart'
+HOME_FIELD_SOURCE = 'lib/rearchitecture/utils/widgets/hero_field.dart'
 MAX_CAPTURE_AGENT_SOURCE = 256 * 1024
 MAX_VERSIONED_BLOB_RESPONSE = 2 * MAX_CAPTURE_AGENT_SOURCE
 VERSIONED_INPUTS = frozenset((
@@ -46,13 +47,14 @@ VERSIONED_INPUTS = frozenset((
     'harness/bin/readonly_settings_catalog.dart',
     'harness/bin/screen_capture.dart',
     'harness/bin/wallet_recipe.dart',
+    'harness/app/ready_reference_artwork.dart',
     'lib/rearchitecture/utils/widgets/entry_field.dart',
     'lib/widgets/modular_widgets/help_widgets/about_card.dart',
     'lib/widgets/modular_widgets/help_widgets/originals_card.dart',
     'lib/widgets/modular_widgets/help_widgets/originals_tiles.dart',
     'lib/widgets/modular_widgets/settings_widgets/wallet_settings_view.dart',
     'lib/widgets/reusable_widgets/launch_film.dart',
-    CAPTURE_AGENT_SOURCE,
+    CAPTURE_AGENT_SOURCE, HOME_FIELD_SOURCE,
 ))
 JOB = 'Windows readonly inspection with owned chain-321'
 PREFLIGHT = ('Test all isolated controllers before SDK allocation',
@@ -1233,6 +1235,8 @@ def main(parent=None):
                 item['size_in_bytes'], head, tree, run_id, reference,
                 home_script_source_pins(source_digests, reference['schema']))
             if reference['schema'] == producer.HOME_CAPTURE_SCHEMAS['home']:
+                source_digests.update(source_files(repo, producer_tree, tree,
+                    read_versioned_blob=read_blob, files=(HOME_FIELD_SOURCE,)))
                 catalog.update(home_goto_geometry(catalog_archive))
                 catalog['notifications_tooltip'] = home_notifications_geometry(catalog_archive)
                 reference_head = parent.get('WALLET_REFERENCE_HEAD')

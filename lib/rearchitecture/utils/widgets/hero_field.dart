@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/drift_r
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/shader_clock.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 
 /// The asset the field is drawn by. Listed under `flutter: shaders:`.
 const String kHeroFieldShader = 'assets/shaders/hero_field.frag';
@@ -50,9 +51,49 @@ class HeroField extends StatefulWidget {
 }
 
 class _HeroFieldState extends State<HeroField>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin
+    implements ReferenceArtworkSource {
   late final ShaderClock _clock;
   final _HomeFieldRaster _raster = _HomeFieldRaster();
+  ReferenceArtworkFrame? _referenceFrame;
+  ValueListenable<double>? _referenceSeconds;
+  ValueListenable<double>? _paintedSeconds;
+
+  @override
+  ReferenceArtworkKind get referenceArtworkKind =>
+      ReferenceArtworkKind.homeField;
+
+  @override
+  Object get referenceArtworkGeneration => _clock;
+
+  @override
+  Future<Object?>? get referenceArtworkReadiness => null;
+
+  @override
+  ReferenceArtworkFrame? captureReferenceArtwork() {
+    bool current() => mounted && widget._referenceHome && _clock.isRunning &&
+        (ModalRoute.of(context)?.isCurrent ?? true);
+    if (!current() || _referenceFrame != null) return null;
+    const Animation<double> sample = AlwaysStoppedAnimation<double>(6);
+    late final ReferenceArtworkFrame frame;
+    frame = ReferenceArtworkFrame(
+      owner: this, generation: _clock, kind: referenceArtworkKind,
+      observation: <String, Object>{'kind': 'home_field', 'seconds': 6},
+      current: () => current() && identical(_referenceFrame, frame),
+      observed: () => identical(_paintedSeconds, sample),
+      restore: () => setState(() {
+        _referenceFrame = null;
+        _referenceSeconds = null;
+      }),
+      restoration: () => current() && _referenceFrame == null &&
+          identical(_paintedSeconds, _clock),
+    );
+    setState(() {
+      _referenceFrame = frame;
+      _referenceSeconds = sample;
+    });
+    return frame;
+  }
 
   @override
   void initState() {
@@ -71,6 +112,9 @@ class _HeroFieldState extends State<HeroField>
     super.didUpdateWidget(oldWidget);
     if (oldWidget._referenceHome != widget._referenceHome) {
       _clock.active = false;
+      _referenceFrame = null;
+      _referenceSeconds = null;
+      _paintedSeconds = null;
       _raster.dispose();
     }
   }
@@ -92,13 +136,15 @@ class _HeroFieldState extends State<HeroField>
           tokens.card.a == 1 &&
           Theme.of(context).colorScheme.primary == tokens.card;
       _clock.active = true;
+      final ValueListenable<double> seconds = _referenceSeconds ?? _clock;
       return RepaintBoundary(
         child: CustomPaint(
           // The retained light image already owns the expensive blur. Its
           // moving display list is replaced whenever the field ticks.
           willChange: true,
           painter: _HomeHeroFieldPainter(
-            seconds: _clock,
+            seconds: seconds,
+            onPaint: () => _paintedSeconds = seconds,
             base: panelPaintsBase ? null : tokens.card,
             green: tokens.znn,
             blue: tokens.qsr,
@@ -207,6 +253,7 @@ class _HomeFieldRaster {
 class _HomeHeroFieldPainter extends CustomPainter {
   _HomeHeroFieldPainter({
     required this.seconds,
+    required this.onPaint,
     required this.base,
     required this.green,
     required this.blue,
@@ -216,6 +263,7 @@ class _HomeHeroFieldPainter extends CustomPainter {
   }) : super(repaint: seconds);
 
   final ValueListenable<double> seconds;
+  final VoidCallback onPaint;
   final Color? base;
   final Color green;
   final Color blue;
@@ -273,6 +321,7 @@ class _HomeHeroFieldPainter extends CustomPainter {
       );
     }
     canvas.restore();
+    onPaint();
   }
 
   static void _paintBlurredField(Canvas canvas, Rect field, {

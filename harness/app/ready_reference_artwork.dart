@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_ready_binding.dart';
@@ -310,6 +311,46 @@ class StakingReferenceArtwork {
     required CaptureFrameGate frames,
     required Future<T> Function() readback,
   }) => _capture.capture<T>(frames: frames, readback: readback);
+}
+
+/// The original Home field could not provide or restore its sampled frame.
+class HomeReferenceArtworkRefused implements Exception {
+  /// Refuses without retaining original renderer details.
+  const HomeReferenceArtworkRefused();
+}
+
+/// Samples the Home field without changing the running shader clock.
+Future<T> captureHomeReferenceArtwork<T>({
+  required Element? root,
+  required bool Function() admitted,
+  required CaptureFrameGate frames,
+  required Future<T> Function() readback,
+}) {
+  final List<StatefulElement> fields = <StatefulElement>[];
+  int visited = 0;
+  void visit(Element element) {
+    if (++visited > 16384) throw const HomeReferenceArtworkRefused();
+    if (element is StatefulElement && element.widget is HeroField &&
+        element.state is ReferenceArtworkSource &&
+        ModalRoute.of(element)?.isCurrent == true &&
+        TickerMode.valuesOf(element).enabled) {
+      fields.add(element);
+    }
+    element.visitChildren(visit);
+  }
+  if (root != null) visit(root);
+  if (fields.length != 1) throw const HomeReferenceArtworkRefused();
+  final StatefulElement owner = fields.single;
+  final ModalRoute<dynamic>? route = ModalRoute.of(owner);
+  final ReferenceArtworkSource source = owner.state as ReferenceArtworkSource;
+  return _ReferenceArtworkCapture(
+    current: () => admitted() && owner.mounted && route?.isCurrent == true &&
+        identical(ModalRoute.of(owner), route) &&
+        TickerMode.valuesOf(owner).enabled,
+    sources: () => <ReferenceArtworkSource>[source],
+    requiresReadiness: (_) => false,
+    refusal: (_) => const HomeReferenceArtworkRefused(),
+  ).capture<T>(frames: frames, readback: readback);
 }
 
 /// The stage at which the original artwork could no longer be sampled.

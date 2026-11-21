@@ -13,6 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_fi
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/entry_card_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/welcome_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 
@@ -671,6 +672,28 @@ void main() {
         expect(await _pixels(tester, surface: surface()), orderedEquals(start));
         expect(rasters, hasLength(1));
         expect(rasters.single.debugDisposed, isFalse);
+
+        await tester.pump(const Duration(seconds: 6));
+        final Uint8List reference = await _pixels(tester, surface: surface());
+        await tester.pump(const Duration(seconds: 2));
+        final ReferenceArtworkSource source =
+            tester.state(find.byType(HeroField)) as ReferenceArtworkSource;
+        final ReferenceArtworkFrame sample = source.captureReferenceArtwork()!;
+        expect(sample.observed, isFalse);
+        await tester.pump();
+        expect(sample.observed, isTrue);
+        expect(
+          await _pixels(tester, surface: surface()),
+          orderedEquals(reference),
+        );
+        expect(sample.restore(), isTrue);
+        await tester.pump();
+        expect(sample.restored, isTrue);
+        expect(
+          await _pixels(tester, surface: surface()),
+          isNot(orderedEquals(reference)),
+        );
+        await tester.pump(const Duration(seconds: 28));
 
         // An oversized requested raster keeps the original analytic paint.
         await tester.pumpWidget(_host(

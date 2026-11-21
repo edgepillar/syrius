@@ -564,6 +564,7 @@ class HarnessAgent {
   ReadonlyNativeCommands? _readonlyNative;
   ReadyReferenceArtwork? _readyArtwork;
   bool _readyArtworkRefused = false;
+  bool _homeArtworkRefused = false;
   bool _stakingArtworkRefused = false;
   bool _originalsArtworkRefused = false;
   PillarReferenceArtwork? _pillarArtwork;
@@ -5682,6 +5683,23 @@ class HarnessAgent {
         final ReadonlyNativeCommands? original = _readonlyNative;
         final String? catalogFamily =
             Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'];
+        if (original != null && catalogFamily == 'home' &&
+            assertion is Map<Object?, Object?> &&
+            const <String>{'home_hero', 'home_tokens_body', 'activity_scope'}
+                .contains(assertion['key'])) {
+          try {
+            if (_homeArtworkRefused) throw const HomeReferenceArtworkRefused();
+            return await captureHomeReferenceArtwork<Map<String, Object?>>(
+              root: WidgetsBinding.instance.rootElement,
+              admitted: () => booted && identical(_readonlyNative, original),
+              frames: _captureFrames,
+              readback: () => _readShot(c),
+            );
+          } on HomeReferenceArtworkRefused {
+            _homeArtworkRefused = true;
+            throw HarnessError('home artwork frame unavailable');
+          }
+        }
         if (original != null &&
             catalogFamily == 'earn' &&
             assertion is Map<Object?, Object?> &&

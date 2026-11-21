@@ -6,6 +6,9 @@ enum ReferenceArtworkKind {
   /// The original entry painter at the reference capture-time position.
   entryField,
 
+  /// The Home light field at the reference capture-time position.
+  homeField,
+
   /// The original Ready map at the reference's selected frame.
   walletReadyMap,
 
