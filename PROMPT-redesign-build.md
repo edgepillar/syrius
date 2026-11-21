@@ -4455,6 +4455,18 @@ and generated-file verification. Native observation remains open under V02.
 | 3. Plasma meter | `test/shaders/plasma_meter_test.dart` covers the idle level and ticker. | Observe the flow during generation and its still idle state in the page and hero meters. |
 | 4. Frost | `test/frost/frosted_surface_test.dart` and `test/frost/frosted_route_test.dart` cover glass placement and clipping. Retained captures show several settled surfaces. | Observe the blur during opening and closing of the requested surfaces. |
 
+### End-state changes through `bb4961af` (2026-11-21)
+
+| Original requirement | Evidence on this revision |
+| --- | --- |
+| Clean Windows Debug and Release | The last independently verified baseline at `a57d60a7` includes both builds. Since then, app changes touch Disclosure, About, Node and Addresses. The startup, platform build configuration, dependencies and assets retain their baseline contents. The new [paired Windows run](https://github.com/edgepillar/syrius/actions/runs/44931364527) targets Release on `bb4961af`. Final Debug and Release evidence remains open. |
+| Analysis and tests | The changed About source and widget test pass strict local analysis. [Linux validation](https://github.com/edgepillar/syrius/actions/runs/44931328143) has passed application and strict selected analysis. The full suite and generation checks are pending. |
+| All 47 screens in both themes | The [prepared Node and Addresses review](#node-and-addresses-at-0e3b2f5d) retains same-source positions, typography and all four images. About and Disclosure now have newer source. The full current capture set and matching verdicts remain open. |
+| Running motion, shaders and P06 timing | The [interactive reader at `8488ee5e`](https://github.com/edgepillar/syrius/actions/runs/44931015819/job/136927427883) verifies slow rasters from frames built after observed settlement. Its original run is pinned to `3bf40fbd`, which still fails the 16 ms comparison. The full motion review and the new paired measurement remain open. |
+| Seam refusals | Comparing `564d01ab` with `bb4961af` preserves the registry, palette, shortcut, holder-token and shared gate source. The rail diff updates animation and tooltip presentation. The shell frame diff gates when the entry status appears. The changed Node and About code preserves their existing seam gates and callbacks. The executed refusals stay pinned to the retained trials. |
+
+V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |
@@ -4538,7 +4550,7 @@ and generated-file verification. Native observation remains open under V02.
 | V03 | done | 2026-11-12T03:23Z | Source648 673fe4a19468, Source670 2b2c4abdadae, Source676 5d555665a643 and Source686 15fec4c9120f provide executed native refusals for all fifteen current seam values and pointer/keyboard refusal for the only seamed palette target. No direct missing-feature shortcut or other seamed palette target is registered. All 1,213 current runtime entries match Source686; the sole older token observer difference is covered by its holder trial. Source670's producer control list remains distinct from its legacy reader's context/closure proof. The [Source695 audit](docs/review/source695-seam-coverage.md) closes the original requirement without relabelling the later incomplete eleven-control Home batch or its failures. No new native run or visual match is claimed. |
 | V04 | done | 2026-10-31T23:34Z | All four independently qualified Source265 minimum-window/Arabic originals were actually viewed in both themes. The owned review closes SUCCESS with actual controller exit zero; required original native closure stays source-bound. Minimum controls fit and RTL layout mirrors. English fallback/missing Arabic copy is retained as X414; exact saved locale preference and Arabic glyph quality remain separate unqualified observations |
 | V05 | done | 2026-11-18T13:45Z | fdb88d89 commits the fresh independent review of all 94 exact 28f9c121 pairs and X821 through X875. The visual verdicts guide further comparisons under V01. [Independent review](docs/review/source-28f9c121-independent-visual-review.md). |
-| V06 | review | 2026-11-21 | The [current five-item audit](#end-state-audit-at-08ecf715-2026-11-21) records the independently verified Windows baseline, current seam correspondence, and the outstanding screen and motion evidence. |
+| V06 | review | 2026-11-21 | The [current five-item audit](#end-state-changes-through-bb4961af-2026-11-21) records the source delta from the verified baseline, seam correspondence and the remaining build, screen and motion evidence. |
 | X01 | done | 2026-10-21T23:26Z | e13abb387577 restores loading-list sweep ink in lib/rearchitecture/utils/widgets/motion/skeleton.dart; all 19 existing Skeleton tests pass unchanged |
 | X02 | done | 2026-10-21T23:57Z | e13abb387577 keeps the status-strip dot visible at narrow widths and fixes asynchronous visibility tests |
 | X03 | done | 2026-10-21T23:57Z | e13abb387577 parses the bridge test's HTTP head before binary frames; compression refusal assertions retained |
