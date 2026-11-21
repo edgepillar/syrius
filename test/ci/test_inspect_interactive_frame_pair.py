@@ -376,6 +376,14 @@ class InteractiveFramePairTests(unittest.TestCase):
             },
         })
         self.assertNotIn('raster_start_groups_by_observed_phase', diagnosed['p06']['disclosure'])
+        self.assertEqual(inspect.split_phase_diagnostics(diagnosed)['disclosure'][
+            'post_boundary_raster_groups_by_build_start'], {
+                'columns': ['samples', 'slow_raster', 'max_raster_us'],
+                'phases': {
+                    'settled': dict(before=[1, 1, 17000], at_or_after=[2, 1, 24000]),
+                    'list_laid_out': dict(before=[1, 0, 12000], at_or_after=[0, 0, 0]),
+                },
+            })
         for value in ({}, {'settled': 5999}, {'settled': True},
                       {'list_laid_out': 1_000_000}, {'other': 6500}):
             observation['disclosure_phases_us'] = value

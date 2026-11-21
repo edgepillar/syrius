@@ -51,6 +51,7 @@ def split_phase_diagnostics(windows):
                 key: timing.pop(key) for key in (
                     'observed_post_frame_offsets_from_tap_us',
                     'raster_start_groups_by_observed_phase',
+                    'post_boundary_raster_groups_by_build_start',
                 )
             }
     return phases
@@ -217,6 +218,8 @@ def _window_diagnostics(window, tap_release_us, motion_us, observed_phases=None,
                    for name, offset in (observed_phases or {}).items()}
         phase_groups = {name: _raster_groups('before', 'at_or_after', 'crossing')
                         for name in offsets}
+        post_boundary_groups = {name: _raster_groups('before', 'at_or_after')
+                                for name in offsets}
         for row in rows:
             earliest, latest = cold.raster_start_bounds(
                 row, tap_release_us, observed_us=raster_starts.get(row[0]))
@@ -236,6 +239,11 @@ def _window_diagnostics(window, tap_release_us, motion_us, observed_phases=None,
                     phase = 'before'
                 elif earliest >= offset:
                     phase = 'at_or_after'
+                    # Raster can begin after a boundary for a frame whose
+                    # build started before it. Keep those samples separate.
+                    build_start = row[1] - tap_release_us
+                    build_phase = 'before' if build_start < offset else 'at_or_after'
+                    _record_raster(post_boundary_groups[name][build_phase], raster)
                 else:
                     phase = 'crossing'
                 _record_raster(phase_groups[name][phase], raster)
@@ -248,6 +256,11 @@ def _window_diagnostics(window, tap_release_us, motion_us, observed_phases=None,
                 phases={name: {relation: [group[column] for column in columns]
                                for relation, group in relations.items()}
                         for name, relations in phase_groups.items()})
+            result['post_boundary_raster_groups_by_build_start'] = dict(
+                columns=columns,
+                phases={name: {relation: [group[column] for column in columns]
+                               for relation, group in relations.items()}
+                        for name, relations in post_boundary_groups.items()})
     return result
 
 
