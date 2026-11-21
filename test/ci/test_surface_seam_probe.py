@@ -5,11 +5,15 @@ import unittest
 from tool.ci import windows_wallet_inspection as inspect
 
 
+TOKEN_ROW = 'token_zts1zdl4pmr425t0j97v4eu0du_row'
+
+
 class OriginalSurfaces:
     def __init__(self, fault=None, *, initial_tab='settings'):
         self.fault = fault
         self.tab, self.route, self.address = initial_tab, '/' + initial_tab, 'fixture-owner'
         self.token_open = False
+        self.held_filter = False
         self.pillars_menu_open = False
         self.calls = []
 
@@ -28,7 +32,9 @@ class OriginalSurfaces:
                 self.route = '/' + self.tab
             else:
                 key = command['key']
-                if key == 'token_zts1znnxxxxxxxxxxxxx9z4ulx_row':
+                if key == 'tokens_filter_held':
+                    self.held_filter = True
+                elif key == TOKEN_ROW:
                     self.token_open = not self.token_open
                     if self.token_open and self.fault == 'owner-before':
                         self.address = 'replacement-owner'
@@ -46,6 +52,18 @@ class OriginalSurfaces:
                     raise AssertionError('Unexpected action')
                 return dict(ok=True, target=dict(key=key))
             return dict(ok=True)
+        if kind == 'tree':
+            if self.tab != 'tokens' or not self.held_filter:
+                raise AssertionError('Held token list was not selected')
+            token = dict(key=TOKEN_ROW, kind='button')
+            nodes = [dict(key=key, kind='button') for key in sorted(inspect.NATIVE_TOKEN_ROW_KEYS)]
+            if self.fault != 'native-token-rows-only':
+                nodes.append(token)
+            if self.fault == 'duplicate-token-row':
+                nodes.append(token.copy())
+            if self.fault == 'disabled-token-row':
+                token['enabled'] = False
+            return dict(nodes=nodes)
         if kind == 'wait':
             key = command['key']
             if key in ('addresses_settings_page', 'home_hero', 'strip_update_button'):
@@ -198,6 +216,9 @@ class SurfaceSeamProbeTests(unittest.TestCase):
         self.assertEqual(trace.receipt(), dict(schema=1, scope='readonly_seam_command_context',
             command_index=1, command='OTHER', target='OTHER', stage='REPLY'))
         self.assertNotIn(private, str(trace.receipt()))
+        trace.exchange(lambda _: {}, dict(cmd='tap', key=TOKEN_ROW))
+        self.assertEqual(trace.receipt()['target'], 'token_row')
+        self.assertNotIn(TOKEN_ROW, str(trace.receipt()))
         original, observed = OriginalSurfaces('pointer-refused'), []
         with self.assertRaises(inspect.Refused):
             inspect.observe_surface_seams(lambda value: trace.exchange(original.send, value), observed)
@@ -213,12 +234,16 @@ class SurfaceSeamProbeTests(unittest.TestCase):
         self.assertEqual((original.tab, original.route, original.address),
             ('dashboard', '/dashboard', 'fixture-owner'))
         self.assertFalse(original.token_open)
+        self.assertEqual(sum(c.get('cmd') == 'tap' and c.get('key') == TOKEN_ROW
+                             for c in original.calls), 2)
+        self.assertFalse(any(c.get('cmd') == 'tap' and c.get('key')
+                             in inspect.NATIVE_TOKEN_ROW_KEYS for c in original.calls))
         attempted = [command for command in original.calls
                      if command['cmd'] == 'readonly-seam-pointer' and command['seam'] == 'tokenExplorer']
         self.assertEqual(attempted, [dict(cmd='readonly-seam-pointer',
             seam='tokenExplorer', key='token_explorer_control')])
         self.assertTrue(all(command['cmd'] in
-            {'state', 'tap', 'wait', 'readonly-seam-pointer', 'key', 'logs'}
+            {'state', 'tap', 'wait', 'tree', 'readonly-seam-pointer', 'key', 'logs'}
             for command in original.calls))
 
     def test_owner_and_route_replacement_preserve_only_the_confirmed_prefix(self):
@@ -236,12 +261,17 @@ class SurfaceSeamProbeTests(unittest.TestCase):
             self.assertEqual(observed, ['walletUpdateNotice'])
 
     def test_missing_token_control_cannot_complete_the_inspection(self):
-        original, observed = OriginalSurfaces('missing-token-control'), []
-        with self.assertRaises(inspect.Refused):
-            inspect.observe_surface_seams(original.send, observed)
-        self.assertEqual(observed, ['walletUpdateNotice'])
-        self.assertFalse(any(command['cmd'] == 'readonly-seam-pointer'
-            and command['seam'] == 'tokenExplorer' for command in original.calls))
+        for fault in ('missing-token-control', 'native-token-rows-only',
+                      'duplicate-token-row', 'disabled-token-row'):
+            original, observed = OriginalSurfaces(fault), []
+            with self.subTest(fault=fault), self.assertRaises(inspect.Refused):
+                inspect.observe_surface_seams(original.send, observed)
+            self.assertEqual(observed, ['walletUpdateNotice'])
+            self.assertFalse(any(command['cmd'] == 'readonly-seam-pointer'
+                and command['seam'] == 'tokenExplorer' for command in original.calls))
+            if fault != 'missing-token-control':
+                self.assertFalse(any(command.get('cmd') == 'tap' and command.get('key')
+                                     == TOKEN_ROW for command in original.calls))
 
 
 class ActivityMessageSeamProbeTests(unittest.TestCase):

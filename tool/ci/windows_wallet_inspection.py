@@ -1344,7 +1344,9 @@ def observe_readonly_owner_seams(send, observed):
 
 
 SURFACE_SEAMS = ('walletUpdateNotice', 'tokenExplorer', 'pillarAprEstimate', 'swapTerms')
-SURFACE_TOKEN_ROW = 'token_zts1znnxxxxxxxxxxxxx9z4ulx_row'
+TOKEN_ROW_KEY = re.compile(r'token_zts1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{22}_row')
+NATIVE_TOKEN_ROW_KEYS = frozenset(('token_zts1znnxxxxxxxxxxxxx9z4ulx_row',
+                                   'token_zts1qsrxxxxxxxxxxxxxmrhjll_row'))
 
 
 class SeamProbeTrace:
@@ -1355,7 +1357,7 @@ class SeamProbeTrace:
     TARGETS = {
         'addresses_settings_page': 'addresses',
         'home_hero': 'home', 'strip_update_button': 'update',
-        SURFACE_TOKEN_ROW: 'token_row', 'token_explorer_control': 'token_explorer',
+        'tokens_filter_held': 'tokens_held', 'token_explorer_control': 'token_explorer',
         'nodes_tab_pillars': 'pillars_tab', 'nodes_pillars_strip': 'pillars_strip',
         'pillars_sort': 'pillars_sort', 'pillars_sort_weight': 'pillars_sort_weight',
         'pillars_sort_apr_gate': 'pillar_apr',
@@ -1381,6 +1383,8 @@ class SeamProbeTrace:
         tab = command.get('tab') if type(command) is dict else None
         self._target = (self.TARGETS.get(key, 'OTHER') if type(key) is str else
                         tab if type(tab) is str and tab in self.TABS else 'NONE')
+        if type(key) is str and TOKEN_ROW_KEY.fullmatch(key):
+            self._target = 'token_row'
         self._stage = 'REQUEST'
         result = send(command)
         self._stage = 'REPLY'
@@ -1440,14 +1444,28 @@ def observe_surface_seams(send, observed):
     observed.append('walletUpdateNotice')
 
     send(dict(cmd='tap', tab='tokens'))
-    wait(SURFACE_TOKEN_ROW, kind='button')
+    wait('tokens_filter_held', kind='button')
     tokens = route('tokens')
-    tap(SURFACE_TOKEN_ROW)
+    tap('tokens_filter_held')
+    reply = send(dict(cmd='tree'))
+    nodes = reply.get('nodes') if type(reply) is dict else None
+    need(type(nodes) is list and len(nodes) <= 512
+         and all(type(node) is dict and node.get('kind') != 'error'
+                 for node in nodes), 'ENTRY_REFUSED')
+    rows = [key for node in nodes if node.get('kind') == 'button'
+            and node.get('enabled', True) is True
+            and type(key := node.get('key')) is str and TOKEN_ROW_KEY.fullmatch(key)
+            and key not in NATIVE_TOKEN_ROW_KEYS]
+    need(rows and len(rows) == len(set(rows)), 'ENTRY_REFUSED')
+    token_row = rows[0]
+    wait(token_row, kind='button')
+    need(route('tokens') == tokens, 'ENTRY_REFUSED')
+    tap(token_row)
     wait('token_explorer_control', kind='button')
     need(route('tokens') == tokens, 'ENTRY_REFUSED')
     require_seam_absorption(send, 'tokenExplorer', 'token_explorer_control')
     need(route('tokens') == tokens, 'ENTRY_REFUSED')
-    tap(SURFACE_TOKEN_ROW)
+    tap(token_row)
     wait('token_explorer_control', kind='button', gone=True)
     need(route('tokens') == tokens, 'ENTRY_REFUSED')
     observed.append('tokenExplorer')
