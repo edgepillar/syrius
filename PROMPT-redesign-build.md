@@ -2174,6 +2174,17 @@ introduction. The current images have 1,039 and 873 respectively. The
 historical verdicts retain their original image digests. The current
 Welcome and Import images still require whole-image review.
 
+At `2f6bfc37`, completed steps use the original reference checkmark in
+its 12 px viewport. The [Linux run](https://github.com/edgepillar/syrius/actions/runs/44856938194/job/136701231453)
+passes strict selected analysis, 5,129 non-chain tests with one skip, and
+generated-file verification. In the retained `28f9c121` Seed Quiz and
+Wallet Ready images, the earlier checkmark ink spans 10 by 8 pixels at
+the fixed threshold. All corresponding reference marks span 9 by 6
+pixels. These are ink bounds inside the observed green circles. The
+new [Seed Quiz](https://github.com/edgepillar/syrius/actions/runs/44857021856)
+and [Wallet Ready](https://github.com/edgepillar/syrius/actions/runs/44857034409)
+captures still need their own independent read and visual verdicts.
+
 The [Linux validation at `d1eb02a9`](https://github.com/edgepillar/syrius/actions/runs/44851643307/job/136684120771)
 passes strict analysis after the subtitle formatting correction. It
 records 5,129 non-chain tests passed, one skip, and successful generated
@@ -2819,7 +2830,16 @@ two-theme drift cases check the cache hint, image reuse and motion.
 The [Linux run](https://github.com/edgepillar/syrius/actions/runs/44856384342/job/136699476895)
 passes strict selected analysis, 5,129 non-chain tests with one skip, and
 generated-file verification. The [paired Windows run](https://github.com/edgepillar/syrius/actions/runs/44856384903)
-passes analysis and the Release harness build. Its timing result is pending.
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44857829215/job/136704061658)
+verify both original windows, two normal entry exits, two normal wallet
+exits and five normal node exits. The page settles 384.333 ms after
+release. Its longest raster is 111.933 ms versus 79.548 ms at the same P06
+rank. The longest frame takes 157.623 ms on the redesign and 91.192 ms on
+P06. The prior run's maxima were higher on both builds. Neither run
+establishes the separate effect of the cache hint. The page records 15
+raster rank overruns, six after measured settlement. Disclosure records
+18, eight after settlement. Both 16 ms comparisons fail and all windows
+retain frame-number gaps. V02 remains open.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
