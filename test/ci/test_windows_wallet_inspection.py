@@ -355,7 +355,8 @@ class InspectionTests(unittest.TestCase):
                 lab.readonly_catalog_family(selected)], schema)
         for value in (None, True, 1, '', 'Home', 'all', 'home,navigation',
                       '../home', 'launch', 'launch-settle', 'launch-motion', 'startup-catalog',
-                      'launch-timing', 'launch-timing-pair', 'interactive-timing-pair',
+                      'launch-timing', 'launch-timing-pair', 'launch-timing-and-settle',
+                      'interactive-timing-pair',
                       'lock-catalog', 'lock-seams', 'quiz-catalog', 'seeded-states',
                       'seeded-states-visual', 'stake-draft', 'project-detail', 'pillar-spawn',
                       'pillar-done', 'swap-seeded'):
@@ -372,7 +373,8 @@ class InspectionTests(unittest.TestCase):
              'navigation', 'details', 'token-draft',
              'send-confirm', 'send-warn', 'swap-start', 'wallet-ready', 'earn',
              'sentinel-fixture', 'launch', 'launch-settle', 'launch-motion', 'startup-catalog',
-             'launch-timing', 'launch-timing-pair', 'interactive-timing-pair',
+             'launch-timing', 'launch-timing-pair', 'launch-timing-and-settle',
+             'interactive-timing-pair',
              'lock-catalog', 'lock-seams', 'quiz-catalog', 'seeded-states',
              'seeded-states-visual', 'swap-seeded', 'stake-draft', 'project-detail', 'pillar-spawn',
              'pillar-done'])

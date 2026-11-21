@@ -3316,6 +3316,17 @@ The other content counts change by at most 33 pixels. The Node table
 still starts its rows at 84, 141 and 198 and ends at 255 in both themes.
 The fourteen whole-image verdicts remain open under V01.
 
+The [card-level review of the same Settings captures](https://github.com/edgepillar/syrius/actions/runs/44900241180/job/136834423403)
+separates the Node table, update card and disclosures. The update crop
+contains 31,897 dark and 33,381 light pixels at the 16-level RGB threshold.
+The captures show the pre-check screen, so this crop cannot qualify the
+reference's verified-download state. The Node table separately retains
+19,560 and 19,784 differences. In Addresses the sampled card fills and
+gaps agree in both themes. Most differences are in the member table
+(20,218 dark, 19,927 light) and the Contacts card (15,502 dark, 15,936 light).
+The strip below the cards has none at that threshold. All four whole-image
+verdicts remain open.
+
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
 with one skip and generated-file verification. That full run includes
@@ -3637,6 +3648,12 @@ capture's runner and payload digests with the measured redesign binaries.
 If paired timing stops early, the original timing receipt is still retained
 and the subsequent captures are skipped. This mode needs its first hosted
 result.
+
+The [first combined Windows run](https://github.com/edgepillar/syrius/actions/runs/44900011001/job/136833734257)
+stops before SDK allocation because the catalog admission test still
+expects the previous workflow choice list. The test now includes the new
+startup choice and retains the independent assertion that the readonly
+wallet catalog refuses it.
 
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
