@@ -3556,6 +3556,10 @@ nodes and the verified install review with Cancel. The chain summaries in
 both settings pages now use the reference's quiet monospaced treatment.
 The existing widget cases check both styles. A fresh capture is needed
 for the updated typography and the four whole-image verdicts.
+[Linux at `0e3b2f5d`](https://github.com/edgepillar/syrius/actions/runs/44925437901/job/136910368034)
+passes strict analysis, generated-file verification and the non-chain
+suite with 5,131 passes and one skip. The [matching Windows run](https://github.com/edgepillar/syrius/actions/runs/44925437484/job/136910368545)
+is pending.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
@@ -4033,6 +4037,12 @@ original P06 collector continue to use the calculated bounds. The frame
 limits, 16 ms ranking and gap checks are unchanged. The full Python
 controller suite passes with 17 skips, including the new timestamp bounds
 and phase cases. A native pair is required to exercise the new field.
+The [paired Windows run at `34674087`](https://github.com/edgepillar/syrius/actions/runs/44926303060/job/136913038738)
+is pending. The [first compatibility read of `08ecf715`](https://github.com/edgepillar/syrius/actions/runs/44926305670/job/136913047287)
+reads the original timings and refuses the paired images at the older
+producer pin. The [corrected reader at `39239f24`](https://github.com/edgepillar/syrius/actions/runs/44926469990/job/136913544116)
+verifies both original archives, including their matching Release binaries,
+without another Windows build.
 
 The rail width spring now lays out the original destination buttons without
 rebuilding them on its ticks. The toggle still rotates on the same spring,
