@@ -680,6 +680,11 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions):
     return dict(screen=screen, region_bounds=regions, pairs=pairs)
 
 
+def _catalog_pair_names(files):
+    return (name.removesuffix('-dark.png') for name in files
+            if name.endswith('-dark.png'))
+
+
 def home_pixel_comparisons(raw, reference_dir):
     """Compare the verified originals without changing visual verdicts."""
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
@@ -696,11 +701,19 @@ def details_pixel_comparisons(raw, reference_dir):
     regions = dict(caption=(0, 0, 1280, 32), rail=(0, 32, 60, 780),
                    content=(60, 32, 1280, 724), status=(60, 724, 1280, 780))
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
-        for name in producer.details.FILES:
-            if name.endswith('-dark.png'):
-                screen = name.removesuffix('-dark.png')
-                crop = _originals_pixel_regions(regions) if screen == '38-set-originals' else regions
-                yield _catalog_pixel_pair(zipped, reference_dir, screen, crop)
+        for screen in _catalog_pair_names(producer.details.FILES):
+            crop = _originals_pixel_regions(regions) if screen == '38-set-originals' else regions
+            yield _catalog_pixel_pair(zipped, reference_dir, screen, crop)
+
+
+def settings_pixel_comparisons(raw, reference_dir):
+    """Compare the seven Settings sections with separate menu and body counts."""
+    regions = dict(caption=(0, 0, 1280, 32), rail=(0, 32, 60, 780),
+                   settings_menu=(60, 32, 260, 724), content=(260, 32, 1280, 724),
+                   status=(60, 724, 1280, 780))
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        for screen in _catalog_pair_names(producer.settings.FILES):
+            yield _catalog_pixel_pair(zipped, reference_dir, screen, regions)
 
 
 def _originals_pixel_regions(regions):
@@ -1282,6 +1295,10 @@ def main(parent=None):
                 item['digest'][7:], item['size_in_bytes'], head, tree, run_id,
                 settings_reference, pins)
             catalog.update(settings_catalog_geometry(catalog_archive))
+            if reference_head is not None:
+                need(digest(reference_head, 40))
+                catalog_comparisons = list(settings_pixel_comparisons(
+                    catalog_archive, repo / 'mockups/redesign/shots'))
             del catalog_archive
         else:
             PHASE = 'home_catalog_artifact'
@@ -1361,12 +1378,11 @@ def main(parent=None):
             producer_job_id=job['id'], metadata_revalidated=True,
             producer_source_files_verified=verified_sources,
             all_original_png_digests_verified=True)
-        title = {'retained_readonly_home_catalog': 'Retained readonly Home catalog',
-            'retained_readonly_settings_catalog': 'Retained readonly Settings catalog',
-            'retained_readonly_navigation_catalog': 'Retained readonly Navigation catalog',
-            'retained_readonly_details_catalog': 'Retained readonly Details catalog'}[catalog['scope']]
-        emit(title, catalog)
-        family = 'Home' if catalog['scope'] == 'retained_readonly_home_catalog' else 'Details'
+        family = {'retained_readonly_home_catalog': 'Home',
+                  'retained_readonly_settings_catalog': 'Settings',
+                  'retained_readonly_navigation_catalog': 'Navigation',
+                  'retained_readonly_details_catalog': 'Details'}[catalog['scope']]
+        emit(f'Retained readonly {family} catalog', catalog)
         for comparison in catalog_comparisons:
             emit(f'Retained {family} pixel comparison', dict(
                 scope=f'retained_{family.lower()}_pixel_comparison', source_head=head,
