@@ -2234,7 +2234,14 @@ at the 16-level threshold. The icon badge columns account for 595 and
 totals retain the 4,171 and 4,247 action counts. The Create wallet glyph
 now uses the mockup's `#04140A` foreground through the existing primary
 action token. The existing two-theme test checks the three badge glyph
-colours alongside their fills. Fresh Windows verification remains open.
+colours alongside their fills. The [Windows reader at `626e92da`](https://github.com/edgepillar/syrius/actions/runs/44861968835/job/136717138317)
+verifies the four original PNGs and a normal zero exit with complete
+output. The 16-level difference falls from 595 to 593 pixels in the dark
+badge columns and from 626 to 624 in light. The label column counts and
+best shifts stay the same. The Import image digests also stay the same.
+The [Linux run at `626e92da`](https://github.com/edgepillar/syrius/actions/runs/44861379073/job/136715333234)
+passes strict selected analysis, 5,129 non-chain tests with one skip,
+and generated-file verification.
 
 The [pinned action text comparison](https://github.com/edgepillar/syrius/actions/runs/44861539665/job/136715825335)
 finds zero best shift for all six title samples. All six hint samples
@@ -2242,8 +2249,17 @@ have their smallest ink-mask difference after moving one pixel up and
 zero horizontally within the tested two-pixel range. The dark hint
 differences sum to 1,563 before the shift and 997 with it. The light sums
 are 1,392 and 880. The Welcome rows now apply that one-pixel paint offset
-to each hint while retaining layout, scaling and interaction. A new
-Windows capture is needed to measure the result in the running UI.
+to each hint while retaining layout, scaling and interaction. The
+[independent read of the original Windows capture at `3f53f404`](https://github.com/edgepillar/syrius/actions/runs/44862193037/job/136717833175)
+verifies four PNGs and a normal zero exit with complete output. All six
+hint crops now have a best shift of zero. The remaining ink-mask
+differences agree with the previous shifted figures. The action label
+column's 16-level difference drops from 3,576 to 2,868 dark pixels and
+from 3,604 to 3,019 light pixels. The remaining Welcome differences
+and whole-image verdicts stay open under V01.
+The [first Linux run](https://github.com/edgepillar/syrius/actions/runs/44861668971/job/136716212810)
+stops at strict analysis on one test line over 80 characters. `2c095882`
+wraps that line with the same assertion and identical application source.
 
 The [Linux validation at `d1eb02a9`](https://github.com/edgepillar/syrius/actions/runs/44851643307/job/136684120771)
 passes strict analysis after the subtitle formatting correction. It
