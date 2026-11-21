@@ -3376,7 +3376,7 @@ interface checks under V06 open.
 | Clean Windows Debug and Release | The setup is recorded in [docs/environment.md](docs/environment.md). The [Windows baseline](https://github.com/edgepillar/syrius/actions/runs/44884389804/job/136786402343) and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44886459324/job/136792691869) verify all twelve checks at `2a84a910`, including Debug and Release builds with normal exit, locked restoration and matching runtime library hashes. Application, asset, Windows runner, dependency and setup files have identical Git contents at `c49233e9`. The later revision adds the cold-start harness observation. |
 | Analysis and tests | The same Windows baseline reports zero errors and warnings and 5,131 non-chain passes with one skip. [Linux at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633) passes strict selected analysis and generated-file checks. The `c49233e9` harness source passes strict Dart analysis and 48 focused reader cases. |
 | All 47 screens in both themes | The [Settings](https://github.com/edgepillar/syrius/actions/runs/44885343932/job/136789313675) and [Details](https://github.com/edgepillar/syrius/actions/runs/44883459461/job/136783574962) readers verify 24 current-application captures and measured geometry. Whole-image verdicts and the full set of current-source captures remain under V01. |
-| Running motions, shaders and three 16 ms comparisons | [Cold startup at `c49233e9`](https://github.com/edgepillar/syrius/actions/runs/44887652760/job/136796348294) passes the build comparison and fails raster and distinct-frame comparisons. [Page change and disclosure at `31b5a23c`](https://github.com/edgepillar/syrius/actions/runs/44879951385/job/136772833896) fail their 16 ms comparisons. The complete motion and shader review remains under V02. |
+| Running motions, shaders and three 16 ms comparisons | [Cold startup at `508106cd`](https://github.com/edgepillar/syrius/actions/runs/44890039967/job/136803666461) passes the reported raster and distinct-frame comparisons and fails build. [Page change and disclosure at `31b5a23c`](https://github.com/edgepillar/syrius/actions/runs/44879951385/job/136772833896) fail their 16 ms comparisons. The complete motion and shader review remains under V02. |
 | Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) records the executed seam witnesses. The [Home reader](https://github.com/edgepillar/syrius/actions/runs/44887966468/job/136797306551), [Lock reader](https://github.com/edgepillar/syrius/actions/runs/44887966492/job/136797306090) and [Settings reader](https://github.com/edgepillar/syrius/actions/runs/44888439279/job/136798753064) verify eleven Home observations, two Lock refusals and eight Settings refusals from `564d01ab`. The fresh holder Token control remains open. |
 
 V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
@@ -3405,9 +3405,14 @@ while waiting for the original ZNN Token row. Its
 [independent reader](https://github.com/edgepillar/syrius/actions/runs/44888328085/job/136798413344)
 verifies the retained failure, complete entry output and zero exit codes for
 the application, entry and five nodes. Full lab closure qualification fails.
-The same run records node momentum generation errors. The cause of the missing
-row remains open. The [prepared holder run](https://github.com/edgepillar/syrius/actions/runs/44888568061)
-at `508106cd` exercises the prior successful route with an existing member.
+The probe selects the native ZNN standard. The Token list intentionally
+excludes both native standards in every filter, so that row cannot appear.
+The [prepared holder run](https://github.com/edgepillar/syrius/actions/runs/44888568061/job/136799151705)
+at `508106cd` targets an actual non-native member through the previously
+qualified isolated route. Its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44889937844/job/136803362250)
+retains 18 absent exact-confirmation observations in the initial lab send.
+The effect remains unresolved and the holder control is unreached. All five
+nodes exit normally. The application and entry closure are unqualified.
 
 The startup entry field at `508106cd` omits its full-window background draw
 when the startup shell supplies the matching opaque color. The ordinary and
@@ -3415,8 +3420,14 @@ nonmatching surfaces keep their fill. [Linux validation](https://github.com/edge
 passes strict analysis, the focused Ready and Lock tests, 5,131 non-chain
 tests with one skip, and generated-file verification. The focused EntryField
 case compares against the original opacity in both themes.
-[Cold timing](https://github.com/edgepillar/syrius/actions/runs/44888288552)
-is pending at that source.
+The [paired cold reader](https://github.com/edgepillar/syrius/actions/runs/44890039967/job/136803666461)
+verifies 84 redesign frames, 296 P06 frames and five normal exits from this
+source. The reported raster and distinct-frame comparisons pass. The
+longest build is 25.185 ms versus 18.525 ms on P06, so build fails. The
+redesign build starts 25.334 ms before the first film layout observation
+and finishes 149 microseconds before it. This bounds the slow build to the
+first observed film layout interval without identifying the responsible
+widget. The windows retain 24 and 364 frame-number gaps. V02 remains open.
 
 The [natural handoff](https://github.com/edgepillar/syrius/actions/runs/44888288785/job/136798294441)
 passes its Windows Release build. Its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44889440601/job/136801829007)
@@ -3427,11 +3438,12 @@ The original dark capture records `LAUNCH_HANDOFF_FRAME_MISSED` for the
 early slot. Both settled stages match the original well bounds. The natural
 motion batch remains incomplete.
 
-The [startup catalog](https://github.com/edgepillar/syrius/actions/runs/44888719740)
-and [paired page change and disclosure](https://github.com/edgepillar/syrius/actions/runs/44888768591)
-run at `a045c1ae`. The former covers the changed startup backdrop at the
-authored capture phases. The latter includes the compact Licences rule that
-landed after the previous `31b5a23c` timing source. Results are pending.
+The [startup catalog reader](https://github.com/edgepillar/syrius/actions/runs/44890175196/job/136804074764)
+verifies twelve `a045c1ae` PNGs from the original cold launch, launch settle,
+Lock states and Seed Quiz. The image digests and producer closure qualify.
+Whole-image verdicts remain open. The [paired page change and disclosure](https://github.com/edgepillar/syrius/actions/runs/44888768591)
+is still running at `a045c1ae`, which includes the compact Licences rule
+that landed after the previous `31b5a23c` timing source.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
