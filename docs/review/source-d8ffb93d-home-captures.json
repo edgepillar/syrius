@@ -1,0 +1,68 @@
+{
+  "actual": {
+    "01-home-rest-dark": {
+      "archive_member": "01-home-rest-dark.png",
+      "archive_sha256": "276c08ad76b047ec70ea78b336bb278eeb5456b74d4c68a8d2c73ab3cb53466c",
+      "catalog_family": "home",
+      "path": "276c08ad76b047ec70ea78b336bb278eeb5456b74d4c68a8d2c73ab3cb53466c",
+      "sha256": "d9442479635490b9fc25c80716080d50e9dcf34e344c79e9f4f76949ecb3bcc2",
+      "source_sha": "d8ffb93dbac0006b6421fb29113f33c3da6a1e9f"
+    },
+    "01-home-rest-light": {
+      "archive_member": "01-home-rest-light.png",
+      "archive_sha256": "276c08ad76b047ec70ea78b336bb278eeb5456b74d4c68a8d2c73ab3cb53466c",
+      "catalog_family": "home",
+      "path": "276c08ad76b047ec70ea78b336bb278eeb5456b74d4c68a8d2c73ab3cb53466c",
+      "sha256": "3c82c89491021ffcbc070701396202d8aae33e5865fe6675d03c8e857382de87",
+      "source_sha": "d8ffb93dbac0006b6421fb29113f33c3da6a1e9f"
+    },
+    "02-home-open-dark": {
+      "archive_member": "02-home-open-dark.png",
+      "archive_sha256": "276c08ad76b047ec70ea78b336bb278eeb5456b74d4c68a8d2c73ab3cb53466c",
+      "catalog_family": "home",
+      "path": "276c08ad76b047ec70ea78b336bb278eeb5456b74d4c68a8d2c73ab3cb53466c",
+      "sha256": "3cd27e1c268071b13d3e3ab14ae8e5f77e44d7a9fea5b200e87fe3ba7944da9f",
+      "source_sha": "d8ffb93dbac0006b6421fb29113f33c3da6a1e9f"
+    },
+    "02-home-open-light": {
+      "archive_member": "02-home-open-light.png",
+      "archive_sha256": "276c08ad76b047ec70ea78b336bb278eeb5456b74d4c68a8d2c73ab3cb53466c",
+      "catalog_family": "home",
+      "path": "276c08ad76b047ec70ea78b336bb278eeb5456b74d4c68a8d2c73ab3cb53466c",
+      "sha256": "3e4f8f384e0afc2647d56b3f7b6c1b338727a8497d913c1bc7ca0bac3f18f4e0",
+      "source_sha": "d8ffb93dbac0006b6421fb29113f33c3da6a1e9f"
+    },
+    "03-home-hidden-dark": {
+      "archive_member": "03-home-hidden-dark.png",
+      "archive_sha256": "276c08ad76b047ec70ea78b336bb278eeb5456b74d4c68a8d2c73ab3cb53466c",
+      "catalog_family": "home",
+      "path": "276c08ad76b047ec70ea78b336bb278eeb5456b74d4c68a8d2c73ab3cb53466c",
+      "sha256": "07025f310d3f1a1f031c80f603c6bee36c75a78aa34edbd5522e2d50bae660ef",
+      "source_sha": "d8ffb93dbac0006b6421fb29113f33c3da6a1e9f"
+    },
+    "03-home-hidden-light": {
+      "archive_member": "03-home-hidden-light.png",
+      "archive_sha256": "276c08ad76b047ec70ea78b336bb278eeb5456b74d4c68a8d2c73ab3cb53466c",
+      "catalog_family": "home",
+      "path": "276c08ad76b047ec70ea78b336bb278eeb5456b74d4c68a8d2c73ab3cb53466c",
+      "sha256": "47e165bf9a2d0a9ee9c4e426aaecfddf3b5bd19a27f50f1892507a81a304aca5",
+      "source_sha": "d8ffb93dbac0006b6421fb29113f33c3da6a1e9f"
+    },
+    "05-home-goto-dark": {
+      "archive_member": "05-home-goto-dark.png",
+      "archive_sha256": "276c08ad76b047ec70ea78b336bb278eeb5456b74d4c68a8d2c73ab3cb53466c",
+      "catalog_family": "home",
+      "path": "276c08ad76b047ec70ea78b336bb278eeb5456b74d4c68a8d2c73ab3cb53466c",
+      "sha256": "3506978b313702d4811636ee0e201927876da2510514e96bc44768fccc49b611",
+      "source_sha": "d8ffb93dbac0006b6421fb29113f33c3da6a1e9f"
+    },
+    "05-home-goto-light": {
+      "archive_member": "05-home-goto-light.png",
+      "archive_sha256": "276c08ad76b047ec70ea78b336bb278eeb5456b74d4c68a8d2c73ab3cb53466c",
+      "catalog_family": "home",
+      "path": "276c08ad76b047ec70ea78b336bb278eeb5456b74d4c68a8d2c73ab3cb53466c",
+      "sha256": "7a836efde774d0601693a0aeba8c646a904257b57046e5361f7bd5192239ae32",
+      "source_sha": "d8ffb93dbac0006b6421fb29113f33c3da6a1e9f"
+    }
+  }
+}

@@ -4887,7 +4887,7 @@ and generated-file verification. Native observation remains open under V02.
 | Toast | `test/toast/event_toast_test.dart` checks the 300 ms rise, 5 s drain and hover pause. | View the rise, pause and resumed drain. |
 | Zap arrived | `test/home/zap_sparks_test.dart` covers the 28 sparks and once-per-event behavior. | Observe the original animation using an explicitly identified preview or admitted isolated event. |
 | Object assembles | `test/lottie/app_lottie_test.dart` covers original asset timing and endpoints. | Observe the confirmed states and permitted hover replays. |
-| The eye | `test/hidden_balances/hidden_balances_test.dart` checks both original eye segments. | Observe both directions and masked values during the switch. |
+| The eye | `test/hidden_balances/hidden_balances_test.dart` checks both original eye segments. The [Windows Home reader at `d8ffb93d`](https://github.com/edgepillar/syrius/actions/runs/44963360005/job/137026831994) verifies 12 hide and 13 show observations, including intermediate frames in both directions and restoration of visible balances. The first observed endpoint arrives 535.741 ms and 551.840 ms after the respective tap replies. | Visually review the running eye and masked values. The sample offsets include observation delay. |
 | The bolt | `test/shell/strip/plasma_lifecycle_test.dart` checks repeat during generation and exit to idle. | Watch a complete loop while generation is in progress. |
 | Wrong password | The Lock catalog retains the wrong-password state after input. | See the 200 ms shake and original well replay as the submission is refused. |
 | Sync dot | `test/shell/strip/sync_pulse_test.dart` checks the 2.4 s pulse and the halo phase read from the original widget. The [Windows reader at `f1364c6a`](https://github.com/edgepillar/syrius/actions/runs/44934750545/job/136938840976) verifies intermediate phases, seven transparent observations and a 2.067810–2.492401 s interval between observed resumes. [Linux at the same source](https://github.com/edgepillar/syrius/actions/runs/44932698713/job/136932579266) passes both pulse cases, the full non-chain suite with 5,131 passes and one skip, and generated-file verification. | Visually review a full pulse in the running wallet. |
@@ -5093,6 +5093,17 @@ and both build DLLs have the same digest and pass the export and map checks.
 Application analysis reports zero errors and warnings, and the non-chain
 suite reports 5,132 passes and one skip. This evidence covers the Staking
 typography, Accelerator symbols and delayed Lock shadow. It precedes the
+Home eye observer and Tokens badge changes.
+
+The [Home producer at `d8ffb93d`](https://github.com/edgepillar/syrius/actions/runs/44961712736/job/137021738429)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44963360005/job/137026831994)
+verify eight Home PNGs and normal required closure. The [capture index](docs/review/source-d8ffb93d-home-captures.json)
+binds the Rest, Open, Hidden and Go To images to the original archive.
+Whole-image and running visual review remain open under V01 and V02.
+
+The [full Linux run at `82408f0c`](https://github.com/edgepillar/syrius/actions/runs/44962369342/job/137023769155)
+passes application and strict selected analysis, the non-chain unit and
+widget suite, and generated-file verification. This source includes the
 Home eye observer and Tokens badge changes.
 
 The [interaction phase receipt at `6174b00d`](https://github.com/edgepillar/syrius/actions/runs/44961056103/job/137019733574)
