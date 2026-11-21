@@ -568,11 +568,13 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
                 children: <Widget>[
                   if (owner != null && available)
                     _table(context, <Widget>[
-                      for (final String address in owner.members)
+                      for (final (int index, String address)
+                          in owner.members.indexed)
                         _addressRow(
                           context,
                           owner,
                           address,
+                          index + 1,
                           state.balances[address],
                           enabled,
                           current,
@@ -765,6 +767,7 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
     BuildContext context,
     AddressesSettingsBinding owner,
     String address,
+    int addressNumber,
     AddressesAccount? account,
     bool enabled,
     bool Function() current,
@@ -773,7 +776,8 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
     final bool selected = address == owner.selected;
     final Color choiceInk = selected ? tokens.znnInk : tokens.faint;
     final double scale = MediaQuery.textScalerOf(context).scale(1);
-    final String label = owner.labels[address] ?? address;
+    final String defaultLabel = context.l10n.addressDefaultLabel(addressNumber);
+    final String label = owner.labels[address] ?? defaultLabel;
     return ConstrainedBox(
       key: ValueKey<String>('addresses_row_$address'),
       constraints: BoxConstraints(minHeight: tokens.addressesRowMinHeight),
@@ -833,6 +837,14 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
                     spacing: tokens.fieldLabelGap,
                     children: <Widget>[
                       Text(label, style: tokens.bodyText),
+                      if (label != defaultLabel)
+                        Text(
+                          defaultLabel,
+                          style: tokens.bodyText.copyWith(
+                            fontSize: 12,
+                            color: tokens.dim,
+                          ),
+                        ),
                       if (selected)
                         Container(
                           key: const Key('addresses_selected_label'),

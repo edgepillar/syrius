@@ -86,6 +86,8 @@ void main() {
       (WidgetTester tester) async {
         _viewport(tester);
         final AddressesFixture source = AddressesFixture();
+        final String renamedAddress = source.members.last;
+        source.labels[renamedAddress] = 'Reserve';
         final String contact = fixtureAddress(8);
         await source.contacts.add(name: 'Alice', address: contact);
         final AddressesSettingsPresenter presenter = AddressesSettingsPresenter(
@@ -111,6 +113,27 @@ void main() {
         expect(find.byType(AmountText), findsNWidgets(4));
         final AppTokens tokens = AppTokens.of(
           tester.element(find.byKey(const Key('addresses_settings_page'))),
+        );
+        final Finder renamedRow = find.byKey(
+          ValueKey<String>('addresses_row_$renamedAddress'),
+        );
+        expect(
+          find.descendant(of: renamedRow, matching: find.text('Reserve')),
+          findsOneWidget,
+        );
+        final Text addressNumber = tester.widget<Text>(
+          find.descendant(of: renamedRow, matching: find.text('Address 2')),
+        );
+        expect(addressNumber.style!.fontSize, 12);
+        expect(addressNumber.style!.color, tokens.dim);
+        expect(
+          find.descendant(
+            of: find.byKey(
+              ValueKey<String>('addresses_row_${source.members.first}'),
+            ),
+            matching: find.text('Address 1'),
+          ),
+          findsOneWidget,
         );
         final Finder selected = find.byKey(
           const Key('addresses_selected_label'),
