@@ -3596,6 +3596,16 @@ verified the original results, including zero analyzer errors or warnings,
 assets, Windows runner and locked dependency files match `5f0a7863`. Final V06
 acceptance remains open for the later source.
 
+The current V06 source check compares `564d01ab`, which supplied the
+retained Home, Lock and Settings refusal trials, with the application at
+`a57d60a7`. The seam registry and shared gate, the shell shortcuts,
+Go To palette and holder token inline actions have identical Git contents.
+The [Linux tests at `fa12934e`](https://github.com/edgepillar/syrius/actions/runs/44914392285/job/136876775136)
+verify every registered service refusal, input and semantic gating, and
+the guarded shortcut and palette callback. The native results remain
+associated with their original trials. The current Windows baseline is
+still in progress.
+
 The original Home run also retains eight catalog images in both themes. The
 independent reader verifies the image digests and compares the four Home states
 with the same tracked references. Relative to the
