@@ -2854,6 +2854,14 @@ raster rank overruns, six after measured settlement. Disclosure records
 18, eight after settlement. Both 16 ms comparisons fail and all windows
 retain frame-number gaps. V02 remains open.
 
+At `cefa64d3`, Settings keeps its section menu in a separate paint
+boundary while the content changes. The existing transition case checks
+that the menu boundary stays mounted. [Linux validation](https://github.com/edgepillar/syrius/actions/runs/44858117813/job/136704975936)
+passes strict analysis, 5,129 non-chain tests with one skip, and
+generated-file verification. The [Windows timing run](https://github.com/edgepillar/syrius/actions/runs/44858117836)
+passes analysis and the Release harness build. Its paired measurement
+remains pending.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.

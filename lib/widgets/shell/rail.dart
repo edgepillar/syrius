@@ -58,6 +58,7 @@ const Map<String, String> _symbols = <String, String>{
       '<path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 '
       '10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>',
   'chevr': '<path d="m9 6 6 6-6 6"/>',
+  'chevl': '<path d="m15 6-6 6 6 6"/>',
   'chev': '<path d="m6 9 6 6 6-6"/>',
   'search':
       '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
@@ -120,11 +121,19 @@ String get _chordName =>
 /// An original symbol that inherits its control's foreground and icon size.
 class ShellSymbol extends StatelessWidget {
   /// Uses the control's icon theme unless a size or color is supplied.
-  const ShellSymbol(this._symbol, {this._size, this._color, super.key});
+  /// A directional symbol mirrors with the surrounding text direction.
+  const ShellSymbol(
+    this._symbol, {
+    this._size,
+    this._color,
+    this._directional = false,
+    super.key,
+  });
 
   final String _symbol;
   final double? _size;
   final Color? _color;
+  final bool _directional;
 
   @override
   Widget build(BuildContext context) {
@@ -134,6 +143,7 @@ class ShellSymbol extends StatelessWidget {
       _symbol,
       color: _color ?? inherited.color,
       size: _size ?? inherited.size,
+      directional: _directional,
     );
   }
 }

@@ -177,6 +177,11 @@ void main() {
         expect(theme.platform, foundation.TargetPlatform.windows);
         expect(theme.visualDensity, VisualDensity.compact);
         expect(originalBack.height, 26);
+        final Finder glyph = find.descendant(
+          of: back,
+          matching: find.byType(ShellSymbol),
+        );
+        expect(tester.getSize(glyph), const Size.square(14));
         for (final String word in quiz.questions.first.choices) {
           expect(tester.getSize(_choice(quiz, 0, word)).height, 26);
         }

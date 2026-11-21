@@ -110,9 +110,10 @@ class EntryCardSurface extends StatelessWidget {
                                             MaterialTapTargetSize.shrinkWrap,
                                       ),
                                       onPressed: onBack,
-                                      icon: Icon(
-                                        Icons.chevron_left,
+                                      icon: ShellSymbol(
+                                        'chevl',
                                         size: tokens.welcomeChevronSize,
+                                        directional: true,
                                       ),
                                       label: Text(context.l10n.entryBack),
                                     ),
