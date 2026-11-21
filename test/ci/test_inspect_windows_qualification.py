@@ -260,14 +260,15 @@ class WindowsQualificationTests(unittest.TestCase):
             inspect.emit('Hosted entry inspection', value)
 
     def test_entry_rgb_comparison_binds_both_originals(self):
-        actual = pixels(280, opaque=True, welcome_rows=(234,))
+        actual = pixels(280, opaque=True, welcome_rows=(234, 340))
         reference = pixels(280, opaque=True, welcome_rows=(235,))
         comparison = inspect.entry_pixel_comparison(actual, reference, 'welcome')
         self.assertEqual(comparison, dict(actual_sha256=inspect.archive.sha(actual),
-            reference_sha256=inspect.archive.sha(reference), changed_pixels=16,
-            changed_pixels_at_least_16=16, mean_rgb_error_milli=1,
+            reference_sha256=inspect.archive.sha(reference), changed_pixels=24,
+            changed_pixels_at_least_16=24, mean_rgb_error_milli=1,
             pixels_at_least_16_by_region=dict(caption=0, globe=0, introduction=16,
-                                             actions=0, footer=0, outside_crops=0)))
+                action_left_edge=0, action_badges=8, action_labels=0,
+                action_chevrons=0, action_right_edge=0, footer=0, outside_crops=0)))
         self.assertIsNone(inspect.entry_pixel_comparison(actual, pixels(), 'welcome'))
 
     def test_entry_digest_missing_extra_and_invalid_pixels_are_refused(self):

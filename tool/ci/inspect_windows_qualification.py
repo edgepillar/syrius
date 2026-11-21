@@ -515,7 +515,11 @@ ENTRY_REGIONS = {
         'caption': (0, 0, 1280, 30),
         'globe': (197, 185, 650, 637),
         'introduction': (684, 223, 1102, 307),
-        'actions': (684, 308, 1102, 560),
+        'action_left_edge': (684, 308, 704, 560),
+        'action_badges': (704, 308, 755, 560),
+        'action_labels': (755, 308, 1056, 560),
+        'action_chevrons': (1056, 308, 1082, 560),
+        'action_right_edge': (1082, 308, 1102, 560),
         'footer': (684, 564, 1102, 594),
     },
     'import': {
