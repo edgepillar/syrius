@@ -58,9 +58,9 @@ class AboutCard extends StatefulWidget {
 }
 
 class _AboutCardState extends State<AboutCard> {
+  final ValueNotifier<bool> _licencesOpened = ValueNotifier<bool>(false);
   AboutInformation _information = AboutInformation();
   int _informationEpoch = 0;
-  bool _licencesOpened = false;
 
   @override
   void initState() {
@@ -74,6 +74,12 @@ class _AboutCardState extends State<AboutCard> {
     if (!identical(oldWidget.loadInformation, widget.loadInformation)) {
       _readInformation();
     }
+  }
+
+  @override
+  void dispose() {
+    _licencesOpened.dispose();
+    super.dispose();
   }
 
   void _readInformation() {
@@ -167,32 +173,30 @@ class _AboutCardState extends State<AboutCard> {
                 children: <Widget>[
                   Panel(
                     key: const Key('about_licences'),
-                    child: StatefulBuilder(
-                      builder: (BuildContext context, StateSetter update) {
-                        return Disclosure(
-                          title: context.l10n.aboutLicences,
-                          keyPrefix: 'about_licences',
-                          headerPadding: tokens.aboutGroupHeaderPadding,
-                          showDividerWhenOpen: true,
-                          keepAlive: true,
-                          onChanged: (bool open) {
-                            if (open && !_licencesOpened) {
-                              update(() => _licencesOpened = true);
-                            }
-                          },
-                          child: _licencesOpened
-                              ? SizedBox(
-                                  height: licencesHeight,
-                                  child: Licences(
-                                    loadLicences: widget.loadLicences,
-                                    trailingBuilder:
-                                        widget.licencesTrailingBuilder,
-                                    preserveEndOnReveal: revealed,
-                                  ),
-                                )
-                              : const SizedBox.shrink(),
-                        );
+                    child: Disclosure(
+                      title: context.l10n.aboutLicences,
+                      keyPrefix: 'about_licences',
+                      headerPadding: tokens.aboutGroupHeaderPadding,
+                      showDividerWhenOpen: true,
+                      keepAlive: true,
+                      onChanged: (bool open) {
+                        if (open) _licencesOpened.value = true;
                       },
+                      // The registry mounts on first open. Only the body
+                      // listens so the disclosure owns its header rebuild.
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: _licencesOpened,
+                        builder: (_, bool opened, Widget? child) =>
+                            opened ? child! : const SizedBox.shrink(),
+                        child: SizedBox(
+                          height: licencesHeight,
+                          child: Licences(
+                            loadLicences: widget.loadLicences,
+                            trailingBuilder: widget.licencesTrailingBuilder,
+                            preserveEndOnReveal: revealed,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   if (widget.afterLicences != null) ...<Widget>[

@@ -536,9 +536,18 @@ void main() {
               .border;
       final double headerHeight = tester.getSize(toggle).height;
       final double closedHeight = tester.getSize(panel).height;
+      final Finder disclosure = find.descendant(
+        of: panel,
+        matching: find.byWidgetPredicate(
+          (Widget widget) =>
+              widget is Disclosure && widget.keyPrefix == 'about_licences',
+        ),
+      );
+      final Disclosure originalDisclosure = tester.widget(disclosure);
       expect(headerBorder(), isNull);
       await _tapVisible(tester, toggle);
       await tester.pump();
+      expect(tester.widget<Disclosure>(disclosure), same(originalDisclosure));
       final List<OffsetLayer> precedingLayers = <OffsetLayer>[];
       for (final String key in <String>[
         'about_strip',
