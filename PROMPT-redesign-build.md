@@ -4792,6 +4792,11 @@ verifies both interaction windows and their original exits. Both fail
 the 16 ms gate. The clean baseline, visual verdicts and timing acceptance
 remain open in the final audit.
 
+The [full Linux validation at `9bce41b6`](https://github.com/edgepillar/syrius/actions/runs/44951658884)
+covers the later Send dialog geometry and Settings menu changes. The
+[paired Windows timing run at the same source](https://github.com/edgepillar/syrius/actions/runs/44951558724)
+measures the updated transition against P06. Both runs are pending.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |
