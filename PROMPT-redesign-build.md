@@ -2643,6 +2643,19 @@ build time is 13.881 ms versus 20.009 ms on P06. Longest total time is
 gaps, respectively. This is a result for the recorded cold frames.
 Full motion and the other timing comparisons remain open under V02.
 
+The [paired cold run at `76416e26`](https://github.com/edgepillar/syrius/actions/runs/44841596624/job/136651071361)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44843338323/job/136656929260)
+verify 95 redesign and 1,834 P06 frames and five normal exits after
+covered Lock paint is skipped. Peak build times are 9.890 and 9.481 ms,
+respectively. The build comparison passes. The raster and distinct-frame
+comparisons fail. One handoff raster reaches 93.809 ms against 88.298 ms
+at the matching P06 rank. All other observed raster ranks meet the
+comparison. Both windows retain frame-number gaps. P06 timings also
+move between runs, so the result does not isolate the paint change's
+effect. [Linux at `76416e26`](https://github.com/edgepillar/syrius/actions/runs/44841194597/job/136649705122)
+passes strict analysis, 5,129 non-chain tests with one skip, and
+generated-file verification. V02 remains open.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.
