@@ -3894,6 +3894,20 @@ existing duration test now checks that a destination button is reused at
 passed application and strict selected analysis and generated-file verification.
 The non-chain suite reports 5,131 passes and one skip.
 
+The eight [Home captures at `706cc387`](https://github.com/edgepillar/syrius/actions/runs/44912121067/job/136869948464)
+were individually viewed beside their pinned references in both themes.
+The review retained one verified archive and finished with the owned
+review task closed.
+
+| Home state | Visible differences in both themes |
+| --- | --- |
+| Rest | The hero, two-column layout and Notifications tooltip occupy the reference areas. The isolated history has one received row, no collectable rewards and no pending card. The Activity header shows the selected address under the documented address-scope seam. |
+| Open | The expanded rail and Tokens disclosure are visible at their reference positions. The reference has three token rows and collectable rewards. The isolated Tokens list is empty. |
+| Hidden | The hero and visible Activity amount are masked and the green visibility icon is present. Additional masked rows and rewards in the references are absent in the isolated state. |
+| Go To | The palette and caption frost retain the reference placement, and all three result groups are present. The synthetic contact and blurred wallet contents differ. |
+
+No whole-image verdict changes under V01.
+
 The existing Windows Home catalog now samples the original toggle width
 on both opening and closing. The observer uses the original pointer and
 tree responses, restores the initial rail state and retains only bounded
