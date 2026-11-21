@@ -278,6 +278,11 @@ class WindowsQualificationTests(unittest.TestCase):
             caption=0, stage=8, lock_form=108, bottom=108, outside_crops=0))
         self.assertEqual(comparison['sample_rgb']['film'], dict(
             point=[300, 240], actual=[60, 60, 60], reference=[20, 20, 20]))
+        with mock.patch.object(Path, 'open', return_value=io.BytesIO(pixels(opaque=True))):
+            settled = inspect.startup_pixel_comparison('41-lock-screen-dark.png', handoff)
+        self.assertEqual(settled['sample_rgb']['left_of_stage'],
+                         comparison['sample_rgb']['left_of_stage'])
+        self.assertNotIn('film', settled['sample_rgb'])
 
     def test_welcome_action_alignment_finds_the_shift_to_the_reference(self):
         actual = pixels(opaque=True, welcome_rows=(340, 341), welcome_x=763)

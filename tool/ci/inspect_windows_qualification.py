@@ -618,14 +618,16 @@ def startup_pixel_comparison(name, data):
     caption = (0, 0, 1280, 32)
     regions = dict(caption=caption, body=(0, 32, 1280, 780))
     points = None
+    if name in startup.launch.SETTLE_FILES or name.startswith('41-lock-screen-'):
+        # The same exterior points also sample the settled Lock backdrop.
+        points = dict(upper_left=(80, 90), upper_right=(1200, 90),
+                      left_of_stage=(190, 400), right_of_stage=(1090, 400),
+                      bottom_left=(60, 744), bottom_right=(1220, 744))
     if name in startup.launch.SETTLE_FILES:
         # Fixed crops use the authored 0.4 checkpoint in the 1280 by 780 client.
         regions = dict(caption=caption, stage=(250, 149, 1030, 479),
                        lock_form=(430, 479, 850, 668), bottom=(0, 700, 1280, 780))
-        points = dict(upper_left=(80, 90), upper_right=(1200, 90),
-                      left_of_stage=(190, 400), right_of_stage=(1090, 400),
-                      film=(300, 240), form=(450, 520),
-                      bottom_left=(60, 744), bottom_right=(1220, 744))
+        points.update(film=(300, 240), form=(450, 520))
     result = pixel_comparison(data, reference, regions, sample_points=points)
     archive.need(result is not None)
     result['region_bounds'] = regions
