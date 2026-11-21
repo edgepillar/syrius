@@ -1153,10 +1153,16 @@ jobs:
             /tool/ci/
             /test/ci/
             /tools/devnet/lab/
+            /mockups/redesign/shots/39-launch-*.png
+            /mockups/redesign/shots/40-launch-settle-*.png
+            /mockups/redesign/shots/41-lock-screen-*.png
+            /mockups/redesign/shots/42-lock-wrong-*.png
+            /mockups/redesign/shots/43-lock-pick-*.png
             /mockups/redesign/shots/44-welcome-dark.png
             /mockups/redesign/shots/44-welcome-light.png
             /mockups/redesign/shots/45-import-dark.png
             /mockups/redesign/shots/45-import-light.png
+            /mockups/redesign/shots/46-seed-quiz-*.png
 
       - name: Test retained Windows receipt controls in memory
         run: |

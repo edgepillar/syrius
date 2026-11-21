@@ -223,7 +223,8 @@ def lock_picker_divider_row(encoded, theme):
 
 def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *,
                    settle=False, lock=False, quiz=False, timing=False, lock_seams=False,
-                   motion=False, motion_theme=launch.TIMING_THEME, shared_binaries=None):
+                   motion=False, motion_theme=launch.TIMING_THEME, shared_binaries=None,
+                   compare_png=None):
     """Bind startup evidence to its exact original closed actors."""
     archive.need(not timing or not (settle or lock or quiz))
     archive.need(not lock_seams or not (settle or lock or quiz or timing))
@@ -443,6 +444,11 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                     and (not timing or frame_window is not None)
                     and (not lock_seams or tuple(observed) == expected))
         archive.need(report['success'] is complete)
+        comparisons = {}
+        if complete and compare_png is not None:
+            for row in captures:
+                name = row['file']
+                comparisons[name] = compare_png(name, zipped.read(name))
     summary = dict(schema=1, scope='retained_' + report['scope'],
         source_head=head, source_tree=tree, source_run_id=run_id, source_attempt=1,
         archive_sha256=archive.sha(raw), manifest_sha256=archive.sha(manifest),
@@ -450,6 +456,8 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         filenames=[row['file'] for row in captures],
         error_codes=errors, visual_matches=0, runtime_started=False,
         **pins)
+    if comparisons:
+        summary['pixel_comparisons'] = comparisons
     if timing:
         summary.update(frame_count=0, window_us=None, frame_window_sha256=None)
         if frame_window is not None:
@@ -529,7 +537,8 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
 
 def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=False,
                              quiz=False, timing=False, lock_seams=False, motion=False, item=None,
-                             motion_theme=launch.TIMING_THEME, shared_binaries=None):
+                             motion_theme=launch.TIMING_THEME, shared_binaries=None,
+                             compare_png=None):
     pins = {}
     sources = [('tool/ci/windows_launch_catalog.py', None)]
     if timing:
@@ -619,10 +628,10 @@ def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=F
     return launch_archive(raw, item['digest'][7:], item['size_in_bytes'],
         head, tree, run_id, pins, settle=settle, lock=lock, quiz=quiz, timing=timing,
         lock_seams=lock_seams, motion=motion, motion_theme=motion_theme,
-        shared_binaries=shared_binaries)
+        shared_binaries=shared_binaries, compare_png=compare_png)
 
 
-def inspect_catalog_batch(client, *, head, tree, run_id, job):
+def inspect_catalog_batch(client, *, head, tree, run_id, job, compare_png=None):
     """Bind each archive to its original step and compare the shared binaries."""
     lanes = (
         (launch.JOB_STEP, 'Retain the original cold launch manifest and PNGs',
@@ -635,7 +644,8 @@ def inspect_catalog_batch(client, *, head, tree, run_id, job):
          quiz_catalog.ARTIFACT_PREFIX, {'quiz': True}),
     )
     return _inspect_catalog_lanes(client, head, tree, run_id, job, lanes,
-                                  BATCH_JOB_NAME, 'retained_windows_startup_catalog_batch')
+                                  BATCH_JOB_NAME, 'retained_windows_startup_catalog_batch',
+                                  compare_png=compare_png)
 
 
 def inspect_motion_batch(client, *, head, tree, run_id, job):
@@ -650,7 +660,8 @@ def inspect_motion_batch(client, *, head, tree, run_id, job):
                                   JOB_NAME, 'retained_windows_launch_motion_batch')
 
 
-def _inspect_catalog_lanes(client, head, tree, run_id, job, lanes, job_name, scope):
+def _inspect_catalog_lanes(client, head, tree, run_id, job, lanes, job_name, scope,
+                           *, compare_png=None):
     archive.need(job['name'] == job_name and job['labels'] == ['windows-latest']
         and job['head_sha'] == head and job['run_id'] == run_id
         and job['status'] == 'completed' and job['conclusion'] in ('success', 'failure'))
@@ -679,7 +690,8 @@ def _inspect_catalog_lanes(client, head, tree, run_id, job, lanes, job_name, sco
     shared_binaries, results = {}, []
     for name, (outcome, options) in expected.items():
         summary = _inspect_launch_artifact(client, head, tree, run_id,
-            item=items[name], shared_binaries=shared_binaries, **options)
+            item=items[name], shared_binaries=shared_binaries,
+            compare_png=compare_png, **options)
         archive.need((outcome == 'success') is summary['artifact_reported_success'])
         summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'],
                        original_capture_conclusion=outcome)

@@ -601,6 +601,18 @@ def pixel_comparison(data, reference, regions, *, align_welcome_actions=False):
     return result
 
 
+def startup_pixel_comparison(name, data):
+    """Compare a verified startup capture against the tracked original shot."""
+    references = Path(__file__).resolve().parents[2] / 'mockups/redesign/shots'
+    with (references / name).open('rb') as stream:
+        reference = stream.read(entry.MAX_PNG + 1)
+    archive.need(0 < len(reference) <= entry.MAX_PNG)
+    regions = dict(caption=(0, 0, 1280, 32), body=(0, 32, 1280, 780))
+    result = pixel_comparison(data, reference, regions)
+    archive.need(result is not None)
+    return result
+
+
 def entry_archive(raw, expected_sha, expected_size, head, tree, run_id, *, reference_dir=None):
     archive.need(type(raw) is bytes and type(expected_size) is int and digest(expected_sha)
                  and 0 < len(raw) == expected_size <= MAX_ENTRY_ARCHIVE
@@ -844,14 +856,24 @@ def main():
             PHASE = 'startup_artifacts'
             if job['name'] == startup.BATCH_JOB_NAME:
                 archive.need(run['head_branch'] == 'redesign')
+                reference_head = parent.get('WINDOWS_REFERENCE_HEAD')
+                archive.need(reference_head is None or
+                             re.fullmatch('[a-f0-9]{40}', reference_head) is not None)
                 batch_client = archive.Client(parent.get('GH_TOKEN'), max_calls=startup.BATCH_REQUESTS)
                 batch, results = startup.inspect_catalog_batch(
-                    batch_client, head=head, tree=tree, run_id=run_id, job=job)
+                    batch_client, head=head, tree=tree, run_id=run_id, job=job,
+                    compare_png=startup_pixel_comparison if reference_head else None)
                 if readers:
                     batch['parallel_windows_reader'] = {
                         key: readers[0][key] for key in ('id', 'conclusion')}
                 for summary in results:
+                    comparisons = summary.pop('pixel_comparisons', {})
                     emit('Hosted original startup catalog inspection', summary)
+                    for name, result in comparisons.items():
+                        emit('Retained startup pixel comparison', dict(
+                            scope='retained_startup_pixel_comparison', file=name,
+                            source_head=head, source_run_id=run_id, reference_head=reference_head,
+                            archive_sha256=summary['archive_sha256'], visual_matches=0, **result))
                 emit('Hosted shared Windows startup catalog inspection', batch)
                 return 0
             launch_titles = {

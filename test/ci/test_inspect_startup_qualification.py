@@ -741,7 +741,7 @@ class StartupInspectionTests(unittest.TestCase):
             source_sha=HEAD, source_tree=TREE, run_id=str(RUN), run_attempt='1',
             runner_sha256='e' * 64, payload_sha256='f' * 64, **pins)
 
-        def read(value, *, shared_binaries=None):
+        def read(value, *, shared_binaries=None, compare_png=None):
             buffer = io.BytesIO()
             with zipfile.ZipFile(buffer, 'w') as zipped:
                 zipped.writestr(zipfile.ZipInfo('manifest.json'), json.dumps(value))
@@ -749,12 +749,18 @@ class StartupInspectionTests(unittest.TestCase):
                     zipped.writestr(zipfile.ZipInfo(row['file']), pixels)
             raw = buffer.getvalue()
             return inspect.launch_archive(raw, inspect.archive.sha(raw), len(raw),
-                HEAD, TREE, RUN, pins, settle=settle, shared_binaries=shared_binaries)
+                HEAD, TREE, RUN, pins, settle=settle, shared_binaries=shared_binaries,
+                compare_png=compare_png)
 
         actual = read(report)
         self.assertTrue(actual['artifact_reported_success'])
         self.assertEqual(actual['verified_png_count'], 2)
         self.assertEqual(actual['filenames'], list(files))
+        compare_png = mock.Mock(return_value=dict(changed_pixels=7))
+        measured = read(report, compare_png=compare_png)
+        self.assertEqual(compare_png.call_args_list, [mock.call(name, pixels) for name in files])
+        self.assertEqual(measured['pixel_comparisons'], dict.fromkeys(files, dict(changed_pixels=7)))
+        self.assertEqual(measured['visual_matches'], 0)
         shared_binaries = {}
         self.assertEqual(read(report, shared_binaries=shared_binaries), actual)
         self.assertEqual(shared_binaries, dict(runner_sha256='e' * 64, payload_sha256='f' * 64))
@@ -770,8 +776,11 @@ class StartupInspectionTests(unittest.TestCase):
         failed = dict(attempts[2], action_complete=False, forced_kill=True)
         with self.assertRaises(inspect.archive.Refused):
             read(dict(report, attempts=attempts[:2] + [failed, attempts[3]]))
+        compare_png.reset_mock()
         partial = read(dict(report, attempts=attempts[:2] + [failed], captures=captures[:1],
-            source_stable=False, success=False, error_codes=['STARTUP_OBSERVATION_REFUSED']))
+            source_stable=False, success=False, error_codes=['STARTUP_OBSERVATION_REFUSED']),
+            compare_png=compare_png)
+        compare_png.assert_not_called()
         self.assertFalse(partial['artifact_reported_success'])
         self.assertEqual(partial['verified_png_count'], 1)
         if settle:
