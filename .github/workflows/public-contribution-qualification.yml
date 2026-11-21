@@ -1186,25 +1186,32 @@ jobs:
         uses: actions/checkout@v6
         with:
           persist-credentials: false
+          sparse-checkout-cone-mode: false
           sparse-checkout: |
-            .github/workflows
-            tool/ci
-            test/ci
-            tools/devnet/lab
-            harness
-            lib/utils
-            lib/screens/onboarding
-            lib/widgets/reusable_widgets
-            lib/seams
-            lib/rearchitecture/features/pillars/view
-            lib/rearchitecture/features/tokens
-            lib/rearchitecture/features/latest_transactions
-            lib/rearchitecture/utils/blocs/infinite_list
-            lib/rearchitecture/utils/widgets
-            lib/widgets/shell/strip
-            lib/widgets/modular_widgets/p2p_swap_widgets/modals
-            lib/widgets/modular_widgets/settings_widgets
-            lib/widgets/modular_widgets/help_widgets
+            /pubspec.yaml
+            /pubspec.lock
+            /.github/workflows/
+            /tool/ci/
+            /test/ci/
+            /tools/devnet/lab/
+            /harness/
+            /lib/utils/
+            /lib/screens/onboarding/
+            /lib/widgets/reusable_widgets/
+            /lib/seams/
+            /lib/rearchitecture/features/pillars/view/
+            /lib/rearchitecture/features/tokens/
+            /lib/rearchitecture/features/latest_transactions/
+            /lib/rearchitecture/utils/blocs/infinite_list/
+            /lib/rearchitecture/utils/widgets/
+            /lib/widgets/shell/strip/
+            /lib/widgets/modular_widgets/p2p_swap_widgets/modals/
+            /lib/widgets/modular_widgets/settings_widgets/
+            /lib/widgets/modular_widgets/help_widgets/
+            /mockups/redesign/shots/01-home-rest-*.png
+            /mockups/redesign/shots/02-home-open-*.png
+            /mockups/redesign/shots/03-home-hidden-*.png
+            /mockups/redesign/shots/05-home-goto-*.png
 
       - name: Test both retained lab and readonly archive boundaries in memory
         run: python -B -m tool.ci.run_readonly_reader_tests
@@ -1216,6 +1223,7 @@ jobs:
           SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
           WALLET_INSPECT_RUN: ${{ inputs.inspect_wallet_inspection_run }}
           WALLET_INSPECT_HEAD: ${{ inputs.inspect_wallet_inspection_head }}
+          WALLET_REFERENCE_HEAD: ${{ github.sha }}
         run: python -B -m tool.ci.inspect_wallet_inspection
 
   inspect-chain321:

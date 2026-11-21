@@ -99,6 +99,23 @@ def jobs(*, positive=True):
 
 
 class ReaderTests(unittest.TestCase):
+    def test_home_comparison_selects_each_named_reference_and_the_hero_crop(self):
+        screens = ('01-home-rest', '02-home-open', '03-home-hidden', '05-home-goto')
+        names = [f'{screen}-{theme}.png' for screen in screens for theme in ('dark', 'light')]
+        raw = packed([(name, name.encode(), stat.S_IFREG) for name in names])
+        reference_dir = Path('references')
+        with mock.patch.object(reader.producer, 'read_original',
+                side_effect=lambda path, _: path.name.encode()) as read, \
+                mock.patch.object(reader.windows, 'pixel_comparison',
+                    side_effect=lambda actual, reference, _: actual == reference):
+            comparisons = list(reader.home_pixel_comparisons(raw, reference_dir))
+        self.assertEqual([row['screen'] for row in comparisons], list(screens))
+        self.assertEqual([call.args[0] for call in read.call_args_list],
+                         [reference_dir / name for name in names])
+        self.assertEqual([row['region_bounds']['hero'][0] for row in comparisons],
+                         [60, 204, 60, 60])
+        self.assertTrue(all(row['pairs'] == {'dark': True, 'light': True} for row in comparisons))
+
     def test_home_notifications_geometry_requires_the_complete_tooltip_fill(self):
         files = []
         base = b'\0' + bytes((30, 30, 30, 255)) * 1280
@@ -520,17 +537,17 @@ class ReaderTests(unittest.TestCase):
         section = workflow.split('  inspect-wallet-inspection:\n', 1)[1].split(
             '  inspect-chain321:\n', 1)[0]
         block = section.split('          sparse-checkout: |\n', 1)[1].split('\n\n', 1)[0]
-        directories = tuple(line.strip() for line in block.splitlines() if line.strip())
-        self.assertTrue(directories)
+        paths = tuple(line.strip().strip('/') for line in block.splitlines() if line.strip())
+        self.assertTrue(paths)
         # The original workflow blob is read separately from its pinned Git tree.
         required = (set(reader.SOURCE_FILES) | set(reader.SURFACE_SEAM_SOURCES)
             | set(reader.READY_ARTWORK_SOURCES)
             | set(reader.HOME_GOTO_CONTACT_SOURCES))
         required.remove(reader.WORKFLOW_SOURCE)
-        missing = sorted(name for name in required if '/' in name
-            and not any(name.startswith(directory + '/') for directory in directories))
+        missing = sorted(name for name in required
+            if not any(name == path or name.startswith(path + '/') for path in paths))
         self.assertEqual(missing, [])
-        self.assertNotIn('lib', directories)
+        self.assertNotIn('lib', paths)
 
         chain = workflow.split('  inspect-chain321:\n', 1)[1]
         block = chain.split('          sparse-checkout: |\n', 1)[1].split('\n\n', 1)[0]

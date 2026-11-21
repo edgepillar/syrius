@@ -639,6 +639,23 @@ def home_notifications_geometry(raw):
     return dict(column=column, scan_rows=[top, bottom], themes=themes)
 
 
+def home_pixel_comparisons(raw, reference_dir):
+    """Compare the verified originals without changing visual verdicts."""
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        for screen in ('01-home-rest', '02-home-open', '03-home-hidden', '05-home-goto'):
+            rail_end = 204 if screen == '02-home-open' else 60
+            regions = dict(caption=(0, 0, 1280, 30), rail=(0, 30, rail_end, 780),
+                hero=(rail_end, 38, 1264, 190), body=(rail_end, 200, 1264, 724),
+                status=(rail_end, 724, 1264, 780))
+            pairs = {}
+            for theme in producer.THEMES:
+                name = f'{screen}-{theme}.png'
+                actual = zipped.read(name)
+                reference = producer.read_original(reference_dir / name, producer.debug.entry.MAX_PNG)
+                pairs[theme] = windows.pixel_comparison(actual, reference, regions)
+            yield dict(screen=screen, region_bounds=regions, pairs=pairs)
+
+
 def staking_empty_bands(raw):
     """Observe the strip and both cards in the verified Earn archive."""
     column, top, bottom = 1000, 35, 711
@@ -1101,6 +1118,7 @@ def main(parent=None):
             and job['conclusion'] == 'success')
     need(job['conclusion'] != 'success' or summary['native_inspection_qualified'])
     catalog = viewport_observation = None
+    home_comparisons = []
     reference = summary.pop('_home_catalog_reference', None)
     settings_reference = summary.pop('_settings_catalog_reference', None)
     navigation_reference = summary.pop('_navigation_catalog_reference', None)
@@ -1217,6 +1235,11 @@ def main(parent=None):
             if reference['schema'] == producer.HOME_CAPTURE_SCHEMAS['home']:
                 catalog.update(home_goto_geometry(catalog_archive))
                 catalog['notifications_tooltip'] = home_notifications_geometry(catalog_archive)
+                reference_head = parent.get('WALLET_REFERENCE_HEAD')
+                if reference_head is not None:
+                    need(digest(reference_head, 40))
+                    home_comparisons = list(home_pixel_comparisons(
+                        catalog_archive, repo / 'mockups/redesign/shots'))
             del catalog_archive
         viewport_name = 'viewport-observation-' + head + '-' + text + '-1'
         PHASE = 'viewport_artifact'
@@ -1273,6 +1296,11 @@ def main(parent=None):
             'retained_readonly_navigation_catalog': 'Retained readonly Navigation catalog',
             'retained_readonly_details_catalog': 'Retained readonly Details catalog'}[catalog['scope']]
         emit(title, catalog)
+        for comparison in home_comparisons:
+            emit('Retained Home pixel comparison', dict(
+                scope='retained_home_pixel_comparison', source_head=head,
+                source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
+                reference_head=reference_head, visual_matches=0, **comparison))
     if viewport_observation is not None:
         viewport_observation.update(viewport_observation_qualified=True, parent_closure_qualified=True,
             producer_job_id=job['id'], metadata_revalidated=True,

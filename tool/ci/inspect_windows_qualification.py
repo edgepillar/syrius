@@ -558,6 +558,12 @@ def welcome_action_alignment(actual, a_channels, expected, e_channels):
 
 def entry_pixel_comparison(data, reference, screen):
     """Summarize original RGB differences without writing or grading an image."""
+    return pixel_comparison(data, reference, ENTRY_REGIONS[screen],
+                            align_welcome_actions=screen == 'welcome')
+
+
+def pixel_comparison(data, reference, regions, *, align_welcome_actions=False):
+    """Compare original opaque client images in the supplied fixed regions."""
     def decode(png):
         encoded = base64.b64encode(png).decode('ascii')
         return _png_crop(encoded, (0, 1280), (0, 780))
@@ -566,7 +572,6 @@ def entry_pixel_comparison(data, reference, screen):
     expected, e_channels = decode(reference)
     if not (_opaque(actual, a_channels) and _opaque(expected, e_channels)):
         return None
-    regions = ENTRY_REGIONS[screen]
     by_region = dict.fromkeys(regions, 0)
     by_region['outside_crops'] = 0
     changed = high_contrast = total = 0
@@ -591,7 +596,7 @@ def entry_pixel_comparison(data, reference, screen):
                 changed_pixels=changed, changed_pixels_at_least_16=high_contrast,
                 pixels_at_least_16_by_region=by_region,
                 mean_rgb_error_milli=round(1000 * total / (1280 * 780 * 3)))
-    if screen == 'welcome':
+    if align_welcome_actions:
         result['action_alignment'] = welcome_action_alignment(actual, a_channels, expected, e_channels)
     return result
 
