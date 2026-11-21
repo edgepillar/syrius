@@ -278,6 +278,19 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         diagnostic_windows['current'] = windows
     if complete:
         diagnostic_windows['p06'] = old
+    raster_overruns = {}
+    if complete:
+        releases = samples['current']['observation'].get('tap_release_us', {})
+        for name in pair.WINDOWS:
+            if 'raster' not in comparisons[name]['exceeded']:
+                continue
+            overrun = cold.raster_rank_overruns(old[name], windows[name])
+            del overrun['by_phase']
+            if name in releases:
+                bounds = overrun['worst']['start_us']
+                overrun['worst']['start_from_release_us'] = [
+                    value - releases[name] for value in bounds]
+            raster_overruns[name] = overrun
     return dict(schema=1, scope='retained_' + pair.SCOPE,
         source_head=head, source_tree=tree, source_run_id=run_id, source_attempt=1,
         archive_sha256=expected_sha, manifest_sha256=manifest_sha,
@@ -327,6 +340,7 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         no_frame_number_gaps=None if comparisons is None else {
             name: value['no_frame_number_gaps'] for name,value in comparisons.items()},
         verified_comparisons=comparisons,
+        verified_raster_rank_overruns=raster_overruns,
         verified_window_diagnostics={
             label: {name: _window_diagnostics(
                         window, samples[label]['observation'].get('tap_release_us', {}).get(name),

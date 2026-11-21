@@ -942,6 +942,7 @@ def main():
     need(all(after[key] == run[key] for key in ("id", "head_sha", "run_attempt", "workflow_id", "status", "conclusion")))
     if interactive_result is not None:
         comparisons = interactive_result.pop('verified_comparisons', None)
+        raster_overruns = interactive_result.pop('verified_raster_rank_overruns', {})
         diagnostics = interactive_result.pop('verified_window_diagnostics', None)
         current_only = (diagnostics is not None and set(diagnostics) == {'current'}
             and comparisons is None and interactive_result['normal_node_exits'] == len(ROLES)
@@ -954,7 +955,7 @@ def main():
                 need(comparisons is not None)
                 comparison_summary = dict(identity,
                     scope='retained_paired_interactive_frame_comparisons',
-                    comparisons=comparisons)
+                    comparisons=comparisons, raster_rank_overruns=raster_overruns)
                 encoded_comparisons = json.dumps(comparison_summary, sort_keys=True, separators=(',', ':'))
                 need(len(encoded_comparisons.encode('ascii')) <= 3800)
                 print('::notice title=' + inspect_interactive_frame_pair.COMPARISON_TITLE

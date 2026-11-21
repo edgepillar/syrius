@@ -366,7 +366,13 @@ class InteractiveFramePairTests(unittest.TestCase):
         grouped['comparisons']['page_change'] = pair.shared.compare_windows(
             grouped['samples']['p06']['observation']['windows']['page_change'],
             measured['windows']['page_change'])
-        page_groups = self.project(grouped)['verified_window_diagnostics']['current']['page_change']
+        projected = self.project(grouped)
+        self.assertEqual(projected['verified_raster_rank_overruns'], {
+            'page_change': dict(count=3, unpaired=2, worst=dict(
+                rank=1, baseline_us=17000, current_us=24000, excess_us=7000,
+                start_us=[324100, 326000], start_from_release_us=[319100, 321000])),
+        })
+        page_groups = projected['verified_window_diagnostics']['current']['page_change']
         self.assertEqual(page_groups['nominal_motion_us'], 320_000)
         self.assertEqual(page_groups['raster_start_groups'], dict(
             before=dict(samples=1, slow_raster=0, max_raster_us=16000),
