@@ -50,6 +50,7 @@ VERSIONED_INPUTS = frozenset((
     'harness/bin/wallet_recipe.dart',
     'harness/app/ready_reference_artwork.dart',
     'lib/rearchitecture/utils/widgets/entry_field.dart',
+    'lib/utils/reference_artwork_source.dart',
     'lib/widgets/modular_widgets/help_widgets/about_card.dart',
     'lib/widgets/modular_widgets/help_widgets/originals_card.dart',
     'lib/widgets/modular_widgets/help_widgets/originals_tiles.dart',
