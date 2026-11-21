@@ -3556,6 +3556,9 @@ nodes and the verified install review with Cancel. The chain summaries in
 both settings pages now use the reference's quiet monospaced treatment.
 The existing widget cases check both styles. A fresh capture is needed
 for the updated typography and the four whole-image verdicts.
+
+#### Node and Addresses at `0e3b2f5d`
+
 [Linux at `0e3b2f5d`](https://github.com/edgepillar/syrius/actions/runs/44925437901/job/136910368034)
 passes strict analysis, generated-file verification and the non-chain
 suite with 5,131 passes and one skip. The [matching Windows run](https://github.com/edgepillar/syrius/actions/runs/44925437484/job/136910368545)
@@ -3569,6 +3572,8 @@ in light Addresses. The same reference digests are used. In each image,
 the change in the whole-window count equals the change in the summary
 region. The reference and live values still use different text. The pixel
 counts leave all four whole-image verdicts open.
+The earlier [Addresses matches at `cc574e9a`](#settings-at-cc574e9a) retain
+their original source and review scope.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
@@ -4072,7 +4077,17 @@ header reuse at the opening endpoint alongside the original 240 ms
 reveal, 220 ms chevron, paint retention and dismissal. [Linux at `3bf40fbd`](https://github.com/edgepillar/syrius/actions/runs/44928798045/job/136920661924)
 passes strict analysis, generated-file verification and the non-chain
 suite with 5,131 passes and one skip. The [paired Windows run](https://github.com/edgepillar/syrius/actions/runs/44928798337/job/136920665285)
-passes the preflight widget cases. Its native timing result is pending.
+passes the preflight widget cases. The [independent timing reader](https://github.com/edgepillar/syrius/actions/runs/44930565243/job/136926047195)
+qualifies collection for both windows. Both windows still fail the P06
+16 ms raster and distinct-frame comparisons, with frame-number gaps in
+all four samples. The disclosure build comparison passes in this pair.
+The longest disclosure frame totals 120.845 ms against 55.389 ms on P06.
+Its peak raster takes 71.222 ms and starts 637.663 ms after release, with
+six rasters above 16 ms starting after observed settlement. The longest
+page-change frame totals 298.333 ms against 126.332 ms on P06 and includes
+187.823 ms of raster wait. The page-change peak raster takes 192.936 ms,
+with three rasters above 16 ms starting after observed settlement. The
+two entry, five node and two wallet processes exit normally.
 
 The [first compatibility read of `08ecf715`](https://github.com/edgepillar/syrius/actions/runs/44926305670/job/136913047287)
 reads the original timings and refuses the paired images at the older
@@ -4733,12 +4748,12 @@ whole-image acceptance.
 | 27 | `swap-start` | X855 | X856 |
 | 28 | `az` | X857 | X858 |
 | 29 | `az-project` | X859 | X860 |
-| 30 | `set-node` | X861 | X862 |
+| 30 | `set-node` | [review](#node-and-addresses-at-0e3b2f5d) | [review](#node-and-addresses-at-0e3b2f5d) |
 | 31 | `set-security` | X488 | X489 |
 | 32 | `set-display` | [match](#settings-at-cc574e9a) | [match](#settings-at-cc574e9a) |
 | 33 | `set-wallet` | X863 | X864 |
 | 34 | `set-apps` | X865 | X866 |
-| 35 | `set-addresses` | [match](#settings-at-cc574e9a) | [match](#settings-at-cc574e9a) |
+| 35 | `set-addresses` | [review](#node-and-addresses-at-0e3b2f5d) | [review](#node-and-addresses-at-0e3b2f5d) |
 | 36 | `set-about` | X498 | X499 |
 | 37 | `set-licences` | X1192 | [X1192 follow-up](#about-disclosures-and-originals-at-fb3b2a01) |
 | 38 | `set-originals` | [X1192 follow-up](#about-disclosures-and-originals-at-fb3b2a01) | [X1192 follow-up](#about-disclosures-and-originals-at-fb3b2a01) |
