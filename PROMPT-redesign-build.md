@@ -5099,7 +5099,12 @@ The [Home producer at `d8ffb93d`](https://github.com/edgepillar/syrius/actions/r
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44963360005/job/137026831994)
 verify eight Home PNGs and normal required closure. The [capture index](docs/review/source-d8ffb93d-home-captures.json)
 binds the Rest, Open, Hidden and Go To images to the original archive.
-Whole-image and running visual review remain open under V01 and V02.
+The [retained pixel comparisons](https://github.com/edgepillar/syrius/actions/runs/44963827698/job/137028283836)
+use the same eight images. At the 16-level RGB threshold, the dark and
+light difference counts are 46,454 and 58,528 for Rest, 42,428 and
+52,547 for Open, 29,564 and 40,504 for Hidden, and 14,701 and 15,453
+for Go To. The counts include the rendered wallet state. Whole-image
+and running visual review remain open under V01 and V02.
 
 The [full Linux run at `82408f0c`](https://github.com/edgepillar/syrius/actions/runs/44962369342/job/137023769155)
 passes application and strict selected analysis, the non-chain unit and
