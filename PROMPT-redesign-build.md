@@ -3377,7 +3377,7 @@ interface checks under V06 open.
 | Analysis and tests | The same Windows baseline reports zero errors and warnings and 5,131 non-chain passes with one skip. [Linux at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633) passes strict selected analysis and generated-file checks. The `c49233e9` harness source passes strict Dart analysis and 48 focused reader cases. |
 | All 47 screens in both themes | The [Settings](https://github.com/edgepillar/syrius/actions/runs/44885343932/job/136789313675) and [Details](https://github.com/edgepillar/syrius/actions/runs/44883459461/job/136783574962) readers verify 24 current-application captures and measured geometry. Whole-image verdicts and the full set of current-source captures remain under V01. |
 | Running motions, shaders and three 16 ms comparisons | [Cold startup at `c49233e9`](https://github.com/edgepillar/syrius/actions/runs/44887652760/job/136796348294) passes the build comparison and fails raster and distinct-frame comparisons. [Page change and disclosure at `31b5a23c`](https://github.com/edgepillar/syrius/actions/runs/44879951385/job/136772833896) fail their 16 ms comparisons. The complete motion and shader review remains under V02. |
-| Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) records the executed seam witnesses. The [Home reader](https://github.com/edgepillar/syrius/actions/runs/44887966468/job/136797306551) and [Lock reader](https://github.com/edgepillar/syrius/actions/runs/44887966492/job/136797306090) verify eleven Home observations and two Lock refusals from `564d01ab`. Settings and the standalone surface observations remain pending in this pass. |
+| Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) records the executed seam witnesses. The [Home reader](https://github.com/edgepillar/syrius/actions/runs/44887966468/job/136797306551), [Lock reader](https://github.com/edgepillar/syrius/actions/runs/44887966492/job/136797306090) and [Settings reader](https://github.com/edgepillar/syrius/actions/runs/44888439279/job/136798753064) verify eleven Home observations, two Lock refusals and eight Settings refusals from `564d01ab`. The fresh holder Token control remains open. |
 
 V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
 
@@ -3391,6 +3391,27 @@ verdicts remain open. Required application and lab actors closed normally. The
 original receipt separately records forced cleanup of an owned compiler helper.
 The Lock run records two normal actor exits and exercises Wallet Picker and
 Password Recovery without producing screenshots.
+
+The Settings reader also verifies fourteen catalog images, normal entry and
+application exits and original node closure. All fourteen whole-image verdicts
+remain open. The [standalone surface producer](https://github.com/edgepillar/syrius/actions/runs/44886673319/job/136793338683)
+observes the Home update refusal, then reports `ENTRY_REFUSED` at command 12
+while waiting for the original ZNN Token row. Its
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/44888328085/job/136798413344)
+verifies the retained failure, complete entry output and zero exit codes for
+the application, entry and five nodes. Full lab closure qualification fails.
+The same run records node momentum generation errors. The cause of the missing
+row remains open. The [prepared holder run](https://github.com/edgepillar/syrius/actions/runs/44888568061)
+at `508106cd` exercises the prior successful route with an existing member.
+
+The startup entry field at `508106cd` omits its full-window background draw
+when the startup shell supplies the matching opaque color. The ordinary and
+nonmatching surfaces keep their fill. [Linux analysis and focused Ready and
+Lock tests](https://github.com/edgepillar/syrius/actions/runs/44888307732/job/136798347697)
+pass, including the EntryField comparison against the original opacity in
+both themes. [Cold timing](https://github.com/edgepillar/syrius/actions/runs/44888288552)
+and [natural handoff](https://github.com/edgepillar/syrius/actions/runs/44888288785)
+observations are pending at that source.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
