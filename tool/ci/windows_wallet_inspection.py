@@ -161,7 +161,7 @@ def home_capture_receipt(value):
         width=1280, height=780, scale=1, capture_returned=True)
     expected.update(dict(screen='home-rest', number=1) if schema == 1
                     else dict(screens=list(home_catalog_screens(schema))))
-    optional = {'rail_motion', 'sync_pulse', 'segment_motion'} if schema == 4 else set()
+    optional = {'rail_motion', 'sync_pulse', 'segment_motion', 'eye_motion'} if schema == 4 else set()
     need(set(expected) <= set(value) <= set(expected) | optional
          and all(type(value[k]) is type(v) and value[k] == v
                  for k, v in expected.items()), 'CAPTURE_REFUSED')
@@ -171,6 +171,28 @@ def home_capture_receipt(value):
         sync_pulse_receipt(value['sync_pulse'])
     if 'segment_motion' in value:
         segment_motion_receipt(value['segment_motion'])
+    if 'eye_motion' in value:
+        eye_motion_receipt(value['eye_motion'])
+    return value
+
+
+EYE_MOTION_SEGMENTS = {'hide': (3250, 30000), 'show': (200000, 226000)}
+
+
+def eye_motion_receipt(value):
+    """Validate ordered Home eye samples inside the original two segments."""
+    need(type(value) is dict and set(value) == set(EYE_MOTION_SEGMENTS), 'CAPTURE_REFUSED')
+    for direction, (start, end) in EYE_MOTION_SEGMENTS.items():
+        rows = value[direction]
+        need(type(rows) is list and 1 <= len(rows) <= 16
+             and all(type(row) is list and len(row) == 2
+                     and all(type(item) is int for item in row)
+                     and 0 <= row[0] <= 2_000_000 and start <= row[1] <= end
+                     for row in rows)
+             and all(a[0] < b[0] and a[1] <= b[1]
+                     for a, b in zip(rows, rows[1:]))
+             and rows[-1][1] == end and all(row[1] < end for row in rows[:-1]),
+             'CAPTURE_REFUSED')
     return value
 
 

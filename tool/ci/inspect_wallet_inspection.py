@@ -54,6 +54,7 @@ VERSIONED_INPUTS = frozenset((
     'harness/app/ready_reference_artwork.dart',
     'harness/app/readonly_native_commands.dart',
     'lib/rearchitecture/utils/widgets/entry_field.dart',
+    'lib/rearchitecture/utils/widgets/eye_toggle.dart',
     'lib/rearchitecture/utils/widgets/segment.dart',
     'lib/utils/reference_artwork_source.dart',
     'lib/widgets/modular_widgets/help_widgets/about_card.dart',
@@ -64,6 +65,7 @@ VERSIONED_INPUTS = frozenset((
     'lib/widgets/shell/strip/status_dot.dart',
     'lib/widgets/modular_widgets/settings_widgets/wallet_settings_view.dart',
     'lib/widgets/reusable_widgets/launch_film.dart',
+    'lib/widgets/reusable_widgets/app_lottie.dart',
     CAPTURE_AGENT_SOURCE, HOME_FIELD_SOURCE, HOME_GOTO_CONTACT_FIXTURE,
 ))
 JOB = 'Windows readonly inspection with owned chain-321'
@@ -518,6 +520,16 @@ def unpack_home_catalog(raw, expected_sha, expected_size, head, tree, run_id,
                 for (start, end), (next_start, next_end) in zip(resumes, resumes[1:])
             ],
         )
+    if 'eye_motion' in value['capture']:
+        samples = producer.eye_motion_receipt(value['capture']['eye_motion'])
+        result['eye_motion'] = {
+            direction: dict(
+                samples=samples[direction],
+                intermediate_observed=any(
+                    start < frame < end for _, frame in samples[direction]),
+            )
+            for direction, (start, end) in producer.EYE_MOTION_SEGMENTS.items()
+        }
     if 'segment_motion' in value['capture']:
         samples = producer.segment_motion_receipt(value['capture']['segment_motion'])
         result['segment_motion'] = {
@@ -1545,6 +1557,11 @@ def main(parent=None):
                 source_digests.update(source_files(repo, producer_tree, tree,
                     read_versioned_blob=read_blob,
                     files=('lib/rearchitecture/utils/widgets/segment.dart',)))
+            if 'eye_motion' in catalog:
+                source_digests.update(source_files(repo, producer_tree, tree,
+                    read_versioned_blob=read_blob,
+                    files=('lib/rearchitecture/utils/widgets/eye_toggle.dart',
+                           'lib/widgets/reusable_widgets/app_lottie.dart')))
             if reference['schema'] == producer.HOME_CAPTURE_SCHEMAS['home']:
                 source_digests.update(source_files(repo, producer_tree, tree,
                     read_versioned_blob=read_blob, files=(HOME_FIELD_SOURCE,)))
@@ -1619,6 +1636,7 @@ def main(parent=None):
         rail_motion = catalog.pop('rail_motion', None)
         sync_pulse = catalog.pop('sync_pulse', None)
         segment_motion = catalog.pop('segment_motion', None)
+        eye_motion = catalog.pop('eye_motion', None)
         emit(f'Retained readonly {family} catalog', catalog)
         sampling_scope = summary.get('sampling_scope')
         capture_family = (sampling_scope.removesuffix('-only')
@@ -1642,6 +1660,10 @@ def main(parent=None):
             emit('Retained readonly segment motion', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
                 manifest_sha256=catalog['manifest_sha256'], pages=segment_motion))
+        if eye_motion is not None:
+            emit('Retained readonly Home eye motion', dict(source_head=head,
+                source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
+                manifest_sha256=catalog['manifest_sha256'], directions=eye_motion))
         for comparison in catalog_comparisons:
             emit(f'Retained {family} pixel comparison', dict(
                 scope=f'retained_{family.lower()}_pixel_comparison', source_head=head,

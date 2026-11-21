@@ -13,6 +13,9 @@ const String readonlySyncPulseCommand = 'readonly-sync-pulse';
 /// Reads only the current Transfer or Tokens segment's thumb geometry.
 const String readonlySegmentMotionCommand = 'readonly-segment-motion';
 
+/// Reads only the original Home eye's frame and balance visibility.
+const String readonlyEyeMotionCommand = 'readonly-eye-motion';
+
 /// Probes one visible gate through the original readonly pointer path.
 const String readonlySeamPointerCommand = 'readonly-seam-pointer';
 
@@ -75,6 +78,7 @@ class ReadonlyNativeCommands {
     readonlySendWarningSyncCommand,
     readonlySyncPulseCommand,
     readonlySegmentMotionCommand,
+    readonlyEyeMotionCommand,
     readonlySeamPointerCommand,
     readonlyActivityMessageSeamCommand,
     readonlyAgedFuseFixtureCommand,
@@ -163,7 +167,8 @@ class ReadonlyNativeCommands {
             name == readonlyAgedFuseFixtureCommand ||
             name == readonlySendWarningSyncCommand ||
             name == readonlySyncPulseCommand ||
-            name == readonlySegmentMotionCommand) &&
+            name == readonlySegmentMotionCommand ||
+            name == readonlyEyeMotionCommand) &&
             (_wallet == null || retained.length != 1)) {
       throw const ReadonlyNativeCommandRefused();
     }

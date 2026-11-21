@@ -44,6 +44,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/widgets/token_card.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/widgets/token_inline_actions.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/eye_toggle.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/go_to_palette.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/list_entrance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/rise_switcher.dart';
@@ -873,6 +874,9 @@ class HarnessAgent {
     }
     if (command['cmd'] == readonlySegmentMotionCommand) {
       return _observeReadonlySegment();
+    }
+    if (command['cmd'] == readonlyEyeMotionCommand) {
+      return _observeReadonlyEye();
     }
     if (command['cmd'] == readonlySyncPulseCommand) {
       final ReadonlyNativeCommands? native = _readonlyNative;
@@ -6200,6 +6204,36 @@ class HarnessAgent {
 
     root.debugVisitOnstageChildren(visit);
     return match;
+  }
+
+  Map<String, Object?> _observeReadonlyEye() {
+    final ReadonlyNativeCommands? native = _readonlyNative;
+    final Element? root = WidgetsBinding.instance.rootElement;
+    if (native == null || root == null || kCurrentPage != Tabs.dashboard) {
+      throw const ReadonlyNativeCommandRefused();
+    }
+    _requireCaptureFrameIdle();
+    native.requireCurrentWallet();
+    final Element? owner = _findTimingChild(
+      root,
+      (Widget widget) => widget is EyeToggle && widget.keyPrefix == 'home',
+    );
+    if (owner == null) throw const ReadonlyNativeCommandRefused();
+    final EyeToggle eye = owner.widget as EyeToggle;
+    final bool? hidden = eye.visibility?.hidden;
+    final Widget? player = _findTimingChild(
+      owner,
+      (Widget child) => child is AppLottie && child.asset == AppLottieAsset.eye,
+    )?.widget;
+    final double? phase = player is AppLottie ? player.controller?.value : null;
+    if (hidden == null || phase == null || !phase.isFinite ||
+        phase < 0 || phase > 1) {
+      throw const ReadonlyNativeCommandRefused();
+    }
+    return <String, Object?>{
+      'hidden': hidden,
+      'frameMilli': (phase * EyeToggle.frames * 1000).round(),
+    };
   }
 
   Map<String, Object?> _observeReadonlySegment() {

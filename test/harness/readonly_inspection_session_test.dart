@@ -3103,7 +3103,7 @@ void main() {
     }
   });
 
-  test('segment motion waits for the new selection and restores both pages',
+  test('motion sampling restores the segment choices and Home balances',
       () async {
     String tab = 'dashboard';
     final Map<String, String> selected = <String, String>{
@@ -3117,6 +3117,8 @@ void main() {
     };
     String? previous;
     int frame = 0;
+    bool hidden = false;
+    int eyeFrame = 226000;
     final List<String> taps = <String>[];
     final ReadonlyInspectionSession session = ReadonlyInspectionSession(
       processId: 44,
@@ -3128,9 +3130,15 @@ void main() {
           } else {
             final String key = command['key']! as String;
             taps.add(key);
-            previous = command['settleMs'] == 0 ? selected[tab] : null;
-            selected[tab] = key.split('_').last;
-            frame = 0;
+            if (key == 'home_eye') {
+              expect(command['settleMs'], 0);
+              hidden = !hidden;
+              eyeFrame = hidden ? 8000 : 212000;
+            } else {
+              previous = command['settleMs'] == 0 ? selected[tab] : null;
+              selected[tab] = key.split('_').last;
+              frame = 0;
+            }
           }
         }
         final Map<String, dynamic> reply = _reply(wallet: true);
@@ -3152,6 +3160,11 @@ void main() {
               : target;
           reply['selected'] = choice;
           reply['geometry'] = <int>[...thumb, ...target];
+        }
+        if (command['cmd'] == 'readonly-eye-motion') {
+          reply['hidden'] = hidden;
+          reply['frameMilli'] = eyeFrame;
+          eyeFrame = hidden ? 30000 : 226000;
         }
         return reply;
       },
@@ -3175,6 +3188,11 @@ void main() {
       expect(samples.first.sublist(1, 3), <int>[28_000, 59_000]);
       expect(samples.last.sublist(1, 3), samples.last.sublist(3));
     }
+    final Map<String, List<List<int>>> eye = await session.observeEyeMotion();
+    expect(taps.skip(7), <String>['home_eye', 'home_eye']);
+    expect(eye['hide']!.map((List<int> row) => row[1]), <int>[8000, 30000]);
+    expect(eye['show']!.map((List<int> row) => row[1]), <int>[212000, 226000]);
+    expect(hidden, isFalse);
   });
 
   test('uncertain Home preparation holds before any UI input or restore',

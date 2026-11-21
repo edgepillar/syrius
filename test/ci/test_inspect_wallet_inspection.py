@@ -546,6 +546,12 @@ class ReaderTests(unittest.TestCase):
         self.assertTrue(segment['transfer']['intermediate_observed'])
         self.assertFalse(segment['tokens']['intermediate_observed'])
         self.assertEqual(segment['transfer']['first_settled_after_reply_us'], 320_000)
+        eye = dict(hide=[[40_000, 8_000], [470_000, 30_000]], show=[[450_000, 226_000]])
+        states['capture']['eye_motion'] = eye
+        with_eye = [('manifest.json', encode(states), stat.S_IFREG), *state_files[1:]]
+        self.assertEqual(inspect_states(with_eye)['eye_motion'], dict(
+            hide=dict(samples=eye['hide'], intermediate_observed=True),
+            show=dict(samples=eye['show'], intermediate_observed=False)))
         for bad_files in (state_files[:-1], state_files + [originals[1]], originals):
             with self.subTest(schema=4, members=len(bad_files)), self.assertRaises(
                     (reader.archive.Refused, reader.producer.Refused)):

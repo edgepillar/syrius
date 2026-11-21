@@ -261,6 +261,7 @@ Future<Map<String, Object>> captureReadonlyHomeGotoStates({
     if (observeMotion) 'rail_motion': await session.observeRailMotion(),
     if (observeMotion) 'sync_pulse': await session.observeSyncPulse(),
     if (observeMotion) 'segment_motion': await session.observeSegmentMotion(),
+    if (observeMotion) 'eye_motion': await session.observeEyeMotion(),
   };
 }
 

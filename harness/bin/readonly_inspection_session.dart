@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../app/readonly_native_commands.dart'
     show readonlyActivityMessageSeamCommand, readonlyAgedFuseFixtureCommand,
+        readonlyEyeMotionCommand,
         readonlyHomeZapPreviewCommand,
         readonlySeamPointerCommand,
         readonlySegmentMotionCommand,
@@ -58,6 +59,7 @@ class ReadonlyInspectionSession {
     readonlySendWarningSyncCommand,
     readonlySyncPulseCommand,
     readonlySegmentMotionCommand,
+    readonlyEyeMotionCommand,
     readonlySeamPointerCommand,
     readonlyActivityMessageSeamCommand,
     readonlyAgedFuseFixtureCommand,
@@ -99,7 +101,8 @@ class ReadonlyInspectionSession {
               name == readonlyAgedFuseFixtureCommand ||
               name == readonlySendWarningSyncCommand ||
               name == readonlySyncPulseCommand ||
-              name == readonlySegmentMotionCommand) &&
+              name == readonlySegmentMotionCommand ||
+              name == readonlyEyeMotionCommand) &&
               (!_walletBound || command.length != 1)) {
         _refuse(ReadonlyInspectionReason.command);
       }
@@ -260,6 +263,64 @@ class ReadonlyInspectionSession {
     }
     await _requireScreenHome();
     return samples;
+  }
+
+  /// Samples both directions of the original Home balance eye and restores it.
+  Future<Map<String, List<List<int>>>> observeEyeMotion() async {
+    await _requireScreenHome();
+    const Duration budget = Duration(seconds: 2);
+    const Duration interval = Duration(milliseconds: 40);
+
+    Future<(bool, int)> read(Duration timeout) async {
+      final Map<String, dynamic> reply = await send(
+        <String, Object?>{'cmd': readonlyEyeMotionCommand},
+        timeout,
+      );
+      final Object? hidden = reply['hidden'];
+      final Object? frame = reply['frameMilli'];
+      if (reply['ok'] != true || hidden is! bool || frame is! int) {
+        _refuse(ReadonlyInspectionReason.reply);
+      }
+      return (hidden, frame);
+    }
+
+    if (await read(budget) != (false, 226000)) {
+      _refuse(ReadonlyInspectionReason.reply);
+    }
+    final Map<String, List<List<int>>> result = <String, List<List<int>>>{};
+    for (final bool hide in <bool>[true, false]) {
+      final int first = hide ? 3250 : 200000;
+      final int last = hide ? 30000 : 226000;
+      final Map<String, dynamic> tapped = await send(
+        <String, Object?>{'cmd': 'tap', 'key': 'home_eye', 'settleMs': 0},
+        budget,
+      );
+      if (tapped['ok'] != true) _refuse(ReadonlyInspectionReason.reply);
+      final Stopwatch clock = Stopwatch()..start();
+      final List<List<int>> samples = <List<int>>[];
+      for (int index = 0; index < 16 && clock.elapsed < budget; index++) {
+        final (bool hidden, int frame) = await read(budget - clock.elapsed);
+        if (clock.elapsed > budget) break;
+        if (hidden == hide) {
+          if (frame < first || frame > last ||
+              (samples.isNotEmpty && frame < samples.last[1])) {
+            _refuse(ReadonlyInspectionReason.reply);
+          }
+          samples.add(<int>[clock.elapsedMicroseconds, frame]);
+          if (frame == last) break;
+        } else if (samples.isNotEmpty) {
+          _refuse(ReadonlyInspectionReason.reply);
+        }
+        if (clock.elapsed + interval >= budget) break;
+        await Future<void>.delayed(interval);
+      }
+      if (samples.isEmpty || samples.last[1] != last) {
+        _refuse(ReadonlyInspectionReason.reply);
+      }
+      result[hide ? 'hide' : 'show'] = samples;
+    }
+    await _requireScreenHome();
+    return result;
   }
 
   /// Observes the original thumb after an ordinary segment tap on each page.

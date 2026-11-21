@@ -66,7 +66,6 @@ class EyeToggle extends StatefulWidget {
   final BalanceVisibility? visibility;
 
   /// The file's length in frames; a controller value is a frame over this.
-  @visibleForTesting
   static const double frames = 232;
 
   /// Where the controller rests while balances are hidden: the eye open.

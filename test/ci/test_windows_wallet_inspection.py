@@ -668,6 +668,14 @@ class InspectionTests(unittest.TestCase):
             with self.subTest(segment_motion=invalid), self.assertRaises(inspection.Refused):
                 inspection.home_capture_receipt(
                     dict(catalog, segment_motion=dict(segments, transfer=invalid)))
+        eye = dict(hide=[[5_000, 3_250], [470_000, 30_000]], show=[[450_000, 226_000]])
+        self.assertIs(inspection.eye_motion_receipt(eye), eye)
+        for invalid in ([[30_000, 226_000], [40_000, 226_000]],
+                        [[40_000, 199_999], [50_000, 226_000]],
+                        [[40_000, 222_000], [30_000, 226_000]],
+                        [[40_000, 222_000]]):
+            with self.subTest(eye_motion=invalid), self.assertRaises(inspection.Refused):
+                inspection.home_capture_receipt(dict(catalog, eye_motion=dict(eye, show=invalid)))
         for invalid in (dict(extended, closing=[[25, 40, 14, 0]]),
                         dict(extended, closing=[[25, 40]]),
                         dict(extended, opening=[[25, 184, 3142, 1001]]),
