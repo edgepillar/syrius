@@ -3358,6 +3358,18 @@ Ordinary entry capture was skipped in that run. The baseline predates
 the fixed Settings viewport and leaves the final-source build and
 interface checks under V06 open.
 
+### End-state audit at `c49233e9` (2026-11-21)
+
+| Original requirement | Current evidence |
+| --- | --- |
+| Clean Windows Debug and Release | The setup is recorded in [docs/environment.md](docs/environment.md). The [Windows baseline](https://github.com/edgepillar/syrius/actions/runs/44884389804/job/136786402343) and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44886459324/job/136792691869) verify all twelve checks at `2a84a910`, including Debug and Release builds with normal exit, locked restoration and matching runtime library hashes. Application, asset, Windows runner, dependency and setup files have identical Git contents at `c49233e9`. The later revision adds the cold-start harness observation. |
+| Analysis and tests | The same Windows baseline reports zero errors and warnings and 5,131 non-chain passes with one skip. [Linux at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633) passes strict selected analysis and generated-file checks. The `c49233e9` harness source passes strict Dart analysis and 48 focused reader cases. |
+| All 47 screens in both themes | The [Settings](https://github.com/edgepillar/syrius/actions/runs/44885343932/job/136789313675) and [Details](https://github.com/edgepillar/syrius/actions/runs/44883459461/job/136783574962) readers verify 24 current-application captures and measured geometry. Whole-image verdicts and the full set of current-source captures remain under V01. |
+| Running motions, shaders and three 16 ms comparisons | [Cold startup at `38153592`](https://github.com/edgepillar/syrius/actions/runs/44885559757/job/136789966502) fails the build comparison. [Page change and disclosure at `31b5a23c`](https://github.com/edgepillar/syrius/actions/runs/44879951385/job/136772833896) fail their 16 ms comparisons. The [new cold run](https://github.com/edgepillar/syrius/actions/runs/44885969186) adds the film-layout observation. The complete motion and shader review remains under V02. |
+| Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) records the executed seam witnesses. The [Windows interface reader at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44877853952/job/136766426791) verifies eleven scoped observations. A final interface pass still binds these refusals to the accepted revision. |
+
+V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.
@@ -3719,7 +3731,7 @@ and generated-file verification. Native observation remains open under V02.
 | V03 | done | 2026-11-12T03:23Z | Source648 673fe4a19468, Source670 2b2c4abdadae, Source676 5d555665a643 and Source686 15fec4c9120f provide executed native refusals for all fifteen current seam values and pointer/keyboard refusal for the only seamed palette target. No direct missing-feature shortcut or other seamed palette target is registered. All 1,213 current runtime entries match Source686; the sole older token observer difference is covered by its holder trial. Source670's producer control list remains distinct from its legacy reader's context/closure proof. The [Source695 audit](docs/review/source695-seam-coverage.md) closes the original requirement without relabelling the later incomplete eleven-control Home batch or its failures. No new native run or visual match is claimed. |
 | V04 | done | 2026-10-31T23:34Z | All four independently qualified Source265 minimum-window/Arabic originals were actually viewed in both themes. The owned review closes SUCCESS with actual controller exit zero; required original native closure stays source-bound. Minimum controls fit and RTL layout mirrors. English fallback/missing Arabic copy is retained as X414; exact saved locale preference and Arabic glyph quality remain separate unqualified observations |
 | V05 | done | 2026-11-18T13:45Z | fdb88d89 commits the fresh independent review of all 94 exact 28f9c121 pairs and X821 through X875. The visual verdicts guide further comparisons under V01. [Independent review](docs/review/source-28f9c121-independent-visual-review.md). |
-| V06 | review | 2026-11-20 | The [five-item audit](#end-state-audit-at-590d3717-2026-11-20) records the [clean Windows builds and tests at `512605b7`](https://github.com/edgepillar/syrius/actions/runs/44785850020/job/136460390319). Visual and motion acceptance and the final interface check remain open. |
+| V06 | review | 2026-11-21 | The [five-item audit](#end-state-audit-at-c49233e9-2026-11-21) records independently verified Windows builds and tests at `2a84a910`. Visual and motion acceptance and the final interface check remain open. |
 | X01 | done | 2026-10-21T23:26Z | e13abb387577 restores loading-list sweep ink in lib/rearchitecture/utils/widgets/motion/skeleton.dart; all 19 existing Skeleton tests pass unchanged |
 | X02 | done | 2026-10-21T23:57Z | e13abb387577 keeps the status-strip dot visible at narrow widths and fixes asynchronous visibility tests |
 | X03 | done | 2026-10-21T23:57Z | e13abb387577 parses the bridge test's HTTP head before binary frames; compression refusal assertions retained |
