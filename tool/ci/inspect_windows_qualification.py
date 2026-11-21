@@ -432,7 +432,25 @@ ENTRY_REFERENCE_FILES = {
 }
 
 
-def entry_pixel_comparison(data, reference):
+ENTRY_REGIONS = {
+    'welcome': {
+        'caption': (0, 0, 1280, 30),
+        'globe': (197, 185, 650, 637),
+        'introduction': (684, 223, 1102, 307),
+        'actions': (684, 308, 1102, 560),
+        'footer': (684, 564, 1102, 594),
+    },
+    'import': {
+        'caption': (0, 0, 1280, 30),
+        'heading_and_steps': (324, 193, 955, 306),
+        'drop_zone': (324, 306, 955, 451),
+        'seed_field': (324, 451, 955, 542),
+        'footer_controls': (324, 542, 955, 620),
+    },
+}
+
+
+def entry_pixel_comparison(data, reference, screen):
     """Summarize original RGB differences without writing or grading an image."""
     def decode(png):
         encoded = base64.b64encode(png).decode('ascii')
@@ -442,19 +460,30 @@ def entry_pixel_comparison(data, reference):
     expected, e_channels = decode(reference)
     if not (_opaque(actual, a_channels) and _opaque(expected, e_channels)):
         return None
+    regions = ENTRY_REGIONS[screen]
+    by_region = dict.fromkeys(regions, 0)
+    by_region['outside_crops'] = 0
     changed = high_contrast = total = 0
-    for actual_row, expected_row in zip(actual, expected):
-        for a, e in zip(range(0, len(actual_row), a_channels),
-                        range(0, len(expected_row), e_channels)):
+    for y, (actual_row, expected_row) in enumerate(zip(actual, expected)):
+        active_regions = [(name, left, right)
+                          for name, (left, top, right, bottom) in regions.items()
+                          if top <= y < bottom]
+        for x, (a, e) in enumerate(zip(range(0, len(actual_row), a_channels),
+                                      range(0, len(expected_row), e_channels))):
             red = abs(actual_row[a] - expected_row[e])
             green = abs(actual_row[a + 1] - expected_row[e + 1])
             blue = abs(actual_row[a + 2] - expected_row[e + 2])
             difference = red + green + blue
             changed += difference != 0
-            high_contrast += red >= 16 or green >= 16 or blue >= 16
+            if red >= 16 or green >= 16 or blue >= 16:
+                high_contrast += 1
+                region = next((name for name, left, right in active_regions
+                               if left <= x < right), 'outside_crops')
+                by_region[region] += 1
             total += difference
     return dict(reference_sha256=archive.sha(reference), actual_sha256=archive.sha(data),
                 changed_pixels=changed, changed_pixels_at_least_16=high_contrast,
+                pixels_at_least_16_by_region=by_region,
                 mean_rgb_error_milli=round(1000 * total / (1280 * 780 * 3)))
 
 
@@ -490,7 +519,7 @@ def entry_archive(raw, expected_sha, expected_size, head, tree, run_id, *, refer
                 with (reference_dir / ENTRY_REFERENCE_FILES[name]).open('rb') as stream:
                     reference = stream.read(entry.MAX_PNG + 1)
                 archive.need(0 < len(reference) <= entry.MAX_PNG)
-                comparisons[name] = entry_pixel_comparison(data, reference)
+                comparisons[name] = entry_pixel_comparison(data, reference, name.split('-', 1)[0])
     summary.update(archive_sha256=archive.sha(raw), manifest_sha256=archive.sha(manifest),
                    import_connector_coverage=connector, import_drop_border_coverage=drop,
                    welcome_text_bounds=welcome, entry_pixel_comparisons=comparisons)
@@ -743,7 +772,8 @@ def main():
         if any(value is not None for value in comparisons.values()):
             emit('Hosted entry pixel comparisons', dict(
                 scope='retained_entry_pixel_comparisons', **binding,
-                reference_head=reference_head, size=[1280, 780], comparisons=comparisons))
+                reference_head=reference_head, size=[1280, 780],
+                region_bounds=ENTRY_REGIONS, comparisons=comparisons))
         return 0
     except (Exception, KeyboardInterrupt):
         encoded = json.dumps(dict(scope='retained_windows_qualification_observation',
