@@ -2799,7 +2799,19 @@ tests with one skip, and generated-file verification. The
 [Windows run](https://github.com/edgepillar/syrius/actions/runs/44853738458/job/136690899424)
 passes gated wallet analysis, the selected harness tests and the current
 Release harness build. Both runs are bound to the corrected source.
-The paired Windows timing measurements remain pending.
+The [independent timing reader](https://github.com/edgepillar/syrius/actions/runs/44855981158/job/136698188939)
+verifies both original windows and two normal entry, two normal wallet
+and five normal node exits. The page fade settles at 571.070 ms on the
+measurement clock, 465.320 ms after pointer release. Of ten page-change
+raster rank overruns, three precede release, four fall between release and
+the observed settlement, two follow settlement, and one overlaps a
+boundary. The worst raster is 204.947 ms against the corresponding P06
+rank of 125.396 ms. It starts between 199.382 and 248.949 ms after release.
+The longest page frame is 272.970 ms, including 188.835 ms waiting for
+raster. The disclosure has 12 raster rank overruns. Eight precede
+settlement, three follow it and one crosses it. Page change fails raster
+and distinct-frame comparisons. Disclosure also fails build. All four
+windows retain frame-number gaps. V02 remains open.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
