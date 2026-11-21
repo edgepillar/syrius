@@ -635,6 +635,10 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
                 summary: selectedAccount == null
                     ? null
                     : context.l10n.addressesBlockCount(selectedAccount.height),
+                summaryStyle: tokens.dataText.copyWith(
+                  fontSize: 12.5,
+                  color: tokens.dim,
+                ),
                 onChanged: (bool open) {
                   if (open && current() && available) {
                     unawaited(_presenter.loadChain());

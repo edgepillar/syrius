@@ -448,6 +448,7 @@ class _NodeSettingsViewState extends State<NodeSettingsView>
 
   @override
   Widget build(BuildContext context) {
+    final AppTokens tokens = AppTokens.of(context);
     final NodeSettingsState state = _presenter.state;
     final String? selectedNode = state.activeNode;
     final NodeSettingsPresenter owner = _presenter;
@@ -577,6 +578,10 @@ class _NodeSettingsViewState extends State<NodeSettingsView>
                   title: context.l10n.nodeSettingsChainTitle,
                   summary: context.l10n.nodeSettingsClientChain(
                     state.clientChain,
+                  ),
+                  summaryStyle: tokens.dataText.copyWith(
+                    fontSize: 13,
+                    color: tokens.dim,
                   ),
                   keepAlive: true,
                   keyPrefix: 'node_settings_chain',

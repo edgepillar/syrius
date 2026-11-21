@@ -3545,6 +3545,18 @@ The exact-source comparison now selects the prepared archive for Addresses
 as well as Node. Plain Settings captures remain diagnostic when the prepared
 state is missing. Five in-memory archive and capture-selection tests pass.
 
+All four `835ed3f0` originals were viewed beside their references after
+checking each image digest. Both Addresses images show the sample name
+beside Address 3. The live balances, contact history and chain height
+differ. The reference radio glyph is compressed in the image even though
+its authored style specifies a 16 px circle. The Node references show
+reachability and latency for other nodes, and a different update action
+group. The isolated wallet shows the selected lab connection, untested
+nodes and the verified install review with Cancel. The chain summaries in
+both settings pages now use the reference's quiet monospaced treatment.
+The existing widget cases check both styles. A fresh capture is needed
+for the updated typography and the four whole-image verdicts.
+
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
 with one skip and generated-file verification. That full run includes

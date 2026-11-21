@@ -252,7 +252,10 @@ void main() {
           find.byKey(const Key('addresses_account_chain_toggle')),
           findsOneWidget,
         );
-        expect(find.text('3 blocks'), findsOneWidget);
+        final Text blockCount = tester.widget<Text>(find.text('3 blocks'));
+        expect(blockCount.style?.fontFamily, tokens.monoFontFamily);
+        expect(blockCount.style?.fontSize, 12.5);
+        expect(blockCount.style?.color, tokens.dim);
         expect(find.byKey(const Key('addresses_label_field')), findsNothing);
         expect(
           tester

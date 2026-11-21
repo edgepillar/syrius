@@ -569,6 +569,14 @@ void main() {
   ) async {
     await open(tester);
     final Finder toggle = find.byKey(const Key('node_settings_chain_toggle'));
+    final AppTokens tokens = AppTokens.of(tester.element(toggle));
+    final Text chain = tester.widget<Text>(find.descendant(
+      of: toggle,
+      matching: find.text('Client chain 1'),
+    ));
+    expect(chain.style?.fontFamily, tokens.monoFontFamily);
+    expect(chain.style?.fontSize, 13);
+    expect(chain.style?.color, tokens.dim);
     await tester.tap(toggle);
     await tester.pump(const Duration(milliseconds: 250));
     final Finder input = find.byKey(const Key('node_settings_client_chain'));

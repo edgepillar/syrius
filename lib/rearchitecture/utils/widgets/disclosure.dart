@@ -118,6 +118,7 @@ class Disclosure extends StatefulWidget {
     required this.child,
     this.count,
     this.summary,
+    this.summaryStyle,
     this.summaryColumnPercent,
     this.storeKey,
     this.initiallyOpen = false,
@@ -151,6 +152,7 @@ class Disclosure extends StatefulWidget {
   }) : title = null,
        count = null,
        summary = null,
+       summaryStyle = null,
        summaryColumnPercent = null,
        keyPrefix = null,
        titleStyle = null,
@@ -167,6 +169,9 @@ class Disclosure extends StatefulWidget {
   /// What the body would say, in a few words, dim at the end of the header
   /// before the chevron.
   final String? summary;
+
+  /// Overrides the secondary text style of the summary.
+  final TextStyle? summaryStyle;
 
   /// When set, the summary starts at this percentage of the header before
   /// the chevron. Rows in a table can share the same aligned column.
@@ -395,6 +400,7 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
               padding: widget.headerPadding,
               count: widget.count,
               summary: widget.summary,
+              summaryStyle: widget.summaryStyle,
               summaryColumnPercent: widget.summaryColumnPercent,
               turned: _hasMotion ? _turned : kAlwaysDismissedAnimation,
               isolateChevronPaint: widget.isolateChevronPaint,
@@ -464,6 +470,7 @@ class _DisclosureHeader extends StatefulWidget {
     required this.padding,
     required this.count,
     required this.summary,
+    required this.summaryStyle,
     required this.summaryColumnPercent,
     required this.turned,
     required this.isolateChevronPaint,
@@ -479,6 +486,7 @@ class _DisclosureHeader extends StatefulWidget {
   final TextStyle? titleStyle;
   final int? count;
   final String? summary;
+  final TextStyle? summaryStyle;
   final int? summaryColumnPercent;
 
   /// 0 closed, 1 open: what the chevron turns with.
@@ -539,7 +547,8 @@ class _DisclosureHeaderState extends State<_DisclosureHeader> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               // Match the secondary text used beside the header chevron.
-              style: theme.textTheme.titleMedium!.copyWith(fontSize: 12.5),
+              style: widget.summaryStyle ??
+                  theme.textTheme.titleMedium!.copyWith(fontSize: 12.5),
             ),
           );
 
