@@ -4975,6 +4975,17 @@ The project and phases area accounts for 26,116 and 25,357, and the
 voting panel accounts for 8,217 and 10,503. These crops include fixture
 content. The four visual verdicts remain open.
 
+The [Windows recapture at `6a456a69`](https://github.com/edgepillar/syrius/actions/runs/44960247264/job/137017243531)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44962063975/job/137022859808)
+verify four prepared Accelerator PNGs and normal required closure after
+the symbol changes. The [capture index](docs/review/source-6a456a69-accelerator-captures.json)
+retains their original archive and image digests. At the same 16-level
+threshold, the project header crop drops from 7,087 pixels in each
+reference pair to 6,969 dark and 6,960 light. The whole-image difference
+counts are 40,648 and 41,232 for Voting, and 46,006 and 47,772 for Project
+Detail. These measured differences include the original fixture data.
+Whole-image visual review remains open.
+
 In both themes, the Node verification notice fills rows 385 through 497
 at reference column 980 and its enclosing panel spans rows 267 through
 509. The Addresses member, contacts and account-chain card bounds match
@@ -5041,6 +5052,11 @@ earlier audit.
 | Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) retains the original executed refusals. No seam registry or action gate changed in the six-file application delta. |
 
 V01, V02 and V06 remain open. The acceptance checklist records 77 of 80 rows.
+
+The [full Linux run at `3616fdef`](https://github.com/edgepillar/syrius/actions/runs/44961078846/job/137019801679)
+passes application and strict selected analysis, the non-chain unit and
+widget suite, and generated-file verification. This source includes the
+Staking typography, Accelerator symbols and delayed Lock shadow changes.
 
 The [interaction phase receipt at `6174b00d`](https://github.com/edgepillar/syrius/actions/runs/44961056103/job/137019733574)
 places the first laid-out Licences list at 83.718 ms and the settled
