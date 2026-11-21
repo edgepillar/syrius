@@ -2730,6 +2730,15 @@ Disclosure also fails build. Eleven disclosure raster starts after observed
 settlement exceed 16 ms. All four windows retain frame-number gaps.
 V02 remains open.
 
+The [ranked raster read](https://github.com/edgepillar/syrius/actions/runs/44852241774/job/136686068064)
+reuses the same interaction windows. Sixteen page-change raster ranks
+exceed P06. The greatest excess is 23.157 ms and its raster starts between
+167.238 and 202.083 ms after release. All 24 disclosure rasters over 16 ms
+exceed their paired duration or have no counterpart. Six are unpaired.
+The greatest matched excess is 14.666 ms. Its raster starts between
+588.398 and 616.458 ms after release, after the observed panel settlement
+at 266.866 ms. The reported ranks leave V02 open.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.
