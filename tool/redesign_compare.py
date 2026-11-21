@@ -115,6 +115,7 @@ PREPARED_CATALOGS = {
     "23-tokens": "seeded-states-visual",
     "26-swap-list": "swap-seeded",
     "28-az": "project-detail",
+    "30-set-node": "node-verified",
 }
 DIFF_PALETTE = bytes(
     intensity * channel // 255

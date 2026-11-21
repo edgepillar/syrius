@@ -3332,7 +3332,9 @@ buttons. The Contacts row uses the same edit symbol as account rows and
 the reference's 4 px gap between Send and Edit. The existing populated
 Contacts case checks spacing and the 32 px edit target at standard scale
 and in scaled RTL. The existing send and edit actions retain their targets.
-A populated Windows comparison remains open under V01.
+[Linux at `bf101ac8`](https://github.com/edgepillar/syrius/actions/runs/44902436133/job/136840960303)
+passes strict analysis, 5,131 non-chain tests with one skip and generated
+file verification. A populated Windows comparison remains open under V01.
 
 The Node reference presents the verified download in the panel before the
 installation action. A verified release download now shows its asset,
@@ -3364,6 +3366,11 @@ replace the redundant download and file controls. The notice uses the
 authored 14 px horizontal inset and separate green marks for successful
 checks. The complete digest, warning text and final confirmation remain
 visible in their original flows. Cancelling restores both idle controls.
+
+The visual comparison selects the `node-verified` capture family for the
+Node reference in both themes. The regular Settings capture still shows
+the resting Node page and is reported as diagnostic evidence for this
+reference. A fresh verified pair is required for current-source review.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
