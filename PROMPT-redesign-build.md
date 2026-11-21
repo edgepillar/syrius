@@ -1314,6 +1314,15 @@ use their designated captures below. Each pair retains its producer
 source. Whole-screen visual verdicts and current-source replacement
 captures for changed surfaces remain open.
 
+The application changes through `041d2ded` leave the reference PNGs
+unchanged. The first replacement captures cover the changed Welcome,
+Import, Seed Quiz, Wallet Ready and launch surfaces, plus the Settings
+resting pointer state and the Licences rows. The running Home catalog at
+`041d2ded` targets the new field texture and the four numbered Home states
+in both themes. The visual verdicts below remain tied to their own
+original capture and reference digests. The final complete catalog still
+requires the selected final application source.
+
 | Verified capture group | Designated PNGs | Independent reader |
 | --- | ---: | --- |
 | Welcome and Import | 4 | [Entry](https://github.com/edgepillar/syrius/actions/runs/44798926459/job/136505660527) |
@@ -2943,7 +2952,8 @@ The same logical bounds, blur, drift and foreground paint apply. Existing
 two-theme checks compare the cached paint against its analytic fallback
 at both drift endpoints and constrain the smaller texture footprint.
 The [Linux run at `041d2ded`](https://github.com/edgepillar/syrius/actions/runs/44862587977/job/136719072630)
-passes strict selected analysis and its focused background checks. The
+passes strict selected analysis, the focused background checks, 5,130
+non-chain tests with one skip, and generated-file verification. The
 [Windows Home catalog](https://github.com/edgepillar/syrius/actions/runs/44862831882)
 and the [paired Windows timing run](https://github.com/edgepillar/syrius/actions/runs/44862588269)
 are in progress at the same revision. Native visual and paired timing
@@ -3194,7 +3204,9 @@ The minimized state gates scheduling independently of focus, including
 when focus arrives before restore. On restore the clock checks the current
 focus and still follows the existing route, lifecycle and frost holds.
 The widget case exercises that ordering and a restore that remains
-unfocused. Native observation remains open under V02.
+unfocused. The [Linux run at `bff0114c`](https://github.com/edgepillar/syrius/actions/runs/44862438840/job/136718608193)
+passes strict selected analysis, 5,130 non-chain tests with one skip,
+and generated-file verification. Native observation remains open under V02.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
