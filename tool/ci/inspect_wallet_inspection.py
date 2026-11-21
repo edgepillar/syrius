@@ -1603,6 +1603,14 @@ def main(parent=None):
                         catalog_archive, repo / 'mockups/redesign/shots'))
         catalog_index = dict(artifact_id=item['id'], archive_bytes=item['size_in_bytes'],
             images=catalog_image_pins(catalog_archive, catalog))
+        if catalog_comparisons:
+            catalog_index['pixel_counts_at_least_16'] = {
+                row['screen']: {
+                    theme: pair['changed_pixels_at_least_16']
+                    for theme, pair in row['pairs'].items() if pair is not None
+                }
+                for row in catalog_comparisons
+            }
         del catalog_archive
         viewport_name = 'viewport-observation-' + head + '-' + text + '-1'
         PHASE = 'viewport_artifact'
