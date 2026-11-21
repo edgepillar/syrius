@@ -936,6 +936,10 @@ The widget measures 16 by 16 logical pixels and its painted width is 16 px.
 All fourteen captures were viewed against their original dark and light
 references from the [verified Settings archive](https://github.com/edgepillar/syrius/actions/runs/44619150110/artifacts/14577187695).
 The original captures and references were read directly in memory.
+The [verdict file](docs/review/screen-verdicts.json) retains all fourteen
+findings with both image hashes. The comparison tool treats the four
+generic Node and Addresses images as diagnostic when applying the prepared
+catalog requirement. The two Display matches remain bound to this source.
 
 | Screen | Dark and light verdict | Observed result |
 | --- | --- | --- |

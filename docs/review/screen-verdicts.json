@@ -112,6 +112,118 @@
       "reviewer": "Codex",
       "verdict": "mismatch"
     },
+    "30-set-node-dark": {
+      "actual_sha256": "3d0ddbae4283302c3c532552689b9650f0cfa9cc27c211c90875d9d92e83a53c",
+      "expected_sha256": "05d7211c092f7415b542294e254a86765fa57b7d7953fb2f9af5b1170ef7d003",
+      "note": "The release is at pre-check. The reference shows a verified download and separate installation actions.",
+      "reviewed_at": "2026-11-21T19:51:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "30-set-node-light": {
+      "actual_sha256": "93a47a349893e7d2c8f5fab9d276f139e96ed630377ebc6769f8f24aa56ac083",
+      "expected_sha256": "a11078a238b2ab2107174698b0c1c1409d7545a22eac994608e57ea113c6faeb",
+      "note": "The release is at pre-check. The reference shows a verified download and separate installation actions.",
+      "reviewed_at": "2026-11-21T19:51:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "31-set-security-dark": {
+      "actual_sha256": "b3b4006da0e7969e255d4299ae15fcf75b6777960c5d02eab5ced9be6abb5162",
+      "expected_sha256": "1c3a735e770863e501cc898830ca699abb20ea01593643c263fad41f00a4f411",
+      "note": "The control groups align. The warning describes shared app data instead of the wallet file named in the reference.",
+      "reviewed_at": "2026-11-21T19:51:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "31-set-security-light": {
+      "actual_sha256": "72737c956fdfee9c0d885b52fc498331f2b1b0cfa5041390719773d5bba242e2",
+      "expected_sha256": "eb4cd651d0e487c080e8a0cc5c10289c14a35dff9dcdbe68a38cf12af58c26db",
+      "note": "The control groups align. The warning describes shared app data instead of the wallet file named in the reference.",
+      "reviewed_at": "2026-11-21T19:51:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "32-set-display-dark": {
+      "actual_sha256": "dc5101a7e5f4c53c1d43a964efbafa13794205e1e1c7c6d390e8e8a5e3fe9945",
+      "expected_sha256": "f68b82b91f04df6c535c512da740e980026e8d980b0f68f8593fe4a070897c45",
+      "note": "All seven rows, grouped choices and switches align. The selected modes follow each theme, and the isolated chain disables the Explorer selector.",
+      "reviewed_at": "2026-11-21T19:51:25Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "32-set-display-light": {
+      "actual_sha256": "2049b8860dc44cb4fa4db2a07d933e0c4bdf9b22345bda00f8a2029a172fe538",
+      "expected_sha256": "64977a34163f03e4ef2f5d9f59027d124e6e02788b08970f2c2d5c635a4e723e",
+      "note": "All seven rows, grouped choices and switches align. The selected modes follow each theme, and the isolated chain disables the Explorer selector.",
+      "reviewed_at": "2026-11-21T19:51:25Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "33-set-wallet-dark": {
+      "actual_sha256": "f36a377e5d86dc4a57c1ed033800995a55a4bde31492757e9e4e831d553f2b72",
+      "expected_sha256": "938c775e7ef2b578c1d3a21698e13e5baff96bd01001bbb0d73aafd81d0030c8",
+      "note": "The view adds a Maintenance group. The original profile also has different switch selections.",
+      "reviewed_at": "2026-11-21T19:51:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "33-set-wallet-light": {
+      "actual_sha256": "b059b6be90e3ccd5e854d7731c04a0c54149212594b282f098580439f3ac6925",
+      "expected_sha256": "82e2bc826d854d0764317b498db9a47cbe5aaaf3fcacf34e277db3dc3f90feba",
+      "note": "The view adds a Maintenance group. The original profile also has different switch selections.",
+      "reviewed_at": "2026-11-21T19:51:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "34-set-apps-dark": {
+      "actual_sha256": "eb526af1a16c91deb4a7341cf722e10a31c2ae8ce01e7a6092c4e811051e86d0",
+      "expected_sha256": "76efab8f738858389426bbff88f3935efc5610d64052b9f3946fda9af5086e48",
+      "note": "The empty state leaves the connected rows and Disconnect actions in the reference unseen.",
+      "reviewed_at": "2026-11-21T19:51:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "34-set-apps-light": {
+      "actual_sha256": "25e4e8a57f33155895d4a81e7c72cc54fd36e1bbd77adb982bee9a219c2a0000",
+      "expected_sha256": "21b9bdac58c975afa405e0ed1bceb6491b42743e30015f786240bdd562e1ad22",
+      "note": "The empty state leaves the connected rows and Disconnect actions in the reference unseen.",
+      "reviewed_at": "2026-11-21T19:51:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "35-set-addresses-dark": {
+      "actual_sha256": "476ea8b0b4f44e81559f1859009d036e4a05c0299cda289d7f7452b0ac6b1b86",
+      "expected_sha256": "500bab8c74c963bfee8d958d9fb06a647b04924da963a75db7caa98e7f241cad",
+      "note": "The account and contact panels, selected label, action columns and collapsed account-chain row align. The fixture values differ.",
+      "reviewed_at": "2026-11-21T19:51:25Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "35-set-addresses-light": {
+      "actual_sha256": "df2318ab397b92cc524a850dcd312a6da065cc5973132cfdf3e1a639755a6085",
+      "expected_sha256": "b4705b0f43a7f5382e383dfce6f19574622719f620ef1190b6976f10932ee98c",
+      "note": "The account and contact panels, selected label, action columns and collapsed account-chain row align. The fixture values differ.",
+      "reviewed_at": "2026-11-21T19:51:25Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "36-set-about-dark": {
+      "actual_sha256": "d9f8c7fd5d6b6e6bace9057f41eda8e1b994396691eb528d5a8d57bb9a1e2947",
+      "expected_sha256": "ad7fba54bc95a111744164a264efef237e7c3ebea8fca8cb087cebc04f0d831b",
+      "note": "The version and action groups align. The reference shows a verified release badge, while the capture reports an unverified update.",
+      "reviewed_at": "2026-11-21T19:51:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "36-set-about-light": {
+      "actual_sha256": "c69f0ddca0b2a9bb4081368be4fa6a5ce87487d7fc067e4b0b8fd13074a3fca7",
+      "expected_sha256": "a8a8cf66e49fa88a25522dc8e759538b321f2f53c1f83d5d0d31edd3f8dd2072",
+      "note": "The version and action groups align. The reference shows a verified release badge, while the capture reports an unverified update.",
+      "reviewed_at": "2026-11-21T19:51:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
     "37-set-licences-dark": {
       "actual_sha256": "fa390fb6c5d0921b90f5c19da118a405bb39b3601485a52acec0f5062a73f1be",
       "expected_sha256": "057765aba7cc2e027010869bdfe14eff0beee921cbef85777efa3f7fa96ec991",
