@@ -31,7 +31,7 @@ SKIPPED_BASELINE_JOB = (
 WINDOWS_READER_NAME = 'Inspect retained Windows qualification'
 ENTRY_JOB_NAME = 'Ordinary Windows entry captures'
 ENTRY_ARTIFACT_PREFIX = 'windows-entry-capture-'
-QUIZ_ENTRY_REQUESTS = 20
+QUIZ_ENTRY_REQUESTS = 14
 READONLY_INSPECTOR_STEPS = {
     'Inspect retained chain-321 evidence': (
         'Test archive and credential boundaries in memory',

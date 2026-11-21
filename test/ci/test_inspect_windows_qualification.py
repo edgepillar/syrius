@@ -379,7 +379,7 @@ class WindowsQualificationTests(unittest.TestCase):
         original_log = log(original_report)
         calls = []
 
-        class Client:
+        class Client(inspect.archive.Client):
             def json(self, path):
                 calls.append(path)
                 if path == '/actions/runs/123':
@@ -440,7 +440,7 @@ class WindowsQualificationTests(unittest.TestCase):
             GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_REPOSITORY='edgepillar/syrius',
             WINDOWS_INSPECT_RUN='123', WINDOWS_INSPECT_HEAD=HEAD, GH_TOKEN='synthetic')
         with mock.patch.dict(inspect.os.environ, environment, clear=True), \
-                mock.patch.object(inspect.archive, 'Client', return_value=Client()), \
+                mock.patch.object(inspect.archive, 'Client', Client), \
                 contextlib.redirect_stdout(io.StringIO()) as output:
             status = inspect.main()
         return status, calls, output.getvalue()

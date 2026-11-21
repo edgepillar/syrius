@@ -2198,6 +2198,25 @@ the reference bounds. The last two retain a one-pixel horizontal edge
 difference and their ink spans begin one column farther from the centers
 under the same calculation. Both whole-image verdicts remain open.
 
+At `e4dbf7ea`, Import and Seed Quiz use the reference Back chevron path
+in the 14 px viewport. The icon inherits the button foreground and mirrors
+in right-to-left layouts. The two reference themes measure the same bounds
+for each screen. At a difference of at least 35 levels in any RGB channel,
+the Import mark covers 14 pixels in `[375, 233, 379, 241]` and the Seed Quiz
+mark covers 14 pixels in `[375, 272, 379, 280]`. Right and bottom coordinates
+are exclusive. In both themes at `28f9c121`, the marks had the same left
+and vertical bounds, extended one column farther right, and covered 19
+pixels. The [fresh Windows captures](https://github.com/edgepillar/syrius/actions/runs/44859359458)
+are pending independent measurement. The [Linux run at the capture revision](https://github.com/edgepillar/syrius/actions/runs/44859084296/job/136708048595)
+passes application analysis, strict selected analysis, 5,129 non-chain
+tests with one skip, and generated-file verification.
+
+The [first combined reader](https://github.com/edgepillar/syrius/actions/runs/44860789226/job/136713441832)
+refused before opening either retained archive because its request count
+was outside the shared client's accepted budgets. The reader now uses the
+existing 14-request budget for its 13 requests. The mocked transport test
+keeps the actual client constructor so it exercises this contract.
+
 The [Linux validation at `d1eb02a9`](https://github.com/edgepillar/syrius/actions/runs/44851643307/job/136684120771)
 passes strict analysis after the subtitle formatting correction. It
 records 5,129 non-chain tests passed, one skip, and successful generated
