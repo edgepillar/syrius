@@ -3194,12 +3194,28 @@ frame gaps. Both current peaks are lower than the previous pair's current
 peaks, and P06 peaks also changed. The separate viewport effect remains
 unestablished and V02 stays open.
 
+The engine used by Flutter 3.47.7 assigns the frame number when the
+[vsync callback](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/vsync_waiter.cc#L134-L142)
+creates its [timing recorder](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/flow/frame_timings.cc#L41-L49).
+The [animator](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/animator.cc#L95-L118)
+can leave that numbered attempt before building a frame when the raster
+pipeline is full. Reported timings come from the
+[rasterizer](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/rasterizer.cc#L518-L550).
+Our collector preserves differences between engine frame numbers inside
+each window. Pipeline backpressure can produce gaps before
+the collector sees them. The retained Windows receipts do not identify
+the engine branch taken for any missing number. The gaps stay in the
+original 16 ms acceptance result.
+
 Closed disclosures now use the settled chevron and body animations
 until they first open. Each unopened licence row avoids creating two
 animation controllers and tickers. A disclosure that starts open has
 both controllers ready to animate its first close. The 240 ms reveal,
 220 ms chevron, stored choices and retained form lifetimes still apply.
-Strict analysis passes on the changed source. The effect on native
+The [Linux run at `31b5a23c`](https://github.com/edgepillar/syrius/actions/runs/44878110010/job/136767237090)
+passes strict analysis, eight focused licence cases, 5,131 non-chain
+tests with one skip and generated-file verification. The complete run
+includes all 1,530 selected Windows-tour cases. The effect on native
 frame timing awaits a paired Windows measurement.
 
 The [Windows interface run at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44876122524/job/136761087924)
