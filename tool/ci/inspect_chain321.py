@@ -941,6 +941,7 @@ def main():
     after = client.json("/actions/runs/" + run_text)
     need(all(after[key] == run[key] for key in ("id", "head_sha", "run_attempt", "workflow_id", "status", "conclusion")))
     if interactive_result is not None:
+        PHASE = 'interactive_notices'
         comparisons = interactive_result.pop('verified_comparisons', None)
         raster_overruns = interactive_result.pop('verified_raster_rank_overruns', {})
         diagnostics = interactive_result.pop('verified_window_diagnostics', None)
@@ -961,6 +962,7 @@ def main():
                 print('::notice title=' + inspect_interactive_frame_pair.COMPARISON_TITLE
                       + '::' + encoded_comparisons, flush=True)
             need(diagnostics is not None)
+            pointer = inspect_interactive_frame_pair.split_pointer_diagnostics(diagnostics)
             diagnostics_summary = dict(identity,
                 scope=('retained_current_interactive_frame_diagnostics' if current_only
                        else 'retained_paired_interactive_frame_diagnostics'),
@@ -970,6 +972,13 @@ def main():
             title = (inspect_interactive_frame_pair.CURRENT_DIAGNOSTICS_TITLE if current_only
                      else inspect_interactive_frame_pair.DIAGNOSTICS_TITLE)
             print('::notice title=' + title + '::' + encoded_diagnostics, flush=True)
+            if pointer:
+                pointer_summary = dict(identity,
+                    scope='retained_interactive_pointer_timing', windows=pointer)
+                encoded_pointer = json.dumps(pointer_summary, sort_keys=True, separators=(',', ':'))
+                need(len(encoded_pointer.encode('ascii')) <= 3800)
+                print('::notice title=' + inspect_interactive_frame_pair.POINTER_DIAGNOSTICS_TITLE
+                      + '::' + encoded_pointer, flush=True)
         encoded = json.dumps(interactive_result, sort_keys=True, separators=(',', ':'))
         need(len(encoded.encode('ascii')) <= 3800)
         print('::notice title=' + inspect_interactive_frame_pair.TITLE + '::' + encoded, flush=True)

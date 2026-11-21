@@ -17,6 +17,7 @@ TITLE = 'Retained paired interactive frame measurements'
 COMPARISON_TITLE = 'Retained paired interactive frame comparisons'
 DIAGNOSTICS_TITLE = 'Retained paired interactive frame diagnostics'
 CURRENT_DIAGNOSTICS_TITLE = 'Retained current interactive frame diagnostics'
+POINTER_DIAGNOSTICS_TITLE = 'Retained interactive pointer timing'
 OBSERVATION_PHASES = frozenset(('lab_before', 'empty_profile', 'prepare_profile',
     'wallet_ready', 'measure', 'verify_after', 'complete'))
 PHASES = frozenset((*cold.COMMAND_STAGES, 'environment', 'storage_admission',
@@ -26,6 +27,19 @@ EXIT_FIELDS = {*cold.EXIT_FLAGS, 'exit_code', 'error_codes'}
 READOUT_FIELDS = {*EXIT_FIELDS, 'output_bytes', 'seconds', 'success'}
 # The handoff's nominal intervals, measured from the recorded tap release.
 MOTION_US = {'page_change': 320_000, 'disclosure': 240_000}
+
+
+def split_pointer_diagnostics(windows):
+    """Keep verified pointer details in their own bounded notice."""
+    pointer = {}
+    for name, timing in windows.get('current', {}).items():
+        if 'pointer_offsets_from_tap_us' in timing:
+            pointer[name] = {
+                'pointer_offsets_from_tap_us': timing.pop('pointer_offsets_from_tap_us'),
+                'peak_raster_start_relation_to_pointer': timing.pop(
+                    'peak_raster_start_relation_to_pointer'),
+            }
+    return pointer
 
 
 def sample_receipts(value, *, allow_tap_release=False):

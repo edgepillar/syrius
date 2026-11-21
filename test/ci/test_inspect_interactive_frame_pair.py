@@ -1340,6 +1340,8 @@ class InteractiveFramePairTests(unittest.TestCase):
                 elapsed_ms=120_000, max_gap_ms=110_000, max_gap_after='windowPositionRead')
         offered['samples']['current']['observation']['tap_release_us'] = dict.fromkeys(
             pair.WINDOWS, pair.actions.MAX_WINDOW_US - 1)
+        offered['samples']['current']['observation']['pointer_phases_us'] = dict.fromkeys(
+            pair.WINDOWS, dict(move_started=0, down=pair.actions.MAX_WINDOW_US - 2))
         offered['samples']['current']['observation']['disclosure_phases_us'] = dict(
             settled=pair.actions.MAX_WINDOW_US - 1,
             list_laid_out=pair.actions.MAX_WINDOW_US - 1)
@@ -1351,6 +1353,9 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(result['frame_counts']['p06'], {'page_change': 512, 'disclosure': 512})
         self.assertEqual(result.pop('verified_comparisons'), offered['comparisons'])
         diagnostics = result.pop('verified_window_diagnostics')
+        pointer = inspect.split_pointer_diagnostics(diagnostics)
+        self.assertEqual(set(pointer), set(pair.WINDOWS))
+        self.assertEqual(inspect.split_pointer_diagnostics(diagnostics), {})
         self.assertLessEqual(len(cold.canonical(result)), 3800)
         identity = {key: result[key] for key in (
             'schema', 'source_head', 'source_tree', 'source_run_id', 'source_attempt',
@@ -1358,6 +1363,9 @@ class InteractiveFramePairTests(unittest.TestCase):
         summary = dict(identity, scope='retained_paired_interactive_frame_diagnostics',
                        paired_timing_gate_passed=False, windows=diagnostics)
         self.assertLessEqual(len(cold.canonical(summary)), 3800)
+        pointer_summary = dict(identity, scope='retained_interactive_pointer_timing',
+                               paired_timing_gate_passed=False, windows=pointer)
+        self.assertLessEqual(len(cold.canonical(pointer_summary)), 3800)
         self.assertFalse(any(result['no_frame_number_gaps'].values()))
         self.assertFalse(result['timing_criterion_passed'])
 

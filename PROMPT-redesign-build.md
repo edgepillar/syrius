@@ -3130,6 +3130,13 @@ release. The reader checks the event order and compares the bounded
 start of the peak raster with both markers. The new fields contain
 only elapsed times. The original frame windows and 16 ms comparison
 still govern V02.
+The [native producer at `e55002c6`](https://github.com/edgepillar/syrius/actions/runs/44872884110/job/136751110844)
+retains both original windows. The [first](https://github.com/edgepillar/syrius/actions/runs/44874716482/job/136756771129)
+and [second](https://github.com/edgepillar/syrius/actions/runs/44874767439/job/136756930576)
+independent reads stop after the comparison notice when the added
+pointer diagnostics exceed the 3,800-byte notice limit. The reader
+now publishes those diagnostics in a separate bounded notice using
+the existing source and archive identities.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
