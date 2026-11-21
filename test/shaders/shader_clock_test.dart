@@ -159,6 +159,35 @@ void main() {
     expect(clock.value, 0);
   });
 
+  testWidgets('minimize holds the shader clock through restore without focus', (
+    WidgetTester tester,
+  ) async {
+    late ShaderClock clock;
+    await tester.pumpWidget(_host((ShaderClock value) => clock = value));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    clock.onWindowMinimize();
+    final double held = clock.value;
+    expect(clock.isRunning, isFalse);
+    clock.onWindowFocus();
+    expect(clock.isRunning, isFalse);
+    await tester.pump(const Duration(seconds: 10));
+    expect(clock.value, held);
+
+    focused = false;
+    clock.onWindowRestore();
+    await tester.pump();
+    expect(clock.isRunning, isFalse);
+    expect(clock.value, held);
+
+    clock.onWindowFocus();
+    await tester.pump();
+    expect(clock.value, held);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(clock.value, closeTo(held + 0.1, 0.000001));
+  });
+
   testWidgets('a stale startup focus answer cannot undo a newer blur', (
     WidgetTester tester,
   ) async {

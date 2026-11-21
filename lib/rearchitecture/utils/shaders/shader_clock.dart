@@ -33,6 +33,7 @@ class ShaderClock extends ChangeNotifier
   bool _active = false;
   bool _visible = false;
   bool _focused = true;
+  bool _minimized = false;
   bool _disposed = false;
   int _focusRevision = 0;
 
@@ -70,6 +71,7 @@ class ShaderClock extends ChangeNotifier
         _active &&
         _visible &&
         _focused &&
+        !_minimized &&
         resumed &&
         FrostHold.count.value == 0;
     if (run && !_ticker.isActive) {
@@ -114,6 +116,21 @@ class ShaderClock extends ChangeNotifier
     _focusRevision += 1;
     _focused = true;
     _sync();
+  }
+
+  @override
+  void onWindowMinimize() {
+    _minimized = true;
+    onWindowBlur();
+  }
+
+  @override
+  void onWindowRestore() {
+    if (!_minimized) return;
+    _minimized = false;
+    // A focus event can precede restore. Verify the restored window's focus.
+    onWindowBlur();
+    unawaited(_readWindowFocus());
   }
 
   @override

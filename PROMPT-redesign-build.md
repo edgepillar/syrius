@@ -3173,6 +3173,13 @@ normal node exits. The expected confirmation was absent in all 18
 observations, leaving the operation outcome unresolved. The earlier
 four images remain bound to `cf584538`.
 
+Shader clocks now hold their accumulated time on a native minimize event.
+The minimized state gates scheduling independently of focus, including
+when focus arrives before restore. On restore the clock checks the current
+focus and still follows the existing route, lifecycle and frost holds.
+The widget case exercises that ordering and a restore that remains
+unfocused. Native observation remains open under V02.
+
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
 | Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Verified native early, late and settled samples. | Inspect the retained images and verify the running 400 ms settle. |
