@@ -2146,6 +2146,14 @@ on rows 283 through 295 in both themes. The reference bands are one row
 higher at each endpoint. The two light captures still have different
 PNG digests. The measured text placement agrees across those captures.
 
+The [Windows entry run at `f1988c7c`](https://github.com/edgepillar/syrius/actions/runs/44851345167/job/136683173086)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44851922226/job/136685022009)
+verify four original images and a normal zero exit with complete output.
+After the introduction moves up by one logical pixel, both Welcome
+themes match the sampled title rows 234 through 254 and subtitle rows
+282 through 294. The comparison covers those text bands. The complete
+Welcome verdicts remain open under V01.
+
 Independent Windows readers verify the [eight Home PNGs](https://github.com/edgepillar/syrius/actions/runs/44765737077/job/136389745160),
 [ten Details PNGs](https://github.com/edgepillar/syrius/actions/runs/44765742529/job/136389763108)
 and [four prepared Send PNGs](https://github.com/edgepillar/syrius/actions/runs/44765748064/job/136389783471)
