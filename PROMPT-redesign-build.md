@@ -3621,6 +3621,14 @@ maximum residuals of 6.729 and 7.423 levels. This measurement covers the
 sampled fill only. The originals, raw counts and whole-image verdicts are
 preserved.
 
+The [cold timing reader at `e35991dd`](https://github.com/edgepillar/syrius/actions/runs/44899497250/job/136832220725)
+verifies 89 redesign frames and all five normal process exits. The redesign
+window has 21 frame-number gaps and a 137.115 ms peak raster. The P06
+measurement reaches its deadline with the native window at the target size,
+the Lock field disabled and film frame 27 of 56 still ticking before
+initialization. It supplies no P06 window, so this attempt yields no paired
+16 ms comparison. The earlier paired result remains bound to `d5bfd815`.
+
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
 and five normal node exits. The longest page-change totals are 280.034 ms
