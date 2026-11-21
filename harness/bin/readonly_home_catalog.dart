@@ -260,6 +260,7 @@ Future<Map<String, Object>> captureReadonlyHomeGotoStates({
     'width': 1280, 'height': 780, 'scale': 1, 'capture_returned': true,
     if (observeMotion) 'rail_motion': await session.observeRailMotion(),
     if (observeMotion) 'sync_pulse': await session.observeSyncPulse(),
+    if (observeMotion) 'segment_motion': await session.observeSegmentMotion(),
   };
 }
 

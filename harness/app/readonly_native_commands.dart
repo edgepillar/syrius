@@ -10,6 +10,9 @@ const String readonlySendWarningSyncCommand = 'readonly-send-warning-sync';
 /// Reads only the original Home status halo's animation phase.
 const String readonlySyncPulseCommand = 'readonly-sync-pulse';
 
+/// Reads only the current Transfer or Tokens segment's thumb geometry.
+const String readonlySegmentMotionCommand = 'readonly-segment-motion';
+
 /// Probes one visible gate through the original readonly pointer path.
 const String readonlySeamPointerCommand = 'readonly-seam-pointer';
 
@@ -71,6 +74,7 @@ class ReadonlyNativeCommands {
     readonlyHomeZapPreviewCommand,
     readonlySendWarningSyncCommand,
     readonlySyncPulseCommand,
+    readonlySegmentMotionCommand,
     readonlySeamPointerCommand,
     readonlyActivityMessageSeamCommand,
     readonlyAgedFuseFixtureCommand,
@@ -158,7 +162,8 @@ class ReadonlyNativeCommands {
             name == readonlyActivityMessageSeamCommand ||
             name == readonlyAgedFuseFixtureCommand ||
             name == readonlySendWarningSyncCommand ||
-            name == readonlySyncPulseCommand) &&
+            name == readonlySyncPulseCommand ||
+            name == readonlySegmentMotionCommand) &&
             (_wallet == null || retained.length != 1)) {
       throw const ReadonlyNativeCommandRefused();
     }

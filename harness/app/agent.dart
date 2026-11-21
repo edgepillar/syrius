@@ -48,6 +48,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/go_to_p
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/list_entrance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/rise_switcher.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/state_switcher.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_wallet_seed_choice_screen.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/new_wallet/new_wallet_confirm_seed_screen.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/new_wallet/seed_quiz.dart';
@@ -869,6 +870,9 @@ class HarnessAgent {
     }
     if (command['cmd'] == readonlySendWarningSyncCommand) {
       return _observeReadonlySendSync();
+    }
+    if (command['cmd'] == readonlySegmentMotionCommand) {
+      return _observeReadonlySegment();
     }
     if (command['cmd'] == readonlySyncPulseCommand) {
       final ReadonlyNativeCommands? native = _readonlyNative;
@@ -6192,6 +6196,61 @@ class HarnessAgent {
 
     root.debugVisitOnstageChildren(visit);
     return match;
+  }
+
+  Map<String, Object?> _observeReadonlySegment() {
+    final ReadonlyNativeCommands? native = _readonlyNative;
+    final Element? root = WidgetsBinding.instance.rootElement;
+    final String? prefix = switch (kCurrentPage) {
+      Tabs.transfer => 'transfer_mode',
+      Tabs.tokens => 'tokens_filter',
+      _ => null,
+    };
+    if (native == null || root == null || prefix == null) {
+      throw const ReadonlyNativeCommandRefused();
+    }
+    _requireCaptureFrameIdle();
+    native.requireCurrentWallet();
+    final Element? owner = _findTimingChild(
+      root,
+      (Widget widget) =>
+          widget is Segment<Object?> && widget.keyPrefix == prefix,
+    );
+    final Widget? widget = owner?.widget;
+    if (owner == null ||
+        widget is! Segment<Object?> ||
+        widget.selected is! Enum) {
+      throw const ReadonlyNativeCommandRefused();
+    }
+    final Enum selected = widget.selected! as Enum;
+    final Key selectedKey = Segment.keyOf(prefix, selected);
+    final RenderObject? track = owner.findRenderObject();
+    final RenderObject? thumb = _findTimingChild(
+      owner, (Widget child) => child is SegmentThumb,
+    )?.findRenderObject();
+    final RenderObject? target = _findTimingChild(
+      owner, (Widget child) => child.key == selectedKey,
+    )?.findRenderObject();
+    if (track is! RenderBox || thumb is! RenderBox || target is! RenderBox ||
+        !track.attached || !thumb.attached || !target.attached ||
+        !track.hasSize || !thumb.hasSize || !target.hasSize) {
+      throw const ReadonlyNativeCommandRefused();
+    }
+    final double x = thumb.localToGlobal(Offset.zero, ancestor: track).dx;
+    final double targetX = target.localToGlobal(
+      Offset.zero,
+      ancestor: track,
+    ).dx;
+    final List<double> geometry = <double>[
+      x, thumb.size.width, targetX, target.size.width,
+    ];
+    if (geometry.any((double n) => !n.isFinite || n < 0 || n > 1280)) {
+      throw const ReadonlyNativeCommandRefused();
+    }
+    return <String, Object?>{
+      'selected': selected.name,
+      'geometry': geometry.map((double n) => (n * 1000).round()).toList(),
+    };
   }
 
   void _observePageSettlement(int startUs) {

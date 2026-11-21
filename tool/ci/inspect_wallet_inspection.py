@@ -53,6 +53,7 @@ VERSIONED_INPUTS = frozenset((
     'harness/app/ready_reference_artwork.dart',
     'harness/app/readonly_native_commands.dart',
     'lib/rearchitecture/utils/widgets/entry_field.dart',
+    'lib/rearchitecture/utils/widgets/segment.dart',
     'lib/utils/reference_artwork_source.dart',
     'lib/widgets/modular_widgets/help_widgets/about_card.dart',
     'lib/widgets/modular_widgets/help_widgets/originals_card.dart',
@@ -503,6 +504,20 @@ def unpack_home_catalog(raw, expected_sha, expected_size, head, tree, run_id,
                 for (start, end), (next_start, next_end) in zip(resumes, resumes[1:])
             ],
         )
+    if 'segment_motion' in value['capture']:
+        samples = producer.segment_motion_receipt(value['capture']['segment_motion'])
+        result['segment_motion'] = {
+            name: dict(
+                sample_count=len(motion['samples']),
+                before_millipixels=motion['before'],
+                after_millipixels=motion['samples'][-1][1:3],
+                first_settled_after_reply_us=motion['samples'][-1][0],
+                intermediate_observed=any(
+                    row[1:3] != motion['before'] and row[1:3] != row[3:]
+                    for row in motion['samples']),
+            )
+            for name, motion in samples.items()
+        }
     return result
 
 
@@ -1515,6 +1530,10 @@ def main(parent=None):
                 source_digests.update(source_files(repo, producer_tree, tree,
                     read_versioned_blob=read_blob,
                     files=('lib/widgets/shell/strip/status_dot.dart',)))
+            if 'segment_motion' in catalog:
+                source_digests.update(source_files(repo, producer_tree, tree,
+                    read_versioned_blob=read_blob,
+                    files=('lib/rearchitecture/utils/widgets/segment.dart',)))
             if reference['schema'] == producer.HOME_CAPTURE_SCHEMAS['home']:
                 source_digests.update(source_files(repo, producer_tree, tree,
                     read_versioned_blob=read_blob, files=(HOME_FIELD_SOURCE,)))
@@ -1583,6 +1602,7 @@ def main(parent=None):
                   'retained_readonly_details_catalog': 'Details'}[catalog['scope']]
         rail_motion = catalog.pop('rail_motion', None)
         sync_pulse = catalog.pop('sync_pulse', None)
+        segment_motion = catalog.pop('segment_motion', None)
         emit(f'Retained readonly {family} catalog', catalog)
         if rail_motion is not None:
             emit('Retained readonly rail motion', dict(source_head=head,
@@ -1592,6 +1612,10 @@ def main(parent=None):
             emit('Retained readonly status halo', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
                 manifest_sha256=catalog['manifest_sha256'], **sync_pulse))
+        if segment_motion is not None:
+            emit('Retained readonly segment motion', dict(source_head=head,
+                source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
+                manifest_sha256=catalog['manifest_sha256'], pages=segment_motion))
         for comparison in catalog_comparisons:
             emit(f'Retained {family} pixel comparison', dict(
                 scope=f'retained_{family.lower()}_pixel_comparison', source_head=head,

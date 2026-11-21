@@ -4,6 +4,7 @@ import '../app/readonly_native_commands.dart'
     show readonlyActivityMessageSeamCommand, readonlyAgedFuseFixtureCommand,
         readonlyHomeZapPreviewCommand,
         readonlySeamPointerCommand,
+        readonlySegmentMotionCommand,
         readonlySendWarningSyncCommand, readonlySyncPulseCommand;
 import '../app/readonly_native_mode.dart';
 import 'screen_capture.dart';
@@ -56,6 +57,7 @@ class ReadonlyInspectionSession {
     readonlyHomeZapPreviewCommand,
     readonlySendWarningSyncCommand,
     readonlySyncPulseCommand,
+    readonlySegmentMotionCommand,
     readonlySeamPointerCommand,
     readonlyActivityMessageSeamCommand,
     readonlyAgedFuseFixtureCommand,
@@ -96,7 +98,8 @@ class ReadonlyInspectionSession {
               name == readonlyActivityMessageSeamCommand ||
               name == readonlyAgedFuseFixtureCommand ||
               name == readonlySendWarningSyncCommand ||
-              name == readonlySyncPulseCommand) &&
+              name == readonlySyncPulseCommand ||
+              name == readonlySegmentMotionCommand) &&
               (!_walletBound || command.length != 1)) {
         _refuse(ReadonlyInspectionReason.command);
       }
@@ -257,6 +260,85 @@ class ReadonlyInspectionSession {
     }
     await _requireScreenHome();
     return samples;
+  }
+
+  /// Observes the original thumb after an ordinary segment tap on each page.
+  Future<Map<String, Object>> observeSegmentMotion() async {
+    await _requireScreenHome();
+    final Map<String, Object> result = <String, Object>{};
+    const Duration budget = Duration(seconds: 2);
+    const Duration interval = Duration(milliseconds: 40);
+    const Duration ordinary = Duration(seconds: 30);
+
+    Future<void> tap(Map<String, Object?> arguments) async {
+      final Map<String, dynamic> reply = await send(
+        <String, Object?>{'cmd': 'tap', ...arguments}, ordinary,
+      );
+      if (reply['ok'] != true) _refuse(ReadonlyInspectionReason.reply);
+    }
+
+    bool settled(List<int> values) =>
+        values[0] == values[2] && values[1] == values[3];
+
+    for (final (String tab, String prefix, List<String> choices) in const <
+      (String, String, List<String>)
+    >[
+      ('transfer', 'transfer_mode', <String>['send', 'receive', 'zap']),
+      ('tokens', 'tokens_filter', <String>['held', 'all', 'favorites']),
+    ]) {
+      await tap(<String, Object?>{'tab': tab});
+      final (String original, List<int> before) = await _readSegment(ordinary);
+      if (!choices.contains(original) || !settled(before)) {
+        _refuse(ReadonlyInspectionReason.reply);
+      }
+      final String next =
+          choices.first == original ? choices[1] : choices.first;
+      await tap(<String, Object?>{'key': '${prefix}_$next', 'settleMs': 0});
+      final Stopwatch clock = Stopwatch()..start();
+      final List<List<int>> samples = <List<int>>[];
+      for (int i = 0; i < 12 && clock.elapsed < budget; i++) {
+        final (String current, List<int> values) =
+            await _readSegment(budget - clock.elapsed);
+        if (current != next && (current != original || samples.isNotEmpty)) {
+          _refuse(ReadonlyInspectionReason.reply);
+        }
+        if (clock.elapsed > budget) break;
+        if (current == next) {
+          samples.add(<int>[clock.elapsedMicroseconds, ...values]);
+          if (settled(values)) break;
+        }
+        if (clock.elapsed + interval >= budget) break;
+        await Future<void>.delayed(interval);
+      }
+      if (samples.isEmpty || !settled(samples.last.sublist(1))) {
+        _refuse(ReadonlyInspectionReason.reply);
+      }
+      await tap(<String, Object?>{'key': '${prefix}_$original'});
+      final (String restored, List<int> finish) = await _readSegment(ordinary);
+      if (restored != original || !settled(finish)) {
+        _refuse(ReadonlyInspectionReason.reply);
+      }
+      result[tab] = <String, Object>{
+        'before': before.take(2).toList(), 'samples': samples,
+      };
+    }
+    await tap(<String, Object?>{'tab': 'dashboard'});
+    await _requireScreenHome();
+    return result;
+  }
+
+  Future<(String, List<int>)> _readSegment(Duration timeout) async {
+    final Map<String, dynamic> reply = await send(
+      <String, Object?>{'cmd': readonlySegmentMotionCommand}, timeout,
+    );
+    final Object? selected = reply['selected'];
+    final Object? geometry = reply['geometry'];
+    if (reply['ok'] != true || selected is! String ||
+        geometry is! List || geometry.length != 4 ||
+        geometry.any((Object? n) => n is! int || n < 0 || n > 1_280_000)) {
+      _refuse(ReadonlyInspectionReason.reply);
+    }
+    return (selected, List<int>.from(geometry));
   }
 
   Future<void> _moveScreenRail(int target, {List<List<int>>? samples}) async {

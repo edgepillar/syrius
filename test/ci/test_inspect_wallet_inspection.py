@@ -532,6 +532,20 @@ class ReaderTests(unittest.TestCase):
             sample_count=4, observed_intermediate=True, transparent_samples=2,
             resume_intervals_us=[(10, 200_010), (2_400_000, 2_600_010)],
             resume_separation_bounds_us=[[2_199_990, 2_600_000]]))
+        states['capture']['segment_motion'] = {
+            'transfer': dict(before=[3_000, 60_000], samples=[
+                [20_000, 4_000, 61_000, 63_000, 67_000],
+                [320_000, 63_000, 67_000, 63_000, 67_000],
+            ]),
+            'tokens': dict(before=[3_000, 55_000], samples=[
+                [390_000, 128_000, 45_000, 128_000, 45_000],
+            ]),
+        }
+        with_segments = [('manifest.json', encode(states), stat.S_IFREG), *state_files[1:]]
+        segment = inspect_states(with_segments)['segment_motion']
+        self.assertTrue(segment['transfer']['intermediate_observed'])
+        self.assertFalse(segment['tokens']['intermediate_observed'])
+        self.assertEqual(segment['transfer']['first_settled_after_reply_us'], 320_000)
         for bad_files in (state_files[:-1], state_files + [originals[1]], originals):
             with self.subTest(schema=4, members=len(bad_files)), self.assertRaises(
                     (reader.archive.Refused, reader.producer.Refused)):

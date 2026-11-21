@@ -649,6 +649,16 @@ class InspectionTests(unittest.TestCase):
                         [[10, 30, 1000], [20, 40, 0]], [[0, 6_000_001, 0]]):
             with self.subTest(sync_pulse=invalid), self.assertRaises(inspection.Refused):
                 inspection.home_capture_receipt(dict(catalog, sync_pulse=invalid))
+        settled = dict(before=[0, 50_000], samples=[
+            [300_000, 50_000, 60_000, 50_000, 60_000],
+        ])
+        segments = dict(transfer=settled, tokens=settled)
+        self.assertIs(inspection.segment_motion_receipt(segments), segments)
+        for invalid in ({}, dict(settled, samples=[[300_000, 0, 50_000, 50_000, 60_000]]),
+                        dict(settled, before=[50_000, 60_000])):
+            with self.subTest(segment_motion=invalid), self.assertRaises(inspection.Refused):
+                inspection.home_capture_receipt(
+                    dict(catalog, segment_motion=dict(segments, transfer=invalid)))
         for invalid in (dict(extended, closing=[[25, 40, 14, 0]]),
                         dict(extended, closing=[[25, 40]]),
                         dict(extended, opening=[[25, 184, 3142, 1001]]),

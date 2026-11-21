@@ -157,7 +157,7 @@ def home_capture_receipt(value):
         width=1280, height=780, scale=1, capture_returned=True)
     expected.update(dict(screen='home-rest', number=1) if schema == 1
                     else dict(screens=list(home_catalog_screens(schema))))
-    optional = {'rail_motion', 'sync_pulse'} if schema == 4 else set()
+    optional = {'rail_motion', 'sync_pulse', 'segment_motion'} if schema == 4 else set()
     need(set(expected) <= set(value) <= set(expected) | optional
          and all(type(value[k]) is type(v) and value[k] == v
                  for k, v in expected.items()), 'CAPTURE_REFUSED')
@@ -165,6 +165,31 @@ def home_capture_receipt(value):
         rail_motion_receipt(value['rail_motion'])
     if 'sync_pulse' in value:
         sync_pulse_receipt(value['sync_pulse'])
+    if 'segment_motion' in value:
+        segment_motion_receipt(value['segment_motion'])
+    return value
+
+
+def segment_motion_receipt(value):
+    """Validate the original thumb and target rectangles in logical millipixels."""
+    def rect(row):
+        return (type(row) is list and len(row) == 2
+                and all(type(n) is int for n in row)
+                and 0 <= row[0] < 1_280_000 and 0 < row[1] <= 1_280_000 - row[0])
+
+    need(type(value) is dict and set(value) == {'transfer', 'tokens'}, 'CAPTURE_REFUSED')
+    for motion in value.values():
+        need(type(motion) is dict and set(motion) == {'before', 'samples'}
+             and rect(motion['before']), 'CAPTURE_REFUSED')
+        rows = motion['samples']
+        need(type(rows) is list and 1 <= len(rows) <= 12
+             and all(type(row) is list and len(row) == 5
+                     and type(row[0]) is int and 0 <= row[0] <= 2_000_000
+                     and rect(row[1:3]) and rect(row[3:]) for row in rows)
+             and all(left[0] < right[0] for left, right in zip(rows, rows[1:]))
+             and rows[-1][1:3] == rows[-1][3:] != motion['before']
+             and all(row[1:3] != row[3:] for row in rows[:-1]),
+             'CAPTURE_REFUSED')
     return value
 
 
