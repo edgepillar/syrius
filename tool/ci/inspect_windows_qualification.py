@@ -417,6 +417,43 @@ def primary_gradient_error(encoded, bounds):
                 mean_channel_error_milli=round(sum(errors) * 1000 / len(errors)))
 
 
+def handoff_unlock_palette_delta(point):
+    approved = primary_gradient_rgb(point, HANDOFF_UNLOCK_BOUNDS, APPROVED_PRIMARY_PALETTE)
+    original = primary_gradient_rgb(point, HANDOFF_UNLOCK_BOUNDS, ORIGINAL_PRIMARY_PALETTE)
+    return [round(1000 * HANDOFF_OPACITY * (a - b)) for a, b in zip(approved, original)]
+
+
+def handoff_unlock_palette_band(data, reference):
+    """Measure two strips of fill away from the label and rounded ends."""
+    left, right = 482, 798
+    top, bottom = 528, 540
+    columns = tuple(range(left, 581)) + tuple(range(703, right))
+
+    def decode(png):
+        return _png_crop(base64.b64encode(png).decode('ascii'), (left, right), (top, bottom))
+
+    actual, a_channels = decode(data)
+    expected, e_channels = decode(reference)
+    raw_differences = residual_differences = max_residual = 0
+    for y, (a_row, e_row) in enumerate(zip(actual, expected), top):
+        for x in columns:
+            actual_offset = (x - left) * a_channels
+            reference_offset = (x - left) * e_channels
+            actual_rgb = a_row[actual_offset:actual_offset + 3]
+            reference_rgb = e_row[reference_offset:reference_offset + 3]
+            change = [1000 * (a_value - e_value)
+                      for a_value, e_value in zip(actual_rgb, reference_rgb)]
+            palette = handoff_unlock_palette_delta((x, y))
+            residual = max(abs(value - delta) for value, delta in zip(change, palette))
+            raw_differences += max(map(abs, change)) >= 16000
+            residual_differences += residual >= 16000
+            max_residual = max(max_residual, residual)
+    return dict(sample_count=len(columns) * (bottom - top),
+                raw_pixels_at_least_16=raw_differences,
+                residual_pixels_at_least_16=residual_differences,
+                max_residual_milli=max_residual)
+
+
 def _connector_coverage(rows, channels):
     width = IMPORT_CONNECTOR_X[1] - IMPORT_CONNECTOR_X[0]
     y0, y1 = IMPORT_CONNECTOR_Y
@@ -657,16 +694,12 @@ def startup_pixel_comparison(name, data):
         palette = {}
         for key in ('unlock_left', 'unlock_right'):
             sample = result['sample_rgb'][key]
-            approved = primary_gradient_rgb(sample['point'], HANDOFF_UNLOCK_BOUNDS,
-                                            APPROVED_PRIMARY_PALETTE)
-            original = primary_gradient_rgb(sample['point'], HANDOFF_UNLOCK_BOUNDS,
-                                            ORIGINAL_PRIMARY_PALETTE)
-            change = [round(1000 * HANDOFF_OPACITY * (a - b))
-                      for a, b in zip(approved, original)]
+            change = handoff_unlock_palette_delta(sample['point'])
             residual = [1000 * (a - b) - delta
                         for a, b, delta in zip(sample['actual'], sample['reference'], change)]
             palette[key] = dict(model_delta_milli=change, residual_delta_milli=residual)
         result['unlock_palette_samples'] = palette
+        result['unlock_palette_band'] = handoff_unlock_palette_band(data, reference)
     return result
 
 

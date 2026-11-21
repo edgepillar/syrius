@@ -287,6 +287,9 @@ class WindowsQualificationTests(unittest.TestCase):
                              residual_delta_milli=[22989, -1164, 4365]),
             unlock_right=dict(model_delta_milli=[0, -1554, -3454],
                               residual_delta_milli=[0, 1554, 3454])))
+        self.assertEqual(comparison['unlock_palette_band'], dict(sample_count=2328,
+            raw_pixels_at_least_16=0, residual_pixels_at_least_16=881,
+            max_residual_milli=27473))
         with mock.patch.object(Path, 'open', return_value=io.BytesIO(pixels(opaque=True))):
             settled = inspect.startup_pixel_comparison('41-lock-screen-dark.png', handoff)
         self.assertEqual(settled['sample_rgb']['left_of_stage'],
