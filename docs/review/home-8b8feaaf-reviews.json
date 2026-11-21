@@ -1,0 +1,68 @@
+{
+  "reviews": {
+    "01-home-rest-dark": {
+      "actual_sha256": "090baa10d100481f9bd420b60fd0cea56eb045182c341d4b938d567ffa436e0d",
+      "expected_sha256": "70617942960638e9ad855344dcc7aa1433058bb4d060155f1cfb36592ca332a6",
+      "note": "The selected-address Activity history, empty rewards and absent Pending card differ from the illustrated state.",
+      "reviewed_at": "2026-11-21T19:44:52Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "01-home-rest-light": {
+      "actual_sha256": "d56f23b230a7e79392e1fbf1930551cf44b5a8102782db6836cac6533b45df86",
+      "expected_sha256": "280f31f618a20af2f275bd516afc3280849180f4788f38ae7c3fdebaedd36b7c",
+      "note": "The selected-address Activity history, empty rewards and absent Pending card differ from the illustrated state.",
+      "reviewed_at": "2026-11-21T19:44:52Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-dark": {
+      "actual_sha256": "8ba4874e1198bf5bc50e9e55766609257fcf16d5c60f78bd36ea18d8c58ff11e",
+      "expected_sha256": "ef3e3dfc4e9e4a6438516fe8803c55202d744b57c964104d6212c4eb2d3ebd97",
+      "note": "The expanded rail and Tokens header align. The empty rewards header and absent token rows change the card heights.",
+      "reviewed_at": "2026-11-21T19:44:52Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-light": {
+      "actual_sha256": "de958554dbdf6ba1b443f8174d3e9536f848afd72570793139f7cf3700d4965a",
+      "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
+      "note": "The expanded rail and Tokens header align. The empty rewards header and absent token rows change the card heights.",
+      "reviewed_at": "2026-11-21T19:44:52Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-dark": {
+      "actual_sha256": "5e64de8a92151a0b0090ce32a5a6bcb9bbf3ed2d437904f03b35ffd70a07d754",
+      "expected_sha256": "29421519af83d80baf69fcfe24beb37fc754d8da1c08b3a175e7224a27fedf16",
+      "note": "The hero and visible Activity amount are masked. The shorter Activity list and empty rewards differ from the reference.",
+      "reviewed_at": "2026-11-21T19:44:52Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-light": {
+      "actual_sha256": "d476ee518661e51ba2d2785fbd3a7a719147388a89b163c019514b3d6f225e63",
+      "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
+      "note": "The hero and visible Activity amount are masked. The shorter Activity list and empty rewards differ from the reference.",
+      "reviewed_at": "2026-11-21T19:44:52Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-dark": {
+      "actual_sha256": "ca3daf6b33fa18ec994d97f7f0ee0334272bdcedf9ddee7cfa1b498a546a9427",
+      "expected_sha256": "52ccc26f93bcad1c79ac91228648bb8c369a6cec14041f77f51d210afec0a1f9",
+      "note": "The overlay and result groups align. The blurred Activity surface has a different extent beneath the palette.",
+      "reviewed_at": "2026-11-21T19:44:52Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-light": {
+      "actual_sha256": "73eac9a4a5c77bee38a59acf132ded9fbdf7b69dc4365b0df80fe40395d07cac",
+      "expected_sha256": "f700f7b185b5064b45b1acc561abcee0fce392badb4dc2d58319914780b060bb",
+      "note": "The overlay and result groups align. The blurred Activity surface has a different extent beneath the palette.",
+      "reviewed_at": "2026-11-21T19:44:52Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}

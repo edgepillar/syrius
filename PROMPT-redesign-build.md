@@ -4279,7 +4279,10 @@ and 44/67/48. The light pair reads 201/240/217 and 218/241/222. The greener
 appearance is consistent with the approved palette. These samples leave
 the whole-image findings open.
 
-The eight exact pairs remain in review under V01.
+The [eight recorded verdicts](docs/review/home-8b8feaaf-reviews.json)
+bind both original PNG hashes. The comparison tool reads them through
+`--reviews` and reports eight reviewed mismatches for these exact pairs.
+The differences remain open under V01.
 
 The Windows `home-catalog` selection uses the same eight literal shots and
 original motion probes as `home`. It retains the isolated wallet and lab
