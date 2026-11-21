@@ -3156,6 +3156,14 @@ stops at the scaled Security tests. Their five-panel count and backup
 geometry assertions now include mounted panels outside the viewport.
 The checks still require all five panels and the original spacing.
 
+The [clean Windows baseline at `c46ad9c1`](https://github.com/edgepillar/syrius/actions/runs/44873686324/job/136753581063)
+and its [independent log inspection](https://github.com/edgepillar/syrius/actions/runs/44876186589/job/136761284285)
+verify all 12 baseline checks, both Debug and Release builds, matching
+runtime library hashes and 5,131 non-chain tests passed with one skip.
+Ordinary entry capture was skipped in that run. The baseline predates
+the fixed Settings viewport and leaves the final-source build and
+interface checks under V06 open.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.
