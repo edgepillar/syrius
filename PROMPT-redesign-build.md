@@ -2859,8 +2859,16 @@ boundary while the content changes. The existing transition case checks
 that the menu boundary stays mounted. [Linux validation](https://github.com/edgepillar/syrius/actions/runs/44858117813/job/136704975936)
 passes strict analysis, 5,129 non-chain tests with one skip, and
 generated-file verification. The [Windows timing run](https://github.com/edgepillar/syrius/actions/runs/44858117836)
-passes analysis and the Release harness build. Its paired measurement
-remains pending.
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44859526323/job/136709449292)
+verify both original windows and two normal entry, two normal wallet and
+five normal node exits. Page settlement is 418.172 ms after release. The
+page's peak raster is 128.675 ms versus 83.046 ms on P06. The longest
+page frame takes 198.479 ms versus 104.477 ms. The disclosure's peak
+raster is 118.482 ms versus 23.050 ms. It starts 20.314 to 51.305 ms
+before disclosure release. Both build-duration comparisons pass.
+Both raster and distinct-frame comparisons fail, and all four windows
+retain frame-number gaps. This run leaves the separate effect of the
+menu boundary unestablished. V02 remains open.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence

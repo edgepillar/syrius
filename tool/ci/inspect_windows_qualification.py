@@ -29,6 +29,9 @@ SKIPPED_BASELINE_JOB = (
     "inputs.windows_inventory_only && 'Hosted Windows inventory' "
     "|| 'Hosted Windows baseline'")
 WINDOWS_READER_NAME = 'Inspect retained Windows qualification'
+ENTRY_JOB_NAME = 'Ordinary Windows entry captures'
+ENTRY_ARTIFACT_PREFIX = 'windows-entry-capture-'
+QUIZ_ENTRY_REQUESTS = 20
 READONLY_INSPECTOR_STEPS = {
     'Inspect retained chain-321 evidence': (
         'Test archive and credential boundaries in memory',
@@ -614,6 +617,110 @@ def require_startup_job_set(jobs, producer, head, run_id):
     return executed
 
 
+def verify_entry_sources(client, head):
+    global PHASE
+    PHASE = 'source_metadata'
+    for name in PRODUCERS:
+        selected = client.json('/contents/tool/ci/' + name + '?ref=' + head)
+        archive.need(selected['type'] == 'file' and selected['encoding'] == 'base64'
+                     and selected['path'] == 'tool/ci/' + name)
+        data = base64.b64decode(selected['content'].replace('\n', ''), validate=True)
+        archive.need(len(data) == selected['size'] and data == Path(__file__).with_name(name).read_bytes())
+
+
+def inspect_entry(client, text, head, tree, run_id, job, *, item=None):
+    global PHASE
+    PHASE = 'entry_artifact'
+    name = ENTRY_ARTIFACT_PREFIX + head + '-' + text + '-1'
+    if item is None:
+        listing = client.json('/actions/runs/' + text + '/artifacts?per_page=20')
+        archive.need(listing['total_count'] == len(listing['artifacts']) <= 20)
+        selected = [candidate for candidate in listing['artifacts'] if candidate['name'] == name]
+        archive.need(len(selected) == 1)
+        item = selected[0]
+    archive.need(item['name'] == name and item['expired'] is False
+        and item['workflow_run']['id'] == run_id and item['workflow_run']['head_sha'] == head
+        and type(item['id']) is int and item['id'] > 0
+        and type(item['size_in_bytes']) is int and 0 < item['size_in_bytes'] <= MAX_ENTRY_ARCHIVE
+        and re.fullmatch('sha256:[a-f0-9]{64}', item.get('digest', '')) is not None)
+    location = client.read(archive.API + '/actions/artifacts/' + str(item['id']) + '/zip', redirect=True)
+    raw = client.read(location, authenticated=False, cap=MAX_ENTRY_ARCHIVE)
+    reference_head = os.environ.get('WINDOWS_REFERENCE_HEAD')
+    reference_dir = None
+    if reference_head is not None:
+        archive.need(re.fullmatch('[a-f0-9]{40}', reference_head) is not None)
+        reference_dir = Path(__file__).resolve().parents[2] / 'mockups/redesign/shots'
+    summary = entry_archive(raw, item['digest'][7:], item['size_in_bytes'], head, tree,
+                            run_id, reference_dir=reference_dir)
+    archive.need(job['conclusion'] != 'success' or summary['artifact_reported_success'])
+    summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'],
+                   producer_sources_equal=True)
+    connector = summary.pop('import_connector_coverage')
+    drop = summary.pop('import_drop_border_coverage')
+    welcome = summary.pop('welcome_text_bounds')
+    comparisons = summary.pop('entry_pixel_comparisons')
+    emit('Hosted entry inspection', summary)
+    binding = dict(source_head=head, source_tree=tree, source_run_id=run_id,
+        source_attempt=1, original_job_id=job['id'], original_job_conclusion=job['conclusion'],
+        archive_sha256=summary['archive_sha256'], manifest_sha256=summary['manifest_sha256'],
+        visual_matches=0)
+    if any(band['status'] == 'observed' for band in connector.values()):
+        emit('Hosted Import connector coverage', dict(
+            scope='retained_import_connector_coverage', **binding,
+            x_range=list(IMPORT_CONNECTOR_X), y_range=list(IMPORT_CONNECTOR_Y),
+            minimum_channel_contrast=IMPORT_CONNECTOR_CONTRAST, bands=connector))
+    if any(edge['status'] == 'observed' for edge in drop.values()):
+        emit('Hosted Import drop border coverage', dict(
+            scope='retained_import_drop_border_coverage', **binding,
+            reference_bounds=[IMPORT_DROP_X[0], IMPORT_DROP_Y[0], IMPORT_DROP_X[1], IMPORT_DROP_Y[1]],
+            tolerance_ppm=IMPORT_DROP_TOLERANCE_PPM, edges=drop))
+    if any(bounds is not None for bounds in welcome.values()):
+        emit('Hosted Welcome text bands', dict(scope='retained_welcome_text_bounds',
+            **binding, x_range=list(WELCOME_TEXT_X), crops=WELCOME_TEXT_ROWS,
+            minimum_luminance_contrast=WELCOME_TEXT_CONTRAST, bounds=welcome))
+    if any(value is not None for value in comparisons.values()):
+        emit('Hosted entry pixel comparisons', dict(
+            scope='retained_entry_pixel_comparisons', **binding,
+            reference_head=reference_head, size=[1280, 780],
+            region_bounds=ENTRY_REGIONS, comparisons=comparisons))
+
+
+def inspect_quiz_entry_bundle(client, text, head, tree, run_id, quiz_job, entry_job):
+    """Read the two archives from their original jobs without another build."""
+    global PHASE
+    for job, capture, retain in (
+        (quiz_job, startup.quiz_catalog.JOB_STEP,
+         'Retain the synthetic seed quiz manifest and PNGs'),
+        (entry_job, 'Capture genuine ordinary entry and observe original process exit',
+         'Retain entry evidence and finite manifest'),
+    ):
+        steps = {step['name']: step for step in job['steps']}
+        archive.need(job['head_sha'] == head and job['run_id'] == run_id
+            and job['status'] == 'completed' and job['conclusion'] in ('success', 'failure')
+            and job['labels'] == ['windows-latest']
+            and len(steps) == len(job['steps'])
+            and steps[capture]['status'] == steps[retain]['status'] == 'completed'
+            and steps[capture]['conclusion'] in ('success', 'failure')
+            and steps[retain]['conclusion'] == 'success')
+        # Both jobs must retain the original capture outcome.
+        archive.need(job['conclusion'] == steps[capture]['conclusion'])
+
+    PHASE = 'startup_artifacts'
+    listing = client.json('/actions/runs/' + text + '/artifacts?per_page=20')
+    expected = [prefix + head + '-' + text + '-1'
+                for prefix in (startup.quiz_catalog.ARTIFACT_PREFIX, ENTRY_ARTIFACT_PREFIX)]
+    entries = {item['name']: item for item in listing['artifacts']}
+    archive.need(listing['total_count'] == len(listing['artifacts']) == len(entries) == 2
+        and set(entries) == set(expected)
+        and entries[expected[0]]['id'] != entries[expected[1]]['id'])
+    quiz = startup.inspect_launch_run(
+        client, head=head, tree=tree, run_id=run_id, job=quiz_job,
+        quiz=True, item=entries[expected[0]])
+    emit('Hosted original seed quiz catalog inspection', quiz)
+    verify_entry_sources(client, head)
+    inspect_entry(client, text, head, tree, run_id, entry_job, item=entries[expected[1]])
+
+
 def main():
     global PHASE
     PHASE = 'environment'
@@ -643,6 +750,19 @@ def main():
         archive.need(len(startup_jobs) <= 1)
         if startup_jobs and startup_jobs[0]['conclusion'] != 'skipped':
             job = startup_jobs[0]
+            siblings = [candidate for candidate in listing['jobs']
+                        if candidate is not job and candidate['conclusion'] != 'skipped']
+            if (job['name'] == startup.JOB_NAME and len(siblings) == 1
+                    and siblings[0]['name'] == ENTRY_JOB_NAME
+                    and any(step['name'] == startup.quiz_catalog.JOB_STEP
+                            and step['conclusion'] != 'skipped' for step in job['steps'])):
+                entry_job = siblings[0]
+                archive.need(job['id'] != entry_job['id'])
+                require_startup_job_set([candidate for candidate in listing['jobs']
+                                         if candidate is not entry_job], job, head, run_id)
+                client = archive.Client(parent.get('GH_TOKEN'), max_calls=QUIZ_ENTRY_REQUESTS)
+                inspect_quiz_entry_bundle(client, text, head, tree, run_id, job, entry_job)
+                return 0
             readers = require_startup_job_set(listing['jobs'], job, head, run_id)
             PHASE = 'startup_artifacts'
             if job['name'] == startup.BATCH_JOB_NAME:
@@ -718,16 +838,10 @@ def main():
         # The startup reader checks its own four producers. Checking the
         # unselected baseline sources first exhausts the twelve-request bound
         # before either original startup archive can be read.
-        PHASE = 'source_metadata'
-        for name in PRODUCERS:
-            selected = client.json('/contents/tool/ci/' + name + '?ref=' + head)
-            archive.need(selected['type'] == 'file' and selected['encoding'] == 'base64'
-                         and selected['path'] == 'tool/ci/' + name)
-            data = base64.b64decode(selected['content'].replace('\n', ''), validate=True)
-            archive.need(len(data) == selected['size'] and data == Path(__file__).with_name(name).read_bytes())
+        verify_entry_sources(client, head)
         PHASE = 'job_metadata'
         jobs = {}
-        for name in ('Hosted Windows baseline', 'Ordinary Windows entry captures'):
+        for name in ('Hosted Windows baseline', ENTRY_JOB_NAME):
             selected = [job for job in listing['jobs']
                         if job['name'] == name or (
                             name == 'Hosted Windows baseline'
@@ -763,7 +877,7 @@ def main():
                            log_sha256=archive.sha(raw), log_bytes=len(raw), producer_sources_equal=True)
             PHASE = 'baseline_notice'
             emit('Hosted baseline inspection', summary)
-        entry_job = jobs['Ordinary Windows entry captures']
+        entry_job = jobs[ENTRY_JOB_NAME]
         if entry_job['conclusion'] == 'skipped':
             emit('Hosted entry not selected', dict(scope='retained_windows_entry_not_selected',
                 inspection_only=True, runtime_started=False, wallet_qualified=False,
@@ -771,57 +885,7 @@ def main():
                 original_job_id=entry_job['id'], original_job_conclusion='skipped',
                 entry_qualified=False, entry_artifacts_read=0))
             return 0
-        PHASE = 'entry_artifact'
-        listing = client.json('/actions/runs/' + text + '/artifacts?per_page=20')
-        archive.need(listing['total_count'] == len(listing['artifacts']) <= 20)
-        name = 'windows-entry-capture-' + head + '-' + text + '-1'
-        selected = [item for item in listing['artifacts'] if item['name'] == name]
-        archive.need(len(selected) == 1)
-        item = selected[0]
-        archive.need(item['expired'] is False and item['workflow_run']['id'] == run_id
-            and item['workflow_run']['head_sha'] == head
-            and re.fullmatch('sha256:[a-f0-9]{64}', item.get('digest', '')) is not None)
-        location = client.read(archive.API + '/actions/artifacts/' + str(item['id']) + '/zip', redirect=True)
-        raw = client.read(location, authenticated=False, cap=MAX_ENTRY_ARCHIVE)
-        reference_head = os.environ.get('WINDOWS_REFERENCE_HEAD')
-        reference_dir = None
-        if reference_head is not None:
-            archive.need(re.fullmatch('[a-f0-9]{40}', reference_head) is not None)
-            reference_dir = Path(__file__).resolve().parents[2] / 'mockups/redesign/shots'
-        summary = entry_archive(raw, item['digest'][7:], item['size_in_bytes'], head, tree,
-                                run_id, reference_dir=reference_dir)
-        job = jobs['Ordinary Windows entry captures']
-        archive.need(job['conclusion'] != 'success' or summary['artifact_reported_success'])
-        summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'],
-                       producer_sources_equal=True)
-        connector = summary.pop('import_connector_coverage')
-        drop = summary.pop('import_drop_border_coverage')
-        welcome = summary.pop('welcome_text_bounds')
-        comparisons = summary.pop('entry_pixel_comparisons')
-        emit('Hosted entry inspection', summary)
-        binding = dict(source_head=head, source_tree=tree, source_run_id=run_id,
-            source_attempt=1, original_job_id=job['id'], original_job_conclusion=job['conclusion'],
-            archive_sha256=summary['archive_sha256'], manifest_sha256=summary['manifest_sha256'],
-            visual_matches=0)
-        if any(band['status'] == 'observed' for band in connector.values()):
-            emit('Hosted Import connector coverage', dict(
-                scope='retained_import_connector_coverage', **binding,
-                x_range=list(IMPORT_CONNECTOR_X), y_range=list(IMPORT_CONNECTOR_Y),
-                minimum_channel_contrast=IMPORT_CONNECTOR_CONTRAST, bands=connector))
-        if any(edge['status'] == 'observed' for edge in drop.values()):
-            emit('Hosted Import drop border coverage', dict(
-                scope='retained_import_drop_border_coverage', **binding,
-                reference_bounds=[IMPORT_DROP_X[0], IMPORT_DROP_Y[0], IMPORT_DROP_X[1], IMPORT_DROP_Y[1]],
-                tolerance_ppm=IMPORT_DROP_TOLERANCE_PPM, edges=drop))
-        if any(bounds is not None for bounds in welcome.values()):
-            emit('Hosted Welcome text bands', dict(scope='retained_welcome_text_bounds',
-                **binding, x_range=list(WELCOME_TEXT_X), crops=WELCOME_TEXT_ROWS,
-                minimum_luminance_contrast=WELCOME_TEXT_CONTRAST, bounds=welcome))
-        if any(value is not None for value in comparisons.values()):
-            emit('Hosted entry pixel comparisons', dict(
-                scope='retained_entry_pixel_comparisons', **binding,
-                reference_head=reference_head, size=[1280, 780],
-                region_bounds=ENTRY_REGIONS, comparisons=comparisons))
+        inspect_entry(client, text, head, tree, run_id, entry_job)
         return 0
     except (Exception, KeyboardInterrupt):
         encoded = json.dumps(dict(scope='retained_windows_qualification_observation',

@@ -348,7 +348,7 @@ class WindowsQualificationTests(unittest.TestCase):
 
     def _read_original(self, *, entry_change=None, entry_count=1, failed_root=False,
                        baseline_conclusion='success', baseline_change=None, baseline_count=1,
-                       log_failure=None, entry_data=None):
+                       log_failure=None, entry_data=None, quiz_job=None, extra_artifact=False):
         data = pixels() if entry_data is None else entry_data
         raw = package(entry_report(data), data)
         original_report = baseline()
@@ -389,12 +389,19 @@ class WindowsQualificationTests(unittest.TestCase):
                         original_entry.update(entry_change)
                     jobs = ([dict(original_baseline) for _ in range(baseline_count)]
                             + [dict(original_entry) for _ in range(entry_count)])
+                    if quiz_job is not None:
+                        jobs.append(quiz_job)
                     return dict(total_count=len(jobs), jobs=jobs)
                 if path == '/actions/runs/123/artifacts?per_page=20':
-                    return dict(total_count=1, artifacts=[dict(id=7, expired=False,
+                    artifacts = [dict(id=7, expired=False,
                         name='windows-entry-capture-' + HEAD + '-123-1',
                         workflow_run=dict(id=RUN, head_sha=HEAD), size_in_bytes=len(raw),
-                        digest='sha256:' + inspect.archive.sha(raw))])
+                        digest='sha256:' + inspect.archive.sha(raw))]
+                    if quiz_job is not None:
+                        artifacts.append(dict(id=8, name='windows-quiz-catalog-' + HEAD + '-123-1'))
+                    if extra_artifact:
+                        artifacts.append(dict(id=9, name='unrelated'))
+                    return dict(total_count=len(artifacts), artifacts=artifacts)
                 raise AssertionError('unexpected metadata query')
 
             def read(self, url, *, redirect=False, authenticated=True, cap=262144):
@@ -423,6 +430,36 @@ class WindowsQualificationTests(unittest.TestCase):
                 contextlib.redirect_stdout(io.StringIO()) as output:
             status = inspect.main()
         return status, calls, output.getvalue()
+
+    def test_quiz_and_entry_share_one_artifact_listing_and_keep_both_receipts(self):
+        def step(name):
+            return dict(name=name, status='completed', conclusion='success')
+
+        quiz = dict(id=8, name=inspect.startup.JOB_NAME, run_id=RUN, head_sha=HEAD,
+            status='completed', conclusion='success', labels=['windows-latest'],
+            steps=[step(inspect.startup.quiz_catalog.JOB_STEP),
+                   step('Retain the synthetic seed quiz manifest and PNGs')])
+        entry = dict(labels=['windows-latest'],
+            steps=[step('Capture genuine ordinary entry and observe original process exit'),
+                   step('Retain entry evidence and finite manifest')])
+        with mock.patch.object(inspect.startup, 'inspect_launch_run',
+                return_value=dict(scope='retained_seed_quiz', verified_png_count=2)) as inspect_quiz:
+            status, calls, output = self._read_original(
+                quiz_job=quiz, baseline_conclusion='skipped', entry_change=entry)
+            self.assertEqual(status, 0, output)
+            self.assertEqual(calls.count('/actions/runs/123/artifacts?per_page=20'), 1)
+            self.assertFalse(any('/logs' in call for call in calls))
+            self.assertEqual(inspect_quiz.call_args.kwargs['item']['id'], 8)
+            self.assertTrue(inspect_quiz.call_args.kwargs['quiz'])
+            self.assertIn('Hosted original seed quiz catalog inspection', output)
+            self.assertIn('Hosted entry inspection', output)
+
+            inspect_quiz.reset_mock()
+            status, calls, _ = self._read_original(quiz_job=quiz,
+                baseline_conclusion='skipped', entry_change=entry, extra_artifact=True)
+            self.assertEqual(status, 1)
+            inspect_quiz.assert_not_called()
+            self.assertFalse(any('/zip' in call for call in calls))
 
     def test_complete_reader_uses_only_original_metadata_and_bounded_memory_reads(self):
         status, calls, output = self._read_original()

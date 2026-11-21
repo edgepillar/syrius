@@ -499,7 +499,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
 
 
 def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=False,
-                       quiz=False, timing=False, lock_seams=False, motion=False):
+                       quiz=False, timing=False, lock_seams=False, motion=False, item=None):
     """Inspect the selected startup lane without an SDK or native process."""
     archive.need(job['name'] == JOB_NAME and job['head_sha'] == head
         and job['run_id'] == run_id and job['status'] == 'completed'
@@ -518,7 +518,7 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
             and steps[launch.MOTION_JOB_STEP]['conclusion'] == job['conclusion']
             and steps[launch.MOTION_RETAIN_STEP]['conclusion'] == 'success')
     summary = _inspect_launch_artifact(client, head, tree, run_id,
-        settle=settle, lock=lock, quiz=quiz, timing=timing, lock_seams=lock_seams, motion=motion)
+        settle=settle, lock=lock, quiz=quiz, timing=timing, lock_seams=lock_seams, motion=motion, item=item)
     archive.need((job['conclusion'] == 'success') is summary['artifact_reported_success'])
     summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'])
     return summary
