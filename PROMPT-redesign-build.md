@@ -4141,7 +4141,13 @@ numbers, and its eleven disclosure gaps cover 25. Every gap is followed
 by a build while the previous reported raster remains in progress. The
 independent reader can also group gaps from windows without exact raster
 starts. It uses the recorded build, raster and total durations to bound
-each previous raster and leaves ambiguous cases indeterminate.
+each previous raster and leaves ambiguous cases indeterminate. The
+[bounded re-read of the later pair](https://github.com/edgepillar/syrius/actions/runs/44941999241/job/136961028430)
+also finds definite overlap on P06, covering 6 of 23 missing page-change
+frame numbers and 8 of 19 missing disclosure frame numbers. Another
+15 page-change and 11 disclosure numbers remain indeterminate. This
+observation occurs on both builds. The current capture still fails the
+original 16 ms comparison.
 
 The [Details visual run at `59a1f859`](https://github.com/edgepillar/syrius/actions/runs/44932173389)
 targets five screens in both themes, including Licences and Originals.
