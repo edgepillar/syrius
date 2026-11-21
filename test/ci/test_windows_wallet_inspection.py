@@ -194,11 +194,13 @@ def details_reference(digest, *, schema=1):
 
 def catalog_only_report(value, digest, family):
     home_schema = inspection.HOME_CAPTURE_SCHEMAS.get(family)
+    settings_only = family == 'settings-catalog'
     report = dict(value, schema=lab.READONLY_CATALOG_SCHEMAS[family],
         captures=[], tours={}, locales={}, stalls={},
         home_catalog=home_reference(digest, schema=home_schema) if home_schema else None,
-        settings_catalog=None, navigation_catalog=None, viewport=None,
-        details_catalog=None if home_schema else details_reference(
+        settings_catalog=settings_reference(digest) if settings_only else None,
+        navigation_catalog=None, viewport=None,
+        details_catalog=None if home_schema or settings_only else details_reference(
             digest, schema=inspection.details.FAMILY_SCHEMAS[family]),
         checks=dict(value['checks'], tours_complete=False, locale_verified=False))
     if family == 'send-warn':
@@ -344,6 +346,7 @@ class InspectionTests(unittest.TestCase):
         self.assertEqual(lab.readonly_catalog_family(parent), 'details')
         for family, schema in (('home', 1), ('home-catalog', 15), ('home-seams', 1),
                                ('surface-seams', 13), ('home-bell', 8), ('settings', 2),
+                               ('settings-catalog', 16),
                                ('node-verified', 14), ('settings-seams', 2),
                                ('navigation', 3), ('details', 4),
                                ('token-draft', 4), ('send-confirm', 5),
@@ -371,7 +374,7 @@ class InspectionTests(unittest.TestCase):
         self.assertEqual([line.strip()[2:] for line in choice.splitlines()
             if line.strip().startswith('- ')],
             ['home', 'home-catalog', 'home-seams', 'surface-seams', 'home-bell', 'home-zap-preview', 'settings',
-             'node-verified', 'settings-seams',
+             'settings-catalog', 'node-verified', 'settings-seams',
              'navigation', 'details', 'token-draft',
              'send-confirm', 'send-warn', 'swap-start', 'wallet-ready', 'earn',
              'sentinel-fixture', 'launch', 'launch-settle', 'launch-motion', 'startup-catalog',
@@ -391,7 +394,8 @@ class InspectionTests(unittest.TestCase):
             '.harness/ci-launch-motion/01-late.png',
             '.harness/ci-launch-motion/02-settled.png',
         ])
-        for family in ('send-warn', 'settings-seams', 'home-seams', 'surface-seams', 'node-verified', 'home-catalog'):
+        for family in ('send-warn', 'settings-seams', 'home-seams', 'surface-seams',
+                       'node-verified', 'home-catalog', 'settings-catalog'):
             scoped = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=family,
                 SYRIUS_HOSTED_RUNNER='github-hosted', GITHUB_ACTIONS='true',
                 GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_REPOSITORY='edgepillar/syrius',
@@ -1670,8 +1674,9 @@ class InspectionTests(unittest.TestCase):
         viewport_raw = json.dumps(viewport_manifest).encode('ascii')
         if value['success']:
             if catalog_only:
+                raw = settings_raw if catalog_only == 'settings-catalog' else details_raw
                 value = catalog_only_report(
-                    value, hashlib.sha256(details_raw).hexdigest(), catalog_only)
+                    value, hashlib.sha256(raw).hexdigest(), catalog_only)
             elif details_catalog:
                 value.update(schema=4, home_catalog=None, settings_catalog=None,
                     navigation_catalog=None,
@@ -1823,6 +1828,16 @@ class InspectionTests(unittest.TestCase):
         for filename in inspection.settings.FILES:
             self.assertIn('ci-settings-catalog/' + filename, output)
         self.assertNotIn('private', output)
+
+        paths, reads, output = self.artifact_case(value, pixels=pixels,
+            catalog_only='settings-catalog')
+        self.assertEqual(paths, ['.harness/ci-wallet-inspection/manifest.json'])
+        self.assertEqual(len(reads), 23)
+        self.assertIn('catalog_family=settings-catalog', output)
+        self.assertNotIn('ci-viewport-observations/', output)
+        self.assertNotIn('captures/dark/', output)
+        for filename in inspection.settings.FILES:
+            self.assertIn('ci-settings-catalog/' + filename, output)
         paths, reads, output = self.artifact_case(value, pixels=pixels, navigation_catalog=True)
         self.assertEqual(len(paths), 25)
         self.assertEqual(len(reads), 53)

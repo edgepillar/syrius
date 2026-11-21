@@ -33,7 +33,7 @@ from .hosted_chain321 import (EARN_INSPECTION_SCHEMA, HOME_BELL_INSPECTION_SCHEM
     READONLY_CATALOG_SCHEMAS, SEND_CONFIRM_INSPECTION_SCHEMA, SENTINEL_INSPECTION_SCHEMA,
     SEND_WARNING_INSPECTION_SCHEMA, SETTINGS_SEAMS_FAMILY, SWAP_START_INSPECTION_SCHEMA,
     SURFACE_SEAMS_FAMILY, SURFACE_SEAMS_SCHEMA, WALLET_READY_INSPECTION_SCHEMA,
-    NODE_VERIFIED_INSPECTION_SCHEMA,
+    NODE_VERIFIED_INSPECTION_SCHEMA, SETTINGS_CATALOG_INSPECTION_SCHEMA,
     readonly_catalog_family)
 
 
@@ -61,6 +61,7 @@ HOME_BELL_FILES = ('04-home-bell-dark.png', '04-home-bell-light.png')
 HOME_BELL_CAPTURE_SCHEMA = 5
 HOME_CAPTURE_SCHEMAS = {'home': 4, 'home-catalog': 4, 'home-bell': HOME_BELL_CAPTURE_SCHEMA}
 HOME_INSPECTION_SCHEMAS = (1, HOME_BELL_INSPECTION_SCHEMA, HOME_CATALOG_INSPECTION_SCHEMA)
+SETTINGS_INSPECTION_SCHEMAS = (2, SETTINGS_CATALOG_INSPECTION_SCHEMA)
 CHECKS = ('environment', 'source', 'unused_destinations', 'job_owned',
     'entry_gate', 'entry_ready', 'application_owned', 'lab_revalidated',
     'input_released', 'wallet_bound', 'tours_complete', 'locale_verified',
@@ -70,6 +71,7 @@ TOUR_CHECKS = ('tours_complete', 'locale_verified')
 CATALOG_ONLY_FAMILIES = {
     HOME_BELL_INSPECTION_SCHEMA: 'home-bell',
     HOME_CATALOG_INSPECTION_SCHEMA: 'home-catalog',
+    SETTINGS_CATALOG_INSPECTION_SCHEMA: 'settings-catalog',
     SEND_CONFIRM_INSPECTION_SCHEMA: 'send-confirm',
     SWAP_START_INSPECTION_SCHEMA: 'swap-start',
     WALLET_READY_INSPECTION_SCHEMA: 'wallet-ready',
@@ -716,7 +718,10 @@ def inspection_catalog_reference(report):
             need(reference['schema'] == HOME_CAPTURE_SCHEMAS[family], 'CAPTURE_REFUSED')
         return reference
     need(report['home_catalog'] is None, 'CAPTURE_REFUSED')
-    if schema == 2:
+    if schema in SETTINGS_INSPECTION_SCHEMAS:
+        if schema == SETTINGS_CATALOG_INSPECTION_SCHEMA:
+            need(report['navigation_catalog'] is None and report['details_catalog'] is None,
+                 'CAPTURE_REFUSED')
         return settings.catalog_reference(report['settings_catalog'])
     need(report['settings_catalog'] is None, 'CAPTURE_REFUSED')
     if schema == 3:
@@ -956,7 +961,10 @@ def public_manifest(value):
                  'OUTPUT_REFUSED')
     else:
         need(value['home_catalog'] is None, 'OUTPUT_REFUSED')
-        if value['schema'] == 2:
+        if schema in SETTINGS_INSPECTION_SCHEMAS:
+            if schema == SETTINGS_CATALOG_INSPECTION_SCHEMA:
+                need(value['navigation_catalog'] is None and value['details_catalog'] is None,
+                     'OUTPUT_REFUSED')
             if value['settings_catalog'] is not None:
                 settings.catalog_reference(value['settings_catalog'])
             need(not value['success'] or value['settings_catalog'] is not None,
@@ -1645,6 +1653,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *,
         details_schema = details.FAMILY_SCHEMAS.get(family, 1)
         if family in HOME_CAPTURE_SCHEMAS:
             catalog_slot = 'home'
+        elif family == 'settings-catalog':
+            catalog_slot = 'settings'
         else:
             catalog_slot = 'details' if family in details.FAMILY_SCHEMAS else family
         report['schema'] = READONLY_CATALOG_SCHEMAS[family]
@@ -1792,7 +1802,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *,
                     used.add('address')
                     selection = shared.address_selection_receipt(
                         json.loads(line.partition(b':')[2]))
-                    if family in ('settings', 'node-verified', 'navigation', 'details'):
+                    if catalog_slot == 'settings' or family in ('node-verified', 'navigation', 'details'):
                         need(selection['members'] == 4, 'ENTRY_REFUSED')
                     report['address_selection'] = selection
                 elif line.startswith(b'SYRIUS_INSPECTION_WALLET:'):
@@ -2222,6 +2232,7 @@ def artifact_paths(parent):
         3: 'navigation-catalog', 4: 'details-catalog',
         HOME_BELL_INSPECTION_SCHEMA: 'home-catalog',
         HOME_CATALOG_INSPECTION_SCHEMA: 'home-catalog',
+        SETTINGS_CATALOG_INSPECTION_SCHEMA: 'settings-catalog',
         SEND_CONFIRM_INSPECTION_SCHEMA: 'details-catalog',
         SWAP_START_INSPECTION_SCHEMA: 'details-catalog',
         WALLET_READY_INSPECTION_SCHEMA: 'details-catalog',
@@ -2236,7 +2247,7 @@ def artifact_paths(parent):
         home_paths = []
     elif value['schema'] in HOME_INSPECTION_SCHEMAS:
         home_paths = home_artifact_paths(repo, value)
-    elif value['schema'] == 2:
+    elif value['schema'] in SETTINGS_INSPECTION_SCHEMAS:
         home_paths = settings.artifact_paths(repo, value, read_original=read_original,
             parent_completed=completed(value))
     elif value['schema'] == 3:

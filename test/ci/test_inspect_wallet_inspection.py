@@ -1141,6 +1141,7 @@ class ReaderTests(unittest.TestCase):
         home_pixels = wallet_fixtures.png()
         bell_only = catalog_only == 'home-bell'
         home_only = catalog_only in ('home-bell', 'home-catalog')
+        settings_only = catalog_only == 'settings-catalog'
         if catalog_only == 'home-catalog':
             home_schema = reader.producer.HOME_CAPTURE_SCHEMAS[catalog_only]
         distinct_themes = bell_only or catalog_only in (
@@ -1151,12 +1152,12 @@ class ReaderTests(unittest.TestCase):
         if bell_only:
             home = wallet_fixtures.home_manifest(home_pixels, source,
                 schema=reader.producer.HOME_BELL_CAPTURE_SCHEMA)
-        elif catalog_only and not home_only:
+        elif catalog_only and not home_only and not settings_only:
             home = wallet_fixtures.details_manifest(home_pixels, source,
                 schema=reader.producer.details.FAMILY_SCHEMAS[catalog_only])
         elif details_catalog:
             home = wallet_fixtures.details_manifest(home_pixels, source)
-        elif settings_catalog:
+        elif settings_catalog or settings_only:
             home = wallet_fixtures.settings_manifest(home_pixels, source)
         elif navigation_catalog:
             home = wallet_fixtures.navigation_manifest(home_pixels, source)
@@ -1169,7 +1170,8 @@ class ReaderTests(unittest.TestCase):
                 child = wallet_fixtures.catalog_only_report(
                     child, reader.archive.sha(home_manifest), catalog_only)
                 if not positive:
-                    child['home_catalog' if home_only else 'details_catalog'] = None
+                    slot = 'home' if home_only else 'settings' if settings_only else 'details'
+                    child[slot + '_catalog'] = None
                 files = files[:1]
             elif details_catalog:
                 child.update(schema=4, home_catalog=None, settings_catalog=None,
@@ -1232,11 +1234,11 @@ class ReaderTests(unittest.TestCase):
         if surface_seams:
             artifact_ids = (1, 2, 4) if extra_viewport else (1, 2)
         catalog_name = 'home-catalog-'
-        if details_catalog or (catalog_only and not home_only):
+        if details_catalog or (catalog_only and not home_only and not settings_only):
             catalog_name = 'details-catalog-'
         elif navigation_catalog:
             catalog_name = 'navigation-catalog-'
-        elif settings_catalog:
+        elif settings_catalog or settings_only:
             catalog_name = 'settings-catalog-'
         listing = dict(total_count=len(artifact_ids), artifacts=[dict(id=i,
             name={1: 'chain321-native-', 2: 'wallet-inspection-',
@@ -1856,6 +1858,22 @@ class ReaderTests(unittest.TestCase):
             reader.producer.HOME_GOTO_FILES, reader.archive.sha(wallet_fixtures.png())))
         with self.assertRaises(reader.archive.Refused):
             self.run_main(catalog_only='home-catalog', extra_viewport=True)
+
+    def test_settings_catalog_reader_verifies_the_original_settings_images_only(self):
+        value, _, text = self.run_main(catalog_only='settings-catalog')
+        self.assertTrue(value['native_inspection_qualified'])
+        self.assertEqual(value['sampling_scope'], 'settings-catalog-only')
+        self.assertEqual(value['verified_png_count'], 0)
+        self.assertEqual(value['verified_viewport_png_count'], 0)
+        self.assertEqual(value['verified_catalog_png_count'], 14)
+        self.assertFalse(value['original_checks']['tours_complete'])
+        index, = [json.loads(line.split('::', 2)[-1]) for line in text.splitlines()
+                  if line.startswith('::notice title=Retained readonly catalog image index::')]
+        self.assertEqual(index['catalog_family'], 'settings')
+        self.assertEqual(index['images'], dict.fromkeys(
+            reader.producer.settings.FILES, reader.archive.sha(wallet_fixtures.png())))
+        with self.assertRaises(reader.archive.Refused):
+            self.run_main(catalog_only='settings-catalog', extra_viewport=True)
 
     def test_failed_parent_cannot_be_healed_by_a_successful_wallet_archive(self):
         value, _, _ = self.run_main(parent_failed=True)

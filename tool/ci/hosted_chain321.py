@@ -122,12 +122,14 @@ SURFACE_SEAMS_FAMILY = 'surface-seams'
 SURFACE_SEAMS_SCHEMA = 13
 NODE_VERIFIED_INSPECTION_SCHEMA = 14
 HOME_CATALOG_INSPECTION_SCHEMA = 15
+SETTINGS_CATALOG_INSPECTION_SCHEMA = 16
 INTERACTIVE_FRAME_PAIR_FAMILY = 'interactive-timing-pair'
 SETTINGS_SEAMS_FAMILY = 'settings-seams'
 READONLY_CATALOG_SCHEMAS = {
     'home': 1, 'settings': 2, 'navigation': 3, 'details': 4, 'token-draft': 4,
     'home-bell': HOME_BELL_INSPECTION_SCHEMA,
     'home-catalog': HOME_CATALOG_INSPECTION_SCHEMA,
+    'settings-catalog': SETTINGS_CATALOG_INSPECTION_SCHEMA,
     'send-confirm': SEND_CONFIRM_INSPECTION_SCHEMA,
     'swap-start': SWAP_START_INSPECTION_SCHEMA,
     'wallet-ready': WALLET_READY_INSPECTION_SCHEMA,
@@ -176,7 +178,7 @@ def require_environment(backend, parent):
     tour = wallet_tour_requested(backend, parent)
     family = parent.get('SYRIUS_READONLY_CATALOG_FAMILY')
     if family in (send_warning_window.FAMILY, 'home-zap-preview', 'node-verified', 'home-catalog',
-                  HOME_SEAMS_FAMILY, SETTINGS_SEAMS_FAMILY, SURFACE_SEAMS_FAMILY):
+                  'settings-catalog', HOME_SEAMS_FAMILY, SETTINGS_SEAMS_FAMILY, SURFACE_SEAMS_FAMILY):
         need(inspection and not tour and parent['GITHUB_REPOSITORY'] == 'edgepillar/syrius'
              and parent.get('GITHUB_RUN_ATTEMPT') == '1'
              and (family not in (SURFACE_SEAMS_FAMILY, 'node-verified')

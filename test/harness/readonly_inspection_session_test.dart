@@ -137,7 +137,8 @@ void main() {
     expect(isReadonlyHomeCatalogFamily('home-bell'), isFalse);
     expect(isReadonlyHomeCatalogFamily(null), isFalse);
     for (final String family in <String>[
-      'home', 'home-bell', 'home-catalog', 'settings', 'navigation', 'details',
+      'home', 'home-bell', 'home-catalog', 'settings', 'settings-catalog',
+      'navigation', 'details',
       'token-draft',
       'send-confirm', 'send-warn', 'swap-start', 'earn', 'sentinel-fixture',
       'home-zap-preview', 'surface-seams', 'node-verified',

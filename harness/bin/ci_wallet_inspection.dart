@@ -98,7 +98,8 @@ String readonlyInspectionCatalogFamily(Map<String, String> environment) {
   final String family =
       environment['SYRIUS_READONLY_CATALOG_FAMILY'] ?? 'details';
   if (!const <String>{
-    'home', 'home-bell', 'home-catalog', 'settings', 'navigation',
+    'home', 'home-bell', 'home-catalog', 'settings', 'settings-catalog',
+    'navigation',
     _surfaceSeamsFamily,
   }.contains(family) &&
       !_detailsSelections.containsKey(family)) {
@@ -170,7 +171,7 @@ class _InspectionInstance extends cli.Instance {
       'home-bell' => captureReadonlyHomeBell(
         repository: repository, session: _session, onStep: onStep,
       ),
-      'settings' => captureReadonlySettingsDefaults(
+      'settings' || 'settings-catalog' => captureReadonlySettingsDefaults(
         repository: repository, session: _session, onStep: onStep,
         parkCursor: _parkCaptureCursor,
       ),
@@ -228,8 +229,9 @@ Future<void> main() async {
         detailsSelection?.requiresLabRecipient ?? false;
     final bool homeCatalogOnly =
         family == 'home-bell' || family == 'home-catalog';
-    final bool catalogOnly =
-        homeCatalogOnly || (detailsSelection?.catalogOnly ?? false);
+    final bool settingsCatalogOnly = family == 'settings-catalog';
+    final bool catalogOnly = homeCatalogOnly || settingsCatalogOnly ||
+        (detailsSelection?.catalogOnly ?? false);
     final String name = environment['SYRIUS_CI_INSPECTION_INSTANCE'] ?? '';
     if (!Platform.isWindows || environment['GITHUB_ACTIONS'] != 'true' ||
         (family == 'navigation' &&
@@ -382,7 +384,8 @@ Future<void> main() async {
       // The original Plasma layouts show three other accounts. Use the
       // same bounded member preparation as the Settings address catalog.
       requireFourMembers: const <String>{
-        'settings', 'node-verified', 'navigation', 'details',
+        'settings', 'settings-catalog', 'node-verified', 'navigation',
+        'details',
       }.contains(family),
     );
     final String? labRecipient =
@@ -443,8 +446,11 @@ Future<void> main() async {
         'longest_ms': timings['longestMs'] as int,
       })}');
     }
-    stage = detailsSelection?.stage ??
-        (homeCatalogOnly ? 'home_catalog' : '${family}_catalog');
+    stage = detailsSelection?.stage ?? switch (family) {
+      'home-bell' || 'home-catalog' => 'home_catalog',
+      'settings-catalog' => 'settings_catalog',
+      _ => '${family}_catalog',
+    };
     if (catalogOnly && readyCatalog == null) {
       await cli.goto(instance, 'dashboard');
     }

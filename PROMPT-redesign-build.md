@@ -4466,6 +4466,14 @@ reference. Go To shows all three groups and its shortcut footer. The
 synthetic contact and settled backdrop still differ from the reference.
 These results keep V01 open.
 
+The `settings-catalog` selection applies the same capture scope to the 14
+original Settings pairs. It uses the existing Settings scripts and four-member
+wallet preparation. The producer and reader require the Settings catalog and
+normal parent closure. They reject tour and viewport artifacts for this
+selection. The existing `settings` selection still provides the full tour.
+The targeted controller and reader suites pass 71 tests, and strict Dart
+analysis passes. A hosted run is needed to measure the archive savings.
+
 The comparison tool accepts repeated `--reviews` arguments, so the earlier
 and recent review files can be read together without copying verdicts.
 Each verdict still requires both original image digests. A disagreement

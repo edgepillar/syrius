@@ -389,7 +389,7 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id, lab, lab_summar
                 summary['_layout_observation'] = layout_projection(
                     report, head, tree, run_id)
             summary['_home_catalog_reference'] = report['home_catalog']
-            if report['schema'] == 2:
+            if report['schema'] in producer.SETTINGS_INSPECTION_SCHEMAS:
                 summary['_settings_catalog_reference'] = report['settings_catalog']
             elif report['schema'] == 3:
                 summary['_navigation_catalog_reference'] = report['navigation_catalog']
@@ -1569,6 +1569,8 @@ def main(parent=None):
             if family in producer.HOME_CAPTURE_SCHEMAS:
                 need(reference is not None
                      and reference['schema'] == producer.HOME_CAPTURE_SCHEMAS[family])
+            elif family == 'settings-catalog':
+                need(settings_reference is not None)
             else:
                 need(details_reference is not None and producer.details.family_matches(
                      family, details_reference['schema']))
