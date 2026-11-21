@@ -3393,8 +3393,13 @@ The Lock run records two normal actor exits and exercises Wallet Picker and
 Password Recovery without producing screenshots.
 
 The Settings reader also verifies fourteen catalog images, normal entry and
-application exits and original node closure. All fourteen whole-image verdicts
-remain open. The [standalone surface producer](https://github.com/edgepillar/syrius/actions/runs/44886673319/job/136793338683)
+application exits and original node closure. All fourteen reference PNG digests
+agree with the [previous Settings reader](https://github.com/edgepillar/syrius/actions/runs/44885343932/job/136789313675).
+At the 16-level RGB threshold, menu counts agree in all fourteen comparisons.
+Section content counts differ by at most 19 pixels, in light About. The
+largest whole-window change is 98 fewer differing pixels in the light
+Security status strip. All fourteen whole-image verdicts remain open.
+The [standalone surface producer](https://github.com/edgepillar/syrius/actions/runs/44886673319/job/136793338683)
 observes the Home update refusal, then reports `ENTRY_REFUSED` at command 12
 while waiting for the original ZNN Token row. Its
 [independent reader](https://github.com/edgepillar/syrius/actions/runs/44888328085/job/136798413344)
@@ -3412,6 +3417,12 @@ pass, including the EntryField comparison against the original opacity in
 both themes. [Cold timing](https://github.com/edgepillar/syrius/actions/runs/44888288552)
 and [natural handoff](https://github.com/edgepillar/syrius/actions/runs/44888288785)
 observations are pending at that source.
+
+The [startup catalog](https://github.com/edgepillar/syrius/actions/runs/44888719740)
+and [paired page change and disclosure](https://github.com/edgepillar/syrius/actions/runs/44888768591)
+run at `a045c1ae`. The former covers the changed startup backdrop at the
+authored capture phases. The latter includes the compact Licences rule that
+landed after the previous `31b5a23c` timing source. Results are pending.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
