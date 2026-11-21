@@ -4240,10 +4240,19 @@ without extracting duplicate PNG files.
 
 | State | Findings in both themes |
 | --- | --- |
-| Rest | The cards and Notifications tooltip align. The hero has a stronger green wash at the capture phase. The selected-address history, empty reward status and absent Pending card differ from the illustrated state. |
+| Rest | The cards and Notifications tooltip align. The hero looks greener beside the reference. The selected-address history, empty reward status and absent Pending card differ from the illustrated state. |
 | Open | The expanded rail and Tokens header align. The empty Tokens body omits the three illustrated rows. The shorter rewards header moves the Tokens card up. |
 | Hidden | The hero and the visible Activity amount are masked. The eye is green. The shorter Activity list and empty rewards remain visible differences. |
 | Go To | The overlay, caret and three result groups align. The synthetic contact and underlying Home content differ. The light overlay shows the shorter underlying Activity card through the frost. |
+
+The Rest captures use the original six-second field sample. The reference
+capture uses a six-second virtual-time budget and the older green and blue
+values. At the three existing palette-adjusted Home test points, each captured
+RGB channel is within five levels of its test target. Near the green light
+at client pixel (175, 54), the dark capture and reference read 31/71/47
+and 44/67/48. The light pair reads 201/240/217 and 218/241/222. The greener
+appearance is consistent with the approved palette. These samples leave
+the whole-image findings open.
 
 The eight exact pairs remain in review under V01.
 
@@ -4865,11 +4874,11 @@ whole-image acceptance.
 
 | # | Screen | Dark | Light |
 | --- | --- | --- | --- |
-| 01 | `home-rest` | X821 | X822 |
-| 02 | `home-open` | X523 | X524 |
-| 03 | `home-hidden` | X525 | X526 |
+| 01 | `home-rest` | [review](#home-visual-review-at-8b8feaaf) | [review](#home-visual-review-at-8b8feaaf) |
+| 02 | `home-open` | [review](#home-visual-review-at-8b8feaaf) | [review](#home-visual-review-at-8b8feaaf) |
+| 03 | `home-hidden` | [review](#home-visual-review-at-8b8feaaf) | [review](#home-visual-review-at-8b8feaaf) |
 | 04 | `home-bell` | X823 | X824 |
-| 05 | `home-goto` | X825 | X826 |
+| 05 | `home-goto` | [review](#home-visual-review-at-8b8feaaf) | [review](#home-visual-review-at-8b8feaaf) |
 | 06 | `home-zap` | X827 | X828 |
 | 07 | `send-rest` | X829 | X830 |
 | 08 | `send-warn` | X889 | X890 |
