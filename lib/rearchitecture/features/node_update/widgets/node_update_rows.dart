@@ -653,14 +653,14 @@ class _VerifiedDownload extends StatelessWidget {
       ],
     );
     return Padding(
-      padding: tokens.cardPadding,
+      padding: tokens.cardPadding.add(const EdgeInsets.only(top: 2)),
       child: Material(
         color: tokens.card2,
         borderRadius: BorderRadius.circular(tokens.compactRadius),
         child: Padding(
           padding: const EdgeInsetsDirectional.symmetric(
             horizontal: 14,
-            vertical: 12,
+            vertical: 14,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

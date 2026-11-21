@@ -441,6 +441,13 @@ void main() {
           const Key('node_update_verified_download'),
         );
         expect(notice, findsOneWidget);
+        final Finder surface = find.descendant(
+          of: notice, matching: find.byType(Material),
+        ).first;
+        final Rect noticeBounds = tester.getRect(notice);
+        final Rect surfaceBounds = tester.getRect(surface);
+        expect(surfaceBounds.top - noticeBounds.top, 14);
+        expect(noticeBounds.bottom - surfaceBounds.bottom, 12);
         final Finder archiveHash = find.descendant(
           of: notice,
           matching: find.byTooltip(kNewSha),

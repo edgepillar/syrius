@@ -3489,6 +3489,12 @@ normal required closure. The Node notice at column 980 now spans rows
 pixels shorter than the previous capture. The Node update crop counts
 at the 16-level threshold fall from 40,100 to 25,606 in dark and from
 39,790 to 25,514 in light, using the same reference digests.
+A [second read of the same archive](https://github.com/edgepillar/syrius/actions/runs/44914172938/job/136876132005)
+locates the enclosing panel at rows 267–503 against 267–509 in both
+references. The notice now adds 2 px above its surface and 2 px to
+each internal vertical inset. The lower outer inset remains 12 px
+as measured in both references. The widget case verifies the outer
+insets. The new panel positions require a fresh Windows capture.
 
 The new Addresses member, contact and account-chain cards span rows
 36–315, 328–477 and 490–533 in both themes. The references span rows
