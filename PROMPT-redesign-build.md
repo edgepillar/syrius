@@ -4203,8 +4203,20 @@ All ten exact pairs were viewed. The [digest-bound reviews](docs/review/recent-w
 record ten whole-image mismatches. The open Plasma capture shows all three
 Other addresses rows and two selected fuses in both themes. All three
 fixture fuses are cancelable. The reference includes a locked fuse and
-low Plasma on Address 4. The resting Plasma view still requires its
-[separate Navigation capture](https://github.com/edgepillar/syrius/actions/runs/44946383793).
+low Plasma on Address 4.
+
+The separate [Navigation run at `6debd35d`](https://github.com/edgepillar/syrius/actions/runs/44946383793)
+completed with the same four-member preparation. The
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/44948316426/job/136980448960)
+verifies all 14 original Navigation images, the selected second address
+and normal wallet and entry exits. The capture index retains the original
+source and PNG digests. All 14 pairs were viewed directly, with findings in
+the [hash-bound review file](docs/review/recent-windows-screen-verdicts.json).
+The closed Plasma form shows `Other addresses 3` in both themes. Its three
+cancelable fuses, idle strip and absent low-Plasma summary differ from the
+reference. Receive, Pillars and Plasma account for six reviewed mismatches.
+The eight Send, Tokens, Swap and Accelerator images remain diagnostics
+because their populated reference states require the prepared catalogs.
 
 | Screen | Visible differences in both themes |
 | --- | --- |

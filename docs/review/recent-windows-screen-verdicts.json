@@ -64,6 +64,38 @@
       "reviewer": "Codex",
       "verdict": "mismatch"
     },
+    "07-send-rest-dark": {
+      "actual_sha256": "266e4dc68fda042bf016502000f0e3ccc7968ec2d4ee346de8f53c4f41b94c97",
+      "expected_sha256": "511749787d2f186b2ffc3523fbb1060facc4669291275cb1c918a415acede6f2",
+      "note": "The Send shell is visible. The empty recipient and amount omit the reference recent contacts, active action and incoming queue. The populated Send state requires the prepared catalog.",
+      "reviewed_at": "2026-11-21T20:55:02Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "07-send-rest-light": {
+      "actual_sha256": "6540f6d49aba837d9d7a861459abca297cd2e248a14bc73d76bc3e19f4f1ffb1",
+      "expected_sha256": "039197335de93690caee36086f94a62c0e3de0c2fe487623815efa653bd89b25",
+      "note": "The Send shell is visible. The empty recipient and amount omit the reference recent contacts, active action and incoming queue. The populated Send state requires the prepared catalog.",
+      "reviewed_at": "2026-11-21T20:55:02Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "09-receive-dark": {
+      "actual_sha256": "fb67de2f794b0b45dcefa60762b79310af72e6819f183ac42e0ac7b9ecb35688",
+      "expected_sha256": "29833553d03b3cb5a7906cfa755389b3b918feca4000684ae79cc2b0f0ab2353",
+      "note": "The card, the two action extents and the empty queue align. The copy action uses the approved palette. The captured status strip uses a different connection and update presentation.",
+      "reviewed_at": "2026-11-21T20:55:02Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "09-receive-light": {
+      "actual_sha256": "34e12248a2a1b81a59d83d210ecd939d2b58054343ab67bd7cf9d24a82fb872f",
+      "expected_sha256": "941606d6662bc1a0dce5b6715be83a5c95fd3b9158844ab0e59fb27f4f4c7d35",
+      "note": "The card, the two action extents and the empty queue align. The copy action uses the approved palette. The captured status strip uses a different connection and update presentation.",
+      "reviewed_at": "2026-11-21T20:55:02Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
     "10-receive-qr-dark": {
       "actual_sha256": "3d247c105288c4be20d5ba5e283056cecd08b30ee60836fe2bd257b76d94641b",
       "expected_sha256": "7d0f473f9e93235a7032dbb227ceff6e683c91e92446565dee1bf037df78fad6",
@@ -96,6 +128,38 @@
       "reviewer": "Codex",
       "verdict": "mismatch"
     },
+    "16-pillars-dark": {
+      "actual_sha256": "4960ed1e564a93f6ca906b6db46e367435c87f4bbaa2777a735b273f8884f4d3",
+      "expected_sha256": "2cc96ba5d5e143ec6b96dce6bfdd5bf0dd2d1950f647871f2e950f30b3991869",
+      "note": "The first Pillar row is expanded. The undelegated state, unavailable estimates, missing registration detail and extra refresh control differ from the reference.",
+      "reviewed_at": "2026-11-21T20:55:02Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "16-pillars-light": {
+      "actual_sha256": "6760131a4425c3984266e00fa33585e9cb8133bd8b0a43b12cbd3356629db7ee",
+      "expected_sha256": "d8a635852cfe165f21d62ce1445484859f8f4ab529af53ade636a360db082c86",
+      "note": "The first Pillar row is expanded. The undelegated state, unavailable estimates, missing registration detail and extra refresh control differ from the reference.",
+      "reviewed_at": "2026-11-21T20:55:02Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "21-plasma-dark": {
+      "actual_sha256": "ab6e812086b41d59ba1ca6f920047e88765ba993c2a9d1f1d12c532178f4e106",
+      "expected_sha256": "00bf1d72858ad59603775e8a36a68b326446902e6c52f54756389729da6778bf",
+      "note": "The Fuse form stays closed and Other addresses shows a count of three. The captured list has three cancelable rows, lacks the low-Plasma summary and shows the idle status strip.",
+      "reviewed_at": "2026-11-21T20:55:02Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "21-plasma-light": {
+      "actual_sha256": "f91cc5df6019ef2d97dab5ae772a655da0ce2c5a765da1996b6437087e5191ab",
+      "expected_sha256": "45f4e4b332c3f332601ad355d8ff5438b97dcea4984c5cffdb2cb35853d27f97",
+      "note": "The Fuse form stays closed and Other addresses shows a count of three. The captured list has three cancelable rows, lacks the low-Plasma summary and shows the idle status strip.",
+      "reviewed_at": "2026-11-21T20:55:02Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
     "22-plasma-fuse-dark": {
       "actual_sha256": "d9ca5c1e3a257cb2b91c56516956c78dde63cb0d7fb368ee611ac971e8569917",
       "expected_sha256": "bce0133d1e1586247a874af23a72c340f73261174a296f4d690b7c6c3c334360",
@@ -109,6 +173,54 @@
       "expected_sha256": "01ba9333c42b94249580c6c67789f19527d113e7861b9fd19e3c1e900f8f6c7f",
       "note": "All three Other addresses rows and two selected fuses are visible. The fixture shows three cancelable fuses, while the reference includes a locked fuse. The fourth address has no Plasma in the fixture.",
       "reviewed_at": "2026-11-21T20:29:51Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "23-tokens-dark": {
+      "actual_sha256": "00182b3c3897691385d0762a8d4f89ee98b269bdc3a381220f0c0234c3447cff",
+      "expected_sha256": "c1ba43d7fd1ae7956a4e0c9d398e7d99341f7704a32fd5e60caa1e8f6cb3281e",
+      "note": "The captured Held tab has an empty list. The reference shows a populated inventory and an expanded holder row. The populated Tokens state requires the prepared catalog.",
+      "reviewed_at": "2026-11-21T20:55:02Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "23-tokens-light": {
+      "actual_sha256": "7235edd475d494578e5e7fcde8841a571b7289022a8bafe1a595919b444ebf6d",
+      "expected_sha256": "c262b77173db8b229a6a1267fc2b01240635d38b251e1280658e377f91b03f8a",
+      "note": "The captured Held tab has an empty list. The reference shows a populated inventory and an expanded holder row. The populated Tokens state requires the prepared catalog.",
+      "reviewed_at": "2026-11-21T20:55:02Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "26-swap-list-dark": {
+      "actual_sha256": "e4f758b53cdec1d95b221e0980e02c577db2d2910eae09ee22e6bceaafd4f67b",
+      "expected_sha256": "fa5f0343dde5ad63afe7eaa915817f651ceb430ef6db66fdde3eff1b140ca1a7",
+      "note": "The captured Swap list has no rows. The reference shows waiting and past swaps, with an expanded waiting row. The populated Swap state requires the prepared catalog.",
+      "reviewed_at": "2026-11-21T20:55:02Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "26-swap-list-light": {
+      "actual_sha256": "89d852e5ade4d189660404779fad8a113c1905bed13174634d64ef358885ba60",
+      "expected_sha256": "17e0adcd791340bbc35bb3d7f27faf732f358062f21b0451ceac53796e4c5473",
+      "note": "The captured Swap list has no rows. The reference shows waiting and past swaps, with an expanded waiting row. The populated Swap state requires the prepared catalog.",
+      "reviewed_at": "2026-11-21T20:55:02Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "28-az-dark": {
+      "actual_sha256": "9381abedb3ecc36dc21801064d0832703124647b0df67fff5e2cb2843b7727b5",
+      "expected_sha256": "a7ae04864a518b9382335f8cc67868163bf5a0de1895ab8f00451022a7c16651",
+      "note": "The Voting header and filters are visible. The project list is empty, so vote and quorum rows are absent. The populated Accelerator state requires the prepared catalog.",
+      "reviewed_at": "2026-11-21T20:55:02Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "28-az-light": {
+      "actual_sha256": "7150588b200a35b0a3046271046b69f30f994b71440d07b65ce06e4fcfeb1be0",
+      "expected_sha256": "99e642a82a19bdb86843f9dbf82f1328fc1043ccb580b9c36495e06a0c7027c4",
+      "note": "The Voting header and filters are visible. The project list is empty, so vote and quorum rows are absent. The populated Accelerator state requires the prepared catalog.",
+      "reviewed_at": "2026-11-21T20:55:02Z",
       "reviewer": "Codex",
       "verdict": "mismatch"
     },
