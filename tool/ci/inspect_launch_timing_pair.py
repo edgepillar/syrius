@@ -265,6 +265,10 @@ def window_diagnostics(window, *, peak_starts=False):
                        phase_max_build_us=build,
                        phase_max_raster_us=raster, phase_max_total_us=total,
                        peak_build_start_us=max(rows, key=lambda row: row[2])[1])
+        if pair.launch.STARTUP_STAGE_FIELD in window:
+            stage = window[pair.launch.STARTUP_STAGE_FIELD]
+            summary.update(stage_laid_out_us=stage,
+                           peak_build_offset_from_stage_us=summary['peak_build_start_us'] - stage)
         if pair.launch.STARTUP_AUTH_FIELD in window:
             auth = window[pair.launch.STARTUP_AUTH_FIELD]
             summary.update(auth_in_shell_us=auth,
@@ -385,7 +389,8 @@ def inspect_run(client, *, head, tree, run_id, job):
                   'fdadca2905a65134927a3b19e6218b99b98cf579b7579a3a3636bf9a058c691c',
                   '608c10ae1ab014842e14a8c8a848245f6de29c544f2d8f334473859372087610',
                   'ea5a3a111a9641a0c82cb050c3e8aacbdf008b3c3b1036f5d1ee9a95ee4d4708')
-    prior_launch = (startup_reader.PRE_AUTH_PHASE_LAUNCH_PRODUCER_SHA,
+    prior_launch = (startup_reader.PRE_STAGE_LAYOUT_LAUNCH_PRODUCER_SHA,
+                    startup_reader.PRE_AUTH_PHASE_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_LIGHT_MOTION_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_FIRST_PROGRESS_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_P06_FILM_FLAGS_LAUNCH_PRODUCER_SHA,

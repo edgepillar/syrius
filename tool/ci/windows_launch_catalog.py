@@ -48,6 +48,7 @@ PEAK_BUILD_WAIT_FIELD = 'peakBuildWaitUs'
 PACKED_TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frameCount', 'packedFrames')
 STARTUP_PHASE_FIELD = 'startupPhaseUs'
 STARTUP_AUTH_FIELD = 'startupAuthInShellUs'
+STARTUP_STAGE_FIELD = 'startupStageLaidOutUs'
 FRAME_ROW = struct.Struct('<5I')
 TIMING_SOURCE = Path('harness/app/frame_window.dart')
 RECIPE = Path('harness/screens/launch.txt')
@@ -225,7 +226,8 @@ def frame_timing_rows(value, *, allow_packed=False):
     elif allow_packed and value['schema'] == 2:
         required = set(PACKED_TIMING_FIELDS)
         with_phases = required | {STARTUP_PHASE_FIELD}
-        need(set(value) in (required, with_phases, with_phases | {STARTUP_AUTH_FIELD}))
+        with_diagnostics = with_phases | {STARTUP_AUTH_FIELD, STARTUP_STAGE_FIELD}
+        need(set(value) == required or with_phases <= set(value) <= with_diagnostics)
         if STARTUP_PHASE_FIELD in value:
             phases = value[STARTUP_PHASE_FIELD]
             need(type(phases) is list and len(phases) == 4
@@ -233,6 +235,8 @@ def frame_timing_rows(value, *, allow_packed=False):
                  and all(a < b for a, b in zip(phases, phases[1:])))
             if STARTUP_AUTH_FIELD in value:
                 need(startup.integer(value[STARTUP_AUTH_FIELD], phases[1], phases[2]))
+            if STARTUP_STAGE_FIELD in value:
+                need(startup.integer(value[STARTUP_STAGE_FIELD], 1, phases[0]))
         rows = _packed_frame_rows(value)
     else:
         raise startup.Failure('STARTUP_OBSERVATION_REFUSED')
@@ -417,7 +421,7 @@ class LaunchProcess(startup.StartupProbe):
         raw = timing_reply('frame_window', *self._exchange(dict(cmd='stalls', frameWindow='end'),
                            until=min(self.deadline, self.started + (100 if paired else 60))))
         fields = (*PACKED_TIMING_FIELDS, *(field for field in (
-            STARTUP_PHASE_FIELD, STARTUP_AUTH_FIELD) if field in raw))
+            STARTUP_PHASE_FIELD, STARTUP_AUTH_FIELD, STARTUP_STAGE_FIELD) if field in raw))
         need(set(raw) == {'ok', *fields} and raw['schema'] == 2)
         window = {field: raw[field] for field in fields}
         if paired:

@@ -3330,6 +3330,15 @@ redesigned peak build starts 278.684 ms before the first post-frame film
 observation. The respective windows retain 18 and 1,445 frame-number
 gaps. V02 remains open.
 
+The cold-start observer now records the first post-frame confirmation
+that the original film host has a live, nonempty layout. It reports the
+longest build's start relative to that observation, alongside the first
+film image and handoff offsets. The observer waits on the existing frame
+callbacks and leaves the movie, authentication owner, P06 build and
+16 ms comparison intact. The parser accepts older receipts and bounds the
+new marker at or before the first film observation. Strict harness
+analysis and 48 reader controls pass. Native timing remains pending.
+
 The [Windows interface run at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44876122524/job/136761087924)
 and its [independent inspection](https://github.com/edgepillar/syrius/actions/runs/44877853952/job/136766426791)
 verify all eleven scoped Home, Activity, Go To, Pillars and Swap seam

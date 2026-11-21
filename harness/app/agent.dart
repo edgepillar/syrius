@@ -6095,6 +6095,7 @@ class HarnessAgent {
   int? _interactiveStartUs;
   int? _pageSettledUs;
   final List<int> _startupPhaseUs = <int>[];
+  int? _startupStageLaidOutUs;
   int? _startupAuthInShellUs;
   final Map<String, int> _disclosurePhasesUs = <String, int>{};
 
@@ -6206,6 +6207,15 @@ class HarnessAgent {
       if (owner is StartupStageSession) {
         if (owner.isClosed || owner.film.cleanupOwnerReplaced) return;
         int? observedUs;
+        if (_startupStageLaidOutUs == null) {
+          final RenderObject? film = owner.filmKey.currentContext
+              ?.findRenderObject();
+          if (film is RenderBox && film.attached && film.hasSize &&
+              !film.size.isEmpty) {
+            observedUs = dev.Timeline.now - startUs;
+            _startupStageLaidOutUs = observedUs;
+          }
+        }
         if (_startupAuthInShellUs == null && owner.authInShell) {
           final BuildContext? well = owner.wellKey.currentContext;
           final RenderObject? box = well?.findRenderObject();
@@ -6214,7 +6224,7 @@ class HarnessAgent {
               box.hasSize &&
               !box.size.isEmpty &&
               well?.findAncestorWidgetOfExactType<ShellFrame>() != null) {
-            observedUs = dev.Timeline.now - startUs;
+            observedUs ??= dev.Timeline.now - startUs;
             _startupAuthInShellUs = observedUs;
           }
         }
@@ -6291,6 +6301,12 @@ class HarnessAgent {
           );
           if (phases != null && !EntryCaptureRegistry.instance.held) {
             result['startupPhaseUs'] = phases;
+            final int? stageLaidOut = _startupStageLaidOutUs;
+            if (stageLaidOut != null &&
+                stageLaidOut > 0 &&
+                stageLaidOut <= phases.first) {
+              result['startupStageLaidOutUs'] = stageLaidOut;
+            }
             final int? authInShell = _startupAuthInShellUs;
             if (authInShell != null &&
                 authInShell >= phases[1] &&

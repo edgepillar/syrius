@@ -429,7 +429,8 @@ class PairInspectionTests(unittest.TestCase):
             pair.launch.frame_timing_window(original)
         value = report(self.pins)
         phases = [22400000, 44800000, 67200000, 89600000]
-        current = dict(original, startupPhaseUs=phases, startupAuthInShellUs=56000000)
+        current = dict(original, startupPhaseUs=phases, startupAuthInShellUs=56000000,
+                       startupStageLaidOutUs=2000000)
         value['samples'][0]['frame_window'] = current
         value['samples'][1]['frame_window'] = original
         value['comparison'] = pair.compare_windows(original, original)
@@ -447,6 +448,8 @@ class PairInspectionTests(unittest.TestCase):
         self.assertEqual(observed['phase_offsets_us'], phases)
         self.assertEqual(observed['auth_in_shell_us'], 56000000)
         self.assertEqual(observed['peak_build_offset_from_auth_us'], -56000000)
+        self.assertEqual(observed['stage_laid_out_us'], 2000000)
+        self.assertEqual(observed['peak_build_offset_from_stage_us'], -2000000)
         self.assertEqual(observed['phase_frames'], [800, 800, 800, 800, 896])
         self.assertEqual(observed['phase_max_build_us'], [20000000] * 5)
         self.assertEqual(observed['phase_max_raster_us'], [20000000] * 5)
@@ -484,6 +487,9 @@ class PairInspectionTests(unittest.TestCase):
                        dict(startupPhaseUs=[0, 2, 3, 4]), dict(startupPhaseUs=[1, 2, 2, 4]),
                        dict(startupPhaseUs=[1, 2, 4, 3]), dict(startupPhaseUs=[1, 2, 3, 120000000]),
                        dict(startupAuthInShellUs=56000000),
+                       dict(startupStageLaidOutUs=2000000),
+                       dict(startupPhaseUs=phases, startupStageLaidOutUs=phases[0] + 1),
+                       dict(startupPhaseUs=phases, startupStageLaidOutUs=True),
                        dict(startupPhaseUs=phases, startupAuthInShellUs=phases[1] - 1),
                        dict(startupPhaseUs=phases, startupAuthInShellUs=phases[2] + 1),
                        dict(startupPhaseUs=phases, startupAuthInShellUs=True)):
