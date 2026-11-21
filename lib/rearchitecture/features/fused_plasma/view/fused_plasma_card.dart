@@ -644,7 +644,8 @@ ButtonStyle _cancelButtonStyle(BuildContext context) =>
         Size(0, AppTokens.of(context).smallButtonHeight),
       ),
       padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
-        EdgeInsets.symmetric(horizontal: 10),
+        // Keep the reference 10 px inset inside the one-pixel outline.
+        EdgeInsets.symmetric(horizontal: 11),
       ),
       textStyle: WidgetStatePropertyAll<TextStyle>(
         kTextButtonTextStyle.copyWith(fontSize: 12),

@@ -3276,6 +3276,16 @@ rule on the row boundary before snapping to a physical pixel. The full
 list keeps its verified placement. The list-end regression checks the
 compact paint at device scale two. Fresh Windows capture is pending.
 
+The [same Details capture](https://github.com/edgepillar/syrius/actions/runs/44881281703/job/136776921970)
+places the Plasma Fuse batch Cancel fill at column 1143 in both themes
+and the row actions at 1189 in dark and 1188 in light. The references
+start at 1141 and 1187 respectively. The right edges agree at column
+1248. The button now reserves the one-pixel outline outside its 10 px
+text inset, following the authored CSS. The existing layout case checks
+the inset and preserved right edge. Across the four sampled halo
+distances, each RGB channel was already within one level of its reference.
+Fresh Windows comparison remains open.
+
 The [Windows interface run at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44876122524/job/136761087924)
 and its [independent inspection](https://github.com/edgepillar/syrius/actions/runs/44877853952/job/136766426791)
 verify all eleven scoped Home, Activity, Go To, Pillars and Swap seam

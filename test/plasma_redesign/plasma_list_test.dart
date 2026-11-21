@@ -332,7 +332,7 @@ void main() {
               button.style!.padding!
                   .resolve(<WidgetState>{})!
                   .resolve(TextDirection.ltr),
-              const EdgeInsets.symmetric(horizontal: 10),
+              const EdgeInsets.symmetric(horizontal: 11),
             );
           }
           await tester.tap(eligible);
