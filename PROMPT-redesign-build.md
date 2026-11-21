@@ -2656,6 +2656,14 @@ effect. [Linux at `76416e26`](https://github.com/edgepillar/syrius/actions/runs/
 passes strict analysis, 5,129 non-chain tests with one skip, and
 generated-file verification. V02 remains open.
 
+The [natural motion run at `899933c0`](https://github.com/edgepillar/syrius/actions/runs/44843504597/job/136657470737)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44844879599/job/136662021590)
+verify the early, late and settled images in both themes and two normal
+exits per theme. Both first samples are at progress 0.391. The late samples
+are at 0.558, 15.625 ms later, and both settled samples are 390.625 ms
+after their first observations. This verifies the six natural samples.
+The other motions, shaders and paired timing acceptance remain open.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.
