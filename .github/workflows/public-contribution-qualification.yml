@@ -1148,10 +1148,15 @@ jobs:
         uses: actions/checkout@v6
         with:
           persist-credentials: false
+          sparse-checkout-cone-mode: false
           sparse-checkout: |
-            tool/ci
-            test/ci
-            tools/devnet/lab
+            /tool/ci/
+            /test/ci/
+            /tools/devnet/lab/
+            /mockups/redesign/shots/44-welcome-dark.png
+            /mockups/redesign/shots/44-welcome-light.png
+            /mockups/redesign/shots/45-import-dark.png
+            /mockups/redesign/shots/45-import-light.png
 
       - name: Test retained Windows receipt controls in memory
         run: |
@@ -1165,6 +1170,7 @@ jobs:
           SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
           WINDOWS_INSPECT_RUN: ${{ inputs.inspect_windows_run }}
           WINDOWS_INSPECT_HEAD: ${{ inputs.inspect_windows_head }}
+          WINDOWS_REFERENCE_HEAD: ${{ github.sha }}
         run: python -B -m tool.ci.inspect_windows_qualification
 
   inspect-wallet-inspection:

@@ -424,7 +424,41 @@ def import_image_coverage(encoded, theme):
     return _connector_coverage(connector, channels), _drop_border_coverage(rows, channels, theme)
 
 
-def entry_archive(raw, expected_sha, expected_size, head, tree, run_id):
+ENTRY_REFERENCE_FILES = {
+    'welcome-dark.png': '44-welcome-dark.png',
+    'welcome-light.png': '44-welcome-light.png',
+    'import-dark.png': '45-import-dark.png',
+    'import-light.png': '45-import-light.png',
+}
+
+
+def entry_pixel_comparison(data, reference):
+    """Summarize original RGB differences without writing or grading an image."""
+    def decode(png):
+        encoded = base64.b64encode(png).decode('ascii')
+        return _png_crop(encoded, (0, 1280), (0, 780))
+
+    actual, a_channels = decode(data)
+    expected, e_channels = decode(reference)
+    if not (_opaque(actual, a_channels) and _opaque(expected, e_channels)):
+        return None
+    changed = high_contrast = total = 0
+    for actual_row, expected_row in zip(actual, expected):
+        for a, e in zip(range(0, len(actual_row), a_channels),
+                        range(0, len(expected_row), e_channels)):
+            red = abs(actual_row[a] - expected_row[e])
+            green = abs(actual_row[a + 1] - expected_row[e + 1])
+            blue = abs(actual_row[a + 2] - expected_row[e + 2])
+            difference = red + green + blue
+            changed += difference != 0
+            high_contrast += red >= 16 or green >= 16 or blue >= 16
+            total += difference
+    return dict(reference_sha256=archive.sha(reference), actual_sha256=archive.sha(data),
+                changed_pixels=changed, changed_pixels_at_least_16=high_contrast,
+                mean_rgb_error_milli=round(1000 * total / (1280 * 780 * 3)))
+
+
+def entry_archive(raw, expected_sha, expected_size, head, tree, run_id, *, reference_dir=None):
     archive.need(type(raw) is bytes and type(expected_size) is int and digest(expected_sha)
                  and 0 < len(raw) == expected_size <= MAX_ENTRY_ARCHIVE
                  and archive.sha(raw) == expected_sha)
@@ -441,7 +475,7 @@ def entry_archive(raw, expected_sha, expected_size, head, tree, run_id):
         manifest = zipped.read('manifest.json')
         summary = entry_projection(json.loads(manifest), head, tree, run_id)
         archive.need(set(names) == {'manifest.json', *(value['file'] for value in summary['captures'])})
-        connector, drop, welcome = {}, {}, {}
+        connector, drop, welcome, comparisons = {}, {}, {}, {}
         for value in summary['captures']:
             name = value['file']
             data = zipped.read(name)
@@ -452,9 +486,14 @@ def entry_archive(raw, expected_sha, expected_size, head, tree, run_id):
                 connector[name], drop[name] = import_image_coverage(encoded, theme)
             else:
                 welcome[name] = welcome_text_bounds(encoded)
+            if reference_dir is not None:
+                with (reference_dir / ENTRY_REFERENCE_FILES[name]).open('rb') as stream:
+                    reference = stream.read(entry.MAX_PNG + 1)
+                archive.need(0 < len(reference) <= entry.MAX_PNG)
+                comparisons[name] = entry_pixel_comparison(data, reference)
     summary.update(archive_sha256=archive.sha(raw), manifest_sha256=archive.sha(manifest),
                    import_connector_coverage=connector, import_drop_border_coverage=drop,
-                   welcome_text_bounds=welcome)
+                   welcome_text_bounds=welcome, entry_pixel_comparisons=comparisons)
     return summary
 
 
@@ -667,7 +706,13 @@ def main():
             and re.fullmatch('sha256:[a-f0-9]{64}', item.get('digest', '')) is not None)
         location = client.read(archive.API + '/actions/artifacts/' + str(item['id']) + '/zip', redirect=True)
         raw = client.read(location, authenticated=False, cap=MAX_ENTRY_ARCHIVE)
-        summary = entry_archive(raw, item['digest'][7:], item['size_in_bytes'], head, tree, run_id)
+        reference_head = os.environ.get('WINDOWS_REFERENCE_HEAD')
+        reference_dir = None
+        if reference_head is not None:
+            archive.need(re.fullmatch('[a-f0-9]{40}', reference_head) is not None)
+            reference_dir = Path(__file__).resolve().parents[2] / 'mockups/redesign/shots'
+        summary = entry_archive(raw, item['digest'][7:], item['size_in_bytes'], head, tree,
+                                run_id, reference_dir=reference_dir)
         job = jobs['Ordinary Windows entry captures']
         archive.need(job['conclusion'] != 'success' or summary['artifact_reported_success'])
         summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'],
@@ -675,6 +720,7 @@ def main():
         connector = summary.pop('import_connector_coverage')
         drop = summary.pop('import_drop_border_coverage')
         welcome = summary.pop('welcome_text_bounds')
+        comparisons = summary.pop('entry_pixel_comparisons')
         emit('Hosted entry inspection', summary)
         binding = dict(source_head=head, source_tree=tree, source_run_id=run_id,
             source_attempt=1, original_job_id=job['id'], original_job_conclusion=job['conclusion'],
@@ -694,6 +740,10 @@ def main():
             emit('Hosted Welcome text bands', dict(scope='retained_welcome_text_bounds',
                 **binding, x_range=list(WELCOME_TEXT_X), crops=WELCOME_TEXT_ROWS,
                 minimum_luminance_contrast=WELCOME_TEXT_CONTRAST, bounds=welcome))
+        if any(value is not None for value in comparisons.values()):
+            emit('Hosted entry pixel comparisons', dict(
+                scope='retained_entry_pixel_comparisons', **binding,
+                reference_head=reference_head, size=[1280, 780], comparisons=comparisons))
         return 0
     except (Exception, KeyboardInterrupt):
         encoded = json.dumps(dict(scope='retained_windows_qualification_observation',
