@@ -2625,6 +2625,15 @@ The first observed progress is 0.662 in dark and 0.729 in light. Both
 arms retain `LAUNCH_HANDOFF_FRAME_MISSED` for the early slot. The timing
 and running motion acceptance remain open under V02.
 
+The [launch run at `fa2ad1bf`](https://github.com/edgepillar/syrius/actions/runs/44839018592/job/136642500026)
+uses the stage's existing listener without separately rebuilding the
+overlay entry. Its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44840917627/job/136648777889)
+verifies two normal exits and two images per theme. Both first observations
+are at progress 0.662, with the settled image captured 359.375 ms later.
+Both early slots remain missing. The [Linux suite at the same source](https://github.com/edgepillar/syrius/actions/runs/44839018320/job/136642498845)
+passes strict analysis, 5,129 non-chain tests with one skip, and
+generated-file verification. The effect on frame duration is still open.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.
