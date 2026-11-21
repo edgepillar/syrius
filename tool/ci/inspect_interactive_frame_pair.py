@@ -280,12 +280,22 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         diagnostic_windows['p06'] = old
     raster_overruns = {}
     if complete:
-        releases = samples['current']['observation'].get('tap_release_us', {})
+        observation = samples['current']['observation']
+        releases = observation.get('tap_release_us', {})
+        settlement = observation.get('disclosure_phases_us', {}).get('settled')
         for name in pair.WINDOWS:
             if 'raster' not in comparisons[name]['exceeded']:
                 continue
-            overrun = cold.raster_rank_overruns(old[name], windows[name])
-            del overrun['by_phase']
+            boundaries = None
+            if name == 'disclosure' and settlement is not None:
+                boundaries = ([settlement], ('before_settlement', 'after_settlement', 'crossing'))
+            elif name == 'page_change' and name in releases:
+                release = releases[name]
+                boundaries = ([release, release + MOTION_US[name]],
+                              ('before_release', 'during_nominal_motion', 'after_nominal_motion', 'crossing'))
+            overrun = cold.raster_rank_overruns(old[name], windows[name], phase_boundaries=boundaries)
+            if overrun['by_phase'] is None:
+                del overrun['by_phase']
             if name in releases:
                 bounds = overrun['worst']['start_us']
                 overrun['worst']['start_from_release_us'] = [

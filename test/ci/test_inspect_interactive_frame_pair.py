@@ -330,7 +330,10 @@ class InteractiveFramePairTests(unittest.TestCase):
         measured_disclosure['comparisons']['disclosure'] = pair.shared.compare_windows(
             measured_disclosure['samples']['p06']['observation']['windows']['disclosure'],
             disclosure_sample['windows']['disclosure'])
-        diagnosed = self.project(measured_disclosure)['verified_window_diagnostics']
+        projected = self.project(measured_disclosure)
+        self.assertEqual(projected['verified_raster_rank_overruns']['disclosure']['by_phase'],
+                         dict(before_settlement=0, after_settlement=2, crossing=1))
+        diagnosed = projected['verified_window_diagnostics']
         self.assertEqual(diagnosed['current']['disclosure']['raster_start_groups_by_observed_phase'], {
             'columns': ['samples', 'slow_raster', 'max_raster_us'],
             'phases': {
@@ -368,9 +371,11 @@ class InteractiveFramePairTests(unittest.TestCase):
             measured['windows']['page_change'])
         projected = self.project(grouped)
         self.assertEqual(projected['verified_raster_rank_overruns'], {
-            'page_change': dict(count=3, unpaired=2, worst=dict(
-                rank=1, baseline_us=17000, current_us=24000, excess_us=7000,
-                start_us=[324100, 326000], start_from_release_us=[319100, 321000])),
+            'page_change': dict(count=3, unpaired=2,
+                by_phase=dict(before_release=0, during_nominal_motion=1,
+                              after_nominal_motion=0, crossing=2),
+                worst=dict(rank=1, baseline_us=17000, current_us=24000, excess_us=7000,
+                           start_us=[324100, 326000], start_from_release_us=[319100, 321000])),
         })
         page_groups = projected['verified_window_diagnostics']['current']['page_change']
         self.assertEqual(page_groups['nominal_motion_us'], 320_000)

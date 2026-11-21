@@ -147,15 +147,18 @@ def raster_start_bounds(row, origin_us=0):
     return relative_start + build, relative_start + total - raster
 
 
-def raster_rank_overruns(baseline_window, current_window):
+def raster_rank_overruns(baseline_window, current_window, *, phase_boundaries=None):
     """Locate the original raster samples that exceed their paired duration."""
     budget = pair.FRAME_BUDGET_US
     baseline = sorted((row[3] for row in pair.launch.frame_timing_rows(
         baseline_window, allow_packed=True) if row[3] > budget), reverse=True)
     current = sorted((row for row in pair.launch.frame_timing_rows(
         current_window, allow_packed=True) if row[3] > budget), key=lambda row: -row[3])
-    offsets = current_window.get(pair.launch.STARTUP_PHASE_FIELD)
-    phase_names = ('before_film', 'film', 'covered', 'handoff', 'lock', 'crossing')
+    if phase_boundaries is None:
+        offsets = current_window.get(pair.launch.STARTUP_PHASE_FIELD)
+        phase_names = ('before_film', 'film', 'covered', 'handoff', 'lock', 'crossing')
+    else:
+        offsets, phase_names = phase_boundaries
     phases = dict.fromkeys(phase_names, 0) if offsets is not None else None
     count, unpaired, worst = 0, 0, None
     for index, row in enumerate(current):
