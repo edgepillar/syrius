@@ -3477,7 +3477,9 @@ locates the members, contacts and account-chain cards at rows 36–199,
 members. The 114-pixel difference in the members card agrees with two
 missing 57-pixel rows. The combined catalog now uses the existing Settings
 wallet preparation to derive four members, select and verify the second,
-and save the two synthetic contacts. A fresh comparison is required.
+and save the two synthetic contacts. [Linux at `9d17f2ba`](https://github.com/edgepillar/syrius/actions/runs/44910717805/job/136865746542)
+passes analysis, 5,131 non-chain tests with one skip, and generated-file
+verification. A fresh Windows comparison is required.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
@@ -3872,9 +3874,17 @@ The single interval crossing settlement has a 9.116 ms raster duration.
 For Licences, all four confirmed starts at or after settlement exceed
 16 ms and peak at 111.158 ms. The original comparisons and gaps are retained.
 
-The [paired Windows run at `e8b9c2c4`](https://github.com/edgepillar/syrius/actions/runs/44909838778)
-is measuring both Home-to-Settings and Licences on the current application
-and the pinned P06 build in the same isolated job. Results remain open.
+The [paired Windows run at `e8b9c2c4`](https://github.com/edgepillar/syrius/actions/runs/44909838778/job/136863104648)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44911945960/job/136869425823)
+verify both Home-to-Settings and Licences timing windows against P06,
+with five normal node exits. The redesign and P06 maximum total frame
+times are 251.185 and 161.815 ms for the page change and 147.837 and
+70.969 ms for the disclosure. Both fail the original 16 ms raster and
+distinct-frame comparisons, and disclosure also fails build. All four
+windows retain frame-number gaps. The page's 184.288 ms raster peak
+starts within the observed transition. The disclosure's 81.050 ms peak
+crosses its settlement observation, and four later confirmed raster
+starts exceed 16 ms. The samples leave the raster cause open under V02.
 
 The rail width spring now lays out the original destination buttons without
 rebuilding them on its ticks. The toggle still rotates on the same spring,
