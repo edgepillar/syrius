@@ -3445,12 +3445,25 @@ motion batch remains incomplete.
 The [startup catalog reader](https://github.com/edgepillar/syrius/actions/runs/44890175196/job/136804074764)
 verifies twelve `a045c1ae` PNGs from the original cold launch, launch settle,
 Lock states and Seed Quiz. The image digests and producer closure qualify.
-Whole-image verdicts remain open. The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
+The [startup pixel comparison](https://github.com/edgepillar/syrius/actions/runs/44891114458/job/136806911060)
+reads those same four archives and compares all twelve shots in memory with
+their tracked references. Launch Settle has the largest count of pixels with
+an RGB channel difference of at least 16, with 227,899 in dark and 242,431
+in light. More than 98 percent of those pixels are below the caption in both
+themes. The other ten shots range from 2,187 to 14,630 differing pixels at
+that threshold. Whole-image verdicts remain open.
+
+The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
 and five normal node exits. The longest page-change totals are 280.034 ms
 in the redesign and 151.491 ms on P06. For the Licences disclosure they are
 201.678 ms and 68.640 ms. Both comparisons fail raster and distinct frames.
 Disclosure also fails build. All four windows retain frame-number gaps.
+The slowest page raster takes 206.272 ms and starts 150.247 to 221.440 ms
+after pointer release, within the page transition. The slowest disclosure
+raster takes 111.158 ms and starts 384.196 to 445.648 ms after release,
+after the panel settlement observed at 261.688 ms. These ranges do not
+identify a widget as the cause of either delay.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
