@@ -9,14 +9,15 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/she
 /// The button keeps Material's input, semantics and focus handling; the
 /// decoration changes only its paint.
 class PrimaryPill extends StatelessWidget {
-  /// A pill round [child]. A null [onPressed] dims the same surface and
-  /// holds input and hover. Accepted-result feedback remains presentation.
+  /// A pill round [child]. A null [onPressed] holds input and hover and
+  /// dims the surface by default. Accepted-result feedback remains presentation.
   const PrimaryPill({
     required this.onPressed,
     required this.child,
     this.icon,
     this.sheen,
     this.busy = false,
+    this.dimWhenDisabled = true,
     this.style,
     super.key,
   });
@@ -35,6 +36,9 @@ class PrimaryPill extends StatelessWidget {
 
   /// Holds feedback over a busy spinner without changing input admission.
   final bool busy;
+
+  /// Allows a surrounding transition to own the surface opacity.
+  final bool dimWhenDisabled;
 
   /// Merged over the theme's pill. It must keep the stadium shape and the
   /// shrink-wrapped tap target, which the sheen's clip relies on. Explicit
@@ -89,7 +93,7 @@ class PrimaryPill extends StatelessWidget {
       busy: busy,
       controller: sheen,
       child: Opacity(
-        opacity: enabled ? 1 : tokens.disabledOpacity,
+        opacity: enabled || !dimWhenDisabled ? 1 : tokens.disabledOpacity,
         child: DecoratedBox(
           decoration: ShapeDecoration(
             gradient: tokens.plasma,

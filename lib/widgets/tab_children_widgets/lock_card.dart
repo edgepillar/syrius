@@ -406,6 +406,8 @@ class _LockCardState extends State<LockCard>
                         'wallet_unlock_button',
                       ),
                       onPressed: _passwordEnabled ? _submit : null,
+                      // The handoff fades the whole preview as one surface.
+                      dimWhenDisabled: widget.startup?.interactive ?? true,
                       style: ButtonStyle(
                         minimumSize: WidgetStatePropertyAll<Size>(
                           Size(0, tokens.lockActionHeight),

@@ -3532,6 +3532,15 @@ remaining substantial differences cluster around the lock form, with
 verdicts remain open. [Linux at the same source](https://github.com/edgepillar/syrius/actions/runs/44892983872/job/136812601070)
 passes 5,131 non-chain tests with one skip, analysis and generation.
 
+The [split-crop read of the same catalog](https://github.com/edgepillar/syrius/actions/runs/44894381002/job/136816794093)
+finds 15,908 dark and 16,211 light pixels in the Unlock band at that threshold.
+The adjacent sample above the button differs by at most two levels in either
+theme. The button's left and right samples differ by up to 30 levels in dark
+and 39 levels in light. The button previously applied its disabled opacity
+inside the handoff opacity. The preview now uses the handoff opacity alone
+while the Unlock callback remains unavailable. The new appearance awaits
+fresh Windows captures.
+
 The [paired cold read at `790ec3bc`](https://github.com/edgepillar/syrius/actions/runs/44893975418/job/136815564535)
 verifies 83 redesign frames, 342 P06 frames and five normal actor exits.
 All three reported 16 ms comparisons pass, with 23 redesign and 416 P06

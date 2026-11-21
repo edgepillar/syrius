@@ -618,6 +618,21 @@ void main() {
           lessThan(originalFrameBounds.width),
         );
         expect(session.interactive, isFalse);
+        final Finder unlock = find.byKey(
+          const ValueKey<String>('wallet_unlock_button'),
+        );
+        final Finder button = find.descendant(
+          of: unlock,
+          matching: find.byWidgetPredicate(
+            (Widget widget) => widget is OutlinedButton,
+          ),
+        );
+        final Finder unlockSurface = find.descendant(
+          of: unlock,
+          matching: find.byType(Opacity),
+        );
+        expect(tester.widget<OutlinedButton>(button).onPressed, isNull);
+        expect(tester.widget<Opacity>(unlockSurface).opacity, 1);
         final Widget renderingFilm = tester.widget(find.byType(LaunchFilm));
         final Widget renderingField = tester.widget(find.byType(EntryField));
         final Finder shadow = find.byKey(
