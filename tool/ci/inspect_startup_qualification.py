@@ -612,7 +612,9 @@ def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=F
             if quiz and name == 'tool/ci/windows_quiz_catalog.py':
                 prior = PRIOR_QUIZ_PRODUCER_SHAS
             if name == 'tool/ci/windows_launch_catalog.py':
-                prior = (*prior, PRE_BATCH_LAUNCH_PRODUCER_SHA, PRE_RASTER_STARTS_LAUNCH_PRODUCER_SHA)
+                prior = (*prior, PRE_BATCH_LAUNCH_PRODUCER_SHA)
+            before_raster_starts = (name == 'tool/ci/windows_launch_catalog.py'
+                                    and archive.sha(body) == PRE_RASTER_STARTS_LAUNCH_PRODUCER_SHA)
             before_phase_capture = (name == 'tool/ci/windows_launch_catalog.py'
                                     and archive.sha(body) in (PRE_PHASE_LAUNCH_PRODUCER_SHA,
                                                              PRE_MOTION_LAUNCH_PRODUCER_SHA))
@@ -631,7 +633,7 @@ def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=F
             legacy = (before_lock_settle or before_p06_diagnostics or before_first_progress
                       or before_light_motion or not motion and (before_phase_capture
                           or shared_binaries is None and archive.sha(body) in prior))
-            archive.need(body == current or before_auth_phase
+            archive.need(body == current or before_auth_phase or before_raster_starts
                          or motion_theme == launch.TIMING_THEME and legacy)
         else:
             pins[key] = archive.sha(body)
