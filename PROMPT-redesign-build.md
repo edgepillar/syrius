@@ -3411,12 +3411,21 @@ at `508106cd` exercises the prior successful route with an existing member.
 
 The startup entry field at `508106cd` omits its full-window background draw
 when the startup shell supplies the matching opaque color. The ordinary and
-nonmatching surfaces keep their fill. [Linux analysis and focused Ready and
-Lock tests](https://github.com/edgepillar/syrius/actions/runs/44888307732/job/136798347697)
-pass, including the EntryField comparison against the original opacity in
-both themes. [Cold timing](https://github.com/edgepillar/syrius/actions/runs/44888288552)
-and [natural handoff](https://github.com/edgepillar/syrius/actions/runs/44888288785)
-observations are pending at that source.
+nonmatching surfaces keep their fill. [Linux validation](https://github.com/edgepillar/syrius/actions/runs/44888307732/job/136798347697)
+passes strict analysis, the focused Ready and Lock tests, 5,131 non-chain
+tests with one skip, and generated-file verification. The focused EntryField
+case compares against the original opacity in both themes.
+[Cold timing](https://github.com/edgepillar/syrius/actions/runs/44888288552)
+is pending at that source.
+
+The [natural handoff](https://github.com/edgepillar/syrius/actions/runs/44888288785/job/136798294441)
+passes its Windows Release build. Its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44889440601/job/136801829007)
+verifies five images and two normal actor exits per theme. Light retains
+all three samples, first at progress 0.391 and settled 390.625 ms later.
+Dark first observes progress 0.558 and retains the late and settled samples.
+The original dark capture records `LAUNCH_HANDOFF_FRAME_MISSED` for the
+early slot. Both settled stages match the original well bounds. The natural
+motion batch remains incomplete.
 
 The [startup catalog](https://github.com/edgepillar/syrius/actions/runs/44888719740)
 and [paired page change and disclosure](https://github.com/edgepillar/syrius/actions/runs/44888768591)
