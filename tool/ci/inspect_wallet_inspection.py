@@ -669,6 +669,16 @@ def home_send_bounds(raw):
         )
 
 
+def _catalog_pixel_pair(zipped, reference_dir, screen, regions):
+    pairs = {}
+    for theme in producer.THEMES:
+        name = f'{screen}-{theme}.png'
+        actual = zipped.read(name)
+        reference = producer.read_original(reference_dir / name, producer.debug.entry.MAX_PNG)
+        pairs[theme] = windows.pixel_comparison(actual, reference, regions)
+    return dict(screen=screen, region_bounds=regions, pairs=pairs)
+
+
 def home_pixel_comparisons(raw, reference_dir):
     """Compare the verified originals without changing visual verdicts."""
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
@@ -677,13 +687,18 @@ def home_pixel_comparisons(raw, reference_dir):
             regions = dict(caption=(0, 0, 1280, 32), rail=(0, 32, rail_end, 780),
                 hero=(rail_end, 38, 1264, 190), body=(rail_end, 200, 1264, 724),
                 status=(rail_end, 724, 1264, 780))
-            pairs = {}
-            for theme in producer.THEMES:
-                name = f'{screen}-{theme}.png'
-                actual = zipped.read(name)
-                reference = producer.read_original(reference_dir / name, producer.debug.entry.MAX_PNG)
-                pairs[theme] = windows.pixel_comparison(actual, reference, regions)
-            yield dict(screen=screen, region_bounds=regions, pairs=pairs)
+            yield _catalog_pixel_pair(zipped, reference_dir, screen, regions)
+
+
+def details_pixel_comparisons(raw, reference_dir):
+    """Compare each original Details pair against its numbered reference."""
+    regions = dict(caption=(0, 0, 1280, 32), rail=(0, 32, 60, 780),
+                   content=(60, 32, 1280, 724), status=(60, 724, 1280, 780))
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        for name in producer.details.FILES:
+            if name.endswith('-dark.png'):
+                yield _catalog_pixel_pair(zipped, reference_dir,
+                                          name.removesuffix('-dark.png'), regions)
 
 
 def staking_empty_bands(raw):
@@ -1148,7 +1163,8 @@ def main(parent=None):
             and job['conclusion'] == 'success')
     need(job['conclusion'] != 'success' or summary['native_inspection_qualified'])
     catalog = viewport_observation = None
-    home_comparisons = []
+    catalog_comparisons = []
+    reference_head = parent.get('WALLET_REFERENCE_HEAD')
     reference = summary.pop('_home_catalog_reference', None)
     settings_reference = summary.pop('_settings_catalog_reference', None)
     navigation_reference = summary.pop('_navigation_catalog_reference', None)
@@ -1203,6 +1219,10 @@ def main(parent=None):
             if {'10-receive-qr-dark.png', '22-plasma-fuse-dark.png',
                     '37-set-licences-dark.png'} <= set(catalog['filenames']):
                 catalog['component_geometry'] = details_component_geometry(catalog_archive)
+            if schema == producer.details.FAMILY_SCHEMAS['details'] and reference_head is not None:
+                need(digest(reference_head, 40))
+                catalog_comparisons = list(details_pixel_comparisons(
+                    catalog_archive, repo / 'mockups/redesign/shots'))
             if schema == producer.details.FAMILY_SCHEMAS['earn']:
                 catalog['staking_empty_bands'] = staking_empty_bands(catalog_archive)
             if schema == producer.details.FAMILY_SCHEMAS['sentinel-fixture']:
@@ -1269,10 +1289,9 @@ def main(parent=None):
                 catalog['notifications_tooltip'] = home_notifications_geometry(catalog_archive)
                 catalog['expanded_tokens_header'] = home_expanded_tokens_header(catalog_archive)
                 catalog['home_send_bounds'] = home_send_bounds(catalog_archive)
-                reference_head = parent.get('WALLET_REFERENCE_HEAD')
                 if reference_head is not None:
                     need(digest(reference_head, 40))
-                    home_comparisons = list(home_pixel_comparisons(
+                    catalog_comparisons = list(home_pixel_comparisons(
                         catalog_archive, repo / 'mockups/redesign/shots'))
             del catalog_archive
         viewport_name = 'viewport-observation-' + head + '-' + text + '-1'
@@ -1330,9 +1349,10 @@ def main(parent=None):
             'retained_readonly_navigation_catalog': 'Retained readonly Navigation catalog',
             'retained_readonly_details_catalog': 'Retained readonly Details catalog'}[catalog['scope']]
         emit(title, catalog)
-        for comparison in home_comparisons:
-            emit('Retained Home pixel comparison', dict(
-                scope='retained_home_pixel_comparison', source_head=head,
+        family = 'Home' if catalog['scope'] == 'retained_readonly_home_catalog' else 'Details'
+        for comparison in catalog_comparisons:
+            emit(f'Retained {family} pixel comparison', dict(
+                scope=f'retained_{family.lower()}_pixel_comparison', source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
                 reference_head=reference_head, visual_matches=0, **comparison))
     if viewport_observation is not None:

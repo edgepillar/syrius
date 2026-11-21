@@ -119,6 +119,24 @@ class ReaderTests(unittest.TestCase):
             self.assertEqual(row['region_bounds']['rail'][1], 32)
         self.assertTrue(all(row['pairs'] == {'dark': True, 'light': True} for row in comparisons))
 
+    def test_details_comparison_pairs_each_numbered_capture_with_its_reference(self):
+        screens = ('10-receive-qr', '11-zap-form', '22-plasma-fuse',
+                   '37-set-licences', '38-set-originals')
+        names = [f'{screen}-{theme}.png' for screen in screens for theme in ('dark', 'light')]
+        raw = packed([(name, name.encode(), stat.S_IFREG) for name in names])
+        reference_dir = Path('references')
+        with mock.patch.object(reader.producer, 'read_original',
+                side_effect=lambda path, _: path.name.encode()) as read, \
+                mock.patch.object(reader.windows, 'pixel_comparison',
+                    side_effect=lambda actual, reference, _: actual == reference):
+            comparisons = list(reader.details_pixel_comparisons(raw, reference_dir))
+        self.assertEqual([row['screen'] for row in comparisons], list(screens))
+        self.assertEqual([call.args[0] for call in read.call_args_list],
+                         [reference_dir / name for name in names])
+        for row in comparisons:
+            self.assertEqual(row['region_bounds']['content'], (60, 32, 1280, 724))
+            self.assertEqual(row['pairs'], {'dark': True, 'light': True})
+
     def test_home_rest_measures_the_tooltip_and_send_fill(self):
         files = []
         base = b'\0' + bytes((30, 30, 30, 255)) * 1280

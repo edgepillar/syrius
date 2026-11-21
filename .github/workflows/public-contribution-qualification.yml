@@ -1212,6 +1212,11 @@ jobs:
             /mockups/redesign/shots/02-home-open-*.png
             /mockups/redesign/shots/03-home-hidden-*.png
             /mockups/redesign/shots/05-home-goto-*.png
+            /mockups/redesign/shots/10-receive-qr-*.png
+            /mockups/redesign/shots/11-zap-form-*.png
+            /mockups/redesign/shots/22-plasma-fuse-*.png
+            /mockups/redesign/shots/37-set-licences-*.png
+            /mockups/redesign/shots/38-set-originals-*.png
 
       - name: Test both retained lab and readonly archive boundaries in memory
         run: python -B -m tool.ci.run_readonly_reader_tests
