@@ -4455,7 +4455,7 @@ and generated-file verification. Native observation remains open under V02.
 | The eye | `test/hidden_balances/hidden_balances_test.dart` checks both original eye segments. | Observe both directions and masked values during the switch. |
 | The bolt | `test/shell/strip/plasma_lifecycle_test.dart` checks repeat during generation and exit to idle. | Watch a complete loop while generation is in progress. |
 | Wrong password | The Lock catalog retains the wrong-password state after input. | See the 200 ms shake and original well replay as the submission is refused. |
-| Sync dot | `test/shell/strip/sync_pulse_test.dart` checks the 2.4 s pulse. | Observe a full pulse cycle. |
+| Sync dot | `test/shell/strip/sync_pulse_test.dart` checks the 2.4 s pulse and the halo phase read from the original widget. The [Home producer at `1ad56434`](https://github.com/edgepillar/syrius/actions/runs/44932698776) samples that input for up to six seconds. The reader reports intermediate phases, the transparent hold and the bounds between observed resumes. [Linux validation](https://github.com/edgepillar/syrius/actions/runs/44932698713) is pending. | Confirm the retained observations and visually review a full pulse in the running wallet. |
 | Skeleton sweep | `test/motion/skeleton_test.dart` checks one shared clock and the 1.4 s sweep. | Watch loading rows sweep in step. |
 
 | Shader | Existing check | Remaining Windows observation |
