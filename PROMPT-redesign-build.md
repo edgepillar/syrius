@@ -4503,6 +4503,16 @@ images contain the four members and sample contacts, with no named third
 member. Those four images remain diagnostic under the prepared-state
 rule. [Settings verdicts](docs/review/source-e3047adc-settings-verdicts.json)
 
+On the two About images, the seven Settings labels' ink bounds are within
+one pixel of their references at the 32-level RGB contrast threshold.
+All 28 bounding coordinates per theme were checked. Twenty-one agree exactly in dark
+and 24 in light. An offset search over the Settings menu crop, up to three
+pixels horizontally and two vertically, gives the fewest differing
+pixels at zero offset in both themes. The selected About band at column
+236 has full coverage on rows 274 through 311 in the dark capture and
+reference. These observations verify the settled menu geometry after the
+selection animation. The About whole-image verdicts remain mismatches.
+
 The comparison tool accepts repeated `--reviews` arguments, so the earlier
 and recent review files can be read together without copying verdicts.
 Each verdict still requires both original image digests. A disagreement
