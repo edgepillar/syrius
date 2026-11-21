@@ -3713,8 +3713,13 @@ difference counts at the 16-level threshold. V01 and V02 remain open.
 The rising Lock card now draws the reference's quiet field borders and
 omits the wallet picker arrow and password visibility icon until the
 original handoff completes. The settled card restores both controls on
-the same authentication owner. The existing handoff widget case checks
-each control's absence and restoration. Fresh Windows images are pending.
+the same authentication owner. The [Windows run at `13ba7014`](https://github.com/edgepillar/syrius/actions/runs/44902196868/job/136840237044)
+passes the handoff widget case and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44903536080/job/136844242494)
+verifies both captures at progress 0.4 with the same reference digests
+and stage bounds. At the 16-level RGB threshold the region above Unlock
+falls from 300 to 19 pixels in dark and from 437 to 46 in light. Whole-window
+counts fall from 5,566 to 5,253 and from 6,604 to 6,213. The Unlock band is
+unchanged at this threshold. Both whole-screen verdicts remain open under V01.
 
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
