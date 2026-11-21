@@ -4999,6 +4999,24 @@ keeps its original evidence.
 
 V01, V02 and V06 remain open.
 
+### End-state audit at `6a456a69` (2026-11-21)
+
+The application changes since `e3047adc` affect the covered Lock film
+well, the licence summary and Accelerator symbols. The six changed
+runtime files belong to those views and the shared shell symbol table.
+Assets, shaders, desktop runners and the locked dependencies match that
+earlier audit.
+
+| Original requirement | Evidence and remaining check |
+| --- | --- |
+| Clean Windows Debug and Release | The [Windows run at `49eff2b7`](https://github.com/edgepillar/syrius/actions/runs/44958871308/job/137012986547) passes focused analysis, startup widget tests and the Release harness build. The end-state candidate still requires its clean Debug and Release qualification with DLL checks. |
+| Analysis and tests | The [Linux run at `389f2826`](https://github.com/edgepillar/syrius/actions/runs/44960040496/job/137016609964) passes application and strict selected analysis and the focused licence disclosure and selection stage. The tested licence source and fixture match `6a456a69`. Local strict Dart analysis passes for the later Accelerator symbol changes and the updated list widget test. |
+| All 47 screens in both themes | The [Accelerator reader](https://github.com/edgepillar/syrius/actions/runs/44959769007/job/137015783744) measures the four originals at `84a88c55` before the symbol changes. The [new Accelerator run](https://github.com/edgepillar/syrius/actions/runs/44960247264) requests the Voting list and Project Detail in both themes at `6a456a69`. The complete candidate gallery and whole-image verdicts remain open. |
+| Running motion, shaders and P06 timing | The [cold startup run](https://github.com/edgepillar/syrius/actions/runs/44958871308) measures the Lock change. The [interactive run](https://github.com/edgepillar/syrius/actions/runs/44959427890) measures page change and the licence disclosure at `6174b00d`. Visual acceptance still requires completing the runtime review of the original 19 motion and four shader rows. |
+| Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) retains the original executed refusals. No seam registry or action gate changed in the six-file application delta. |
+
+V01, V02 and V06 remain open. The acceptance checklist records 77 of 80 rows.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |
