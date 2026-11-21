@@ -4284,6 +4284,30 @@ includes the radius correction at `619941ce`. The only runtime source
 change between the two producers is the Send confirmation widget.
 Their capture scripts, workflow, assets and dependency pins agree.
 
+The [independent reader at `18d42024`](https://github.com/edgepillar/syrius/actions/runs/44951965298/job/136991660956)
+verifies the four originals from `869006b9` and normal wallet and entry
+closure. All four were viewed directly. The
+[capture index](docs/review/source-869006b9-send-captures.json) and
+[verdicts](docs/review/source-869006b9-send-verdicts.json) retain the
+exact image digests. The light confirmation no longer has the pronounced
+horizontal band under the Windows caption. In the region from x=64 to
+1151 and y=0 to 31, mean absolute RGB difference from the same reference
+drops from 3.372 to 0.140 in light and from 0.757 to 0.614 in dark.
+Across adjacent median grey rows at the centre near the caption edge,
+the largest light step decreases from 26 to 3, against 1 in the reference.
+The four whole-image verdicts remain mismatches. The radius correction
+belongs to the separate `619941ce` capture.
+
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44952421503/job/136993053195)
+verifies all four `619941ce` PNGs and normal application, entry and parent lab
+closure. Direct review confirms the 12 px dialog corners in both themes and
+continuous caption frost. The two draft captures still lack the recent
+recipients, last-send note and incoming queue. The confirmation shows the
+software-wallet first-send state, while the reference shows a Ledger and fused
+Plasma state. All four whole-image mismatches remain in the
+[verdicts](docs/review/source-619941ce-send-verdicts.json), bound to the
+[original capture digests](docs/review/source-619941ce-send-captures.json).
+
 | Screen | Visible differences in both themes |
 | --- | --- |
 | Receive QR | The card and request controls align. The generated code has a token mark and the amount hint is shorter. |
@@ -4784,18 +4808,30 @@ dependencies match the [paired Windows timing source at `fd96d7e1`](https://gith
 The harness and Windows workflow also match. Compared with the
 `0509e4c7` clean Windows baseline, the only change in these runtime
 paths is the About card's first-open initialization. The earlier baseline
-therefore remains evidence for its own source. A
-[Windows baseline at `83be2bc3`](https://github.com/edgepillar/syrius/actions/runs/44949481618)
-is running the clean Debug and Release, analysis, test and DLL checks for
-the updated candidate. The [paired timing re-read](https://github.com/edgepillar/syrius/actions/runs/44949688855/job/136984649998)
+therefore remains evidence for its own source. The
+[Windows baseline at `83be2bc3`](https://github.com/edgepillar/syrius/actions/runs/44949481618/job/136984024348)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44952346876/job/136992827285)
+verify all 12 checks for the About candidate. Debug and Release build
+in 146.016 and 196.469 seconds, respectively. The source, Debug and
+Release DLL hashes agree and all three pass the map and export checks.
+Root analysis has zero errors and warnings and 1,302 infos. The non-chain
+suite has 5,132 passes and one skip. The Send confirmation and Settings
+frame changes follow this Windows baseline.
+
+The [paired timing re-read](https://github.com/edgepillar/syrius/actions/runs/44949688855/job/136984649998)
 verifies both interaction windows and their original exits. Both fail
-the 16 ms gate. The clean baseline, visual verdicts and timing acceptance
-remain open in the final audit.
+the 16 ms gate. The final source baseline, visual verdicts and timing
+acceptance remain open in the audit.
 
 The [full Linux validation at `9bce41b6`](https://github.com/edgepillar/syrius/actions/runs/44951658884)
-covers the later Send dialog geometry and Settings menu changes. The
+covers the later Send dialog geometry and Settings menu changes. Application
+and strict selected analysis pass, the suite reports 5,132 passes and one
+skip, and the tracked generated files are current. The
 [paired Windows timing run at the same source](https://github.com/edgepillar/syrius/actions/runs/44951558724)
-measures the updated transition against P06. Both runs are pending.
+is measuring the updated transition against P06.
+The [clean Windows baseline at `18d42024`](https://github.com/edgepillar/syrius/actions/runs/44952696600)
+is running against the same application, test, harness and workflow sources
+as `9bce41b6`, with the Send and Settings changes included.
 
 ### Rows
 

@@ -1,0 +1,36 @@
+{
+  "reviews": {
+    "07-send-rest-dark": {
+      "actual_sha256": "21ffea5a283c33f4f53e84a387ed85c48ac862c3ebcc6320be6a41fb21651aed",
+      "expected_sha256": "511749787d2f186b2ffc3523fbb1060facc4669291275cb1c918a415acede6f2",
+      "note": "The prepared amount and recipient are present. The amount field is focused, and the recent recipients, last-send note and incoming queue in the reference are absent.",
+      "reviewed_at": "2026-11-21T21:35:29Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "07-send-rest-light": {
+      "actual_sha256": "0c9ed28a6b7a12522f63c348f6c804eff8b1d363652f87fec0f2ca4aa590064e",
+      "expected_sha256": "039197335de93690caee36086f94a62c0e3de0c2fe487623815efa653bd89b25",
+      "note": "The prepared amount and recipient are present. The amount field is focused, and the recent recipients, last-send note and incoming queue in the reference are absent.",
+      "reviewed_at": "2026-11-21T21:35:29Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "12-send-confirm-dark": {
+      "actual_sha256": "838aa7d497dffaa4a8bbc4a64f28fa7dccd008eba6e79c2357db71449b42f51e",
+      "expected_sha256": "fbc3d88a161dd949479bb5b40e39977453e7006ce8b4b11e33d3523f6a5d87a7",
+      "note": "The Windows caption retains the dialog frost across its lower edge. The wider corner radius, original sender address and software-wallet first-send warning differ from the hardware-wallet reference.",
+      "reviewed_at": "2026-11-21T21:35:29Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "12-send-confirm-light": {
+      "actual_sha256": "2bb5c73b982a6b40987a53da2e573e5dc24144430b3d3122221578ce92e2bbd3",
+      "expected_sha256": "51a04fbcade20aae27846b9ee00c931d1cd5c1ea3207826395e6184aada3d10b",
+      "note": "The Windows caption retains the dialog frost across its lower edge. The wider corner radius, original sender address and software-wallet first-send warning differ from the hardware-wallet reference.",
+      "reviewed_at": "2026-11-21T21:35:29Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
