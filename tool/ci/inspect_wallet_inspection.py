@@ -821,10 +821,19 @@ def settings_pixel_comparisons(raw, reference_dir, *, files=None):
     # Split at the tracked reference card boundaries. These crops measure
     # different fixture states as well as visual differences.
     section_crops = {
-        '30-set-node': dict(nodes=(32, 267), update=(267, 522),
-                            disclosures=(522, 678), below_cards=(678, 724)),
-        '35-set-addresses': dict(members=(32, 326), contacts=(326, 489),
-                                 account_chain=(489, 533), below_cards=(533, 724)),
+        '30-set-node': dict(nodes=(260, 32, 1280, 267),
+                            update=(260, 267, 1280, 522),
+                            chain_title=(260, 522, 1020, 566),
+                            chain_summary=(1020, 522, 1236, 566),
+                            chain_chevron=(1236, 522, 1280, 566),
+                            other_disclosures=(260, 566, 1280, 678),
+                            below_cards=(260, 678, 1280, 724)),
+        '35-set-addresses': dict(members=(260, 32, 1280, 326),
+                                 contacts=(260, 326, 1280, 489),
+                                 chain_title=(260, 489, 1080, 533),
+                                 chain_summary=(1080, 489, 1236, 533),
+                                 chain_chevron=(1236, 489, 1280, 533),
+                                 below_cards=(260, 533, 1280, 724)),
     }
     sample_points = {
         '30-set-node': dict(node_table=(700, 220), update_card=(700, 298),
@@ -839,8 +848,7 @@ def settings_pixel_comparisons(raw, reference_dir, *, files=None):
             crop = regions
             if screen in section_crops:
                 crop = {name: bounds for name, bounds in regions.items() if name != 'content'}
-                crop.update({name: (260, top, 1280, bottom)
-                             for name, (top, bottom) in section_crops[screen].items()})
+                crop.update(section_crops[screen])
             yield _catalog_pixel_pair(zipped, reference_dir, screen, crop,
                                       sample_points=sample_points.get(screen))
 

@@ -165,7 +165,9 @@ class ReaderTests(unittest.TestCase):
                              1280 * 780)
             self.assertEqual(row['pairs'], {'dark': True, 'light': True})
         self.assertEqual(comparisons[0]['region_bounds']['update'], (260, 267, 1280, 522))
+        self.assertEqual(comparisons[0]['region_bounds']['chain_summary'], (1020, 522, 1236, 566))
         self.assertEqual(comparisons[5]['region_bounds']['contacts'], (260, 326, 1280, 489))
+        self.assertEqual(comparisons[5]['region_bounds']['chain_summary'], (1080, 489, 1236, 533))
         self.assertEqual(comparisons[6]['region_bounds']['content'], (260, 32, 1280, 724))
         self.assertEqual(compare.call_args_list[0].kwargs['sample_points']['update_notice'],
                          (700, 450))
