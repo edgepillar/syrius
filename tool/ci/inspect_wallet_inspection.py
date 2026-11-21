@@ -665,7 +665,7 @@ def home_pixel_comparisons(raw, reference_dir):
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         for screen in ('01-home-rest', '02-home-open', '03-home-hidden', '05-home-goto'):
             rail_end = 204 if screen == '02-home-open' else 60
-            regions = dict(caption=(0, 0, 1280, 30), rail=(0, 30, rail_end, 780),
+            regions = dict(caption=(0, 0, 1280, 32), rail=(0, 32, rail_end, 780),
                 hero=(rail_end, 38, 1264, 190), body=(rail_end, 200, 1264, 724),
                 status=(rail_end, 724, 1264, 780))
             pairs = {}

@@ -114,6 +114,9 @@ class ReaderTests(unittest.TestCase):
                          [reference_dir / name for name in names])
         self.assertEqual([row['region_bounds']['hero'][0] for row in comparisons],
                          [60, 204, 60, 60])
+        for row in comparisons:
+            self.assertEqual(row['region_bounds']['caption'], (0, 0, 1280, 32))
+            self.assertEqual(row['region_bounds']['rail'][1], 32)
         self.assertTrue(all(row['pairs'] == {'dark': True, 'light': True} for row in comparisons))
 
     def test_home_notifications_geometry_requires_the_complete_tooltip_fill(self):

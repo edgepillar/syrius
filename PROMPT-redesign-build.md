@@ -3031,6 +3031,14 @@ The caption retains its close, drag and other native input. The body
 barrier continues to blur the page backdrop. V01 still requires a
 corrected native capture.
 
+The [Linux run at `24234fd2`](https://github.com/edgepillar/syrius/actions/runs/44868374303/job/136737100990)
+passes application and strict selected analysis, the caption surface
+checks, 5,130 non-chain tests with one skip, and generated-file
+verification. The [Windows run at the same revision](https://github.com/edgepillar/syrius/actions/runs/44868559155/job/136737681791)
+passes the corrected Home catalog tests before the native build. The
+independent Home reader now includes all 32 caption rows in the regional
+comparison, including the two bottom rows where the seam was strongest.
+
 The [paired timing producer](https://github.com/edgepillar/syrius/actions/runs/44862588269)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44863894172/job/136723168084)
 verify both original windows and two normal entry, two normal wallet
