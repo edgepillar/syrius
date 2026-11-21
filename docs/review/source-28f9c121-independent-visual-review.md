@@ -30,7 +30,9 @@ python tool/redesign_compare.py \
 ```
 
 Use `--summary-only` in place of `--serve` for the source-pinned inventory
-without starting a viewer.
+without starting a viewer. The readonly wallet reader emits a catalog image
+index with the verified PNG digests, producer commit and archive SHA-256.
+These fields can bind later capture indexes without a second archive read.
 
 The reviewer reported 42 visual matches and 52 visual mismatches. A visual
 match here means the named state and its material structure were visible.

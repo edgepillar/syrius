@@ -418,6 +418,18 @@ def home_script_source_pins(source_digests, schema):
     return pins
 
 
+def catalog_image_pins(raw, catalog):
+    """Project the literal PNG digests from an already verified catalog."""
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        manifest = zipped.read('manifest.json')
+    need(archive.sha(manifest) == catalog['manifest_sha256'])
+    rows = decode(manifest)['captures']
+    pins = {row['file']: row['sha256'] for row in rows}
+    need(len(pins) == len(rows) and set(pins) == set(catalog['filenames'])
+         and all(digest(value) for value in pins.values()))
+    return pins
+
+
 def unpack_home_catalog(raw, expected_sha, expected_size, head, tree, run_id,
                         reference, script_sha):
     """Verify each literal state; only the caller can bind parent closure."""
@@ -1387,7 +1399,7 @@ def main(parent=None):
             and summary['verified_png_count'] == expected_pages
             and job['conclusion'] == 'success')
     need(job['conclusion'] != 'success' or summary['native_inspection_qualified'])
-    catalog = viewport_observation = None
+    catalog = catalog_index = viewport_observation = None
     catalog_comparisons = []
     reference_head = parent.get('WALLET_REFERENCE_HEAD')
     reference = summary.pop('_home_catalog_reference', None)
@@ -1478,7 +1490,6 @@ def main(parent=None):
                     catalog['completed_step_bounds'] = {
                         theme: windows.completed_step_bounds(encoded, 'wallet-ready')
                         for theme, encoded in captures.items()}
-            del catalog_archive
         elif navigation_reference is not None:
             PHASE = 'navigation_catalog_artifact'
             item = artifact(listing, 'navigation-catalog-' + head + '-' + text + '-1', head, run_id)
@@ -1490,7 +1501,6 @@ def main(parent=None):
                 navigation_reference, pins)
             catalog['plasma_bolt_bounds'] = plasma_bolt_bounds(catalog_archive, '21-plasma')
             catalog['component_geometry'] = navigation_component_geometry(catalog_archive)
-            del catalog_archive
         elif settings_reference is not None:
             PHASE = 'settings_catalog_artifact'
             if has_catalog_contact:
@@ -1509,7 +1519,6 @@ def main(parent=None):
                 need(digest(reference_head, 40))
                 catalog_comparisons = list(settings_pixel_comparisons(
                     catalog_archive, repo / 'mockups/redesign/shots'))
-            del catalog_archive
         else:
             PHASE = 'home_catalog_artifact'
             need(reference is not None)
@@ -1545,7 +1554,9 @@ def main(parent=None):
                     need(digest(reference_head, 40))
                     catalog_comparisons = list(home_pixel_comparisons(
                         catalog_archive, repo / 'mockups/redesign/shots'))
-            del catalog_archive
+        catalog_index = dict(artifact_id=item['id'], archive_bytes=item['size_in_bytes'],
+            images=catalog_image_pins(catalog_archive, catalog))
+        del catalog_archive
         viewport_name = 'viewport-observation-' + head + '-' + text + '-1'
         PHASE = 'viewport_artifact'
         sampling_scope = summary.get('sampling_scope')
@@ -1605,6 +1616,16 @@ def main(parent=None):
         sync_pulse = catalog.pop('sync_pulse', None)
         segment_motion = catalog.pop('segment_motion', None)
         emit(f'Retained readonly {family} catalog', catalog)
+        sampling_scope = summary.get('sampling_scope')
+        capture_family = (sampling_scope.removesuffix('-only')
+                          if family == 'Details' and sampling_scope else family.lower())
+        emit('Retained readonly catalog image index', dict(
+            scope='retained_readonly_catalog_image_index', source_head=head,
+            source_run_id=run_id, producer_job_id=job['id'],
+            archive_sha256=catalog['archive_sha256'],
+            manifest_sha256=catalog['manifest_sha256'],
+            catalog_family=capture_family, sampling_scope=sampling_scope,
+            **catalog_index))
         if rail_motion is not None:
             emit('Retained readonly rail motion', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],

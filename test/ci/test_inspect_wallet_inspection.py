@@ -1837,6 +1837,13 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(value['verified_viewport_png_count'], 0)
         self.assertEqual(value['verified_catalog_png_count'], 8)
         self.assertIn('Retained readonly Home catalog', text)
+        index = [json.loads(line.split('::', 2)[-1]) for line in text.splitlines()
+                 if line.startswith('::notice title=Retained readonly catalog image index::')]
+        self.assertEqual(len(index), 1)
+        self.assertEqual(index[0]['catalog_family'], 'home')
+        self.assertEqual(index[0]['sampling_scope'], 'home-catalog-only')
+        self.assertEqual(index[0]['images'], dict.fromkeys(
+            reader.producer.HOME_GOTO_FILES, reader.archive.sha(wallet_fixtures.png())))
         with self.assertRaises(reader.archive.Refused):
             self.run_main(catalog_only='home-catalog', extra_viewport=True)
 
