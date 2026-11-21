@@ -507,7 +507,9 @@ class _WelcomeActionState extends State<_WelcomeAction> {
                       child: _WelcomeSymbol(
                         symbol: widget.icon,
                         size: tokens.welcomeGlyphSize,
-                        color: widget.primary ? tokens.onZnn : tokens.dim,
+                        color: widget.primary
+                            ? tokens.primaryButtonForeground
+                            : tokens.dim,
                       ),
                     ),
                   ),

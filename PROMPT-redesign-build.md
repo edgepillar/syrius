@@ -2226,6 +2226,16 @@ with an RGB difference of at least 16 levels in any channel. That is six
 fewer dark and eight fewer light pixels, all in the heading and steps
 crop. The Welcome counts are unchanged. V01 remains open.
 
+The [finer read of the same Welcome captures](https://github.com/edgepillar/syrius/actions/runs/44861272430/job/136714988029)
+places 3,576 dark and 3,604 light differences in the action label columns
+at the 16-level threshold. The icon badge columns account for 595 and
+626. The chevron and outer-edge columns account for zero in dark and
+17 in light. These columns partition the earlier action region, and their
+totals retain the 4,171 and 4,247 action counts. The Create wallet glyph
+now uses the mockup's `#04140A` foreground through the existing primary
+action token. The existing two-theme test checks the three badge glyph
+colours alongside their fills. Fresh Windows verification remains open.
+
 The [Linux validation at `d1eb02a9`](https://github.com/edgepillar/syrius/actions/runs/44851643307/job/136684120771)
 passes strict analysis after the subtitle formatting correction. It
 records 5,129 non-chain tests passed, one skip, and successful generated

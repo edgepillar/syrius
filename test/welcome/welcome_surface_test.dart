@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
@@ -259,6 +260,18 @@ void main() {
       expect(marks[0].gradient, tokens.plasma);
       expect(marks[1].color, tokens.card2);
       expect(marks[2].color, tokens.card2);
+      for (final String name in _actions) {
+        final SvgPicture glyph = tester.widget<SvgPicture>(
+          find.descendant(of: _icon(name), matching: find.byType(SvgPicture)),
+        );
+        expect(
+          glyph.colorFilter,
+          ColorFilter.mode(
+            name == 'create' ? tokens.primaryButtonForeground : tokens.dim,
+            BlendMode.srcIn,
+          ),
+        );
+      }
       final InkWell row = tester.widget<InkWell>(_action('create'));
       expect(row.hoverColor, tokens.hover);
       expect(row.mouseCursor, SystemMouseCursors.click);
