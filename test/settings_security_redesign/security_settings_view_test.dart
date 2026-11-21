@@ -160,12 +160,15 @@ void main() {
           width: scaled ? 500 : 992,
         );
         expect(find.byType(SettingsSection), findsOneWidget);
-        expect(find.byType(Panel), findsNWidgets(5));
+        expect(find.byType(Panel, skipOffstage: false), findsNWidgets(5));
         final Rect policies = tester.getRect(
           find.byKey(const Key('security_settings_policies')),
         );
         final Rect backup = tester.getRect(
-          find.byKey(const Key('security_settings_backup')),
+          find.byKey(
+            const Key('security_settings_backup'),
+            skipOffstage: false,
+          ),
         );
         expect(policies.width, scaled ? 500 : 992);
         expect(backup.width, policies.width);

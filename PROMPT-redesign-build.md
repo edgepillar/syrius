@@ -3151,6 +3151,10 @@ the section height. A section with loose height constraints keeps its
 natural size. The existing offscreen panel regression checks both
 sizing modes and the retained panel across scrolling. Fresh paired
 timing is needed to measure the effect on the running Windows build.
+The [first Windows attempt](https://github.com/edgepillar/syrius/actions/runs/44875168498/job/136758167958)
+stops at the scaled Security tests. Their five-panel count and backup
+geometry assertions now include mounted panels outside the viewport.
+The checks still require all five panels and the original spacing.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
