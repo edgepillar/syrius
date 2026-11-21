@@ -624,8 +624,13 @@ def startup_pixel_comparison(name, data):
     if name in startup.launch.SETTLE_FILES:
         # Fixed crops use the authored 0.4 checkpoint in the 1280 by 780 client.
         regions = dict(caption=caption, stage=(250, 149, 1030, 479),
-                       lock_form=(430, 479, 850, 668), bottom=(0, 700, 1280, 780))
-        points.update(film=(300, 240), form=(450, 520))
+                       above_unlock=(430, 479, 850, 510),
+                       unlock_band=(430, 510, 850, 556),
+                       below_unlock=(430, 556, 850, 668),
+                       bottom=(0, 700, 1280, 780))
+        points.update(film=(300, 240), form=(450, 520),
+                      unlock_left=(510, 533), unlock_right=(730, 533),
+                      above_unlock=(510, 500), below_unlock=(510, 565))
     result = pixel_comparison(data, reference, regions, sample_points=points)
     archive.need(result is not None)
     result['region_bounds'] = regions

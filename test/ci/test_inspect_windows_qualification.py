@@ -275,7 +275,8 @@ class WindowsQualificationTests(unittest.TestCase):
         with mock.patch.object(Path, 'open', return_value=io.BytesIO(pixels(opaque=True))):
             comparison = inspect.startup_pixel_comparison('40-launch-settle-dark.png', handoff)
         self.assertEqual(comparison['pixels_at_least_16_by_region'], dict(
-            caption=0, stage=8, lock_form=108, bottom=108, outside_crops=0))
+            caption=0, stage=8, above_unlock=0, unlock_band=108,
+            below_unlock=0, bottom=108, outside_crops=0))
         self.assertEqual(comparison['sample_rgb']['film'], dict(
             point=[300, 240], actual=[60, 60, 60], reference=[20, 20, 20]))
         with mock.patch.object(Path, 'open', return_value=io.BytesIO(pixels(opaque=True))):
