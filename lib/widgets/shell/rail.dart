@@ -335,10 +335,6 @@ class _ShellRailState extends State<ShellRail> with TickerProviderStateMixin {
     value: widget.collapse.value ? 0 : 1,
     animationBehavior: AnimationBehavior.preserve,
   );
-  late final Listenable _motion = Listenable.merge(<Listenable>[
-    _width,
-    _labels,
-  ]);
 
   @override
   void initState() {
@@ -369,6 +365,8 @@ class _ShellRailState extends State<ShellRail> with TickerProviderStateMixin {
     if (status == AnimationStatus.completed &&
         _widthEnd == 1 &&
         !widget.collapse.value) {
+      // The label widgets first appear at the width endpoint.
+      setState(() {});
       _labels.forward();
     }
   }
@@ -407,31 +405,37 @@ class _ShellRailState extends State<ShellRail> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    final Animation<double> expansion = _width
+        .drive(CurveTween(curve: tokens.spring))
+        .drive(Tween<double>(begin: _widthStart, end: _widthEnd));
     return AnimatedBuilder(
-      animation: _motion,
-      builder: (BuildContext context, Widget? child) {
-        final double expansion = _expansion(tokens);
-        return SizedBox(
-          width:
-              tokens.railCollapsedWidth +
-              (tokens.railExpandedWidth - tokens.railCollapsedWidth) *
-                  expansion,
-          child: _Rail(
-            selected: widget.selected == Tabs.sentinels
-                ? Tabs.pillars
-                : widget.selected,
-            locked: widget.locked,
-            onSelected: widget.onSelected,
-            onNotifications: widget.onNotifications,
-            hasUnseen: widget.hasUnseen,
-            collapsed: widget.collapse.value,
-            expansion: expansion,
-            labelsVisible: _width.isCompleted && !widget.collapse.value,
-            labelOpacity: tokens.ease.transform(_labels.value),
-            onToggle: widget.collapse.toggle,
-          ),
-        );
-      },
+      animation: expansion,
+      child: AnimatedBuilder(
+        animation: _labels,
+        builder: (BuildContext context, Widget? child) => _Rail(
+          selected: widget.selected == Tabs.sentinels
+              ? Tabs.pillars
+              : widget.selected,
+          locked: widget.locked,
+          onSelected: widget.onSelected,
+          onNotifications: widget.onNotifications,
+          hasUnseen: widget.hasUnseen,
+          collapsed: widget.collapse.value,
+          expansion: expansion,
+          labelsVisible: _width.isCompleted && !widget.collapse.value,
+          labelOpacity: tokens.ease.transform(_labels.value),
+          onToggle: widget.collapse.toggle,
+        ),
+      ),
+      // Width changes still lay the page out, while its rail destinations
+      // retain their existing buttons during the spring.
+      builder: (BuildContext context, Widget? child) => SizedBox(
+        width:
+            tokens.railCollapsedWidth +
+            (tokens.railExpandedWidth - tokens.railCollapsedWidth) *
+                expansion.value,
+        child: child,
+      ),
     );
   }
 }
@@ -456,7 +460,7 @@ class _Rail extends StatelessWidget {
   final VoidCallback? onNotifications;
   final bool hasUnseen;
   final bool collapsed;
-  final double expansion;
+  final Animation<double> expansion;
   final bool labelsVisible;
   final double labelOpacity;
   final VoidCallback onToggle;
@@ -484,8 +488,12 @@ class _Rail extends StatelessWidget {
                     hitKey: const ValueKey<String>('rail_toggle'),
                     iconKey: const ValueKey<String>('rail_icon_toggle'),
                     buildIcon: (BuildContext context, Color color) =>
-                        Transform.rotate(
-                          angle: math.pi * expansion,
+                        AnimatedBuilder(
+                          animation: expansion,
+                          builder: (_, Widget? child) => Transform.rotate(
+                            angle: math.pi * expansion.value,
+                            child: child,
+                          ),
                           child: buildShellSymbol(
                             context,
                             'chevr',

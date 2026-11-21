@@ -3805,6 +3805,12 @@ The single interval crossing settlement has a 9.116 ms raster duration.
 For Licences, all four confirmed starts at or after settlement exceed
 16 ms and peak at 111.158 ms. The original comparisons and gaps are retained.
 
+The rail width spring now lays out the original destination buttons without
+rebuilding them on its ticks. The toggle still rotates on the same spring,
+and the labels still start their own fade at the width endpoint. The
+existing duration test now checks that a destination button is reused at
+50 and 199 ms. A running Windows motion observation remains open.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.

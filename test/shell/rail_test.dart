@@ -330,14 +330,18 @@ void main() {
       await tester.tap(find.byKey(_toggle));
       await tester.pump();
       expect(sharedPrefsService!.get(kRailCollapsedKey), isFalse);
+      final Finder transfer = find.byKey(_nav(Tabs.transfer));
+      final Widget transferButton = tester.widget(transfer);
       await tester.pump(const Duration(milliseconds: 50));
       expect(
         _rail(tester).width,
         closeTo(56 + 144 * AppTokens.dark.spring.transform(0.25), 0.01),
       );
+      expect(tester.widget(transfer), same(transferButton));
       expect(_labels(), findsNothing);
       await tester.pump(const Duration(milliseconds: 149));
       expect(_rail(tester).width, lessThan(200));
+      expect(tester.widget(transfer), same(transferButton));
       expect(_labels(), findsNothing);
       await tester.pump(const Duration(milliseconds: 1));
       expect(_rail(tester).width, 200);
