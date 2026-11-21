@@ -698,8 +698,21 @@ def details_pixel_comparisons(raw, reference_dir):
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         for name in producer.details.FILES:
             if name.endswith('-dark.png'):
-                yield _catalog_pixel_pair(zipped, reference_dir,
-                                          name.removesuffix('-dark.png'), regions)
+                screen = name.removesuffix('-dark.png')
+                crop = _originals_pixel_regions(regions) if screen == '38-set-originals' else regions
+                yield _catalog_pixel_pair(zipped, reference_dir, screen, crop)
+
+
+def _originals_pixel_regions(regions):
+    # Partition the same content area at the reference gallery's row breaks.
+    chrome = {name: bounds for name, bounds in regions.items() if name != 'content'}
+    return dict(**chrome, settings_menu=(60, 32, 260, 724),
+                licences=(260, 32, 1280, 248), gallery_header=(260, 248, 1280, 315),
+                launch_tile=(260, 315, 444, 427), globe_tile=(444, 315, 606, 427),
+                map_tile=(606, 315, 768, 427), pillar_tile=(768, 315, 930, 427),
+                sentinel_tile=(930, 315, 1092, 427), token_tile=(1092, 315, 1280, 427),
+                gallery_labels=(260, 427, 1280, 512), gallery_footer=(260, 512, 1280, 563),
+                below_gallery=(260, 563, 1280, 724))
 
 
 def staking_empty_bands(raw):

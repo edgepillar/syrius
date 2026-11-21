@@ -133,8 +133,15 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual([row['screen'] for row in comparisons], list(screens))
         self.assertEqual([call.args[0] for call in read.call_args_list],
                          [reference_dir / name for name in names])
-        for row in comparisons:
+        for row in comparisons[:-1]:
             self.assertEqual(row['region_bounds']['content'], (60, 32, 1280, 724))
+        originals = comparisons[-1]['region_bounds']
+        self.assertNotIn('content', originals)
+        self.assertEqual(originals['launch_tile'], (260, 315, 444, 427))
+        self.assertEqual(originals['token_tile'], (1092, 315, 1280, 427))
+        self.assertEqual(sum((right - left) * (bottom - top)
+                             for left, top, right, bottom in originals.values()), 1280 * 780)
+        for row in comparisons:
             self.assertEqual(row['pairs'], {'dark': True, 'light': True})
 
     def test_home_rest_measures_the_tooltip_and_send_fill(self):
