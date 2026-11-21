@@ -3826,14 +3826,22 @@ The rail width spring now lays out the original destination buttons without
 rebuilding them on its ticks. The toggle still rotates on the same spring,
 and the labels still start their own fade at the width endpoint. The
 existing duration test now checks that a destination button is reused at
-50 and 199 ms. A running Windows motion observation remains open.
+50 and 199 ms. The [Linux run at `592694a7`](https://github.com/edgepillar/syrius/actions/runs/44906016982/job/136851641427)
+passed application and strict selected analysis and generated-file verification.
+The non-chain suite reports 5,131 passes and one skip.
 
 The existing Windows Home catalog now samples the original toggle width
 on both opening and closing. The observer uses the original pointer and
 tree responses, restores the initial rail state and retains only bounded
 numeric samples. The reader distinguishes observed intermediate widths
-from endpoint-only results. The offsets include response time, so they
-do not replace the widget curve and duration tests or the 16 ms comparison.
+from endpoint-only results. The [Windows producer at `327bdcc0`](https://github.com/edgepillar/syrius/actions/runs/44906491660/job/136853088772)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44908108982/job/136857929163)
+verify eight Home catalog PNGs, four viewport PNGs and normal required
+process exits. The observed toggle widths in logical pixels are
+40, 123, 175, 183, 184 opening and 184, 184, 101, 55, 42, 40 closing.
+These are widths within the rail's horizontal insets. The offsets are
+measured from the tap reply and include tree response time. The running
+label fade, chevron and 16 ms comparisons remain open under V02.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
@@ -4088,7 +4096,7 @@ and generated-file verification. Native observation remains open under V02.
 | --- | --- | --- |
 | Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Verified native early, late and settled samples. | Inspect the retained images and verify the running 400 ms settle. |
 | Page change | `test/motion/rise_switcher_test.dart` checks the retained pages and both fade phases. Native Home to Settings frame timings. | See the fade and 6 px rise over the full transition. |
-| Rail open and close | `test/shell/rail_test.dart` checks the 200 ms width motion and 150 ms label fade. | Open and close from the collapsed rail. |
+| Rail open and close | `test/shell/rail_test.dart` checks the 200 ms width motion and 150 ms label fade. The [native Home reader](https://github.com/edgepillar/syrius/actions/runs/44908108982/job/136857929163) verifies intermediate toggle widths in both directions. | Observe the chevron and label fade during the running transition. |
 | Segment thumb slides | `test/segment/segment_test.dart` checks thumb motion and the 360 ms clock. | Switch segments in Transfer and Tokens. |
 | Disclosure opens | `test/disclosure/disclosure_test.dart` checks the reveal and chevron. Native About Licences frame timings. | See the slide and chevron turns in the requested groups. |
 | A value changes | `test/motion/value_flash_test.dart` checks the one 1.2 s flash. `test/row_detail/list_entrance_test.dart` checks the incoming row. | Observe a genuine value change and arrival in the isolated wallet. |
