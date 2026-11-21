@@ -2955,7 +2955,14 @@ The [Linux run at `041d2ded`](https://github.com/edgepillar/syrius/actions/runs/
 passes strict selected analysis, the focused background checks, 5,130
 non-chain tests with one skip, and generated-file verification. The
 [Windows Home catalog](https://github.com/edgepillar/syrius/actions/runs/44862831882)
-is in progress at the same revision. The [paired timing producer](https://github.com/edgepillar/syrius/actions/runs/44862588269)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44864268311/job/136724315136)
+verify all eight original Home PNGs at the same revision, 94 producer
+source files and normal required process closure. The two-theme Go To
+footer stays at row 456 and the caret bounds stay at columns 429–430 and
+rows 136–152. The Notifications tooltip fills rows 657–684 at column 65
+in both themes. Four additional PNGs verify the minimum-window and Arabic
+viewport captures. Whole-image verification remains open. The
+[paired timing producer](https://github.com/edgepillar/syrius/actions/runs/44862588269)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44863894172/job/136723168084)
 verify both original windows and two normal entry, two normal wallet
 and five normal node exits. Page settlement occurs 483.387 ms after
