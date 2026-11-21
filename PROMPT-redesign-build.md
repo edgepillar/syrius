@@ -2130,6 +2130,15 @@ fixture draft, one-row connectors and drop outline. The shared backdrop
 distribution still differs, including the light theme's left glow.
 Whole-screen acceptance remains open under V01.
 
+The [current entry run at `7429ee04`](https://github.com/edgepillar/syrius/actions/runs/44850293797/job/136679809654)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44850728614/job/136681203922)
+verify all four Welcome and prepared Import images and a normal zero exit
+with complete output. Dark Welcome and both Import PNGs have the same
+SHA-256 as the [earlier `e94d5b07` captures](https://github.com/edgepillar/syrius/actions/runs/44798926459/job/136505660527).
+The light Welcome image has a different digest. Both current Import
+connectors retain the reference row across 108 columns, and the largest
+mean drop-border coverage error remains 6,497 ppm. V01 remains open.
+
 Independent Windows readers verify the [eight Home PNGs](https://github.com/edgepillar/syrius/actions/runs/44765737077/job/136389745160),
 [ten Details PNGs](https://github.com/edgepillar/syrius/actions/runs/44765742529/job/136389763108)
 and [four prepared Send PNGs](https://github.com/edgepillar/syrius/actions/runs/44765748064/job/136389783471)
