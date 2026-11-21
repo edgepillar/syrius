@@ -912,7 +912,9 @@ with two attempts left. The blinking caret is off in both warning captures.
 The picker shows the selected row, two other wallets, the Add a wallet row
 and the disabled Unlock action. The fixture addresses, live status values,
 approved brand colours and font rasterization account for the remaining
-differences. See the [six original Windows images](https://github.com/edgepillar/syrius/actions/runs/44623282393/artifacts/14578324803).
+differences. The [comparison verdicts](docs/review/screen-verdicts.json)
+bind the exact PNG hashes of these six pairs. See the
+[six original Windows images](https://github.com/edgepillar/syrius/actions/runs/44623282393/artifacts/14578324803).
 
 The retained Addresses captures at `06eda3f7` show the selected glyph in
 columns 299 through 312 and rows 165 through 178 in both themes. The authored

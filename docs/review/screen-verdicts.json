@@ -255,6 +255,70 @@
       "reviewed_at": "2026-11-21T19:48:10Z",
       "reviewer": "Codex",
       "verdict": "mismatch"
+    },
+    "41-lock-screen-dark": {
+      "actual_sha256": "5ad8da424f0c7192f7a107e5ba0ec21cd5e4f64dcf9d8dcdb55b1dd246a36125",
+      "expected_sha256": "0423e793f7fc3a7dde6cef6cae3e34570aadbad6ddffeb74628ebf1cd8094d27",
+      "note": "The Lock card, final film frame, controls and links align. Fixture values, approved brand colors and font rasterization explain the remaining differences.",
+      "reviewed_at": "2026-11-21T19:53:50Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "41-lock-screen-light": {
+      "actual_sha256": "c44e964407d98c6ead536530921ae582ed75c5e20c8a32e7719a007c83bf1f74",
+      "expected_sha256": "7ade4369fb44fd27dd79cde415d4c2616778a5015936dd032b10224a61d0e4fd",
+      "note": "The Lock card, final film frame, controls and links align. Fixture values, approved brand colors and font rasterization explain the remaining differences.",
+      "reviewed_at": "2026-11-21T19:53:50Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "42-lock-wrong-dark": {
+      "actual_sha256": "e22a7175c98204468f52ab917eaf85665728919e0ce16973f78075337bfa5fc8",
+      "expected_sha256": "4ab7a113c2ddbfae98cf37b044fb7ae1eb95d1c303f9b55b5a2c7086473761d1",
+      "note": "The warning, clear password field, two remaining attempts and sampled film frame align. The caret is off in both themes.",
+      "reviewed_at": "2026-11-21T19:53:50Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "42-lock-wrong-light": {
+      "actual_sha256": "3e6c22ae4ad0552b533712266c9e9c9cfe3179092c5e9caaa22acd189816a362",
+      "expected_sha256": "08227212a1640dc33ef7b6d5de8385cf6637a6ceb2e7302728d05ffc40ac239e",
+      "note": "The warning, clear password field, two remaining attempts and sampled film frame align. The caret is off in both themes.",
+      "reviewed_at": "2026-11-21T19:53:50Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "43-lock-pick-dark": {
+      "actual_sha256": "272630455d982397260cd0110c2f805c72df72322b56d5e7f86fda76e902e093",
+      "expected_sha256": "c151673f42b879a452d17e929f8f3c562108986752233f528c759ff24fef5b6a",
+      "note": "The picker rows, selection, Add a wallet action, disabled Unlock and divider align.",
+      "reviewed_at": "2026-11-21T19:53:50Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "43-lock-pick-light": {
+      "actual_sha256": "c9098b3187d4723285abec83ceac2a28d943c689a942e74e59ba9ed6a2a4a9ef",
+      "expected_sha256": "74f5e23c6c1262e8e28d2409bb538b9751b6b81c12b60ca68b2090e3be1f505b",
+      "note": "The picker rows, selection, Add a wallet action, disabled Unlock and divider align.",
+      "reviewed_at": "2026-11-21T19:53:50Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "47-wallet-ready-dark": {
+      "actual_sha256": "a9efffdb6780fdca92c0001335207a2d1c60d4870a74a55afb9092e7da50e65b",
+      "expected_sha256": "98b05b9d7a88952f636021a5ecd7f96e0976f86801ed986bf1b995ad503d693d",
+      "note": "The card, checkpoints, sampled field and map, copy action and shadow align. The generated address and approved brand colors differ as allowed.",
+      "reviewed_at": "2026-11-21T19:53:50Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "47-wallet-ready-light": {
+      "actual_sha256": "29a6af782d2a14794b1281c55b73028b6a450c07b6ebf03e4fc62a3c9b306889",
+      "expected_sha256": "d3d74f8ab759686b11cff7ae6d6e3cd1fa10638302d1771fd93a769851492039",
+      "note": "The card, checkpoints, sampled field and map, copy action and shadow align. The generated address and approved brand colors differ as allowed.",
+      "reviewed_at": "2026-11-21T19:53:50Z",
+      "reviewer": "Codex",
+      "verdict": "match"
     }
   }
 }

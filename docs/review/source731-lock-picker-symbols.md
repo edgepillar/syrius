@@ -43,6 +43,8 @@ row, copy glyph, action and outer-only shadow agree. The light glass no longer
 samples its own shadow. The owner's explicit RULES.md brand-color override,
 generated isolated-fixture address and native font hinting are allowed
 differences. The two Ready pairs are accepted at Source730.
+The [comparison verdicts](screen-verdicts.json) bind both image hashes for
+each of the two pairs.
 
 Archive: 325,509 bytes; SHA-256
 8377ee4c873a938023053ca218247c46adf431db8d9fba93e4ec64cf677eb49b.
