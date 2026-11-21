@@ -3450,6 +3450,15 @@ samples show green on the left and blue on the right in both original
 processes. The light early sample also darkens both upper corners to RGB
 (58, 58, 58), during the shell route entrance.
 
+The [Linux run at `790ec3bc`](https://github.com/edgepillar/syrius/actions/runs/44892238976/job/136810376283)
+passes the first reveal color check and the full 5,131-test non-chain suite
+with one skip. The [standalone Windows harness run](https://github.com/edgepillar/syrius/actions/runs/44892403155/job/136810856739)
+passes its selected files at `9ff14af1`. Its selection omits the integrated
+`startup_stage_test.dart` case. The focused Linux check at
+[`7581a48e`](https://github.com/edgepillar/syrius/actions/runs/44892983872/job/136812601070)
+executes that case with the Windows platform variant. The Windows startup
+workflow now names the same Dart suite explicitly before its Release build.
+
 Flutter 3.47.7 normally applies a snapshot-capable Zoom transition to a
 Windows Material route. The startup shell now sends a completed progress
 value to that route's entrance paint, while the original route still owns

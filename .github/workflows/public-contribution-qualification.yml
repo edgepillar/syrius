@@ -194,6 +194,12 @@ jobs:
       - name: Analyze the original entry and focused tests
         run: python -B -m tool.ci.windows_debug_loop --analyze
 
+      - name: Verify the startup handoff widget on Windows
+        timeout-minutes: 3
+        env:
+          PUB_CACHE: ${{ steps.startup_flutter.outputs['PUB-CACHE-PATH'] }}
+        run: flutter test --no-pub test/startup/startup_stage_test.dart
+
       - name: Test original startup ownership and finite diagnostics
         env:
           SYRIUS_STARTUP_ASSET_FIDELITY: "true"
