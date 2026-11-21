@@ -3039,6 +3039,18 @@ passes the corrected Home catalog tests before the native build. The
 independent Home reader now includes all 32 caption rows in the regional
 comparison, including the two bottom rows where the seam was strongest.
 
+The [completed Windows Home run](https://github.com/edgepillar/syrius/actions/runs/44868559155/job/136737681791)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44870268108/job/136742995560)
+verify eight original PNGs, 95 producer source files and normal required
+process closure. The expanded Tokens header matches the reference fill
+at column 1000 across rows 285–296 in both themes. In Go To, column 600
+now stays level from row 20 through row 31 in both themes. The light
+capture reads (152, 152, 152) on row 31 and (152, 154, 153) on row 32.
+Across the entire 32-row Go To caption, neither theme has a pixel whose
+channel difference reaches 16 levels. The complete Go To images still
+have 15,113 dark and 15,887 light pixels at that threshold. None of the
+eight whole-image pairs is closed by these component checks.
+
 The [paired timing producer](https://github.com/edgepillar/syrius/actions/runs/44862588269)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44863894172/job/136723168084)
 verify both original windows and two normal entry, two normal wallet
