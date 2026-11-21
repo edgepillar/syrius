@@ -597,13 +597,18 @@ def _vertical_bands(zipped, name, column, top, bottom):
 
 
 def home_goto_geometry(raw):
-    """Measure the panel edge and visible caret of the literal Go To state."""
+    """Measure the panel edge, visible caret and window edge of Go To."""
     column, top, bottom = 450, 440, 476
     themes = {}
+    caption_bands = {}
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         for theme in producer.THEMES:
-            bands = _vertical_bands(zipped, f'05-home-goto-{theme}.png',
-                                    column, top, bottom)
+            name = f'05-home-goto-{theme}.png'
+            caption_bands[theme] = [
+                [row, list(color[:3])]
+                for row, color in _vertical_bands(zipped, name, 600, 20, 36)
+            ]
+            bands = _vertical_bands(zipped, name, column, top, bottom)
             themes[theme] = None
             if not bands:
                 continue
@@ -620,7 +625,8 @@ def home_goto_geometry(raw):
                             lambda *difference: max(difference) >= 35,
                             relative_to_background=True)
     return dict(goto_footer=dict(column=column, scan_rows=[top, bottom], themes=themes),
-                goto_caret=caret)
+                goto_caret=caret,
+                goto_caption=dict(column=600, scan_rows=[20, 36], bands=caption_bands))
 
 
 def home_notifications_geometry(raw):

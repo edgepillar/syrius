@@ -3011,6 +3011,18 @@ open script now parks the pointer after the Tokens body becomes visible
 and checks the same original controls before capture. The next Windows
 run needs to verify the resting header. Whole-screen verdicts remain open.
 
+The same verified Windows Go To captures show a seam within the caption.
+At column 600, light row 20 matches at RGB (152, 152, 152). At row 31
+the capture is (128, 128, 128) and the reference is (152, 153, 153).
+Row 32 matches at (152, 154, 153). Dark row 31 differs by at most four
+levels and row 32 matches. The reader now preserves every color change
+from row 20 through row 35 in each theme. The gradient is consistent
+with the caption backdrop blur sampling the painted body. The pinned
+[Flutter Skia conversion](https://github.com/flutter/flutter/blob/3.47.7/engine/src/flutter/display_list/skia/dl_sk_conversions.cc#L179-L190)
+passes no sample rectangle to the blur, so a bounded Flutter blur alone
+has no demonstrated effect on this Windows path. A corrected native
+capture is still required for V01.
+
 The [paired timing producer](https://github.com/edgepillar/syrius/actions/runs/44862588269)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44863894172/job/136723168084)
 verify both original windows and two normal entry, two normal wallet

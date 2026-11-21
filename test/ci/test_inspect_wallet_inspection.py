@@ -131,7 +131,7 @@ class ReaderTests(unittest.TestCase):
                 dark=dict(status='observed', fill_rows=[657, 684]),
                 light=dict(status='unavailable'))))
 
-    def test_home_goto_geometry_measures_footer_edge_and_visible_caret(self):
+    def test_home_goto_geometry_measures_footer_caret_and_caption(self):
         files = []
         footer = b'\0' + bytes((35, 35, 35, 255)) * 1280
         variation = b'\0' + bytes((35, 36, 35, 255)) * 1280
@@ -143,6 +143,8 @@ class ReaderTests(unittest.TestCase):
             if theme == 'dark':
                 rows[450:edge] = [variation] * (edge - 450)
                 rows[137:154] = [caret] * 17
+                rows[30:32] = [shadow] * 2
+                rows[32:36] = [variation] * 4
             pixels = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                       + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
             files.append((f'05-home-goto-{theme}.png', pixels, stat.S_IFREG))
@@ -151,7 +153,10 @@ class ReaderTests(unittest.TestCase):
                 dark=dict(edge_row=456, footer_rgb=[35, 35, 35], edge_rgb=[18, 19, 18]),
                 light=None)),
             goto_caret=dict(dark=dict(left=429, top=137, right=430, bottom=153),
-                            light=None)))
+                            light=None),
+            goto_caption=dict(column=600, scan_rows=[20, 36], bands=dict(
+                dark=[[20, [35, 35, 35]], [30, [18, 19, 18]], [32, [35, 36, 35]]],
+                light=[[20, [35, 35, 35]]]))))
 
     def test_navigation_and_sentinel_measure_strip_edges(self):
         files = []
