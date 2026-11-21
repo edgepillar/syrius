@@ -123,6 +123,8 @@ class _LockCardState extends State<LockCard>
   bool get _passwordEnabled =>
       !widget.busy && widget.canUnlock && !_pickerExpanded;
 
+  bool get _inLaunchHandoff => widget.startup?.interactive == false;
+
   LaunchFilmController get _activeFilm => widget.startup?.film ?? _film;
 
   late EntryField _startupBackdrop = _buildStartupBackdrop();
@@ -384,6 +386,7 @@ class _LockCardState extends State<LockCard>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   LockWalletPicker(
+                    inLaunchHandoff: _inLaunchHandoff,
                     current: LockWalletDisplayEntry(
                       name: widget.walletName,
                       address: widget.address,
@@ -592,36 +595,38 @@ class _LockCardState extends State<LockCard>
                 width: tokens.fieldHeight,
                 height: tokens.fieldHeight,
               ),
-              suffixIcon: _pickerExpanded
+              suffixIcon: _inLaunchHandoff
+                  ? null
+                  : _pickerExpanded
                   ? const SizedBox.shrink()
                   : IconButton(
-                    tooltip: _obscure
-                        ? context.l10n.lockShowPassword
-                        : context.l10n.lockHidePassword,
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints.tightFor(
-                      width: tokens.fieldHeight,
-                      height: tokens.fieldHeight,
-                    ),
-                    onPressed: _passwordEnabled
-                        ? () {
-                            if (_passwordEnabled) {
-                              setState(() => _obscure = !_obscure);
+                      tooltip: _obscure
+                          ? context.l10n.lockShowPassword
+                          : context.l10n.lockHidePassword,
+                      padding: EdgeInsets.zero,
+                      constraints: BoxConstraints.tightFor(
+                        width: tokens.fieldHeight,
+                        height: tokens.fieldHeight,
+                      ),
+                      onPressed: _passwordEnabled
+                          ? () {
+                              if (_passwordEnabled) {
+                                setState(() => _obscure = !_obscure);
+                              }
                             }
-                          }
-                        : null,
-                    icon: _obscure
-                        ? ShellSymbol(
-                            'eye',
-                            size: tokens.lockGlyphSize,
-                            color: tokens.faint,
-                          )
-                        : Icon(
-                            Icons.visibility_off_outlined,
-                            size: tokens.lockGlyphSize,
-                            color: tokens.faint,
-                          ),
-                  ),
+                          : null,
+                      icon: _obscure
+                          ? ShellSymbol(
+                              'eye',
+                              size: tokens.lockGlyphSize,
+                              color: tokens.faint,
+                            )
+                          : Icon(
+                              Icons.visibility_off_outlined,
+                              size: tokens.lockGlyphSize,
+                              color: tokens.faint,
+                            ),
+                    ),
             ),
           ),
         ),
@@ -643,7 +648,9 @@ class _LockCardState extends State<LockCard>
     borderSide: BorderSide(
       color: widget.incorrectPassword
           ? tokens.error
-          : _pickerExpanded ? tokens.line : tokens.faint,
+          : (_pickerExpanded || _inLaunchHandoff)
+          ? tokens.line
+          : tokens.faint,
     ),
   );
 

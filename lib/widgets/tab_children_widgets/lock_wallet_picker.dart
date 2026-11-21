@@ -60,6 +60,7 @@ class LockWalletPicker extends StatelessWidget {
     required this.current,
     Iterable<LockWalletDisplayEntry> entries = const <LockWalletDisplayEntry>[],
     this.expanded = false,
+    this.inLaunchHandoff = false,
     super.key,
   }) : entries = List<LockWalletDisplayEntry>.unmodifiable(entries);
 
@@ -77,6 +78,9 @@ class LockWalletPicker extends StatelessWidget {
   /// Pure presentation fixtures can supply synthetic entries here. This flag
   /// is not a route for production to bypass the missing catalog service.
   final bool expanded;
+
+  /// The rising Lock card draws the quiet field without the picker arrow.
+  final bool inLaunchHandoff;
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +115,7 @@ class LockWalletPicker extends StatelessWidget {
     decoration: BoxDecoration(
       color: tokens.card2,
       borderRadius: BorderRadius.circular(tokens.cardRadius),
-      border: Border.all(color: tokens.faint),
+      border: Border.all(color: inLaunchHandoff ? tokens.line : tokens.faint),
     ),
     child: Row(
       children: <Widget>[
@@ -170,26 +174,27 @@ class LockWalletPicker extends StatelessWidget {
             ],
           ),
         ),
-        SeamGate(
-          seam: Seam.walletPicker,
-          child: IconButton(
-            key: const ValueKey<String>('lock_wallet_picker_arrow'),
-            onPressed: _refuseWalletPicker,
-            padding: EdgeInsets.zero,
-            constraints: BoxConstraints.tightFor(
-              width: tokens.lockGlyphSize,
-              height: tokens.fieldHeight,
-            ),
-            icon: RotatedBox(
-              quarterTurns: showMenu ? 2 : 0,
-              child: ShellSymbol(
-                'chev',
-                size: tokens.lockGlyphSize,
-                color: tokens.faint,
+        if (!inLaunchHandoff)
+          SeamGate(
+            seam: Seam.walletPicker,
+            child: IconButton(
+              key: const ValueKey<String>('lock_wallet_picker_arrow'),
+              onPressed: _refuseWalletPicker,
+              padding: EdgeInsets.zero,
+              constraints: BoxConstraints.tightFor(
+                width: tokens.lockGlyphSize,
+                height: tokens.fieldHeight,
+              ),
+              icon: RotatedBox(
+                quarterTurns: showMenu ? 2 : 0,
+                child: ShellSymbol(
+                  'chev',
+                  size: tokens.lockGlyphSize,
+                  color: tokens.faint,
+                ),
               ),
             ),
           ),
-        ),
       ],
     ),
   );

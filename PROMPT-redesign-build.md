@@ -3664,14 +3664,30 @@ keeps the individual timing and capture modes available. The combined
 reader checks both finite archives from the same job and compares the
 capture's runner and payload digests with the measured redesign binaries.
 If paired timing stops early, the original timing receipt is still retained
-and the subsequent captures are skipped. This mode needs its first hosted
-result.
+and the subsequent captures are skipped.
 
 The [first combined Windows run](https://github.com/edgepillar/syrius/actions/runs/44900011001/job/136833734257)
 stops before SDK allocation because the catalog admission test still
 expects the previous workflow choice list. The test now includes the new
 startup choice and retains the independent assertion that the readonly
 wallet catalog refuses it.
+
+The [corrected combined run at `280e3902`](https://github.com/edgepillar/syrius/actions/runs/44900443902/job/136835023721)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44901894889/job/136839345058)
+verify the paired cold timing and both original 0.4 handoff captures from
+the same Release build. Five timing actors exit normally. Build passes
+the 16 ms comparison. Raster and distinct frames fail it. The largest
+redesign raster is 145.892 ms versus 132.078 ms on P06, and its start
+interval crosses the observed handoff boundary. The windows contain 88
+and 899 reported frames with 20 and 727 frame-number gaps, respectively.
+The two captures repeat the earlier 5,566 dark and 6,604 light RGB
+difference counts at the 16-level threshold. V01 and V02 remain open.
+
+The rising Lock card now draws the reference's quiet field borders and
+omits the wallet picker arrow and password visibility icon until the
+original handoff completes. The settled card restores both controls on
+the same authentication owner. The existing handoff widget case checks
+each control's absence and restoration. Fresh Windows images are pending.
 
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,

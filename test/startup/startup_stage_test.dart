@@ -652,12 +652,24 @@ void main() {
         );
         expect(tester.widget<OutlinedButton>(button).onPressed, isNull);
         expect(tester.widget<Opacity>(unlockSurface).opacity, 1);
+        final Finder walletPickerArrow = find.byKey(
+          const ValueKey<String>('lock_wallet_picker_arrow'),
+        );
+        final Finder passwordField = find.byKey(
+          const ValueKey<String>('wallet_password_field'),
+        );
+        expect(walletPickerArrow, findsNothing);
+        expect(
+          tester.widget<TextField>(passwordField).decoration!.suffixIcon,
+          isNull,
+        );
         final Widget renderingFilm = tester.widget(find.byType(LaunchFilm));
         final Widget renderingField = tester.widget(find.byType(EntryField));
         const Key shadowKey = ValueKey<String>('lock_card_shadow');
         final Finder shadow = find.byKey(shadowKey);
         final Finder shadowOpacity = find.byWidgetPredicate(
-          (Widget widget) => widget is Opacity && widget.child?.key == shadowKey,
+          (Widget widget) =>
+              widget is Opacity && widget.child?.key == shadowKey,
         );
         expect(tester.widget<Opacity>(shadowOpacity).opacity, 0);
         final RenderRepaintBoundary retainedShadow = tester.renderObject(
@@ -704,6 +716,11 @@ void main() {
         await tester.pump(const Duration(milliseconds: 1));
         expect(session.interactive, isTrue);
         expect(session.filmInWell, isTrue);
+        expect(walletPickerArrow, findsOneWidget);
+        expect(
+          tester.widget<TextField>(passwordField).decoration!.suffixIcon,
+          isA<IconButton>(),
+        );
         expect(tester.renderObject(frame), same(paintedFrame));
         expect(paintedFrame.size, decodedSize);
         expect(tester.renderObject(frameBoundary), same(framePaint));
