@@ -5042,6 +5042,16 @@ earlier audit.
 
 V01, V02 and V06 remain open. The acceptance checklist records 77 of 80 rows.
 
+The [interaction phase receipt at `6174b00d`](https://github.com/edgepillar/syrius/actions/runs/44961056103/job/137019733574)
+places the first laid-out Licences list at 83.718 ms and the settled
+disclosure at 261.357 ms after release. All seven reported rasters that
+start at or after settlement exceed 16 ms and peak at 61.356 ms. Page
+change settles at 422.896 ms. Five of seven reported rasters that start
+at or after that boundary exceed 16 ms and peak at 56.093 ms. The longest
+page-change raster starts earlier, 203.767 ms after release, and takes
+207.467 ms. Both windows retain frame-number gaps. The receipt bounds
+the work around the transitions. Widget-level attribution remains open.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |
