@@ -172,6 +172,26 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(compare.call_args_list[10].kwargs['sample_points']['contact_gap'],
                          (700, 482))
 
+    def test_verified_node_notice_compares_actual_and_reference_fill_rows(self):
+        background = b'\0' + bytes((100, 100, 100, 255)) * 1280
+
+        def image(fill, start, end):
+            row = b'\0' + bytes((*fill, 255)) * 1280
+            pixels = background * start + row * (end - start) + background * (780 - end)
+            return (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
+                    + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
+
+        fills = {'dark': (46, 48, 46), 'light': (255, 255, 255)}
+        actual = [(f'30-set-node-{theme}.png', image(fill, 410, 508), stat.S_IFREG)
+                  for theme, fill in fills.items()]
+        reference = {f'30-set-node-{theme}.png': image(fill, 397, 511)
+                     for theme, fill in fills.items()}
+        with mock.patch.object(reader.producer, 'read_original',
+                               side_effect=lambda path, _: reference[path.name]):
+            measured = reader.node_update_notice_geometry(packed(actual), Path('references'))
+        self.assertEqual(measured, dict(column=700, scan_rows=[327, 620], themes={
+            theme: dict(actual=[410, 507], reference=[397, 510]) for theme in fills}))
+
     def test_home_rest_measures_the_tooltip_and_send_fill(self):
         files = []
         base = b'\0' + bytes((30, 30, 30, 255)) * 1280

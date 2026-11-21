@@ -3378,6 +3378,10 @@ reference. A fresh verified pair is required for current-source review.
 All 28 comparison tests pass with Pillow, including the exact-source
 selection of both verified Node images. The isolated test task records
 complete output and exit zero.
+For the verified Node family, the independent reader also reports the
+longest uninterrupted band of the notice color at column 700 in each
+original and reference. This measures the notice's vertical extent at
+that sample. Whole-screen verdicts remain under V01.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests

@@ -586,7 +586,11 @@ def selected_job(value, head, run_id):
 
 
 def _vertical_bands(zipped, name, column, top, bottom):
-    encoded = base64.b64encode(zipped.read(name)).decode('ascii')
+    return _image_vertical_bands(zipped.read(name), column, top, bottom)
+
+
+def _image_vertical_bands(data, column, top, bottom):
+    encoded = base64.b64encode(data).decode('ascii')
     rows, channels = windows._png_crop(encoded, (column, column + 1), (top, bottom))
     if not windows._opaque(rows, channels):
         return []
@@ -595,6 +599,31 @@ def _vertical_bands(zipped, name, column, top, bottom):
         if row != bands[-1][1]:
             bands.append((y, row))
     return bands
+
+
+def node_update_notice_geometry(raw, reference_dir):
+    """Locate the longest uninterrupted verified-notice fill at a fixed column."""
+    column, top, bottom = 700, 327, 620
+    fills = {'dark': (46, 48, 46), 'light': (255, 255, 255)}
+
+    def span(data, fill):
+        bands = _image_vertical_bands(data, column, top, bottom)
+        ends = [start for start, _ in bands[1:]] + [bottom]
+        matches = [(start, end) for (start, color), end in zip(bands, ends)
+                   if tuple(color[:3]) == fill and top < start and end < bottom]
+        if not matches:
+            return None
+        start, end = max(matches, key=lambda rows: rows[1] - rows[0])
+        return [start, end - 1]
+
+    themes = {}
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        for theme, fill in fills.items():
+            name = f'30-set-node-{theme}.png'
+            reference = producer.read_original(reference_dir / name, producer.debug.entry.MAX_PNG)
+            themes[theme] = dict(actual=span(zipped.read(name), fill),
+                                 reference=span(reference, fill))
+    return dict(column=column, scan_rows=[top, bottom], themes=themes)
 
 
 def home_goto_geometry(raw):
@@ -1272,8 +1301,11 @@ def main(parent=None):
                 catalog['licence_header_chevrons'] = details_licence_header_chevrons(catalog_archive)
             if schema == producer.details.FAMILY_SCHEMAS['node-verified'] and reference_head is not None:
                 need(digest(reference_head, 40))
+                reference_dir = repo / 'mockups/redesign/shots'
                 catalog_comparisons = list(settings_pixel_comparisons(
-                    catalog_archive, repo / 'mockups/redesign/shots', files=catalog['filenames']))
+                    catalog_archive, reference_dir, files=catalog['filenames']))
+                catalog['node_update_notice_geometry'] = node_update_notice_geometry(
+                    catalog_archive, reference_dir)
             if {'10-receive-qr-dark.png', '22-plasma-fuse-dark.png',
                     '37-set-licences-dark.png'} <= set(catalog['filenames']):
                 catalog['component_geometry'] = details_component_geometry(catalog_archive)
