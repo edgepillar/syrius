@@ -165,7 +165,8 @@ class _LockCardState extends State<LockCard>
         identical(_shadowPreparation, startup)) {
       return;
     }
-    _shadowPreparation = startup;
+    // Mount the invisible shadow only after the film reaches its held frame.
+    setState(() => _shadowPreparation = startup);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted ||
           !identical(widget.startup, startup) ||
@@ -332,24 +333,32 @@ class _LockCardState extends State<LockCard>
     final BorderRadius radius = BorderRadius.circular(tokens.dialogRadius);
     // The rising card uses flat glass. Its blur and shadow belong to the
     // settled card, after the independent film stage enters the well.
-    final bool settled = widget.startup?.filmInWell ?? true;
+    final StartupStageSession? startup = widget.startup;
+    final bool settled = startup?.filmInWell ?? true;
     return KeyedSubtree(
       key: const ValueKey<String>('lock_card_surface'),
-      child: _withCardShadow(
-        radius,
-        tokens.lockCardShadow,
-        MediaQuery.devicePixelRatioOf(context),
-        FrostedSurface(
-          sigma: settled ? tokens.panelBlur : 0,
-          borderRadius: radius,
-          blurInsetTop: tokens.glassTopEdge.width + tokens.lockWellHeight,
-          child: RepaintBoundary(
-            key: const ValueKey<String>('lock_card_foreground'),
-            // Keep the form's paint while the backdrop and handoff move.
-            child: _buildCardForeground(context, tokens, radius),
+      child: Stack(
+        fit: StackFit.passthrough,
+        clipBehavior: Clip.none,
+        children: <Widget>[
+          FrostedSurface(
+            sigma: settled ? tokens.panelBlur : 0,
+            borderRadius: radius,
+            blurInsetTop: tokens.glassTopEdge.width + tokens.lockWellHeight,
+            child: RepaintBoundary(
+              key: const ValueKey<String>('lock_card_foreground'),
+              // Keep the form's paint while the backdrop and handoff move.
+              child: _buildCardForeground(context, tokens, radius),
+            ),
           ),
-        ),
-        showShadow: settled,
+          if (settled || startup!.film.isDone)
+            _buildCardShadow(
+              radius,
+              tokens.lockCardShadow,
+              MediaQuery.devicePixelRatioOf(context),
+              showShadow: settled,
+            ),
+        ],
       ),
     );
   }
@@ -453,11 +462,10 @@ class _LockCardState extends State<LockCard>
     ),
   );
 
-  Widget _withCardShadow(
+  Widget _buildCardShadow(
     BorderRadius radius,
     List<BoxShadow> shadows,
-    double pixelRatio,
-    Widget surface, {
+    double pixelRatio, {
     required bool showShadow,
   }) {
     Rect shadowBounds = Rect.zero;
@@ -477,38 +485,31 @@ class _LockCardState extends State<LockCard>
       shadowBounds.right,
       shadowBounds.bottom,
     );
-    return Stack(
-      fit: StackFit.passthrough,
-      clipBehavior: Clip.none,
-      children: <Widget>[
-        surface,
-        // Paint after the glass so the backdrop never samples its own shadow.
-        Positioned(
-          left: -shadowInsets.left,
-          top: -shadowInsets.top,
-          right: -shadowInsets.right,
-          bottom: -shadowInsets.bottom,
-          child: IgnorePointer(
-            child: Opacity(
-              opacity: showShadow ? 1 : 0,
-              child: RepaintBoundary(
-                key: const ValueKey<String>('lock_card_shadow'),
-                child: CustomPaint(
-                  key: _shadowPaintKey,
-                  // Keep the device-pixel bitmap prepared while covered.
-                  painter: OuterShadowPainter(
-                    borderRadius: radius,
-                    shadows: shadows,
-                    surfaceInsets: shadowInsets,
-                    raster: _shadowRaster,
-                    pixelRatio: pixelRatio,
-                  ),
-                ),
+    // Paint after the glass so the backdrop never samples its own shadow.
+    return Positioned(
+      left: -shadowInsets.left,
+      top: -shadowInsets.top,
+      right: -shadowInsets.right,
+      bottom: -shadowInsets.bottom,
+      child: IgnorePointer(
+        child: Opacity(
+          opacity: showShadow ? 1 : 0,
+          child: RepaintBoundary(
+            key: const ValueKey<String>('lock_card_shadow'),
+            child: CustomPaint(
+              key: _shadowPaintKey,
+              // Keep the device-pixel bitmap prepared while covered.
+              painter: OuterShadowPainter(
+                borderRadius: radius,
+                shadows: shadows,
+                surfaceInsets: shadowInsets,
+                raster: _shadowRaster,
+                pixelRatio: pixelRatio,
               ),
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 

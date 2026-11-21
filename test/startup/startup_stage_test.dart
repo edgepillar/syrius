@@ -324,19 +324,28 @@ void main() {
       final Finder auth = find.byType(LockTabChild);
       final LockTabChild coveredAuth = tester.widget<LockTabChild>(auth);
       final State<StatefulWidget> authState = tester.state(auth);
+      final Finder foreground = find.byKey(
+        const ValueKey<String>('lock_card_foreground'),
+      );
+      final RenderObject coveredForeground = tester.renderObject(foreground);
+      final Finder cardShadow = find.byKey(
+        const ValueKey<String>('lock_card_shadow'),
+      );
+      expect(cardShadow, findsNothing);
+      expect(coveredAuth.replay, isNull);
+      await tester.tapAt(const Offset(100, 100));
+      await _until(tester, () => session.film.isDone);
+      await tester.pump();
+      expect(session.motion.value, 0);
+      expect(tester.renderObject(foreground), same(coveredForeground));
       final CustomPaint shadowPaint = tester.widget<CustomPaint>(
         find.descendant(
-          of: find.byKey(const ValueKey<String>('lock_card_shadow')),
+          of: cardShadow,
           matching: find.byType(CustomPaint),
         ),
       );
       final OuterShadowRaster shadowRaster =
           (shadowPaint.painter! as OuterShadowPainter).raster!;
-      expect(coveredAuth.replay, isNull);
-      expect(shadowRaster.debugRetainedImage, isNull);
-      await tester.tapAt(const Offset(100, 100));
-      await _until(tester, () => session.film.isDone);
-      expect(session.motion.value, 0);
       final ui.Image? preparedShadow = shadowRaster.debugRetainedImage;
       expect(preparedShadow, isNotNull);
       expect(tester.widget<LockTabChild>(auth), same(coveredAuth));
