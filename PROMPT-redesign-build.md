@@ -3713,7 +3713,14 @@ before, across and after the observed Page Change settlement. The
 nominal 320 ms groups and the ranked P06 comparison remain available.
 The observed page and disclosure phases have their own bounded notice.
 Existing receipt controls exercise both intervals and annotation size.
-The retained pair can supply these diagnostics without another build.
+The [re-read of the retained pair](https://github.com/edgepillar/syrius/actions/runs/44902761145/job/136841940873)
+verifies observed Page Change settlement 435.021 ms after pointer release
+without another build. Of eight raster starts confirmed before that
+observation, five exceed 16 ms and peak at 206.272 ms. Three of four
+confirmed starts at or after settlement exceed 16 ms and peak at 68.181 ms.
+The single interval crossing settlement has a 9.116 ms raster duration.
+For Licences, all four confirmed starts at or after settlement exceed
+16 ms and peak at 111.158 ms. The original comparisons and gaps are retained.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
