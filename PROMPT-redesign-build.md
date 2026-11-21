@@ -3035,6 +3035,16 @@ remains the largest region in light Home hidden and in both Go To
 captures. Capture content, background phase and layout can all affect
 these counts. V01 remains open for whole-image verification.
 
+The Home Zap header divider follows the authored reference. The
+[Home Zap mockup](mockups/redesign/src/10-home.html) uses `dlg` with an
+`hd` child. The [shared stylesheet](mockups/redesign/src/00-head.html)
+gives `hd` a one-pixel bottom border and overrides only its padding
+inside `dlg`. Both reference PNGs show that edge at row 285 across
+columns 560–719. The [received-message header](lib/rearchitecture/features/zap/view/zap_received_message.dart)
+draws the same bottom edge. The historical review still records how
+prominent the line appeared in its captures. The two complete image
+verdicts remain open.
+
 All eight verified captures were viewed beside their references. The
 expanded rail, the live activity row, the hidden amounts and the Go To
 palette are visible. The fixture has no pending row or held tokens. The
@@ -3165,6 +3175,10 @@ The [first Windows attempt](https://github.com/edgepillar/syrius/actions/runs/44
 stops at the scaled Security tests. Their five-panel count and backup
 geometry assertions now include mounted panels outside the viewport.
 The checks still require all five panels and the original spacing.
+The [Linux run at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44876122204/job/136761085524)
+passes both scaled Security cases, application and strict selected analysis,
+5,131 non-chain tests with one skip, and generated-file verification. The
+full suite includes all 1,530 selected Windows-tour cases across 113 files.
 
 The [clean Windows baseline at `c46ad9c1`](https://github.com/edgepillar/syrius/actions/runs/44873686324/job/136753581063)
 and its [independent log inspection](https://github.com/edgepillar/syrius/actions/runs/44876186589/job/136761284285)
