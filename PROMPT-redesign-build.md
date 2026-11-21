@@ -3000,6 +3000,13 @@ Dark hero counts change by at most 28 pixels, and all eight body counts
 stay the same. The sampled phase gives mixed agreement with the
 references. Visual verdicts remain open.
 
+In the retained `b732a4a4` Home rest capture, column 150 at row 46
+has a red channel of 31 in dark and 203 in light. The reference values
+are 45 and 220. The reference CSS uses green `#4FD166` and blue
+`#006AFF`; the field uses the owner-approved `#00D557` and `#0061EB`.
+The greener sample is consistent with the approved green's lower red
+channel. Color, blur and sampling position can each affect the result.
+
 All eight verified captures were viewed beside their references. The
 expanded rail, the live activity row, the hidden amounts and the Go To
 palette are visible. The fixture has no pending row or held tokens. The
