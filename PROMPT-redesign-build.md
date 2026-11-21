@@ -3376,7 +3376,7 @@ interface checks under V06 open.
 | Clean Windows Debug and Release | The setup is recorded in [docs/environment.md](docs/environment.md). The [Windows baseline](https://github.com/edgepillar/syrius/actions/runs/44884389804/job/136786402343) and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44886459324/job/136792691869) verify all twelve checks at `2a84a910`, including Debug and Release builds with normal exit, locked restoration and matching runtime library hashes. Application, asset, Windows runner, dependency and setup files have identical Git contents at `c49233e9`. The later revision adds the cold-start harness observation. |
 | Analysis and tests | The same Windows baseline reports zero errors and warnings and 5,131 non-chain passes with one skip. [Linux at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633) passes strict selected analysis and generated-file checks. The `c49233e9` harness source passes strict Dart analysis and 48 focused reader cases. |
 | All 47 screens in both themes | The [Settings](https://github.com/edgepillar/syrius/actions/runs/44885343932/job/136789313675) and [Details](https://github.com/edgepillar/syrius/actions/runs/44883459461/job/136783574962) readers verify 24 current-application captures and measured geometry. Whole-image verdicts and the full set of current-source captures remain under V01. |
-| Running motions, shaders and three 16 ms comparisons | [Cold startup at `508106cd`](https://github.com/edgepillar/syrius/actions/runs/44890039967/job/136803666461) passes the reported raster and distinct-frame comparisons and fails build. [Page change and disclosure at `a045c1ae`](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641) fail their 16 ms comparisons. The complete motion and shader review remains under V02. |
+| Running motions, shaders and three 16 ms comparisons | [Cold startup at `87295599`](https://github.com/edgepillar/syrius/actions/runs/44892096933/job/136809956532) passes all three reported frame comparisons and retains frame-number gaps. [Page change and disclosure at `a045c1ae`](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641) fail their 16 ms comparisons. The complete motion and shader review remains under V02. |
 | Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) records the executed seam witnesses. The [Home reader](https://github.com/edgepillar/syrius/actions/runs/44887966468/job/136797306551), [Lock reader](https://github.com/edgepillar/syrius/actions/runs/44887966492/job/136797306090) and [Settings reader](https://github.com/edgepillar/syrius/actions/runs/44888439279/job/136798753064) verify eleven Home observations, two Lock refusals and eight Settings refusals from `564d01ab`. The fresh holder Token control remains open. |
 
 V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
@@ -3462,20 +3462,34 @@ stage have the same sampled RGB value within each theme, while the references
 show separate green and blue tints there. The bottom band accounts for
 16,478 dark and 53,396 light pixels at this threshold. These observations
 locate the gaps in the capture and leave the backdrop paint cause open.
+The [settled Lock comparison](https://github.com/edgepillar/syrius/actions/runs/44891955502/job/136809512886)
+uses the same exterior sample points. In the dark settled capture, the
+left and right values are RGB (25, 41, 31) and (25, 33, 41). The light
+values are (217, 232, 223) and (217, 224, 233). Both themes retain the
+green and blue tints in the settled Lock captures. The two states are
+separate original captures. The EntryField test now checks the production
+opaque-base fade on the first painted 0.4 checkpoint using its prepared
+raster, then checks reuse at settlement.
 
 The startup backdrop registers its caption paint when the settled Lock first
 needs it. The [Linux run at `87295599`](https://github.com/edgepillar/syrius/actions/runs/44890825902/job/136806035671)
 passes the focused entry and Lock checks, strict analysis, 5,131 non-chain
-tests with one skip, and generated-file verification. The paired Windows
-timing at that source is still running.
+tests with one skip, and generated-file verification. The [paired Windows
+reader](https://github.com/edgepillar/syrius/actions/runs/44892096933/job/136809956532)
+verifies 98 redesign frames, 672 P06 frames and five normal actor exits.
+The reported build, raster and distinct-frame comparisons pass. The
+longest redesign build is 13.104 ms. The two sequences retain 12 and 231
+frame-number gaps, respectively. Full motion and timing acceptance remain
+open under V02.
 
 The `73f2b43f` shell keeps the connection strip out of view and focus until
 the original film enters the Lock well. This follows the Launch Settle
 reference, which shows the rising form without the strip. The widget checks
 cover the exact handoff and retention of the strip and authentication state.
-[Linux](https://github.com/edgepillar/syrius/actions/runs/44891417763) and
-the [Windows startup catalog](https://github.com/edgepillar/syrius/actions/runs/44891417720)
-are running at the new source.
+[Linux](https://github.com/edgepillar/syrius/actions/runs/44891417763)
+passes analysis, 5,131 non-chain tests with one skip, and generated-file
+verification. The [Windows startup catalog](https://github.com/edgepillar/syrius/actions/runs/44891417720)
+is still running at that source.
 
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,

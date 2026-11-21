@@ -392,13 +392,24 @@ void main() {
     addTearDown(progress.dispose);
     addTearDown(film.dispose);
     final List<ui.Image> rasters = _watchEntryRasters();
+    const AppTokens tokens = AppTokens.dark;
     await tester.pumpWidget(_host(
-      child: ValueListenableBuilder<double>(
-        valueListenable: progress,
-        child: EntryField(captionProgress: progress, launchFilm: film),
-        builder: (_, double value, Widget? child) => TickerMode(
-          enabled: value > 0,
-          child: Opacity(opacity: value, child: child),
+      child: RepaintBoundary(
+        key: _clipFrame,
+        child: ColoredBox(
+          color: tokens.background,
+          child: ValueListenableBuilder<double>(
+            valueListenable: progress,
+            child: EntryField(
+              captionProgress: progress,
+              launchFilm: film,
+              fadeLightsOnOpaqueBase: true,
+            ),
+            builder: (_, double value, Widget? child) => TickerMode(
+              enabled: value > 0,
+              child: child!,
+            ),
+          ),
         ),
       ),
     ));
@@ -414,9 +425,14 @@ void main() {
     await tester.pump();
     expect(rasters, hasLength(1));
     expect(rasters.single.debugDisposed, isFalse);
+    progress.value = tokens.launchSettleReference.progress;
+    await tester.pump();
+    final Finder surface = find.byKey(_clipFrame);
+    _expectEntryWash(await _pixels(tester, surface: surface), false);
+    expect(rasters, hasLength(1));
     progress.value = 1;
     await tester.pump();
-    final Uint8List pixels = await _pixels(tester);
+    final Uint8List pixels = await _pixels(tester, surface: surface);
     _expectBackground(pixels, false);
     _expectEntryWash(pixels, false);
     expect(rasters, hasLength(1));
