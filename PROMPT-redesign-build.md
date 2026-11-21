@@ -2260,6 +2260,9 @@ and whole-image verdicts stay open under V01.
 The [first Linux run](https://github.com/edgepillar/syrius/actions/runs/44861668971/job/136716212810)
 stops at strict analysis on one test line over 80 characters. `2c095882`
 wraps that line with the same assertion and identical application source.
+The [Linux run at `2c095882`](https://github.com/edgepillar/syrius/actions/runs/44861968635/job/136717136648)
+passes strict analysis, 5,129 non-chain tests with one skip, and
+generated-file verification.
 
 The [Linux validation at `d1eb02a9`](https://github.com/edgepillar/syrius/actions/runs/44851643307/job/136684120771)
 passes strict analysis after the subtitle formatting correction. It
@@ -2939,7 +2942,12 @@ one, the crop calculation changes from 1746 by 1226 to 874 by 614 texels.
 The same logical bounds, blur, drift and foreground paint apply. Existing
 two-theme checks compare the cached paint against its analytic fallback
 at both drift endpoints and constrain the smaller texture footprint.
-Native visual and paired timing results remain open under V01 and V02.
+The [Linux run at `041d2ded`](https://github.com/edgepillar/syrius/actions/runs/44862587977/job/136719072630)
+passes strict selected analysis and its focused background checks. The
+[Windows Home catalog](https://github.com/edgepillar/syrius/actions/runs/44862831882)
+and the [paired Windows timing run](https://github.com/edgepillar/syrius/actions/runs/44862588269)
+are in progress at the same revision. Native visual and paired timing
+results remain open under V01 and V02.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
