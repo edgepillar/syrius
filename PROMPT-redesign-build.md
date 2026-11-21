@@ -3614,6 +3614,22 @@ and 1,302 infos. The source since this baseline changes documentation only.
 The separate entry capture was skipped. V06 still requires the final
 visual, motion and interface review.
 
+### End-state audit at `08ecf715` (2026-11-21)
+
+Application, harness, assets, dependencies and workflows at this revision
+have the same Git contents as `a57d60a7`. The earlier audit and runs remain
+bound to their original sources.
+
+| Original requirement | Current evidence |
+| --- | --- |
+| Clean Windows Debug and Release | The setup is listed in [docs/environment.md](docs/environment.md). The [independent baseline read](https://github.com/edgepillar/syrius/actions/runs/44917790191/job/136887022206) verifies both builds, normal application exit and matching runtime libraries. |
+| Analysis and tests | The same Windows read verifies zero errors and warnings, 1,302 infos, 5,131 non-chain passes and one skip. [Linux on the identical application source](https://github.com/edgepillar/syrius/actions/runs/44914392285/job/136876775136) also passes strict selected analysis and generated-file verification. |
+| All 47 screens in both themes | The [Node and Addresses reader](https://github.com/edgepillar/syrius/actions/runs/44916400450/job/136882836192) verifies four captures on the current application source and measures the corrected panels and cards. The [full older comparison](docs/review/source-28f9c121-independent-visual-review.md) has 14 matches and 80 mismatches at its own source. The 94 current whole-screen verdicts remain open. |
+| Running motions, shaders and three 16 ms comparisons | The [latest paired interaction reader](https://github.com/edgepillar/syrius/actions/runs/44911945960/job/136869425823) records page-change and disclosure raster overruns. The [current Windows launch run](https://github.com/edgepillar/syrius/actions/runs/44918014703) pairs cold startup timing with two captures from its Release build. Its independent result and the full running review remain open. |
+| Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) records native refusal evidence for all 15 values. The current registry, shared gate, shortcuts, Go To and holder-token action files match the retained refusal source `564d01ab`. The current Lock arrow is absent during the handoff and returns through the same wallet-picker gate when the stage settles. The settled recovery link keeps its gate and refusing action. The [current Windows baseline](https://github.com/edgepillar/syrius/actions/runs/44915483963/job/136880069256) passes the non-chain cases including the settled Lock refusals. This is source correspondence and widget coverage for the updated Lock presentation. |
+
+V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
+
 The original Home run also retains eight catalog images in both themes. The
 independent reader verifies the image digests and compares the four Home states
 with the same tracked references. Relative to the
@@ -4373,7 +4389,7 @@ and generated-file verification. Native observation remains open under V02.
 | V03 | done | 2026-11-12T03:23Z | Source648 673fe4a19468, Source670 2b2c4abdadae, Source676 5d555665a643 and Source686 15fec4c9120f provide executed native refusals for all fifteen current seam values and pointer/keyboard refusal for the only seamed palette target. No direct missing-feature shortcut or other seamed palette target is registered. All 1,213 current runtime entries match Source686; the sole older token observer difference is covered by its holder trial. Source670's producer control list remains distinct from its legacy reader's context/closure proof. The [Source695 audit](docs/review/source695-seam-coverage.md) closes the original requirement without relabelling the later incomplete eleven-control Home batch or its failures. No new native run or visual match is claimed. |
 | V04 | done | 2026-10-31T23:34Z | All four independently qualified Source265 minimum-window/Arabic originals were actually viewed in both themes. The owned review closes SUCCESS with actual controller exit zero; required original native closure stays source-bound. Minimum controls fit and RTL layout mirrors. English fallback/missing Arabic copy is retained as X414; exact saved locale preference and Arabic glyph quality remain separate unqualified observations |
 | V05 | done | 2026-11-18T13:45Z | fdb88d89 commits the fresh independent review of all 94 exact 28f9c121 pairs and X821 through X875. The visual verdicts guide further comparisons under V01. [Independent review](docs/review/source-28f9c121-independent-visual-review.md). |
-| V06 | review | 2026-11-21 | The [five-item audit](#end-state-audit-at-c49233e9-2026-11-21) retains the earlier source-bound Windows results. The [Windows baseline at `a57d60a7`](https://github.com/edgepillar/syrius/actions/runs/44915483963) and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44917790191/job/136887022206) verify Debug, Release, analysis and the non-chain suite for the updated application. Application, harness, assets and locked dependencies are byte-identical to the preceding `fa12934e`; the later revision records results only. The [Linux run at `fa12934e`](https://github.com/edgepillar/syrius/actions/runs/44914392285/job/136876775136) passed 5,131 tests with one skip. Visual and motion acceptance and the final interface check remain open. |
+| V06 | review | 2026-11-21 | The [current five-item audit](#end-state-audit-at-08ecf715-2026-11-21) records the independently verified Windows baseline, current seam correspondence, and the outstanding screen and motion evidence. |
 | X01 | done | 2026-10-21T23:26Z | e13abb387577 restores loading-list sweep ink in lib/rearchitecture/utils/widgets/motion/skeleton.dart; all 19 existing Skeleton tests pass unchanged |
 | X02 | done | 2026-10-21T23:57Z | e13abb387577 keeps the status-strip dot visible at narrow widths and fixes asynchronous visibility tests |
 | X03 | done | 2026-10-21T23:57Z | e13abb387577 parses the bridge test's HTTP head before binary frames; compression refusal assertions retained |
