@@ -96,6 +96,38 @@
       "reviewer": "Codex",
       "verdict": "mismatch"
     },
+    "15-staking-empty-dark": {
+      "actual_sha256": "6066e6132608c1a567ba916955f0579b3d3a894e883a7c5088c5ae95dd2e7406",
+      "expected_sha256": "77147dc9cf2099d9cf4fe7afd730b93374ce5340d870c3c20bbdc4fac7cb7e82",
+      "note": "The centered mark and caption align horizontally. The summary, divider and empty mark sit one pixel below the reference.",
+      "reviewed_at": "2026-11-21T20:00:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "15-staking-empty-light": {
+      "actual_sha256": "9bac11ba9036650d6f965314a0588050f09ab7944d497444409015761b1e4106",
+      "expected_sha256": "3e3c2e9a394f96d2ccdef6b3286bdc51693757171112fb233d42bd8daf449ae2",
+      "note": "The centered mark and caption align horizontally. The summary, divider and empty mark sit one pixel below the reference.",
+      "reviewed_at": "2026-11-21T20:00:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "17-pillar-mine-dark": {
+      "actual_sha256": "cd6f3934c0b25e76d39b30a46e55c2fabbf4933ac5f4139224f0843b18a609d2",
+      "expected_sha256": "be1cd32ee83398cf27eaea46613b293293b8f4b3134f2e823c8b3c989a82d4df",
+      "note": "The main artwork and ledger align. The registration-cost row and the search and sort controls differ, as do the fixture status and values.",
+      "reviewed_at": "2026-11-21T20:00:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "17-pillar-mine-light": {
+      "actual_sha256": "2e0a089569fd2dfba47fc4e19b7a92aefe1c1a133df72171c8c008c2a53e4b22",
+      "expected_sha256": "2ae8b41b7cb8cf108b27ba0b88d13f57ea432cdc1496942942f066af0517f6b5",
+      "note": "The main artwork and ledger align. The registration-cost row and the search and sort controls differ, as do the fixture status and values.",
+      "reviewed_at": "2026-11-21T20:00:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
     "22-plasma-fuse-dark": {
       "actual_sha256": "db337822d05204e827fd98aa537c678cf3eb4f4d626998e51445741e1d40ad1b",
       "expected_sha256": "bce0133d1e1586247a874af23a72c340f73261174a296f4d690b7c6c3c334360",

@@ -2513,6 +2513,11 @@ At `a6823bb9`, four raster starts are confirmed after the observed settled
 frame. All four exceed 16 ms and peak at 104.672 ms. Further measurement
 needs to account for the paint after the reveal settles.
 
+The four [Earn verdicts at `e5ee3ead`](docs/review/screen-verdicts.json)
+bind the original Windows and reference PNG hashes. All four retain visible
+differences at that source. The Pillar Mine observations include the extra
+registration-cost row and table controls.
+
 Both Staking Empty captures from X1248 show the summary labels and amounts
 one pixel below the references. The Stakes card begins at row 119 and its
 divider is at row 162. The references place them at rows 118 and 161.
