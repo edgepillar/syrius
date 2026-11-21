@@ -3504,8 +3504,13 @@ reference, which shows the rising form without the strip. The widget checks
 cover the exact handoff and retention of the strip and authentication state.
 [Linux](https://github.com/edgepillar/syrius/actions/runs/44891417763)
 passes analysis, 5,131 non-chain tests with one skip, and generated-file
-verification. The [Windows startup catalog](https://github.com/edgepillar/syrius/actions/runs/44891417720)
-is still running at that source.
+verification. Its [independent Windows catalog comparison](https://github.com/edgepillar/syrius/actions/runs/44892916141/job/136812402425)
+verifies twelve captures against the same twelve recorded reference digests.
+At the 16-level RGB threshold, the Launch Settle difference count decreases
+by 29,478 pixels in dark and 26,637 in light. The stage and form crop counts
+agree with the previous run. The two middle exterior samples still agree
+with each other within each theme. The separate shell route entrance
+change awaits its own Windows comparison.
 
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
