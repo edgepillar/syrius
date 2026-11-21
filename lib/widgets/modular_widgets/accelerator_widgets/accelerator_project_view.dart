@@ -17,6 +17,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_vote_policy.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart' show ShellSymbol;
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -246,7 +247,7 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
           : () {
               if (_can(source, epoch)) widget.onOpenUrl!(url);
             },
-      icon: const Icon(Icons.open_in_new, size: 12),
+      icon: ShellSymbol('ext', size: tokens.inlineGlyphSize),
       label: Text(label),
     );
     final Widget back = TextButton.icon(
@@ -265,7 +266,11 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
       onPressed: () {
         if (_onPage) widget.onBack();
       },
-      icon: const Icon(Icons.chevron_left, size: 16),
+      icon: ShellSymbol(
+        'chevl',
+        size: tokens.smallActionGlyphSize,
+        directional: true,
+      ),
       label: Text(context.l10n.acceleratorProjects),
     );
     final TextStyle titleStyle = tokens.bodyText.copyWith(

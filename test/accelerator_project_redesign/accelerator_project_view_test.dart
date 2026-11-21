@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_view.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart' show ShellSymbol;
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_frame.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -389,6 +390,25 @@ void main() {
         );
         expect(find.text('Article'), findsOneWidget);
         expect(find.text('Explorer'), findsOneWidget);
+        final Finder back = find.byKey(const Key('project_details_back'));
+        expect(
+          tester.getSize(
+            find.descendant(of: back, matching: find.byType(ShellSymbol)),
+          ),
+          const Size.square(14),
+        );
+        for (final String label in <String>['Article', 'Explorer']) {
+          final Finder link = find.ancestor(
+            of: find.text(label),
+            matching: find.byWidgetPredicate((Widget w) => w is TextButton),
+          );
+          expect(
+            tester.getSize(
+              find.descendant(of: link, matching: find.byType(ShellSymbol)),
+            ),
+            const Size.square(12),
+          );
+        }
         expect(find.text('Your vote'), findsOneWidget);
         expect(tester.takeException(), isNull);
         presenter.invalidate();
