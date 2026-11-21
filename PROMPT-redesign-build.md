@@ -3014,6 +3014,16 @@ and Zap. The wallet now reserves that border in both outlined pills
 and includes their widths in the layout's wrap decision. The existing
 hover and focus cases check the inset. The independent reader now
 reports both themes' Send bounds for the next native comparison.
+The [Linux check at `b462e737`](https://github.com/edgepillar/syrius/actions/runs/44871844237)
+passes both inset cases, 5,131 tests with one skip, strict analysis
+and generated-file verification. The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/44871844236/job/136747894480)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44873478622/job/136752955460)
+verify all eight original images and normal required process closure.
+The Send fill begins at column 930 in both themes, matching both
+references. It ends at column 1022 instead of 1021 and occupies rows
+93–130 instead of 94–131. The Tokens heading and Go To caption
+measurements retain the earlier corrections. Whole-image verdicts
+remain open.
 
 All eight verified captures were viewed beside their references. The
 expanded rail, the live activity row, the hidden amounts and the Go To
