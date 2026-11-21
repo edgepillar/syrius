@@ -324,9 +324,20 @@ class _WelcomeSurfaceState extends State<WelcomeSurface>
     crossAxisAlignment: CrossAxisAlignment.stretch,
     mainAxisSize: MainAxisSize.min,
     children: <Widget>[
-      Text(context.l10n.welcomeTitle, style: tokens.welcomeHeadingText),
-      SizedBox(height: tokens.welcomeTextGap),
-      Text(context.l10n.welcomeSubtitle, style: tokens.welcomeSubtitleText),
+      // Align the introduction's ink with the reference while keeping the
+      // centered column and the action rows in their original positions.
+      Transform.translate(
+        offset: const Offset(0, -1),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(context.l10n.welcomeTitle, style: tokens.welcomeHeadingText),
+            SizedBox(height: tokens.welcomeTextGap),
+            Text(context.l10n.welcomeSubtitle, style: tokens.welcomeSubtitleText),
+          ],
+        ),
+      ),
       SizedBox(height: tokens.welcomeTextGap + tokens.welcomeIntroBottomGap),
       _WelcomeActionAlignment(
         child: Column(

@@ -127,6 +127,10 @@ void main() {
         expect(column.left - globe.right, 36);
         expect(column.center.dy, globe.center.dy);
         expect(find.byKey(const Key('welcome_wide_layout')), findsOneWidget);
+        expect(
+          tester.getTopLeft(find.text('Welcome')),
+          column.topLeft - const Offset(0, 1),
+        );
 
         for (final String name in _actions) {
           expect(tester.getSize(_action(name)), const Size(400, 70));
