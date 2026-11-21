@@ -434,7 +434,7 @@ def seed_failure_projection(value, phase):
     if 'originals' in value:
         checkpoint.need(action == 'publish' and step == 'reply' and entered
             and value['kind'] == 'refused'
-            and value['reason'] == 'earlier-original-unresolved')
+            and value['reason'] in ('earlier-original-unresolved', 'original-outcome-unknown'))
         result['originals'] = seed_original_projection(value['originals'])
     return result
 

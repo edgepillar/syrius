@@ -1504,6 +1504,10 @@ void main() {
       expect(reopen.restoredChildFailure('seed_deposit', failure)!['seed'],
           failure.diagnostic);
       expect(reopen.restoredChildFailure('seed_stake', failure), isNull);
+      trace.refusedReplyDetail('original-outcome-unknown', <String, Object>{
+        'seedOriginals': facts,
+      });
+      expect(trace.failure(cli.Fail('private')).diagnostic['originals'], facts);
       for (final (cli.SeedOperationAction, cli.SeedOperationStep) boundary in
           <(cli.SeedOperationAction, cli.SeedOperationStep)>[
         (cli.SeedOperationAction.publish, cli.SeedOperationStep.owner),

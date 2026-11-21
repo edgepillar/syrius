@@ -1927,7 +1927,15 @@ void main() {
         guard.publish('stake', () async {
           source.operations.add(operation);
         }),
-        throwsA(isA<SeedRefused>()),
+        throwsA(isA<SeedRefused>()
+            .having((SeedRefused error) => error.code, 'code',
+                'original-outcome-unknown')
+            .having((SeedRefused error) => seedRefusalDetail(
+                error, action: 'publish'), 'public flags', <String, Object>{
+              'seedOriginals': <String, Object>{
+                'pending': false, 'failed': false, 'release_failed': true,
+              },
+            })),
       );
       expect(guard.acceptedHash, _hash(9));
       expect(journal.acceptedHashes['stake'], _hash(9));
@@ -2021,7 +2029,14 @@ void main() {
           taps++;
           source.operations.add(operation);
         }),
-        throwsA(isA<SeedRefused>()),
+        throwsA(isA<SeedRefused>().having(
+          (SeedRefused error) => seedRefusalDetail(error, action: 'publish'),
+          'public flags', <String, Object>{
+            'seedOriginals': <String, Object>{
+              'pending': true, 'failed': false, 'release_failed': false,
+            },
+          },
+        )),
       );
       expect(source.delays, 61);
       await expectLater(

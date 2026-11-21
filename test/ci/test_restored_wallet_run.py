@@ -1396,6 +1396,10 @@ class SeedFailureProjectionTests(unittest.TestCase):
             child = self.child(result, phase='seed_deposit')
             self.assertEqual(restored.child_failure_projection(child)['seed'],
                              result)
+            token = result | dict(recipe='token', command_index=21,
+                                  reason='original-outcome-unknown')
+            self.assertEqual(restored.child_failure_projection(
+                self.child(token, phase='seed_token'))['seed'], token)
 
     def test_frontier_samples_refuse_private_coerced_inconsistent_or_misplaced_data(self):
         original = self.seed(action='publish', step='reply', command_index=8,

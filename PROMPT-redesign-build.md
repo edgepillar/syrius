@@ -4003,10 +4003,18 @@ supplied an incomplete source SHA and stopped before opening either
 archive. The corrected dispatch uses the exact producer SHA and retains
 the same original Windows execution.
 
-The [next combined Windows run at `0a300788`](https://github.com/edgepillar/syrius/actions/runs/44956401107)
-uses the current application and the existing P06 comparison. It shares the
-current Release build between the cold timing window and both handoff
-captures. The output remains pending.
+The [combined Windows run at `0a300788`](https://github.com/edgepillar/syrius/actions/runs/44956401107/job/137005368582)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44958184221/job/137010863661)
+verify the cold timing window and both handoff images. The timing collector
+records five normal actor exits and 88 current frames against 434 on P06.
+The 16 ms raster and distinct-frame comparisons pass for the reported
+samples. The build comparison fails. The current peak build takes
+19.744 ms against 15.350 ms on P06 and starts 19.766 ms before the original
+launch stage is laid out. The windows retain 22 and 525 frame-number gaps.
+Both handoff captures use progress 0.4 and retain stage pixels in columns
+250 through 1029 and rows 149 through 477. At the 16-level RGB threshold,
+the whole images differ from their references at 5,253 dark and 6,213
+light pixels. V01 and V02 remain open.
 
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
@@ -4966,13 +4974,18 @@ call and returns `original-outcome-unknown`. The retained reply cannot
 identify which outcome condition fired. The run publishes no prepared
 catalog. The Token feature, original seed publication guard and restored
 entry match the earlier successful `e94d5b07` sources.
+Future observations can retain the three existing negative flags from the
+original operation when the guard sees it pending, failed or unreleased.
+The guard records these flags on the held original attempt. An unobserved
+operation or an all-clear snapshot carries no flags. The failed Token run
+keeps its original evidence.
 
 | Original requirement | Evidence at this revision |
 | --- | --- |
 | Clean Windows Debug and Release | The [environment guide](docs/environment.md) lists the setup. The [clean Windows run at `18d42024`](https://github.com/edgepillar/syrius/actions/runs/44952696600/job/136993905785) and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44955001234/job/137001041306) verify both builds and DLL correspondence on the current application sources. |
 | Analysis and tests | [Full Linux at `e3047adc`](https://github.com/edgepillar/syrius/actions/runs/44954224819/job/136998668536) passes application and strict selected analysis, 5,132 non-chain tests with one skip, and tracked generation. The controller suite records 1,266 tests with 17 skips and no failures. |
 | All 47 screens in both themes | The [older 94-pair review](docs/review/source-28f9c121-independent-visual-review.md) retains 14 strict matches. The [verified Send recapture](https://github.com/edgepillar/syrius/actions/runs/44955024228/job/137001113490) retains four reviewed differences. The [Settings reader](https://github.com/edgepillar/syrius/actions/runs/44955451706/job/137002409313) verifies 14 original images. The current-source gallery and whole-image acceptance remain open. |
-| Running motion, shaders and P06 timing | The [independent paired read at `9bce41b6`](https://github.com/edgepillar/syrius/actions/runs/44953288126/job/136995755269) verifies page change and disclosure. Both 16 ms comparisons fail. The cold-launch timing and running visual observations remain open. |
+| Running motion, shaders and P06 timing | The [interactive reader at `9bce41b6`](https://github.com/edgepillar/syrius/actions/runs/44953288126/job/136995755269) verifies the failed page-change and disclosure comparisons. The [cold reader at `0a300788`](https://github.com/edgepillar/syrius/actions/runs/44958184221/job/137010863661) verifies the build comparison failure. Running visual observations remain open. |
 | Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) records the original executed refusals. The registry and seam tests match the audited `564d01ab` paths. |
 
 V01, V02 and V06 remain open.

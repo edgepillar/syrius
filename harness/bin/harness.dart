@@ -1071,7 +1071,7 @@ class SeedOperationTrace {
     _originals = _knownRecipe &&
             _action == SeedOperationAction.publish &&
             _step == SeedOperationStep.reply && _publicationCallEntered &&
-            _replyCode == 'earlier-original-unresolved'
+            seedOriginalObservationCodes.contains(_replyCode)
         ? seedOriginalProjection(originals) : null;
     _stakeEffect = _recipe == 'stake' && _confirmation != null &&
             _confirmation!['last'] == 'effect_pending'
@@ -1156,7 +1156,7 @@ class SeedOperationTrace {
           reason == 'advancing-momentum-required' &&
           _frontier != null) 'frontier': _frontier!,
       if (kind == SeedOperationFailureKind.refused &&
-          reason == 'earlier-original-unresolved' &&
+          seedOriginalObservationCodes.contains(reason) &&
           _originals != null) 'originals': _originals!,
     });
   }

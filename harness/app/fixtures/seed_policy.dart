@@ -85,6 +85,11 @@ final class SeedOriginalObservation {
       });
 }
 
+/// Original publication refusals that may carry the observed negative flags.
+const Set<String> seedOriginalObservationCodes = <String>{
+  'earlier-original-unresolved', 'original-outcome-unknown',
+};
+
 /// Three exact negative flags from one original snapshot, without authority.
 Map<String, Object>? seedOriginalProjection(Object? value) {
   const Set<String> fields = <String>{'pending', 'failed', 'release_failed'};
@@ -406,7 +411,7 @@ Map<String, Object>? seedRefusalDetail(
 }) {
   if (action != 'publish') return null;
   final Map<String, Object>? originals =
-      error.code == 'earlier-original-unresolved'
+      seedOriginalObservationCodes.contains(error.code)
       ? seedOriginalProjection(error.originals?.public) : null;
   if (originals != null) {
     return Map<String, Object>.unmodifiable(<String, Object>{
@@ -779,15 +784,21 @@ final class SeedGuard {
           journal.accepted(recipe, accepted);
         }
         if (value.failed || value.releaseFailed) {
-          throw const SeedRefused('original-outcome-unknown');
+          throw SeedRefused('original-outcome-unknown',
+            originals: SeedOriginalObservation.capture(<SeedOriginal>[value]),
+          );
         }
         if (value.settled && _hash != null) break;
       }
       requireCurrent();
       await _delay(const Duration(milliseconds: 500));
     }
-    if (_original == null || !_original!.settled || _hash == null) {
-      throw const SeedRefused('original-outcome-unknown');
+    final SeedOriginal? original = _original;
+    if (original == null || !original.settled || _hash == null) {
+      throw SeedRefused('original-outcome-unknown',
+        originals: original == null ? null :
+          SeedOriginalObservation.capture(<SeedOriginal>[original]),
+      );
     }
     final String hash = _hash!;
     int absent = 0;
