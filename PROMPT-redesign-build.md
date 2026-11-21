@@ -2955,9 +2955,20 @@ The [Linux run at `041d2ded`](https://github.com/edgepillar/syrius/actions/runs/
 passes strict selected analysis, the focused background checks, 5,130
 non-chain tests with one skip, and generated-file verification. The
 [Windows Home catalog](https://github.com/edgepillar/syrius/actions/runs/44862831882)
-and the [paired Windows timing run](https://github.com/edgepillar/syrius/actions/runs/44862588269)
-are in progress at the same revision. Native visual and paired timing
-results remain open under V01 and V02.
+is in progress at the same revision. The [paired timing producer](https://github.com/edgepillar/syrius/actions/runs/44862588269)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44863894172/job/136723168084)
+verify both original windows and two normal entry, two normal wallet
+and five normal node exits. Page settlement occurs 483.387 ms after
+release. The peak page raster takes 137.213 ms against 86.527 ms at the
+same P06 rank and begins 167.946 to 189.463 ms after release. The longest
+page frame takes 191.768 ms, including 125.531 ms waiting for raster. The
+peak disclosure raster takes 58.025 ms against 20.150 ms and begins after
+observed settlement. Both windows fail the 16 ms comparison and all
+four frame streams retain gaps. The [first reader](https://github.com/edgepillar/syrius/actions/runs/44863822260/job/136722948955)
+refuses the artifact set with its default backend selection. The
+corrected reader uses the native `lab-fix` selection and the original
+archives. The measurement leaves the independent effect of the texture
+scale unresolved. V01 and V02 remain open.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
