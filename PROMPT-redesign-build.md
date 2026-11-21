@@ -4003,6 +4003,11 @@ supplied an incomplete source SHA and stopped before opening either
 archive. The corrected dispatch uses the exact producer SHA and retains
 the same original Windows execution.
 
+The [next combined Windows run at `0a300788`](https://github.com/edgepillar/syrius/actions/runs/44956401107)
+uses the current application and the existing P06 comparison. It shares the
+current Release build between the cold timing window and both handoff
+captures. The output remains pending.
+
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
 and five normal node exits. The longest page-change totals are 280.034 ms
