@@ -1162,9 +1162,14 @@ def main(parent=None):
                     catalog['sentinel_table_edges'] = _nodes_table_edges(zipped, '18-sentinels')
             if schema == producer.details.FAMILY_SCHEMAS['wallet-ready']:
                 with zipfile.ZipFile(io.BytesIO(catalog_archive)) as zipped:
+                    captures = {theme: base64.b64encode(
+                        zipped.read(f'47-wallet-ready-{theme}.png')).decode('ascii')
+                        for theme in producer.THEMES}
                     catalog['primary_gradient'] = {theme: windows.primary_gradient_error(
-                        base64.b64encode(zipped.read(f'47-wallet-ready-{theme}.png')).decode('ascii'),
-                        (403, 464, 877, 510)) for theme in producer.THEMES}
+                        encoded, (403, 464, 877, 510)) for theme, encoded in captures.items()}
+                    catalog['completed_step_bounds'] = {
+                        theme: windows.completed_step_bounds(encoded, 'wallet-ready')
+                        for theme, encoded in captures.items()}
             del catalog_archive
         elif navigation_reference is not None:
             PHASE = 'navigation_catalog_artifact'

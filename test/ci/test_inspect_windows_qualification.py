@@ -106,6 +106,30 @@ class WindowsQualificationTests(unittest.TestCase):
             ('welcome-dark.png', 'welcome-light.png'), expected))
         self.assertEqual(measured['visual_matches'], 0)
 
+    def test_completed_step_bounds_bind_dark_ink_to_the_green_circle(self):
+        left, top, right, bottom = inspect.COMPLETED_STEP_CROPS['seed-quiz'][0]
+        green = b'\x00\xd5\x57'
+        ink = b'\x04\x14\x0a'
+        background = b'\xf1\xf4\xf1'
+        rows = [
+            b''.join(
+                ink if (x, y) in ((369, 322), (370, 321))
+                else green if (x + .5 - 370)**2 + (y + .5 - 322)**2 <= 121
+                else background
+                for x in range(left, right)
+            )
+            for y in range(top, bottom)
+        ]
+        with mock.patch.object(inspect, '_png_crop', return_value=(rows, 3)) as crop:
+            self.assertEqual(inspect.completed_step_bounds('original', 'seed-quiz'), [
+                dict(circle=[359, 311, 381, 333], ink_pixels=2,
+                     ink_from_center=[-1, -1, 1, 1]),
+            ])
+        crop.assert_called_once_with('original', (left, right), (top, bottom))
+        uniform = [green * (right - left)] * (bottom - top)
+        with mock.patch.object(inspect, '_png_crop', return_value=(uniform, 3)):
+            self.assertEqual(inspect.completed_step_bounds('original', 'seed-quiz'), [None])
+
     def test_original_baseline_receipts_preserve_counts_infos_and_scope(self):
         report = baseline()
         value = inspect.baseline_projection(report, HEAD, TREE, RUN)

@@ -396,6 +396,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                 except startup.Failure:
                     raise archive.Refused('INSPECTION_REFUSED') from None
         film_bounds, stage_bounds, picker_divider_rows, wrong_action_gradient = [], {}, {}, {}
+        quiz_step_bounds = {}
         for index, (row, name) in enumerate(zip(captures, () if motion else files)):
             theme, phase = divmod(index, per_theme)
             actor = 0 if quiz else 2 * theme + 1
@@ -423,6 +424,10 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
 
                     wrong_action_gradient[row['theme']] = primary_gradient_error(
                         encoded, (459, 525, 821, 571))
+            elif quiz:
+                from .inspect_windows_qualification import completed_step_bounds
+
+                quiz_step_bounds[row['theme']] = completed_step_bounds(encoded, 'seed-quiz')
             elif settle:
                 stage_bounds[row['theme']] = settle_stage_bounds(encoded)
             else:
@@ -471,6 +476,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         summary['normal_actor_exits'] = sum(launch.attempt_passed(row) for row in attempts)
     elif quiz:
         summary['single_process'] = len(attempts) == 1 and launch.attempt_passed(attempts[0])
+        summary['completed_step_bounds'] = quiz_step_bounds
         summary['states'] = [{key: row[key] for key in sorted(frame_fields)} for row in captures]
         if attempts and attempts[0].get('refusal') is not None:
             summary['refusal'] = attempts[0]['refusal']

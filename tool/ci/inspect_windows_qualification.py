@@ -301,6 +301,54 @@ def _opaque(rows, channels):
     return channels == 3 or all(alpha == 255 for row in rows for alpha in row[3::4])
 
 
+COMPLETED_STEP_CROPS = {
+    'seed-quiz': ((337, 285, 397, 351),),
+    'wallet-ready': ((382, 284, 449, 351), (492, 284, 574, 351),
+                     (627, 284, 710, 351), (771, 284, 857, 351)),
+}
+
+
+def completed_step_bounds(encoded, screen):
+    """Measure dark checkmark ink against the original green circle."""
+    crops = COMPLETED_STEP_CROPS[screen]
+    origin_x, origin_y, _, bottom = crops[0]
+    rows, channels = _png_crop(encoded, (origin_x, crops[-1][2]), (origin_y, bottom))
+    if not _opaque(rows, channels):
+        return [None] * len(crops)
+
+    def color(x, y):
+        offset = (x - origin_x) * channels
+        return rows[y - origin_y][offset:offset + 3]
+
+    results = []
+    for left, top, right, bottom in crops:
+        green = []
+        for y in range(top, bottom):
+            for x in range(left, right):
+                red, value, blue = color(x, y)
+                if value >= 165 and value - max(red, blue) >= 65:
+                    green.append((x, y))
+        if len(green) < 285:
+            results.append(None)
+            continue
+        xs, ys = zip(*green)
+        x0, x1, y0, y1 = min(xs), max(xs) + 1, min(ys), max(ys) + 1
+        if not (left < x0 < x1 < right and top < y0 < y1 < bottom
+                and 20 <= x1 - x0 <= 23 and 20 <= y1 - y0 <= 23):
+            results.append(None)
+            continue
+        cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
+        ink = [(x, y) for y in range(-6, 6) for x in range(-6, 6)
+               if color(cx + x, cy + y)[1] <= 150]
+        if not ink:
+            results.append(None)
+            continue
+        xs, ys = zip(*ink)
+        results.append(dict(circle=[x0, y0, x1, y1], ink_pixels=len(ink),
+                            ink_from_center=[min(xs), min(ys), max(xs) + 1, max(ys) + 1]))
+    return results
+
+
 def primary_gradient_error(encoded, bounds):
     """Compare a resting primary action's fill with the approved palette."""
     left, top, right, bottom = bounds
