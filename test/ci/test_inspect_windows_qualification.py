@@ -271,6 +271,14 @@ class WindowsQualificationTests(unittest.TestCase):
                 action_chevrons=0, action_right_edge=0, footer=0, outside_crops=0)))
         self.assertIsNone(inspect.entry_pixel_comparison(actual, pixels(), 'welcome'))
 
+        handoff = pixels(520, 744, opaque=True, welcome_rows=(240,), welcome_x=300)
+        with mock.patch.object(Path, 'open', return_value=io.BytesIO(pixels(opaque=True))):
+            comparison = inspect.startup_pixel_comparison('40-launch-settle-dark.png', handoff)
+        self.assertEqual(comparison['pixels_at_least_16_by_region'], dict(
+            caption=0, stage=8, lock_form=108, bottom=108, outside_crops=0))
+        self.assertEqual(comparison['sample_rgb']['film'], dict(
+            point=[300, 240], actual=[60, 60, 60], reference=[20, 20, 20]))
+
     def test_welcome_action_alignment_finds_the_shift_to_the_reference(self):
         actual = pixels(opaque=True, welcome_rows=(340, 341), welcome_x=763)
         reference = pixels(opaque=True, welcome_rows=(338, 339), welcome_x=764)

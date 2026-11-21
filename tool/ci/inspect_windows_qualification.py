@@ -562,7 +562,8 @@ def entry_pixel_comparison(data, reference, screen):
                             align_welcome_actions=screen == 'welcome')
 
 
-def pixel_comparison(data, reference, regions, *, align_welcome_actions=False):
+def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
+                     sample_points=None):
     """Compare original opaque client images in the supplied fixed regions."""
     def decode(png):
         encoded = base64.b64encode(png).decode('ascii')
@@ -598,6 +599,13 @@ def pixel_comparison(data, reference, regions, *, align_welcome_actions=False):
                 mean_rgb_error_milli=round(1000 * total / (1280 * 780 * 3)))
     if align_welcome_actions:
         result['action_alignment'] = welcome_action_alignment(actual, a_channels, expected, e_channels)
+    if sample_points is not None:
+        result['sample_rgb'] = {
+            name: dict(point=[x, y],
+                       actual=list(actual[y][x * a_channels:x * a_channels + 3]),
+                       reference=list(expected[y][x * e_channels:x * e_channels + 3]))
+            for name, (x, y) in sample_points.items()
+        }
     return result
 
 
@@ -607,9 +615,20 @@ def startup_pixel_comparison(name, data):
     with (references / name).open('rb') as stream:
         reference = stream.read(entry.MAX_PNG + 1)
     archive.need(0 < len(reference) <= entry.MAX_PNG)
-    regions = dict(caption=(0, 0, 1280, 32), body=(0, 32, 1280, 780))
-    result = pixel_comparison(data, reference, regions)
+    caption = (0, 0, 1280, 32)
+    regions = dict(caption=caption, body=(0, 32, 1280, 780))
+    points = None
+    if name in startup.launch.SETTLE_FILES:
+        # Fixed crops use the authored 0.4 checkpoint in the 1280 by 780 client.
+        regions = dict(caption=caption, stage=(250, 149, 1030, 479),
+                       lock_form=(430, 479, 850, 668), bottom=(0, 700, 1280, 780))
+        points = dict(upper_left=(80, 90), upper_right=(1200, 90),
+                      left_of_stage=(190, 400), right_of_stage=(1090, 400),
+                      film=(300, 240), form=(450, 520),
+                      bottom_left=(60, 744), bottom_right=(1220, 744))
+    result = pixel_comparison(data, reference, regions, sample_points=points)
     archive.need(result is not None)
+    result['region_bounds'] = regions
     return result
 
 
