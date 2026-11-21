@@ -2794,6 +2794,12 @@ class HarnessAgent {
       Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'] ==
           harnessReadonlyHomeZapPreview;
 
+  bool get _readonlyHomeCatalog =>
+      _readonlyNative != null &&
+      isReadonlyHomeCatalogFamily(
+        Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'],
+      );
+
   bool _recipeKey(String? key) =>
       key != null &&
       (<String>{
@@ -5042,7 +5048,7 @@ class HarnessAgent {
         }.contains(key);
     final bool zapPreview = _readonlyHomeZapPreview &&
         key == 'zap_received_card';
-    final bool homeContact = catalog == 'home' && key == homeGotoContactKey;
+    final bool homeContact = _readonlyHomeCatalog && key == homeGotoContactKey;
     if (!pillarDone && !sentinelRegion && !readyRegion && !warningRegion &&
         !zapPreview && !homeContact &&
         !const <String>{
@@ -5785,8 +5791,7 @@ class HarnessAgent {
         final ReadonlyNativeCommands? original = _readonlyNative;
         final String? catalogFamily =
             Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'];
-        if (original != null &&
-            (catalogFamily == 'home' || catalogFamily == 'home-catalog') &&
+        if (_readonlyHomeCatalog &&
             assertion is Map<Object?, Object?> &&
             const <String>{'home_hero', 'home_tokens_body', 'activity_scope'}
                 .contains(assertion['key'])) {
@@ -6047,9 +6052,7 @@ class HarnessAgent {
       final Map<String, dynamic> assertion =
           Map<String, dynamic>.from(c['expect'] as Map<Object?, Object?>);
       _assert(assertion);
-      if (_readonlyNative != null &&
-          Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'] == 'home' &&
-          assertion['key'] == homeGotoContactKey) {
+      if (_readonlyHomeCatalog && assertion['key'] == homeGotoContactKey) {
         await _waitForGoToCaret();
         _assert(assertion);
       }

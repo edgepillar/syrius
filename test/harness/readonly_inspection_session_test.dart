@@ -132,6 +132,10 @@ void main() {
 
   test('catalog choice preserves the original Details default', () {
     expect(readonlyInspectionCatalogFamily(<String, String>{}), 'details');
+    expect(isReadonlyHomeCatalogFamily('home'), isTrue);
+    expect(isReadonlyHomeCatalogFamily('home-catalog'), isTrue);
+    expect(isReadonlyHomeCatalogFamily('home-bell'), isFalse);
+    expect(isReadonlyHomeCatalogFamily(null), isFalse);
     for (final String family in <String>[
       'home', 'home-bell', 'home-catalog', 'settings', 'navigation', 'details',
       'token-draft',

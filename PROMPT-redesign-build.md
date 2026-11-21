@@ -4316,7 +4316,11 @@ without claiming evidence for the omitted tour or viewport scopes. The
 [first run](https://github.com/edgepillar/syrius/actions/runs/44942394026/job/136962247719)
 stopped at strict Dart analysis on a line-length finding. The
 [corrected run at `6569d890`](https://github.com/edgepillar/syrius/actions/runs/44942827087)
-started with that line split.
+passed analysis and reached the dark Go To script. It stopped
+at the original contact-result assertion because that lookup admitted
+only the full Home tour. Both Home selections now share a single gate
+for the contact lookup, focused caret and reference artwork capture.
+The earlier run retains its failure and no catalog export.
 
 The existing Windows Home catalog now samples the original toggle width
 on both opening and closing. The observer uses the original pointer and
