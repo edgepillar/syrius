@@ -3523,6 +3523,15 @@ the 16-level threshold fall from 43,736 to 38,026 in dark and from
 44,391 to 41,572 in light. All four strict visual verdicts remain open
 under V01.
 
+The Addresses table now shows the original numbered address beside a custom
+name, using the reference's quiet 12 px text. The number follows the wallet's
+existing member order and localized default label. The existing table cases
+verify a renamed row and a default row in dark LTR and scaled light RTL.
+[Linux at `e3d12442`](https://github.com/edgepillar/syrius/actions/runs/44920743407/job/136896014143)
+passes application and strict selected analysis, generated-file verification,
+and the non-chain suite with 5,131 passes and one skip. A Windows capture
+of a named member is still required for V01.
+
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
 with one skip and generated-file verification. That full run includes
@@ -3977,6 +3986,12 @@ windows retain frame-number gaps. The page's 184.288 ms raster peak
 starts within the observed transition. The disclosure's 81.050 ms peak
 crosses its settlement observation, and four later confirmed raster
 starts exceed 16 ms. The samples leave the raster cause open under V02.
+
+The [paired Windows run at `dad44a5e`](https://github.com/edgepillar/syrius/actions/runs/44920385227/job/136894934464)
+uses the application already qualified for the combined launch run. It
+measures Home to Settings and the Licences disclosure against P06. This
+revision predates the Addresses label change. The original result and its
+independent read are pending.
 
 The rail width spring now lays out the original destination buttons without
 rebuilding them on its ticks. The toggle still rotates on the same spring,
