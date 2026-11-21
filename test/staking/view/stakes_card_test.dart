@@ -147,13 +147,24 @@ void main() {
           expect(find.text(heading), findsOneWidget);
         }
         expect(find.text('3 d ago'), findsOneWidget);
-        expect(find.text('Unlocked'), findsOneWidget);
+        final Finder unlockedStatus = find.text('Unlocked');
+        expect(unlockedStatus, findsOneWidget);
         final Finder locked = find.byKey(
           ValueKey<String>('staking_cancel_locked_${_hash(1)}'),
         );
         expect(tester.widget<OutlinedButton>(locked).onPressed, isNull);
         expect(find.text('Cancel and withdraw'), findsOneWidget);
         final AppTokens tokens = AppTokens.of(tester.element(_row(1)));
+        final TextStyle? statusStyle =
+            tester.widget<Text>(unlockedStatus).style;
+        expect(statusStyle?.fontFamily, tokens.bodyText.fontFamily);
+        expect(statusStyle?.fontSize, 12);
+        expect(
+          tester.widget<OutlinedButton>(locked).style?.textStyle?.resolve(
+            const <WidgetState>{},
+          )?.fontWeight,
+          FontWeight.w500,
+        );
         expectMockupSymbol(
           tester,
           within: _row(1),

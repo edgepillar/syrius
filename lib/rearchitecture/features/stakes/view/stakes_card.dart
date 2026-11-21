@@ -366,7 +366,7 @@ class _UnlockChip extends StatelessWidget {
               Flexible(
                 child: Text(
                   text,
-                  style: tokens.dataText.copyWith(fontSize: 12, color: ink),
+                  style: tokens.bodyText.copyWith(fontSize: 12, color: ink),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -397,7 +397,7 @@ class _Action extends StatelessWidget {
         EdgeInsetsDirectional.symmetric(horizontal: tokens.cardGap),
       ),
       textStyle: WidgetStatePropertyAll<TextStyle>(
-        tokens.bodyText.copyWith(fontSize: 12),
+        tokens.bodyText.copyWith(fontSize: 12, fontWeight: FontWeight.w500),
       ),
     );
     if (_secondsLeft(stakeEntry) > 0) {
