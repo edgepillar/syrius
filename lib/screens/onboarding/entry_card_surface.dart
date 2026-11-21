@@ -3,6 +3,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buil
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/entry_field.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart';
 
 /// The measured entry card, independent of file, seed and wallet owners.
 class EntryCardSurface extends StatelessWidget {
@@ -173,10 +174,10 @@ class EntryStepPosition extends StatelessWidget {
               ),
               child: Center(
                 child: index < step
-                    ? Icon(
-                        Icons.check,
-                        color: tokens.onZnn,
-                        size: tokens.welcomeChevronSize,
+                    ? ShellSymbol(
+                        'check',
+                        color: tokens.primaryButtonForeground,
+                        size: 12,
                       )
                     : Text(
                         '${index + 1}',

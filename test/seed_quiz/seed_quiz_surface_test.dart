@@ -5,10 +5,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/entry_action_boundary.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/entry_card_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/new_wallet/seed_quiz.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/new_wallet/seed_quiz_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart';
 
 import '../import_redesign/support.dart';
 
@@ -108,6 +110,12 @@ void main() {
         for (final String word in quiz.questions.first.choices) {
           expect(_choice(quiz, 0, word), findsOneWidget);
         }
+        final Finder completedStep = find.descendant(
+          of: find.byType(EntryStepPosition),
+          matching: find.byType(ShellSymbol),
+        );
+        expect(completedStep, findsOneWidget);
+        expect(tester.getSize(completedStep), const Size.square(12));
         final Finder secondPending =
             find.byKey(const Key('seed_quiz_pending_1'));
         final Finder thirdPending =
