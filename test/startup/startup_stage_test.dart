@@ -429,6 +429,35 @@ void main() {
           .fadeLightsOnOpaqueBase, isTrue);
       expect(find.ancestor(of: find.byType(EntryField),
         matching: find.byType(Opacity)), findsNothing);
+      final RenderRepaintBoundary entryPaint = tester.renderObject(
+        find.descendant(
+          of: find.byType(EntryField),
+          matching: find.byType(RepaintBoundary),
+        ),
+      );
+      final List<List<int>>? lights = await tester.runAsync(() async {
+        final ui.Image image = await entryPaint.toImage();
+        try {
+          final ByteData bytes = (await image.toByteData(
+            format: ui.ImageByteFormat.rawStraightRgba,
+          ))!;
+          List<int> pixel(int x, int y) {
+            final int offset = (y * image.width + x) * 4;
+            return List<int>.generate(4, (int i) => bytes.getUint8(offset + i));
+          }
+
+          return <List<int>>[pixel(230, 190), pixel(945, 485)];
+        } finally {
+          image.dispose();
+        }
+      });
+      final List<List<int>> sampledLights = lights!;
+      final List<int> green = sampledLights[0];
+      final List<int> blue = sampledLights[1];
+      expect(green[3], greaterThan(8));
+      expect(green[1], greaterThan(green[2]));
+      expect(blue[3], greaterThan(8));
+      expect(blue[2], greaterThan(blue[1]));
       await tester.pump(const Duration(milliseconds: 200) - referenceTime);
       expect(_stageRect(tester).width, lessThan(full.width));
       expect(
