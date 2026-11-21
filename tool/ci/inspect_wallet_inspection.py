@@ -59,6 +59,7 @@ VERSIONED_INPUTS = frozenset((
     'lib/widgets/modular_widgets/help_widgets/about_card.dart',
     'lib/widgets/modular_widgets/help_widgets/originals_card.dart',
     'lib/widgets/modular_widgets/help_widgets/originals_tiles.dart',
+    'lib/widgets/modular_widgets/settings_widgets/node_settings_view.dart',
     'lib/widgets/shell/rail.dart',
     'lib/widgets/shell/strip/status_dot.dart',
     'lib/widgets/modular_widgets/settings_widgets/wallet_settings_view.dart',
@@ -1317,9 +1318,9 @@ def main(parent=None):
     text, head = parent.get('WALLET_INSPECT_RUN', ''), parent.get('WALLET_INSPECT_HEAD', '')
     need(type(text) is str and re.fullmatch('[1-9][0-9]{0,19}', text) and digest(head, 40))
     run_id = int(text)
-    # Allow 15 metadata and artifact requests plus ten exact producer blobs,
+    # Allow 15 metadata and artifact requests plus 25 exact producer blobs,
     # including the workflow. The metadata reads after transport still apply.
-    client = archive.Client(parent.get('GH_TOKEN'), max_calls=25)
+    client = archive.Client(parent.get('GH_TOKEN'), max_calls=40)
     PHASE = 'producer_metadata'
     run = client.json('/actions/runs/' + text)
     need(type(run.get('id')) is int and run['id'] == run_id and run.get('head_sha') == head

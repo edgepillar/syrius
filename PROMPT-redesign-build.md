@@ -4224,6 +4224,19 @@ the PNGs already verified against the original manifest. Existing
 prepared archives can be indexed without another Windows build or a new
 copy of their PNGs. All 118 targeted Python tests pass locally.
 
+The historical [prepared capture index](docs/review/source-e94d5b07-prepared-captures.json)
+includes 12 original images from the reverified
+[Accelerator](https://github.com/edgepillar/syrius/actions/runs/44949039949/job/136982689528),
+[Staking and Tokens](https://github.com/edgepillar/syrius/actions/runs/44949042650/job/136982697576)
+and [Swap](https://github.com/edgepillar/syrius/actions/runs/44949044879/job/136982705464)
+archives at `e94d5b07`. The source-specific index keeps those prepared
+states available alongside the newer diagnostic captures.
+The [first Send re-read](https://github.com/edgepillar/syrius/actions/runs/44949047276/job/136982713277)
+stopped at the producer source check. The reader now includes the exact
+producer Node Settings view in its versioned inputs. Its request budget
+allows for 25 exact producer blobs and 15 metadata and artifact requests.
+The source and archive digest checks and the time limit still apply.
+
 | Screen | Visible differences in both themes |
 | --- | --- |
 | Receive QR | The card and request controls align. The generated code has a token mark and the amount hint is shorter. |

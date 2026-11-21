@@ -333,7 +333,7 @@ class ReaderTests(unittest.TestCase):
                 self.calls += 1
                 return Response()
         url = reader.archive.API + '/git/commits/' + 'a' * 40
-        for maximum in (12, 14, 16, 24, 25):
+        for maximum in (12, 14, 16, 24, 25, 40):
             opener = Opener()
             with mock.patch.object(reader.archive.urllib.request, 'build_opener',
                     return_value=opener):
@@ -344,7 +344,7 @@ class ReaderTests(unittest.TestCase):
                 with self.assertRaises(reader.archive.Refused):
                     client.read(url)
                 self.assertEqual(opener.calls, maximum)
-        for maximum in (True, False, 0, -1, 13, 15, 14.0, '14', None, 17, 16.0, '16', 26):
+        for maximum in (True, False, 0, -1, 13, 15, 14.0, '14', None, 17, 16.0, '16', 26, 41):
             with self.assertRaises(reader.archive.Refused):
                 reader.archive.Client('synthetic-control-token', max_calls=maximum)
 
@@ -1283,7 +1283,7 @@ class ReaderTests(unittest.TestCase):
             def __init__(self, token, *, max_calls=12):
                 self.token = token
                 self.maximum = max_calls
-                if max_calls != 25:
+                if max_calls != 40:
                     raise AssertionError('Unexpected full-reader request budget')
 
             def json(self, path):
