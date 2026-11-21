@@ -2206,8 +2206,7 @@ the Import mark covers 14 pixels in `[375, 233, 379, 241]` and the Seed Quiz
 mark covers 14 pixels in `[375, 272, 379, 280]`. Right and bottom coordinates
 are exclusive. In both themes at `28f9c121`, the marks had the same left
 and vertical bounds, extended one column farther right, and covered 19
-pixels. The [fresh Windows captures](https://github.com/edgepillar/syrius/actions/runs/44859359458)
-are pending independent measurement. The [Linux run at the capture revision](https://github.com/edgepillar/syrius/actions/runs/44859084296/job/136708048595)
+pixels. The [Linux run at the capture revision](https://github.com/edgepillar/syrius/actions/runs/44859084296/job/136708048595)
 passes application analysis, strict selected analysis, 5,129 non-chain
 tests with one skip, and generated-file verification.
 
@@ -2216,6 +2215,16 @@ refused before opening either retained archive because its request count
 was outside the shared client's accepted budgets. The reader now uses the
 existing 14-request budget for its 13 requests. The mocked transport test
 keeps the actual client constructor so it exercises this contract.
+
+Both jobs in the [Windows producer at `e4dbf7ea`](https://github.com/edgepillar/syrius/actions/runs/44859359458)
+pass. The [corrected combined reader](https://github.com/edgepillar/syrius/actions/runs/44860936469/job/136713919377)
+verifies all six original PNGs and the completed capture outcomes. Both
+dark Back marks match the reference bounds and 14-pixel count. The light
+marks cover 16 pixels and still extend one column farther right. Against
+the pinned references, Import now has 9,149 dark and 10,255 light pixels
+with an RGB difference of at least 16 levels in any channel. That is six
+fewer dark and eight fewer light pixels, all in the heading and steps
+crop. The Welcome counts are unchanged. V01 remains open.
 
 The [Linux validation at `d1eb02a9`](https://github.com/edgepillar/syrius/actions/runs/44851643307/job/136684120771)
 passes strict analysis after the subtitle formatting correction. It
