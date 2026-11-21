@@ -2181,9 +2181,16 @@ generated-file verification. In the retained `28f9c121` Seed Quiz and
 Wallet Ready images, the earlier checkmark ink spans 10 by 8 pixels at
 the fixed threshold. All corresponding reference marks span 9 by 6
 pixels. These are ink bounds inside the observed green circles. The
-new [Seed Quiz](https://github.com/edgepillar/syrius/actions/runs/44857021856)
-and [Wallet Ready](https://github.com/edgepillar/syrius/actions/runs/44857034409)
-captures still need their own independent read and visual verdicts.
+new [Seed Quiz captures](https://github.com/edgepillar/syrius/actions/runs/44857021856)
+and their [independent reader](https://github.com/edgepillar/syrius/actions/runs/44858259047/job/136705427681)
+verify both themes and a normal process exit with complete output.
+The green circle occupies columns 359 through 380 and rows 311 through 332,
+matching both references. The new checkmark ink occupies 8 by 6 pixels at
+the fixed threshold. Its leading edge and both vertical edges agree with
+the reference. The reference has one more ink column on the trailing edge.
+This measurement leaves whole-image review open. The
+[Wallet Ready captures](https://github.com/edgepillar/syrius/actions/runs/44857034409)
+still need their own independent read and visual verdicts.
 
 The [Linux validation at `d1eb02a9`](https://github.com/edgepillar/syrius/actions/runs/44851643307/job/136684120771)
 passes strict analysis after the subtitle formatting correction. It
