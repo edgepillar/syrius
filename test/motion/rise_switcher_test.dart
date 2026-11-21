@@ -124,7 +124,13 @@ void main() {
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(_host(0));
+      final Element switcher = tester.element(find.byType(RiseSwitcher));
+      const Key original = ValueKey<int>(0);
+      const Key destination = ValueKey<int>(1);
+      expect(RiseSwitcher.isSettled(switcher, original), isTrue);
+      expect(RiseSwitcher.isSettled(switcher, destination), isFalse);
       await tester.pumpWidget(_host(1));
+      expect(RiseSwitcher.isSettled(switcher, destination), isFalse);
       // Native fade-through includes its scale; this is the added translation.
       expect(_rise(tester, _page(1)), 6);
       expect(tester.getTopLeft(_page(0)).dy, 0);
@@ -141,6 +147,8 @@ void main() {
 
       await tester.pumpAndSettle();
       expect(tester.getTopLeft(_page(1)), Offset.zero);
+      expect(RiseSwitcher.isSettled(switcher, destination), isTrue);
+      expect(RiseSwitcher.isSettled(switcher, original), isFalse);
     });
 
     testWidgets('the old page is gone before the new one has arrived', (

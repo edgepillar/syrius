@@ -60,14 +60,14 @@ def _licences(send, *, gone=False):
         _require(type(path) is list and 'Licences' in path)
 
 
-def _end(send, validate_window):
+def _end(send, validate_window, phase_field):
     reply = _original(send, cmd='stalls', frameWindow='end')
     _require(all(field in reply for field in TIMING_FIELDS))
     window = {field: reply[field] for field in TIMING_FIELDS}
     if PEAK_BUILD_WAIT_FIELD in reply:
         window[PEAK_BUILD_WAIT_FIELD] = reply[PEAK_BUILD_WAIT_FIELD]
     validate_window(window)
-    return window, reply.get('interactiveDisclosurePhasesUs')
+    return window, reply.get(phase_field)
 
 
 def valid_disclosure_phases(value, release, window_us):
@@ -78,13 +78,17 @@ def valid_disclosure_phases(value, release, window_us):
                     for offset in value.values()))
 
 
-def _measure(send, validate_window, sleep, selector):
+def valid_page_settlement(value, release, window_us):
+    return type(release) is int and type(value) is int and release <= value < window_us
+
+
+def _measure(send, validate_window, sleep, selector, phase_field):
     reply = _original(send, cmd='stalls', frameWindow='begin')
     _require(reply.get('frameWindow') == 'collecting')
     tap = _original(send, cmd='tap', settleMs=0, **selector)
     _target(tap, **selector)
     sleep(0.6)
-    window, phases = _end(send, validate_window)
+    window, phases = _end(send, validate_window, phase_field)
     _require(MIN_WINDOW_US <= window['windowUs'] <= MAX_WINDOW_US)
     field = 'frameWindowTapReleaseUs'
     release = tap.get(field)
@@ -95,6 +99,7 @@ def _measure(send, validate_window, sleep, selector):
 
 def observe_interactive(send, validate_window, *, size, windows=None,
                         tap_releases=None, disclosure_phases=None,
+                        page_phases=None,
                         sleep=time.sleep):
     """Observe Home to Settings and the closed About licences disclosure.
 
@@ -108,18 +113,22 @@ def observe_interactive(send, validate_window, *, size, windows=None,
     _require(theme.get('mode') == theme.get('brightness') == 'dark'
              and theme.get('savedMode') == 'ThemeMode.dark')
     address = _wallet(send, 'dashboard', size)
-    page, page_release, _ = _measure(send, validate_window, sleep, {'tab': 'settings'})
+    page, page_release, page_settlement = _measure(
+        send, validate_window, sleep, {'tab': 'settings'}, 'interactivePageSettledUs')
     _wait(send, 'settings_node')
     _wallet(send, 'settings', size, address)
     windows['page_change'] = page
     if tap_releases is not None and page_release is not None:
         tap_releases['page_change'] = page_release
+    if page_phases is not None and valid_page_settlement(page_settlement, page_release, page['windowUs']):
+        page_phases['settled'] = page_settlement
 
     _target(_original(send, cmd='tap', key='settings_about'), key='settings_about')
     _wait(send, 'about_licences_toggle')
     _licences(send, gone=True)
     disclosure, disclosure_release, phases = _measure(
-        send, validate_window, sleep, {'key': 'about_licences_toggle'})
+        send, validate_window, sleep, {'key': 'about_licences_toggle'},
+        'interactiveDisclosurePhasesUs')
     # The redesigned list can start below the visible scroll area. Reveal it
     # after closing the timing window so the scroll is outside the sample.
     shown = _original(send, cmd='scroll', key='about_licences_toggle', dy=300)

@@ -866,7 +866,11 @@ class _MainAppContainerState extends State<MainAppContainer>
         // ShellFrame already isolates the moving page from the rail and strip.
         return kTabs[index] == Tabs.lock
             ? page
-            : RiseSwitcher(isolateTransitionPaint: false, child: page);
+            : RiseSwitcher(
+                key: const ValueKey<String>('shell_page_switcher'),
+                isolateTransitionPaint: false,
+                child: page,
+              );
       },
     );
   }

@@ -377,6 +377,15 @@ class InteractiveFramePairTests(unittest.TestCase):
                 worst=dict(rank=1, baseline_us=17000, current_us=24000, excess_us=7000,
                            start_us=[324100, 326000], start_from_release_us=[319100, 321000])),
         })
+        measured['page_settled_us'] = 300_000
+        settled = self.project(grouped)
+        self.assertEqual(settled['page_settled_us'], 300_000)
+        self.assertEqual(settled['verified_raster_rank_overruns']['page_change']['by_phase'],
+                         dict(before_release=0, before_settlement=1, after_settlement=1, crossing=1))
+        for invalid in (False, 4999, 1_000_000):
+            measured['page_settled_us'] = invalid
+            with self.subTest(page_settled_us=invalid), self.assertRaises(archive.Refused):
+                self.project(grouped)
         page_groups = projected['verified_window_diagnostics']['current']['page_change']
         self.assertEqual(page_groups['nominal_motion_us'], 320_000)
         self.assertEqual(page_groups['raster_start_groups'], dict(
@@ -704,6 +713,8 @@ class InteractiveFramePairTests(unittest.TestCase):
                         reply['interactiveDisclosurePhasesUs'] = dict(
                             settled=59_000 if fault == 'phase_offset' else 304_000,
                             list_laid_out=450_000)
+                    else:
+                        reply['interactivePageSettledUs'] = 350_000
                     return reply
                 if kind == 'tap':
                     if command.get('tab') == 'settings':
@@ -740,7 +751,7 @@ class InteractiveFramePairTests(unittest.TestCase):
                 return dict(ok=True, target=dict(path=['Other'] if fault == 'content'
                                                        else ['AboutCard', 'Licences', 'Text']))
 
-            windows, tap_releases, disclosure_phases = {}, {}, {}
+            windows, tap_releases, disclosure_phases, page_phases = {}, {}, {}, {}
 
             def validate(value):
                 pair.shared.launch.frame_timing_window(value)
@@ -751,13 +762,15 @@ class InteractiveFramePairTests(unittest.TestCase):
                     result = pair.actions.observe_interactive(send, validate,
                         size=[1280, 780], windows=windows,
                         tap_releases=tap_releases,
-                        disclosure_phases=disclosure_phases, sleep=pauses.append)
+                        disclosure_phases=disclosure_phases, page_phases=page_phases,
+                        sleep=pauses.append)
                     self.assertIs(result, windows)
                     self.assertEqual(set(windows), set(pair.WINDOWS))
                     self.assertEqual(len(calls), 16)
                     self.assertEqual(pauses, [0.6, 0.6])
                     self.assertEqual(len(validated), 2)
                     self.assertEqual(tap_releases, {'page_change': 50_000, 'disclosure': 60_000})
+                    self.assertEqual(page_phases, dict(settled=350_000))
                     self.assertEqual(disclosure_phases,
                         {} if fault else dict(settled=304_000, list_laid_out=450_000))
                 else:
@@ -1127,11 +1140,12 @@ class InteractiveFramePairTests(unittest.TestCase):
                     output_complete=True, output_bytes=len(output), seconds=1, output=output)
 
             def measure(request, validate, *, size, windows, tap_releases,
-                        disclosure_phases):
+                        disclosure_phases, page_phases):
                 request(dict(cmd='wait', key='about_page'))
                 windows.update(dict.fromkeys(pair.WINDOWS, window))
                 tap_releases.update(page_change=50_000, disclosure=60_000)
                 disclosure_phases.update(settled=304_000)
+                page_phases.update(settled=350_000)
 
             with mock.patch.object(profile.wallet_tour, 'public_fixture', return_value='fixture words'):
                 arguments = (send, run_entry,
@@ -1152,6 +1166,7 @@ class InteractiveFramePairTests(unittest.TestCase):
             self.assertEqual(report['action_progress'], dict(index=1, command='wait', returned=not failed))
             self.assertEqual(report.get('tap_release_us'),
                              None if failed else {'page_change': 50_000, 'disclosure': 60_000})
+            self.assertEqual(report.get('page_settled_us'), None if failed else 350_000)
             encoded = cold.canonical(report)
             self.assertNotIn(b'synthetic private failure', encoded)
             self.assertNotIn(b'fixture words', encoded)

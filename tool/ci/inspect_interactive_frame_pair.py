@@ -73,7 +73,7 @@ def sample_receipts(value, *, allow_tap_release=False):
         required = {'phase', 'lab_revalidations', 'entry', 'windows', 'success'}
         optional = {'action_progress', 'preparation_failure'}
         if allow_tap_release:
-            optional.update(('tap_release_us', 'disclosure_phases_us'))
+            optional.update(('tap_release_us', 'disclosure_phases_us', 'page_settled_us'))
         archive.need(type(observation) is dict
             and required <= set(observation) <= required | optional
             and type(observation['phase']) is str and observation['phase'] in OBSERVATION_PHASES
@@ -131,6 +131,11 @@ def sample_receipts(value, *, allow_tap_release=False):
                 observation['disclosure_phases_us'],
                 observation.get('tap_release_us', {}).get('disclosure'),
                 windows['disclosure']['windowUs']))
+        if 'page_settled_us' in observation:
+            archive.need('page_change' in windows and pair.actions.valid_page_settlement(
+                observation['page_settled_us'],
+                observation.get('tap_release_us', {}).get('page_change'),
+                windows['page_change']['windowUs']))
         observed = (observation['phase'] == 'complete' and observation['lab_revalidations'] == 3
                     and entry_closed and set(windows) == set(pair.WINDOWS))
         archive.need(observation['success'] is observed)
@@ -283,12 +288,16 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         observation = samples['current']['observation']
         releases = observation.get('tap_release_us', {})
         settlement = observation.get('disclosure_phases_us', {}).get('settled')
+        page_settlement = observation.get('page_settled_us')
         for name in pair.WINDOWS:
             if 'raster' not in comparisons[name]['exceeded']:
                 continue
             boundaries = None
             if name == 'disclosure' and settlement is not None:
                 boundaries = ([settlement], ('before_settlement', 'after_settlement', 'crossing'))
+            elif name == 'page_change' and page_settlement is not None:
+                boundaries = ([releases[name], page_settlement],
+                              ('before_release', 'before_settlement', 'after_settlement', 'crossing'))
             elif name == 'page_change' and name in releases:
                 release = releases[name]
                 boundaries = ([release, release + MOTION_US[name]],
@@ -351,6 +360,8 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
             name: value['no_frame_number_gaps'] for name,value in comparisons.items()},
         verified_comparisons=comparisons,
         verified_raster_rank_overruns=raster_overruns,
+        **({'page_settled_us': samples['current']['observation']['page_settled_us']}
+           if current_passed and 'page_settled_us' in samples['current']['observation'] else {}),
         verified_window_diagnostics={
             label: {name: _window_diagnostics(
                         window, samples[label]['observation'].get('tap_release_us', {}).get(name),

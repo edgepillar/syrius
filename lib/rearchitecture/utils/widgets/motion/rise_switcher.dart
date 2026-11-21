@@ -57,6 +57,14 @@ class RiseSwitcher extends StatefulWidget {
   /// isolates the whole page can share its boundary with the stack.
   final bool isolateTransitionPaint;
 
+  /// Whether the switcher at [context] has finished both fades for [childKey].
+  static bool isSettled(BuildContext context, Key childKey) {
+    if (context case StatefulElement(state: final _RiseSwitcherState state)) {
+      return state._current.child.key == childKey && state._settled;
+    }
+    return false;
+  }
+
   @override
   State<RiseSwitcher> createState() => _RiseSwitcherState();
 }
@@ -144,6 +152,8 @@ class _RiseSwitcherState extends State<RiseSwitcher>
     with TickerProviderStateMixin {
   final List<_SwitchEntry> _entries = <_SwitchEntry>[];
   late _SwitchEntry _current;
+
+  bool get _settled => _entries.length == 1 && _current.entrance.isCompleted;
 
   @override
   void initState() {

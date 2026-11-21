@@ -4623,6 +4623,8 @@ class HarnessAgent {
                 if (elapsed >= 0) frameWindowTapReleaseUs = elapsed;
                 if (c['key'] == 'about_licences_toggle' && n != null) {
                   _observeDisclosurePhases(n.element, started);
+                } else if (c['tab'] == 'settings') {
+                  _observePageSettlement(started);
                 }
               },
       );
@@ -6052,6 +6054,7 @@ class HarnessAgent {
       _frameTimingMode == 'launch' || _frameTimingMode == _pairedLaunchTiming;
   HarnessFrameWindow? _frameWindow;
   int? _interactiveStartUs;
+  int? _pageSettledUs;
   final List<int> _startupPhaseUs = <int>[];
   int? _startupAuthInShellUs;
   final Map<String, int> _disclosurePhasesUs = <String, int>{};
@@ -6072,6 +6075,34 @@ class HarnessAgent {
 
     root.debugVisitOnstageChildren(visit);
     return match;
+  }
+
+  void _observePageSettlement(int startUs) {
+    final WidgetsBinding binding = WidgetsBinding.instance;
+    Element? switcher;
+    void observe(Duration _) {
+      if (_interactiveStartUs != startUs || EntryCaptureRegistry.instance.held) {
+        return;
+      }
+      final Element? root = binding.rootElement;
+      if (root == null || kCurrentPage != Tabs.settings) return;
+      switcher ??= _findTimingChild(
+        root,
+        (Widget widget) =>
+            widget is RiseSwitcher &&
+            widget.key == const ValueKey<String>('shell_page_switcher'),
+      );
+      final Element? owner = switcher;
+      if (owner == null || !owner.mounted) return;
+      final Key settingsKey = ValueKey<int>(kTabs.indexOf(Tabs.settings));
+      if (RiseSwitcher.isSettled(owner, settingsKey)) {
+        _pageSettledUs = dev.Timeline.now - startUs;
+      } else {
+        binding.addPostFrameCallback(observe);
+      }
+    }
+
+    binding.addPostFrameCallback(observe);
   }
 
   void _observeDisclosurePhases(Element toggle, int startUs) {
@@ -6191,6 +6222,7 @@ class HarnessAgent {
         final int started = dev.Timeline.now;
         _frameWindow = HarnessFrameWindow(started, includePeakBuildWait: true);
         _interactiveStartUs = started;
+        _pageSettledUs = null;
         _disclosurePhasesUs.clear();
         return <String, Object?>{'frameWindow': 'collecting'};
       case 'end':
@@ -6232,6 +6264,10 @@ class HarnessAgent {
             result['interactiveDisclosurePhasesUs'] =
                 Map<String, int>.of(_disclosurePhasesUs);
           }
+          final int? pageSettled = _pageSettledUs;
+          if (pageSettled != null) {
+            result['interactivePageSettledUs'] = pageSettled;
+          }
           return result;
         } on TimeoutException {
           throw refused('deliveryTimeout');
@@ -6239,6 +6275,7 @@ class HarnessAgent {
           throw refused(error.reason.name);
         } finally {
           _frameWindow = null;
+          _pageSettledUs = null;
           _disclosurePhasesUs.clear();
         }
       default:
