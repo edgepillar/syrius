@@ -2773,11 +2773,13 @@ runs at `ea5ad360` each report one line-length diagnostic in the new page
 settlement observer. Windows stops at analysis before the wallet build and
 produces no measurement window. The formatting correction at `0b101c42`
 keeps both admission checks and the same timestamp. Its own
-[Linux validation](https://github.com/edgepillar/syrius/actions/runs/44853679751)
-passes strict selected analysis. The
-[Windows run](https://github.com/edgepillar/syrius/actions/runs/44853738458)
-passes gated wallet analysis. Both runs are bound to the corrected source.
-The complete Linux result and Windows timing measurements are pending.
+[Linux validation](https://github.com/edgepillar/syrius/actions/runs/44853679751/job/136690713396)
+passes the P06 overlay check, strict selected analysis, 5,129 non-chain
+tests with one skip, and generated-file verification. The
+[Windows run](https://github.com/edgepillar/syrius/actions/runs/44853738458/job/136690899424)
+passes gated wallet analysis, the selected harness tests and the current
+Release harness build. Both runs are bound to the corrected source.
+The paired Windows timing measurements remain pending.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
