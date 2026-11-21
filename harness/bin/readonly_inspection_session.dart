@@ -137,7 +137,7 @@ class ReadonlyInspectionSession {
   /// Reads one completed rail width from the original positive tree reply.
   /// Text is folded into buttons; it is not a separate label-key node.
   Future<bool> railExpanded() async {
-    final int width = await _readRailWidth(const Duration(seconds: 30));
+    final int width = (await _readRail(const Duration(seconds: 30))).first;
     if (width != _collapsedRail && width != _expandedRail) {
       _refuse(ReadonlyInspectionReason.reply,
         captureReply: ScreenCaptureReplyCode.railGeometryInvalid);
@@ -145,10 +145,10 @@ class ReadonlyInspectionSession {
     return width == _expandedRail;
   }
 
-  Future<int> _readRailWidth(Duration timeout) async {
+  Future<List<int>> _readRail(Duration timeout, {bool motion = false}) async {
     if (!_walletBound) _refuse(ReadonlyInspectionReason.binding);
     final Map<String, dynamic> reply = await send(
-      <String, Object?>{'cmd': 'tree'}, timeout,
+      <String, Object?>{'cmd': 'tree', if (motion) 'railMotion': true}, timeout,
     );
     final Object? nodes = reply['nodes'];
     if (reply['ok'] != true || nodes is! List || nodes.length > 16384) {
@@ -185,7 +185,17 @@ class ReadonlyInspectionSession {
       _refuse(ReadonlyInspectionReason.reply,
         captureReply: ScreenCaptureReplyCode.railGeometryInvalid);
     }
-    return rect[2] as int;
+    final int width = rect[2] as int;
+    if (!motion) return <int>[width];
+    final Object? presentation = reply['railMotion'];
+    if (presentation is! List || presentation.length != 2 ||
+        presentation[0] is! int || presentation[1] is! int ||
+        (presentation[0] as int) < 0 || (presentation[0] as int) > 3142 ||
+        (presentation[1] as int) < 0 || (presentation[1] as int) > 1000) {
+      _refuse(ReadonlyInspectionReason.reply,
+        captureReply: ScreenCaptureReplyCode.railGeometryInvalid);
+    }
+    return <int>[width, presentation[0] as int, presentation[1] as int];
   }
 
   /// Prepares only the already opened Home in this bound native session.
@@ -235,15 +245,21 @@ class ReadonlyInspectionSession {
     const Duration window = Duration(seconds: 2);
     final Duration interval =
         Duration(milliseconds: samples == null ? 120 : 40);
-    final int sampleLimit = samples == null ? 6 : 9;
+    final int sampleLimit = samples == null ? 6 : 12;
+    final int expectedAngle = target == _expandedRail ? 3142 : 0;
+    final int expectedOpacity = target == _expandedRail ? 1000 : 0;
     for (int sample = 0; sample < sampleLimit; sample++) {
       final Duration remaining = window - elapsed.elapsed;
       if (remaining <= Duration.zero) break;
-      final int width = await _readRailWidth(remaining);
+      final List<int> values = await _readRail(
+        remaining, motion: samples != null,
+      );
       final int offset = elapsed.elapsedMicroseconds;
       if (offset > window.inMicroseconds) break;
-      samples?.add(<int>[offset, width]);
-      if (width == target) {
+      samples?.add(<int>[offset, ...values]);
+      if (values.first == target &&
+          (samples == null ||
+              values[1] == expectedAngle && values.last == expectedOpacity)) {
         return;
       }
       if (sample < sampleLimit - 1 && elapsed.elapsed + interval < window) {

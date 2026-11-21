@@ -10,6 +10,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as dev;
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:animations/animations.dart' show FadeThroughTransition;
@@ -4175,11 +4176,57 @@ class HarnessAgent {
     final Size size = _viewSize();
     return <String, Object?>{
       'size': <int>[size.width.round(), size.height.round()],
+      if (_readonlyNative != null && c['railMotion'] == true)
+        'railMotion': _railMotion(nodes),
       'nodes': <Map<String, Object?>>[
         for (final _Node n in nodes)
           if (kind == null || n.kind == kind) n.toJson(),
       ],
     };
+  }
+
+  static List<int> _railMotion(List<_Node> nodes) {
+    Element button(String key) {
+      final List<_Node> matches = nodes
+          .where((_Node node) => node.key == key && node.kind == 'button')
+          .toList();
+      if (matches.length != 1 || !matches.single.enabled) {
+        throw HarnessError('rail-motion-owner-unavailable');
+      }
+      return matches.single.element;
+    }
+
+    final Element? icon = _findTimingChild(
+      button('rail_toggle'),
+      (Widget widget) =>
+          widget.key == const ValueKey<String>('rail_toggle_rotation'),
+    );
+    final Widget? rotation = icon?.widget;
+    if (rotation is! Transform) {
+      throw HarnessError('rail-motion-angle-unavailable');
+    }
+    final Element dashboard = button('nav_dashboard');
+    const Key labelKey = ValueKey<String>('rail_label_dashboard');
+    final Element? label = _findTimingChild(
+      dashboard, (Widget widget) => widget.key == labelKey,
+    );
+    double opacity = 0;
+    if (label != null) {
+      final Element? fade = _findTimingChild(
+        dashboard,
+        (Widget widget) =>
+            widget is FadeTransition && widget.child?.key == labelKey,
+      );
+      final Widget? transition = fade?.widget;
+      if (transition is! FadeTransition) {
+        throw HarnessError('rail-motion-label-unavailable');
+      }
+      opacity = transition.opacity.value;
+    }
+    final double radians = math.atan2(
+      rotation.transform.entry(1, 0), rotation.transform.entry(0, 0),
+    ).abs();
+    return <int>[(1000 * radians).round(), (1000 * opacity).round()];
   }
 
   // --------------------------------------------------------------- selectors

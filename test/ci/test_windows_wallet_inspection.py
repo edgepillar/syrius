@@ -642,7 +642,13 @@ class InspectionTests(unittest.TestCase):
             width=1280, height=780, scale=1, capture_returned=True,
             screens=list(inspection.HOME_GOTO_SCREENS), rail_motion=motion)
         self.assertIs(inspection.home_capture_receipt(catalog), catalog)
-        for invalid in (dict(motion, opening=[[False, 184]]),
+        extended = dict(opening=[[6000, 90, 1092, 0], [15000, 184, 3142, 450],
+                                 [24000, 184, 3142, 1000]], closing=[[5000, 40, 0, 0]])
+        self.assertIs(inspection.rail_motion_receipt(extended), extended)
+        for invalid in (dict(extended, closing=[[25, 40, 14, 0]]),
+                        dict(extended, closing=[[25, 40]]),
+                        dict(extended, opening=[[25, 184, 3142, 1001]]),
+                        dict(motion, opening=[[False, 184]]),
                         dict(motion, opening=[[100, 81], [20, 184]]),
                         dict(motion, closing=[[25, 41]]),
                         dict(motion, closing=[[2_000_001, 40]])):

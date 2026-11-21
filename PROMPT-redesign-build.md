@@ -3874,6 +3874,15 @@ These are widths within the rail's horizontal insets. The offsets are
 measured from the tap reply and include tree response time. The running
 label fade, chevron and 16 ms comparisons remain open under V02.
 
+The Home observer now reads the original toggle's transform and the original
+Home label's fade in the same tree replies as the width. The finite receipt
+retains width in logical pixels, chevron angle in milliradians and label
+opacity in thousandths. It continues through the opening label fade and
+requires the shell to return to its original rail setting. An endpoint-only
+sample reports no intermediate motion for that value. Earlier width-only
+receipts remain readable. The new fields require a fresh Windows run and
+record widget values without claiming pixel timing.
+
 The label fade now updates the opacity of the existing text without
 rebuilding the destination buttons on each tick. The tooltip visibility
 still changes when the labels first become visible. The existing rail

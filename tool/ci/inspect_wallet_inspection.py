@@ -56,6 +56,7 @@ VERSIONED_INPUTS = frozenset((
     'lib/widgets/modular_widgets/help_widgets/about_card.dart',
     'lib/widgets/modular_widgets/help_widgets/originals_card.dart',
     'lib/widgets/modular_widgets/help_widgets/originals_tiles.dart',
+    'lib/widgets/shell/rail.dart',
     'lib/widgets/modular_widgets/settings_widgets/wallet_settings_view.dart',
     'lib/widgets/reusable_widgets/launch_film.dart',
     CAPTURE_AGENT_SOURCE, HOME_FIELD_SOURCE,
@@ -85,6 +86,7 @@ SOURCE_FILES = (
     'lib/rearchitecture/features/latest_transactions/bloc/latest_transactions_bloc.dart',
     'lib/rearchitecture/utils/blocs/infinite_list/infinite_list_bloc.dart',
     'lib/seams/SEAMS.md', 'lib/seams/seam.dart',
+    'lib/widgets/shell/rail.dart',
     'lib/widgets/shell/strip/update_slot.dart',
     'lib/rearchitecture/features/pillars/view/pillars_card.dart',
     'lib/widgets/modular_widgets/p2p_swap_widgets/modals/start_native_swap_modal.dart',
@@ -474,9 +476,17 @@ def unpack_home_catalog(raw, expected_sha, expected_size, head, tree, run_id,
         samples = producer.rail_motion_receipt(value['capture']['rail_motion'])
         result['rail_motion'] = dict(
             scope='original_toggle_widths_after_tap_reply', samples=samples,
-            intermediate_observed={direction: any(40 < width < 184 for _, width in rows)
+            intermediate_observed={direction: any(40 < row[1] < 184 for row in rows)
                                    for direction, rows in samples.items()},
         )
+        if len(samples['opening'][0]) == 4:
+            result['rail_motion'].update(
+                chevron_intermediate_observed={
+                    direction: any(0 < row[2] < 3142 for row in rows)
+                    for direction, rows in samples.items()},
+                opening_label_fade_observed=any(
+                    0 < row[3] < 1000 for row in samples['opening']),
+            )
     return result
 
 

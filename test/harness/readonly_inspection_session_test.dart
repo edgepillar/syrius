@@ -2994,6 +2994,7 @@ void main() {
     for (final bool original in <bool>[false, true]) {
       bool expanded = original;
       bool pendingWidth = false;
+      bool pendingFade = false;
       int transitionSamples = 0;
       final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
       final ReadonlyInspectionSession session = ReadonlyInspectionSession(
@@ -3013,9 +3014,23 @@ void main() {
             expect(timeout, const Duration(seconds: 30));
             expanded = !expanded;
             pendingWidth = true;
+            pendingFade = expanded && command['settleMs'] == 0;
+          }
+          final int angle = switch (width) {
+            40 => 0,
+            184 => 3142,
+            41 => 20,
+            _ => 3122,
+          };
+          int opacity = width == 184 ? 1000 : 0;
+          if (command['railMotion'] == true && width == 184 && pendingFade) {
+            pendingFade = false;
+            opacity = 450;
           }
           return <String, dynamic>{
             ..._reply(wallet: true),
+            if (command['railMotion'] == true)
+              'railMotion': <int>[angle, opacity],
             if (command['cmd'] == 'state') ...<String, dynamic>{
               'walletUnlocked': true, 'walletInitCompleted': true,
               'tab': 'dashboard', 'tabs': <String>['dashboard', 'transfer'],
@@ -3047,8 +3062,12 @@ void main() {
       commands.clear();
       final Map<String, List<List<int>>> motion =
           await session.observeRailMotion();
-      expect(motion['opening']!.map((List<int> row) => row[1]), <int>[41, 184]);
-      expect(motion['closing']!.map((List<int> row) => row[1]), <int>[183, 40]);
+      expect(motion['opening']!.map((List<int> row) => row.sublist(1)),
+          <List<int>>[
+            <int>[41, 20, 0], <int>[184, 3142, 450], <int>[184, 3142, 1000],
+          ]);
+      expect(motion['closing']!.map((List<int> row) => row.sublist(1)),
+          <List<int>>[<int>[183, 3122, 0], <int>[40, 0, 0]]);
       expect(commands.where((Map<String, Object?> c) =>
           c['cmd'] == 'tap').map((Map<String, Object?> c) => c['settleMs']),
           <int>[0, 0]);

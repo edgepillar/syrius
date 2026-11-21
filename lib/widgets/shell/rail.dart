@@ -499,6 +499,7 @@ class _Rail extends StatelessWidget {
                         AnimatedBuilder(
                           animation: expansion,
                           builder: (_, Widget? child) => Transform.rotate(
+                            key: const ValueKey<String>('rail_toggle_rotation'),
                             angle: math.pi * expansion.value,
                             child: child,
                           ),

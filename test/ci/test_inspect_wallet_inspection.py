@@ -499,6 +499,15 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(inspect_states(with_motion)['rail_motion'], dict(
             scope='original_toggle_widths_after_tap_reply', samples=samples,
             intermediate_observed=dict(opening=True, closing=False)))
+        extended = dict(opening=[[12_000, 105, 1418, 0], [180_000, 184, 3142, 450],
+                                 [270_000, 184, 3142, 1000]], closing=[[199_000, 40, 0, 0]])
+        states['capture']['rail_motion'] = extended
+        with_motion = [('manifest.json', encode(states), stat.S_IFREG), *state_files[1:]]
+        self.assertEqual(inspect_states(with_motion)['rail_motion'], dict(
+            scope='original_toggle_widths_after_tap_reply', samples=extended,
+            intermediate_observed=dict(opening=True, closing=False),
+            chevron_intermediate_observed=dict(opening=True, closing=False),
+            opening_label_fade_observed=True))
         for bad_files in (state_files[:-1], state_files + [originals[1]], originals):
             with self.subTest(schema=4, members=len(bad_files)), self.assertRaises(
                     (reader.archive.Refused, reader.producer.Refused)):

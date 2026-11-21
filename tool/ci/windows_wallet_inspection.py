@@ -167,19 +167,28 @@ def home_capture_receipt(value):
 
 
 def rail_motion_receipt(value):
-    """Admit bounded original toggle widths and response offsets."""
-    endpoints = {'opening': 184, 'closing': 40}
+    """Admit the original width receipt and the extended presentation receipt."""
+    endpoints = {'opening': [184, 3142, 1000], 'closing': [40, 0, 0]}
     need(type(value) is dict and set(value) == set(endpoints), 'CAPTURE_REFUSED')
-    for direction, target in endpoints.items():
-        rows = value[direction]
-        need(type(rows) is list and 1 <= len(rows) <= 9
-             and all(type(row) is list and len(row) == 2
+    for rows in value.values():
+        need(type(rows) is list and 1 <= len(rows) <= 12
+             and all(type(row) is list and len(row) in (2, 4)
                      and all(type(item) is int for item in row)
                      and 0 <= row[0] <= 2_000_000 and 40 <= row[1] <= 184
                      for row in rows), 'CAPTURE_REFUSED')
-        need(all(left[0] <= right[0] for left, right in zip(rows, rows[1:]))
-             and rows[-1][1] == target and all(row[1] != target for row in rows[:-1]),
+    sizes = {len(row) for rows in value.values() for row in rows}
+    need(sizes in ({2}, {4}), 'CAPTURE_REFUSED')
+    for direction, target in endpoints.items():
+        rows = value[direction]
+        need(all(left[0] <= right[0] for left, right in zip(rows, rows[1:])),
              'CAPTURE_REFUSED')
+        if sizes == {2}:
+            need(len(rows) <= 9 and rows[-1][1] == target[0]
+                 and all(row[1] != target[0] for row in rows[:-1]), 'CAPTURE_REFUSED')
+        else:
+            need(all(0 <= row[2] <= 3142 and 0 <= row[3] <= 1000 for row in rows)
+                 and rows[-1][1:] == target
+                 and all(row[1:] != target for row in rows[:-1]), 'CAPTURE_REFUSED')
     return value
 
 
