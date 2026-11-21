@@ -3625,7 +3625,7 @@ bound to their original sources.
 | Clean Windows Debug and Release | The setup is listed in [docs/environment.md](docs/environment.md). The [independent baseline read](https://github.com/edgepillar/syrius/actions/runs/44917790191/job/136887022206) verifies both builds, normal application exit and matching runtime libraries. |
 | Analysis and tests | The same Windows read verifies zero errors and warnings, 1,302 infos, 5,131 non-chain passes and one skip. [Linux on the identical application source](https://github.com/edgepillar/syrius/actions/runs/44914392285/job/136876775136) also passes strict selected analysis and generated-file verification. |
 | All 47 screens in both themes | The [Node and Addresses reader](https://github.com/edgepillar/syrius/actions/runs/44916400450/job/136882836192) verifies four captures on the current application source and measures the corrected panels and cards. The [full older comparison](docs/review/source-28f9c121-independent-visual-review.md) has 14 matches and 80 mismatches at its own source. The 94 current whole-screen verdicts remain open. |
-| Running motions, shaders and three 16 ms comparisons | The [latest paired interaction reader](https://github.com/edgepillar/syrius/actions/runs/44911945960/job/136869425823) records page-change and disclosure raster overruns. The [current Windows launch run](https://github.com/edgepillar/syrius/actions/runs/44918014703) pairs cold startup timing with two captures from its Release build. Its independent result and the full running review remain open. |
+| Running motions, shaders and three 16 ms comparisons | The [latest paired interaction reader](https://github.com/edgepillar/syrius/actions/runs/44911945960/job/136869425823) records page-change and disclosure raster overruns. The [current Windows launch reader](https://github.com/edgepillar/syrius/actions/runs/44920140610/job/136894170140) verifies that all three reported startup comparisons pass against P06. Both startup windows retain frame-number gaps. The full running review remains open. |
 | Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) records native refusal evidence for all 15 values. The current registry, shared gate, shortcuts, Go To and holder-token action files match the retained refusal source `564d01ab`. The current Lock arrow is absent during the handoff and returns through the same wallet-picker gate when the stage settles. The settled recovery link keeps its gate and refusing action. The [current Windows baseline](https://github.com/edgepillar/syrius/actions/runs/44915483963/job/136880069256) passes the non-chain cases including the settled Lock refusals. This is source correspondence and widget coverage for the updated Lock presentation. |
 
 V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
@@ -3924,11 +3924,21 @@ after the first. In the settled sample the stage matches the original
 Visual inspection of the motion and the separate timing comparison remain
 open under V02.
 
-The [current combined Windows run at `08ecf715`](https://github.com/edgepillar/syrius/actions/runs/44918014703)
-measures the cold launch against P06 and captures the two handoff images
-from the same Release build. Its application and harness match the
-verified Windows baseline source `a57d60a7`. The newer revision records
-results only. Visual and timing acceptance remain open.
+The [combined Windows run at `08ecf715`](https://github.com/edgepillar/syrius/actions/runs/44918014703/job/136887696865)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44920140610/job/136894170140)
+verify the cold launch timing and both 0.4 handoff captures from the same
+Release build. Its application and harness match the verified Windows
+baseline source `a57d60a7`. All five timing actors exit normally. Build,
+raster and distinct-frame comparisons pass for the reported samples.
+The redesign and P06 retain 88 and 1,241 samples over 3.658 and 39.129 s,
+respectively, with 25 and 1,204 frame-number gaps. Peak raster times are
+160.462 and 235.869 ms. The handoff stage bounds agree in both themes, and
+the whole-window RGB difference counts at the 16-level threshold repeat
+5,253 dark and 6,213 light. Visual and timing acceptance remain open.
+The [first reader dispatch](https://github.com/edgepillar/syrius/actions/runs/44920068185/job/136893947167)
+supplied an incomplete source SHA and stopped before opening either
+archive. The corrected dispatch uses the exact producer SHA and retains
+the same original Windows execution.
 
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
