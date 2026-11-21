@@ -2163,6 +2163,17 @@ dark and light Import. Mean absolute RGB differences are 1.459, 1.536, 1.255
 and 1.428 levels respectively. The counts guide the remaining visual review
 and grant no whole-image verdict.
 
+The [regional read of the same archive](https://github.com/edgepillar/syrius/actions/runs/44855637357/job/136697070357)
+places the largest Welcome counts in the three action rows (4,171 dark,
+4,247 light), followed by the globe (3,277 dark, 2,733 light). The largest
+Import group is the drop zone (2,718 dark, 3,117 light). No pixel outside
+the measured regions reaches a 16-level channel difference. Against the
+same reference PNGs, the previously accepted Welcome images at `d0dfe4e0`
+had 2,070 dark and 1,973 light pixels above that threshold in the
+introduction. The current images have 1,039 and 873 respectively. The
+historical verdicts retain their original image digests. The current
+Welcome and Import images still require whole-image review.
+
 The [Linux validation at `d1eb02a9`](https://github.com/edgepillar/syrius/actions/runs/44851643307/job/136684120771)
 passes strict analysis after the subtitle formatting correction. It
 records 5,129 non-chain tests passed, one skip, and successful generated
