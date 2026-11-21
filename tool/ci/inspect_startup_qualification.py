@@ -20,6 +20,9 @@ PRODUCERS = ('windows_startup_probe.py', 'windows_presentation_smoke.py',
              'windows_entry_capture_smoke.py', 'windows_wallet_tour.py')
 JOB_NAME = 'Observe original Windows Release startup'
 BATCH_JOB_NAME = 'Capture original Windows startup catalog'
+BACKDROP_SAMPLE_POINTS = dict(upper_left=(80, 90), upper_right=(1200, 90),
+    left_of_stage=(190, 400), right_of_stage=(1090, 400),
+    bottom_left=(60, 744), bottom_right=(1220, 744))
 # One listing, fifteen source reads and two requests per archive.
 BATCH_REQUESTS = 24
 PRE_FIRST_PROGRESS_LAUNCH_PRODUCER_SHA = 'e494d6a5fffc539a9a0c63ccf13c813c3e58a50af507432976c1af109352166c'
@@ -359,6 +362,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                 and (not observed or len(attempts) == 2
                      and attempts[1]['phase'] in ('seam_probes', 'complete')))
         frame_window = None
+        motion_backdrop = {}
         if timing:
             archive.need(report['mode'] == 'release' and report['theme'] == launch.TIMING_THEME
                 and type(report['client']) is list
@@ -372,6 +376,8 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                 except startup.Failure:
                     raise archive.Refused('INSPECTION_REFUSED') from None
         if motion:
+            from .inspect_windows_qualification import _png_crop
+
             attempted = report['attempted_slots']
             archive.need(type(attempted) is list and (not captures or attempted))
             progress = {}
@@ -397,6 +403,18 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                         attemptedSlots=attempted, samples=live_rows, **progress), motion_theme)
                 except startup.Failure:
                     raise archive.Refused('INSPECTION_REFUSED') from None
+            for row, live in zip(captures, live_rows):
+                left, top, width, height = row['stage']
+                scan, channels = _png_crop(live['png'], (60, 1221), (90, 745))
+                colors = {}
+                for name, (x, y) in BACKDROP_SAMPLE_POINTS.items():
+                    if left <= x < left + width and top <= y < top + height:
+                        continue
+                    start = (x - 60) * channels
+                    pixel = scan[y - 90][start:start + channels]
+                    if channels == 3 or pixel[3] == 255:
+                        colors[name] = list(pixel[:3])
+                motion_backdrop[row['file']] = colors
         film_bounds, stage_bounds, picker_divider_rows, wrong_action_gradient = [], {}, {}, {}
         quiz_step_bounds, quiz_back_bounds = {}, {}
         for index, (row, name) in enumerate(zip(captures, () if motion else files)):
@@ -479,6 +497,8 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
             and all(row['checks'].values()) for row in attempts)
     elif motion:
         summary['theme'] = motion_theme
+        summary['backdrop_sample_points'] = BACKDROP_SAMPLE_POINTS
+        summary['exterior_rgb_by_sample'] = motion_backdrop
         summary['attempted_slots'] = attempted
         if 'first_observed_progress' in report:
             summary['first_observed_progress'] = report['first_observed_progress']

@@ -677,6 +677,11 @@ class StartupInspectionTests(unittest.TestCase):
         self.assertEqual(verified['verified_png_count'], 3)
         self.assertEqual(verified['normal_actor_exits'], 2)
         self.assertNotIn('first_observed_progress', verified)
+        colors = verified['exterior_rgb_by_sample']
+        self.assertNotIn('left_of_stage', colors[launch.MOTION_FILES[0]])
+        self.assertEqual(colors[launch.MOTION_FILES[0]]['upper_right'], [0, 0, 0])
+        self.assertEqual(colors[launch.MOTION_FILES[2]],
+                         dict.fromkeys(inspect.BACKDROP_SAMPLE_POINTS, [0, 0, 0]))
         light = dict(live, theme='light')
         verified_light = read_motion(light, complete=True, expected='light')
         self.assertEqual(verified_light['theme'], 'light')

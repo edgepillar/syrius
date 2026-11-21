@@ -620,9 +620,7 @@ def startup_pixel_comparison(name, data):
     points = None
     if name in startup.launch.SETTLE_FILES or name.startswith('41-lock-screen-'):
         # The same exterior points also sample the settled Lock backdrop.
-        points = dict(upper_left=(80, 90), upper_right=(1200, 90),
-                      left_of_stage=(190, 400), right_of_stage=(1090, 400),
-                      bottom_left=(60, 744), bottom_right=(1220, 744))
+        points = dict(startup.BACKDROP_SAMPLE_POINTS)
     if name in startup.launch.SETTLE_FILES:
         # Fixed crops use the authored 0.4 checkpoint in the 1280 by 780 client.
         regions = dict(caption=caption, stage=(250, 149, 1030, 479),
