@@ -792,15 +792,42 @@ def home_send_bounds(raw):
         )
 
 
+ORIGINALS_MAP_CROP = (616, 319, 758, 423)
+
+
+def _map_gray_deviation(png):
+    """Measure interior dot coverage and intensity against the tile background."""
+    left, top, right, bottom = ORIGINALS_MAP_CROP
+    encoded = base64.b64encode(png).decode('ascii')
+    rows, channels = windows._png_crop(encoded, (left, right), (top, bottom))
+    if not windows._opaque(rows, channels):
+        return None
+    # Sum RGB before dividing by three, to retain sub-level precision.
+    levels = Counter(sum(row[i:i + 3]) for row in rows
+                     for i in range(0, len(row), channels))
+    background, _ = levels.most_common(1)[0]
+    weighted_error = sum(abs(value - background) * count
+                         for value, count in levels.items())
+    return round(1000 * weighted_error / (3 * sum(levels.values())))
+
+
 def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points=None):
     pairs = {}
+    map_gray = {}
     for theme in producer.THEMES:
         name = f'{screen}-{theme}.png'
         actual = zipped.read(name)
         reference = producer.read_original(reference_dir / name, producer.debug.entry.MAX_PNG)
         pairs[theme] = windows.pixel_comparison(actual, reference, regions,
                                                 sample_points=sample_points)
-    return dict(screen=screen, region_bounds=regions, pairs=pairs)
+        if screen == '38-set-originals':
+            map_gray[theme] = dict(actual=_map_gray_deviation(actual),
+                                  reference=_map_gray_deviation(reference))
+    result = dict(screen=screen, region_bounds=regions, pairs=pairs)
+    if map_gray:
+        result['map_gray_deviation_milli'] = dict(bounds=ORIGINALS_MAP_CROP,
+                                                 themes=map_gray)
+    return result
 
 
 def _catalog_pair_names(files):

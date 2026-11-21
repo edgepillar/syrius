@@ -125,10 +125,12 @@ class ReaderTests(unittest.TestCase):
         names = [f'{screen}-{theme}.png' for screen in screens for theme in ('dark', 'light')]
         raw = packed([(name, name.encode(), stat.S_IFREG) for name in names])
         reference_dir = Path('references')
+        swatch = bytes([255, 255, 255, 255, 255, 255, 0, 0, 0])
         with mock.patch.object(reader.producer, 'read_original',
                 side_effect=lambda path, _: path.name.encode()) as read, \
                 mock.patch.object(reader.windows, 'pixel_comparison',
-                    side_effect=lambda actual, reference, _, **options: actual == reference):
+                    side_effect=lambda actual, reference, _, **options: actual == reference), \
+                mock.patch.object(reader.windows, '_png_crop', return_value=([swatch], 3)):
             comparisons = list(reader.details_pixel_comparisons(raw, reference_dir))
         self.assertEqual([row['screen'] for row in comparisons], list(screens))
         self.assertEqual([call.args[0] for call in read.call_args_list],
@@ -143,6 +145,11 @@ class ReaderTests(unittest.TestCase):
                              for left, top, right, bottom in originals.values()), 1280 * 780)
         for row in comparisons:
             self.assertEqual(row['pairs'], {'dark': True, 'light': True})
+        self.assertEqual(comparisons[-1]['map_gray_deviation_milli'], {
+            'bounds': (616, 319, 758, 423),
+            'themes': {theme: {'actual': 85000, 'reference': 85000}
+                       for theme in ('dark', 'light')},
+        })
 
     def test_settings_comparison_covers_each_section_and_both_themes(self):
         screens = ('30-set-node', '31-set-security', '32-set-display',

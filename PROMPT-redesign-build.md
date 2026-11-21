@@ -4152,8 +4152,8 @@ Licences originals have the same PNG digests as the earlier
 | Licences | The header, list dividers and footer field align. The installed package inventory, licence badges, Links count and status group differ. |
 | Originals | The gallery and footer align. The discovery field is cleared as specified. Globe outlines and Map dot coverage differ, with the clearest Map difference in light. |
 
-The Map tile has its lowest mean RGB error at zero whole-pixel offset
-in the 3 by 3 offset search. In the light crop from columns 616–757 and
+The Map tile has its lowest mean absolute gray error at zero whole-pixel
+offset in the 3 by 3 offset search. In the light crop from columns 616–757 and
 rows 319–422, mean absolute gray deviation from the white background is
 18.886 for the wallet and 29.323 for the reference. The original artwork
 and frame selection already agree. The candidate at `4a6ff1e8` paints the
@@ -4163,7 +4163,11 @@ other tiles keep their original paths. The gallery test checks the
 filtered bounds and retains the frame restoration cases. Strict local
 analysis passes. [Linux validation](https://github.com/edgepillar/syrius/actions/runs/44935256907)
 and the [Windows Details comparison](https://github.com/edgepillar/syrius/actions/runs/44935256963)
-are pending.
+are pending. The independent reader now emits mean absolute gray deviation
+from the most common crop color for both PNGs in each theme. On the
+retained `59a1f859` archive, it reproduces 18.886 and 29.323 in light and
+records 0.966 and 0.861 in dark, in wallet and reference order.
+The crop measurement supplements the whole-tile pixel comparison.
 
 The [first compatibility read of `08ecf715`](https://github.com/edgepillar/syrius/actions/runs/44926305670/job/136913047287)
 reads the original timings and refuses the paired images at the older
