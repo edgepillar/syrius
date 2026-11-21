@@ -3629,6 +3629,15 @@ the Lock field disabled and film frame 27 of 56 still ticking before
 initialization. It supplies no P06 window, so this attempt yields no paired
 16 ms comparison. The earlier paired result remains bound to `d5bfd815`.
 
+The `launch-timing-and-settle` Windows mode runs the original paired timing
+windows before taking both handoff images with the same Release build. It
+keeps the individual timing and capture modes available. The combined
+reader checks both finite archives from the same job and compares the
+capture's runner and payload digests with the measured redesign binaries.
+If paired timing stops early, the original timing receipt is still retained
+and the subsequent captures are skipped. This mode needs its first hosted
+result.
+
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
 and five normal node exits. The longest page-change totals are 280.034 ms

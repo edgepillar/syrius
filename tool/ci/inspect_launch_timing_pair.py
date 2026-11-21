@@ -280,7 +280,7 @@ def window_diagnostics(window, *, peak_starts=False):
 
 
 def project(raw, expected_sha, expected_size, *, head, tree, run_id, pins,
-            diagnostics=False):
+            diagnostics=False, current_binaries=None):
     archive.need(type(raw) is bytes and type(expected_size) is int
         and 0 < len(raw) == expected_size <= pair.MAX_ARCHIVE and archive.sha(raw) == expected_sha)
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
@@ -363,6 +363,8 @@ def project(raw, expected_sha, expected_size, *, head, tree, run_id, pins,
         if comparison is not None and 'raster' in comparison['exceeded']:
             result['window_diagnostics']['raster_rank_overruns'] = raster_rank_overruns(
                 windows['p06'], windows['current'])
+    if current_binaries is not None:
+        current_binaries.update(current)
     return result
 
 
@@ -375,7 +377,7 @@ def source(client, name, head):
     return raw
 
 
-def inspect_run(client, *, head, tree, run_id, job):
+def inspect_run(client, *, head, tree, run_id, job, item=None, current_binaries=None):
     archive.need(job['name'] == startup_reader.JOB_NAME and job['head_sha'] == head
         and job['run_id'] == run_id and job['status'] == 'completed'
         and job['conclusion'] in ('success', 'failure')
@@ -415,9 +417,10 @@ def inspect_run(client, *, head, tree, run_id, job):
         ('profile_sha256', pair.launch.SETTLE_PROFILE_SOURCE))}
     archive.need(pins['baseline_patch_sha256'] == pair.PATCH_SHA256
         and pins['collector_sha256'] == pair.COLLECTOR_SHA256)
-    listing = client.json('/actions/runs/' + str(run_id) + '/artifacts?per_page=20')
-    archive.need(listing['total_count'] == len(listing['artifacts']) == 1)
-    item = listing['artifacts'][0]
+    if item is None:
+        listing = client.json('/actions/runs/' + str(run_id) + '/artifacts?per_page=20')
+        archive.need(listing['total_count'] == len(listing['artifacts']) == 1)
+        item = listing['artifacts'][0]
     archive.need(item['name'] == pair.ARTIFACT_PREFIX + head + '-' + str(run_id) + '-1'
         and item['expired'] is False and item['workflow_run']['id'] == run_id
         and item['workflow_run']['head_sha'] == head
@@ -428,7 +431,8 @@ def inspect_run(client, *, head, tree, run_id, job):
     location = client.read(archive.API + '/actions/artifacts/' + str(item['id']) + '/zip', redirect=True)
     raw = client.read(location, authenticated=False, cap=pair.MAX_ARCHIVE)
     result = project(raw, item['digest'][7:], item['size_in_bytes'],
-        head=head, tree=tree, run_id=run_id, pins=pins, diagnostics=True)
+        head=head, tree=tree, run_id=run_id, pins=pins, diagnostics=True,
+        current_binaries=current_binaries)
     archive.need(result['artifact_reported_success'] is (selected[0]['conclusion'] == 'success'))
     result.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'])
     return result

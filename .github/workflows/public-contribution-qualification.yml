@@ -67,6 +67,7 @@ on:
           - startup-catalog
           - launch-timing
           - launch-timing-pair
+          - launch-timing-and-settle
           - interactive-timing-pair
           - lock-catalog
           - lock-seams
@@ -155,10 +156,10 @@ env:
 
 jobs:
   windows-startup-probe:
-    if: inputs.windows_startup_probe && ((inputs.readonly_catalog_family != 'startup-catalog' && inputs.readonly_catalog_family != 'launch-motion') || (github.repository == 'edgepillar/syrius' && github.ref == 'refs/heads/redesign' && github.event_name == 'workflow_dispatch' && github.run_attempt == '1'))
+    if: inputs.windows_startup_probe && ((inputs.readonly_catalog_family != 'startup-catalog' && inputs.readonly_catalog_family != 'launch-motion' && inputs.readonly_catalog_family != 'launch-timing-and-settle') || (github.repository == 'edgepillar/syrius' && github.ref == 'refs/heads/redesign' && github.event_name == 'workflow_dispatch' && github.run_attempt == '1'))
     name: ${{ inputs.readonly_catalog_family == 'startup-catalog' && 'Capture original Windows startup catalog' || 'Observe original Windows Release startup' }}
     runs-on: windows-latest
-    timeout-minutes: ${{ inputs.readonly_catalog_family == 'startup-catalog' && 45 || 30 }}
+    timeout-minutes: ${{ (inputs.readonly_catalog_family == 'startup-catalog' || inputs.readonly_catalog_family == 'launch-timing-and-settle') && 45 || 30 }}
     env:
       GIT_CONFIG_COUNT: "1"
       GIT_CONFIG_KEY_0: core.autocrlf
@@ -216,12 +217,12 @@ jobs:
         run: flutter build windows --release --no-pub --target harness/app/main.dart --dart-define-from-file=.dart_tool/git_metadata.json
 
       - name: Observe the original startup and normal process exit
-        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'lock-seams' && inputs.readonly_catalog_family != 'quiz-catalog' && inputs.readonly_catalog_family != 'launch-timing' && inputs.readonly_catalog_family != 'launch-timing-pair' && inputs.readonly_catalog_family != 'startup-catalog' && inputs.readonly_catalog_family != 'launch-motion'
+        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'lock-seams' && inputs.readonly_catalog_family != 'quiz-catalog' && inputs.readonly_catalog_family != 'launch-timing' && inputs.readonly_catalog_family != 'launch-timing-pair' && inputs.readonly_catalog_family != 'launch-timing-and-settle' && inputs.readonly_catalog_family != 'startup-catalog' && inputs.readonly_catalog_family != 'launch-motion'
         timeout-minutes: 3
         run: python -B -m tool.ci.windows_startup_probe
 
       - name: Observe natural startup in a fresh original process
-        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'lock-seams' && inputs.readonly_catalog_family != 'quiz-catalog' && inputs.readonly_catalog_family != 'launch-timing' && inputs.readonly_catalog_family != 'launch-timing-pair' && inputs.readonly_catalog_family != 'startup-catalog' && inputs.readonly_catalog_family != 'launch-motion'
+        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'lock-seams' && inputs.readonly_catalog_family != 'quiz-catalog' && inputs.readonly_catalog_family != 'launch-timing' && inputs.readonly_catalog_family != 'launch-timing-pair' && inputs.readonly_catalog_family != 'launch-timing-and-settle' && inputs.readonly_catalog_family != 'startup-catalog' && inputs.readonly_catalog_family != 'launch-motion'
         timeout-minutes: 3
         run: python -B -m tool.ci.windows_startup_probe --natural-only
 
@@ -263,7 +264,7 @@ jobs:
           path: .harness/ci-launch-timing/manifest.json
 
       - name: Measure paired cold lock frame windows
-        if: inputs.readonly_catalog_family == 'launch-timing-pair'
+        if: inputs.readonly_catalog_family == 'launch-timing-pair' || inputs.readonly_catalog_family == 'launch-timing-and-settle'
         timeout-minutes: 15
         env:
           SYRIUS_WINDOWS_LAUNCH_CATALOG: 'launch-timing-pair'
@@ -272,7 +273,7 @@ jobs:
         run: python -B -m tool.ci.windows_launch_timing_pair
 
       - name: Retain the paired cold lock timing manifest
-        if: always() && inputs.readonly_catalog_family == 'launch-timing-pair' && hashFiles('.harness/ci-launch-timing-pair/manifest.json') != ''
+        if: always() && (inputs.readonly_catalog_family == 'launch-timing-pair' || inputs.readonly_catalog_family == 'launch-timing-and-settle') && hashFiles('.harness/ci-launch-timing-pair/manifest.json') != ''
         uses: actions/upload-artifact@v7
         with:
           name: windows-launch-timing-pair-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -352,11 +353,13 @@ jobs:
             .harness/ci-quiz-catalog/46-seed-quiz-dark.png
             .harness/ci-quiz-catalog/46-seed-quiz-light.png
 
-      # Keep the other startup catalogs before the handoff's short frame window.
+      # Keep earlier catalogs ahead of the handoff capture. In the combined
+      # timing job this also leaves the cold timing windows undisturbed.
       - name: Capture the original launch handoff in both themes
         if: >-
           ${{ !cancelled() &&
-              ((success() && inputs.readonly_catalog_family == 'launch-settle') ||
+              ((success() && (inputs.readonly_catalog_family == 'launch-settle' ||
+                             inputs.readonly_catalog_family == 'launch-timing-and-settle')) ||
                (inputs.readonly_catalog_family == 'startup-catalog' &&
                 steps.startup_quiz.outcome == 'success' &&
                 steps.retain_startup_quiz.outcome == 'success' &&
@@ -368,7 +371,7 @@ jobs:
         run: python -B -m tool.ci.windows_launch_catalog
 
       - name: Retain the original launch handoff manifest and PNGs
-        if: always() && (inputs.readonly_catalog_family == 'launch-settle' || inputs.readonly_catalog_family == 'startup-catalog') && hashFiles('.harness/ci-launch-settle-catalog/manifest.json') != ''
+        if: always() && (inputs.readonly_catalog_family == 'launch-settle' || inputs.readonly_catalog_family == 'launch-timing-and-settle' || inputs.readonly_catalog_family == 'startup-catalog') && hashFiles('.harness/ci-launch-settle-catalog/manifest.json') != ''
         uses: actions/upload-artifact@v7
         with:
           name: windows-launch-settle-catalog-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}

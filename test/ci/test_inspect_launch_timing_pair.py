@@ -601,6 +601,32 @@ class PairInspectionTests(unittest.TestCase):
                     self.assertFalse(additional)
                     self.assertNotIn('memory-location', offered.calls)
 
+    def test_combined_run_binds_the_handoff_capture_to_the_timed_release(self):
+        class CombinedClient(Client):
+            def json(self, path):
+                reply = super().json(path)
+                if path.endswith('/artifacts?per_page=20'):
+                    reply['total_count'] = 2
+                    reply['artifacts'].append(dict(id=8,
+                        name=f'windows-launch-settle-catalog-{HEAD}-{RUN}-1'))
+                return reply
+
+        offered = CombinedClient()
+        offered.job['steps'].extend(dict(name=name, status='completed', conclusion='success')
+            for name in ('Build the ordinary Release harness target', pair.launch.SETTLE_JOB_STEP,
+                         'Retain the original launch handoff manifest and PNGs'))
+        capture = dict(scope='retained_launch_settle', artifact_reported_success=True)
+        with mock.patch.object(windows.startup, '_inspect_launch_artifact',
+                               return_value=capture) as inspect_capture:
+            status, rows = self.read_original_run(offered)
+        self.assertEqual(status, 0, rows)
+        self.assertEqual(offered.calls.count(f'/actions/runs/{RUN}/artifacts?per_page=20'), 1)
+        self.assertEqual(inspect_capture.call_args.kwargs['shared_binaries'],
+                         report(offered.pins)['current'])
+        self.assertEqual(inspect_capture.call_args.kwargs['item']['id'], 8)
+        self.assertTrue(rows[0]['artifact_reported_success'])
+        self.assertEqual(rows[-1]['scope'], 'retained_launch_settle')
+
     def test_other_executed_jobs_cannot_masquerade_as_the_two_older_readers(self):
         changes = (
             lambda client: client.jobs[1].update(head_sha='f' * 40),

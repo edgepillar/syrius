@@ -986,11 +986,30 @@ def main():
                             if step['name'] in launch_titles
                             and step['conclusion'] != 'skipped']
             if launch_steps:
-                archive.need(len(launch_steps) == 1 and launch_steps[0]['status'] == 'completed')
+                combined = [step['name'] for step in launch_steps] == [
+                    paired_timing.pair.JOB_STEP, startup.launch.SETTLE_JOB_STEP]
+                archive.need((len(launch_steps) == 1 or combined)
+                             and all(step['status'] == 'completed' for step in launch_steps))
                 name = launch_steps[0]['name']
                 if name == paired_timing.pair.JOB_STEP:
+                    timing_item = None
+                    if combined:
+                        archive.need(run['head_branch'] == 'redesign'
+                                     and launch_steps[0]['conclusion'] == 'success')
+                        client = archive.Client(parent.get('GH_TOKEN'), max_calls=startup.BATCH_REQUESTS)
+                        listing = client.json('/actions/runs/' + text + '/artifacts?per_page=20')
+                        suffix = head + '-' + text + '-1'
+                        timing_name = paired_timing.pair.ARTIFACT_PREFIX + suffix
+                        settle_name = 'windows-launch-settle-catalog-' + suffix
+                        items = {item['name']: item for item in listing['artifacts']}
+                        archive.need(listing['total_count'] == len(listing['artifacts']) == len(items) == 2
+                            and set(items) == {timing_name, settle_name}
+                            and items[timing_name]['id'] != items[settle_name]['id'])
+                        timing_item = items[timing_name]
+                    shared_binaries = {} if combined else None
                     summary = paired_timing.inspect_run(
-                        client, head=head, tree=tree, run_id=run_id, job=job)
+                        client, head=head, tree=tree, run_id=run_id, job=job,
+                        item=timing_item, current_binaries=shared_binaries)
                     gap_context = summary.pop('frame_gap_context', None)
                 else:
                     gap_context = None
@@ -1024,6 +1043,13 @@ def main():
                         source_run_id=run_id, source_attempt=summary['source_attempt'],
                         archive_sha256=summary['archive_sha256'],
                         manifest_sha256=summary['manifest_sha256'], windows=gap_context))
+                if combined:
+                    handoff = startup.inspect_launch_run(client, head=head, tree=tree,
+                        run_id=run_id, job=job, settle=True, item=items[settle_name],
+                        shared_binaries=shared_binaries,
+                        compare_png=startup_pixel_comparison if reference_head else None)
+                    emit_startup_comparison(launch_titles[startup.launch.SETTLE_JOB_STEP],
+                                            handoff, reference_head)
                 return 0
             for summary in startup.inspect_run(
                     client, head=head, tree=tree, run_id=run_id, job=job):
