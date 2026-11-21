@@ -3366,11 +3366,18 @@ replace the redundant download and file controls. The notice uses the
 authored 14 px horizontal inset and separate green marks for successful
 checks. The complete digest, warning text and final confirmation remain
 visible in their original flows. Cancelling restores both idle controls.
+[Linux at `5f0a7863`](https://github.com/edgepillar/syrius/actions/runs/44903242518/job/136843372746)
+passes strict analysis, 5,131 non-chain tests with one skip and generated
+file verification. The full suite includes the verified notice and
+confirmation case that checks restoration of both idle controls.
 
 The visual comparison selects the `node-verified` capture family for the
 Node reference in both themes. The regular Settings capture still shows
 the resting Node page and is reported as diagnostic evidence for this
 reference. A fresh verified pair is required for current-source review.
+All 28 comparison tests pass with Pillow, including the exact-source
+selection of both verified Node images. The isolated test task records
+complete output and exit zero.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
@@ -3436,6 +3443,11 @@ interface checks under V06 open.
 | Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) records the executed seam witnesses. The [Home reader](https://github.com/edgepillar/syrius/actions/runs/44887966468/job/136797306551), [Lock reader](https://github.com/edgepillar/syrius/actions/runs/44887966492/job/136797306090) and [Settings reader](https://github.com/edgepillar/syrius/actions/runs/44888439279/job/136798753064) verify eleven Home observations, two Lock refusals and eight Settings refusals from `564d01ab`. The fresh holder Token control remains open. |
 
 V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
+
+The [Windows baseline at `834e82f1`](https://github.com/edgepillar/syrius/actions/runs/44904239298)
+is executing the existing Debug, Release, analysis and non-chain checks
+for the updated application. The application, assets, Windows runner and
+locked dependency files match `5f0a7863`. Final V06 acceptance remains open.
 
 The original Home run also retains eight catalog images in both themes. The
 independent reader verifies the image digests and compares the four Home states
