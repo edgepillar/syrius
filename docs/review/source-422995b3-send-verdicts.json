@@ -1,0 +1,36 @@
+{
+  "reviews": {
+    "07-send-rest-dark": {
+      "actual_sha256": "0d87623588998a3e9cf6348e2ba5b64e79db95de099f235cfe2ff28d8c0d43b0",
+      "expected_sha256": "511749787d2f186b2ffc3523fbb1060facc4669291275cb1c918a415acede6f2",
+      "note": "The prepared recipient and amount are present, and the amount field has its unfocused appearance without a caret. The recent recipients, last-send note and incoming queue shown in the reference are absent.",
+      "reviewed_at": "2026-11-21T22:10:57Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "07-send-rest-light": {
+      "actual_sha256": "69c05de650179d6e02e2a60199d9c5072f90e84bae448245c62c3a769cd0f10f",
+      "expected_sha256": "039197335de93690caee36086f94a62c0e3de0c2fe487623815efa653bd89b25",
+      "note": "The prepared recipient and amount are present, and the amount field has its unfocused appearance without a caret. The recent recipients, last-send note and incoming queue shown in the reference are absent.",
+      "reviewed_at": "2026-11-21T22:10:57Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "12-send-confirm-dark": {
+      "actual_sha256": "df5c5a71f5255ca7c2ec1311b3001c3147a36558f9ec068b59874a838c884959",
+      "expected_sha256": "fbc3d88a161dd949479bb5b40e39977453e7006ce8b4b11e33d3523f6a5d87a7",
+      "note": "The caption frost is continuous and the rounded dialog corners follow the shared 12 px radius in this theme. Full sender and recipient addresses, the Plasma status and the first-send warning differ from the contact and Ledger state in the reference.",
+      "reviewed_at": "2026-11-21T21:42:09Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "12-send-confirm-light": {
+      "actual_sha256": "9a70cba551f2fc36043d0c79a60c8a13daa78c4804433adc3cec49b4fbe07762",
+      "expected_sha256": "51a04fbcade20aae27846b9ee00c931d1cd5c1ea3207826395e6184aada3d10b",
+      "note": "The caption frost is continuous and the rounded dialog corners follow the shared 12 px radius in this theme. Full sender and recipient addresses, the Plasma status and the first-send warning differ from the contact and Ledger state in the reference.",
+      "reviewed_at": "2026-11-21T21:42:09Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}

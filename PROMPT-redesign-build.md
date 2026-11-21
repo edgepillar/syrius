@@ -4315,8 +4315,15 @@ session test checks the observation before each rest image. Local strict
 analysis passes. [Linux validation at `422995b3`](https://github.com/edgepillar/syrius/actions/runs/44953338896/job/136995907044)
 passes application and strict selected analysis, 5,132 non-chain tests
 with one skip, and tracked generation. The
-[Windows Send recapture](https://github.com/edgepillar/syrius/actions/runs/44953359210)
-is running at the same revision.
+[Windows Send recapture](https://github.com/edgepillar/syrius/actions/runs/44953359210/job/136995973661)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44955024228/job/137001113490)
+verify all four original PNGs and normal required closure at the same revision.
+The two directly reviewed resting images show the unfocused amount field
+without a caret and retain the entered amount. The two confirmation PNGs are
+byte-identical to `619941ce`. The missing recent recipients, last-send note
+and incoming queue keep both resting pairs open. All four whole-image
+verdicts remain mismatches. [Capture index](docs/review/source-422995b3-send-captures.json) ·
+[Verdicts](docs/review/source-422995b3-send-verdicts.json)
 
 | Screen | Visible differences in both themes |
 | --- | --- |
@@ -4861,9 +4868,14 @@ After observed settlement, seven of eight current page-change raster
 samples and all eight current disclosure raster samples exceed 16 ms.
 This leaves the cause of the post-settlement work open.
 
-The [clean Windows baseline at `18d42024`](https://github.com/edgepillar/syrius/actions/runs/44952696600)
-is running against the same application, test, harness and workflow sources
-as `9bce41b6`, with the Send and Settings changes included.
+The [clean Windows baseline at `18d42024`](https://github.com/edgepillar/syrius/actions/runs/44952696600/job/136993905785)
+and the [independent reader](https://github.com/edgepillar/syrius/actions/runs/44955001234/job/137001041306)
+verify all twelve checks against the Send and Settings application changes.
+The Debug and Release builds complete in 122.640 and 154.219 seconds with
+normal exits. The source, Debug and Release DLL digests agree, all three pass
+map and export checks, and the generated localization digest is unchanged.
+Root analysis reports zero errors, zero warnings and 1,300 infos.
+The non-chain suite has 5,132 passes and one skip.
 
 ### End-state audit at `e3047adc` (2026-11-21)
 
@@ -4890,9 +4902,9 @@ candidate still needs its own complete gallery.
 
 | Original requirement | Evidence at this revision |
 | --- | --- |
-| Clean Windows Debug and Release | The [environment guide](docs/environment.md) and completed `83be2bc3` baseline remain available. The [clean Windows run at `18d42024`](https://github.com/edgepillar/syrius/actions/runs/44952696600) builds the current application sources. It remains in progress. |
-| Analysis and tests | [Linux at `422995b3`](https://github.com/edgepillar/syrius/actions/runs/44953338896/job/136995907044) passes analysis, 5,132 non-chain tests with one skip and generation. The current local controller and strict selected Dart checks pass. [Full Linux at `e3047adc`](https://github.com/edgepillar/syrius/actions/runs/44954224819) is running. |
-| All 47 screens in both themes | The [older 94-pair review](docs/review/source-28f9c121-independent-visual-review.md) retains 14 strict matches. The four revised Send pairs still have reviewed differences. Current Windows Send and Settings recaptures are running. The current-source gallery and whole-image acceptance remain open. |
+| Clean Windows Debug and Release | The [environment guide](docs/environment.md) lists the setup. The [clean Windows run at `18d42024`](https://github.com/edgepillar/syrius/actions/runs/44952696600/job/136993905785) and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44955001234/job/137001041306) verify both builds and DLL correspondence on the current application sources. |
+| Analysis and tests | [Full Linux at `e3047adc`](https://github.com/edgepillar/syrius/actions/runs/44954224819/job/136998668536) passes application and strict selected analysis, 5,132 non-chain tests with one skip, and tracked generation. The controller suite records 1,266 tests with 17 skips and no failures. |
+| All 47 screens in both themes | The [older 94-pair review](docs/review/source-28f9c121-independent-visual-review.md) retains 14 strict matches. The [verified Send recapture](https://github.com/edgepillar/syrius/actions/runs/44955024228/job/137001113490) retains four reviewed differences. The Settings recapture is running. The current-source gallery and whole-image acceptance remain open. |
 | Running motion, shaders and P06 timing | The [independent paired read at `9bce41b6`](https://github.com/edgepillar/syrius/actions/runs/44953288126/job/136995755269) verifies page change and disclosure. Both 16 ms comparisons fail. The cold-launch timing and running visual observations remain open. |
 | Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) records the original executed refusals. The registry and seam tests match the audited `564d01ab` paths. |
 

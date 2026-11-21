@@ -6,8 +6,15 @@ The [Windows baseline workflow](../.github/workflows/public-contribution-qualifi
 uses a clean checkout on `windows-latest`. The runner image supplies Git Bash,
 Python, Visual Studio's desktop C++ workload, the Windows SDK and CMake.
 The workflow provisions Flutter 3.47.7 on the stable channel and uses its
-bundled Dart SDK. See the [recorded tool inventory](#complete-hosted-windows-inventory)
-for the versions observed on the original hosted image.
+bundled Dart SDK. The [original inventory](#complete-hosted-windows-inventory)
+describes the earlier hosted image. The current successful build used the
+following toolchain. [Windows baseline log](https://github.com/edgepillar/syrius/actions/runs/44952696600/job/136993905785)
+
+| Provisioning | Observed tools |
+| --- | --- |
+| GitHub-hosted Windows x64 image | Windows 10.0.26100, Windows SDK 10.0.26100.0, Visual Studio desktop C++ workload 18.12.12405.243, MSVC 14.52.37025, CMake 4.5.0 |
+| Runner command-line tools | Git 2.56.1, Git Bash 5.3.15, Python 3.12.10, Node.js 22.23.5 |
+| Flutter setup action | Flutter 3.47.7 stable with Dart 3.13.5 |
 
 Run the following from the repository root in Git Bash after provisioning
 the same desktop toolchain. The baseline controller also checks source
@@ -23,11 +30,12 @@ flutter build windows --debug --no-pub --dart-define-from-file=.dart_tool/git_me
 flutter build windows --release --no-pub --dart-define-from-file=.dart_tool/git_metadata.json
 ```
 
-The [independently verified baseline](https://github.com/edgepillar/syrius/actions/runs/44761180401/job/136373819795)
-covers both builds and all 12 baseline checks at `d6f8dfa3`. The original
-Windows run reports 5,128 passing non-chain tests, one skip and zero analyzer
-errors or warnings. Visual and motion acceptance is tracked in the
-[redesign ledger](../PROMPT-redesign-build.md).
+The independently verified baseline at `18d42024` covers both builds and all
+12 baseline checks. The original Windows run reports 5,132 passing non-chain
+tests, one skip and zero analyzer errors or warnings. The Debug and Release DLL
+digests agree with the source DLL. [Independent reader](https://github.com/edgepillar/syrius/actions/runs/44955001234/job/137001041306)
+
+The redesign ledger tracks visual and motion acceptance. [Current audit](../PROMPT-redesign-build.md#end-state-audit-at-e3047adc-2026-11-21)
 
 ## Current qualification status (2026-11-18)
 
