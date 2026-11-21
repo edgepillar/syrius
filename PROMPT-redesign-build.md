@@ -4164,6 +4164,14 @@ earlier Licences measurement peaked at 211.443 ms. The two runs differ
 in frame coverage and baseline timings, so the change's independent
 effect remains unresolved.
 
+Settings section selection now retains each animated row's input target
+and layout through the existing 150 ms colour transition. The animation
+updates the background, icon and label colours using the existing curve.
+The section test checks the midpoint colours, retained input widget
+and original endpoint. Strict analysis and all nine Settings frame
+tests pass locally. A new Windows measurement is required for the
+effect on the frame-time gate.
+
 A [read of the original frame gaps at `40126652`](https://github.com/edgepillar/syrius/actions/runs/44941662762/job/136959990171)
 uses the exact retained raster-start timestamps. In the redesign's page
 change, seven gaps covering 28 missing frame numbers are followed by a

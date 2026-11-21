@@ -303,16 +303,23 @@ void main() {
         );
         await tester.tap(apps);
         await tester.pump();
+        final InkWell originalLink = tester.widget<InkWell>(apps);
         final Color off = AppTokens.dark.card2.withValues(alpha: 0);
         expect(_surface(tester, SettingsSectionId.apps).color, off);
         await tester.pump(const Duration(milliseconds: 75));
+        final double middle = AppTokens.dark.ease.transform(0.5);
+        expect(tester.widget<InkWell>(apps), same(originalLink));
         expect(
           _surface(tester, SettingsSectionId.apps).color,
-          Color.lerp(
-            off,
-            AppTokens.dark.card2,
-            AppTokens.dark.ease.transform(0.5),
-          ),
+          Color.lerp(off, AppTokens.dark.card2, middle),
+        );
+        expect(
+          IconTheme.of(tester.element(apps)).color,
+          Color.lerp(AppTokens.dark.dim, AppTokens.dark.znnInk, middle),
+        );
+        expect(
+          DefaultTextStyle.of(tester.element(find.text('Apps'))).style.color,
+          Color.lerp(AppTokens.dark.dim, AppTokens.dark.foreground, middle),
         );
         await tester.pump(const Duration(milliseconds: 74));
         expect(

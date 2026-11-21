@@ -175,6 +175,56 @@ class _SectionItemState extends State<_SectionItem>
       selected: widget.selected,
       child: AnimatedBuilder(
         animation: _selection,
+        // The selection clock changes paint styles. Keep the input target and
+        // row layout outside its rebuilds.
+        child: DecoratedBox(
+          position: DecorationPosition.foreground,
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            border: Border.all(
+              color: _focused ? tokens.focusRing : Colors.transparent,
+              width: tokens.focusWidth,
+            ),
+          ),
+          child: InkWell(
+            key: ValueKey<String>('settings_${widget.section.name}'),
+            borderRadius: radius,
+            // Selection and keyboard focus already own their feedback.
+            splashFactory: NoSplash.splashFactory,
+            overlayColor: const WidgetStatePropertyAll<Color>(
+              Colors.transparent,
+            ),
+            onFocusChange: (bool focused) {
+              if (mounted) setState(() => _focused = focused);
+            },
+            onTap: widget.onTap,
+            // Larger labels can wrap without losing their line height.
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: tokens.settingsSectionHeight,
+              ),
+              child: Padding(
+                padding: EdgeInsetsDirectional.symmetric(
+                  horizontal: tokens.cardGap,
+                ),
+                child: Row(
+                  children: <Widget>[
+                    Builder(
+                      builder: (BuildContext context) => buildShellSymbol(
+                        context,
+                        widget.section.symbol,
+                        size: tokens.settingsIconSize,
+                        color: IconTheme.of(context).color,
+                      ),
+                    ),
+                    SizedBox(width: tokens.cardGap),
+                    Expanded(child: Text(widget.section.label(context))),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
         builder: (BuildContext context, Widget? child) {
           final double t = tokens.ease.transform(_selection.value);
           return Material(
@@ -186,61 +236,15 @@ class _SectionItemState extends State<_SectionItem>
               t,
             ),
             borderRadius: radius,
-            child: DecoratedBox(
-              position: DecorationPosition.foreground,
-              decoration: BoxDecoration(
-                borderRadius: radius,
-                border: Border.all(
-                  color: _focused ? tokens.focusRing : Colors.transparent,
-                  width: tokens.focusWidth,
-                ),
+            child: IconTheme.merge(
+              data: IconThemeData(
+                color: Color.lerp(tokens.dim, tokens.znnInk, t),
               ),
-              child: InkWell(
-                key: ValueKey<String>('settings_${widget.section.name}'),
-                borderRadius: radius,
-                // Selection and keyboard focus already own their feedback.
-                splashFactory: NoSplash.splashFactory,
-                overlayColor: const WidgetStatePropertyAll<Color>(
-                  Colors.transparent,
+              child: DefaultTextStyle.merge(
+                style: tokens.bodyText.copyWith(
+                  color: Color.lerp(tokens.dim, tokens.foreground, t),
                 ),
-                onFocusChange: (bool focused) {
-                  if (mounted) setState(() => _focused = focused);
-                },
-                onTap: widget.onTap,
-                // Larger labels can wrap without losing their line height.
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: tokens.settingsSectionHeight,
-                  ),
-                  child: Padding(
-                    padding: EdgeInsetsDirectional.symmetric(
-                      horizontal: tokens.cardGap,
-                    ),
-                    child: Row(
-                      children: <Widget>[
-                        buildShellSymbol(
-                          context,
-                          widget.section.symbol,
-                          size: tokens.settingsIconSize,
-                          color: Color.lerp(tokens.dim, tokens.znnInk, t),
-                        ),
-                        SizedBox(width: tokens.cardGap),
-                        Expanded(
-                          child: Text(
-                            widget.section.label(context),
-                            style: tokens.bodyText.copyWith(
-                              color: Color.lerp(
-                                tokens.dim,
-                                tokens.foreground,
-                                t,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                child: child!,
               ),
             ),
           );
