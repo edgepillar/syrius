@@ -1,0 +1,84 @@
+{
+  "reviews": {
+    "31-set-security-dark": {
+      "actual_sha256": "ebceaaa41a0e93ca8c7b3c83ee4fe9f17b0ca492c51fcc2578212439d19920a3",
+      "expected_sha256": "1c3a735e770863e501cc898830ca699abb20ea01593643c263fad41f00a4f411",
+      "note": "The lock, password and backup groups align. The automatic removal copy includes shared app data, and the divider and supporting text treatments differ.",
+      "reviewed_at": "2026-11-21T22:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "31-set-security-light": {
+      "actual_sha256": "b4c80110d19161fd05f758968749c5d46e105d1c07432a90df07738d9b68a269",
+      "expected_sha256": "eb4cd651d0e487c080e8a0cc5c10289c14a35dff9dcdbe68a38cf12af58c26db",
+      "note": "The lock, password and backup groups align. The automatic removal copy includes shared app data, and the divider and supporting text treatments differ.",
+      "reviewed_at": "2026-11-21T22:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "32-set-display-dark": {
+      "actual_sha256": "b6b1ed2ff307b7e7a54d0c0c9b0c031c3265f03304eee731f20f7121dd05f355",
+      "expected_sha256": "f68b82b91f04df6c535c512da740e980026e8d980b0f68f8593fe4a070897c45",
+      "note": "The seven preferences appear in the expected order. Navigation and toggle paint differ, including the owner-selected green.",
+      "reviewed_at": "2026-11-21T22:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "32-set-display-light": {
+      "actual_sha256": "65df98d2d65829b7b9fce0cccfe62750cfd57fdf3f0091c05fa55b999f7c818f",
+      "expected_sha256": "64977a34163f03e4ef2f5d9f59027d124e6e02788b08970f2c2d5c635a4e723e",
+      "note": "The seven preferences appear in the expected order. Navigation and toggle paint differ, including the owner-selected green. The capture selects Light, while the reference selects Dark.",
+      "reviewed_at": "2026-11-21T22:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "33-set-wallet-dark": {
+      "actual_sha256": "9a5e741e0581c2f5b5043e1905d204678150387cc6e5ba9c747cb3ef62055872",
+      "expected_sha256": "938c775e7ef2b578c1d3a21698e13e5baff96bd01001bbb0d73aafd81d0030c8",
+      "note": "Maintenance adds a separate group. Auto-receive and desktop notifications are off in this capture, and the cache explanation differs.",
+      "reviewed_at": "2026-11-21T22:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "33-set-wallet-light": {
+      "actual_sha256": "01504855f0b893a12fe1aea74b298caf1bb39c5eba3305525dece9db86f512ec",
+      "expected_sha256": "82e2bc826d854d0764317b498db9a47cbe5aaaf3fcacf34e277db3dc3f90feba",
+      "note": "Maintenance adds a separate group. Auto-receive and desktop notifications are off in this capture, and the cache explanation differs.",
+      "reviewed_at": "2026-11-21T22:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "34-set-apps-dark": {
+      "actual_sha256": "7aaf84e7dbea8c463269b23eb80cae990d91bae60a2ab4f36896a215fd5561a1",
+      "expected_sha256": "76efab8f738858389426bbff88f3935efc5610d64052b9f3946fda9af5086e48",
+      "note": "The connected list is empty and the WalletConnect row reports no sessions. The references show populated connection rows and Disconnect actions.",
+      "reviewed_at": "2026-11-21T22:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "34-set-apps-light": {
+      "actual_sha256": "886ee2b49dced378362c3b0e4941743b3e8b127c43861a6531ee949022c72ebf",
+      "expected_sha256": "21b9bdac58c975afa405e0ed1bceb6491b42743e30015f786240bdd562e1ad22",
+      "note": "The connected list is empty and the WalletConnect row reports no sessions. The references show populated connection rows and Disconnect actions.",
+      "reviewed_at": "2026-11-21T22:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "36-set-about-dark": {
+      "actual_sha256": "7e2951ec1d86c96f2c2498029fe794f9e742d5aea6ff3e54c3e80c8db35c87c4",
+      "expected_sha256": "ad7fba54bc95a111744164a264efef237e7c3ebea8fca8cb087cebc04f0d831b",
+      "note": "All three closed groups and both update actions are present. Build information, installed-node status, update badge and the Links count differ.",
+      "reviewed_at": "2026-11-21T22:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "36-set-about-light": {
+      "actual_sha256": "dd00bd5330da5aab6b1573663b95dc6eea7e12deaa780e94fd896665f99550fa",
+      "expected_sha256": "a8a8cf66e49fa88a25522dc8e759538b321f2f53c1f83d5d0d31edd3f8dd2072",
+      "note": "All three closed groups and both update actions are present. Build information, installed-node status, update badge and the Links count differ.",
+      "reviewed_at": "2026-11-21T22:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}

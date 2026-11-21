@@ -4486,8 +4486,22 @@ stopped before Flutter or wallet startup because the reader suite still
 expected 131 cases. The count now includes the new Settings archive case.
 The complete local controller suite reports 1,266 tests with 17 skips
 and no failures. The [corrected hosted run at `e3047adc`](https://github.com/edgepillar/syrius/actions/runs/44954025762)
-passes the isolated controller gate and has started Flutter setup.
-Hosted archive savings remain to be measured.
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44955451706/job/137002409313)
+verify 14 original Settings PNGs, normal required closure and a
+four-member profile. No generic tour or extra viewport PNG is retained.
+The [original image index](docs/review/source-e3047adc-settings-captures.json)
+binds the captures to the producer.
+The three archives total 849,233 bytes. The
+[earlier full Settings run](https://github.com/edgepillar/syrius/actions/runs/44903341253)
+retained four archives totaling 2,357,591 bytes. The selected capture
+scope saves 1,508,358 bytes, or 63.98 percent of the previous total.
+
+All 14 pairs were viewed directly from the verified archive. The ten
+Security, Display, Wallet, Apps and About pairs retain reviewed differences.
+Both Node images show the state before a release check. Both Addresses
+images contain the four members and sample contacts, with no named third
+member. Those four images remain diagnostic under the prepared-state
+rule. [Settings verdicts](docs/review/source-e3047adc-settings-verdicts.json)
 
 The comparison tool accepts repeated `--reviews` arguments, so the earlier
 and recent review files can be read together without copying verdicts.
@@ -4904,7 +4918,7 @@ candidate still needs its own complete gallery.
 | --- | --- |
 | Clean Windows Debug and Release | The [environment guide](docs/environment.md) lists the setup. The [clean Windows run at `18d42024`](https://github.com/edgepillar/syrius/actions/runs/44952696600/job/136993905785) and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44955001234/job/137001041306) verify both builds and DLL correspondence on the current application sources. |
 | Analysis and tests | [Full Linux at `e3047adc`](https://github.com/edgepillar/syrius/actions/runs/44954224819/job/136998668536) passes application and strict selected analysis, 5,132 non-chain tests with one skip, and tracked generation. The controller suite records 1,266 tests with 17 skips and no failures. |
-| All 47 screens in both themes | The [older 94-pair review](docs/review/source-28f9c121-independent-visual-review.md) retains 14 strict matches. The [verified Send recapture](https://github.com/edgepillar/syrius/actions/runs/44955024228/job/137001113490) retains four reviewed differences. The Settings recapture is running. The current-source gallery and whole-image acceptance remain open. |
+| All 47 screens in both themes | The [older 94-pair review](docs/review/source-28f9c121-independent-visual-review.md) retains 14 strict matches. The [verified Send recapture](https://github.com/edgepillar/syrius/actions/runs/44955024228/job/137001113490) retains four reviewed differences. The [Settings reader](https://github.com/edgepillar/syrius/actions/runs/44955451706/job/137002409313) verifies 14 original images. The current-source gallery and whole-image acceptance remain open. |
 | Running motion, shaders and P06 timing | The [independent paired read at `9bce41b6`](https://github.com/edgepillar/syrius/actions/runs/44953288126/job/136995755269) verifies page change and disclosure. Both 16 ms comparisons fail. The cold-launch timing and running visual observations remain open. |
 | Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) records the original executed refusals. The registry and seam tests match the audited `564d01ab` paths. |
 
