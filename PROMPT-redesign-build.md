@@ -3418,12 +3418,16 @@ remain verifiable.
 The [first combined Windows run](https://github.com/edgepillar/syrius/actions/runs/44905778531/job/136850919202)
 completed Release and retained the parent receipts with `STORAGE_REFUSED`
 and no catalog archive. The separate free-space sampler reports no refusal.
-The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44906861309/job/136854203968)
-stopped at its producer-source check. The controller still used the earlier
-two-image schema to account for files and validate the completed receipt.
-It now selects the four-image schema for new runs. The existing control
-accepts those four filenames and refuses an unregistered fifth; the reader
-still validates older two-image archives. Fresh Windows captures remain open.
+The [first independent reader](https://github.com/edgepillar/syrius/actions/runs/44906861309/job/136854203968)
+stopped at its producer-source check. The [second read](https://github.com/edgepillar/syrius/actions/runs/44907136593/job/136855020713)
+verifies the original producer source and both retained receipts. The producer
+reports zero captures and forced cleanup of a required actor. The controller
+still used the earlier two-image schema to account for files and validate the
+completed receipt. It now selects the four-image schema for new runs. The
+existing control accepts those four filenames and refuses an unregistered
+fifth. The reader also validates older two-image archives. The
+[corrected Windows run](https://github.com/edgepillar/syrius/actions/runs/44907058148)
+is in progress.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
