@@ -58,6 +58,9 @@ enum ReadonlyDetailsSelection {
   ),
   walletReady(10, 'wallet_ready_catalog', <String>['wallet-ready'],
     <String>['47-wallet-ready-dark.png', '47-wallet-ready-light.png'],
+  ),
+  nodeVerified(19, 'node_verified_catalog', <String>['set-node'],
+    <String>['30-set-node-dark.png', '30-set-node-light.png'],
   );
 
   const ReadonlyDetailsSelection(
@@ -72,7 +75,7 @@ enum ReadonlyDetailsSelection {
   bool get catalogOnly =>
       this == sendConfirmation || this == earn || this == sentinelFixture ||
       this == swapStart || this == walletReady || this == sendWarning ||
-      this == homeZapPreview;
+      this == homeZapPreview || this == nodeVerified;
 
   bool get requiresLabRecipient =>
       this == sendConfirmation || this == swapStart;
@@ -210,6 +213,7 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
   bool swapWarningAcknowledged = false;
   final ScreenCapture capture = ScreenCapture(
     repository: repository,
+    readonlyNodeVerified: selection == ReadonlyDetailsSelection.nodeVerified,
     call: (Map<String, Object?> command) async {
       if (sendWarning && command['cmd'] == 'shot') {
         final String event = switch (command['theme']) {

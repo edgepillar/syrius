@@ -90,6 +90,7 @@ const Map<String, ReadonlyDetailsSelection> _detailsSelections =
       'earn': ReadonlyDetailsSelection.earn,
       harnessReadonlySentinelCatalog: ReadonlyDetailsSelection.sentinelFixture,
       harnessReadonlyWalletReadyCatalog: ReadonlyDetailsSelection.walletReady,
+      'node-verified': ReadonlyDetailsSelection.nodeVerified,
     };
 
 /// One fixed inspection family, with the previous Details default.

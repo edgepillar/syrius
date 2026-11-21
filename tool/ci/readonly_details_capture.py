@@ -68,7 +68,7 @@ RESTORED_FAILURE_KINDS = {
 }
 FAMILY_SCHEMAS = {'details': 1, 'token-draft': 2, 'send-confirm': SEND_CATALOG_SCHEMA, 'earn': 5,
                   'sentinel-fixture': 8, 'swap-start': 9, 'wallet-ready': 10,
-                  'send-warn': 11, 'home-zap-preview': 12}
+                  'send-warn': 11, 'home-zap-preview': 12, 'node-verified': 19}
 CATALOG_STAGES = {name.replace('-', '_') + '_catalog': schema
                   for name, schema in FAMILY_SCHEMAS.items()}
 CATALOGS = {
@@ -91,6 +91,8 @@ CATALOGS = {
                                   ('08-send-warn-dark.png', '08-send-warn-light.png')),
     FAMILY_SCHEMAS['home-zap-preview']: (('home-zap',),
         ('06-home-zap-dark.png', '06-home-zap-light.png')),
+    FAMILY_SCHEMAS['node-verified']: (('set-node',),
+        ('30-set-node-dark.png', '30-set-node-light.png')),
     STAKE_DRAFT_SCHEMA: (('staking-new',),
                          ('14-staking-new-dark.png', '14-staking-new-light.png')),
     PROJECT_DETAIL_SCHEMA: (('az-project',),
@@ -305,6 +307,7 @@ def _script_field(schema):
 def catalog_script_name(schema, screen):
     if (schema, screen) in {(PROJECT_CATALOG_SCHEMA, 'az'),
                             (SEND_CATALOG_SCHEMA, 'send-rest'),
+                            (FAMILY_SCHEMAS['node-verified'], 'set-node'),
                             (SEEDED_VISUAL_SCHEMA, 'tokens')}:
         return 'prepared/' + screen + '.txt'
     return screen + '.txt'
@@ -354,7 +357,8 @@ def capture_records(value, *, schema=1):
              'CAPTURE_REFUSED')
     need(sum(row['bytes'] for row in value) <= MAX_CAPTURE_TOTAL, 'CAPTURE_REFUSED')
     if schema in (FAMILY_SCHEMAS['swap-start'], FAMILY_SCHEMAS['wallet-ready'],
-                  FAMILY_SCHEMAS['send-warn'], FAMILY_SCHEMAS['home-zap-preview']):
+                  FAMILY_SCHEMAS['send-warn'], FAMILY_SCHEMAS['home-zap-preview'],
+                  FAMILY_SCHEMAS['node-verified']):
         need(len({row['sha256'] for row in value}) == len(files), 'CAPTURE_REFUSED')
     return value
 

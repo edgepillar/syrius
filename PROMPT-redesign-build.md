@@ -3333,6 +3333,17 @@ checksum and individual verification results in an inline card. The
 explicit install action opens the existing confirmation for that exact
 temporary library. Cancel or leaving the page discards the uninstalled
 download. The held-download state awaits a Windows settings capture.
+[Linux validation at `3488142e`](https://github.com/edgepillar/syrius/actions/runs/44900947533)
+passes analysis, the unit and widget suite and generated-file verification.
+
+The separate `node-verified` hosted Windows selection uses the same Node
+screen reference with a prepared script. It checks the original release
+tag, downloads through the wallet UI, asserts the pinned archive digest
+and both verification messages, then takes both theme captures. It discards
+each temporary download after its capture. The ordinary Settings script
+keeps its resting-state capture. The new selection is bound to the fork's
+isolated native job and the reader checks the prepared script's original
+blob. The first hosted capture remains pending.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests

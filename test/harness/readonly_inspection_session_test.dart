@@ -135,7 +135,7 @@ void main() {
     for (final String family in <String>[
       'home', 'home-bell', 'settings', 'navigation', 'details', 'token-draft',
       'send-confirm', 'send-warn', 'swap-start', 'earn', 'sentinel-fixture',
-      'home-zap-preview', 'surface-seams',
+      'home-zap-preview', 'surface-seams', 'node-verified',
     ]) {
       expect(readonlyInspectionCatalogFamily(<String, String>{
         'SYRIUS_READONLY_CATALOG_FAMILY': family,

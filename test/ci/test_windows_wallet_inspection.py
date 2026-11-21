@@ -343,7 +343,7 @@ class InspectionTests(unittest.TestCase):
             SYRIUS_NATIVE_STACK_DIAGNOSTIC='true')
         self.assertEqual(lab.readonly_catalog_family(parent), 'details')
         for family, schema in (('home', 1), ('home-seams', 1), ('surface-seams', 13), ('home-bell', 8), ('settings', 2),
-                               ('settings-seams', 2),
+                               ('node-verified', 14), ('settings-seams', 2),
                                ('navigation', 3), ('details', 4),
                                ('token-draft', 4), ('send-confirm', 5),
                                ('earn', 6), ('sentinel-fixture', 7),
@@ -369,7 +369,8 @@ class InspectionTests(unittest.TestCase):
         self.assertIn('default: details', choice)
         self.assertEqual([line.strip()[2:] for line in choice.splitlines()
             if line.strip().startswith('- ')],
-            ['home', 'home-seams', 'surface-seams', 'home-bell', 'home-zap-preview', 'settings', 'settings-seams',
+            ['home', 'home-seams', 'surface-seams', 'home-bell', 'home-zap-preview', 'settings',
+             'node-verified', 'settings-seams',
              'navigation', 'details', 'token-draft',
              'send-confirm', 'send-warn', 'swap-start', 'wallet-ready', 'earn',
              'sentinel-fixture', 'launch', 'launch-settle', 'launch-motion', 'startup-catalog',
@@ -389,14 +390,14 @@ class InspectionTests(unittest.TestCase):
             '.harness/ci-launch-motion/01-late.png',
             '.harness/ci-launch-motion/02-settled.png',
         ])
-        for family in ('send-warn', 'settings-seams', 'home-seams', 'surface-seams'):
+        for family in ('send-warn', 'settings-seams', 'home-seams', 'surface-seams', 'node-verified'):
             scoped = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=family,
                 SYRIUS_HOSTED_RUNNER='github-hosted', GITHUB_ACTIONS='true',
                 GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_REPOSITORY='edgepillar/syrius',
                 GITHUB_SHA='a' * 40, GITHUB_RUN_ATTEMPT='1', GITHUB_REF='refs/heads/redesign')
             with mock.patch.object(lab.sys, 'platform', 'win32'):
                 self.assertFalse(lab.require_environment('native', scoped))
-                if family == 'surface-seams':
+                if family in ('surface-seams', 'node-verified'):
                     with self.assertRaises(lab.Failure):
                         lab.require_environment('native', dict(scoped, GITHUB_REF='refs/heads/dev'))
                 for change in (dict(GITHUB_REPOSITORY='sol-znn/syrius'),

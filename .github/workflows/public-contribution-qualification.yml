@@ -51,6 +51,7 @@ on:
           - home-bell
           - home-zap-preview
           - settings
+          - node-verified
           - settings-seams
           - navigation
           - details

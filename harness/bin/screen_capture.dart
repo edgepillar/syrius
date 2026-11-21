@@ -374,6 +374,7 @@ class ScreenCapture {
     this.readonlySwapStart = false,
     this.readonlyEarn = false,
     this.readonlyWalletReady = false,
+    this.readonlyNodeVerified = false,
     this.restoredSeeded = false,
     this.restoredTokenList = false,
     this.restoredProject = false,
@@ -395,6 +396,7 @@ class ScreenCapture {
   final bool readonlySwapStart;
   final bool readonlyEarn;
   final bool readonlyWalletReady;
+  final bool readonlyNodeVerified;
   final bool restoredSeeded;
   final bool restoredTokenList;
   final bool restoredProject;
@@ -468,6 +470,7 @@ class ScreenCapture {
       'az' => restoredSeeded && restoredProject,
       'tokens' => restoredSeeded && restoredTokenList && !restoredProject,
       'send-rest' => readonlySendConfirmation,
+      'set-node' => readonlyNodeVerified,
       _ => false,
     };
     final List<String> parts = <String>[

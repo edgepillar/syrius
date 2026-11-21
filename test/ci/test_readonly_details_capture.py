@@ -1,6 +1,7 @@
 import copy
 import io
 import json
+from pathlib import Path
 import stat
 import struct
 import unittest
@@ -81,6 +82,7 @@ class DetailsCatalogTests(unittest.TestCase):
             (10, 'wallet-ready', 47, 'wallet_ready_catalog'),
             (11, 'send-warn', 8, 'send_warn_catalog'),
             (12, 'home-zap', 6, 'home_zap_preview_catalog'),
+            (19, 'set-node', 30, 'node_verified_catalog'),
         ):
             with self.subTest(screen=screen):
                 files = [f'{number:02d}-{screen}-{theme}.png'
@@ -91,7 +93,7 @@ class DetailsCatalogTests(unittest.TestCase):
                 captures = [dict(row, file=name)
                     for row, name in zip(original['captures'][:2], files)]
                 images = dict(zip(files, original_images.values()))
-                if schema in (9, 10, 11, 12):
+                if schema in (9, 10, 11, 12, 19):
                     with self.assertRaises(details.Refused):
                         details.capture_records(captures, schema=schema)
                     light = images[files[1]] = png(255)
@@ -107,6 +109,16 @@ class DetailsCatalogTests(unittest.TestCase):
                 self.assertEqual(result['visual_matches'], 0)
                 self.assertEqual(result.get('presentation_fixture'),
                     'sample_zap_message' if schema == 12 else None)
+                if schema == 19:
+                    self.assertEqual(details.catalog_script_name(schema, screen),
+                                     'prepared/set-node.txt')
+                    script = Path('harness/screens/prepared/set-node.txt').read_text()
+                    commands = [line for line in script.splitlines()
+                                if 'tap --key node_update_' in line]
+                    self.assertEqual(commands, [
+                        'tap --key node_update_check', 'tap --key node_update_download',
+                        '# after-capture: tap --key node_update_discard_download --exact',
+                    ])
                 with self.assertRaises(details.Refused):
                     details.unpack(raw, details.sha(raw), len(raw),
                         HEAD, TREE, RUN, reference, PINS)

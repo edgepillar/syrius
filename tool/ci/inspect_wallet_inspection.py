@@ -707,7 +707,7 @@ def details_pixel_comparisons(raw, reference_dir):
             yield _catalog_pixel_pair(zipped, reference_dir, screen, crop)
 
 
-def settings_pixel_comparisons(raw, reference_dir):
+def settings_pixel_comparisons(raw, reference_dir, *, files=None):
     """Compare the seven Settings sections with separate menu and body counts."""
     regions = dict(caption=(0, 0, 1280, 32), rail=(0, 32, 60, 780),
                    settings_menu=(60, 32, 260, 724), content=(260, 32, 1280, 724),
@@ -729,7 +729,7 @@ def settings_pixel_comparisons(raw, reference_dir):
                                  chain_card=(700, 510), after_chain=(700, 545)),
     }
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
-        for screen in _catalog_pair_names(producer.settings.FILES):
+        for screen in _catalog_pair_names(producer.settings.FILES if files is None else files):
             crop = regions
             if screen in section_crops:
                 crop = {name: bounds for name, bounds in regions.items() if name != 'content'}
@@ -1250,6 +1250,7 @@ def main(parent=None):
                           producer.details.FAMILY_SCHEMAS['wallet-ready'],
                           producer.details.FAMILY_SCHEMAS['send-warn'],
                           producer.details.FAMILY_SCHEMAS['home-zap-preview'],
+                          producer.details.FAMILY_SCHEMAS['node-verified'],
                           producer.details.SEND_CATALOG_SCHEMA):
                 fixture_sources = {
                     producer.details.FAMILY_SCHEMAS['sentinel-fixture']: SENTINEL_FIXTURE_SOURCES,
@@ -1269,6 +1270,10 @@ def main(parent=None):
                 catalog['plasma_bolt_bounds'] = plasma_bolt_bounds(catalog_archive, '22-plasma-fuse')
             if '37-set-licences-dark.png' in catalog['filenames']:
                 catalog['licence_header_chevrons'] = details_licence_header_chevrons(catalog_archive)
+            if schema == producer.details.FAMILY_SCHEMAS['node-verified'] and reference_head is not None:
+                need(digest(reference_head, 40))
+                catalog_comparisons = list(settings_pixel_comparisons(
+                    catalog_archive, repo / 'mockups/redesign/shots', files=catalog['filenames']))
             if {'10-receive-qr-dark.png', '22-plasma-fuse-dark.png',
                     '37-set-licences-dark.png'} <= set(catalog['filenames']):
                 catalog['component_geometry'] = details_component_geometry(catalog_archive)

@@ -1,0 +1,21 @@
+# prerequisite: unlocked-home
+# Hosted inspection only. Verify the pinned release and discard the download.
+goto settings
+tap --key settings_node
+wait --key node_settings_page --timeout 25
+scroll -1000000
+wait --key node_update_check --ready --timeout 15
+tap --key node_update_check
+wait --key node_update_release_v0.0.10-alphanet --exact --timeout 25
+wait --key node_update_download --ready --timeout 15
+tap --key node_update_download
+wait --key node_update_review_install --ready --timeout 25
+assert b7d7efc5b4ed06e01e4ae5ce6b826273b2f699f57133058395bde87195c9deac --exact
+assert "Matches the release's checksum file" --exact
+assert "Matches GitHub's digest" --exact
+hover @0,0
+assert --key node_update_review_install --exact
+# after-capture: tap --key node_update_discard_download --exact
+# after-capture: wait --key node_update_review_install --gone --timeout 5
+# after-capture: goto dashboard
+# after-capture: wait --key home_hero --timeout 5
