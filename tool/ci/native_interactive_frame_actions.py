@@ -2,7 +2,7 @@
 
 import time
 
-from .windows_launch_catalog import PEAK_BUILD_WAIT_FIELD, TIMING_FIELDS
+from .windows_launch_catalog import PEAK_BUILD_WAIT_FIELD, RASTER_STARTS_FIELD, TIMING_FIELDS
 
 
 MIN_WINDOW_US = 600_000
@@ -64,8 +64,9 @@ def _end(send, validate_window, phase_field):
     reply = _original(send, cmd='stalls', frameWindow='end')
     _require(all(field in reply for field in TIMING_FIELDS))
     window = {field: reply[field] for field in TIMING_FIELDS}
-    if PEAK_BUILD_WAIT_FIELD in reply:
-        window[PEAK_BUILD_WAIT_FIELD] = reply[PEAK_BUILD_WAIT_FIELD]
+    for field in (PEAK_BUILD_WAIT_FIELD, RASTER_STARTS_FIELD):
+        if field in reply:
+            window[field] = reply[field]
     validate_window(window)
     return window, reply.get(phase_field)
 

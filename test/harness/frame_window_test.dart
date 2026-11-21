@@ -22,7 +22,7 @@ void main() {
   test('late timings use build time and need a later frame', () async {
     final HarnessFrameWindow window = HarnessFrameWindow(
       100000,
-      includePeakBuildWait: true,
+      includeInteractiveDiagnostics: true,
     )..observe(<ui.FrameTiming>[_frame(2, 90000), _frame(3, 100000)]);
     bool requested = false;
     bool delivered = false;
@@ -42,6 +42,7 @@ void main() {
     final Map<String, Object?> receipt = await result;
     expect(receipt['windowUs'], 50000);
     expect(receipt['peakBuildWaitUs'], 1000);
+    expect(receipt['rasterStartsUs'], <int>[11000, 60999]);
     expect(receipt['frames'], <List<int>>[
       <int>[0, 0, 10000, 5000, 17000],
       <int>[1, 49999, 10000, 5000, 17000],

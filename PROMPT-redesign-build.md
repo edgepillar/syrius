@@ -4025,6 +4025,15 @@ disclosure the 102.406 ms peak begins 587.266 to 587.887 ms after release,
 after the panel settles at 291.170 ms. These measurements leave the causes
 and V02 open. The source predates the Addresses label change.
 
+The interactive collector now retains the engine's raster start for each
+reported frame. The independent reader checks each timestamp against the
+same frame's build and total durations, then uses it to place the frame
+before or after the observed motion boundaries. Earlier archives and the
+original P06 collector continue to use the calculated bounds. The frame
+limits, 16 ms ranking and gap checks are unchanged. The full Python
+controller suite passes with 17 skips, including the new timestamp bounds
+and phase cases. A native pair is required to exercise the new field.
+
 The rail width spring now lays out the original destination buttons without
 rebuilding them on its ticks. The toggle still rotates on the same spring,
 and the labels still start their own fade at the width endpoint. The

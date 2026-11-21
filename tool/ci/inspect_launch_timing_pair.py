@@ -139,7 +139,13 @@ def storage_passed(value):
 
 
 
-def raster_start_bounds(row, origin_us=0):
+def recorded_raster_starts(rows, window):
+    return dict(zip((row[0] for row in rows), window.get(pair.launch.RASTER_STARTS_FIELD, ())))
+
+
+def raster_start_bounds(row, origin_us=0, *, observed_us=None):
+    if observed_us is not None:
+        return observed_us - origin_us, observed_us - origin_us
     _, build_start, build, raster, total = row
     relative_start = build_start - origin_us
     # Raster follows build finish and starts by vsync + total - raster.
@@ -152,8 +158,9 @@ def raster_rank_overruns(baseline_window, current_window, *, phase_boundaries=No
     budget = pair.FRAME_BUDGET_US
     baseline = sorted((row[3] for row in pair.launch.frame_timing_rows(
         baseline_window, allow_packed=True) if row[3] > budget), reverse=True)
-    current = sorted((row for row in pair.launch.frame_timing_rows(
-        current_window, allow_packed=True) if row[3] > budget), key=lambda row: -row[3])
+    current_rows = pair.launch.frame_timing_rows(current_window, allow_packed=True)
+    raster_starts = recorded_raster_starts(current_rows, current_window)
+    current = sorted((row for row in current_rows if row[3] > budget), key=lambda row: -row[3])
     if phase_boundaries is None:
         offsets = current_window.get(pair.launch.STARTUP_PHASE_FIELD)
         phase_names = ('before_film', 'film', 'covered', 'handoff', 'lock', 'crossing')
@@ -168,7 +175,7 @@ def raster_rank_overruns(baseline_window, current_window, *, phase_boundaries=No
             continue
         count += 1
         unpaired += before is None
-        earliest, latest = raster_start_bounds(row)
+        earliest, latest = raster_start_bounds(row, observed_us=raster_starts.get(row[0]))
         if phases is not None:
             first, last = bisect_right(offsets, earliest), bisect_right(offsets, latest)
             phase = phase_names[first] if first == last else 'crossing'
@@ -182,12 +189,13 @@ def raster_rank_overruns(baseline_window, current_window, *, phase_boundaries=No
 def frame_gap_context(window):
     """Place the following build relative to the preceding raster finish."""
     rows = pair.launch.frame_timing_rows(window, allow_packed=True)
+    raster_starts = recorded_raster_starts(rows, window)
     counts = dict(before_earliest_end=0, within_end_bounds=0, at_or_after_latest_end=0)
     for previous, current in zip(rows, rows[1:]):
         missing_keys = current[0] - previous[0] - 1
         if not missing_keys:
             continue
-        earliest, latest = raster_start_bounds(previous)
+        earliest, latest = raster_start_bounds(previous, observed_us=raster_starts.get(previous[0]))
         following_build = current[1]
         raster = previous[3]
         if following_build < earliest + raster:
@@ -202,6 +210,7 @@ def frame_gap_context(window):
 def window_diagnostics(window, *, peak_starts=False):
     """Describe every reported sample without changing the acceptance test."""
     rows = pair.launch.frame_timing_rows(window, allow_packed=True)
+    raster_starts = recorded_raster_starts(rows, window)
     count = len(rows)
     quarters, slow_raster = [0] * 4, [0] * 4
     for row in rows:
@@ -213,7 +222,7 @@ def window_diagnostics(window, *, peak_starts=False):
         return [ordered[(p * count + 99) // 100 - 1]
                 for p in (50, 95, 99, 100)]
     peak_raster = max(rows, key=lambda row: row[3])
-    earliest, latest = raster_start_bounds(peak_raster)
+    earliest, latest = raster_start_bounds(peak_raster, observed_us=raster_starts.get(peak_raster[0]))
     summary = dict(window_us=window['windowUs'], samples=count,
         frame_key_gaps=rows[-1][0] + 1 - count,
         maximum_frame_key_gap=max(
@@ -391,7 +400,8 @@ def inspect_run(client, *, head, tree, run_id, job, item=None, current_binaries=
                   'fdadca2905a65134927a3b19e6218b99b98cf579b7579a3a3636bf9a058c691c',
                   '608c10ae1ab014842e14a8c8a848245f6de29c544f2d8f334473859372087610',
                   'ea5a3a111a9641a0c82cb050c3e8aacbdf008b3c3b1036f5d1ee9a95ee4d4708')
-    prior_launch = (startup_reader.PRE_STAGE_LAYOUT_LAUNCH_PRODUCER_SHA,
+    prior_launch = (startup_reader.PRE_RASTER_STARTS_LAUNCH_PRODUCER_SHA,
+                    startup_reader.PRE_STAGE_LAYOUT_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_AUTH_PHASE_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_LIGHT_MOTION_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_FIRST_PROGRESS_LAUNCH_PRODUCER_SHA,

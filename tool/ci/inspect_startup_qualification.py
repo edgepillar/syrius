@@ -35,6 +35,7 @@ PRE_MOTION_LAUNCH_PRODUCER_SHA = '34e0f9e31655e61d9299a0c3002f99f921ca2e2ad7fe3c
 PRE_LIGHT_MOTION_LAUNCH_PRODUCER_SHA = '090cfbe23429e293c5e7b9c7eef93c2ee903ad29b06ecfa08423dcf557925ecb'
 PRE_AUTH_PHASE_LAUNCH_PRODUCER_SHA = '7dfdc17484942d61429e0bca2f48085ef9964d70414f3fb75511a942b0c560bc'
 PRE_STAGE_LAYOUT_LAUNCH_PRODUCER_SHA = 'dc0c379a8abaa7b0e2ab39f1ff445a7325a5c29e804add276e646c5a6b7e1982'
+PRE_RASTER_STARTS_LAUNCH_PRODUCER_SHA = '0c726ce6e6b7bfc5de9ce77702782366d489b7215815d1cd6b8833a03996a2df'
 # The timing lane preserves earlier launch, lock and quiz producers.
 PRE_TIMING_LAUNCH_PRODUCER_SHA = 'e579d76e178e69189069f5269a0ba8981f3e435a10e0f80f69bb2d559b4761a2'
 FIRST_TIMING_LAUNCH_PRODUCER_SHA = '6880559d501bc59bff26865155af96efe56322a61a587a04edccc37b41a487a5'
@@ -611,7 +612,7 @@ def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=F
             if quiz and name == 'tool/ci/windows_quiz_catalog.py':
                 prior = PRIOR_QUIZ_PRODUCER_SHAS
             if name == 'tool/ci/windows_launch_catalog.py':
-                prior = (*prior, PRE_BATCH_LAUNCH_PRODUCER_SHA)
+                prior = (*prior, PRE_BATCH_LAUNCH_PRODUCER_SHA, PRE_RASTER_STARTS_LAUNCH_PRODUCER_SHA)
             before_phase_capture = (name == 'tool/ci/windows_launch_catalog.py'
                                     and archive.sha(body) in (PRE_PHASE_LAUNCH_PRODUCER_SHA,
                                                              PRE_MOTION_LAUNCH_PRODUCER_SHA))

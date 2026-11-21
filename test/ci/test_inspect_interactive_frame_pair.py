@@ -273,6 +273,22 @@ class InteractiveFramePairTests(unittest.TestCase):
             with self.assertRaises(pair.shared.launch.startup.Failure):
                 pair.shared.launch.frame_timing_rows(dict(window, peakBuildWaitUs=refusal))
 
+    def test_retained_raster_starts_resolve_interaction_boundaries(self):
+        window = dict(schema=1, scope='harness_frame_window', windowUs=100000,
+                      frames=[[0, 1000, 1000, 2000, 5000],
+                              [1, 5000, 3000, 5000, 16000]])
+        observed = dict(window, rasterStartsUs=[2500, 14000])
+        older = inspect._window_diagnostics(window, 9000, 4500)
+        current = inspect._window_diagnostics(observed, 9000, 4500)
+        self.assertEqual(older['raster_start_groups']['crossing']['samples'], 1)
+        self.assertEqual(current['raster_start_groups']['crossing']['samples'], 0)
+        self.assertEqual(current['raster_start_groups']['after']['samples'], 1)
+        self.assertEqual(current['peak_raster_start_bounds_from_tap_us'],
+                         dict(earliest=5000, latest=5000))
+        for starts in ([2500], [1999, 14000], [2500, 16001], [True, 14000]):
+            with self.assertRaises(pair.shared.launch.startup.Failure):
+                pair.shared.launch.frame_timing_rows(dict(window, rasterStartsUs=starts))
+
     def test_retained_process_and_window_durations_are_bounded_observations(self):
         offered = fixture()
         observation = offered['samples']['current']['observation']
@@ -708,6 +724,7 @@ class InteractiveFramePairTests(unittest.TestCase):
     def test_normal_about_content_uses_visible_licences_and_keeps_scroll_outside_timing(self):
         window = dict(fixture()['samples']['current']['observation']['windows']['page_change'],
                       peakBuildWaitUs=0)
+        window['rasterStartsUs'] = [row[1] + row[2] for row in window['frames']]
         for fault in (None, 'closed', 'content', 'address', 'scroll', 'tap_offset',
                       'phase_offset', 'pointer_order'):
             calls, validated, pauses = [], [], []
@@ -798,6 +815,7 @@ class InteractiveFramePairTests(unittest.TestCase):
                     self.assertEqual(len(calls), 16)
                     self.assertEqual(pauses, [0.6, 0.6])
                     self.assertEqual(len(validated), 2)
+                    self.assertEqual(validated, [window, window])
                     self.assertEqual(tap_releases, {'page_change': 50_000, 'disclosure': 60_000})
                     self.assertEqual(page_phases, dict(settled=350_000))
                     self.assertEqual(pointer_phases, dict(

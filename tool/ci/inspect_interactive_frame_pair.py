@@ -195,6 +195,9 @@ def _window_diagnostics(window, tap_release_us, motion_us, observed_phases=None,
     result = cold.window_diagnostics(window, peak_starts=True)
     if tap_release_us is not None:
         rows = pair.shared.launch.frame_timing_rows(window, allow_packed=True)
+        raster_starts = cold.recorded_raster_starts(rows, window)
+        if raster_starts:
+            result['raster_start_timestamps_observed'] = True
         result['tap_release_us'] = tap_release_us
         result['peak_raster_start_bounds_from_tap_us'] = {
             name: offset - tap_release_us
@@ -215,7 +218,8 @@ def _window_diagnostics(window, tap_release_us, motion_us, observed_phases=None,
         phase_groups = {name: _raster_groups('before', 'at_or_after', 'crossing')
                         for name in offsets}
         for row in rows:
-            earliest, latest = cold.raster_start_bounds(row, tap_release_us)
+            earliest, latest = cold.raster_start_bounds(
+                row, tap_release_us, observed_us=raster_starts.get(row[0]))
             if latest < 0:
                 group = groups['before']
             elif earliest >= motion_us:

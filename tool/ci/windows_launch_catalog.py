@@ -45,6 +45,7 @@ MAX_PAIRED_TIMING_US = 120000000
 PAIRED_TIMING_REPLY_CAP = 128 * 1024
 TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frames')
 PEAK_BUILD_WAIT_FIELD = 'peakBuildWaitUs'
+RASTER_STARTS_FIELD = 'rasterStartsUs'
 PACKED_TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frameCount', 'packedFrames')
 STARTUP_PHASE_FIELD = 'startupPhaseUs'
 STARTUP_AUTH_FIELD = 'startupAuthInShellUs'
@@ -220,7 +221,8 @@ def frame_timing_rows(value, *, allow_packed=False):
         and startup.integer(value.get('windowUs'), 1, window_limit))
     duration = value['windowUs']
     fields = set(TIMING_FIELDS)
-    if value['schema'] == 1 and set(value) in (fields, fields | {PEAK_BUILD_WAIT_FIELD}):
+    if (value['schema'] == 1
+            and fields <= set(value) <= fields | {PEAK_BUILD_WAIT_FIELD, RASTER_STARTS_FIELD}):
         rows = value['frames']
         need(type(rows) is list and 0 < len(rows) <= MAX_TIMING_FRAMES)
     elif allow_packed and value['schema'] == 2:
@@ -251,6 +253,11 @@ def frame_timing_rows(value, *, allow_packed=False):
     if PEAK_BUILD_WAIT_FIELD in value:
         _, _, build, raster, total = max(rows, key=lambda row: row[4])
         need(startup.integer(value[PEAK_BUILD_WAIT_FIELD], 0, total - build - raster))
+    if RASTER_STARTS_FIELD in value:
+        starts = value[RASTER_STARTS_FIELD]
+        need(type(starts) is list and len(starts) == len(rows))
+        need(all(startup.integer(raster_start, start + build, start + total - raster)
+                 for (_, start, build, raster, total), raster_start in zip(rows, starts)))
     return rows
 
 

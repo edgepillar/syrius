@@ -9,6 +9,7 @@ typedef _Sample = ({
   int start,
   int build,
   int raster,
+  int rasterStart,
   int total,
   int waitForBuild,
 });
@@ -47,12 +48,12 @@ class HarnessFrameWindowRefused implements Exception {
 class HarnessFrameWindow {
   /// Begins collecting at a time on the engine's Dart timeline clock.
   ///
-  /// Interactive measurements can retain the wait before build for the
-  /// longest frame, using the engine's vsync and build timestamps.
+  /// Interactive measurements retain raster starts and the longest frame's
+  /// wait before build on the engine clock.
   HarnessFrameWindow(
     this._startUs, {
     this._packed = false,
-    this._includePeakBuildWait = false,
+    this._includeInteractiveDiagnostics = false,
   });
 
   /// Maximum samples in the ordinary JSON reply.
@@ -66,7 +67,7 @@ class HarnessFrameWindow {
 
   final int _startUs;
   final bool _packed;
-  final bool _includePeakBuildWait;
+  final bool _includeInteractiveDiagnostics;
   int get _windowLimitUs => _packed ? _maxPackedWindowUs : _maxWindowUs;
   final List<_Sample> _samples = <_Sample>[];
   final Completer<void> _delivered = Completer<void>();
@@ -98,7 +99,7 @@ class HarnessFrameWindow {
       final int build = timing.buildDuration.inMicroseconds;
       final int raster = timing.rasterDuration.inMicroseconds;
       final int total = timing.totalSpan.inMicroseconds;
-      final int waitForBuild = _includePeakBuildWait
+      final int waitForBuild = _includeInteractiveDiagnostics
           ? start - timing.timestampInMicroseconds(ui.FramePhase.vsyncStart)
           : 0;
       if (_samples.length == capacity) {
@@ -119,6 +120,9 @@ class HarnessFrameWindow {
         start: start,
         build: build,
         raster: raster,
+        rasterStart: _includeInteractiveDiagnostics
+            ? timing.timestampInMicroseconds(ui.FramePhase.rasterStart)
+            : 0,
         total: total,
         waitForBuild: waitForBuild,
       ));
@@ -162,10 +166,14 @@ class HarnessFrameWindow {
       'schema': 1,
       'scope': 'harness_frame_window',
       'windowUs': duration,
-      if (_includePeakBuildWait)
+      if (_includeInteractiveDiagnostics)
         'peakBuildWaitUs': _samples
             .reduce((_Sample a, _Sample b) => a.total >= b.total ? a : b)
             .waitForBuild,
+      if (_includeInteractiveDiagnostics)
+        'rasterStartsUs': <int>[
+          for (final _Sample sample in _samples) sample.rasterStart - _startUs,
+        ],
       'frames': <List<int>>[
         for (final _Sample sample in _samples)
           <int>[
