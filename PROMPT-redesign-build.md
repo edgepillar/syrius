@@ -2154,6 +2154,11 @@ themes match the sampled title rows 234 through 254 and subtitle rows
 282 through 294. The comparison covers those text bands. The complete
 Welcome verdicts remain open under V01.
 
+The [Linux validation at `d1eb02a9`](https://github.com/edgepillar/syrius/actions/runs/44851643307/job/136684120771)
+passes strict analysis after the subtitle formatting correction. It
+records 5,129 non-chain tests passed, one skip, and successful generated
+file verification.
+
 Independent Windows readers verify the [eight Home PNGs](https://github.com/edgepillar/syrius/actions/runs/44765737077/job/136389745160),
 [ten Details PNGs](https://github.com/edgepillar/syrius/actions/runs/44765742529/job/136389763108)
 and [four prepared Send PNGs](https://github.com/edgepillar/syrius/actions/runs/44765748064/job/136389783471)
