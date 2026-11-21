@@ -3238,6 +3238,30 @@ recapture confirms the restored drawing rule after the earlier revision
 matched seven positions. The Originals footer ends at row 561 in both
 captures. V01 still requires whole-image review of the ten pairs.
 
+The [Details pixel reader at `f40c785e`](https://github.com/edgepillar/syrius/actions/runs/44880560915/job/136774728130)
+compares both themes for all five screens using the verified archive
+from `31b5a23c`. The [first historical read](https://github.com/edgepillar/syrius/actions/runs/44880692498/job/136775112455)
+refused the earlier capture's artwork source before accessing its archive.
+The [reader at `d8ca7196`](https://github.com/edgepillar/syrius/actions/runs/44880852511/job/136775597917)
+verifies the artwork file against its original Git blob and compares the
+retained `c30e4b4e` captures. All ten reference PNG digests agree between
+readers. The table counts pixels with at least a 16-level difference in
+one RGB channel.
+
+| Screen | Dark at `c30e4b4e` | Dark at `31b5a23c` | Light at `c30e4b4e` | Light at `31b5a23c` |
+| --- | ---: | ---: | ---: | ---: |
+| Receive QR | 35,638 | 35,558 | 33,908 | 34,108 |
+| Zap form | 33,859 | 33,853 | 34,634 | 34,434 |
+| Plasma Fuse | 35,584 | 35,582 | 38,295 | 38,309 |
+| Licences | 32,398 | 20,534 | 32,517 | 20,653 |
+| Originals | 19,829 | 21,777 | 24,848 | 26,808 |
+
+The content region accounts for all 11,864 fewer differing Licences
+pixels per theme. The Originals content region accounts for 1,948 and
+2,004 more differing pixels in dark and light. Its gallery and sampled
+artwork phases need visual review. The counts include fixture and
+animation differences. Whole-image acceptance remains open.
+
 The [Windows interface run at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44876122524/job/136761087924)
 and its [independent inspection](https://github.com/edgepillar/syrius/actions/runs/44877853952/job/136766426791)
 verify all eleven scoped Home, Activity, Go To, Pillars and Swap seam
