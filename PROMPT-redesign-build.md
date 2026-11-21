@@ -4107,9 +4107,19 @@ removes the separate state update that recreated the Disclosure widget
 on first open. The existing About case checks the identity of that
 widget alongside deferred reads, retained paint and closure. Strict
 analysis of the changed app and test files reports no issues.
-[Linux validation](https://github.com/edgepillar/syrius/actions/runs/44931328143)
-and the [paired Windows measurement](https://github.com/edgepillar/syrius/actions/runs/44931364527)
-target `bb4961af`. Native timing at that source is pending.
+[Linux at `bb4961af`](https://github.com/edgepillar/syrius/actions/runs/44931328143/job/136928386950)
+passes application and strict selected analysis, the focused licence tests,
+5,131 non-chain tests with one skip, and generated-file verification.
+The same source's [paired Windows measurement](https://github.com/edgepillar/syrius/actions/runs/44931364527/job/136928502296)
+is pending.
+
+The [Details visual run at `59a1f859`](https://github.com/edgepillar/syrius/actions/runs/44932173389)
+targets five screens in both themes, including Licences and Originals.
+Its application, harness, tests, assets and workflow match `bb4961af`.
+The [first Details dispatch](https://github.com/edgepillar/syrius/actions/runs/44932048744/job/136930594633)
+was refused before SDK setup because the required native shutdown diagnostic
+input was omitted. The new dispatch supplies that input through the
+existing isolated Windows workflow. Capture and visual review are pending.
 
 The [first compatibility read of `08ecf715`](https://github.com/edgepillar/syrius/actions/runs/44926305670/job/136913047287)
 reads the original timings and refuses the paired images at the older
@@ -4460,7 +4470,7 @@ and generated-file verification. Native observation remains open under V02.
 | Original requirement | Evidence on this revision |
 | --- | --- |
 | Clean Windows Debug and Release | The last independently verified baseline at `a57d60a7` includes both builds. Since then, app changes touch Disclosure, About, Node and Addresses. The startup, platform build configuration, dependencies and assets retain their baseline contents. The new [paired Windows run](https://github.com/edgepillar/syrius/actions/runs/44931364527) targets Release on `bb4961af`. Final Debug and Release evidence remains open. |
-| Analysis and tests | The changed About source and widget test pass strict local analysis. [Linux validation](https://github.com/edgepillar/syrius/actions/runs/44931328143) has passed application and strict selected analysis. The full suite and generation checks are pending. |
+| Analysis and tests | The changed About source and widget test pass strict local analysis. [Linux validation](https://github.com/edgepillar/syrius/actions/runs/44931328143) has passed application and strict selected analysis. The non-chain suite passes 5,131 tests with one skip and generated-file verification passes. |
 | All 47 screens in both themes | The [prepared Node and Addresses review](#node-and-addresses-at-0e3b2f5d) retains same-source positions, typography and all four images. About and Disclosure now have newer source. The full current capture set and matching verdicts remain open. |
 | Running motion, shaders and P06 timing | The [interactive reader at `8488ee5e`](https://github.com/edgepillar/syrius/actions/runs/44931015819/job/136927427883) verifies slow rasters from frames built after observed settlement. Its original run is pinned to `3bf40fbd`, which still fails the 16 ms comparison. The full motion review and the new paired measurement remain open. |
 | Seam refusals | Comparing `564d01ab` with `bb4961af` preserves the registry, palette, shortcut, holder-token and shared gate source. The rail diff updates animation and tooltip presentation. The shell frame diff gates when the entry status appears. The changed Node and About code preserves their existing seam gates and callbacks. The executed refusals stay pinned to the retained trials. |
