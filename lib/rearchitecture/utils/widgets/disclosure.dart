@@ -313,11 +313,10 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
 
   void _onController() => _setOpen(widget.controller!.isOpen);
 
-  /// The two ends take a build that no change of the widget asks for:
-  /// closed, the body leaves the tree or goes offstage; open, the clip
-  /// comes off.
+  /// A dismissed body leaves the tree or goes offstage. On opening, the
+  /// reveal's own final tick removes its clip without rebuilding the header.
   void _onBodyStatus(AnimationStatus status) {
-    if (!mounted || status.isAnimating) return;
+    if (!mounted || _open || status != AnimationStatus.dismissed) return;
     setState(() {});
   }
 

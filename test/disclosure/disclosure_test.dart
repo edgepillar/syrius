@@ -242,6 +242,7 @@ void main() {
       expect(_turns(tester), 0);
       expect(_clip(tester), Clip.hardEdge);
       expect(layer.firstChild, same(paint));
+      final InkWell openingHeader = tester.widget<InkWell>(toggle);
 
       // The controller reports completion on a tick past its 240 ms limit.
       await tester.pump(const Duration(milliseconds: 15, microseconds: 1));
@@ -250,6 +251,7 @@ void main() {
       expect(_clip(tester), Clip.none);
       expect(tester.binding.transientCallbackCount, 0);
       expect(layer.firstChild, same(paint));
+      expect(tester.widget<InkWell>(toggle), same(openingHeader));
 
       // Anywhere on the row, not only on the title or the chevron.
       await tester.tapAt(const Offset(200, _header / 2));

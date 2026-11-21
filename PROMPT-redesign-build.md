@@ -4065,6 +4065,13 @@ Five slow disclosure rasters begin after settlement. The engine
 timestamps resolve the measured frames at both observed phase boundaries.
 The cause of the raster cost and V02 remain open.
 
+The disclosure opening now removes its clip through the final reveal
+tick. The parent rebuild at that endpoint was redundant. Closing still
+rebuilds the parent to dismiss the body. The existing widget case checks
+header reuse at the opening endpoint alongside the original 240 ms
+reveal, 220 ms chevron, paint retention and dismissal. Targeted Dart
+analysis passes. A paired Windows run is needed to measure the effect.
+
 The [first compatibility read of `08ecf715`](https://github.com/edgepillar/syrius/actions/runs/44926305670/job/136913047287)
 reads the original timings and refuses the paired images at the older
 producer pin. The [corrected reader at `39239f24`](https://github.com/edgepillar/syrius/actions/runs/44926469990/job/136913544116)
