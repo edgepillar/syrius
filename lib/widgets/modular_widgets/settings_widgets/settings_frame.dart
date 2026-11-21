@@ -88,22 +88,25 @@ class SettingsFrame extends StatelessWidget {
         SizedBox(
           key: const Key('settings_section_menu'),
           width: tokens.settingsMenuWidth,
-          child: Panel(
-            padding: EdgeInsets.all(tokens.inlineGap),
-            // Traverse all section links before entering page controls.
-            child: FocusTraversalGroup(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    for (final SettingsSectionId section
-                        in SettingsSectionId.values)
-                      _SectionItem(
-                        section: section,
-                        selected: section == selected,
-                        onTap: () => onSelected(section),
-                      ),
-                  ],
+          // A disclosure repaint in the section can reuse the menu's paint.
+          child: RepaintBoundary(
+            child: Panel(
+              padding: EdgeInsets.all(tokens.inlineGap),
+              // Traverse all section links before entering page controls.
+              child: FocusTraversalGroup(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      for (final SettingsSectionId section
+                          in SettingsSectionId.values)
+                        _SectionItem(
+                          section: section,
+                          selected: section == selected,
+                          onTap: () => onSelected(section),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -245,6 +245,10 @@ void main() {
     final List<SettingsSectionId> actions = <SettingsSectionId>[];
     await tester.pumpWidget(_app(onAction: actions.add, hostOwnsPaint: true));
     await tester.pumpAndSettle();
+    final Finder menu = find.byKey(const Key('settings_section_menu'));
+    final Widget? menuPaint = tester.widget<SizedBox>(menu).child;
+    expect(menuPaint, isA<RepaintBoundary>());
+    final Element retainedMenu = tester.element(find.byWidget(menuPaint!));
     final Finder switcher = find.byType(RiseSwitcher);
     final Finder boundaries = find.descendant(
       of: switcher,
@@ -261,6 +265,8 @@ void main() {
     await tester.tap(_section(SettingsSectionId.apps));
     await tester.pump();
     expect(boundaries, findsNWidgets(2));
+    final Widget? movingMenuPaint = tester.widget<SizedBox>(menu).child;
+    expect(tester.element(find.byWidget(movingMenuPaint!)), same(retainedMenu));
     expect(find.text('Page addresses'), findsOneWidget);
     await tester.tapAt(oldAction);
     await tester.pump();
