@@ -42,6 +42,20 @@ def split_pointer_diagnostics(windows):
     return pointer
 
 
+def split_phase_diagnostics(windows):
+    """Keep observed motion boundaries in their own bounded notice."""
+    phases = {}
+    for name, timing in windows.get('current', {}).items():
+        if 'observed_post_frame_offsets_from_tap_us' in timing:
+            phases[name] = {
+                key: timing.pop(key) for key in (
+                    'observed_post_frame_offsets_from_tap_us',
+                    'raster_start_groups_by_observed_phase',
+                )
+            }
+    return phases
+
+
 def sample_receipts(value, *, allow_tap_release=False):
     if value == {}:
         return {}, False, False, False
@@ -176,7 +190,7 @@ def _record_raster(group, raster):
     group['max_raster_us'] = max(group['max_raster_us'], raster)
 
 
-def _window_diagnostics(window, tap_release_us, motion_us, disclosure_phases=None,
+def _window_diagnostics(window, tap_release_us, motion_us, observed_phases=None,
                         pointer_phases=None):
     result = cold.window_diagnostics(window, peak_starts=True)
     if tap_release_us is not None:
@@ -197,7 +211,7 @@ def _window_diagnostics(window, tap_release_us, motion_us, disclosure_phases=Non
                 for name, offset in pointer_offsets.items()}
         groups = _raster_groups('before', 'within', 'after', 'crossing')
         offsets = {name: offset - tap_release_us
-                   for name, offset in (disclosure_phases or {}).items()}
+                   for name, offset in (observed_phases or {}).items()}
         phase_groups = {name: _raster_groups('before', 'at_or_after', 'crossing')
                         for name in offsets}
         for row in rows:
@@ -212,8 +226,7 @@ def _window_diagnostics(window, tap_release_us, motion_us, disclosure_phases=Non
                 group = groups['crossing']
             raster = row[3]
             _record_raster(group, raster)
-            # These post-frame observations are independent. The list can
-            # lay out either before or after the disclosure settles.
+            # Each post-frame observation is an independent boundary.
             for name, offset in offsets.items():
                 if latest < offset:
                     phase = 'before'
@@ -311,8 +324,13 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         value['no_added_reported_slow_frames'] and value['no_frame_number_gaps']
         for value in comparisons.values()))
     diagnostic_windows = {}
+    observed_phases = {}
     if current_passed:
         diagnostic_windows['current'] = windows
+        observation = samples['current']['observation']
+        observed_phases['disclosure'] = observation.get('disclosure_phases_us')
+        if 'page_settled_us' in observation:
+            observed_phases['page_change'] = {'settled': observation['page_settled_us']}
     if complete:
         diagnostic_windows['p06'] = old
     raster_overruns = {}
@@ -397,8 +415,7 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         verified_window_diagnostics={
             label: {name: _window_diagnostics(
                         window, samples[label]['observation'].get('tap_release_us', {}).get(name),
-                        MOTION_US[name], samples[label]['observation'].get(
-                            'disclosure_phases_us') if name == 'disclosure' else None,
+                        MOTION_US[name], observed_phases.get(name) if label == 'current' else None,
                         pointer_phases=samples[label]['observation'].get('pointer_phases_us', {}).get(name))
                     for name, window in frame_windows.items()}
             for label, frame_windows in diagnostic_windows.items()

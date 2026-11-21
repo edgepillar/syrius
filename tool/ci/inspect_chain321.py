@@ -963,6 +963,7 @@ def main():
                       + '::' + encoded_comparisons, flush=True)
             need(diagnostics is not None)
             pointer = inspect_interactive_frame_pair.split_pointer_diagnostics(diagnostics)
+            phases = inspect_interactive_frame_pair.split_phase_diagnostics(diagnostics)
             diagnostics_summary = dict(identity,
                 scope=('retained_current_interactive_frame_diagnostics' if current_only
                        else 'retained_paired_interactive_frame_diagnostics'),
@@ -979,6 +980,13 @@ def main():
                 need(len(encoded_pointer.encode('ascii')) <= 3800)
                 print('::notice title=' + inspect_interactive_frame_pair.POINTER_DIAGNOSTICS_TITLE
                       + '::' + encoded_pointer, flush=True)
+            if phases:
+                phase_summary = dict(identity,
+                    scope='retained_interactive_observed_motion_phases', windows=phases)
+                encoded_phases = json.dumps(phase_summary, sort_keys=True, separators=(',', ':'))
+                need(len(encoded_phases.encode('ascii')) <= 3800)
+                print('::notice title=Retained interactive motion phases::' + encoded_phases,
+                      flush=True)
         encoded = json.dumps(interactive_result, sort_keys=True, separators=(',', ':'))
         need(len(encoded.encode('ascii')) <= 3800)
         print('::notice title=' + inspect_interactive_frame_pair.TITLE + '::' + encoded, flush=True)

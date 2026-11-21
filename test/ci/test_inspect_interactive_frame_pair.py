@@ -398,6 +398,13 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(settled['page_settled_us'], 300_000)
         self.assertEqual(settled['verified_raster_rank_overruns']['page_change']['by_phase'],
                          dict(before_release=0, before_settlement=1, after_settlement=1, crossing=1))
+        page_settlement = settled['verified_window_diagnostics']['current']['page_change']
+        self.assertEqual(page_settlement['observed_post_frame_offsets_from_tap_us'],
+                         {'settled': 295_000})
+        self.assertEqual(page_settlement['raster_start_groups_by_observed_phase'], dict(
+            columns=['samples', 'slow_raster', 'max_raster_us'],
+            phases={'settled': dict(before=[3, 2, 21_000],
+                                   at_or_after=[2, 1, 24_000], crossing=[0, 0, 0])}))
         for invalid in (False, 4999, 1_000_000):
             measured['page_settled_us'] = invalid
             with self.subTest(page_settled_us=invalid), self.assertRaises(archive.Refused):
@@ -1345,6 +1352,8 @@ class InteractiveFramePairTests(unittest.TestCase):
         offered['samples']['current']['observation']['disclosure_phases_us'] = dict(
             settled=pair.actions.MAX_WINDOW_US - 1,
             list_laid_out=pair.actions.MAX_WINDOW_US - 1)
+        offered['samples']['current']['observation']['page_settled_us'] = (
+            pair.actions.MAX_WINDOW_US - 1)
         offered['comparisons'] = {name: pair.shared.compare_windows(full, full)
                                  for name in pair.WINDOWS}
         self.assertLessEqual(len(cold.canonical(offered)) + 1, pair.MAX_MANIFEST)
@@ -1356,6 +1365,9 @@ class InteractiveFramePairTests(unittest.TestCase):
         pointer = inspect.split_pointer_diagnostics(diagnostics)
         self.assertEqual(set(pointer), set(pair.WINDOWS))
         self.assertEqual(inspect.split_pointer_diagnostics(diagnostics), {})
+        phases = inspect.split_phase_diagnostics(diagnostics)
+        self.assertEqual(set(phases), set(pair.WINDOWS))
+        self.assertEqual(inspect.split_phase_diagnostics(diagnostics), {})
         self.assertLessEqual(len(cold.canonical(result)), 3800)
         identity = {key: result[key] for key in (
             'schema', 'source_head', 'source_tree', 'source_run_id', 'source_attempt',
@@ -1366,6 +1378,9 @@ class InteractiveFramePairTests(unittest.TestCase):
         pointer_summary = dict(identity, scope='retained_interactive_pointer_timing',
                                paired_timing_gate_passed=False, windows=pointer)
         self.assertLessEqual(len(cold.canonical(pointer_summary)), 3800)
+        phase_summary = dict(identity, scope='retained_interactive_observed_motion_phases',
+                             paired_timing_gate_passed=False, windows=phases)
+        self.assertLessEqual(len(cold.canonical(phase_summary)), 3800)
         self.assertFalse(any(result['no_frame_number_gaps'].values()))
         self.assertFalse(result['timing_criterion_passed'])
 

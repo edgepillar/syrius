@@ -3708,6 +3708,13 @@ raster takes 111.158 ms and starts 384.196 to 445.648 ms after release,
 after the panel settlement observed at 261.688 ms. These ranges do not
 identify a widget as the cause of either delay.
 
+The independent timing reader now counts all reported raster starts
+before, across and after the observed Page Change settlement. The
+nominal 320 ms groups and the ranked P06 comparison remain available.
+The observed page and disclosure phases have their own bounded notice.
+Existing receipt controls exercise both intervals and annotation size.
+The retained pair can supply these diagnostics without another build.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.
