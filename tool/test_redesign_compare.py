@@ -336,7 +336,10 @@ class CompareTests(unittest.TestCase):
     def add_actual(self, size: tuple[int, int] = (4, 3)) -> None:
         self.save_png(self.actual / f"{self.stem}.png", size)
 
-    def review_file(self, verdict: str = "match", stale_field: str | None = None) -> Path:
+    def review_file(
+        self, verdict: str = "match", stale_field: str | None = None, *,
+        filename: str = "reviews.json",
+    ) -> Path:
         record = {
             "verdict": verdict,
             "reviewer": "Reviewer <test>",
@@ -347,11 +350,11 @@ class CompareTests(unittest.TestCase):
         }
         if stale_field:
             record[stale_field] = "0" * 64
-        path = self.repo / "reviews.json"
+        path = self.repo / filename
         path.write_text(json.dumps({"reviews": {self.stem: record}}), encoding="utf-8")
         return path
 
-    def report(self, reviews: Path | None = None) -> dict[str, object]:
+    def report(self, reviews: Path | tuple[Path, ...] | None = None) -> dict[str, object]:
         return generate_report(
             self.repo, self.actual, self.output, reviews, required_size=(4, 3)
         )
@@ -449,6 +452,24 @@ class CompareTests(unittest.TestCase):
                 pair = self.report(self.review_file(stale_field=field))["pairs"][0]
                 self.assertEqual(pair["state"], "unreviewed")
                 self.assertEqual(pair["review"]["state"], "stale")
+
+    def test_review_batches_select_exact_hashes_and_surface_conflicts(self) -> None:
+        self.add_actual()
+        older = self.review_file(stale_field="actual_sha256", filename="older.json")
+        current = self.review_file(verdict="mismatch")
+        for batches in ((older, current), (current, older), (current, current)):
+            with self.subTest(batches=batches):
+                pair = self.report(batches)["pairs"][0]
+                self.assertEqual(pair["state"], "reviewed-mismatch")
+
+        conflicting = self.review_file(filename="conflicting.json")
+        for batches in ((current, conflicting), (conflicting, current)):
+            with self.subTest(batches=batches):
+                pair = self.report(batches)["pairs"][0]
+                self.assertEqual(pair["state"], "unreviewed")
+                self.assertEqual(pair["review"]["state"], "conflicting")
+                page = (self.output / "index.html").read_text(encoding="utf-8")
+                self.assertIn("Exact image reviews disagree", page)
 
     def test_inventory_and_report_keep_source_order(self) -> None:
         result = self.report()

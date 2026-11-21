@@ -66,9 +66,11 @@ Manual reviews use screenshot stems as keys. For example:
   }
 }
 
-The other verdict is "mismatch". A review applies only to those two exact
-images. A pixel score, including 100%, leaves a pair unreviewed. This report
-does not update the prompt's Progress table or qualify motion or Windows.
+The other verdict is "mismatch". Repeat --reviews to read separate batches.
+A review applies only to those two exact images. Conflicting verdicts for
+the same image pair leave it unreviewed. A pixel score, including 100%,
+leaves a pair unreviewed. This report does not update the prompt's Progress
+table or qualify motion or Windows.
 The score also counts pixels where at least one channel differs by 16 or
 more. This helps distinguish small colour differences from larger ones.
 """
@@ -78,7 +80,7 @@ from __future__ import annotations
 import argparse
 import ast
 from collections import Counter, defaultdict
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from contextlib import closing
 from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
@@ -574,6 +576,18 @@ def review_status(
     return {"state": "current", **{key: review[key] for key in fields}, "note": review.get("note", "")}
 
 
+def select_review(
+    reviews: Sequence[object], expected_sha: str, actual_sha: str,
+) -> dict[str, object]:
+    statuses = [review_status(review, expected_sha, actual_sha) for review in reviews]
+    current = [status for status in statuses if status["state"] == "current"]
+    if not current:
+        return statuses[0] if statuses else {"state": "none"}
+    if any(status["verdict"] != current[0]["verdict"] for status in current):
+        return {"state": "conflicting", "reason": "Exact image reviews disagree"}
+    return current[0]
+
+
 def difference_mask(diff: Image.Image) -> Image.Image:
     return reduce(ImageChops.lighter, diff.split())
 
@@ -623,7 +637,7 @@ def compare_pair(
     expected_dir: Path,
     capture: Capture | None,
     output: Path | None,
-    reviews: dict[str, object],
+    reviews: Mapping[str, Sequence[object]],
     required_size: tuple[int, int] = IMAGE_SIZE,
     *,
     target_source: str | None = None,
@@ -689,7 +703,7 @@ def compare_pair(
             family = PREPARED_CATALOGS[stem.rsplit("-", 1)[0]]
             pair.update(state="diagnostic-capture", reason=f"Prepared {family} capture required")
         else:
-            review = review_status(reviews.get(stem), expected["sha256"], actual["sha256"])
+            review = select_review(reviews.get(stem, ()), expected["sha256"], actual["sha256"])
             pair["review"] = review
             pair["state"] = (
                 f"reviewed-{review['verdict']}" if review["state"] == "current" else "unreviewed"
@@ -824,7 +838,7 @@ def generate_report(
     repo: Path,
     actual_dir: Path | None,
     output: Path | None,
-    reviews_path: Path | None = None,
+    reviews_path: Path | Sequence[Path] | None = None,
     *,
     actual_manifest: Path | Sequence[Path] | None = None,
     archive_dir: Path | None = None,
@@ -844,7 +858,13 @@ def generate_report(
     expected_dir = src.parent / "shots"
     screens = screen_inventory(src)
     notes = screen_notes(src / "90-tail.html", screens)
-    reviews = load_reviews(reviews_path)
+    review_sources = (
+        (reviews_path,) if reviews_path is None or isinstance(reviews_path, Path) else reviews_path
+    )
+    reviews: dict[str, list[object]] = defaultdict(list)
+    for source in review_sources:
+        for stem, review in load_reviews(source).items():
+            reviews[stem].append(review)
     stems = {screen.stem(theme) for screen in screens for theme in THEMES}
     if actual_manifest is not None:
         if actual_dir is not None:
@@ -922,7 +942,8 @@ def main() -> int:
                         help="Directory containing archives named by their SHA-256")
     parser.add_argument("--target-source", help="Accept reviews only for captures at this full Git commit")
     parser.add_argument("--output-dir", type=Path, help="Save the comparison report here")
-    parser.add_argument("--reviews", type=Path, help="Manual, image-hash-bound visual review JSON")
+    parser.add_argument("--reviews", type=Path, action="append",
+                        help="Manual, image-hash-bound visual review JSON, repeatable")
     parser.add_argument("--no-diff-images", action="store_true",
                         help="Link inputs and report scores without writing difference PNGs")
     mode = parser.add_mutually_exclusive_group()

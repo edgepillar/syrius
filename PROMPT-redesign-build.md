@@ -4348,6 +4348,11 @@ reference. Go To shows all three groups and its shortcut footer. The
 synthetic contact and settled backdrop still differ from the reference.
 These results keep V01 open.
 
+The comparison tool accepts repeated `--reviews` arguments, so the earlier
+and recent review files can be read together without copying verdicts.
+Each verdict still requires both original image digests. A disagreement
+between verdicts for the exact same pair remains visible and unreviewed.
+
 The [reader at `6debd35d`](https://github.com/edgepillar/syrius/actions/runs/44946354661/job/136974431151)
 also re-verifies the original full Home archive at `8b8feaaf`.
 It reads the contact fixture from the exact producer revision through
