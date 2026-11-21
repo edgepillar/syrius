@@ -148,7 +148,10 @@ void main() {
         expect(importHint, findsOneWidget);
         expect(
           tester.getTopLeft(importHint).dy,
-          closeTo(tester.getBottomLeft(find.text('Import wallet')).dy - 1, 0.001),
+          closeTo(
+            tester.getBottomLeft(find.text('Import wallet')).dy - 1,
+            0.001,
+          ),
         );
         expect(find.byType(AppLottie), findsNothing);
         expect(find.byType(HeroField), findsNothing);
