@@ -2962,7 +2962,24 @@ footer stays at row 456 and the caret bounds stay at columns 429–430 and
 rows 136–152. The Notifications tooltip fills rows 657–684 at column 65
 in both themes. Four additional PNGs verify the minimum-window and Arabic
 viewport captures. Whole-image verification remains open. The
-[paired timing producer](https://github.com/edgepillar/syrius/actions/runs/44862588269)
+[Home pixel comparison at `041d2ded`](https://github.com/edgepillar/syrius/actions/runs/44864636439/job/136725460895)
+and the [same comparison at `ce7f0079`](https://github.com/edgepillar/syrius/actions/runs/44864729735/job/136725759506)
+use the same eight reference PNGs. The body crop counts agree across
+all eight before and after samples. The Home hero crop counts pixels
+whose RGB differs by at least 16 levels in any channel.
+
+| Screen | Dark before | Dark after | Light before | Light after |
+| --- | ---: | ---: | ---: | ---: |
+| Home rest | 12,090 | 12,092 | 23,736 | 23,226 |
+| Home open | 12,306 | 12,310 | 17,723 | 17,792 |
+| Home hidden | 9,429 | 9,430 | 23,497 | 22,990 |
+| Go To | 9,493 | 9,483 | 10,947 | 10,951 |
+
+The captures include their original data and sampled motion phases.
+The counts locate differences without isolating the texture or granting
+a whole-screen verdict.
+
+The [paired timing producer](https://github.com/edgepillar/syrius/actions/runs/44862588269)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44863894172/job/136723168084)
 verify both original windows and two normal entry, two normal wallet
 and five normal node exits. Page settlement occurs 483.387 ms after
