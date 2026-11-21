@@ -3570,7 +3570,23 @@ The Launch Settle reference draws the rising card without the settled
 card's backdrop blur or drop shadow. The candidate keeps both effects
 out of the handoff paint and restores them when the film reaches the well.
 The existing shadow raster can still prepare while the card is covered.
-The candidate needs a fresh image and frame-time comparison.
+
+The [standalone Windows handoff reader at `d5bfd815`](https://github.com/edgepillar/syrius/actions/runs/44896478581/job/136823122515)
+verifies both captures against the same two reference digests. The 16-level
+RGB difference count in light falls from 18,928 to 9,480. Below the Unlock
+band it falls from 10,090 to 1,051, and outside the fixed crops it falls
+from 413 to four. The dark region counts agree with the previous capture.
+The remaining discrepancies and whole-image verdicts stay under V01.
+[Linux at that source](https://github.com/edgepillar/syrius/actions/runs/44895025742/job/136818728201)
+passes analysis, 5,131 non-chain tests with one skip, and generated-file
+verification. Both Windows producers pass the startup handoff widget suite.
+
+The [paired cold read at `d5bfd815`](https://github.com/edgepillar/syrius/actions/runs/44896568730/job/136823393691)
+verifies 96 redesign frames, 1,326 P06 frames and five normal actor exits.
+All three reported 16 ms comparisons pass. The peak raster is 133.131 ms
+in the redesign and 136.771 ms in P06 during this run. The redesign peak
+starts 60.655 to 73.536 ms after the handoff begins. The windows retain
+16 redesign and 802 P06 frame-number gaps, so V02 remains open.
 
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
