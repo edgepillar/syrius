@@ -4232,6 +4232,21 @@ interval includes the authored 2.4-second pulse. The samples read the
 input to the halo painter. The visual motion review and P06 frame-time
 comparisons remain open under V02.
 
+#### Home visual review at `8b8feaaf`
+
+All eight original PNGs from the [independent Home read](https://github.com/edgepillar/syrius/actions/runs/44939548878/job/136953508820)
+were viewed beside the pinned references. The review used one verified archive
+without extracting duplicate PNG files.
+
+| State | Findings in both themes |
+| --- | --- |
+| Rest | The cards and Notifications tooltip align. The hero has a stronger green wash at the capture phase. The selected-address history, empty reward status and absent Pending card differ from the illustrated state. |
+| Open | The expanded rail and Tokens header align. The empty Tokens body omits the three illustrated rows. The shorter rewards header moves the Tokens card up. |
+| Hidden | The hero and the visible Activity amount are masked. The eye is green. The shorter Activity list and empty rewards remain visible differences. |
+| Go To | The overlay, caret and three result groups align. The synthetic contact and underlying Home content differ. The light overlay shows the shorter underlying Activity card through the frost. |
+
+The eight exact pairs remain in review under V01.
+
 The existing Windows Home catalog now samples the original toggle width
 on both opening and closing. The observer uses the original pointer and
 tree responses, restores the initial rail state and retains only bounded
@@ -4558,7 +4573,7 @@ also match the current test tree. Runs retain their original source pins.
 | --- | --- |
 | Clean Windows Debug and Release | [The environment guide](docs/environment.md) lists the setup. The [original Windows baseline at `0509e4c7`](https://github.com/edgepillar/syrius/actions/runs/44938431977/job/136950132912) and [independent log read](https://github.com/edgepillar/syrius/actions/runs/44940670604/job/136956933605) verify all twelve baseline checks, including Debug and Release builds in 105.485 and 147.140 seconds, with complete normal exits. The source, Debug and Release DLLs match and pass the map/export checks. |
 | Analysis and tests | [Linux validation at `2fb31a99`](https://github.com/edgepillar/syrius/actions/runs/44938117996/job/136949140195) passes application analysis, strict selected analysis, 5,132 non-chain tests with one skip, and tracked generation. It exercises 1,531 Windows-tour cases on Linux. The Windows baseline also reports 5,132 non-chain passes with one skip and zero analysis errors or warnings. Root analysis reports 1,302 infos. |
-| All 47 screens in both themes | The [Home reader at `8b8feaaf`](https://github.com/edgepillar/syrius/actions/runs/44939548878/job/136953508820) verifies eight PNGs and their parent closure. The [full older comparison](docs/review/source-28f9c121-independent-visual-review.md) retains 14 strict matches and 80 mismatches at its own source. The local generated gallery at `mockups/redesign/compare/index.html` has four unreviewed pairs and 90 missing native sides. The gallery output is Git-ignored. Completing the current-source gallery and accepting the matching pairs remain open. |
+| All 47 screens in both themes | The [Home review at `8b8feaaf`](#home-visual-review-at-8b8feaaf) covers eight independently verified PNGs and retains their visible differences. The [full older comparison](docs/review/source-28f9c121-independent-visual-review.md) retains 14 strict matches and 80 mismatches at its own source. The local generated gallery at `mockups/redesign/compare/index.html` has four unreviewed pairs and 90 missing native sides. The gallery output is Git-ignored. Completing the current-source gallery and accepting the matching pairs remain open. |
 | Running motion, shaders and P06 timing | The [Home reader](https://github.com/edgepillar/syrius/actions/runs/44939548878/job/136953508820) verifies intermediate positions on Transfer and Tokens. The [paired read at `bb4961af`](https://github.com/edgepillar/syrius/actions/runs/44933433360/job/136934826233) fails the 16 ms page-change and disclosure comparisons. The current runtime adds only the read-only halo phase accessor to that source. The halo painter and ticker retain the same implementation. The running visual review and current timing acceptance remain open. |
 | Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) records executed coverage for all fifteen registered seams and the original seamed palette route. The registry, shared gate, shortcut, palette, holder-token files and seam tests match `564d01ab`. The Node and About changes preserve the existing seam gates and callbacks. The original native refusals stay pinned to their retained trials. |
 
