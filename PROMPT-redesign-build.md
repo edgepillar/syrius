@@ -4270,8 +4270,11 @@ the hardware-wallet notice. The older dialog overrides the shared
 now uses the shared dialog radius, and the existing light and dark tests
 check the rendered glass boundary. Strict analysis and all 16 focused Send
 tests pass locally. A [fresh Send capture](https://github.com/edgepillar/syrius/actions/runs/44950222411)
-targets the caption frost change at `869006b9`. The radius correction
-requires its own Windows capture.
+targets the caption frost change at `869006b9`. A
+[second capture](https://github.com/edgepillar/syrius/actions/runs/44950968841)
+includes the radius correction at `619941ce`. The only runtime source
+change between the two producers is the Send confirmation widget.
+Their capture scripts, workflow, assets and dependency pins agree.
 
 | Screen | Visible differences in both themes |
 | --- | --- |
