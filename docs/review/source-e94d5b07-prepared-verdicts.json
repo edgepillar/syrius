@@ -1,0 +1,36 @@
+{
+  "reviews": {
+    "07-send-rest-dark": {
+      "actual_sha256": "d6e63a966ce49e3364f28c05e0237a1f78206624271b3573bf98eac69089e44b",
+      "expected_sha256": "511749787d2f186b2ffc3523fbb1060facc4669291275cb1c918a415acede6f2",
+      "note": "The prepared recipient, 12.5 ZNN amount and active Send action are visible. Recent contacts, the last-send note and the pending incoming queue are absent. The amount field retains its caret.",
+      "reviewed_at": "2026-11-21T21:12:31Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "07-send-rest-light": {
+      "actual_sha256": "5f3be1d4160e48c0560a49837eec0f8add1d283338efb93218c67e14f7c0f914",
+      "expected_sha256": "039197335de93690caee36086f94a62c0e3de0c2fe487623815efa653bd89b25",
+      "note": "The prepared recipient, 12.5 ZNN amount and active Send action are visible. Recent contacts, the last-send note and the pending incoming queue are absent. The amount field retains its caret.",
+      "reviewed_at": "2026-11-21T21:12:31Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "12-send-confirm-dark": {
+      "actual_sha256": "1f1d7e65e213889e6a6a99f11be7d72a8fd4f2ad91f6f0a572ea9699daecf498",
+      "expected_sha256": "fbc3d88a161dd949479bb5b40e39977453e7006ce8b4b11e33d3523f6a5d87a7",
+      "note": "The centred confirmation shows a first-send software-wallet warning and the original source address. The reference shows a known recipient and a Ledger prompt. The original dialog has rounder corners than the 12-pixel reference.",
+      "reviewed_at": "2026-11-21T21:12:31Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "12-send-confirm-light": {
+      "actual_sha256": "870800dde7d72f4bec3c7ef003bf4a01298ab5266673f1bb9645359c77946ced",
+      "expected_sha256": "51a04fbcade20aae27846b9ee00c931d1cd5c1ea3207826395e6184aada3d10b",
+      "note": "The centred confirmation shows a first-send software-wallet warning and the original source address. The reference shows a known recipient and a Ledger prompt. The original dialog has rounder corners than the 12-pixel reference.",
+      "reviewed_at": "2026-11-21T21:12:31Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}

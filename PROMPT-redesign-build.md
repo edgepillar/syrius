@@ -4260,6 +4260,19 @@ allows for 25 exact producer blobs and 15 metadata and artifact requests.
 The corrected reader verifies both Send states in both themes and normal
 parent closure under the original source and archive digest checks.
 
+The four prepared Send pairs at `e94d5b07` were viewed directly and
+recorded in the [source-bound verdicts](docs/review/source-e94d5b07-prepared-verdicts.json).
+The draft shows the original amount and recipient. It lacks the recent
+recipients, last-send note and incoming queue. The centred confirmation
+shows the real software-wallet first-send warning. The reference shows
+the hardware-wallet notice. The older dialog overrides the shared
+12-pixel radius with the 24-pixel transfer card radius. Send confirmation
+now uses the shared dialog radius, and the existing light and dark tests
+check the rendered glass boundary. Strict analysis and all 16 focused Send
+tests pass locally. A [fresh Send capture](https://github.com/edgepillar/syrius/actions/runs/44950222411)
+targets the caption frost change at `869006b9`. The radius correction
+requires its own Windows capture.
+
 | Screen | Visible differences in both themes |
 | --- | --- |
 | Receive QR | The card and request controls align. The generated code has a token mark and the amount hint is shorter. |

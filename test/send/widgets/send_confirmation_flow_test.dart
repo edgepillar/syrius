@@ -240,13 +240,13 @@ void main() {
     if (framed) {
       const MethodChannel channel = MethodChannel('window_manager');
       final TestDefaultBinaryMessenger messenger =
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-      messenger.setMockMethodCallHandler(channel, (MethodCall call) async {
-        return switch (call.method) {
-          'isFullScreen' || 'isMaximized' => false,
-          _ => null,
-        };
-      });
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            ..setMockMethodCallHandler(channel, (MethodCall call) async {
+              return switch (call.method) {
+                'isFullScreen' || 'isMaximized' => false,
+                _ => null,
+              };
+            });
       addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
       foundation.debugDefaultTargetPlatformOverride =
           foundation.TargetPlatform.windows;
@@ -525,13 +525,19 @@ void main() {
         final Finder dialog = find.byKey(const Key('send_confirmation_marker'));
         final FrostedDialogRoute<bool> route = ModalRoute.of<bool>(
           tester.element(dialog),
-        ) as FrostedDialogRoute<bool>;
+        )! as FrostedDialogRoute<bool>;
         expect(route.frostWindowCaption, isTrue);
         expect(route.barrierDismissible, isFalse);
         final AppTokens tokens = AppTokens.of(tester.element(dialog));
-        final Rect surface = tester.getRect(
-          find.descendant(of: dialog, matching: find.byType(FrostedSurface)),
+        final Finder glass = find.descendant(
+          of: dialog,
+          matching: find.byType(FrostedSurface),
         );
+        expect(
+          tester.widget<FrostedSurface>(glass).borderRadius,
+          const BorderRadius.all(Radius.circular(12)),
+        );
+        final Rect surface = tester.getRect(glass);
         expect(surface.center, const Offset(640, 390));
         final Finder caption = find.byKey(
           const ValueKey<String>('window-caption-frost'),
