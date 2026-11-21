@@ -3300,6 +3300,27 @@ passes both layout changes. Each run passes eight focused licence cases,
 5,131 non-chain tests with one skip, strict analysis and generated-file
 verification. Both full suites include the 1,530 Windows-tour cases.
 
+The [Settings producer at `38153592`](https://github.com/edgepillar/syrius/actions/runs/44883804456/job/136784628771)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44885343932/job/136789313675)
+verify all 14 original images and required process closure. The
+[earlier `e94d5b07` archive](https://github.com/edgepillar/syrius/actions/runs/44884224642/job/136785900561)
+uses the same fourteen reference PNG digests. The [first read](https://github.com/edgepillar/syrius/actions/runs/44883941426/job/136785051227)
+reached the request limit during the final metadata check. The reader
+now admits the twenty-fifth request for that check.
+
+At the 16-level RGB threshold, all Settings menu counts agree across
+the two captures. The dark Wallet content has 43,060 fewer differing
+pixels. The Maintenance fill at column 650 and row 392 now agrees with
+the Wallets card in both themes. The earlier fill matches the hover tint.
+The other content counts change by at most 33 pixels. The Node table
+still starts its rows at 84, 141 and 198 and ends at 255 in both themes.
+The fourteen whole-image verdicts remain open under V01.
+
+The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
+passes application and strict selected analysis, 5,131 non-chain tests
+with one skip and generated-file verification. That full run includes
+all 1,530 selected Windows-tour cases.
+
 The [Windows interface run at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44876122524/job/136761087924)
 and its [independent inspection](https://github.com/edgepillar/syrius/actions/runs/44877853952/job/136766426791)
 verify all eleven scoped Home, Activity, Go To, Pillars and Swap seam
