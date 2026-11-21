@@ -4101,6 +4101,16 @@ already building when settlement was observed account for only part of
 the subsequent raster cost in this pair. The renderer cause remains open.
 The Python controller suite ran 1,265 cases with 17 skips.
 
+The About panel now mounts the licence registry from a body listener on
+first opening. The listener keeps the body mounted on later closes and
+removes the separate state update that recreated the Disclosure widget
+on first open. The existing About case checks the identity of that
+widget alongside deferred reads, retained paint and closure. Strict
+analysis of the changed app and test files reports no issues.
+[Linux validation](https://github.com/edgepillar/syrius/actions/runs/44931328143)
+and the [paired Windows measurement](https://github.com/edgepillar/syrius/actions/runs/44931364527)
+target `bb4961af`. Native timing at that source is pending.
+
 The [first compatibility read of `08ecf715`](https://github.com/edgepillar/syrius/actions/runs/44926305670/job/136913047287)
 reads the original timings and refuses the paired images at the older
 producer pin. The [corrected reader at `39239f24`](https://github.com/edgepillar/syrius/actions/runs/44926469990/job/136913544116)
