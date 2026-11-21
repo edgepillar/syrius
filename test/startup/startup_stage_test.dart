@@ -247,6 +247,15 @@ void main() {
           findsOneWidget,
         );
         expect(find.byType(LaunchFilm), findsOneWidget);
+        final Finder coveredWell = find.byKey(session.wellKey);
+        expect(tester.getSize(coveredWell), const Size(418, 118));
+        expect(
+          find.descendant(
+            of: coveredWell,
+            matching: find.byType(OverflowBox),
+          ),
+          findsNothing,
+        );
         expect(
           tester.widget<LaunchFilm>(find.byType(LaunchFilm)).fit,
           BoxFit.cover,
@@ -732,6 +741,13 @@ void main() {
         expect(tester.renderObject(foreground), same(retainedForeground));
         expect(tester.renderObject(backdrop), same(originalFilter));
         expect(tester.widget<BackdropFilter>(backdrop).enabled, isTrue);
+        expect(
+          find.descendant(
+            of: find.byKey(session.wellKey),
+            matching: find.byType(OverflowBox),
+          ),
+          findsOneWidget,
+        );
         final Rect cardBounds = tester.getRect(card);
         final Rect well = tester.getRect(
           find.byKey(const ValueKey<String>('lock_film_well')),

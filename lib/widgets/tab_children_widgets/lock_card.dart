@@ -523,21 +523,23 @@ class _LockCardState extends State<LockCard>
           key: startup?.wellKey,
           child: ColoredBox(
             color: tokens.launchStageBackground,
-            child: OverflowBox(
-              minWidth: tokens.lockFilmWidth,
-              maxWidth: tokens.lockFilmWidth,
-              minHeight: tokens.lockFilmHeight,
-              maxHeight: tokens.lockFilmHeight,
-              child: startup == null
-                  ? LaunchFilm(
-                      asset: 'assets/images/launch_well.webp',
-                      autoplay: false,
-                      controller: _film,
-                    )
-                  : startup.filmInWell
-                  ? startup.buildFilm()
-                  : const SizedBox.expand(),
-            ),
+            // The well already has its measured bounds while the original
+            // film still lives in the stage. Only an actual film overflows.
+            child: startup != null && !startup.filmInWell
+                ? null
+                : OverflowBox(
+                    minWidth: tokens.lockFilmWidth,
+                    maxWidth: tokens.lockFilmWidth,
+                    minHeight: tokens.lockFilmHeight,
+                    maxHeight: tokens.lockFilmHeight,
+                    child: startup == null
+                        ? LaunchFilm(
+                            asset: 'assets/images/launch_well.webp',
+                            autoplay: false,
+                            controller: _film,
+                          )
+                        : startup.buildFilm(),
+                  ),
           ),
         ),
       ),
