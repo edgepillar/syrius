@@ -98,7 +98,8 @@ String readonlyInspectionCatalogFamily(Map<String, String> environment) {
   final String family =
       environment['SYRIUS_READONLY_CATALOG_FAMILY'] ?? 'details';
   if (!const <String>{
-    'home', 'home-bell', 'home-catalog', 'settings', 'navigation', _surfaceSeamsFamily,
+    'home', 'home-bell', 'home-catalog', 'settings', 'navigation',
+    _surfaceSeamsFamily,
   }.contains(family) &&
       !_detailsSelections.containsKey(family)) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.command);
