@@ -3215,8 +3215,28 @@ both controllers ready to animate its first close. The 240 ms reveal,
 The [Linux run at `31b5a23c`](https://github.com/edgepillar/syrius/actions/runs/44878110010/job/136767237090)
 passes strict analysis, eight focused licence cases, 5,131 non-chain
 tests with one skip and generated-file verification. The complete run
-includes all 1,530 selected Windows-tour cases. The effect on native
-frame timing awaits a paired Windows measurement.
+includes all 1,530 selected Windows-tour cases.
+
+The [paired Windows run at `31b5a23c`](https://github.com/edgepillar/syrius/actions/runs/44878110449/job/136767238254)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44879951385/job/136772833896)
+verify the two windows and nine normal required process exits. Page
+change records 11 redesigned and 19 P06 frames, with peak raster times
+of 226.184 ms and 119.259 ms. Disclosure records 13 and 24 frames, with
+peak raster times of 94.144 ms and 43.703 ms. The longest disclosure
+build also exceeds the budget at 30.204 ms. The raster and distinct-frame
+comparisons fail for both actions and both streams for each action
+retain frame-number gaps. The redesigned peaks are higher than in the
+previous run and the P06 peaks also shift. The results leave attribution
+to the deferred tickers unresolved. V02 remains open.
+
+The [Details run at `31b5a23c`](https://github.com/edgepillar/syrius/actions/runs/44878446621/job/136768238639)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44880265421/job/136773813635)
+verify ten original catalog images, four viewport images and normal
+required process exits. The same scan at column 700 locates all 13
+Licences divider positions exactly in both reference themes. This
+recapture confirms the restored drawing rule after the earlier revision
+matched seven positions. The Originals footer ends at row 561 in both
+captures. V01 still requires whole-image review of the ten pairs.
 
 The [Windows interface run at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44876122524/job/136761087924)
 and its [independent inspection](https://github.com/edgepillar/syrius/actions/runs/44877853952/job/136766426791)
