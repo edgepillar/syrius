@@ -2990,7 +2990,15 @@ same point on the running clock and checks restoration. The
 passes strict selected analysis, those two-theme checks, 5,130 non-chain
 tests with one skip, and generated-file verification. The
 [Windows catalog at the same revision](https://github.com/edgepillar/syrius/actions/runs/44865241856)
-is in progress. Visual verdicts remain open.
+and its [independent comparison](https://github.com/edgepillar/syrius/actions/runs/44867092312/job/136733080209)
+verify all eight original PNGs, 95 producer source files and normal
+required process closure. The reference PNGs remain identical to the
+ones used in the prior comparison. At the same 16-level threshold, the
+light hero differences move from 23,226 to 23,764 for Home rest, from
+17,792 to 22,321 for Home open and from 22,990 to 19,641 for Home hidden.
+Dark hero counts change by at most 28 pixels, and all eight body counts
+stay the same. The sampled phase gives mixed agreement with the
+references. Visual verdicts remain open.
 
 The [paired timing producer](https://github.com/edgepillar/syrius/actions/runs/44862588269)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44863894172/job/136723168084)
