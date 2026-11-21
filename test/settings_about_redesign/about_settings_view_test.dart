@@ -406,7 +406,7 @@ void main() {
   );
 
   aboutTestWidgets(
-    'computer actions use actual nonempty paths and safe web origins',
+    'computer details mount on first opening and retain local actions',
     (WidgetTester tester) async {
       prepareAboutViewport(tester);
       final List<String> folders = <String>[];
@@ -428,8 +428,14 @@ void main() {
         ),
       );
       await tester.pump();
-      await _toggle(tester, 'about_computer_toggle');
       final Finder cache = find.byKey(const Key('about_info_cache'));
+      final Finder retainedCache = find.byKey(
+        const Key('about_info_cache'),
+        skipOffstage: false,
+      );
+      expect(retainedCache, findsNothing);
+      await _toggle(tester, 'about_computer_toggle');
+      final Element originalCache = tester.element(cache);
       await _tapVisible(
         tester,
         find.descendant(
@@ -454,6 +460,12 @@ void main() {
         ),
         findsNothing,
       );
+      await _toggle(tester, 'about_computer_toggle');
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(cache.hitTestable(), findsNothing);
+      expect(tester.element(retainedCache), same(originalCache));
+      await _toggle(tester, 'about_computer_toggle');
+      expect(tester.element(cache), same(originalCache));
       expect(tester.takeException(), isNull);
     },
   );

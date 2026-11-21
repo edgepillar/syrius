@@ -4135,6 +4135,14 @@ two disclosure frames also began building after settlement. This pair
 establishes a timing failure. The variation between runs leaves the
 cause of the higher disclosure peak unresolved.
 
+The About page now mounts the This computer rows on the first opening of
+that group. Opening Licences without visiting This computer avoids building
+the closed group. Later closes retain its existing rows and local actions.
+The About widget case checks that the rows are absent initially and the same
+row element survives close and reopen. Strict analysis of both changed
+Dart files and all 20 About tests pass locally. The Windows frame comparison
+is still required to measure any performance effect.
+
 A [read of the original frame gaps at `40126652`](https://github.com/edgepillar/syrius/actions/runs/44941662762/job/136959990171)
 uses the exact retained raster-start timestamps. In the redesign's page
 change, seven gaps covering 28 missing frame numbers are followed by a

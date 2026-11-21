@@ -58,6 +58,7 @@ class AboutCard extends StatefulWidget {
 }
 
 class _AboutCardState extends State<AboutCard> {
+  final ValueNotifier<bool> _computerOpened = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _licencesOpened = ValueNotifier<bool>(false);
   AboutInformation _information = AboutInformation();
   int _informationEpoch = 0;
@@ -78,6 +79,7 @@ class _AboutCardState extends State<AboutCard> {
 
   @override
   void dispose() {
+    _computerOpened.dispose();
     _licencesOpened.dispose();
     super.dispose();
   }
@@ -157,7 +159,15 @@ class _AboutCardState extends State<AboutCard> {
                   keyPrefix: 'about_computer',
                   headerPadding: tokens.aboutGroupHeaderPadding,
                   keepAlive: true,
-                  child: _buildComputer(tokens),
+                  onChanged: (bool open) {
+                    if (open) _computerOpened.value = true;
+                  },
+                  child: ValueListenableBuilder<bool>(
+                    valueListenable: _computerOpened,
+                    builder: (_, bool opened, _) => opened
+                        ? _buildComputer(tokens)
+                        : const SizedBox.shrink(),
+                  ),
                 ),
               ),
             ),
