@@ -4035,7 +4035,15 @@ passes the startup handoff widget cases, the ownership and diagnostics
 stage, and the Release harness build after deferring the hidden Lock
 shadow. The handoff case observes the same foreground render object as
 the shadow mounts and retains the prepared raster through the handoff.
-The paired cold measurement and visual comparison still require evidence.
+The [independent cold reader](https://github.com/edgepillar/syrius/actions/runs/44962849619/job/137025264995)
+verifies five normal actor exits and 90 current against 1,860 P06 frames.
+The current peak build is 14.523 ms against 22.839 ms on P06 and ends
+69 microseconds before the film host layout observation. Peak raster
+is 157.360 ms against 227.356 ms. Build, raster and distinct-frame
+rankings pass for the recorded samples. There are 24 current and 1,776
+P06 frame-number gaps, so frame continuity remains open. The two handoff
+images retain the same 16-level difference counts of 5,253 dark and 6,213
+light pixels. V01 and V02 remain open.
 
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
@@ -5069,6 +5077,15 @@ The [full Linux run at `3616fdef`](https://github.com/edgepillar/syrius/actions/
 passes application and strict selected analysis, the non-chain unit and
 widget suite, and generated-file verification. This source includes the
 Staking typography, Accelerator symbols and delayed Lock shadow changes.
+
+The [Windows baseline at `5d5de94e`](https://github.com/edgepillar/syrius/actions/runs/44961306040/job/137020493341)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44962910633/job/137025456762)
+verify all twelve checks. Debug and Release build successfully. The source
+and both build DLLs have the same digest and pass the export and map checks.
+Application analysis reports zero errors and warnings, and the non-chain
+suite reports 5,132 passes and one skip. This evidence covers the Staking
+typography, Accelerator symbols and delayed Lock shadow. It precedes the
+Home eye observer and Tokens badge changes.
 
 The [interaction phase receipt at `6174b00d`](https://github.com/edgepillar/syrius/actions/runs/44961056103/job/137019733574)
 places the first laid-out Licences list at 83.718 ms and the settled
