@@ -2154,6 +2154,15 @@ themes match the sampled title rows 234 through 254 and subtitle rows
 282 through 294. The comparison covers those text bands. The complete
 Welcome verdicts remain open under V01.
 
+The [full-image reader](https://github.com/edgepillar/syrius/actions/runs/44855368190/job/136696190661)
+compares the same four retained PNGs in memory against the four reference
+files at `609d4e97`. Their reference blobs are identical at the producer
+commit. At 1280 by 780, the pixels with any RGB channel differing by at least
+16 are 9,596 and 9,042 for dark and light Welcome, and 9,155 and 10,263 for
+dark and light Import. Mean absolute RGB differences are 1.459, 1.536, 1.255
+and 1.428 levels respectively. The counts guide the remaining visual review
+and grant no whole-image verdict.
+
 The [Linux validation at `d1eb02a9`](https://github.com/edgepillar/syrius/actions/runs/44851643307/job/136684120771)
 passes strict analysis after the subtitle formatting correction. It
 records 5,129 non-chain tests passed, one skip, and successful generated
