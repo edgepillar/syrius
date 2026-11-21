@@ -3559,7 +3559,16 @@ for the updated typography and the four whole-image verdicts.
 [Linux at `0e3b2f5d`](https://github.com/edgepillar/syrius/actions/runs/44925437901/job/136910368034)
 passes strict analysis, generated-file verification and the non-chain
 suite with 5,131 passes and one skip. The [matching Windows run](https://github.com/edgepillar/syrius/actions/runs/44925437484/job/136910368545)
-is pending.
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44927296470/job/136916087032)
+verify four captures and normal original closure. All three Addresses card
+bounds still match at column 700 in both themes. The reader isolates the
+chain summary from the card title, chevron and other disclosures. At the
+16-level RGB threshold, the summary counts change from 865 to 938 in dark
+Node, 862 to 935 in light Node, 354 to 395 in dark Addresses and 356 to 395
+in light Addresses. The same reference digests are used. In each image,
+the change in the whole-window count equals the change in the summary
+region. The reference and live values still use different text. The pixel
+counts leave all four whole-image verdicts open.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
