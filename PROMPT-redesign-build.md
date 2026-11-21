@@ -4190,9 +4190,13 @@ The [Details Windows run at `15e50ddc`](https://github.com/edgepillar/syrius/act
 and its [independent read](https://github.com/edgepillar/syrius/actions/runs/44945800891/job/136972716798)
 verify four members, selection of index one, ten original PNGs and normal
 required closure. The opened Plasma Fuse images are included in the
-[recent capture index](docs/review/recent-windows-captures.json). Their
-visible rows and whole-image comparisons remain open. The resting Plasma
-view still requires its separate Navigation capture.
+[recent capture index](docs/review/recent-windows-captures.json).
+All ten exact pairs were viewed. The [digest-bound reviews](docs/review/recent-windows-screen-verdicts.json)
+record ten whole-image mismatches. The open Plasma capture shows all three
+Other addresses rows and two selected fuses in both themes. All three
+fixture fuses are cancelable. The reference includes a locked fuse and
+low Plasma on Address 4. The resting Plasma view still requires its
+[separate Navigation capture](https://github.com/edgepillar/syrius/actions/runs/44946383793).
 
 | Screen | Visible differences in both themes |
 | --- | --- |
@@ -4335,7 +4339,22 @@ normal wallet, entry and lab closure. This run retains 743,472 archive bytes
 against 2,265,415 bytes for the prior full Home producer at `8b8feaaf`, a
 67.18 percent reduction in retained archive bytes. The new original images
 are indexed in [recent Windows captures](docs/review/recent-windows-captures.json).
-Their exact whole-image verdicts remain open under V01.
+All eight 1280 × 780 pairs were viewed directly in both themes. The
+[hash-bound verdicts](docs/review/recent-windows-screen-verdicts.json)
+record eight whole-image mismatches. Rest and Hidden retain the selected
+address history and empty rewards. Open shows the expanded rail and the
+empty Tokens body, with different card heights from the populated
+reference. Go To shows all three groups and its shortcut footer. The
+synthetic contact and settled backdrop still differ from the reference.
+These results keep V01 open.
+
+The [reader at `6debd35d`](https://github.com/edgepillar/syrius/actions/runs/44946354661/job/136974431151)
+also re-verifies the original full Home archive at `8b8feaaf`.
+It reads the contact fixture from the exact producer revision through
+the versioned input allowlist. The
+[earlier reader](https://github.com/edgepillar/syrius/actions/runs/44945681722/job/136972361458)
+refused that changed input. The older Windows run and its image verdicts
+retain their original scope.
 
 The existing Windows Home catalog now samples the original toggle width
 on both opening and closing. The observer uses the original pointer and

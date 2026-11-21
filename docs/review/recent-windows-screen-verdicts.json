@@ -1,0 +1,148 @@
+{
+  "reviews": {
+    "01-home-rest-dark": {
+      "actual_sha256": "fcc59d555d361c443aa9c25f1db7cf7af116ceb6c71f96d3266f793ad46f3ec5",
+      "expected_sha256": "70617942960638e9ad855344dcc7aa1433058bb4d060155f1cfb36592ca332a6",
+      "note": "The activity history uses the selected address and the rewards are empty. The Pending card is absent. The Notifications tooltip appears in both themes.",
+      "reviewed_at": "2026-11-21T20:26:46Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "01-home-rest-light": {
+      "actual_sha256": "d0a256d747e063082acafc4d6f520bc0a8030e3da7a953d6256c656d6a3b0fcc",
+      "expected_sha256": "280f31f618a20af2f275bd516afc3280849180f4788f38ae7c3fdebaedd36b7c",
+      "note": "The activity history uses the selected address and the rewards are empty. The Pending card is absent. The Notifications tooltip appears in both themes.",
+      "reviewed_at": "2026-11-21T20:26:46Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-dark": {
+      "actual_sha256": "f532e4a8cd7aec792840f34072244e8b8b3704c19dee38ae27f129ef5c7663aa",
+      "expected_sha256": "ef3e3dfc4e9e4a6438516fe8803c55202d744b57c964104d6212c4eb2d3ebd97",
+      "note": "The rail and Tokens section are expanded. The empty rewards strip leaves the Tokens header higher than the populated reference, and the expanded body shows its empty state.",
+      "reviewed_at": "2026-11-21T20:26:46Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-light": {
+      "actual_sha256": "6e056a3a6565d3f12f499cea37ee91d6956e62df53bf8bc43fb8920cf57a66bf",
+      "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
+      "note": "The rail and Tokens section are expanded. The empty rewards strip leaves the Tokens header higher than the populated reference, and the expanded body shows its empty state.",
+      "reviewed_at": "2026-11-21T20:26:46Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-dark": {
+      "actual_sha256": "bd951e17d263928ac83b25f98dfea8bd6a38e20014553835d0b8ebde14c41377",
+      "expected_sha256": "29421519af83d80baf69fcfe24beb37fc754d8da1c08b3a175e7224a27fedf16",
+      "note": "The hero and visible Activity amount are masked. The one-row history and empty rewards still differ from the populated masked reference.",
+      "reviewed_at": "2026-11-21T20:26:46Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-light": {
+      "actual_sha256": "29bd9fcd309ab038796fe498d32bc74f9c63125bf140bf548addba316413a691",
+      "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
+      "note": "The hero and visible Activity amount are masked. The one-row history and empty rewards still differ from the populated masked reference.",
+      "reviewed_at": "2026-11-21T20:26:46Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-dark": {
+      "actual_sha256": "8258a6a69f0385502c55ef594632987c18eb8f734f6fc5c06ec9700c755522c8",
+      "expected_sha256": "52ccc26f93bcad1c79ac91228648bb8c369a6cec14041f77f51d210afec0a1f9",
+      "note": "The overlay shows all three result groups and its shortcut footer. The contact is synthetic and differs from the reference. The backdrop shows settled Activity instead of the illustrated loading rows.",
+      "reviewed_at": "2026-11-21T20:26:46Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-light": {
+      "actual_sha256": "8358424fa787b0803db21080d65bfd82ab2c093b39cb86891a2f07b6ebda37f5",
+      "expected_sha256": "f700f7b185b5064b45b1acc561abcee0fce392badb4dc2d58319914780b060bb",
+      "note": "The overlay shows all three result groups and its shortcut footer. The contact is synthetic and differs from the reference. The backdrop shows settled Activity instead of the illustrated loading rows.",
+      "reviewed_at": "2026-11-21T20:26:46Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "10-receive-qr-dark": {
+      "actual_sha256": "3d247c105288c4be20d5ba5e283056cecd08b30ee60836fe2bd257b76d94641b",
+      "expected_sha256": "7d0f473f9e93235a7032dbb227ceff6e683c91e92446565dee1bf037df78fad6",
+      "note": "The form and amount controls align. The generated QR pattern, token mark and shorter amount hint differ from the reference.",
+      "reviewed_at": "2026-11-21T20:29:51Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "10-receive-qr-light": {
+      "actual_sha256": "834b0a5953772d859809a34bac0b9795529907d17e424dd3cce3bae3dd80e37d",
+      "expected_sha256": "d3e867ff847f5c80f20afc1a8999441acfe57d9a6cbecad20d7633c8dcd62b17",
+      "note": "The form and amount controls align. The generated QR pattern, token mark and shorter amount hint differ from the reference.",
+      "reviewed_at": "2026-11-21T20:29:51Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-dark": {
+      "actual_sha256": "b3594e3e7c296ba825f88c3a1ba69f69214d79a4946f1b07aa4e09a4af481d8a",
+      "expected_sha256": "b58f5d7ea3ac3da980689c744d8d8a37b6ad70a5eae6a7542f4992f7dbba089c",
+      "note": "The form bounds and two amount fields align. The isolated run has no eligible recipient, so the address and count are absent. The action uses the approved palette.",
+      "reviewed_at": "2026-11-21T20:29:51Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-light": {
+      "actual_sha256": "e7a94beaec63f5f11da2be29828442b4b51572579a8aa33f93f11194d72feb2b",
+      "expected_sha256": "b3ab27949ed86fa2e78af721bd198fe7e258f9da5537ec914ae9ce3ccf753be8",
+      "note": "The form bounds and two amount fields align. The isolated run has no eligible recipient, so the address and count are absent. The action uses the approved palette.",
+      "reviewed_at": "2026-11-21T20:29:51Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-dark": {
+      "actual_sha256": "d9ca5c1e3a257cb2b91c56516956c78dde63cb0d7fb368ee611ac971e8569917",
+      "expected_sha256": "bce0133d1e1586247a874af23a72c340f73261174a296f4d690b7c6c3c334360",
+      "note": "All three Other addresses rows and two selected fuses are visible. The fixture shows three cancelable fuses, while the reference includes a locked fuse. The fourth address has no Plasma in the fixture.",
+      "reviewed_at": "2026-11-21T20:29:51Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-light": {
+      "actual_sha256": "47d4dcb739db563df9529daf91b7fca462482c05f47d1e58ff27ad750afbd539",
+      "expected_sha256": "01ba9333c42b94249580c6c67789f19527d113e7861b9fd19e3c1e900f8f6c7f",
+      "note": "All three Other addresses rows and two selected fuses are visible. The fixture shows three cancelable fuses, while the reference includes a locked fuse. The fourth address has no Plasma in the fixture.",
+      "reviewed_at": "2026-11-21T20:29:51Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-dark": {
+      "actual_sha256": "5ca1ad0db985be2971927bdfbc8db3fef276809bfd273bc82ae0b2458641fffa",
+      "expected_sha256": "057765aba7cc2e027010869bdfe14eff0beee921cbef85777efa3f7fa96ec991",
+      "note": "The expanded header, row dividers and footer field align. The dependency inventory, licence labels and Links count differ.",
+      "reviewed_at": "2026-11-21T20:29:51Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-light": {
+      "actual_sha256": "19a6c17100b397d446c0628a049e880bee3abee892a9d137b17186227e6ed747",
+      "expected_sha256": "4faec94b7502216de2bceb52b1e8ded1254a74a150014f5399d1dc85a19ac1d4",
+      "note": "The expanded header, row dividers and footer field align. The dependency inventory, licence labels and Links count differ.",
+      "reviewed_at": "2026-11-21T20:29:51Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-dark": {
+      "actual_sha256": "057516991e20b00c38a43e765512b027b1451467aed0e0b7c91dd67f0d817413",
+      "expected_sha256": "b852ac9fcbdbea159856c6c3b30ac5ca2e25f55f1137655c4b689dc4a89a504f",
+      "note": "The six gallery tiles and footer align. The runtime clears the discovery field. The globe outline and Map dot coverage differ.",
+      "reviewed_at": "2026-11-21T20:29:51Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-light": {
+      "actual_sha256": "aa798e9909051148378ed6ba57aab1cc988442cc03864687934bc7fc7a49cd1a",
+      "expected_sha256": "b82600455634b306377ea7626f2e0ee80c7977c60c1ae1a7e23243dcace9d3ed",
+      "note": "The six gallery tiles and footer align. The runtime clears the discovery field. The globe outline and Map dot coverage differ.",
+      "reviewed_at": "2026-11-21T20:29:51Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
