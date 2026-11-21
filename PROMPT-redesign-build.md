@@ -3849,6 +3849,10 @@ The single interval crossing settlement has a 9.116 ms raster duration.
 For Licences, all four confirmed starts at or after settlement exceed
 16 ms and peak at 111.158 ms. The original comparisons and gaps are retained.
 
+The [paired Windows run at `e8b9c2c4`](https://github.com/edgepillar/syrius/actions/runs/44909838778)
+is measuring both Home-to-Settings and Licences on the current application
+and the pinned P06 build in the same isolated job. Results remain open.
+
 The rail width spring now lays out the original destination buttons without
 rebuilding them on its ticks. The toggle still rotates on the same spring,
 and the labels still start their own fade at the width endpoint. The
@@ -3874,7 +3878,10 @@ The label fade now updates the opacity of the existing text without
 rebuilding the destination buttons on each tick. The tooltip visibility
 still changes when the labels first become visible. The existing rail
 duration case checks that the button widget is reused through the fade
-and retains its original width, opacity and duration assertions.
+and retains its original width, opacity and duration assertions. The
+[Linux run at `342b5759`](https://github.com/edgepillar/syrius/actions/runs/44908726127/job/136859745107)
+passes that case, application and strict selected analysis, generated-file
+verification and the non-chain suite with 5,131 passes and one skip.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
