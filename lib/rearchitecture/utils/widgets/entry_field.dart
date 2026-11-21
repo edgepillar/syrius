@@ -125,7 +125,8 @@ class _EntryFieldState extends State<EntryField>
 
   void _bindCaption() {
     final AppWindowFrameState? frame = _captionFrame;
-    if (!mounted || frame == null || !frame.hasClientCaption ||
+    if (!mounted || !_captionEnabled || frame == null ||
+        !frame.hasClientCaption ||
         _captionLease != null) {
       return;
     }
@@ -279,6 +280,9 @@ class _EntryFieldState extends State<EntryField>
         widget.paintCaption && (widget.captionProgress?.value ?? 1) == 1;
     if (_captionEnabled == enabled) return;
     _captionEnabled = enabled;
+    // The full-window launch supplies the caption until the Lock is settled.
+    // Keep the field and its layout ready while leaving the caption paint idle.
+    if (enabled) _bindCaption();
     _captionChanges.markPaint();
   }
 
