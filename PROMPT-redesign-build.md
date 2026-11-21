@@ -4937,13 +4937,35 @@ are diagnostic because the target state needs additional preparation.
 These are gaps in the older source's eligible inventory. The current
 candidate still needs its own complete gallery.
 
-The next prepared captures use the same source, `84a88c55`, for
-[Node and Addresses](https://github.com/edgepillar/syrius/actions/runs/44955910814),
-[Staking and Tokens](https://github.com/edgepillar/syrius/actions/runs/44956022398),
-and [Accelerator](https://github.com/edgepillar/syrius/actions/runs/44956022506).
-The two restored-catalog jobs use the existing fixture preparation and
-publish the original prepared images with compact tour receipts. All
-three runs are in progress.
+The prepared captures at `84a88c55` have independent reads for
+[Node and Addresses](https://github.com/edgepillar/syrius/actions/runs/44957683935/job/137009304030),
+[Staking and Tokens](https://github.com/edgepillar/syrius/actions/runs/44957623165/job/137009113481),
+and [Accelerator](https://github.com/edgepillar/syrius/actions/runs/44957623253/job/137009113965).
+The [capture index](docs/review/source-84a88c55-prepared-captures.json)
+binds four Node and Addresses PNGs and four Accelerator PNGs to their
+original archives. Both catalogs have normal required closure.
+The Accelerator stills retain atomic capture evidence. Their visual
+verdicts remain open.
+
+In both themes, the Node verification notice fills rows 385 through 497
+at reference column 980 and its enclosing panel spans rows 267 through
+509. The Addresses member, contacts and account-chain card bounds match
+their references at column 700. The full-image differences at the
+16-level threshold are 54,325 and 54,674 for Node, and 38,082 and 41,639
+for Addresses, in dark and light respectively. All four originals were
+viewed beside their references. Node retains different update actions and
+connection presentation. Addresses retains the circular selection marks
+and different contact history. The four pairs have
+[reviewed differences](docs/review/source-84a88c55-node-addresses-verdicts.json).
+
+The original Staking and Tokens producer retains `CHECKPOINT_REFUSED`.
+Its twelve-page tour and normal entry, wallet and five node exits
+verify independently. The copied session confirms Stake and retains a
+consistent journal prefix. It enters the original Token publication
+call and returns `original-outcome-unknown`. The retained reply cannot
+identify which outcome condition fired. The run publishes no prepared
+catalog. The Token feature, original seed publication guard and restored
+entry match the earlier successful `e94d5b07` sources.
 
 | Original requirement | Evidence at this revision |
 | --- | --- |

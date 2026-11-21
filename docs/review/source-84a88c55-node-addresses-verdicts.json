@@ -1,0 +1,36 @@
+{
+  "reviews": {
+    "30-set-node-dark": {
+      "actual_sha256": "e651796428463add21ab6b2d099b39a8bdb3b86be0b1606b1d2dc2ebee854576",
+      "expected_sha256": "05d7211c092f7415b542294e254a86765fa57b7d7953fb2f9af5b1170ef7d003",
+      "note": "The verified update notice and enclosing panel align. The current install and cancel actions, release status, and connection presentation differ visibly from the reference.",
+      "reviewed_at": "2026-11-21T22:41:38Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "30-set-node-light": {
+      "actual_sha256": "8672622a4db6bfde9a36c13d9b157988136cd96ebf49f29eab115fda3b2e7c67",
+      "expected_sha256": "a11078a238b2ab2107174698b0c1c1409d7545a22eac994608e57ea113c6faeb",
+      "note": "The verified update notice and enclosing panel align. The current install and cancel actions, release status, and connection presentation differ visibly from the reference.",
+      "reviewed_at": "2026-11-21T22:41:38Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "35-set-addresses-dark": {
+      "actual_sha256": "1b58cce141e782fddfcb49a11547b0e826219b1d4a735f216e174f69aa95b41a",
+      "expected_sha256": "500bab8c74c963bfee8d958d9fb06a647b04924da963a75db7caa98e7f241cad",
+      "note": "The four members and named third member are present, and the three card bounds align at the sampled column. The radio marks and contact history differ from the reference.",
+      "reviewed_at": "2026-11-21T22:41:38Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "35-set-addresses-light": {
+      "actual_sha256": "2d0a2a5690f114a843dedd3504edd25cbbf01e31a82c38ba00ca4f79fc9e7943",
+      "expected_sha256": "b4705b0f43a7f5382e383dfce6f19574622719f620ef1190b6976f10932ee98c",
+      "note": "The four members and named third member are present, and the three card bounds align at the sampled column. The radio marks and contact history differ from the reference.",
+      "reviewed_at": "2026-11-21T22:41:38Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
