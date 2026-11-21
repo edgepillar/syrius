@@ -2139,6 +2139,13 @@ The light Welcome image has a different digest. Both current Import
 connectors retain the reference row across 108 columns, and the largest
 mean drop-border coverage error remains 6,497 ppm. V01 remains open.
 
+The same bounded luminance measurement on the [current](https://github.com/edgepillar/syrius/actions/runs/44851105994/job/136682408569)
+and [earlier](https://github.com/edgepillar/syrius/actions/runs/44851106051/job/136682409227)
+Welcome archives finds title ink on rows 235 through 255 and subtitle ink
+on rows 283 through 295 in both themes. The reference bands are one row
+higher at each endpoint. The two light captures still have different
+PNG digests. The measured text placement agrees across those captures.
+
 Independent Windows readers verify the [eight Home PNGs](https://github.com/edgepillar/syrius/actions/runs/44765737077/job/136389745160),
 [ten Details PNGs](https://github.com/edgepillar/syrius/actions/runs/44765742529/job/136389763108)
 and [four prepared Send PNGs](https://github.com/edgepillar/syrius/actions/runs/44765748064/job/136389783471)
