@@ -3327,6 +3327,13 @@ gaps agree in both themes. Most differences are in the member table
 The strip below the cards has none at that threshold. All four whole-image
 verdicts remain open.
 
+The Addresses cards use the authored 10 px horizontal inset on compact
+buttons. The Contacts row uses the same edit symbol as account rows and
+the reference's 4 px gap between Send and Edit. The existing populated
+Contacts case checks spacing and the 32 px edit target at standard scale
+and in scaled RTL. The existing send and edit actions retain their targets.
+A populated Windows comparison remains open under V01.
+
 The Node reference presents the verified download in the panel before the
 installation action. A verified release download now shows its asset,
 checksum and individual verification results in an inline card. The

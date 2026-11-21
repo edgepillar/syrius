@@ -86,7 +86,8 @@ void main() {
       (WidgetTester tester) async {
         _viewport(tester);
         final AddressesFixture source = AddressesFixture();
-        await source.contacts.add(name: 'Alice', address: fixtureAddress(8));
+        final String contact = fixtureAddress(8);
+        await source.contacts.add(name: 'Alice', address: contact);
         final AddressesSettingsPresenter presenter = AddressesSettingsPresenter(
           binding: source.bind(),
         );
@@ -182,6 +183,27 @@ void main() {
             closeTo(4, 1e-10),
           );
         }
+        final Finder contactSend = find.byKey(
+          ValueKey<String>('addresses_send_$contact'),
+        );
+        final Finder editContact = find.byKey(
+          ValueKey<String>('addresses_edit_contact_$contact'),
+        );
+        final Rect sendBounds = tester.getRect(contactSend);
+        final Rect editBounds = tester.getRect(editContact);
+        expect(editBounds.size, const Size.square(32));
+        expect(
+          variant.$2
+              ? sendBounds.left - editBounds.right
+              : editBounds.left - sendBounds.right,
+          closeTo(4, 1e-10),
+        );
+        expect(
+          tester.widget<OutlinedButton>(contactSend).style!.padding!.resolve(
+            <WidgetState>{},
+          ),
+          const EdgeInsetsDirectional.symmetric(horizontal: 10),
+        );
         expect(
           find.byKey(const Key('addresses_account_chain_toggle')),
           findsOneWidget,

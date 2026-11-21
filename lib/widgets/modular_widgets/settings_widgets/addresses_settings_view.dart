@@ -693,9 +693,7 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
         backgroundColor: tokens.card2,
         disabledForegroundColor: tokens.faint,
         minimumSize: Size(0, tokens.smallButtonHeight),
-        padding: EdgeInsetsDirectional.symmetric(
-          horizontal: tokens.securitySettingsButtonInset,
-        ),
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
         visualDensity: VisualDensity.standard,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         foregroundColor: tokens.foreground,
@@ -1033,13 +1031,19 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
                           )
                         : null,
                   ),
+                  SizedBox(width: tokens.addressesActionGap),
                   IconButton(
                     tooltip: context.l10n.addressesEditContact,
                     key: ValueKey<String>(
                       'addresses_edit_contact_${contact.address}',
                     ),
                     iconSize: tokens.settingsIconSize,
-                    icon: const Icon(Icons.edit_outlined),
+                    icon: buildShellSymbol(
+                      context,
+                      'edit',
+                      size: tokens.settingsIconSize,
+                      color: enabled ? tokens.dim : tokens.faint,
+                    ),
                     onPressed: enabled
                         ? () => _editContact(contact, current)
                         : null,
