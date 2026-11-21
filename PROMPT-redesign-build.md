@@ -4141,7 +4141,28 @@ the closed group. Later closes retain its existing rows and local actions.
 The About widget case checks that the rows are absent initially and the same
 row element survives close and reopen. Strict analysis of both changed
 Dart files and all 20 About tests pass locally. The Windows frame comparison
-is still required to measure any performance effect.
+for this change is recorded below.
+
+The [paired Windows run at `fd96d7e1`](https://github.com/edgepillar/syrius/actions/runs/44948164678/job/136979976516)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44949688855/job/136984649998)
+verify both windows and normal exits for two entry, two wallet and five node
+processes. The 16 ms gate still fails in both windows.
+
+| Window | Reported frames, current / P06 | Longest frame, current / P06 | Failed comparisons |
+| --- | --- | --- | --- |
+| Page change | 15 / 29 | 194.194 / 99.716 ms | Raster and distinct frames |
+| Licences disclosure | 19 / 39 | 110.219 / 42.351 ms | Build, raster and distinct frames |
+
+The longest current Licences raster is 53.056 ms and begins 215.010 ms
+after release. The list is observed laid out at 73.876 ms and settled
+at 275.226 ms. In both windows, six frames with slow raster times began
+building after settlement.
+The current windows omit 29 page-change and 26 disclosure frame numbers.
+All 12 page-change gaps and 12 of 13 disclosure gaps are followed by a
+build while the previous recorded raster is still in progress. The
+earlier Licences measurement peaked at 211.443 ms. The two runs differ
+in frame coverage and baseline timings, so the change's independent
+effect remains unresolved.
 
 A [read of the original frame gaps at `40126652`](https://github.com/edgepillar/syrius/actions/runs/44941662762/job/136959990171)
 uses the exact retained raster-start timestamps. In the redesign's page
@@ -4742,8 +4763,10 @@ paths is the About card's first-open initialization. The earlier baseline
 therefore remains evidence for its own source. A
 [Windows baseline at `83be2bc3`](https://github.com/edgepillar/syrius/actions/runs/44949481618)
 is running the clean Debug and Release, analysis, test and DLL checks for
-the updated candidate. These checks, the visual verdicts and timing remain
-open in the final audit.
+the updated candidate. The [paired timing re-read](https://github.com/edgepillar/syrius/actions/runs/44949688855/job/136984649998)
+verifies both interaction windows and their original exits. Both fail
+the 16 ms gate. The clean baseline, visual verdicts and timing acceptance
+remain open in the final audit.
 
 ### Rows
 
