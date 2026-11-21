@@ -45,7 +45,7 @@ def log(report):
         '2026-10-26T12:00:01.0000000Z ' + json.dumps(report) + '\n').encode()
 
 
-def pixels(*connector_rows, opaque=False, welcome_rows=()):
+def pixels(*connector_rows, opaque=False, welcome_rows=(), welcome_x=710):
     def chunk(kind, data):
         return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data))
     alpha = 255 if opaque else 0
@@ -53,7 +53,7 @@ def pixels(*connector_rows, opaque=False, welcome_rows=()):
     ink = bytes((60, 60, 60, alpha))
     blank = b'\x00' + fill * 1280
     connector = b'\x00' + fill * 482 + ink * 108 + fill * (1280 - 590)
-    text = b'\x00' + fill * 710 + ink * 8 + fill * (1280 - 718)
+    text = b'\x00' + fill * welcome_x + ink * 8 + fill * (1280 - welcome_x - 8)
     scanlines = b''.join(
         connector if y in connector_rows else text if y in welcome_rows else blank
         for y in range(780))
@@ -265,11 +265,18 @@ class WindowsQualificationTests(unittest.TestCase):
         comparison = inspect.entry_pixel_comparison(actual, reference, 'welcome')
         self.assertEqual(comparison, dict(actual_sha256=inspect.archive.sha(actual),
             reference_sha256=inspect.archive.sha(reference), changed_pixels=24,
-            changed_pixels_at_least_16=24, mean_rgb_error_milli=1,
+            changed_pixels_at_least_16=24, mean_rgb_error_milli=1, action_alignment={},
             pixels_at_least_16_by_region=dict(caption=0, globe=0, introduction=16,
                 action_left_edge=0, action_badges=8, action_labels=0,
                 action_chevrons=0, action_right_edge=0, footer=0, outside_crops=0)))
         self.assertIsNone(inspect.entry_pixel_comparison(actual, pixels(), 'welcome'))
+
+    def test_welcome_action_alignment_finds_the_shift_to_the_reference(self):
+        actual = pixels(opaque=True, welcome_rows=(340, 341), welcome_x=763)
+        reference = pixels(opaque=True, welcome_rows=(338, 339), welcome_x=764)
+        comparison = inspect.entry_pixel_comparison(actual, reference, 'welcome')
+        self.assertEqual(comparison['action_alignment'], dict(create_label=dict(
+            shift_to_reference=[1, -2], original_difference=32, shifted_difference=0)))
 
     def test_entry_digest_missing_extra_and_invalid_pixels_are_refused(self):
         data = pixels()

@@ -427,6 +427,7 @@ def import_connector_coverage(encoded):
 WELCOME_TEXT_X = (690, 1055)
 WELCOME_TEXT_ROWS = {'title': (226, 265), 'subtitle': (275, 306)}
 WELCOME_TEXT_CONTRAST = 40
+WELCOME_ACTION_INK_CONTRAST = 40
 
 
 def welcome_text_bounds(encoded):
@@ -532,6 +533,29 @@ ENTRY_REGIONS = {
 }
 
 
+def welcome_action_alignment(actual, a_channels, expected, e_channels):
+    """Measure small text offsets inside the three reference action rows."""
+    def ink(rows, channels, top, bottom):
+        return {(x, y) for y in range(top, bottom) for x in range(755, 1020)
+                if abs(rows[y][x * channels] - rows[y][1020 * channels])
+                >= WELCOME_ACTION_INK_CONTRAST}
+
+    results = {}
+    for index, name in enumerate(('create', 'import', 'hardware')):
+        for part, (top, bottom) in (('label', (334, 352)), ('hint', (353, 370))):
+            start, end = top + index * 82, bottom + index * 82
+            captured = ink(actual, a_channels, start, end)
+            reference = ink(expected, e_channels, start, end)
+            if not captured or not reference:
+                continue
+            candidates = [(len(reference ^ {(x + dx, y + dy) for x, y in captured}), dx, dy)
+                          for dx in range(-2, 3) for dy in range(-2, 3)]
+            error, dx, dy = min(candidates, key=lambda value: (value[0], abs(value[1]) + abs(value[2])))
+            results[name + '_' + part] = dict(shift_to_reference=[dx, dy],
+                original_difference=len(reference ^ captured), shifted_difference=error)
+    return results
+
+
 def entry_pixel_comparison(data, reference, screen):
     """Summarize original RGB differences without writing or grading an image."""
     def decode(png):
@@ -563,10 +587,13 @@ def entry_pixel_comparison(data, reference, screen):
                                if left <= x < right), 'outside_crops')
                 by_region[region] += 1
             total += difference
-    return dict(reference_sha256=archive.sha(reference), actual_sha256=archive.sha(data),
+    result = dict(reference_sha256=archive.sha(reference), actual_sha256=archive.sha(data),
                 changed_pixels=changed, changed_pixels_at_least_16=high_contrast,
                 pixels_at_least_16_by_region=by_region,
                 mean_rgb_error_milli=round(1000 * total / (1280 * 780 * 3)))
+    if screen == 'welcome':
+        result['action_alignment'] = welcome_action_alignment(actual, a_channels, expected, e_channels)
+    return result
 
 
 def entry_archive(raw, expected_sha, expected_size, head, tree, run_id, *, reference_dir=None):
@@ -717,6 +744,13 @@ def inspect_entry(client, text, head, tree, run_id, job, *, item=None):
             **binding, columns=BACK_MARK_COLUMNS, rows=BACK_MARK_ROWS['import'],
             minimum_channel_contrast=BACK_MARK_CONTRAST, marks=back))
     if any(value is not None for value in comparisons.values()):
+        alignment = {name: value.pop('action_alignment', {}) for name, value in comparisons.items()
+                     if value is not None and name.startswith('welcome-')}
+        if any(alignment.values()):
+            emit('Hosted Welcome action alignment', dict(
+                scope='retained_welcome_action_alignment', **binding,
+                reference_head=reference_head, minimum_red_contrast=WELCOME_ACTION_INK_CONTRAST,
+                alignment=alignment))
         emit('Hosted entry pixel comparisons', dict(
             scope='retained_entry_pixel_comparisons', **binding,
             reference_head=reference_head, size=[1280, 780],
