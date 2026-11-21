@@ -3101,6 +3101,19 @@ passes all 1,530 selected cases, 5,131 non-chain tests with one skip,
 strict analysis and generated-file verification. The Node tap assertion
 passes after the disclosure has finished opening.
 
+The [paired Windows producer at `9c99df50`](https://github.com/edgepillar/syrius/actions/runs/44870763355/job/136744535597)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44872559084/job/136750113097)
+verify both interaction windows and two normal entry, two normal wallet
+and five normal node exits. The longest page raster takes 229.590 ms
+against 124.422 ms at the corresponding P06 rank. It starts 230.723
+to 289.971 ms after pointer release. The longest disclosure raster
+takes 94.592 ms against 42.602 ms at the corresponding rank and
+starts 1.431 to 52.317 ms before release. Five other over-budget
+disclosure raster starts follow the observed settlement. Both
+comparisons fail the 16 ms criterion and all four streams retain
+frame gaps. The paired run includes a pre-release raster peak and
+leaves the separate effect of skipping offscreen panel paint unresolved.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.
