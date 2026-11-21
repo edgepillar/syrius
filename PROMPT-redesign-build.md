@@ -4472,7 +4472,11 @@ wallet preparation. The producer and reader require the Settings catalog and
 normal parent closure. They reject tour and viewport artifacts for this
 selection. The existing `settings` selection still provides the full tour.
 The targeted controller and reader suites pass 71 tests, and strict Dart
-analysis passes. A hosted run is needed to measure the archive savings.
+analysis passes. The [first hosted run](https://github.com/edgepillar/syrius/actions/runs/44953892805/job/136997623070)
+stopped before Flutter or wallet startup because the reader suite still
+expected 131 cases. The count now includes the new Settings archive case.
+The complete local controller suite reports 1,266 tests with 17 skips
+and no failures. Hosted archive savings remain to be measured.
 
 The comparison tool accepts repeated `--reviews` arguments, so the earlier
 and recent review files can be read together without copying verdicts.
