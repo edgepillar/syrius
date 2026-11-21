@@ -151,7 +151,7 @@ class _HomeHeroSecondaryPill extends StatelessWidget {
           OutlinedButton.styleFrom(
             visualDensity: VisualDensity.standard,
             minimumSize: Size(0, tokens.buttonHeight),
-            padding: tokens.heroActionPadding,
+            padding: tokens.heroOutlinedActionPadding,
             foregroundColor: tokens.foreground,
             iconColor: tokens.foreground,
             backgroundColor: tokens.card2,

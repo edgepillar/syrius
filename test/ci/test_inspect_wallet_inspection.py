@@ -119,20 +119,27 @@ class ReaderTests(unittest.TestCase):
             self.assertEqual(row['region_bounds']['rail'][1], 32)
         self.assertTrue(all(row['pairs'] == {'dark': True, 'light': True} for row in comparisons))
 
-    def test_home_notifications_geometry_requires_the_complete_tooltip_fill(self):
+    def test_home_rest_measures_the_tooltip_and_send_fill(self):
         files = []
         base = b'\0' + bytes((30, 30, 30, 255)) * 1280
         for theme, rgb, height in (('dark', (54, 56, 54), 28),
                                    ('light', (238, 240, 238), 27)):
             fill = b'\0' + bytes((*rgb, 255)) * 1280
             rows = [base] * 657 + [fill] * height + [base] * (123 - height)
+            if theme == 'dark':
+                bright = bytearray(base)
+                bright[1 + 4 * 930:1 + 4 * 1022] = bytes((0, 213, 87, 255)) * 92
+                rows[94:132] = [bright] * 38
             pixels = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                       + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
             files.append((f'01-home-rest-{theme}.png', pixels, stat.S_IFREG))
-        self.assertEqual(reader.home_notifications_geometry(packed(files)), dict(
+        archive = packed(files)
+        self.assertEqual(reader.home_notifications_geometry(archive), dict(
             column=65, scan_rows=[630, 700], themes=dict(
                 dark=dict(status='observed', fill_rows=[657, 684]),
                 light=dict(status='unavailable'))))
+        self.assertEqual(reader.home_send_bounds(archive), dict(
+            dark=dict(left=930, top=94, right=1021, bottom=131), light=None))
 
     def test_home_goto_geometry_measures_footer_caret_and_caption(self):
         files = []

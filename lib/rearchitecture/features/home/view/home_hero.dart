@@ -232,11 +232,9 @@ class _HomeHeroState extends State<HomeHero> {
     return _textWidth(context, context.l10n.send, style) +
         _textWidth(context, context.l10n.receive, style) +
         _textWidth(context, context.l10n.transferZap, style) +
-        // Per action: horizontal padding, icon and label gap. Two row gaps.
-        3 *
-            (tokens.heroActionPadding.horizontal +
-                tokens.heroIconSize +
-                tokens.inlineGap) +
+        tokens.heroActionPadding.horizontal +
+        2 * tokens.heroOutlinedActionPadding.horizontal +
+        3 * (tokens.heroIconSize + tokens.inlineGap) +
         2 * tokens.heroActionGap;
   }
 

@@ -303,6 +303,11 @@ void main() {
       );
       expect(tester.getSize(action).height, 38);
       expect(tester.getSize(button).height, 38);
+      final ButtonStyle? style = tester.widget<OutlinedButton>(button).style;
+      expect(
+        style?.padding?.resolve(<WidgetState>{}),
+        const EdgeInsetsDirectional.symmetric(horizontal: 17),
+      );
     }
   }
 

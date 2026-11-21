@@ -660,6 +660,15 @@ def home_expanded_tokens_header(raw):
     return dict(column=column, scan_rows=[top, bottom], fill_rgb=themes)
 
 
+def home_send_bounds(raw):
+    """Locate the bright Send fill inside the Home rest action row."""
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        return _ink_bounds(
+            zipped, '01-home-rest', (912, 1032), (82, 142),
+            lambda *color: max(color) > 110 and max(color) - min(color) > 70,
+        )
+
+
 def home_pixel_comparisons(raw, reference_dir):
     """Compare the verified originals without changing visual verdicts."""
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
@@ -1259,6 +1268,7 @@ def main(parent=None):
                 catalog.update(home_goto_geometry(catalog_archive))
                 catalog['notifications_tooltip'] = home_notifications_geometry(catalog_archive)
                 catalog['expanded_tokens_header'] = home_expanded_tokens_header(catalog_archive)
+                catalog['home_send_bounds'] = home_send_bounds(catalog_archive)
                 reference_head = parent.get('WALLET_REFERENCE_HEAD')
                 if reference_head is not None:
                     need(digest(reference_head, 40))

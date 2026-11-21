@@ -3007,6 +3007,14 @@ are 45 and 220. The reference CSS uses green `#4FD166` and blue
 The greener sample is consistent with the approved green's lower red
 channel. Color, blur and sampling position can each affect the result.
 
+Both retained `b732a4a4` Home rest images place the bright Send pill
+at columns 934–1026. Both references place it at 930–1021. The
+reference adds its one-pixel border outside the 16 px inset on Receive
+and Zap. The wallet now reserves that border in both outlined pills
+and includes their widths in the layout's wrap decision. The existing
+hover and focus cases check the inset. The independent reader now
+reports both themes' Send bounds for the next native comparison.
+
 All eight verified captures were viewed beside their references. The
 expanded rail, the live activity row, the hidden amounts and the Go To
 palette are visible. The fixture has no pending row or held tokens. The
@@ -3088,6 +3096,10 @@ The [second timing attempt at `4819d618`](https://github.com/edgepillar/syrius/a
 passes all 1,530 selected widget cases in two zero-exit groups. The
 controller still expects 1,529 and stops before the native build. Its
 exact count now includes the added offscreen panel case.
+The [Linux check at `61a923c7`](https://github.com/edgepillar/syrius/actions/runs/44870993039)
+passes all 1,530 selected cases, 5,131 non-chain tests with one skip,
+strict analysis and generated-file verification. The Node tap assertion
+passes after the disclosure has finished opening.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence

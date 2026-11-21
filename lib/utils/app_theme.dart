@@ -391,6 +391,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   EdgeInsetsDirectional get heroActionPadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 16);
 
+  /// The same inset inside the outlined action's one-pixel border.
+  EdgeInsetsDirectional get heroOutlinedActionPadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 17);
+
   /// The space before a balance's dollar estimate.
   double get heroDollarGap => 12;
 
