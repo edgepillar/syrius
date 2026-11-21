@@ -446,6 +446,10 @@ void main() {
           matching: find.byTooltip(kNewSha),
         );
         expect(archiveHash, findsOneWidget);
+        expect(find.descendant(
+          of: archiveHash,
+          matching: find.byKey(const Key('node_update_verified_hash')),
+        ), findsOneWidget);
         expect(
           tester.getCenter(archiveHash).dy,
           closeTo(tester.getCenter(find.text(kAsset)).dy, 1),

@@ -3447,8 +3447,17 @@ asset and a shortened hash, with wrapping for smaller layouts. The
 full hash remains available in the tooltip and the original confirmation.
 The Install action uses the reference's compact button height. The
 existing confirmation case checks the row and button along with the
-original verification details and cancellation behavior. Fresh Windows
-pixels remain open.
+original verification details and cancellation behavior.
+
+The [first Windows run of the compact notice](https://github.com/edgepillar/syrius/actions/runs/44909497998/job/136862081048)
+built Release but stopped at the original full-hash text assertion.
+Its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44911207891/job/136867224033)
+verifies the failed receipt and zero captured images. The full hash is
+now in the tooltip rather than in the painted label. The script parks
+the pointer before asserting the visible hash label. It checks the
+complete original tooltip message against the same pinned digest and
+retains both checksum assertions and the review-button capture gate.
+Fresh Windows pixels remain open.
 
 Against the [earlier Addresses captures](https://github.com/edgepillar/syrius/actions/runs/44904748252/job/136847815734),
 the contact crop falls from 15,424 to 12,670 in dark and from 15,802 to

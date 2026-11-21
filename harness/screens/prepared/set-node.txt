@@ -10,10 +10,10 @@ wait --key node_update_release_v0.0.10-alphanet --exact --timeout 25
 wait --key node_update_download --ready --timeout 15
 tap --key node_update_download
 wait --key node_update_review_install --ready --timeout 25
+hover @0,0
 assert b7d7efc5b4ed06e01e4ae5ce6b826273b2f699f57133058395bde87195c9deac --exact
 assert "Matches the release's checksum file" --exact
 assert "Matches GitHub's digest" --exact
-hover @0,0
 assert --key node_update_review_install --exact
 # after-capture: tap --key node_update_discard_download --exact
 # after-capture: wait --key node_update_review_install --gone --timeout 5

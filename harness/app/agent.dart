@@ -5638,6 +5638,16 @@ class HarnessAgent {
     if (!_positiveObservationReachable(node, node.center)) {
       throw HarnessError('assert target is covered', node.toJson());
     }
+    if (_readonlyNative != null && c['key'] == 'node_update_verified_hash' &&
+        node.kind == 'text') {
+      node.element.visitAncestorElements((Element ancestor) {
+        if (ancestor.widget case final Tooltip tooltip) {
+          node.extra['tip'] = tooltip.message;
+          return false;
+        }
+        return true;
+      });
+    }
     if (_readonlySendWarning && c['key'] == 'send_submit_button') {
       _requireSendWarningDraft(node);
     }

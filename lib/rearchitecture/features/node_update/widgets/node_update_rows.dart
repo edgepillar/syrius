@@ -699,6 +699,9 @@ class _VerifiedDownload extends StatelessWidget {
                       message: archiveHash,
                       child: Text(
                         '${l10n.nodeUpdateHashLabel} ${_middle(archiveHash)}',
+                        key: const ValueKey<String>(
+                          'node_update_verified_hash',
+                        ),
                         textDirection: TextDirection.ltr,
                         style: settingMonoStyle(context),
                       ),

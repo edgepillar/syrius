@@ -399,6 +399,21 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
         }
         return;
       }
+      if (words case ['assert', final String digest, '--exact']
+          when settingsReview && RegExp(r'^[a-f0-9]{64}$').hasMatch(digest)) {
+        final Map<String, dynamic> reply = await cli.call(instance,
+          const <String, Object?>{
+            'cmd': 'assert', 'key': 'node_update_verified_hash', 'exact': true,
+          },
+        );
+        final Object? target = reply['target'];
+        if (reply['asserted'] != true || target is! Map<String, dynamic> ||
+            target['key'] != 'node_update_verified_hash' ||
+            target['kind'] != 'text' || target['tip'] != digest) {
+          throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
+        }
+        return;
+      }
       await cli.run(instance, words.first, cli.Args(words.sublist(1)));
       if (words case ['tap', '--key', 'settings_addresses']
           when settingsReview && !settingsContactsSaved) {
