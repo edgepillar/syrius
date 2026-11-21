@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart' show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 // The small parts the Accelerator pages share: a pill for a status or a
@@ -85,7 +86,7 @@ class AccChip extends StatelessWidget {
   const AccChip({
     required this.label,
     this.dotColor,
-    this.icon,
+    this.symbol,
     this.selected = false,
     this.onPressed,
     this.tooltip,
@@ -99,8 +100,8 @@ class AccChip extends StatelessWidget {
   /// The dot's colour, or the icon's when there is an icon.
   final Color? dotColor;
 
-  /// Shown in place of the dot.
-  final IconData? icon;
+  /// The design symbol shown in place of the dot.
+  final String? symbol;
 
   /// Whether a filter pill is on.
   final bool selected;
@@ -141,8 +142,12 @@ class AccChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          if (icon != null) ...<Widget>[
-            Icon(icon, size: 14, color: dotColor ?? ink),
+          if (symbol case final String icon) ...<Widget>[
+            ShellSymbol(
+              icon,
+              size: tokens.inlineGlyphSize,
+              color: dotColor ?? ink,
+            ),
             const SizedBox(width: 6),
           ] else if (dotColor != null) ...<Widget>[
             Container(
@@ -214,12 +219,12 @@ class AccStatusChip extends StatelessWidget {
       label: label,
       dotColor: color,
       filled: true,
-      icon: switch (status) {
-        AcceleratorProjectStatus.voting => Icons.schedule,
+      symbol: switch (status) {
+        AcceleratorProjectStatus.voting => 'clock',
         AcceleratorProjectStatus.active ||
         AcceleratorProjectStatus.paid ||
-        AcceleratorProjectStatus.completed => Icons.check,
-        AcceleratorProjectStatus.closed => Icons.close,
+        AcceleratorProjectStatus.completed => 'check',
+        AcceleratorProjectStatus.closed => 'x',
       },
     );
   }

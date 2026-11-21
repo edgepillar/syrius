@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_parts.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart' show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Builds details from the exact copied project supplied by the selected row.
@@ -208,7 +209,7 @@ class AcceleratorProjectListItem extends StatelessWidget {
                     ? AccChip(
                         label: context.l10n.acceleratorYourVote,
                         dotColor: tokens.warn,
-                        icon: Icons.how_to_vote_outlined,
+                        symbol: 'vote',
                         filled: true,
                       )
                     : AccStatusChip(value.status),
@@ -216,7 +217,14 @@ class AcceleratorProjectListItem extends StatelessWidget {
             ),
             SizedBox(
               width: tokens.acceleratorChevronWidth,
-              child: Icon(Icons.chevron_right, size: 16, color: tokens.faint),
+              child: Center(
+                child: ShellSymbol(
+                  'chevr',
+                  size: tokens.smallActionGlyphSize,
+                  color: tokens.faint,
+                  directional: true,
+                ),
+              ),
             ),
           ],
         ),

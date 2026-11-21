@@ -186,6 +186,16 @@ void main() {
           );
           expect(quorum.data, 'Unknown');
           expect(find.text('Your vote'), findsNWidgets(2));
+          final Finder project = find.byKey(
+            ValueKey<String>('accelerator_project_${listHash(1)}'),
+          );
+          expectMockupSymbol(
+            tester,
+            within: project,
+            symbol: 'vote',
+            size: 12,
+            color: AppTokens.of(tester.element(project)).warn,
+          );
           final Finder sort = find.byKey(const Key('accelerator_sort'));
           final Rect sortBounds = tester.getRect(sort);
           expect(sortBounds.height, 26);

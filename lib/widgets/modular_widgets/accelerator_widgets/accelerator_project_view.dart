@@ -282,7 +282,7 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
         : source.needsVote
         ? AccChip(
             label: context.l10n.acceleratorYourVote,
-            icon: Icons.how_to_vote_outlined,
+            symbol: 'vote',
             dotColor: tokens.warn,
             filled: true,
           )

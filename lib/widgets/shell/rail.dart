@@ -74,6 +74,9 @@ const Map<String, String> _symbols = <String, String>{
   'clock':
       '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   'check': '<path d="m5 12 5 5L20 7"/>',
+  'vote':
+      '<path d="m9 11 3 3 7-7M20 12v7a1 1 0 0 1-1 1H5a1 1 '
+      '0 0 1-1-1V5a1 1 0 0 1 1-1h11"/>',
   'qr':
       '<rect x="3" y="3" width="7" height="7"/><rect '
       'x="14" y="3" width="7" height="7"/><rect '
