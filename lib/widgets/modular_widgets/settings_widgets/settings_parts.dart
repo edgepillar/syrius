@@ -350,20 +350,26 @@ class SettingsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double gap = AppTokens.of(context).pageGap;
-    return CustomScrollView(
-      shrinkWrap: true,
-      // Each panel stays mounted so its input survives scrolling. The viewport
-      // only paints the panels that intersect it during a disclosure.
-      slivers: <Widget>[
-        for (final (int index, Widget child) in children.indexed)
-          SliverToBoxAdapter(
-            key: child.key == null ? null : ValueKey<Key?>(child.key),
-            child: Padding(
-              padding: EdgeInsets.only(top: index == 0 ? 0 : gap),
-              child: child,
-            ),
+    // Each panel stays mounted so its input survives scrolling. The viewport
+    // only paints the panels that intersect it during a disclosure.
+    final List<Widget> panels = <Widget>[
+      for (final (int index, Widget child) in children.indexed)
+        SliverToBoxAdapter(
+          key: child.key == null ? null : ValueKey<Key?>(child.key),
+          child: Padding(
+            padding: EdgeInsets.only(top: index == 0 ? 0 : gap),
+            child: child,
           ),
-      ],
+        ),
+    ];
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) =>
+          CustomScrollView(
+            // The shell already fixes the viewport height. Preserve natural
+            // height for callers that give a section loose constraints.
+            shrinkWrap: !constraints.hasTightHeight,
+            slivers: panels,
+          ),
     );
   }
 }

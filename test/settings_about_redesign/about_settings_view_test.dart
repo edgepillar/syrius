@@ -98,11 +98,25 @@ void main() {
     );
     final Finder offscreen = find.byKey(panel, skipOffstage: false);
     final Element original = tester.element(offscreen);
+    final Finder viewport = find.byType(CustomScrollView);
+    expect(tester.widget<CustomScrollView>(viewport).shrinkWrap, isFalse);
+    expect(tester.getSize(viewport).height, 260);
     expect(paints, 0);
     await tester.ensureVisible(offscreen);
     await tester.pumpAndSettle();
     expect(paints, greaterThan(0));
     expect(tester.element(offscreen), same(original));
+
+    await tester.pumpWidget(
+      aboutHost(
+        const Align(
+          child: SettingsSection(children: <Widget>[SizedBox(height: 100)]),
+        ),
+        height: 260,
+      ),
+    );
+    expect(tester.widget<CustomScrollView>(viewport).shrinkWrap, isTrue);
+    expect(tester.getSize(viewport).height, 100);
   });
 
   for (final (bool, bool, double) variant in <(bool, bool, double)>[

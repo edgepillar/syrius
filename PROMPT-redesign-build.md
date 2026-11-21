@@ -3146,6 +3146,12 @@ release and 34.289 ms after release. The page raster peaks at
 release. Both measurements still exceed the 16 ms comparison and
 have frame-number gaps. V02 remains open.
 
+Settings now uses a standard viewport where the shell already fixes
+the section height. A section with loose height constraints keeps its
+natural size. The existing offscreen panel regression checks both
+sizing modes and the retained panel across scrolling. Fresh paired
+timing is needed to measure the effect on the running Windows build.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.
