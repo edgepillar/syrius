@@ -2190,7 +2190,13 @@ the fixed threshold. Its leading edge and both vertical edges agree with
 the reference. The reference has one more ink column on the trailing edge.
 This measurement leaves whole-image review open. The
 [Wallet Ready captures](https://github.com/edgepillar/syrius/actions/runs/44857034409)
-still need their own independent read and visual verdicts.
+and their [independent reader](https://github.com/edgepillar/syrius/actions/runs/44858719630/job/136706899010)
+verify both original PNGs and normal required process closure. All four
+marks in each theme measure 8 by 6 ink pixels in extent at the same
+threshold, versus 9 by 6 in the references. The first two circles match
+the reference bounds. The last two retain a one-pixel horizontal edge
+difference and their ink spans begin one column farther from the centers
+under the same calculation. Both whole-image verdicts remain open.
 
 The [Linux validation at `d1eb02a9`](https://github.com/edgepillar/syrius/actions/runs/44851643307/job/136684120771)
 passes strict analysis after the subtitle formatting correction. It
