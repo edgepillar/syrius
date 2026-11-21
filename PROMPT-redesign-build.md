@@ -4955,8 +4955,14 @@ and [Accelerator](https://github.com/edgepillar/syrius/actions/runs/44957623253/
 The [capture index](docs/review/source-84a88c55-prepared-captures.json)
 binds four Node and Addresses PNGs and four Accelerator PNGs to their
 original archives. Both catalogs have normal required closure.
-The Accelerator stills retain atomic capture evidence. Their visual
-verdicts remain open.
+The Accelerator stills retain atomic capture evidence. The [pixel comparison](https://github.com/edgepillar/syrius/actions/runs/44959769007/job/137015783744)
+reads the same four originals in CI memory. At a difference of at least
+16 levels in any RGB channel, the Voting list differs at 40,633 dark and
+41,255 light pixels. Its table accounts for 29,497 and 29,712 of those
+pixels. Project Detail differs at 46,133 dark and 47,754 light pixels.
+The project and phases area accounts for 26,116 and 25,357, and the
+voting panel accounts for 8,217 and 10,503. These crops include fixture
+content. The four visual verdicts remain open.
 
 In both themes, the Node verification notice fills rows 385 through 497
 at reference column 980 and its enclosing panel spans rows 267 through
