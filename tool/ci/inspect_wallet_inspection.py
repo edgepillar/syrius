@@ -44,6 +44,8 @@ VERSIONED_INPUTS = frozenset((
     'harness/bin/ci_wallet_reopen.dart',
     'harness/bin/readonly_catalog_contact.dart',
     'harness/bin/readonly_details_catalog.dart',
+    'harness/bin/readonly_home_catalog.dart',
+    'harness/bin/readonly_inspection_session.dart',
     'harness/bin/readonly_navigation_catalog.dart',
     'harness/bin/readonly_settings_catalog.dart',
     'harness/bin/screen_capture.dart',
