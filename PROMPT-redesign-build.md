@@ -3425,9 +3425,24 @@ reports zero captures and forced cleanup of a required actor. The controller
 still used the earlier two-image schema to account for files and validate the
 completed receipt. It now selects the four-image schema for new runs. The
 existing control accepts those four filenames and refuses an unregistered
-fifth. The reader also validates older two-image archives. The
-[corrected Windows run](https://github.com/edgepillar/syrius/actions/runs/44907058148)
-is in progress.
+fifth. The reader also validates older two-image archives.
+
+The [corrected Windows run](https://github.com/edgepillar/syrius/actions/runs/44907058148/job/136854793756)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44908827729/job/136860054696)
+verify all four captures and normal required closure. All four references
+retain their previous digests. At the 16-level RGB threshold, whole-window
+Node counts fall from 84,898 to 70,803 in dark and from 84,771 to 70,513 in
+light relative to the earlier verified-download capture. The differences
+in the disclosure crop fall from 18,366 to 3,772 in dark and 18,002 to
+3,419 in light. The update crop increases to 40,100 and 39,790. At column
+700 the verified notice band spans rows 434 through 531 in both themes
+against 385 through 433 in the references.
+
+Against the [earlier Addresses captures](https://github.com/edgepillar/syrius/actions/runs/44904748252/job/136847815734),
+the contact crop falls from 15,424 to 12,670 in dark and from 15,802 to
+14,169 in light. The member crop increases from 20,231 to 22,842 and from
+19,971 to 22,782. Whole-window counts are 43,768 and 45,134. The strict
+verdicts for all four pairs remain open under V01.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
