@@ -3321,6 +3321,15 @@ passes application and strict selected analysis, 5,131 non-chain tests
 with one skip and generated-file verification. That full run includes
 all 1,530 selected Windows-tour cases.
 
+The [paired cold Windows run at `38153592`](https://github.com/edgepillar/syrius/actions/runs/44883756272/job/136784475622)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44885559757/job/136789966502)
+verify 86 redesigned frames, 1,482 P06 frames and five normal actor exits.
+The reported raster and distinct-frame rankings meet the 16 ms
+comparison. Build fails it with peaks of 22.409 ms and 17.721 ms. The
+redesigned peak build starts 278.684 ms before the first post-frame film
+observation. The respective windows retain 18 and 1,445 frame-number
+gaps. V02 remains open.
+
 The [Windows interface run at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44876122524/job/136761087924)
 and its [independent inspection](https://github.com/edgepillar/syrius/actions/runs/44877853952/job/136766426791)
 verify all eleven scoped Home, Activity, Go To, Pillars and Swap seam
