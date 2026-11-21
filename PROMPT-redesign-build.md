@@ -4989,6 +4989,14 @@ The guard records these flags on the held original attempt. An unobserved
 operation or an all-clear snapshot carries no flags. The failed Token run
 keeps its original evidence.
 
+The [fresh Windows producer at `f48f3ff2`](https://github.com/edgepillar/syrius/actions/runs/44958435013/job/137011639475)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44960395230/job/137017702980)
+verify prepared Staking, Tokens and Token Mine PNGs in both themes. The
+six captures retain atomic frame evidence and normal required closure.
+The [capture index](docs/review/source-f48f3ff2-seeded-captures.json)
+binds the original PNGs to the 340,670-byte retained archive. The
+whole-image comparisons remain open under V01.
+
 | Original requirement | Evidence at this revision |
 | --- | --- |
 | Clean Windows Debug and Release | The [environment guide](docs/environment.md) lists the setup. The [clean Windows run at `18d42024`](https://github.com/edgepillar/syrius/actions/runs/44952696600/job/136993905785) and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44955001234/job/137001041306) verify both builds and DLL correspondence on the current application sources. |

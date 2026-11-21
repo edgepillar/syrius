@@ -1,0 +1,52 @@
+{
+  "actual": {
+    "13-staking-dark": {
+      "archive_member": "13-staking-dark.png",
+      "archive_sha256": "bf4a95e21b74c4d9d6217b04b079deaab4047173218348f87434e105e2b27428",
+      "catalog_family": "seeded-states-visual",
+      "path": "bf4a95e21b74c4d9d6217b04b079deaab4047173218348f87434e105e2b27428",
+      "sha256": "5e1850818598315ecc79138c6a568938e0142b962c28e4bd28b29aca2e21235a",
+      "source_sha": "f48f3ff2bf27aee2c101602643c187e963ce8e0b"
+    },
+    "13-staking-light": {
+      "archive_member": "13-staking-light.png",
+      "archive_sha256": "bf4a95e21b74c4d9d6217b04b079deaab4047173218348f87434e105e2b27428",
+      "catalog_family": "seeded-states-visual",
+      "path": "bf4a95e21b74c4d9d6217b04b079deaab4047173218348f87434e105e2b27428",
+      "sha256": "9ed9334847716c88e7854981fd5a5a9535eb16f49ce29f8eb638da2ec1c45882",
+      "source_sha": "f48f3ff2bf27aee2c101602643c187e963ce8e0b"
+    },
+    "23-tokens-dark": {
+      "archive_member": "23-tokens-dark.png",
+      "archive_sha256": "bf4a95e21b74c4d9d6217b04b079deaab4047173218348f87434e105e2b27428",
+      "catalog_family": "seeded-states-visual",
+      "path": "bf4a95e21b74c4d9d6217b04b079deaab4047173218348f87434e105e2b27428",
+      "sha256": "94e52623e81a9c0a2a5afd781a2ed838263285b42b30b528867b1fc61031f400",
+      "source_sha": "f48f3ff2bf27aee2c101602643c187e963ce8e0b"
+    },
+    "23-tokens-light": {
+      "archive_member": "23-tokens-light.png",
+      "archive_sha256": "bf4a95e21b74c4d9d6217b04b079deaab4047173218348f87434e105e2b27428",
+      "catalog_family": "seeded-states-visual",
+      "path": "bf4a95e21b74c4d9d6217b04b079deaab4047173218348f87434e105e2b27428",
+      "sha256": "75beca4c20fc7307620ec3f47033cd9585bfc9740b9f812078ada231220b3cf1",
+      "source_sha": "f48f3ff2bf27aee2c101602643c187e963ce8e0b"
+    },
+    "24-token-mine-dark": {
+      "archive_member": "24-token-mine-dark.png",
+      "archive_sha256": "bf4a95e21b74c4d9d6217b04b079deaab4047173218348f87434e105e2b27428",
+      "catalog_family": "seeded-states-visual",
+      "path": "bf4a95e21b74c4d9d6217b04b079deaab4047173218348f87434e105e2b27428",
+      "sha256": "32ba076d162954b27850a729c41364b0e2c794620e4a298b8380ca774abbbd99",
+      "source_sha": "f48f3ff2bf27aee2c101602643c187e963ce8e0b"
+    },
+    "24-token-mine-light": {
+      "archive_member": "24-token-mine-light.png",
+      "archive_sha256": "bf4a95e21b74c4d9d6217b04b079deaab4047173218348f87434e105e2b27428",
+      "catalog_family": "seeded-states-visual",
+      "path": "bf4a95e21b74c4d9d6217b04b079deaab4047173218348f87434e105e2b27428",
+      "sha256": "4a229bfd26aa00f9f532159e89f76de40fd2de4269e6d57a95d54bc933a0e5d6",
+      "source_sha": "f48f3ff2bf27aee2c101602643c187e963ce8e0b"
+    }
+  }
+}
