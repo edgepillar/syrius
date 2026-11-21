@@ -334,7 +334,10 @@ class _WelcomeSurfaceState extends State<WelcomeSurface>
           children: <Widget>[
             Text(context.l10n.welcomeTitle, style: tokens.welcomeHeadingText),
             SizedBox(height: tokens.welcomeTextGap),
-            Text(context.l10n.welcomeSubtitle, style: tokens.welcomeSubtitleText),
+            Text(
+              context.l10n.welcomeSubtitle,
+              style: tokens.welcomeSubtitleText,
+            ),
           ],
         ),
       ),
