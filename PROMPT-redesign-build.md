@@ -4030,6 +4030,13 @@ and distinct-frame comparisons all fail, with 23 and 416 frame-number
 gaps. The two handoff images retain the same 16-level difference counts
 of 5,253 dark and 6,213 light pixels. V01 and V02 remain open.
 
+The [Windows run at `99fb6e38`](https://github.com/edgepillar/syrius/actions/runs/44960917084/job/137019304339)
+passes the startup handoff widget cases, the ownership and diagnostics
+stage, and the Release harness build after deferring the hidden Lock
+shadow. The handoff case observes the same foreground render object as
+the shadow mounts and retains the prepared raster through the handoff.
+The paired cold measurement and visual comparison still require evidence.
+
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
 and five normal node exits. The longest page-change totals are 280.034 ms
@@ -5024,6 +5031,11 @@ light pixels, Tokens at 48,159 and 50,069, and Token Mine at 38,210 and
 46,730. The largest crops are the Staking table, the Tokens table, and
 the open Token Mine row and form. The crops include the isolated wallet's
 actual data. Whole-image verdicts remain open under V01.
+
+The [Windows recapture at `82408f0c`](https://github.com/edgepillar/syrius/actions/runs/44962407153)
+requests all six prepared images in one run after the Staking status
+type and Tokens badge changes. The capture and whole-image verdicts
+remain open.
 
 | Original requirement | Evidence at this revision |
 | --- | --- |
