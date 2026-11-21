@@ -282,6 +282,11 @@ class WindowsQualificationTests(unittest.TestCase):
             point=[300, 14], actual=[60, 60, 60], reference=[20, 20, 20]))
         self.assertEqual(comparison['sample_rgb']['film'], dict(
             point=[300, 240], actual=[60, 60, 60], reference=[20, 20, 20]))
+        self.assertEqual(comparison['unlock_palette_samples'], dict(
+            unlock_left=dict(model_delta_milli=[-22989, 1164, -4365],
+                             residual_delta_milli=[22989, -1164, 4365]),
+            unlock_right=dict(model_delta_milli=[0, -1554, -3454],
+                              residual_delta_milli=[0, 1554, 3454])))
         with mock.patch.object(Path, 'open', return_value=io.BytesIO(pixels(opaque=True))):
             settled = inspect.startup_pixel_comparison('41-lock-screen-dark.png', handoff)
         self.assertEqual(settled['sample_rgb']['left_of_stage'],

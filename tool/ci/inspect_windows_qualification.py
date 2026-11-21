@@ -379,6 +379,25 @@ def completed_step_bounds(encoded, screen):
     return results
 
 
+APPROVED_PRIMARY_PALETTE = ((0, 213, 87), (53, 183, 160), (0, 97, 235))
+ORIGINAL_PRIMARY_PALETTE = ((79, 209, 102), (53, 183, 160), (0, 106, 255))
+HANDOFF_UNLOCK_BOUNDS = (459, 511, 821, 557)
+HANDOFF_OPACITY = .4
+
+
+def primary_gradient_rgb(point, bounds, palette):
+    x, y = point
+    left, top, right, bottom = bounds
+    angle = math.pi / 18
+    span = (right - left) * math.cos(angle) + (bottom - top) * math.sin(angle)
+    position = .5 + ((x + .5 - (left + right) / 2) * math.cos(angle)
+                     + (y + .5 - (top + bottom) / 2) * math.sin(angle)) / span
+    index = int(position >= .55)
+    fraction = position / .55 if index == 0 else (position - .55) / .45
+    return tuple(start + fraction * (end - start)
+                 for start, end in zip(palette[index], palette[index + 1]))
+
+
 def primary_gradient_error(encoded, bounds):
     """Compare a resting primary action's fill with the approved palette."""
     left, top, right, bottom = bounds
@@ -388,18 +407,12 @@ def primary_gradient_error(encoded, bounds):
     rows, channels = _png_crop(encoded, (columns[0], columns[-1] + 1), (y, y + 1))
     if not _opaque(rows, channels):
         return None
-    angle = math.pi / 18
-    span = width * math.cos(angle) + (bottom - top) * math.sin(angle)
-    palette = ((0, 213, 87), (53, 183, 160), (0, 97, 235))
     errors = []
     for x in columns:
-        position = .5 + ((x + .5 - (left + right) / 2) * math.cos(angle)
-                         + (y + .5 - (top + bottom) / 2) * math.sin(angle)) / span
-        index = int(position >= .55)
-        fraction = position / .55 if index == 0 else (position - .55) / .45
         offset = (x - columns[0]) * channels
-        errors.extend(abs(value - (start + fraction * (end - start)))
-            for value, start, end in zip(rows[0][offset:offset + 3], palette[index], palette[index + 1]))
+        expected = primary_gradient_rgb((x, y), bounds, APPROVED_PRIMARY_PALETTE)
+        errors.extend(abs(value - target)
+                      for value, target in zip(rows[0][offset:offset + 3], expected))
     return dict(max_channel_error_milli=round(max(errors) * 1000),
                 mean_channel_error_milli=round(sum(errors) * 1000 / len(errors)))
 
@@ -638,6 +651,22 @@ def startup_pixel_comparison(name, data):
     result = pixel_comparison(data, reference, regions, sample_points=points)
     archive.need(result is not None)
     result['region_bounds'] = regions
+    if name in startup.launch.SETTLE_FILES:
+        # Estimate only the palette contribution at the two flat fill samples.
+        # Geometry, text and the raw comparison stay in the original receipt.
+        palette = {}
+        for key in ('unlock_left', 'unlock_right'):
+            sample = result['sample_rgb'][key]
+            approved = primary_gradient_rgb(sample['point'], HANDOFF_UNLOCK_BOUNDS,
+                                            APPROVED_PRIMARY_PALETTE)
+            original = primary_gradient_rgb(sample['point'], HANDOFF_UNLOCK_BOUNDS,
+                                            ORIGINAL_PRIMARY_PALETTE)
+            change = [round(1000 * HANDOFF_OPACITY * (a - b))
+                      for a, b in zip(approved, original)]
+            residual = [1000 * (a - b) - delta
+                        for a, b, delta in zip(sample['actual'], sample['reference'], change)]
+            palette[key] = dict(model_delta_milli=change, residual_delta_milli=residual)
+        result['unlock_palette_samples'] = palette
     return result
 
 
