@@ -3180,6 +3180,31 @@ passes both scaled Security cases, application and strict selected analysis,
 5,131 non-chain tests with one skip, and generated-file verification. The
 full suite includes all 1,530 selected Windows-tour cases across 113 files.
 
+The [paired Windows run at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44876122392/job/136761087791)
+and its [independent inspection](https://github.com/edgepillar/syrius/actions/runs/44877649760/job/136765790775)
+verify both original windows and two normal entry, two normal wallet and
+five normal node exits. Page-change raster peaks at 112.129 ms against
+106.886 ms on P06. Its longest total is 141.705 ms against 140.716 ms,
+including 99.249 ms and 104.238 ms of recorded raster wait respectively.
+The disclosure raster peaks at 38.172 ms against 33.040 ms. The current
+peak starts 12.346–24.821 ms after release and before the list is observed
+laid out. Its build, raster and distinct-frame comparisons fail. Page
+change fails raster and distinct-frame comparisons. All four streams retain
+frame gaps. Both current peaks are lower than the previous pair's current
+peaks, and P06 peaks also changed. The separate viewport effect remains
+unestablished and V02 stays open.
+
+The [Windows interface run at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44876122524/job/136761087924)
+and its [independent inspection](https://github.com/edgepillar/syrius/actions/runs/44877853952/job/136766426791)
+verify all eleven scoped Home, Activity, Go To, Pillars and Swap seam
+observations, two lab revalidations and normal required actor exits. The
+reader also verifies eight Home catalog PNGs and four viewport PNGs.
+The Home Send fill bounds stay at columns 930–1022 and rows 93–130 in
+both themes. Against the same eight reference PNGs, per-image changes
+in the count of pixels differing by at least 16 levels range from 22
+fewer to 184 more than at `b462e737`. All eight whole-image verdicts
+remain open under V01. V06 still requires the end-state acceptance audit.
+
 The [clean Windows baseline at `c46ad9c1`](https://github.com/edgepillar/syrius/actions/runs/44873686324/job/136753581063)
 and its [independent log inspection](https://github.com/edgepillar/syrius/actions/runs/44876186589/job/136761284285)
 verify all 12 baseline checks, both Debug and Release builds, matching
