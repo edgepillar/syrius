@@ -3908,6 +3908,12 @@ after the first. In the settled sample the stage matches the original
 Visual inspection of the motion and the separate timing comparison remain
 open under V02.
 
+The [current combined Windows run at `08ecf715`](https://github.com/edgepillar/syrius/actions/runs/44918014703)
+measures the cold launch against P06 and captures the two handoff images
+from the same Release build. Its application and harness match the
+verified Windows baseline source `a57d60a7`. The newer revision records
+results only. Visual and timing acceptance remain open.
+
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
 and five normal node exits. The longest page-change totals are 280.034 ms
