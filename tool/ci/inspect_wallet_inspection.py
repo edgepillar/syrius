@@ -650,6 +650,36 @@ def node_update_notice_geometry(raw, reference_dir):
                 clear_column=dict(column=clear_column, themes=clear_themes))
 
 
+def addresses_card_comparison(raw, reference_dir):
+    """Measure the edges of the three Addresses cards on the same column."""
+    column, top, bottom = 700, 33, 700
+    cards = ('members', 'contacts', 'account_chain')
+
+    def spans(data):
+        bands = _image_vertical_bands(data, column, top, bottom)
+        if not bands or bands[0][1] != bands[-1][1]:
+            return None
+        background = bands[0][1]
+        # Card dividers and text can interrupt the fill. A page gap is
+        # at least eight rows of the surrounding page color.
+        gaps = [(start, end) for (start, color), (end, _) in zip(bands, bands[1:])
+                if color == background and (start == top or end - start >= 8)]
+        if len(gaps) != len(cards):
+            return None
+        ends = [start for start, _ in gaps[1:]] + [bands[-1][0]]
+        return {name: [gap_end, card_end]
+                for name, (_, gap_end), card_end in zip(cards, gaps, ends)}
+
+    themes = {}
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        for theme in producer.settings.THEMES:
+            name = f'35-set-addresses-{theme}.png'
+            reference = producer.read_original(reference_dir / name, producer.debug.entry.MAX_PNG)
+            themes[theme] = dict(actual=spans(zipped.read(name)),
+                                 reference=spans(reference))
+    return dict(column=column, scan_rows=[top, bottom], themes=themes)
+
+
 def home_goto_geometry(raw):
     """Measure the panel edge, visible caret and window edge of Go To."""
     column, top, bottom = 450, 440, 476
@@ -1334,6 +1364,9 @@ def main(parent=None):
                     catalog_archive, reference_dir, files=catalog['filenames']))
                 catalog['node_update_notice_geometry'] = node_update_notice_geometry(
                     catalog_archive, reference_dir)
+                if '35-set-addresses-dark.png' in catalog['filenames']:
+                    catalog['addresses_card_bands'] = addresses_card_comparison(
+                        catalog_archive, reference_dir)
             if {'10-receive-qr-dark.png', '22-plasma-fuse-dark.png',
                     '37-set-licences-dark.png'} <= set(catalog['filenames']):
                 catalog['component_geometry'] = details_component_geometry(catalog_archive)

@@ -1423,6 +1423,14 @@ class ReaderTests(unittest.TestCase):
                         pixels = (ordinary * 36 + card * 48 + (rule + card * 56) * 2
                                   + rule + card * 15 + selected * 16 + card * 25
                                   + ordinary * 525)
+                    else:
+                        table = bytes((125, 125, 125, 255))
+                        card = b'\0' + table * 1280
+                        selected = (b'\0' + table * left + bytes((*green, 255)) * 16
+                                    + table * (1280 - left - 16))
+                        pixels = (ordinary * 36 + card * 128 + selected * 16 + card * 70
+                                  + ordinary * 12 + card * 50 + ordinary + card * 120
+                                  + ordinary * 12 + card * 44 + ordinary * 291)
                     image = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                              + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
                     zipped.writestr(f'{screen}-{theme}.png', image)
@@ -1453,6 +1461,13 @@ class ReaderTests(unittest.TestCase):
             about_card_bands=dict(column=700, scan_rows=[35, 279], themes=dict(dark=about, light=about)),
             about_update_badge_bounds=dict(dark=badge_bounds, light=badge_bounds),
         ))
+        with zipfile.ZipFile(packed) as zipped, mock.patch.object(
+                reader.producer, 'read_original', side_effect=lambda path, _: zipped.read(path.name)):
+            cards = reader.addresses_card_comparison(packed.getvalue(), Path('references'))
+        spans = dict(members=[36, 250], contacts=[262, 433], account_chain=[445, 489])
+        self.assertEqual(cards, dict(column=700, scan_rows=[33, 700], themes={
+            theme: dict(actual=spans, reference=spans) for theme in ('dark', 'light')
+        }))
         value, calls, text = self.run_main(navigation_catalog=True)
         self.assertTrue(value['native_inspection_qualified'])
         self.assertEqual(value['verified_catalog_png_count'], 14)

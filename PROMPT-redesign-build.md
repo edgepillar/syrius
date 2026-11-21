@@ -3456,6 +3456,12 @@ the contact crop falls from 15,424 to 12,670 in dark and from 15,802 to
 19,971 to 22,782. Whole-window counts are 43,768 and 45,134. The strict
 verdicts for all four pairs remain open under V01.
 
+The independent reader now also measures the three Addresses card bands
+at column 700. The reference members, contacts and account-chain cards
+span rows 36–313, 326–476 and 489–532 in both themes. The reader uses
+the page-color gaps to identify the cards and leaves the measurement
+unavailable when the three bands cannot be distinguished.
+
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
 with one skip and generated-file verification. That full run includes
