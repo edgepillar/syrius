@@ -4089,6 +4089,18 @@ page-change frame totals 298.333 ms against 126.332 ms on P06 and includes
 with three rasters above 16 ms starting after observed settlement. The
 two entry, five node and two wallet processes exit normally.
 
+A [second read of the same Windows receipt at `8488ee5e`](https://github.com/edgepillar/syrius/actions/runs/44931015819/job/136927427883)
+groups rasters that begin after an observed boundary by when the same
+frame started building. Of the six slow disclosure rasters that began
+after settlement, five also began building after settlement. Their
+maximum raster duration was 71.222 ms. The other began building before
+settlement and took 61.966 ms to raster. All three slow page-change
+rasters after settlement also began building after settlement, with a
+70.767 ms maximum. The original timing comparison still fails. Frames
+already building when settlement was observed account for only part of
+the subsequent raster cost in this pair. The renderer cause remains open.
+The Python controller suite ran 1,265 cases with 17 skips.
+
 The [first compatibility read of `08ecf715`](https://github.com/edgepillar/syrius/actions/runs/44926305670/job/136913047287)
 reads the original timings and refuses the paired images at the older
 producer pin. The [corrected reader at `39239f24`](https://github.com/edgepillar/syrius/actions/runs/44926469990/job/136913544116)
