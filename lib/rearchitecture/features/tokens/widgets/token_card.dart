@@ -13,6 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/row_det
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart' show kQsrCoin, kZnnCoin;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// The height of a token row.
@@ -119,6 +120,15 @@ class _TokenCardState extends State<TokenCard> {
   Widget build(BuildContext context) {
     final Token token = widget._token;
     final AppTokens theme = AppTokens.of(context);
+    final bool isOwn = kDefaultAddressList.contains(token.owner.toString());
+    final bool isZnn = token.tokenStandard == kZnnCoin.tokenStandard;
+    final Color badgeFill = isZnn
+        ? theme.znn
+        : token.tokenStandard == kQsrCoin.tokenStandard
+        ? theme.qsr
+        : isOwn
+        ? theme.pink
+        : theme.faint;
     final int epoch = _epoch;
     final bool Function()? originalDetailCurrent = widget.detailIsCurrent;
     bool current() =>
@@ -171,16 +181,21 @@ class _TokenCardState extends State<TokenCard> {
                   ),
                   SizedBox(width: tokens.tokenFavoriteGap),
                   Container(
+                    key: const Key('token_identity_badge'),
                     width: tokens.homeTokenBadgeSize,
                     height: tokens.homeTokenBadgeSize,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: tokens.faint,
+                      color: badgeFill,
                       shape: BoxShape.circle,
                     ),
                     child: Text(
-                      token.symbol.isEmpty ? '' : token.symbol.substring(0, 1),
-                      style: tokens.homeTokenBadgeText,
+                      token.symbol.isEmpty
+                          ? ''
+                          : String.fromCharCode(token.symbol.runes.first),
+                      style: tokens.homeTokenBadgeText.copyWith(
+                        color: isZnn ? tokens.onZnn : Colors.white,
+                      ),
                     ),
                   ),
                   SizedBox(width: tokens.inlineGap),

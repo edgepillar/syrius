@@ -154,6 +154,9 @@ void main() {
           tester.view.devicePixelRatio = 1;
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
+          final List<String?> originalAddresses = kDefaultAddressList;
+          addTearDown(() => kDefaultAddressList = originalAddresses);
+          kDefaultAddressList = <String?>[emptyAddress.toString()];
           final TokensPageController controller = TokensPageController();
           final ThemeData theme = brightness == Brightness.dark
               ? AppTheme.darkTheme
@@ -189,6 +192,20 @@ void main() {
           expect(fill.height, 30);
           expect(find.text('Held token'), findsOneWidget);
           expect(find.text('Unheld favorite'), findsNothing);
+          final Finder badge = find.byKey(const Key('token_identity_badge'));
+          final AppTokens badgeTokens = AppTokens.of(tester.element(badge));
+          expect(tester.getSize(badge), const Size.square(26));
+          expect(
+            (tester.widget<Container>(badge).decoration! as BoxDecoration)
+                .color,
+            badgeTokens.pink,
+          );
+          expect(
+            tester.widget<Text>(
+              find.descendant(of: badge, matching: find.byType(Text)),
+            ).style?.color,
+            Colors.white,
+          );
           final Finder disclosure = find.byKey(
             const Key('token_detail_button'),
           );
@@ -221,6 +238,11 @@ void main() {
           await tester.pump(const Duration(milliseconds: 500));
           expect(find.text('Unheld favorite'), findsOneWidget);
           expect(find.text('Held token'), findsNothing);
+          expect(
+            (tester.widget<Container>(badge).decoration! as BoxDecoration)
+                .color,
+            badgeTokens.faint,
+          );
           expect(
             find.byWidgetPredicate(
               (Widget widget) =>
