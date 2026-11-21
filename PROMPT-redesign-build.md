@@ -3611,6 +3611,16 @@ The remaining differences and whole-image verdicts stay under V01. The
 passes analysis, the non-chain suite and generated-file verification. The
 Windows producer passes the full-client caption widget check before capture.
 
+The [Unlock fill read of the same captures](https://github.com/edgepillar/syrius/actions/runs/44899181874/job/136831261209)
+samples 2,328 pixels per theme in the two flat bands away from the label
+and the rounded ends. A 100-degree gradient with the original 55 percent
+midpoint and 0.4 card opacity estimates the effect of the approved palette.
+The raw comparison has 549 dark and 581 light samples at the 16-level
+threshold. The palette-adjusted estimate has zero in both themes, with
+maximum residuals of 6.729 and 7.423 levels. This measurement covers the
+sampled fill only. The originals, raw counts and whole-image verdicts are
+preserved.
+
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
 and five normal node exits. The longest page-change totals are 280.034 ms
