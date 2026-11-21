@@ -3334,7 +3334,16 @@ Contacts case checks spacing and the 32 px edit target at standard scale
 and in scaled RTL. The existing send and edit actions retain their targets.
 [Linux at `bf101ac8`](https://github.com/edgepillar/syrius/actions/runs/44902436133/job/136840960303)
 passes strict analysis, 5,131 non-chain tests with one skip and generated
-file verification. A populated Windows comparison remains open under V01.
+file verification. The [populated Windows Settings producer](https://github.com/edgepillar/syrius/actions/runs/44903341253/job/136843674806)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44904748252/job/136847815734)
+verify all fourteen images and parent closure. Both Addresses images
+were viewed beside their exact references. They show four original wallet
+rows, two synthetic contacts and both row actions. The contact Send and
+Edit controls align with the reference. The actual address identifiers
+use primary ink where the reference uses dim ink, and the compact labels
+are larger. The candidate uses dim ink for both identifier columns and
+the authored 12 px medium labels for the compact buttons. Fresh captures
+and both whole-screen verdicts remain under V01.
 
 The Node reference presents the verified download in the panel before the
 installation action. A verified release download now shows its asset,
@@ -3382,6 +3391,16 @@ For the verified Node family, the independent reader also reports the
 longest uninterrupted band of the notice color at column 700 in each
 original and reference. This measures the notice's vertical extent at
 that sample. Whole-screen verdicts remain under V01.
+
+The [compact Node recapture at `5f0a7863`](https://github.com/edgepillar/syrius/actions/runs/44903239685/job/136843364856)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44905072525/job/136848795314)
+verify both themes against the same reference digests. Whole-window
+counts at the 16-level RGB threshold fall from 101,916 to 84,898 in dark
+and from 101,637 to 84,771 in light. The longest uninterrupted notice-color
+band at column 700 is rows 438 through 535 in both themes, against
+533 through 592 in the earlier captures and 385 through 433 in the
+references. The update crop still contains 39,406 dark and 39,291 light
+differences. Both verdicts and remaining update geometry stay under V01.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
@@ -3736,6 +3755,16 @@ and stage bounds. At the 16-level RGB threshold the region above Unlock
 falls from 300 to 19 pixels in dark and from 437 to 46 in light. Whole-window
 counts fall from 5,566 to 5,253 and from 6,604 to 6,213. The Unlock band is
 unchanged at this threshold. Both whole-screen verdicts remain open under V01.
+
+The [natural Windows handoff at `22b40a70`](https://github.com/edgepillar/syrius/actions/runs/44903834196/job/136845131259)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44904938212/job/136848385902)
+verify all six original PNGs and four normal actor exits. The first
+sample observes progress 0.391 in both themes. The next sample observes
+0.558 at 15.625 ms after the first, and the settled sample is 390.625 ms
+after the first. In the settled sample the stage matches the original
+418 by 118 Lock well at (431, 209). This run uses the original clock.
+Visual inspection of the motion and the separate timing comparison remain
+open under V02.
 
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,

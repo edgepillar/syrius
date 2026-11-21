@@ -144,6 +144,11 @@ void main() {
           expect(count.style!.fontWeight, FontWeight.w600);
         }
         for (final String address in source.members) {
+          final Text identifier = tester.widget<Text>(find.descendant(
+            of: find.byTooltip(address), matching: find.byType(Text),
+          ));
+          expect(identifier.style!.color, tokens.dim);
+          expect(identifier.style!.fontSize, 12);
           final Finder choice = find.byKey(
             ValueKey<String>('addresses_select_$address'),
           );
@@ -191,6 +196,10 @@ void main() {
         );
         final Rect sendBounds = tester.getRect(contactSend);
         final Rect editBounds = tester.getRect(editContact);
+        final Text contactIdentifier = tester.widget<Text>(find.descendant(
+          of: find.byTooltip(contact), matching: find.byType(Text),
+        ));
+        expect(contactIdentifier.style!.color, tokens.dim);
         expect(editBounds.size, const Size.square(32));
         expect(
           variant.$2
@@ -198,12 +207,16 @@ void main() {
               : editBounds.left - sendBounds.right,
           closeTo(4, 1e-10),
         );
+        final ButtonStyle sendStyle =
+            tester.widget<OutlinedButton>(contactSend).style!;
         expect(
-          tester.widget<OutlinedButton>(contactSend).style!.padding!.resolve(
-            <WidgetState>{},
-          ),
+          sendStyle.padding!.resolve(<WidgetState>{}),
           const EdgeInsetsDirectional.symmetric(horizontal: 10),
         );
+        final TextStyle sendText =
+            sendStyle.textStyle!.resolve(<WidgetState>{})!;
+        expect(sendText.fontSize, 12);
+        expect(sendText.fontWeight, FontWeight.w500);
         expect(
           find.byKey(const Key('addresses_account_chain_toggle')),
           findsOneWidget,

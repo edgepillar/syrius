@@ -1062,8 +1062,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Minimum contact row height before text scaling adds space.
   double get addressesContactMinHeight => 50;
 
-  /// Exact account identifiers use the data font.
-  TextStyle get addressesAddressText => dataText.copyWith(fontSize: 12);
+  /// Exact account identifiers use quiet monospaced ink.
+  TextStyle get addressesAddressText =>
+      dataText.copyWith(fontSize: 12, color: dim);
 
   /// The selected account's quiet label.
   TextStyle get addressesSelectedText => bodyText.copyWith(fontSize: 11);

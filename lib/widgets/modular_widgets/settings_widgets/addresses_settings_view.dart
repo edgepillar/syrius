@@ -697,7 +697,10 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
         visualDensity: VisualDensity.standard,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         foregroundColor: tokens.foreground,
-        textStyle: tokens.compactText,
+        textStyle: tokens.compactText.copyWith(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
         side: BorderSide(color: tokens.line),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(tokens.pillRadius),
@@ -996,7 +999,10 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
               ),
             ),
             Expanded(
-              child: _AddressText(contact.address, style: tokens.dataText),
+              child: _AddressText(
+                contact.address,
+                style: tokens.dataText.copyWith(color: tokens.dim),
+              ),
             ),
             SizedBox(
               width: tokens.addressesLastSentWidth * scale,
