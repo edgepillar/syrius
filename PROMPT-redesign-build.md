@@ -2813,6 +2813,14 @@ settlement, three follow it and one crosses it. Page change fails raster
 and distinct-frame comparisons. Disclosure also fails build. All four
 windows retain frame-number gaps. V02 remains open.
 
+At `186bcf3f`, the moving Home field opts out of display-list raster
+caching while retaining the existing owned blurred image. The existing
+two-theme drift cases check the cache hint, image reuse and motion.
+The [Linux run](https://github.com/edgepillar/syrius/actions/runs/44856384342/job/136699476895)
+passes strict selected analysis, 5,129 non-chain tests with one skip, and
+generated-file verification. The [paired Windows run](https://github.com/edgepillar/syrius/actions/runs/44856384903)
+passes analysis and the Release harness build. Its timing result is pending.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.
