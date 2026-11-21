@@ -3597,7 +3597,19 @@ finds zero differences at that threshold in the same caption background
 crop in both themes. The reference caption background is the same in the
 handoff and the settled shots. The candidate gives the native caption the
 body's existing light reveal and raster while retaining the full-window
-black caption before the handoff. Fresh Windows capture remains pending.
+black caption before the handoff.
+
+The [Windows capture read at `e35991dd`](https://github.com/edgepillar/syrius/actions/runs/44898718150/job/136829827220)
+verifies both 0.4 captures against the same reference digests. The caption
+background has zero pixels at the 16-level RGB threshold in either theme.
+At the four fixed caption samples, every channel is within five levels of
+its reference. Whole-window counts fall from 8,631 to 5,566 in dark and from
+9,480 to 6,604 in light. The Unlock band is unchanged and includes the
+[owner-approved palette difference](mockups/redesign/README.md#later-brand-colour-decision).
+The remaining differences and whole-image verdicts stay under V01. The
+[Linux run at the same source](https://github.com/edgepillar/syrius/actions/runs/44897285129/job/136825542776)
+passes analysis, the non-chain suite and generated-file verification. The
+Windows producer passes the full-client caption widget check before capture.
 
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
