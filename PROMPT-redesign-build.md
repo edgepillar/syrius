@@ -5106,6 +5106,14 @@ light difference counts are 46,454 and 58,528 for Rest, 42,428 and
 for Go To. The counts include the rendered wallet state. Whole-image
 and running visual review remain open under V01 and V02.
 
+The Rest and Open reference PNGs match those used by the
+[prior Home comparison at `8b8feaaf`](https://github.com/edgepillar/syrius/actions/runs/44939548878/job/136953508820).
+Across those four pairs, the new whole-window counts change by
++43, −6, −48 and −55 pixels respectively in Rest dark, Rest light,
+Open dark and Open light. The remaining visible differences recorded
+in that source's review include the selected-address Activity scope,
+the empty rewards and token states, and the approved hero colours.
+
 The [full Linux run at `82408f0c`](https://github.com/edgepillar/syrius/actions/runs/44962369342/job/137023769155)
 passes application and strict selected analysis, the non-chain unit and
 widget suite, and generated-file verification. This source includes the
