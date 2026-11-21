@@ -2664,6 +2664,18 @@ are at 0.558, 15.625 ms later, and both settled samples are 390.625 ms
 after their first observations. This verifies the six natural samples.
 The other motions, shaders and paired timing acceptance remain open.
 
+The [paired interaction run at `899933c0`](https://github.com/edgepillar/syrius/actions/runs/44843653106/job/136657972549)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44845785765/job/136665037329)
+verify both windows, two normal entry exits, two normal wallet exits and
+five normal node exits. The first reader dispatch selected the original
+node pin and refused the retained manifest. The corrected read uses the
+producer's lab-fix pin and the same retained data. The longest page-change
+frame is 144.650 ms versus 103.801 ms on P06. For disclosure it is 64.720 ms
+versus 39.011 ms. Page change fails raster and distinct-frame comparisons.
+Disclosure also fails build. Eleven disclosure raster starts after observed
+settlement exceed 16 ms. All four windows retain frame-number gaps.
+V02 remains open.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.
