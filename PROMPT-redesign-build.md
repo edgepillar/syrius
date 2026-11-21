@@ -2670,6 +2670,12 @@ verify all twelve original Launch, Launch Settle, Lock and Seed Quiz images.
 Both Launch Settle images use the authored 0.4 checkpoint. In both themes
 the Lock picker divider is on row 488 and the wrong-password button's
 mean RGB error against the resting gradient is 0.282 levels per channel.
+The [stage bounds measurement](https://github.com/edgepillar/syrius/actions/runs/44847560276/job/136670910871)
+reads the same retained PNGs. On row 390 and column 300, the contiguous
+black stage spans columns 250 through 1029 and rows 149 through 477 in
+both themes. The light reference has those same bounds. The dark
+reference extends one row farther at the bottom. The measurement uses
+a maximum of five RGB levels per channel for the black interior.
 The complete screenshot verdicts remain open under V01.
 
 The [paired interaction run at `899933c0`](https://github.com/edgepillar/syrius/actions/runs/44843653106/job/136657972549)
