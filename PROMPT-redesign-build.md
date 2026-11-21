@@ -3453,6 +3453,30 @@ in light. More than 98 percent of those pixels are below the caption in both
 themes. The other ten shots range from 2,187 to 14,630 differing pixels at
 that threshold. Whole-image verdicts remain open.
 
+The [regional read of the same archives](https://github.com/edgepillar/syrius/actions/runs/44891578818/job/136808336803)
+confirms that both native Launch Settle images capture progress 0.4. The
+stage crop has 523 dark and 1,315 light pixels with an RGB channel difference
+of at least 16. The surrounding area outside the fixed crops accounts for
+178,590 and 159,939, respectively. Both native sides near the middle of the
+stage have the same sampled RGB value within each theme, while the references
+show separate green and blue tints there. The bottom band accounts for
+16,478 dark and 53,396 light pixels at this threshold. These observations
+locate the gaps in the capture and leave the backdrop paint cause open.
+
+The startup backdrop registers its caption paint when the settled Lock first
+needs it. The [Linux run at `87295599`](https://github.com/edgepillar/syrius/actions/runs/44890825902/job/136806035671)
+passes the focused entry and Lock checks, strict analysis, 5,131 non-chain
+tests with one skip, and generated-file verification. The paired Windows
+timing at that source is still running.
+
+The `73f2b43f` shell keeps the connection strip out of view and focus until
+the original film enters the Lock well. This follows the Launch Settle
+reference, which shows the rising form without the strip. The widget checks
+cover the exact handoff and retention of the strip and authentication state.
+[Linux](https://github.com/edgepillar/syrius/actions/runs/44891417763) and
+the [Windows startup catalog](https://github.com/edgepillar/syrius/actions/runs/44891417720)
+are running at the new source.
+
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
 and five normal node exits. The longest page-change totals are 280.034 ms
