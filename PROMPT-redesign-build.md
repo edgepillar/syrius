@@ -4560,6 +4560,14 @@ and generated-file verification. Native observation remains open under V02.
 
 V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
 
+The [Windows baseline run at `0509e4c7`](https://github.com/edgepillar/syrius/actions/runs/44938431977)
+qualifies the current checkout against the clean Windows Debug and Release
+requirements. Since the independently verified `a57d60a7` baseline, the
+application diff covers Disclosure, About, Addresses, Node and the status
+halo. The application, assets, shaders, Windows runner and dependency files
+at `0509e4c7` match `1ad56434` byte for byte. The new baseline is pending.
+The earlier result retains its original source.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |
