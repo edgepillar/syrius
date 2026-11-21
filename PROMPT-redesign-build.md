@@ -4734,6 +4734,17 @@ also match the current test tree. Runs retain their original source pins.
 
 V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
 
+At `83be2bc3`, the runtime, assets, shaders, desktop runners and locked
+dependencies match the [paired Windows timing source at `fd96d7e1`](https://github.com/edgepillar/syrius/actions/runs/44948164678).
+The harness and Windows workflow also match. Compared with the
+`0509e4c7` clean Windows baseline, the only change in these runtime
+paths is the About card's first-open initialization. The earlier baseline
+therefore remains evidence for its own source. A
+[Windows baseline at `83be2bc3`](https://github.com/edgepillar/syrius/actions/runs/44949481618)
+is running the clean Debug and Release, analysis, test and DLL checks for
+the updated candidate. These checks, the visual verdicts and timing remain
+open in the final audit.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |
