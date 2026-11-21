@@ -231,7 +231,18 @@ void main() {
         int done = 0;
         final StartupStageSession session = _session(() => done++);
         await _show(tester, session, light: light);
-        expect(find.byType(LockTabChild), findsOneWidget);
+        final Finder auth = find.byType(LockTabChild);
+        expect(auth, findsOneWidget);
+        expect(tester.getSize(auth).isEmpty, isFalse);
+        expect(
+          find.ancestor(
+            of: auth,
+            matching: find.byWidgetPredicate(
+              (Widget widget) => widget is Opacity && widget.opacity == 0,
+            ),
+          ),
+          findsOneWidget,
+        );
         expect(find.byType(LaunchFilm), findsOneWidget);
         expect(
           tester.widget<LaunchFilm>(find.byType(LaunchFilm)).fit,

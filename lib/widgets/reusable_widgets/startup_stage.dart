@@ -574,7 +574,14 @@ class _StartupStageState extends State<_StartupStage>
                   child: Stack(
                     children: <Widget>[
                       if (!widget.session.authInShell)
-                        Positioned.fill(child: widget.session._auth),
+                        Positioned.fill(
+                          // The opaque full-window film covers this slot.
+                          // Keep the owner laid out for its move to the shell.
+                          child: Opacity(
+                            opacity: 0,
+                            child: widget.session._auth,
+                          ),
+                        ),
                       ValueListenableBuilder<double>(
                         valueListenable: widget.session.motion,
                         child: widget.session.buildFilm(),
