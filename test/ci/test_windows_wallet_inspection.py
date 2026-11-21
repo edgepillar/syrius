@@ -624,6 +624,19 @@ class InspectionTests(unittest.TestCase):
         self.assertFalse(original['parent_closure_qualified'])
         self.assertFalse(original['atomic_frame_qualified'])
         self.assertEqual(original['visual_matches'], 0)
+        motion = {'opening': [[2500, 81], [130000, 184]], 'closing': [[2575, 40]]}
+        self.assertIs(inspection.rail_motion_receipt(motion), motion)
+        catalog = dict(schema=4, scope='readonly_native_home_catalog_capture',
+            themes=['dark', 'light'], files=list(inspection.HOME_GOTO_FILES),
+            width=1280, height=780, scale=1, capture_returned=True,
+            screens=list(inspection.HOME_GOTO_SCREENS), rail_motion=motion)
+        self.assertIs(inspection.home_capture_receipt(catalog), catalog)
+        for invalid in (dict(motion, opening=[[False, 184]]),
+                        dict(motion, opening=[[100, 81], [20, 184]]),
+                        dict(motion, closing=[[25, 41]]),
+                        dict(motion, closing=[[2_000_001, 40]])):
+            with self.subTest(motion=invalid), self.assertRaises(inspection.Refused):
+                inspection.home_capture_receipt(dict(catalog, rail_motion=invalid))
         missing = report()
         missing['home_catalog'] = None
         self.assertFalse(inspection.completed(missing))

@@ -157,9 +157,29 @@ def home_capture_receipt(value):
         width=1280, height=780, scale=1, capture_returned=True)
     expected.update(dict(screen='home-rest', number=1) if schema == 1
                     else dict(screens=list(home_catalog_screens(schema))))
-    need(set(value) == set(expected)
+    optional = {'rail_motion'} if schema == 4 else set()
+    need(set(expected) <= set(value) <= set(expected) | optional
          and all(type(value[k]) is type(v) and value[k] == v
                  for k, v in expected.items()), 'CAPTURE_REFUSED')
+    if 'rail_motion' in value:
+        rail_motion_receipt(value['rail_motion'])
+    return value
+
+
+def rail_motion_receipt(value):
+    """Admit bounded original toggle widths and response offsets."""
+    endpoints = {'opening': 184, 'closing': 40}
+    need(type(value) is dict and set(value) == set(endpoints), 'CAPTURE_REFUSED')
+    for direction, target in endpoints.items():
+        rows = value[direction]
+        need(type(rows) is list and 1 <= len(rows) <= 9
+             and all(type(row) is list and len(row) == 2
+                     and all(type(item) is int for item in row)
+                     and 0 <= row[0] <= 2_000_000 and 40 <= row[1] <= 184
+                     for row in rows), 'CAPTURE_REFUSED')
+        need(all(left[0] <= right[0] for left, right in zip(rows, rows[1:]))
+             and rows[-1][1] == target and all(row[1] != target for row in rows[:-1]),
+             'CAPTURE_REFUSED')
     return value
 
 

@@ -201,9 +201,30 @@ class ReadonlyInspectionSession {
     await _requireScreenHome();
   }
 
-  Future<void> _moveScreenRail(int target) async {
+  /// Samples both rail directions from the same original Home process.
+  /// Offsets are measured after the tap reply, including tree response time.
+  Future<Map<String, List<List<int>>>> observeRailMotion() async {
+    await _requireScreenHome();
+    final bool originallyExpanded = await railExpanded();
+    final List<List<int>> opening = <List<int>>[];
+    final List<List<int>> closing = <List<int>>[];
+    final int first = originallyExpanded ? _collapsedRail : _expandedRail;
+    final int last = originallyExpanded ? _expandedRail : _collapsedRail;
+    await _moveScreenRail(
+      first, samples: originallyExpanded ? closing : opening,
+    );
+    await _moveScreenRail(
+      last, samples: originallyExpanded ? opening : closing,
+    );
+    await _requireScreenHome();
+    return <String, List<List<int>>>{'opening': opening, 'closing': closing};
+  }
+
+  Future<void> _moveScreenRail(int target, {List<List<int>>? samples}) async {
     final Map<String, dynamic> reply = await send(
-      <String, Object?>{'cmd': 'tap', 'key': 'rail_toggle'},
+      <String, Object?>{
+        'cmd': 'tap', 'key': 'rail_toggle', if (samples != null) 'settleMs': 0,
+      },
       const Duration(seconds: 30),
     );
     if (reply['ok'] != true) _refuse(ReadonlyInspectionReason.reply);
@@ -212,15 +233,20 @@ class ReadonlyInspectionSession {
     // frame. Observe only the positive tree for this single owned toggle.
     final Stopwatch elapsed = Stopwatch()..start();
     const Duration window = Duration(seconds: 2);
-    const Duration interval = Duration(milliseconds: 120);
-    for (int sample = 0; sample < 6; sample++) {
+    final Duration interval =
+        Duration(milliseconds: samples == null ? 120 : 40);
+    final int sampleLimit = samples == null ? 6 : 9;
+    for (int sample = 0; sample < sampleLimit; sample++) {
       final Duration remaining = window - elapsed.elapsed;
       if (remaining <= Duration.zero) break;
-      if (await _readRailWidth(remaining) == target &&
-          elapsed.elapsed <= window) {
+      final int width = await _readRailWidth(remaining);
+      final int offset = elapsed.elapsedMicroseconds;
+      if (offset > window.inMicroseconds) break;
+      samples?.add(<int>[offset, width]);
+      if (width == target) {
         return;
       }
-      if (sample < 5 && elapsed.elapsed + interval < window) {
+      if (sample < sampleLimit - 1 && elapsed.elapsed + interval < window) {
         await Future<void>.delayed(interval);
       }
     }

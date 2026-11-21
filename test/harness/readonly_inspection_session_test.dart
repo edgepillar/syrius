@@ -3044,6 +3044,15 @@ void main() {
       expect(commands.every((Map<String, Object?> c) =>
           <String>{'readonly-wallet-bind', 'state', 'tree', 'tap'}
               .contains(c['cmd'])), isTrue);
+      commands.clear();
+      final Map<String, List<List<int>>> motion =
+          await session.observeRailMotion();
+      expect(motion['opening']!.map((List<int> row) => row[1]), <int>[41, 184]);
+      expect(motion['closing']!.map((List<int> row) => row[1]), <int>[183, 40]);
+      expect(commands.where((Map<String, Object?> c) =>
+          c['cmd'] == 'tap').map((Map<String, Object?> c) => c['settleMs']),
+          <int>[0, 0]);
+      expect(expanded, original);
       expect(session.walletBound, isTrue);
     }
   });

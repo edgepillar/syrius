@@ -162,6 +162,7 @@ class _InspectionInstance extends cli.Instance {
     return switch (family) {
       'home' => captureReadonlyHomeGotoStates(
         repository: repository, session: _session, onStep: onStep,
+        observeRailMotion: true,
       ),
       'home-bell' => captureReadonlyHomeBell(
         repository: repository, session: _session, onStep: onStep,

@@ -468,6 +468,13 @@ def unpack_home_catalog(raw, expected_sha, expected_size, head, tree, run_id,
     result.update(dict(screen='home-rest', number=1) if schema == 1
                   else dict(screens=list(producer.home_catalog_screens(schema))))
     result[script_field] = script_sha
+    if 'rail_motion' in value['capture']:
+        samples = producer.rail_motion_receipt(value['capture']['rail_motion'])
+        result['rail_motion'] = dict(
+            scope='original_toggle_widths_after_tap_reply', samples=samples,
+            intermediate_observed={direction: any(40 < width < 184 for _, width in rows)
+                                   for direction, rows in samples.items()},
+        )
     return result
 
 
@@ -1446,7 +1453,12 @@ def main(parent=None):
                   'retained_readonly_settings_catalog': 'Settings',
                   'retained_readonly_navigation_catalog': 'Navigation',
                   'retained_readonly_details_catalog': 'Details'}[catalog['scope']]
+        rail_motion = catalog.pop('rail_motion', None)
         emit(f'Retained readonly {family} catalog', catalog)
+        if rail_motion is not None:
+            emit('Retained readonly rail motion', dict(source_head=head,
+                source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
+                manifest_sha256=catalog['manifest_sha256'], **rail_motion))
         for comparison in catalog_comparisons:
             emit(f'Retained {family} pixel comparison', dict(
                 scope=f'retained_{family.lower()}_pixel_comparison', source_head=head,

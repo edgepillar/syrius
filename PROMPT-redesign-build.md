@@ -3481,9 +3481,12 @@ interface checks under V06 open.
 V01, V02 and V06 remain open. Accepted scope is 77 of 80 rows.
 
 The [Windows baseline at `834e82f1`](https://github.com/edgepillar/syrius/actions/runs/44904239298)
-is executing the existing Debug, Release, analysis and non-chain checks
-for the updated application. The application, assets, Windows runner and
-locked dependency files match `5f0a7863`. Final V06 acceptance remains open.
+passed Debug and Release, with 5,131 non-chain tests passed and one skipped.
+The [independent log reader](https://github.com/edgepillar/syrius/actions/runs/44906294104/job/136852483403)
+verified the original results, including zero analyzer errors or warnings,
+1,302 application infos, and unchanged generated localization. The application,
+assets, Windows runner and locked dependency files match `5f0a7863`. Final V06
+acceptance remains open for the later source.
 
 The original Home run also retains eight catalog images in both themes. The
 independent reader verifies the image digests and compares the four Home states
@@ -3810,6 +3813,13 @@ rebuilding them on its ticks. The toggle still rotates on the same spring,
 and the labels still start their own fade at the width endpoint. The
 existing duration test now checks that a destination button is reused at
 50 and 199 ms. A running Windows motion observation remains open.
+
+The existing Windows Home catalog now samples the original toggle width
+on both opening and closing. The observer uses the original pointer and
+tree responses, restores the initial rail state and retains only bounded
+numeric samples. The reader distinguishes observed intermediate widths
+from endpoint-only results. The offsets include response time, so they
+do not replace the widget curve and duration tests or the 16 ms comparison.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
