@@ -4069,8 +4069,10 @@ The disclosure opening now removes its clip through the final reveal
 tick. The parent rebuild at that endpoint was redundant. Closing still
 rebuilds the parent to dismiss the body. The existing widget case checks
 header reuse at the opening endpoint alongside the original 240 ms
-reveal, 220 ms chevron, paint retention and dismissal. Targeted Dart
-analysis passes. A paired Windows run is needed to measure the effect.
+reveal, 220 ms chevron, paint retention and dismissal. [Linux at `3bf40fbd`](https://github.com/edgepillar/syrius/actions/runs/44928798045/job/136920661924)
+passes strict analysis, generated-file verification and the non-chain
+suite with 5,131 passes and one skip. The [paired Windows run](https://github.com/edgepillar/syrius/actions/runs/44928798337/job/136920665285)
+passes the preflight widget cases. Its native timing result is pending.
 
 The [first compatibility read of `08ecf715`](https://github.com/edgepillar/syrius/actions/runs/44926305670/job/136913047287)
 reads the original timings and refuses the paired images at the older
