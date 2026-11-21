@@ -658,11 +658,11 @@ void main() {
         expect(homePaint.willChange, isTrue);
         final Uint8List start = await _pixels(tester, surface: surface());
         expect(rasters, hasLength(1));
-        expect(rasters.single.width, greaterThan(_size.width));
-        expect(rasters.single.height, greaterThan(_size.height));
+        expect(rasters.single.width * 2, greaterThan(_size.width));
+        expect(rasters.single.height * 2, greaterThan(_size.height));
         expect(
           rasters.single.width * rasters.single.height,
-          lessThan(2544 * 1644 * 0.55),
+          lessThan(1746 * 1226 * 0.26),
         );
         await tester.pump(const Duration(seconds: 18));
         final Uint8List turned = await _pixels(tester, surface: surface());
@@ -738,11 +738,11 @@ void main() {
     expect(rasters, hasLength(3));
     expect(rasters[1].debugDisposed, isTrue);
     expect(rasters.last.debugDisposed, isFalse);
-    expect(rasters.last.width, greaterThan(1200));
-    expect(rasters.last.height, greaterThan(600));
+    expect(rasters.last.width * 2, greaterThan(1200));
+    expect(rasters.last.height * 2, greaterThan(600));
     expect(
       rasters.last.width * rasters.last.height,
-      lessThan(2400 * 1320 * 0.55),
+      lessThan(1638 * 1024 * 0.26),
     );
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 36));

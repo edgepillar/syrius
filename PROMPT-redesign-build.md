@@ -2933,6 +2933,14 @@ Both raster and distinct-frame comparisons fail, and all four windows
 retain frame-number gaps. This run leaves the separate effect of the
 menu boundary unestablished. V02 remains open.
 
+The Home background now samples its retained 40 px blurred light field at
+half the device scale. At a 1280 by 780 paint box and device pixel ratio
+one, the crop calculation changes from 1746 by 1226 to 874 by 614 texels.
+The same logical bounds, blur, drift and foreground paint apply. Existing
+two-theme checks compare the cached paint against its analytic fallback
+at both drift endpoints and constrain the smaller texture footprint.
+Native visual and paired timing results remain open under V01 and V02.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.

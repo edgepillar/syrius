@@ -142,7 +142,7 @@ typedef _HomeRasterKey = ({
   double pixelRatio,
 });
 
-typedef _HomeRasterImage = ({ui.Image image, Offset origin});
+typedef _HomeRasterImage = ({ui.Image image, Rect bounds});
 
 const double _homeBlurSigma = 40;
 const double _homeBlurBleed = 3 * _homeBlurSigma;
@@ -163,15 +163,18 @@ class _HomeFieldRaster {
     );
     if (_key == key) return _cached;
     dispose();
+    // Sample the blurred lights at half scale while retaining their logical
+    // blur, viewport and drift. The foreground is painted separately.
+    final double rasterScale = pixelRatio / 2;
     final DriftRasterRegion? region = driftRasterRegion(
       viewport: viewport, field: field, blurBleed: _homeBlurBleed,
-      pixelRatio: pixelRatio,
+      pixelRatio: rasterScale,
     );
     if (region == null) return null;
     final Offset origin = region.origin;
     final ui.PictureRecorder recorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(recorder)
-      ..scale(pixelRatio)
+      ..scale(rasterScale)
       ..translate(-origin.dx, -origin.dy);
     _HomeHeroFieldPainter._paintBlurredField(
       canvas, field, green: green, blue: blue, pink: pink,
@@ -181,7 +184,12 @@ class _HomeFieldRaster {
       // The engine rasterizes this handle asynchronously. Creation is
       // part of the first original paint, with no extra warm-up or clock.
       final ui.Image image = picture.toImageSync(region.width, region.height);
-      _cached = (image: image, origin: origin);
+      _cached = (
+        image: image,
+        bounds: origin & Size(
+          region.width / rasterScale, region.height / rasterScale,
+        ),
+      );
       _key = key;
       return _cached;
     } finally {
@@ -260,8 +268,7 @@ class _HomeHeroFieldPainter extends CustomPainter {
       canvas.drawImageRect(
         image,
         Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
-        cached.origin &
-            Size(image.width / pixelRatio, image.height / pixelRatio),
+        cached.bounds,
         Paint()..filterQuality = FilterQuality.low,
       );
     }
