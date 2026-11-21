@@ -28,6 +28,7 @@ MAX_WORKFLOW_SOURCE = 128 * 1024
 MAX_WORKFLOW_RESPONSE = 2 * MAX_WORKFLOW_SOURCE
 CAPTURE_AGENT_SOURCE = 'harness/app/agent.dart'
 HOME_FIELD_SOURCE = 'lib/rearchitecture/utils/widgets/hero_field.dart'
+HOME_GOTO_CONTACT_FIXTURE = 'harness/app/fixtures/home_goto_contact.dart'
 MAX_CAPTURE_AGENT_SOURCE = 256 * 1024
 MAX_VERSIONED_BLOB_RESPONSE = 2 * MAX_CAPTURE_AGENT_SOURCE
 VERSIONED_INPUTS = frozenset((
@@ -62,7 +63,7 @@ VERSIONED_INPUTS = frozenset((
     'lib/widgets/shell/strip/status_dot.dart',
     'lib/widgets/modular_widgets/settings_widgets/wallet_settings_view.dart',
     'lib/widgets/reusable_widgets/launch_film.dart',
-    CAPTURE_AGENT_SOURCE, HOME_FIELD_SOURCE,
+    CAPTURE_AGENT_SOURCE, HOME_FIELD_SOURCE, HOME_GOTO_CONTACT_FIXTURE,
 ))
 JOB = 'Windows readonly inspection with owned chain-321'
 PREFLIGHT = ('Test all isolated controllers before SDK allocation',
@@ -543,7 +544,7 @@ READY_ARTWORK_SOURCES = (
 CATALOG_CONTACT_SOURCE = 'harness/bin/readonly_catalog_contact.dart'
 HOME_GOTO_CONTACT_SOURCES = (
     CATALOG_CONTACT_SOURCE,
-    'harness/app/fixtures/home_goto_contact.dart',
+    HOME_GOTO_CONTACT_FIXTURE,
     'harness/app/fixtures/send_warning_draft.dart',
     'lib/rearchitecture/utils/widgets/go_to_palette.dart')
 

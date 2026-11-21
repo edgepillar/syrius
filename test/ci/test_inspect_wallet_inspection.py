@@ -1020,6 +1020,16 @@ class ReaderTests(unittest.TestCase):
                     read_versioned_blob=remote)
             remote.assert_not_called()
         with mock.patch.object(reader.producer, 'read_original', return_value=raw) as read:
+            contact = reader.HOME_GOTO_CONTACT_FIXTURE
+            contact_tree = dict(tree, tree=[dict(path=contact, mode='100644',
+                type='blob', sha=original_sha)])
+            remote.reset_mock()
+            self.assertEqual(reader.source_files(
+                Path('/fixture'), contact_tree, 'b' * 40,
+                read_versioned_blob=remote, files=(contact,)),
+                {contact: reader.archive.sha(historical)})
+            remote.assert_called_once_with(original_sha)
+            read.reset_mock()
             self.assertEqual(reader.ready_artwork_sources(Path('/fixture'), tree, 'b' * 40), {})
             read.assert_not_called()
             current = dict(sha='b' * 40, truncated=False, tree=[dict(path=n,

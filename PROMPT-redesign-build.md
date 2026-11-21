@@ -4185,8 +4185,14 @@ both original images and keeps captures from another target source separate.
 The Details and Navigation recipes now prepare four original members in
 the owned profile, using the existing member derivation and second-address
 selection checks. This gives Plasma the three other addresses shown in
-both references. Fresh native captures must verify the opened and closed
-disclosures. The existing Fuse records still determine the fused-row states.
+both references. The existing Fuse records still determine the fused-row states.
+The [Details Windows run at `15e50ddc`](https://github.com/edgepillar/syrius/actions/runs/44943720608)
+and its [independent read](https://github.com/edgepillar/syrius/actions/runs/44945800891/job/136972716798)
+verify four members, selection of index one, ten original PNGs and normal
+required closure. The opened Plasma Fuse images are included in the
+[recent capture index](docs/review/recent-windows-captures.json). Their
+visible rows and whole-image comparisons remain open. The resting Plasma
+view still requires its separate Navigation capture.
 
 | Screen | Visible differences in both themes |
 | --- | --- |
@@ -4321,6 +4327,15 @@ at the original contact-result assertion because that lookup admitted
 only the full Home tour. Both Home selections now share a single gate
 for the contact lookup, focused caret and reference artwork capture.
 The earlier run retains its failure and no catalog export.
+
+The [corrected Home producer at `67c40a61`](https://github.com/edgepillar/syrius/actions/runs/44944233761)
+and its [independent read](https://github.com/edgepillar/syrius/actions/runs/44945747593/job/136972558381)
+verify eight original catalog PNGs, zero generic and viewport PNGs, and
+normal wallet, entry and lab closure. This run retains 743,472 archive bytes
+against 2,265,415 bytes for the prior full Home producer at `8b8feaaf`, a
+67.18 percent reduction in retained archive bytes. The new original images
+are indexed in [recent Windows captures](docs/review/recent-windows-captures.json).
+Their exact whole-image verdicts remain open under V01.
 
 The existing Windows Home catalog now samples the original toggle width
 on both opening and closing. The observer uses the original pointer and
