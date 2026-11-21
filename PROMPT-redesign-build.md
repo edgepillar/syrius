@@ -2744,6 +2744,13 @@ The greatest matched excess is 14.666 ms. Its raster starts between
 588.398 and 616.458 ms after release, after the observed panel settlement
 at 266.866 ms. The reported ranks leave V02 open.
 
+The [phase read of those same raster ranks](https://github.com/edgepillar/syrius/actions/runs/44852898558/job/136688187398)
+places eight page-change overruns after the nominal motion interval, five
+within it, two before release and one across a boundary. For disclosure,
+twelve precede observed settlement, eleven follow it and one crosses it.
+The measurements also include frames outside the visible motion interval.
+They do not identify which widget initiated each frame.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.
