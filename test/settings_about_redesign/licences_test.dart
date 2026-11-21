@@ -11,9 +11,21 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets
 import 'support.dart';
 
 class _ObservedRawNotice extends LicenseEntryWithLineBreaks {
-  _ObservedRawNotice(super.packages, super.text, this.onRead);
+  _ObservedRawNotice(
+    super.packages,
+    super.text,
+    this.onRead, {
+    this.onTextRead,
+  });
 
   final VoidCallback onRead;
+  final VoidCallback? onTextRead;
+
+  @override
+  String get text {
+    onTextRead?.call();
+    return super.text;
+  }
 
   @override
   Iterable<LicenseParagraph> get paragraphs {
@@ -55,6 +67,8 @@ void main() {
         expect(changedNotice.length, verifiedNotice.length);
         int reads = 0;
         int verifiedReads = 0;
+        int laterTextReads = 0;
+        int laterParagraphReads = 0;
         await tester.pumpWidget(
           aboutHost(
             Licences(
@@ -96,6 +110,12 @@ void main() {
                   LicenseEntryWithLineBreaks(
                     const <String>['mixed', 'unverified'],
                     changedNotice,
+                  ),
+                  _ObservedRawNotice(
+                    const <String>['mixed'],
+                    'A later genuine notice is still readable.',
+                    () => laterParagraphReads++,
+                    onTextRead: () => laterTextReads++,
                   ),
                 ],
               ),
@@ -200,6 +220,8 @@ void main() {
         }
         expect(verifiedReads, 0);
         expect(reads, 0);
+        expect(laterTextReads, 0);
+        expect(laterParagraphReads, 0);
         await _open(tester, 'alpha');
         expect(tester.widget<RotationTransition>(chevronFinder).turns.value, 0);
         expect(reads, 1);
@@ -252,6 +274,12 @@ void main() {
         expect(reads, 1);
         expect(
           find.text('Complete raw notice text continues.'),
+          findsOneWidget,
+        );
+        await _open(tester, 'mixed');
+        expect(laterParagraphReads, 1);
+        expect(
+          find.text('A later genuine notice is still readable.'),
           findsOneWidget,
         );
         expect(tester.takeException(), isNull);

@@ -483,11 +483,13 @@ class _PackageLicence {
   late final String? identifier = _readIdentifier();
 
   String? _readIdentifier() {
-    final Set<String?> values = <String?>{
-      for (final _LicenceText entry in entries) entry.identifier,
-    };
-    if (values.contains(null)) return null;
-    final List<String> labels = values.whereType<String>().toList()..sort();
+    final Set<String> values = <String>{};
+    for (final _LicenceText entry in entries) {
+      final String? identifier = entry.identifier;
+      if (identifier == null) return null;
+      values.add(identifier);
+    }
+    final List<String> labels = values.toList()..sort();
     return labels.join(', ');
   }
 
