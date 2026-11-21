@@ -2664,6 +2664,14 @@ are at 0.558, 15.625 ms later, and both settled samples are 390.625 ms
 after their first observations. This verifies the six natural samples.
 The other motions, shaders and paired timing acceptance remain open.
 
+The [Windows startup catalog at `0404243e`](https://github.com/edgepillar/syrius/actions/runs/44845157102/job/136662941987)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44847199243/job/136669735118)
+verify all twelve original Launch, Launch Settle, Lock and Seed Quiz images.
+Both Launch Settle images use the authored 0.4 checkpoint. In both themes
+the Lock picker divider is on row 488 and the wrong-password button's
+mean RGB error against the resting gradient is 0.282 levels per channel.
+The complete screenshot verdicts remain open under V01.
+
 The [paired interaction run at `899933c0`](https://github.com/edgepillar/syrius/actions/runs/44843653106/job/136657972549)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44845785765/job/136665037329)
 verify both windows, two normal entry exits, two normal wallet exits and
