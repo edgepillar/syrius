@@ -1552,12 +1552,13 @@ def main(parent=None):
         if sampling_scope is not None:
             need(viewport_reference is None
                  and not any(v.get('name') == viewport_name for v in listing['artifacts']))
-            if sampling_scope == 'home-bell-only':
+            family = sampling_scope.removesuffix('-only')
+            if family in producer.HOME_CAPTURE_SCHEMAS:
                 need(reference is not None
-                     and reference['schema'] == producer.HOME_BELL_CAPTURE_SCHEMA)
+                     and reference['schema'] == producer.HOME_CAPTURE_SCHEMAS[family])
             else:
                 need(details_reference is not None and producer.details.family_matches(
-                     sampling_scope.removesuffix('-only'), details_reference['schema']))
+                     family, details_reference['schema']))
         else:
             need(viewport_reference is not None)
             item = artifact(listing, viewport_name, head, run_id)

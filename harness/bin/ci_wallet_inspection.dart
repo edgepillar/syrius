@@ -98,7 +98,7 @@ String readonlyInspectionCatalogFamily(Map<String, String> environment) {
   final String family =
       environment['SYRIUS_READONLY_CATALOG_FAMILY'] ?? 'details';
   if (!const <String>{
-    'home', 'home-bell', 'settings', 'navigation', _surfaceSeamsFamily,
+    'home', 'home-bell', 'home-catalog', 'settings', 'navigation', _surfaceSeamsFamily,
   }.contains(family) &&
       !_detailsSelections.containsKey(family)) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.command);
@@ -162,7 +162,7 @@ class _InspectionInstance extends cli.Instance {
       );
     }
     return switch (family) {
-      'home' => captureReadonlyHomeGotoStates(
+      'home' || 'home-catalog' => captureReadonlyHomeGotoStates(
         repository: repository, session: _session, onStep: onStep,
         observeMotion: true,
       ),
@@ -225,8 +225,10 @@ Future<void> main() async {
     detailsSelection = _detailsSelections[family];
     final bool requiresLabRecipient =
         detailsSelection?.requiresLabRecipient ?? false;
+    final bool homeCatalogOnly =
+        family == 'home-bell' || family == 'home-catalog';
     final bool catalogOnly =
-        family == 'home-bell' || (detailsSelection?.catalogOnly ?? false);
+        homeCatalogOnly || (detailsSelection?.catalogOnly ?? false);
     final String name = environment['SYRIUS_CI_INSPECTION_INSTANCE'] ?? '';
     if (!Platform.isWindows || environment['GITHUB_ACTIONS'] != 'true' ||
         (family == 'navigation' &&
@@ -438,7 +440,7 @@ Future<void> main() async {
       })}');
     }
     stage = detailsSelection?.stage ??
-        (family == 'home-bell' ? 'home_catalog' : '${family}_catalog');
+        (homeCatalogOnly ? 'home_catalog' : '${family}_catalog');
     if (catalogOnly && readyCatalog == null) {
       await cli.goto(instance, 'dashboard');
     }

@@ -28,6 +28,7 @@ from . import readonly_details_capture as details
 from . import send_warning_window
 from .windows_debug_process import IMAGE_NAMES
 from .hosted_chain321 import (EARN_INSPECTION_SCHEMA, HOME_BELL_INSPECTION_SCHEMA,
+    HOME_CATALOG_INSPECTION_SCHEMA,
     HOME_SEAMS_FAMILY, HOME_ZAP_PREVIEW_INSPECTION_SCHEMA,
     READONLY_CATALOG_SCHEMAS, SEND_CONFIRM_INSPECTION_SCHEMA, SENTINEL_INSPECTION_SCHEMA,
     SEND_WARNING_INSPECTION_SCHEMA, SETTINGS_SEAMS_FAMILY, SWAP_START_INSPECTION_SCHEMA,
@@ -58,8 +59,8 @@ HOME_GOTO_SCREENS = HOME_OPEN_SCREENS + ('home-goto',)
 HOME_BELL_SCRIPT = Path('harness/screens/home-bell.txt')
 HOME_BELL_FILES = ('04-home-bell-dark.png', '04-home-bell-light.png')
 HOME_BELL_CAPTURE_SCHEMA = 5
-HOME_CAPTURE_SCHEMAS = {'home': 4, 'home-bell': HOME_BELL_CAPTURE_SCHEMA}
-HOME_INSPECTION_SCHEMAS = (1, HOME_BELL_INSPECTION_SCHEMA)
+HOME_CAPTURE_SCHEMAS = {'home': 4, 'home-catalog': 4, 'home-bell': HOME_BELL_CAPTURE_SCHEMA}
+HOME_INSPECTION_SCHEMAS = (1, HOME_BELL_INSPECTION_SCHEMA, HOME_CATALOG_INSPECTION_SCHEMA)
 CHECKS = ('environment', 'source', 'unused_destinations', 'job_owned',
     'entry_gate', 'entry_ready', 'application_owned', 'lab_revalidated',
     'input_released', 'wallet_bound', 'tours_complete', 'locale_verified',
@@ -68,6 +69,7 @@ CHECKS = ('environment', 'source', 'unused_destinations', 'job_owned',
 TOUR_CHECKS = ('tours_complete', 'locale_verified')
 CATALOG_ONLY_FAMILIES = {
     HOME_BELL_INSPECTION_SCHEMA: 'home-bell',
+    HOME_CATALOG_INSPECTION_SCHEMA: 'home-catalog',
     SEND_CONFIRM_INSPECTION_SCHEMA: 'send-confirm',
     SWAP_START_INSPECTION_SCHEMA: 'swap-start',
     WALLET_READY_INSPECTION_SCHEMA: 'wallet-ready',
@@ -707,8 +709,11 @@ def inspection_catalog_reference(report):
          'CAPTURE_REFUSED')
     if schema in HOME_INSPECTION_SCHEMAS:
         reference = home_catalog_reference(report['home_catalog'])
-        need((reference['schema'] == HOME_BELL_CAPTURE_SCHEMA) is
-             (schema == HOME_BELL_INSPECTION_SCHEMA), 'CAPTURE_REFUSED')
+        family = catalog_only_family(report)
+        if family is None:
+            need(reference['schema'] != HOME_BELL_CAPTURE_SCHEMA, 'CAPTURE_REFUSED')
+        else:
+            need(reference['schema'] == HOME_CAPTURE_SCHEMAS[family], 'CAPTURE_REFUSED')
         return reference
     need(report['home_catalog'] is None, 'CAPTURE_REFUSED')
     if schema == 2:
@@ -945,7 +950,7 @@ def public_manifest(value):
     elif schema in HOME_INSPECTION_SCHEMAS:
         if value['home_catalog'] is not None or value['success']:
             inspection_catalog_reference(value)
-        if schema == HOME_BELL_INSPECTION_SCHEMA:
+        if catalog_only_family(value) is not None:
             need(all(value[key] is None for key in
                      ('settings_catalog', 'navigation_catalog', 'details_catalog')),
                  'OUTPUT_REFUSED')
@@ -2213,6 +2218,7 @@ def artifact_paths(parent):
     catalog_family = {1: 'home-catalog', 2: 'settings-catalog',
         3: 'navigation-catalog', 4: 'details-catalog',
         HOME_BELL_INSPECTION_SCHEMA: 'home-catalog',
+        HOME_CATALOG_INSPECTION_SCHEMA: 'home-catalog',
         SEND_CONFIRM_INSPECTION_SCHEMA: 'details-catalog',
         SWAP_START_INSPECTION_SCHEMA: 'details-catalog',
         WALLET_READY_INSPECTION_SCHEMA: 'details-catalog',

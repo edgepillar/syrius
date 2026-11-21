@@ -4281,6 +4281,12 @@ the whole-image findings open.
 
 The eight exact pairs remain in review under V01.
 
+The Windows `home-catalog` selection uses the same eight literal shots and
+original motion probes as `home`. It retains the isolated wallet and lab
+closure checks. The parent omits the 24 generic tour images and four viewport
+images. The independent reader verifies the selected catalog and its parent
+without claiming evidence for the omitted tour or viewport scopes.
+
 The existing Windows Home catalog now samples the original toggle width
 on both opening and closing. The observer uses the original pointer and
 tree responses, restores the initial rail state and retains only bounded

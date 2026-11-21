@@ -5785,7 +5785,8 @@ class HarnessAgent {
         final ReadonlyNativeCommands? original = _readonlyNative;
         final String? catalogFamily =
             Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'];
-        if (original != null && catalogFamily == 'home' &&
+        if (original != null &&
+            (catalogFamily == 'home' || catalogFamily == 'home-catalog') &&
             assertion is Map<Object?, Object?> &&
             const <String>{'home_hero', 'home_tokens_body', 'activity_scope'}
                 .contains(assertion['key'])) {

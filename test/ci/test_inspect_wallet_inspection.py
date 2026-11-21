@@ -1130,6 +1130,9 @@ class ReaderTests(unittest.TestCase):
         source = b'synthetic source'
         home_pixels = wallet_fixtures.png()
         bell_only = catalog_only == 'home-bell'
+        home_only = catalog_only in ('home-bell', 'home-catalog')
+        if catalog_only == 'home-catalog':
+            home_schema = reader.producer.HOME_CAPTURE_SCHEMAS[catalog_only]
         distinct_themes = bell_only or catalog_only in (
             'swap-start', 'wallet-ready', 'send-warn', 'home-zap-preview')
         home = wallet_fixtures.home_manifest(home_pixels, source, schema=home_schema)
@@ -1138,7 +1141,7 @@ class ReaderTests(unittest.TestCase):
         if bell_only:
             home = wallet_fixtures.home_manifest(home_pixels, source,
                 schema=reader.producer.HOME_BELL_CAPTURE_SCHEMA)
-        elif catalog_only:
+        elif catalog_only and not home_only:
             home = wallet_fixtures.details_manifest(home_pixels, source,
                 schema=reader.producer.details.FAMILY_SCHEMAS[catalog_only])
         elif details_catalog:
@@ -1156,7 +1159,7 @@ class ReaderTests(unittest.TestCase):
                 child = wallet_fixtures.catalog_only_report(
                     child, reader.archive.sha(home_manifest), catalog_only)
                 if not positive:
-                    child['home_catalog' if bell_only else 'details_catalog'] = None
+                    child['home_catalog' if home_only else 'details_catalog'] = None
                 files = files[:1]
             elif details_catalog:
                 child.update(schema=4, home_catalog=None, settings_catalog=None,
@@ -1219,7 +1222,7 @@ class ReaderTests(unittest.TestCase):
         if surface_seams:
             artifact_ids = (1, 2, 4) if extra_viewport else (1, 2)
         catalog_name = 'home-catalog-'
-        if details_catalog or (catalog_only and not bell_only):
+        if details_catalog or (catalog_only and not home_only):
             catalog_name = 'details-catalog-'
         elif navigation_catalog:
             catalog_name = 'navigation-catalog-'
@@ -1826,6 +1829,16 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(observed['visual_matches'], 0)
         with self.assertRaises(reader.archive.Refused):
             self.run_main(catalog_only='home-bell', extra_viewport=True)
+
+        value, _, text = self.run_main(catalog_only='home-catalog')
+        self.assertTrue(value['native_inspection_qualified'])
+        self.assertEqual(value['sampling_scope'], 'home-catalog-only')
+        self.assertEqual(value['verified_png_count'], 0)
+        self.assertEqual(value['verified_viewport_png_count'], 0)
+        self.assertEqual(value['verified_catalog_png_count'], 8)
+        self.assertIn('Retained readonly Home catalog', text)
+        with self.assertRaises(reader.archive.Refused):
+            self.run_main(catalog_only='home-catalog', extra_viewport=True)
 
     def test_failed_parent_cannot_be_healed_by_a_successful_wallet_archive(self):
         value, _, _ = self.run_main(parent_failed=True)

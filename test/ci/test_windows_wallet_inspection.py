@@ -193,12 +193,12 @@ def details_reference(digest, *, schema=1):
 
 
 def catalog_only_report(value, digest, family):
-    bell = family == 'home-bell'
+    home_schema = inspection.HOME_CAPTURE_SCHEMAS.get(family)
     report = dict(value, schema=lab.READONLY_CATALOG_SCHEMAS[family],
         captures=[], tours={}, locales={}, stalls={},
-        home_catalog=home_reference(digest, schema=inspection.HOME_BELL_CAPTURE_SCHEMA) if bell else None,
+        home_catalog=home_reference(digest, schema=home_schema) if home_schema else None,
         settings_catalog=None, navigation_catalog=None, viewport=None,
-        details_catalog=None if bell else details_reference(
+        details_catalog=None if home_schema else details_reference(
             digest, schema=inspection.details.FAMILY_SCHEMAS[family]),
         checks=dict(value['checks'], tours_complete=False, locale_verified=False))
     if family == 'send-warn':
@@ -342,7 +342,8 @@ class InspectionTests(unittest.TestCase):
             SYRIUS_WINDOWS_WALLET_TOUR='false', SYRIUS_LAB_NODE_SOURCE='lab-fix',
             SYRIUS_NATIVE_STACK_DIAGNOSTIC='true')
         self.assertEqual(lab.readonly_catalog_family(parent), 'details')
-        for family, schema in (('home', 1), ('home-seams', 1), ('surface-seams', 13), ('home-bell', 8), ('settings', 2),
+        for family, schema in (('home', 1), ('home-catalog', 15), ('home-seams', 1),
+                               ('surface-seams', 13), ('home-bell', 8), ('settings', 2),
                                ('node-verified', 14), ('settings-seams', 2),
                                ('navigation', 3), ('details', 4),
                                ('token-draft', 4), ('send-confirm', 5),
@@ -369,7 +370,7 @@ class InspectionTests(unittest.TestCase):
         self.assertIn('default: details', choice)
         self.assertEqual([line.strip()[2:] for line in choice.splitlines()
             if line.strip().startswith('- ')],
-            ['home', 'home-seams', 'surface-seams', 'home-bell', 'home-zap-preview', 'settings',
+            ['home', 'home-catalog', 'home-seams', 'surface-seams', 'home-bell', 'home-zap-preview', 'settings',
              'node-verified', 'settings-seams',
              'navigation', 'details', 'token-draft',
              'send-confirm', 'send-warn', 'swap-start', 'wallet-ready', 'earn',
@@ -390,7 +391,7 @@ class InspectionTests(unittest.TestCase):
             '.harness/ci-launch-motion/01-late.png',
             '.harness/ci-launch-motion/02-settled.png',
         ])
-        for family in ('send-warn', 'settings-seams', 'home-seams', 'surface-seams', 'node-verified'):
+        for family in ('send-warn', 'settings-seams', 'home-seams', 'surface-seams', 'node-verified', 'home-catalog'):
             scoped = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=family,
                 SYRIUS_HOSTED_RUNNER='github-hosted', GITHUB_ACTIONS='true',
                 GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_REPOSITORY='edgepillar/syrius',
@@ -593,7 +594,11 @@ class InspectionTests(unittest.TestCase):
             inspection.public_home_catalog(duplicate)
         selected = catalog_only_report(report(), 'e' * 64, 'home-bell')
         inspection.public_manifest(selected)
+        home_only = catalog_only_report(report(), 'e' * 64, 'home-catalog')
+        inspection.public_manifest(home_only)
         for wrong in (dict(selected, home_catalog=home_reference(schema=4)),
+                      dict(home_only, home_catalog=home_reference(schema=schema)),
+                      dict(home_only, captures=report()['captures']),
                       dict(report(), home_catalog=home_reference(schema=schema))):
             with self.assertRaises(inspection.Refused):
                 inspection.public_manifest(wrong)
