@@ -652,6 +652,10 @@ void main() {
           child: field, light: light, disableAnimations: true,
         ));
         await tester.pump();
+        final CustomPaint homePaint = tester.widget<CustomPaint>(
+          find.descendant(of: surface(), matching: find.byType(CustomPaint)),
+        );
+        expect(homePaint.willChange, isTrue);
         final Uint8List start = await _pixels(tester, surface: surface());
         expect(rasters, hasLength(1));
         expect(rasters.single.width, greaterThan(_size.width));

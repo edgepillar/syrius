@@ -94,6 +94,9 @@ class _HeroFieldState extends State<HeroField>
       _clock.active = true;
       return RepaintBoundary(
         child: CustomPaint(
+          // The retained light image already owns the expensive blur. Its
+          // moving display list is replaced whenever the field ticks.
+          willChange: true,
           painter: _HomeHeroFieldPainter(
             seconds: _clock,
             base: panelPaintsBase ? null : tokens.card,
