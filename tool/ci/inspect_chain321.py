@@ -7,6 +7,7 @@ import hashlib
 import io
 import json
 import os
+from pathlib import Path
 import re
 import stat
 import time
@@ -780,6 +781,32 @@ def seeded_script_pins(client, head, schema=catalog.SEEDED_SCHEMA):
     return pins
 
 
+def project_detail_pixel_comparisons(raw, schema, references):
+    """Measure verified Accelerator originals against the tracked PNGs."""
+    from .inspect_windows_qualification import pixel_comparison
+
+    chrome = dict(caption=(0, 0, 1280, 32), rail=(0, 32, 60, 780),
+                  status=(60, 724, 1280, 780))
+    panels = {
+        '28-az': dict(fund_and_controls=(60, 32, 1280, 120),
+                      voting_table=(60, 120, 1280, 724)),
+        '29-az-project': dict(project_header=(60, 32, 1280, 86),
+                              project_and_phases=(60, 86, 960, 724),
+                              voting_panel=(960, 86, 1280, 724)),
+    }
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        for name in catalog.catalog_files(schema):
+            screen, theme_file = name.rsplit('-', 1)
+            regions = dict(**chrome, **panels[screen])
+            with (references / name).open('rb') as stream:
+                reference = stream.read(catalog.debug.entry.MAX_PNG + 1)
+            need(0 < len(reference) <= catalog.debug.entry.MAX_PNG)
+            comparison = pixel_comparison(zipped.read(name), reference, regions)
+            need(comparison is not None)
+            yield dict(screen=screen, theme=theme_file.removesuffix('.png'),
+                       region_bounds=regions, **comparison)
+
+
 def main():
     global PHASE
     parent = os.environ
@@ -792,6 +819,7 @@ def main():
     run_id = int(run_text)
     backends = selected_backends(parent.get("LAB_INSPECT_BACKEND", "both"))
     expected_choice = parent.get("LAB_INSPECT_NODE_SOURCE", "original")
+    reference_head = parent.get('LAB_REFERENCE_HEAD')
     expected_node, _ = selected_node_source(expected_choice)
     # A native wallet tour can bind three original seeded capture scripts.
     client = Client(parent.get("GH_TOKEN"), max_calls=14 if backends == ("native",) else 12)
@@ -806,6 +834,7 @@ def main():
     wallet_lab = None
     interactive_lab = interactive_result = None
     seeded = seeded_index = None
+    project_comparisons = []
     surface_seam_summary = None
     owner_page_seam_summary = None
     interactive_items = [item for item in listing['artifacts']
@@ -912,6 +941,12 @@ def main():
                 manifest_sha256=seeded['manifest_sha256'], images=seeded.pop('images'))
             seeded.update(catalog_capture_qualified=True, parent_closure_qualified=True,
                           atomic_frame_qualified=True)
+            if family == catalog.PROJECT_DETAIL_FAMILY and reference_head is not None:
+                PHASE = 'seeded_project_pixel_comparison'
+                need(re.fullmatch(r'[a-f0-9]{40}', reference_head) is not None)
+                references = Path(__file__).resolve().parents[2] / 'mockups/redesign/shots'
+                project_comparisons = list(project_detail_pixel_comparisons(
+                    raw, schema, references))
             surface_seams = reopen.get('seeded_surface_seams')
             if surface_seams is not None:
                 from . import seeded_surface_seams
@@ -1020,6 +1055,15 @@ def main():
         encoded = json.dumps(seeded_index, sort_keys=True, separators=(',', ':'))
         need(len(encoded.encode('ascii')) <= 3800)
         print('::notice title=Retained restored catalog image index::' + encoded, flush=True)
+        for comparison in project_comparisons:
+            pixel_summary = dict(
+                scope='retained_accelerator_pixel_comparison', source_head=head,
+                source_run_id=run_id, archive_sha256=seeded['archive_sha256'],
+                reference_head=reference_head, visual_matches=0, **comparison)
+            encoded = json.dumps(pixel_summary, sort_keys=True, separators=(',', ':'))
+            need(len(encoded.encode('ascii')) <= 3800)
+            print('::notice title=Retained Accelerator pixel comparison::' + encoded,
+                  flush=True)
     if surface_seam_summary is not None:
         encoded = json.dumps(surface_seam_summary, sort_keys=True, separators=(',', ':'))
         need(len(encoded.encode('ascii')) <= 3800)

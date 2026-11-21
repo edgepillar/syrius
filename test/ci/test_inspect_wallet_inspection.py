@@ -699,7 +699,8 @@ class ReaderTests(unittest.TestCase):
 
         chain = workflow.split('  inspect-chain321:\n', 1)[1]
         block = chain.split('          sparse-checkout: |\n', 1)[1].split('\n\n', 1)[0]
-        directories = tuple(line.strip() for line in block.splitlines() if line.strip())
+        directories = tuple(line.strip().strip('/') for line in block.splitlines()
+                            if line.strip())
         entry = frame_profile.ENTRY.as_posix()
         self.assertTrue(any(entry.startswith(directory + '/') for directory in directories),
             'The chain reader must retain the entry source read by its tests.')
