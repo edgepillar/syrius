@@ -16,6 +16,14 @@ class StatusDot extends StatefulWidget {
   /// Identifies the solid dot separately from its larger painted halo.
   final Key? fillKey;
 
+  /// The current halo input. One marks the transparent hold.
+  static double? haloPhaseOf(BuildContext context) {
+    if (context case StatefulElement(:final _StatusDotState state)) {
+      return state._pulse.value;
+    }
+    return null;
+  }
+
   @override
   State<StatusDot> createState() => _StatusDotState();
 }

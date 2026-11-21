@@ -500,6 +500,7 @@ class ReaderTests(unittest.TestCase):
         self.assertFalse(observed['parent_closure_qualified'])
         self.assertEqual(observed['visual_matches'], 0)
         self.assertNotIn('rail_motion', observed)
+        self.assertNotIn('sync_pulse', observed)
         samples = dict(opening=[[12_000, 105], [180_000, 184]], closing=[[199_000, 40]])
         states['capture']['rail_motion'] = samples
         with_motion = [('manifest.json', encode(states), stat.S_IFREG), *state_files[1:]]
@@ -515,6 +516,15 @@ class ReaderTests(unittest.TestCase):
             intermediate_observed=dict(opening=True, closing=False),
             chevron_intermediate_observed=dict(opening=True, closing=False),
             opening_label_fade_observed=True))
+        states['capture']['sync_pulse'] = [
+            [10, 20, 1000], [200_000, 200_010, 32],
+            [2_400_000, 2_400_010, 1000], [2_600_000, 2_600_010, 45],
+        ]
+        with_pulse = [('manifest.json', encode(states), stat.S_IFREG), *state_files[1:]]
+        self.assertEqual(inspect_states(with_pulse)['sync_pulse'], dict(
+            sample_count=4, observed_intermediate=True, transparent_samples=2,
+            resume_intervals_us=[(10, 200_010), (2_400_000, 2_600_010)],
+            resume_separation_bounds_us=[[2_199_990, 2_600_000]]))
         for bad_files in (state_files[:-1], state_files + [originals[1]], originals):
             with self.subTest(schema=4, members=len(bad_files)), self.assertRaises(
                     (reader.archive.Refused, reader.producer.Refused)):

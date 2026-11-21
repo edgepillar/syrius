@@ -57,6 +57,7 @@ VERSIONED_INPUTS = frozenset((
     'lib/widgets/modular_widgets/help_widgets/originals_card.dart',
     'lib/widgets/modular_widgets/help_widgets/originals_tiles.dart',
     'lib/widgets/shell/rail.dart',
+    'lib/widgets/shell/strip/status_dot.dart',
     'lib/widgets/modular_widgets/settings_widgets/wallet_settings_view.dart',
     'lib/widgets/reusable_widgets/launch_film.dart',
     CAPTURE_AGENT_SOURCE, HOME_FIELD_SOURCE,
@@ -487,6 +488,20 @@ def unpack_home_catalog(raw, expected_sha, expected_size, head, tree, run_id,
                 opening_label_fade_observed=any(
                     0 < row[3] < 1000 for row in samples['opening']),
             )
+    if 'sync_pulse' in value['capture']:
+        samples = producer.sync_pulse_receipt(value['capture']['sync_pulse'])
+        resumes = [(left[0], right[1]) for left, right in zip(samples, samples[1:])
+                   if left[2] == 1000 and right[2] < 1000]
+        result['sync_pulse'] = dict(
+            sample_count=len(samples),
+            observed_intermediate=any(0 < phase < 1000 for _, _, phase in samples),
+            transparent_samples=sum(phase == 1000 for _, _, phase in samples),
+            resume_intervals_us=resumes,
+            resume_separation_bounds_us=[
+                [next_start - end, next_end - start]
+                for (start, end), (next_start, next_end) in zip(resumes, resumes[1:])
+            ],
+        )
     return result
 
 
@@ -1468,6 +1483,10 @@ def main(parent=None):
             catalog = unpack_home_catalog(catalog_archive, item['digest'][7:],
                 item['size_in_bytes'], head, tree, run_id, reference,
                 home_script_source_pins(source_digests, reference['schema']))
+            if 'sync_pulse' in catalog:
+                source_digests.update(source_files(repo, producer_tree, tree,
+                    read_versioned_blob=read_blob,
+                    files=('lib/widgets/shell/strip/status_dot.dart',)))
             if reference['schema'] == producer.HOME_CAPTURE_SCHEMAS['home']:
                 source_digests.update(source_files(repo, producer_tree, tree,
                     read_versioned_blob=read_blob, files=(HOME_FIELD_SOURCE,)))
@@ -1535,11 +1554,16 @@ def main(parent=None):
                   'retained_readonly_navigation_catalog': 'Navigation',
                   'retained_readonly_details_catalog': 'Details'}[catalog['scope']]
         rail_motion = catalog.pop('rail_motion', None)
+        sync_pulse = catalog.pop('sync_pulse', None)
         emit(f'Retained readonly {family} catalog', catalog)
         if rail_motion is not None:
             emit('Retained readonly rail motion', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
                 manifest_sha256=catalog['manifest_sha256'], **rail_motion))
+        if sync_pulse is not None:
+            emit('Retained readonly status halo', dict(source_head=head,
+                source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
+                manifest_sha256=catalog['manifest_sha256'], **sync_pulse))
         for comparison in catalog_comparisons:
             emit(f'Retained {family} pixel comparison', dict(
                 scope=f'retained_{family.lower()}_pixel_comparison', source_head=head,

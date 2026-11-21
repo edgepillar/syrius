@@ -80,6 +80,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/fros
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_frame.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/strip/status_dot.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_tab_child.dart'
     show LockTabChild, LockViewSource;
@@ -868,6 +869,25 @@ class HarnessAgent {
     }
     if (command['cmd'] == readonlySendWarningSyncCommand) {
       return _observeReadonlySendSync();
+    }
+    if (command['cmd'] == readonlySyncPulseCommand) {
+      final ReadonlyNativeCommands? native = _readonlyNative;
+      final Element? root = WidgetsBinding.instance.rootElement;
+      if (native == null || root == null || kCurrentPage != Tabs.dashboard) {
+        throw const ReadonlyNativeCommandRefused();
+      }
+      _requireCaptureFrameIdle();
+      native.requireCurrentWallet();
+      final Element? dot = _findTimingChild(
+        root,
+        (Widget widget) =>
+            widget is StatusDot && widget.fillKey == const Key('strip_sync'),
+      );
+      final double? phase = dot == null ? null : StatusDot.haloPhaseOf(dot);
+      if (phase == null || !phase.isFinite || phase < 0 || phase > 1) {
+        throw const ReadonlyNativeCommandRefused();
+      }
+      return <String, Object?>{'phaseMilli': (phase * 1000).floor()};
     }
     if (command['cmd'] == readonlyActivityMessageSeamCommand) {
       _requireCaptureFrameIdle();

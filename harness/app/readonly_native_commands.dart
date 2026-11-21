@@ -7,6 +7,9 @@ const String readonlyHomeZapPreviewCommand = 'readonly-home-zap-preview';
 /// Samples the actual session sync state for the isolated Send warning.
 const String readonlySendWarningSyncCommand = 'readonly-send-warning-sync';
 
+/// Reads only the original Home status halo's animation phase.
+const String readonlySyncPulseCommand = 'readonly-sync-pulse';
+
 /// Probes one visible gate through the original readonly pointer path.
 const String readonlySeamPointerCommand = 'readonly-seam-pointer';
 
@@ -67,6 +70,7 @@ class ReadonlyNativeCommands {
     'readonly-entry',
     readonlyHomeZapPreviewCommand,
     readonlySendWarningSyncCommand,
+    readonlySyncPulseCommand,
     readonlySeamPointerCommand,
     readonlyActivityMessageSeamCommand,
     readonlyAgedFuseFixtureCommand,
@@ -153,7 +157,8 @@ class ReadonlyNativeCommands {
         (name == readonlyHomeZapPreviewCommand ||
             name == readonlyActivityMessageSeamCommand ||
             name == readonlyAgedFuseFixtureCommand ||
-            name == readonlySendWarningSyncCommand) &&
+            name == readonlySendWarningSyncCommand ||
+            name == readonlySyncPulseCommand) &&
             (_wallet == null || retained.length != 1)) {
       throw const ReadonlyNativeCommandRefused();
     }

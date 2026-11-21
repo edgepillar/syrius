@@ -75,6 +75,8 @@ void main() {
           final CustomPaint originalHalo = tester.widget<CustomPaint>(
             _haloPaint,
           );
+          final Element dot = tester.element(find.byType(StatusDot));
+          expect(StatusDot.haloPhaseOf(dot), 0);
           expect(tester.getSize(_haloPaint), const Size.square(22));
           expect(_halo(tester)!.radius, 4);
           expect(_halo(tester)!.color.a, closeTo(0.6, 0.001));
@@ -88,18 +90,21 @@ void main() {
           await tester.pump(const Duration(milliseconds: 840));
           const Curve cssEase = Cubic(0.4, 0, 0.2, 1);
           final double halfway = cssEase.transform(0.5);
+          expect(StatusDot.haloPhaseOf(dot), closeTo(0.5, 0.001));
           expect(tester.widget<CustomPaint>(_haloPaint), same(originalHalo));
           expect(_halo(tester)!.radius, closeTo(4 + 7 * halfway, 0.001));
           expect(_halo(tester)!.color.a, closeTo(0.6 * (1 - halfway), 0.001));
           expect(tester.binding.transientCallbackCount, greaterThan(0));
           await tester.pump(const Duration(milliseconds: 840));
           expect(_halo(tester), isNull);
+          expect(StatusDot.haloPhaseOf(dot), 1);
           expect(tester.binding.transientCallbackCount, 0);
           await tester.pump(const Duration(milliseconds: 420));
           expect(_halo(tester), isNull);
           expect(tester.binding.transientCallbackCount, 0);
           await tester.pump(const Duration(milliseconds: 300));
           expect(_halo(tester)!.radius, closeTo(4, 0.001));
+          expect(StatusDot.haloPhaseOf(dot), 0);
           expect(_halo(tester)!.color.a, closeTo(0.6, 0.001));
           expect(tester.binding.transientCallbackCount, greaterThan(0));
           // Unmount with the next cycle's wake-up still pending.

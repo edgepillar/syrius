@@ -157,12 +157,27 @@ def home_capture_receipt(value):
         width=1280, height=780, scale=1, capture_returned=True)
     expected.update(dict(screen='home-rest', number=1) if schema == 1
                     else dict(screens=list(home_catalog_screens(schema))))
-    optional = {'rail_motion'} if schema == 4 else set()
+    optional = {'rail_motion', 'sync_pulse'} if schema == 4 else set()
     need(set(expected) <= set(value) <= set(expected) | optional
          and all(type(value[k]) is type(v) and value[k] == v
                  for k, v in expected.items()), 'CAPTURE_REFUSED')
     if 'rail_motion' in value:
         rail_motion_receipt(value['rail_motion'])
+    if 'sync_pulse' in value:
+        sync_pulse_receipt(value['sync_pulse'])
+    return value
+
+
+def sync_pulse_receipt(value):
+    """Admit ordered elapsed times and halo phases from the original dot."""
+    need(type(value) is list and 1 <= len(value) <= 31
+         and all(type(row) is list and len(row) == 3
+                 and all(type(item) is int for item in row)
+                 and 0 <= row[0] <= row[1] <= 6_000_000
+                 and 0 <= row[2] <= 1000
+                 for row in value)
+         and all(left[1] < right[0] for left, right in zip(value, value[1:])),
+         'CAPTURE_REFUSED')
     return value
 
 

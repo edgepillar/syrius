@@ -222,7 +222,7 @@ Future<Map<String, Object>> captureReadonlyHomeGotoStates({
   required Directory repository,
   required ReadonlyInspectionSession session,
   void Function(ScreenCaptureObservation step)? onStep,
-  bool observeRailMotion = false,
+  bool observeMotion = false,
 }) async {
   if (!session.walletBound) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.binding);
@@ -258,7 +258,8 @@ Future<Map<String, Object>> captureReadonlyHomeGotoStates({
     ],
     'themes': const <String>['dark', 'light'], 'files': files,
     'width': 1280, 'height': 780, 'scale': 1, 'capture_returned': true,
-    if (observeRailMotion) 'rail_motion': await session.observeRailMotion(),
+    if (observeMotion) 'rail_motion': await session.observeRailMotion(),
+    if (observeMotion) 'sync_pulse': await session.observeSyncPulse(),
   };
 }
 

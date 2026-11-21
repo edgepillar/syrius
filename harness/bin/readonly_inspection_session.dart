@@ -4,7 +4,7 @@ import '../app/readonly_native_commands.dart'
     show readonlyActivityMessageSeamCommand, readonlyAgedFuseFixtureCommand,
         readonlyHomeZapPreviewCommand,
         readonlySeamPointerCommand,
-        readonlySendWarningSyncCommand;
+        readonlySendWarningSyncCommand, readonlySyncPulseCommand;
 import '../app/readonly_native_mode.dart';
 import 'screen_capture.dart';
 import 'wallet_recipe.dart' show WalletRecipeSend;
@@ -55,6 +55,7 @@ class ReadonlyInspectionSession {
     'wait', 'assert', 'shot', 'theme', 'logs', 'stalls', 'window', 'quit',
     readonlyHomeZapPreviewCommand,
     readonlySendWarningSyncCommand,
+    readonlySyncPulseCommand,
     readonlySeamPointerCommand,
     readonlyActivityMessageSeamCommand,
     readonlyAgedFuseFixtureCommand,
@@ -94,7 +95,8 @@ class ReadonlyInspectionSession {
           (name == readonlyHomeZapPreviewCommand ||
               name == readonlyActivityMessageSeamCommand ||
               name == readonlyAgedFuseFixtureCommand ||
-              name == readonlySendWarningSyncCommand) &&
+              name == readonlySendWarningSyncCommand ||
+              name == readonlySyncPulseCommand) &&
               (!_walletBound || command.length != 1)) {
         _refuse(ReadonlyInspectionReason.command);
       }
@@ -228,6 +230,33 @@ class ReadonlyInspectionSession {
     );
     await _requireScreenHome();
     return <String, List<List<int>>>{'opening': opening, 'closing': closing};
+  }
+
+  /// Samples the original status halo over two cycles with no frame requests.
+  Future<List<List<int>>> observeSyncPulse() async {
+    await _requireScreenHome();
+    final Stopwatch elapsed = Stopwatch()..start();
+    const Duration limit = Duration(seconds: 6);
+    const Duration interval = Duration(milliseconds: 200);
+    final List<List<int>> samples = <List<int>>[];
+    while (samples.length < 31) {
+      final Duration sent = elapsed.elapsed;
+      if (sent + interval >= limit) break;
+      final Map<String, dynamic> reply = await send(
+        <String, Object?>{'cmd': readonlySyncPulseCommand},
+        limit - sent,
+      );
+      final Object? phase = reply['phaseMilli'];
+      if (reply['ok'] != true || phase is! int || phase < 0 || phase > 1000) {
+        _refuse(ReadonlyInspectionReason.reply);
+      }
+      final Duration observed = elapsed.elapsed;
+      if (observed > limit) break;
+      samples.add(<int>[sent.inMicroseconds, observed.inMicroseconds, phase]);
+      await Future<void>.delayed(interval);
+    }
+    await _requireScreenHome();
+    return samples;
   }
 
   Future<void> _moveScreenRail(int target, {List<List<int>>? samples}) async {
