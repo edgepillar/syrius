@@ -3494,7 +3494,15 @@ locates the enclosing panel at rows 267–503 against 267–509 in both
 references. The notice now adds 2 px above its surface and 2 px to
 each internal vertical inset. The lower outer inset remains 12 px
 as measured in both references. The widget case verifies the outer
-insets. The new panel positions require a fresh Windows capture.
+insets. The [Windows run at `fa12934e`](https://github.com/edgepillar/syrius/actions/runs/44914635638/job/136877506165)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44916400450/job/136882836192)
+verify all four original PNGs, four wallet members and normal required
+closure. At column 980, the notice now spans rows 385–497 and the
+enclosing panel spans 267–509 in both themes, matching both references.
+The three Addresses card positions remain matched at column 700. At the
+16-level threshold, whole-window Node differences fall to 54,256 dark
+and 54,719 light with the same reference digests. All four whole-image
+verdicts remain open.
 [Linux at `fa12934e`](https://github.com/edgepillar/syrius/actions/runs/44914392285/job/136876775136)
 passes the Node and Addresses widget cases, application and strict
 selected analysis, the generated-file check and the non-chain suite,
