@@ -144,6 +144,10 @@ void main() {
           expect(count.style!.fontWeight, FontWeight.w600);
         }
         for (final String address in source.members) {
+          final ConstrainedBox row = tester.widget<ConstrainedBox>(
+            find.byKey(ValueKey<String>('addresses_row_$address')),
+          );
+          expect(row.constraints.minHeight, 56.5);
           final Text identifier = tester.widget<Text>(find.descendant(
             of: find.byTooltip(address), matching: find.byType(Text),
           ));
@@ -188,6 +192,10 @@ void main() {
             closeTo(4, 1e-10),
           );
         }
+        final ConstrainedBox contactRow = tester.widget<ConstrainedBox>(
+          find.byKey(ValueKey<String>('addresses_contact_$contact')),
+        );
+        expect(contactRow.constraints.minHeight, 50.5);
         final Finder contactSend = find.byKey(
           ValueKey<String>('addresses_send_$contact'),
         );

@@ -3479,7 +3479,26 @@ missing 57-pixel rows. The combined catalog now uses the existing Settings
 wallet preparation to derive four members, select and verify the second,
 and save the two synthetic contacts. [Linux at `9d17f2ba`](https://github.com/edgepillar/syrius/actions/runs/44910717805/job/136865746542)
 passes analysis, 5,131 non-chain tests with one skip, and generated-file
-verification. A fresh Windows comparison is required.
+verification.
+
+The [combined Windows run at `a2e1d1cf`](https://github.com/edgepillar/syrius/actions/runs/44911441229/job/136867931104)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44913227211/job/136873264065)
+verify all four PNGs, four members, the selected second address and
+normal required closure. The Node notice at column 980 now spans rows
+383–491 in both themes against 385–497 in the references. It is 40
+pixels shorter than the previous capture. The Node update crop counts
+at the 16-level threshold fall from 40,100 to 25,606 in dark and from
+39,790 to 25,514 in light, using the same reference digests.
+
+The new Addresses member, contact and account-chain cards span rows
+36–315, 328–477 and 490–533 in both themes. The references span rows
+36–313, 326–476 and 489–532. The member card is two pixels taller, the
+contact card is one pixel shorter and the account-chain card retains
+the reference height. The row minimums now use 56.5 px for members and
+50.5 px for contacts, with the existing one-pixel dividers. The layout
+case checks the two minimums alongside the action sizes and scaled
+layout. The next native capture must verify the card positions. All
+four strict visual verdicts remain open under V01.
 
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests

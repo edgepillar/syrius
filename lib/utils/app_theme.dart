@@ -1057,10 +1057,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   double get addressesLastSentWidth => 200;
 
   /// Minimum account row height before text scaling adds space.
-  double get addressesRowMinHeight => 57;
+  double get addressesRowMinHeight => 56.5;
 
   /// Minimum contact row height before text scaling adds space.
-  double get addressesContactMinHeight => 50;
+  double get addressesContactMinHeight => 50.5;
 
   /// Exact account identifiers use quiet monospaced ink.
   TextStyle get addressesAddressText =>
