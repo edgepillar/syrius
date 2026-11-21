@@ -437,9 +437,22 @@ void main() {
         await tester.enterText(find.byKey(_repository), draftRepository);
         await press(tester, _check);
         await press(tester, _download);
+        final Finder notice = find.byKey(
+          const Key('node_update_verified_download'),
+        );
+        expect(notice, findsOneWidget);
+        final Finder archiveHash = find.descendant(
+          of: notice,
+          matching: find.byTooltip(kNewSha),
+        );
+        expect(archiveHash, findsOneWidget);
         expect(
-          find.byKey(const Key('node_update_verified_download')),
-          findsOneWidget,
+          tester.getCenter(archiveHash).dy,
+          closeTo(tester.getCenter(find.text(kAsset)).dy, 1),
+        );
+        expect(
+          tester.getSize(find.byKey(_review)).height,
+          AppTokens.dark.compactButtonHeight,
         );
         expect(find.text(_matchesChecksumFile), findsOneWidget);
         expect(find.text(_noDigest), findsOneWidget);

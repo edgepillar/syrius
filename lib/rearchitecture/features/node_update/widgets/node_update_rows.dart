@@ -629,6 +629,7 @@ class _VerifiedDownload extends StatelessWidget {
     final AppTokens tokens = AppTokens.of(context);
     final NodeChecksumFileCheck? checksum = library.checksumFile;
     final NodeApiDigestCheck? digest = library.apiDigest;
+    final String archiveHash = library.archiveSha256 ?? library.sha256;
     Widget verification(String message, {required bool matches}) => Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -664,11 +665,46 @@ class _VerifiedDownload extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              _Fact(l10n.nodeUpdateActualLabel, library.asset, data: true),
-              _Fact(
-                l10n.nodeUpdateHashLabel,
-                library.archiveSha256 ?? library.sha256,
-                data: true,
+              SizedBox(
+                width: double.infinity,
+                child: Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: tokens.cardGap,
+                  runSpacing: tokens.inlineGap,
+                  children: <Widget>[
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        buildShellSymbol(
+                          context,
+                          'check',
+                          size: tokens.settingsCompactButtonIconSize,
+                          color: tokens.znnInk,
+                        ),
+                        SizedBox(width: tokens.fieldLabelGap),
+                        Flexible(
+                          child: Semantics(
+                            label: l10n.nodeUpdateActualLabel,
+                            child: Text(
+                              library.asset,
+                              textDirection: TextDirection.ltr,
+                              style: tokens.bodyText,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Tooltip(
+                      message: archiveHash,
+                      child: Text(
+                        '${l10n.nodeUpdateHashLabel} ${_middle(archiveHash)}',
+                        textDirection: TextDirection.ltr,
+                        style: settingMonoStyle(context),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               SizedBox(height: tokens.inlineGap),
               Wrap(
@@ -692,6 +728,9 @@ class _VerifiedDownload extends StatelessWidget {
                 children: <Widget>[
                   PrimaryPill(
                     key: const ValueKey<String>('node_update_review_install'),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: Size(0, tokens.compactButtonHeight),
+                    ),
                     onPressed: onReview,
                     child: Text(l10n.nodeUpdateInstallLabel),
                   ),

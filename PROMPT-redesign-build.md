@@ -3435,8 +3435,20 @@ Node counts fall from 84,898 to 70,803 in dark and from 84,771 to 70,513 in
 light relative to the earlier verified-download capture. The differences
 in the disclosure crop fall from 18,366 to 3,772 in dark and 18,002 to
 3,419 in light. The update crop increases to 40,100 and 39,790. At column
-700 the verified notice band spans rows 434 through 531 in both themes
-against 385 through 433 in the references.
+700 the longest uninterrupted color band spans rows 434 through 531 in
+both themes against 385 through 433 in the references. Text interrupts
+this sample. A [second read of the same verified archive](https://github.com/edgepillar/syrius/actions/runs/44909208132/job/136861215600)
+samples column 980 clear of the reference text. It finds rows 383 through
+531 in both captures and rows 385 through 497 in both references: the
+visible notice starts two pixels early and its fill is 36 pixels taller.
+
+The verified notice now shares its first row between the downloaded
+asset and a shortened hash, with wrapping for smaller layouts. The
+full hash remains available in the tooltip and the original confirmation.
+The Install action uses the reference's compact button height. The
+existing confirmation case checks the row and button along with the
+original verification details and cancellation behavior. Fresh Windows
+pixels remain open.
 
 Against the [earlier Addresses captures](https://github.com/edgepillar/syrius/actions/runs/44904748252/job/136847815734),
 the contact crop falls from 15,424 to 12,670 in dark and from 15,802 to
