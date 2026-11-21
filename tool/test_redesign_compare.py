@@ -66,6 +66,24 @@ class ArchiveReadCacheTests(unittest.TestCase):
                 cache.read(path, digest)
             self.assertEqual(load.call_count, 2)
 
+    def test_archive_byte_budget_evicts_the_least_recently_used_archive(self) -> None:
+        files = {Path("a.zip"): b"aaaa", Path("b.zip"): b"bbbb",
+                 Path("c.zip"): b"cccc"}
+        cache = _ArchiveReadCache(max_entries=3, max_bytes=8)
+        metadata = SimpleNamespace(
+            st_dev=1, st_ino=2, st_size=4, st_mtime_ns=3, st_ctime_ns=4,
+        )
+        with (
+            patch.object(Path, "stat", return_value=metadata),
+            patch("redesign_compare.bounded_bytes", side_effect=lambda path, _: files[path]) as load,
+        ):
+            for name in ("a.zip", "b.zip", "a.zip", "c.zip", "a.zip", "b.zip"):
+                path = Path(name)
+                digest = hashlib.sha256(files[path]).hexdigest()
+                self.assertEqual(cache.read(path, digest), files[path])
+            self.assertEqual([call.args[0].name for call in load.call_args_list],
+                             ["a.zip", "b.zip", "c.zip", "b.zip"])
+
     def test_interleaved_zip_members_keep_the_catalog_order(self) -> None:
         root = Path("comparison-fixture")
         src = root / "mockups" / "redesign" / "src" / "screens.html"
@@ -139,13 +157,14 @@ class ArchiveReadCacheTests(unittest.TestCase):
             patch("redesign_compare.bounded_bytes", side_effect=read) as load,
         ):
             self.assertEqual(gallery.read_asset(f"capture/{first_dark}.png"), (png, "image/png"))
+            self.assertEqual(gallery.read_asset(f"capture/{first_light}.png"), (png, "image/png"))
             delta, media_type = gallery.read_asset(f"diff/{first_dark}.png")
             self.assertEqual(media_type, "image/png")
             with Image.open(io.BytesIO(delta)) as image:
                 self.assertEqual(image.getextrema(), (0, 0))
             path = captures[first_dark].path
             self.assertEqual([call.args[0] for call in load.call_args_list
-                              if call.args[0] in archives], [path])
+                              if call.args[0] in archives], [path, captures[first_light].path])
             stat_result.st_ctime_ns += 1
             original = archives[path]
             archives[path] = b"changed"

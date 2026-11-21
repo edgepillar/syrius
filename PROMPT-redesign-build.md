@@ -4523,6 +4523,14 @@ and recent review files can be read together without copying verdicts.
 Each verdict still requires both original image digests. A disagreement
 between verdicts for the exact same pair remains visible and unreviewed.
 
+The private comparison gallery keeps recently used, verified ZIP bytes
+in a 4 MiB cache. A larger archive within the existing input limit can
+occupy the cache by itself. Every request checks the archive identity
+and PNG digest. Serving the originals for all 94 retained `28f9c121`
+pairs in gallery order required 24 verified archive reads and 6,891,199
+bytes. The single-archive cache required 34 reads and 12,359,102 bytes
+for the same requests. The gallery writes no extracted image copies.
+
 The [reader at `6debd35d`](https://github.com/edgepillar/syrius/actions/runs/44946354661/job/136974431151)
 also re-verifies the original full Home archive at `8b8feaaf`.
 It reads the contact fixture from the exact producer revision through

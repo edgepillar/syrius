@@ -79,7 +79,7 @@ from __future__ import annotations
 
 import argparse
 import ast
-from collections import Counter, defaultdict
+from collections import Counter, OrderedDict, defaultdict
 from collections.abc import Mapping, Sequence
 from contextlib import closing
 from dataclasses import dataclass, replace
@@ -112,6 +112,7 @@ SCREEN_COUNT = 47
 IMAGE_SIZE = (1280, 780)
 MAX_IMAGE_BYTES = 16 * 1024 * 1024
 MAX_ARCHIVE_BYTES = 16 * 1024 * 1024
+GALLERY_ARCHIVE_CACHE_BYTES = 4 * 1024 * 1024
 MAX_CAPTURE_MANIFEST_BYTES = 256 * 1024
 MAX_IMAGE_PIXELS = 4096 * 4096
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
@@ -364,22 +365,35 @@ def _verified_archive_bytes(path: Path, digest: str | None) -> bytes:
 
 
 class _ArchiveReadCache:
-    """Reuse one verified archive while its file identity is unchanged."""
+    """Reuse bounded, verified archives while their file identities agree."""
 
-    def __init__(self) -> None:
-        self._key: tuple[Path, str | None, int, int, int, int, int] | None = None
-        self._raw = b""
+    def __init__(self, *, max_entries: int = 1, max_bytes: int = MAX_ARCHIVE_BYTES) -> None:
+        self._archives: OrderedDict[
+            Path, tuple[tuple[str | None, int, int, int, int, int], bytes]
+        ] = OrderedDict()
+        self._bytes = 0
+        self._max_entries = max_entries
+        self._max_bytes = max_bytes
 
     def read(self, path: Path, digest: str | None) -> bytes:
         info = path.stat()
-        key = (path, digest, info.st_dev, info.st_ino, info.st_size,
+        key = (digest, info.st_dev, info.st_ino, info.st_size,
                info.st_mtime_ns, info.st_ctime_ns)
-        if key != self._key:
-            self._raw = b""
-            self._key = None
-            self._raw = _verified_archive_bytes(path, digest)
-            self._key = key
-        return self._raw
+        previous = self._archives.pop(path, None)
+        if previous is not None:
+            self._bytes -= len(previous[1])
+        raw = previous[1] if previous is not None and previous[0] == key else (
+            _verified_archive_bytes(path, digest)
+        )
+        # A verified archive above the gallery cache budget can still be kept
+        # on its own, within the existing per-archive input limit.
+        limit = max(self._max_bytes, len(raw))
+        while len(self._archives) >= self._max_entries or self._bytes + len(raw) > limit:
+            _, (_, evicted) = self._archives.popitem(last=False)
+            self._bytes -= len(evicted)
+        self._archives[path] = key, raw
+        self._bytes += len(raw)
+        return raw
 
 
 def capture_bytes(capture: Capture, archive_cache: _ArchiveReadCache | None = None) -> bytes:
@@ -431,7 +445,9 @@ class ReportGallery:
 
     def __init__(self) -> None:
         self.assets: dict[str, tuple[Capture | Difference, str]] = {}
-        self._archive_cache = _ArchiveReadCache()
+        self._archive_cache = _ArchiveReadCache(
+            max_entries=32, max_bytes=GALLERY_ARCHIVE_CACHE_BYTES,
+        )
 
     def add(self, url: str, capture: Capture, media_type: str = "image/png") -> None:
         self.assets[url] = capture, media_type
