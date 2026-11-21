@@ -3408,6 +3408,13 @@ while the verified download is held. Cancelling restores the editor and
 its unsaved draft without changing the configured repository. The original
 confirmation case checks those transitions. Fresh Windows pixels remain open.
 
+The next `node-verified` Windows run captures the verified Node panel and
+the populated Addresses panel in both themes from one build and one
+isolated wallet. The Addresses portion uses the existing two synthetic
+contacts and requires both real Edit controls. The independent reader binds
+both scripts and the original contact fixture. Older two-image receipts
+remain verifiable. The four-image batch awaits its first hosted run.
+
 The [Linux run at `2a84a910`](https://github.com/edgepillar/syrius/actions/runs/44884610623/job/136787070633)
 passes application and strict selected analysis, 5,131 non-chain tests
 with one skip and generated-file verification. That full run includes

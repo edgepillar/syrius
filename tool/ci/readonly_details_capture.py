@@ -69,8 +69,10 @@ RESTORED_FAILURE_KINDS = {
 FAMILY_SCHEMAS = {'details': 1, 'token-draft': 2, 'send-confirm': SEND_CATALOG_SCHEMA, 'earn': 5,
                   'sentinel-fixture': 8, 'swap-start': 9, 'wallet-ready': 10,
                   'send-warn': 11, 'home-zap-preview': 12, 'node-verified': 19}
+SETTINGS_REVIEW_SCHEMA = 20
 CATALOG_STAGES = {name.replace('-', '_') + '_catalog': schema
                   for name, schema in FAMILY_SCHEMAS.items()}
+CATALOG_STAGES['settings_review_catalog'] = SETTINGS_REVIEW_SCHEMA
 CATALOGS = {
     1: (SCREENS, FILES),
     2: (TOKEN_DRAFT_SCREENS, TOKEN_DRAFT_FILES),
@@ -93,6 +95,9 @@ CATALOGS = {
         ('06-home-zap-dark.png', '06-home-zap-light.png')),
     FAMILY_SCHEMAS['node-verified']: (('set-node',),
         ('30-set-node-dark.png', '30-set-node-light.png')),
+    SETTINGS_REVIEW_SCHEMA: (('set-node', 'set-addresses'),
+        ('30-set-node-dark.png', '30-set-node-light.png',
+         '35-set-addresses-dark.png', '35-set-addresses-light.png')),
     STAKE_DRAFT_SCHEMA: (('staking-new',),
                          ('14-staking-new-dark.png', '14-staking-new-light.png')),
     PROJECT_DETAIL_SCHEMA: (('az-project',),
@@ -308,6 +313,7 @@ def catalog_script_name(schema, screen):
     if (schema, screen) in {(PROJECT_CATALOG_SCHEMA, 'az'),
                             (SEND_CATALOG_SCHEMA, 'send-rest'),
                             (FAMILY_SCHEMAS['node-verified'], 'set-node'),
+                            (SETTINGS_REVIEW_SCHEMA, 'set-node'),
                             (SEEDED_VISUAL_SCHEMA, 'tokens')}:
         return 'prepared/' + screen + '.txt'
     return screen + '.txt'
@@ -315,7 +321,8 @@ def catalog_script_name(schema, screen):
 
 def family_matches(family, schema):
     return schema == FAMILY_SCHEMAS[family] or (
-        family == 'send-confirm' and schema == SEND_CONFIRM_SCHEMA)
+        family == 'send-confirm' and schema == SEND_CONFIRM_SCHEMA) or (
+        family == 'node-verified' and schema == SETTINGS_REVIEW_SCHEMA)
 
 
 def _script_pins(repo, schema, read_original):
@@ -358,7 +365,7 @@ def capture_records(value, *, schema=1):
     need(sum(row['bytes'] for row in value) <= MAX_CAPTURE_TOTAL, 'CAPTURE_REFUSED')
     if schema in (FAMILY_SCHEMAS['swap-start'], FAMILY_SCHEMAS['wallet-ready'],
                   FAMILY_SCHEMAS['send-warn'], FAMILY_SCHEMAS['home-zap-preview'],
-                  FAMILY_SCHEMAS['node-verified']):
+                  FAMILY_SCHEMAS['node-verified'], SETTINGS_REVIEW_SCHEMA):
         need(len({row['sha256'] for row in value}) == len(files), 'CAPTURE_REFUSED')
     return value
 

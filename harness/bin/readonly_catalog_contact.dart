@@ -11,6 +11,30 @@ String get readonlyCatalogContactEditKey =>
 String get readonlyCatalogSecondContactEditKey =>
     'addresses_edit_contact_$sendWarningTypedAddress';
 
+/// Populates the two Settings rows through the isolated address book.
+Future<void> saveReadonlySettingsContacts(cli.Instance instance) async {
+  const Map<String, Object?> top = <String, Object?>{
+    'cmd': 'scroll', 'dy': -1000000,
+  };
+  await saveReadonlyCatalogContact(instance, name: 'Sample contact');
+  await cli.call(instance, top);
+  await saveReadonlyCatalogContact(
+    instance, name: 'Sample exchange', second: true,
+  );
+  await cli.call(instance, top);
+}
+
+/// Requires both original Edit controls for the populated address book.
+Future<void> requireReadonlySettingsContacts(cli.Instance instance) async {
+  for (final String key in <String>[
+    readonlyCatalogContactEditKey, readonlyCatalogSecondContactEditKey,
+  ]) {
+    await cli.call(instance, <String, Object?>{
+      'cmd': 'assert', 'key': key, 'exact': true,
+    });
+  }
+}
+
 /// Enters the draft through the real field and requires its exact reply.
 Future<void> typeReadonlyCatalogField(
   cli.Instance instance, String key, String value,

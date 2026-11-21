@@ -133,6 +133,30 @@ class DetailsCatalogTests(unittest.TestCase):
                     legacy.entry_failure(dict(stage='details_catalog',
                         code=None, diagnostic=failure))
 
+        schema = details.SETTINGS_REVIEW_SCHEMA
+        screens = ['set-node', 'set-addresses']
+        files = [f'{number}-{screen}-{theme}.png'
+                 for number, screen in zip((30, 35), screens) for theme in details.THEMES]
+        pins = {'set-node': '7' * 64, 'set-addresses': '8' * 64}
+        capture = dict(receipt(), schema=schema, screens=screens, files=files)
+        images = {name: png(index + 1) for index, name in enumerate(files)}
+        captures = [dict(file=name, theme=details.THEMES[index % 2],
+            width=1280, height=780, scale=1, bytes=len(data), sha256=details.sha(data))
+            for index, (name, data) in enumerate(images.items())]
+        report = dict(original, schema=schema, capture=capture,
+                      captures=captures, script_sha256_by_screen=pins)
+        raw, reference = bundle(report, images)
+        result = details.unpack(raw, details.sha(raw), len(raw), HEAD, TREE, RUN, reference, pins)
+        self.assertEqual(result['filenames'], files)
+        self.assertEqual(result['verified_png_count'], 4)
+        self.assertTrue(details.family_matches('node-verified', 19))
+        self.assertTrue(details.family_matches('node-verified', schema))
+        self.assertFalse(details.family_matches('details', schema))
+        self.assertEqual(details.catalog_script_name(schema, 'set-node'), 'prepared/set-node.txt')
+        self.assertEqual(details.catalog_script_name(schema, 'set-addresses'), 'set-addresses.txt')
+        with self.assertRaises(details.Refused):
+            details.capture_receipt(dict(capture, files=files[:2]))
+
     def test_closed_details_namespace_cannot_adopt_home_or_private_fields(self):
         value = receipt()
         self.assertEqual(details.capture_receipt(value), value)

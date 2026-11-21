@@ -83,18 +83,7 @@ Future<Map<String, Object>> captureReadonlySettingsDefaults({
       await cli.run(instance, words.first, cli.Args(words.sublist(1)));
       if (words case ['tap', '--key', 'settings_addresses']
           when !contactsSaved) {
-        await saveReadonlyCatalogContact(instance, name: 'Sample contact');
-        await cli.call(instance, <String, Object?>{
-          'cmd': 'scroll', 'dy': -1000000,
-        });
-        await saveReadonlyCatalogContact(
-          instance,
-          name: 'Sample exchange',
-          second: true,
-        );
-        await cli.call(instance, <String, Object?>{
-          'cmd': 'scroll', 'dy': -1000000,
-        });
+        await saveReadonlySettingsContacts(instance);
         contactsSaved = true;
       }
       if (words case ['tap', '--key', 'settings_display']
@@ -114,14 +103,7 @@ Future<Map<String, Object>> captureReadonlySettingsDefaults({
         englishSelected = true;
       }
       if (capturesAddresses(words)) {
-        for (final String key in <String>[
-          readonlyCatalogContactEditKey,
-          readonlyCatalogSecondContactEditKey,
-        ]) {
-          await cli.call(instance, <String, Object?>{
-            'cmd': 'assert', 'key': key, 'exact': true,
-          });
-        }
+        await requireReadonlySettingsContacts(instance);
       }
     },
     assertionFor: (List<String> words) => cli.assertionArgs(cli.Args(

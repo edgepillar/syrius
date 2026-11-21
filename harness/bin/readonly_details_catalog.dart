@@ -59,8 +59,12 @@ enum ReadonlyDetailsSelection {
   walletReady(10, 'wallet_ready_catalog', <String>['wallet-ready'],
     <String>['47-wallet-ready-dark.png', '47-wallet-ready-light.png'],
   ),
-  nodeVerified(19, 'node_verified_catalog', <String>['set-node'],
-    <String>['30-set-node-dark.png', '30-set-node-light.png'],
+  nodeVerified(20, 'settings_review_catalog',
+    <String>['set-node', 'set-addresses'],
+    <String>[
+      '30-set-node-dark.png', '30-set-node-light.png',
+      '35-set-addresses-dark.png', '35-set-addresses-light.png',
+    ],
   );
 
   const ReadonlyDetailsSelection(
@@ -211,9 +215,17 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
   bool warningContactSaved = false;
   bool warningWindowOpened = false;
   bool swapWarningAcknowledged = false;
+  bool settingsContactsSaved = false;
+  final bool settingsReview =
+      selection == ReadonlyDetailsSelection.nodeVerified;
+  bool capturesAddresses(List<String> words) => settingsReview &&
+      switch (words) {
+        ['assert', '--key', 'addresses_account_chain_toggle'] => true,
+        _ => false,
+      };
   final ScreenCapture capture = ScreenCapture(
     repository: repository,
-    readonlyNodeVerified: selection == ReadonlyDetailsSelection.nodeVerified,
+    readonlyNodeVerified: settingsReview,
     call: (Map<String, Object?> command) async {
       if (sendWarning && command['cmd'] == 'shot') {
         final String event = switch (command['theme']) {
@@ -388,6 +400,14 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
         return;
       }
       await cli.run(instance, words.first, cli.Args(words.sublist(1)));
+      if (words case ['tap', '--key', 'settings_addresses']
+          when settingsReview && !settingsContactsSaved) {
+        await saveReadonlySettingsContacts(instance);
+        settingsContactsSaved = true;
+      }
+      if (capturesAddresses(words)) {
+        await requireReadonlySettingsContacts(instance);
+      }
       if (swapStart && !swapWarningAcknowledged && words.join(' ') ==
           'tap --key p2p_start_swap --kind button --exact') {
         await cli.waitForTarget(instance, cli.Args(<String>[
@@ -405,7 +425,9 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
             ? const <String, Object>{
                 'key': 'nodes_sentinel_read_scope', 'exact': true,
               }
-            : cli.assertionArgs(cli.Args(words.sublist(1))),
+            : cli.assertionArgs(cli.Args(capturesAddresses(words)
+                ? <String>['--key', readonlyCatalogSecondContactEditKey]
+                : words.sublist(1))),
     readRailState: walletReady ? null : session.railExpanded,
     restoreRailState: walletReady ? null : session.restoreScreenRail,
     onStep: onStep,

@@ -1280,13 +1280,16 @@ def main(parent=None):
                           producer.details.FAMILY_SCHEMAS['send-warn'],
                           producer.details.FAMILY_SCHEMAS['home-zap-preview'],
                           producer.details.FAMILY_SCHEMAS['node-verified'],
+                          producer.details.SETTINGS_REVIEW_SCHEMA,
                           producer.details.SEND_CATALOG_SCHEMA):
                 fixture_sources = {
                     producer.details.FAMILY_SCHEMAS['sentinel-fixture']: SENTINEL_FIXTURE_SOURCES,
                     producer.details.FAMILY_SCHEMAS['home-zap-preview']: HOME_ZAP_PREVIEW_SOURCES,
+                    producer.details.SETTINGS_REVIEW_SCHEMA: (
+                        CATALOG_CONTACT_SOURCE, 'harness/app/fixtures/send_warning_draft.dart'),
                 }.get(schema, ())
                 source_digests.update(source_files(repo, producer_tree, tree,
-                    files=fixture_sources + tuple(script_paths.values())))
+                    read_versioned_blob=read_blob, files=fixture_sources + tuple(script_paths.values())))
             item = artifact(listing, 'details-catalog-' + head + '-' + text + '-1', head, run_id)
             pins = {name: source_digests[path] for name, path in script_paths.items()}
             catalog_archive = download(item, producer.details.MAX_ARCHIVE)
@@ -1299,7 +1302,8 @@ def main(parent=None):
                 catalog['plasma_bolt_bounds'] = plasma_bolt_bounds(catalog_archive, '22-plasma-fuse')
             if '37-set-licences-dark.png' in catalog['filenames']:
                 catalog['licence_header_chevrons'] = details_licence_header_chevrons(catalog_archive)
-            if schema == producer.details.FAMILY_SCHEMAS['node-verified'] and reference_head is not None:
+            if (producer.details.family_matches('node-verified', schema)
+                    and reference_head is not None):
                 need(digest(reference_head, 40))
                 reference_dir = repo / 'mockups/redesign/shots'
                 catalog_comparisons = list(settings_pixel_comparisons(
