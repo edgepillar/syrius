@@ -107,7 +107,7 @@ class ReaderTests(unittest.TestCase):
         with mock.patch.object(reader.producer, 'read_original',
                 side_effect=lambda path, _: path.name.encode()) as read, \
                 mock.patch.object(reader.windows, 'pixel_comparison',
-                    side_effect=lambda actual, reference, _: actual == reference):
+                    side_effect=lambda actual, reference, _, **options: actual == reference):
             comparisons = list(reader.home_pixel_comparisons(raw, reference_dir))
         self.assertEqual([row['screen'] for row in comparisons], list(screens))
         self.assertEqual([call.args[0] for call in read.call_args_list],
@@ -128,7 +128,7 @@ class ReaderTests(unittest.TestCase):
         with mock.patch.object(reader.producer, 'read_original',
                 side_effect=lambda path, _: path.name.encode()) as read, \
                 mock.patch.object(reader.windows, 'pixel_comparison',
-                    side_effect=lambda actual, reference, _: actual == reference):
+                    side_effect=lambda actual, reference, _, **options: actual == reference):
             comparisons = list(reader.details_pixel_comparisons(raw, reference_dir))
         self.assertEqual([row['screen'] for row in comparisons], list(screens))
         self.assertEqual([call.args[0] for call in read.call_args_list],
@@ -153,15 +153,24 @@ class ReaderTests(unittest.TestCase):
         with mock.patch.object(reader.producer, 'read_original',
                 side_effect=lambda path, _: path.name.encode()) as read, \
                 mock.patch.object(reader.windows, 'pixel_comparison',
-                    side_effect=lambda actual, reference, _: actual == reference):
+                    side_effect=lambda actual, reference, _, **options: actual == reference) as compare:
             comparisons = list(reader.settings_pixel_comparisons(raw, reference_dir))
         self.assertEqual([row['screen'] for row in comparisons], list(screens))
         self.assertEqual([call.args[0] for call in read.call_args_list],
                          [reference_dir / name for name in names])
         for row in comparisons:
             self.assertEqual(row['region_bounds']['settings_menu'], (60, 32, 260, 724))
-            self.assertEqual(row['region_bounds']['content'], (260, 32, 1280, 724))
+            self.assertEqual(sum((right - left) * (bottom - top)
+                                 for left, top, right, bottom in row['region_bounds'].values()),
+                             1280 * 780)
             self.assertEqual(row['pairs'], {'dark': True, 'light': True})
+        self.assertEqual(comparisons[0]['region_bounds']['update'], (260, 267, 1280, 522))
+        self.assertEqual(comparisons[5]['region_bounds']['contacts'], (260, 326, 1280, 489))
+        self.assertEqual(comparisons[6]['region_bounds']['content'], (260, 32, 1280, 724))
+        self.assertEqual(compare.call_args_list[0].kwargs['sample_points']['update_notice'],
+                         (700, 450))
+        self.assertEqual(compare.call_args_list[10].kwargs['sample_points']['contact_gap'],
+                         (700, 482))
 
     def test_home_rest_measures_the_tooltip_and_send_fill(self):
         files = []

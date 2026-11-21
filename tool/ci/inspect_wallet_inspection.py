@@ -670,13 +670,14 @@ def home_send_bounds(raw):
         )
 
 
-def _catalog_pixel_pair(zipped, reference_dir, screen, regions):
+def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points=None):
     pairs = {}
     for theme in producer.THEMES:
         name = f'{screen}-{theme}.png'
         actual = zipped.read(name)
         reference = producer.read_original(reference_dir / name, producer.debug.entry.MAX_PNG)
-        pairs[theme] = windows.pixel_comparison(actual, reference, regions)
+        pairs[theme] = windows.pixel_comparison(actual, reference, regions,
+                                                sample_points=sample_points)
     return dict(screen=screen, region_bounds=regions, pairs=pairs)
 
 
@@ -711,9 +712,31 @@ def settings_pixel_comparisons(raw, reference_dir):
     regions = dict(caption=(0, 0, 1280, 32), rail=(0, 32, 60, 780),
                    settings_menu=(60, 32, 260, 724), content=(260, 32, 1280, 724),
                    status=(60, 724, 1280, 780))
+    # Split at the tracked reference card boundaries. These crops measure
+    # different fixture states as well as visual differences.
+    section_crops = {
+        '30-set-node': dict(nodes=(32, 267), update=(267, 522),
+                            disclosures=(522, 678), below_cards=(678, 724)),
+        '35-set-addresses': dict(members=(32, 326), contacts=(326, 489),
+                                 account_chain=(489, 533), below_cards=(533, 724)),
+    }
+    sample_points = {
+        '30-set-node': dict(node_table=(700, 220), update_card=(700, 298),
+                            update_notice=(700, 450), first_disclosure=(700, 546),
+                            last_disclosure=(700, 658)),
+        '35-set-addresses': dict(last_member=(700, 280), member_gap=(700, 319),
+                                 last_contact=(700, 449), contact_gap=(700, 482),
+                                 chain_card=(700, 510), after_chain=(700, 545)),
+    }
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         for screen in _catalog_pair_names(producer.settings.FILES):
-            yield _catalog_pixel_pair(zipped, reference_dir, screen, regions)
+            crop = regions
+            if screen in section_crops:
+                crop = {name: bounds for name, bounds in regions.items() if name != 'content'}
+                crop.update({name: (260, top, 1280, bottom)
+                             for name, (top, bottom) in section_crops[screen].items()})
+            yield _catalog_pixel_pair(zipped, reference_dir, screen, crop,
+                                      sample_points=sample_points.get(screen))
 
 
 def _originals_pixel_regions(regions):
