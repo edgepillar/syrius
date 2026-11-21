@@ -289,6 +289,20 @@ class InteractiveFramePairTests(unittest.TestCase):
             with self.assertRaises(pair.shared.launch.startup.Failure):
                 pair.shared.launch.frame_timing_rows(dict(window, rasterStartsUs=starts))
 
+        gap_window = dict(window, frames=[
+            [0, 1000, 100, 1000, 20000],
+            [3, 15000, 100, 17000, 24000],
+            [5, 35000, 100, 1000, 6000],
+            [9, 50000, 100, 1000, 2000],
+        ], rasterStartsUs=[20000, 21000, 40000, 51000])
+        self.assertEqual(inspect._frame_gaps_by_previous_raster(gap_window), {
+            'pending': dict(gaps=1, missing_frame_numbers=2),
+            'in_progress': dict(gaps=1, missing_frame_numbers=1),
+            'finished': dict(gaps=1, missing_frame_numbers=3),
+        })
+        del gap_window['rasterStartsUs']
+        self.assertIsNone(inspect._frame_gaps_by_previous_raster(gap_window))
+
     def test_retained_process_and_window_durations_are_bounded_observations(self):
         offered = fixture()
         observation = offered['samples']['current']['observation']

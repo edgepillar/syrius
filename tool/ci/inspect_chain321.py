@@ -945,6 +945,9 @@ def main():
         comparisons = interactive_result.pop('verified_comparisons', None)
         raster_overruns = interactive_result.pop('verified_raster_rank_overruns', {})
         diagnostics = interactive_result.pop('verified_window_diagnostics', None)
+        gap_raster_states = {label: windows for label, windows in
+                             interactive_result.pop('verified_gap_raster_states', {}).items()
+                             if windows}
         current_only = (diagnostics is not None and set(diagnostics) == {'current'}
             and comparisons is None and interactive_result['normal_node_exits'] == len(ROLES)
             and run['conclusion'] == interactive_result['original_job_conclusion'] == 'failure')
@@ -986,6 +989,14 @@ def main():
                 encoded_phases = json.dumps(phase_summary, sort_keys=True, separators=(',', ':'))
                 need(len(encoded_phases.encode('ascii')) <= 3800)
                 print('::notice title=Retained interactive motion phases::' + encoded_phases,
+                      flush=True)
+            if gap_raster_states:
+                gap_summary = dict(identity,
+                    scope='retained_interactive_frame_gap_raster_context',
+                    windows=gap_raster_states)
+                encoded_gaps = json.dumps(gap_summary, sort_keys=True, separators=(',', ':'))
+                need(len(encoded_gaps.encode('ascii')) <= 3800)
+                print('::notice title=Retained interactive frame gap context::' + encoded_gaps,
                       flush=True)
         encoded = json.dumps(interactive_result, sort_keys=True, separators=(',', ':'))
         need(len(encoded.encode('ascii')) <= 3800)
