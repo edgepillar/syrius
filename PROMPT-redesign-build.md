@@ -3077,6 +3077,10 @@ stops at two About widget test taps before the native build. [Linux](https://git
 reports the same two failures and warns about the Node field tap.
 Those tests now pump the frame requested by the scroll before tapping,
 so the sliver can update its layout and hit-test transform first.
+The [second timing attempt at `4819d618`](https://github.com/edgepillar/syrius/actions/runs/44869844461)
+passes all 1,530 selected widget cases in two zero-exit groups. The
+controller still expects 1,529 and stops before the native build. Its
+exact count now includes the added offscreen panel case.
 
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence

@@ -36,7 +36,8 @@ except ImportError:
 # Includes the original Launch and eight Lottie restoration case.
 # Includes the confirmed Pillar reference frame and restoration case.
 # Includes the repeated launch frame and retained image case.
-EXPECTED_DART_CASES = 1529
+# Includes the offscreen Settings panel paint case.
+EXPECTED_DART_CASES = 1530
 LAUNCH_ASSET_DART_CASES = 2
 TOUR_TEST_PATHS = (
     'test/zap/zap_form_test.dart',
