@@ -1276,6 +1276,9 @@ jobs:
             /test/ci/
             /tools/devnet/lab/
             /harness/bin/
+            /mockups/redesign/shots/13-staking-*.png
+            /mockups/redesign/shots/23-tokens-*.png
+            /mockups/redesign/shots/24-token-mine-*.png
             /mockups/redesign/shots/28-az-*.png
             /mockups/redesign/shots/29-az-project-*.png
 

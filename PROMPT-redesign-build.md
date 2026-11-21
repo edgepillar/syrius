@@ -4019,6 +4019,17 @@ Both handoff captures use progress 0.4 and retain stage pixels in columns
 the whole images differ from their references at 5,253 dark and 6,213
 light pixels. V01 and V02 remain open.
 
+After the empty Lock well layout was removed, the [Windows run at `49eff2b7`](https://github.com/edgepillar/syrius/actions/runs/44958871308/job/137012986547)
+passed the focused handoff and startup ownership checks. Its
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/44960533823/job/137018126053)
+verifies five normal actor exits, 88 current and 350 P06 reported frames,
+and both handoff images. The peak build is 19.100 ms against 14.510 ms on
+P06 and ends 47 microseconds before the film host layout observation.
+The peak raster is 168.398 ms against 142.450 ms on P06. Build, raster
+and distinct-frame comparisons all fail, with 23 and 416 frame-number
+gaps. The two handoff images retain the same 16-level difference counts
+of 5,253 dark and 6,213 light pixels. V01 and V02 remain open.
+
 The [paired page change and disclosure reader](https://github.com/edgepillar/syrius/actions/runs/44890340053/job/136804565641)
 verifies both windows at `a045c1ae`, two normal entry and wallet exits each,
 and five normal node exits. The longest page-change totals are 280.034 ms

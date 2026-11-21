@@ -781,19 +781,29 @@ def seeded_script_pins(client, head, schema=catalog.SEEDED_SCHEMA):
     return pins
 
 
-def project_detail_pixel_comparisons(raw, schema, references):
-    """Measure verified Accelerator originals against the tracked PNGs."""
+def seeded_catalog_pixel_comparisons(raw, schema, references):
+    """Measure verified state captures against the tracked PNGs."""
     from .inspect_windows_qualification import pixel_comparison
 
     chrome = dict(caption=(0, 0, 1280, 32), rail=(0, 32, 60, 780),
                   status=(60, 724, 1280, 780))
     panels = {
+        '13-staking': dict(balance_and_controls=(60, 32, 1280, 120),
+                           stake_table=(60, 120, 1280, 724)),
+        '23-tokens': dict(token_summary=(60, 32, 1280, 120),
+                          token_controls=(60, 120, 1280, 190),
+                          token_table=(60, 190, 1280, 724)),
+        '24-token-mine': dict(token_summary=(60, 32, 1280, 120),
+                              token_controls=(60, 120, 1280, 190),
+                              token_and_form=(60, 190, 1280, 470),
+                              below_form=(60, 470, 1280, 724)),
         '28-az': dict(fund_and_controls=(60, 32, 1280, 120),
                       voting_table=(60, 120, 1280, 724)),
         '29-az-project': dict(project_header=(60, 32, 1280, 86),
                               project_and_phases=(60, 86, 960, 724),
                               voting_panel=(960, 86, 1280, 724)),
     }
+    screens = {}
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         for name in catalog.catalog_files(schema):
             screen, theme_file = name.rsplit('-', 1)
@@ -803,8 +813,10 @@ def project_detail_pixel_comparisons(raw, schema, references):
             need(0 < len(reference) <= catalog.debug.entry.MAX_PNG)
             comparison = pixel_comparison(zipped.read(name), reference, regions)
             need(comparison is not None)
-            yield dict(screen=screen, theme=theme_file.removesuffix('.png'),
-                       region_bounds=regions, **comparison)
+            result = screens.setdefault(
+                screen, dict(screen=screen, region_bounds=regions, pairs={}))
+            result['pairs'][theme_file.removesuffix('.png')] = comparison
+    return list(screens.values())
 
 
 def main():
@@ -834,7 +846,7 @@ def main():
     wallet_lab = None
     interactive_lab = interactive_result = None
     seeded = seeded_index = None
-    project_comparisons = []
+    catalog_comparisons = []
     surface_seam_summary = None
     owner_page_seam_summary = None
     interactive_items = [item for item in listing['artifacts']
@@ -941,12 +953,12 @@ def main():
                 manifest_sha256=seeded['manifest_sha256'], images=seeded.pop('images'))
             seeded.update(catalog_capture_qualified=True, parent_closure_qualified=True,
                           atomic_frame_qualified=True)
-            if family == catalog.PROJECT_DETAIL_FAMILY and reference_head is not None:
-                PHASE = 'seeded_project_pixel_comparison'
+            if (family in (catalog.PROJECT_DETAIL_FAMILY, catalog.SEEDED_VISUAL_FAMILY)
+                    and reference_head is not None):
+                PHASE = 'seeded_catalog_pixel_comparison'
                 need(re.fullmatch(r'[a-f0-9]{40}', reference_head) is not None)
                 references = Path(__file__).resolve().parents[2] / 'mockups/redesign/shots'
-                project_comparisons = list(project_detail_pixel_comparisons(
-                    raw, schema, references))
+                catalog_comparisons = seeded_catalog_pixel_comparisons(raw, schema, references)
             surface_seams = reopen.get('seeded_surface_seams')
             if surface_seams is not None:
                 from . import seeded_surface_seams
@@ -1055,15 +1067,15 @@ def main():
         encoded = json.dumps(seeded_index, sort_keys=True, separators=(',', ':'))
         need(len(encoded.encode('ascii')) <= 3800)
         print('::notice title=Retained restored catalog image index::' + encoded, flush=True)
-        if project_comparisons:
+        if catalog_comparisons:
             pixel_summary = dict(
-                scope='retained_accelerator_pixel_comparison', source_head=head,
+                scope='retained_seeded_catalog_pixel_comparison', source_head=head,
                 source_run_id=run_id, archive_sha256=seeded['archive_sha256'],
-                reference_head=reference_head, visual_matches=0,
-                comparisons=project_comparisons)
+                reference_head=reference_head, catalog_family=family,
+                visual_matches=0, comparisons=catalog_comparisons)
             encoded = json.dumps(pixel_summary, sort_keys=True, separators=(',', ':'))
             need(len(encoded.encode('ascii')) <= 3800)
-            print('::notice title=Retained Accelerator pixel comparison::' + encoded,
+            print('::notice title=Retained seeded catalog pixel comparison::' + encoded,
                   flush=True)
     if surface_seam_summary is not None:
         encoded = json.dumps(surface_seam_summary, sort_keys=True, separators=(',', ':'))
