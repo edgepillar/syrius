@@ -226,6 +226,7 @@ class Disclosure extends StatefulWidget {
 
 class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
   late bool _open;
+  bool _hasMotion = false;
 
   // Both start where the disclosure is, so nothing opens as a page is
   // shown. The motion always runs: the controllers keep their duration
@@ -250,23 +251,29 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _open = _startsOpen();
+    if (_open) _createMotion(initialValue: 1);
+    widget.controller
+      ?.._adopt(_open)
+      ..addListener(_onController);
+  }
+
+  // Closed rows render at rest without allocating two tickers per row.
+  void _createMotion({required double initialValue}) {
     _body = AnimationController(
       vsync: this,
       duration: _kRevealDuration,
-      value: _open ? 1 : 0,
+      value: initialValue,
       animationBehavior: AnimationBehavior.preserve,
     )..addStatusListener(_onBodyStatus);
     _turn = AnimationController(
       vsync: this,
       duration: _kTurnDuration,
-      value: _open ? 1 : 0,
+      value: initialValue,
       animationBehavior: AnimationBehavior.preserve,
     );
     _reveal = CurvedAnimation(parent: _body, curve: _kSpring);
     _turned = CurvedAnimation(parent: _turn, curve: _kSpring);
-    widget.controller
-      ?.._adopt(_open)
-      ..addListener(_onController);
+    _hasMotion = true;
   }
 
   @override
@@ -290,10 +297,12 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
   @override
   void dispose() {
     widget.controller?.removeListener(_onController);
-    _reveal.dispose();
-    _turned.dispose();
-    _body.dispose();
-    _turn.dispose();
+    if (_hasMotion) {
+      _reveal.dispose();
+      _turned.dispose();
+      _body.dispose();
+      _turn.dispose();
+    }
     super.dispose();
   }
 
@@ -322,9 +331,10 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
   /// Sends both animations to where [_open] says they belong.
   void _follow() {
     if (_open) {
+      if (!_hasMotion) _createMotion(initialValue: 0);
       _body.forward();
       _turn.forward();
-    } else {
+    } else if (_hasMotion) {
       _body.reverse();
       _turn.reverse();
     }
@@ -332,7 +342,7 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final bool closed = !_open && _body.isDismissed;
+    final bool closed = !_open && (!_hasMotion || _body.isDismissed);
     final String? title = widget.title;
 
     Widget? body;
@@ -349,7 +359,10 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
             // Retained EditableText nodes can latch an inherited traversal
             // barrier. Focusability alone closes the form without that latch.
             descendantsAreFocusable: _open,
-            child: DisclosureReveal._(_reveal, child: widget.child),
+            child: DisclosureReveal._(
+              _hasMotion ? _reveal : kAlwaysDismissedAnimation,
+              child: widget.child,
+            ),
           ),
         ),
       );
@@ -383,7 +396,7 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
               count: widget.count,
               summary: widget.summary,
               summaryColumnPercent: widget.summaryColumnPercent,
-              turned: _turned,
+              turned: _hasMotion ? _turned : kAlwaysDismissedAnimation,
               isolateChevronPaint: widget.isolateChevronPaint,
               showDivider: _open && widget.showDividerWhenOpen,
               open: _open,

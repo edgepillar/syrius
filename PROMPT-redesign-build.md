@@ -3194,6 +3194,14 @@ frame gaps. Both current peaks are lower than the previous pair's current
 peaks, and P06 peaks also changed. The separate viewport effect remains
 unestablished and V02 stays open.
 
+Closed disclosures now use the settled chevron and body animations
+until they first open. Each unopened licence row avoids creating two
+animation controllers and tickers. A disclosure that starts open has
+both controllers ready to animate its first close. The 240 ms reveal,
+220 ms chevron, stored choices and retained form lifetimes still apply.
+Strict analysis passes on the changed source. The effect on native
+frame timing awaits a paired Windows measurement.
+
 The [Windows interface run at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44876122524/job/136761087924)
 and its [independent inspection](https://github.com/edgepillar/syrius/actions/runs/44877853952/job/136766426791)
 verify all eleven scoped Home, Activity, Go To, Pillars and Swap seam
