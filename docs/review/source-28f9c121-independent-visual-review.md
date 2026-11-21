@@ -8,6 +8,13 @@ and the [design checklist](../design/RULES.md#9-checklist-for-a-screen). Earlier
 verdicts were hidden from the reviewer. The archived pair selection binds both
 PNG digests for each of the 47 states in both themes.
 
+The [strict verdict file](source-28f9c121-screen-verdicts.json) records all
+94 original hash-bound decisions. It preserves the 14 matches and 80
+mismatches from the strict Screens table. With the current prepared-catalog
+checks, the same archives yield 14 reviewed matches, 70 reviewed mismatches
+and 10 diagnostic captures. The original archives and reference PNGs were
+read directly; no new screenshots or copies were needed.
+
 The reviewer reported 42 visual matches and 52 visual mismatches. A visual
 match here means the named state and its material structure were visible.
 Some visual matches still show a differing sampled frame or leave a secondary

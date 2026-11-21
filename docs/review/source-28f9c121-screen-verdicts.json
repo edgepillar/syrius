@@ -1,0 +1,756 @@
+{
+  "reviews": {
+    "01-home-rest-dark": {
+      "actual_sha256": "1f24525f26b4541e9c64fdc7ca0ff5b1273632cfbf9bb2792ed177db32796055",
+      "expected_sha256": "70617942960638e9ad855344dcc7aa1433058bb4d060155f1cfb36592ca332a6",
+      "note": "The default balance eye is barely visible. Live activity, rewards and pending rows differ.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "01-home-rest-light": {
+      "actual_sha256": "2d91d5dcdda97e97004ef7da6768515fa5d8af68ee9dcc79f10668a4d5dd9e64",
+      "expected_sha256": "280f31f618a20af2f275bd516afc3280849180f4788f38ae7c3fdebaedd36b7c",
+      "note": "The eye loses its readable outline. Activity and rewards show the sparse fixture.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "02-home-open-dark": {
+      "actual_sha256": "fcd8d0a30295cf581f733ff34319e74e54066afd3778d975dc3cfd9b6a98ef4c",
+      "expected_sha256": "ef3e3dfc4e9e4a6438516fe8803c55202d744b57c964104d6212c4eb2d3ebd97",
+      "note": "The expanded rail and Tokens card align. Token rows and flash timing differ.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "02-home-open-light": {
+      "actual_sha256": "876aee1c3aabb8e4af54d9a898e61a1a6853817c9bc7ab0bbfb7a1759760361e",
+      "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
+      "note": "The expanded light rail and Tokens disclosure align with an empty token fixture.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-dark": {
+      "actual_sha256": "0adb9cfea56a832cf5070fb99989befeb0ac7ce370c515ba87c5291381e98706",
+      "expected_sha256": "29421519af83d80baf69fcfe24beb37fc754d8da1c08b3a175e7224a27fedf16",
+      "note": "Hero and activity amounts are masked. The green eye is visible.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-light": {
+      "actual_sha256": "d6007ac28808e6c4875d2e213e5bad91e0037cf3e5c3ad6c5d92e7eb6780cd30",
+      "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
+      "note": "The dots and green eye occupy the expected positions. Reward data is absent.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "04-home-bell-dark": {
+      "actual_sha256": "bbccd192d0908bd2b78c68eaa444231f8700315f7d755ad69e1bc6cd632e94bc",
+      "expected_sha256": "c94032c722afe5a0fe2d87a521af918bb71c0770b9ee32054a006f222f71b2ea",
+      "note": "The drawer shell aligns. Approval, grouped history and toast states are missing from the capture.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "04-home-bell-light": {
+      "actual_sha256": "83af00ec73c334273ae036c50ab44c4f07651a112ba717b9cc1f08162818897e",
+      "expected_sha256": "f1cb111f497ed571444b992e12e307e5172bb3c235dcbf4b2996bc8786c6286e",
+      "note": "Drawer elevation appears. Approval and toast states are missing from the fixture.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-dark": {
+      "actual_sha256": "2ab6a8ac96e3b6bd31c3cf0e24b71aa9633f68a2fbdcf8c3ad7ae7d8252205c8",
+      "expected_sha256": "52ccc26f93bcad1c79ac91228648bb8c369a6cec14041f77f51d210afec0a1f9",
+      "note": "The address lane is absent, shortening the panel. The title bar remains sharp outside the scrim.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-light": {
+      "actual_sha256": "821a9e359c6a6487b5a964812c25f3e160339ff82386863700de293fff3a8766",
+      "expected_sha256": "f700f7b185b5064b45b1acc561abcee0fce392badb4dc2d58319914780b060bb",
+      "note": "Contacts are absent. The undimmed title bar forms a pale strip.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "06-home-zap-dark": {
+      "actual_sha256": "cd7aa1b618a9866d4af1a84362c9a7cc68768e051a54540002b3c41c453179db",
+      "expected_sha256": "8434e8010f45800311638b759768bdd928e66e5f7cfa6fa8589bb9e0b8b4cfcb",
+      "note": "The dialog sits lower, adds a divider and leaves the title bar sharp.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "06-home-zap-light": {
+      "actual_sha256": "ae56d1221c4d94ddb129a470a0e006bc92acae3a6720776ea7577b2014aa591f",
+      "expected_sha256": "a3fa83241f5d785fa642b4a8d5132bc5c3f282b3e627ae60c5bf439a3573eab1",
+      "note": "The dialog sits lower and adds a divider. The bright title bar stays outside the scrim.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "07-send-rest-dark": {
+      "actual_sha256": "2023db8dd56bf761633b95cd307e0723e5c16519519aa4241ea86b19b9029f75",
+      "expected_sha256": "511749787d2f186b2ffc3523fbb1060facc4669291275cb1c918a415acede6f2",
+      "note": "The empty fixture omits the populated recipient, recent chips, estimate and receive rows.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "07-send-rest-light": {
+      "actual_sha256": "0b295e24018a427c5aa0bf6e7447dddd75b81149a856d9e7be2d3a31838fd6a3",
+      "expected_sha256": "039197335de93690caee36086f94a62c0e3de0c2fe487623815efa653bd89b25",
+      "note": "The empty form omits the populated form and the in-progress receive state.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "08-send-warn-dark": {
+      "actual_sha256": "9af54cbad8ad434c886d908840e966b3eb1b26c19eef8a62ad5cf5351493d906",
+      "expected_sha256": "564be0177c1ed717b43342dd3cf2233e1474fd92af3b6b59309a37598bf1ab11",
+      "note": "The node banner, look-alike comparison and waiting action appear. Shorter text changes card height.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "08-send-warn-light": {
+      "actual_sha256": "7eab5883a758d2fda8cff4bb07361e62db1bac6533712bc0ad91700366b1248d",
+      "expected_sha256": "2668d065def52c9089173488f5134378d1000077ee4599c9929d6bf7572ec116",
+      "note": "Both warnings and the waiting action appear. Focus and node values differ.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "09-receive-dark": {
+      "actual_sha256": "9d5c7eaf7a7719245d546f19a9db4bf6f81805480ed247355a78c2649b4cba48",
+      "expected_sha256": "29833553d03b3cb5a7906cfa755389b3b918feca4000684ae79cc2b0f0ab2353",
+      "note": "Copy and Show QR align. The reference's one-line empty To receive row is absent.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "09-receive-light": {
+      "actual_sha256": "414580340a2858e5fbadcf78d466b22c5eb92e8565b7dc4e4f1b3e17a8408fb9",
+      "expected_sha256": "941606d6662bc1a0dce5b6715be83a5c95fd3b9158844ab0e59fb27f4f4c7d35",
+      "note": "The QR stays behind the button. The reference's one-line empty To receive row is absent.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "10-receive-qr-dark": {
+      "actual_sha256": "667dfba8aeae627b4832fd6aa84b8dbdb10724154da09ccae2fae8a2e995bdd3",
+      "expected_sha256": "7d0f473f9e93235a7032dbb227ceff6e683c91e92446565dee1bf037df78fad6",
+      "note": "Share image replaces Copy image and the amount-token icon is absent.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "10-receive-qr-light": {
+      "actual_sha256": "c8ec0872f03d960d2066d9803ce4c986b3699185f609c7f1342b17df90989c29",
+      "expected_sha256": "d3e867ff847f5c80f20afc1a8999441acfe57d9a6cbecad20d7633c8dcd62b17",
+      "note": "The QR and request amount align. The image action changes and the amount-token icon is absent.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-dark": {
+      "actual_sha256": "c2cf0f592a1adf7f44335d471a048199c3658ae500991ec7640a570bbe2abd7e",
+      "expected_sha256": "b58f5d7ea3ac3da980689c744d8d8a37b6ad70a5eae6a7542f4992f7dbba089c",
+      "note": "The capture lacks recipient selection and the source-address selector. The payment action appears enabled.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-light": {
+      "actual_sha256": "4951617b4525294f8303b98fbb7bab535d110a5cfeb82ebcf99e5d1adc82a95d",
+      "expected_sha256": "b3ab27949ed86fa2e78af721bd198fe7e258f9da5537ec914ae9ce3ccf753be8",
+      "note": "The stranger fixture leaves the recipient blank and omits the source selector. The gradient action appears enabled.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "12-send-confirm-dark": {
+      "actual_sha256": "53a655a04b5208968394d63a93a999a742fff20fa2196384574c73a7453fa17d",
+      "expected_sha256": "fbc3d88a161dd949479bb5b40e39977453e7006ce8b4b11e33d3523f6a5d87a7",
+      "note": "The first-time software-wallet fixture displaces the Ledger prompt and fused-plasma line. The dialog sits lower.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "12-send-confirm-light": {
+      "actual_sha256": "a70f0545d0c34989f44b9961fd08d5768ddc24b9942d893dc05619ad1c2071ec",
+      "expected_sha256": "51a04fbcade20aae27846b9ee00c931d1cd5c1ea3207826395e6184aada3d10b",
+      "note": "The first-send warning and plasma presentation replace the hardware-wallet state. The title bar stays undimmed.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "13-staking-dark": {
+      "actual_sha256": "0b65e76e128312b1d698850e41c95154a6fc16438f147cfc1cdc9d598806f503",
+      "expected_sha256": "0b905e21642c670d6dfe590535f272642d17286d9939079230d0d81a9ccdf1ca",
+      "note": "The summary and locked countdown row align. Zero rewards and one stake limit row coverage.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "13-staking-light": {
+      "actual_sha256": "31f3b15e38185cb1bc0fe851050d91f79ec50c4163590d2ac120b85ac6f53d68",
+      "expected_sha256": "83952c70a35db8822caeb6f924016d85b7ef2f202344cd62f47d0f825c77d2a2",
+      "note": "The summary and table align with one locked stake. The unlocked row remains unseen.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "14-staking-new-dark": {
+      "actual_sha256": "1d5427070609f6d4affe40cabd12946d51dd28204baaa6759366512122844d04",
+      "expected_sha256": "8d4fe845c95ea6191bdbc74f0a655dd850653dc311f1070ca9b4a2c4c3c675d8",
+      "note": "The inline duration, amount and unlock-date form preserves the layout.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "14-staking-new-light": {
+      "actual_sha256": "d6da56fabbfe233578786164fb9c10037751733de2b1d477207977fe33c2279c",
+      "expected_sha256": "7f90bad74c1436fb8cd56cbcdcc56e45d067b126890574df3eaf3dd6daa5cb64",
+      "note": "Duration, form and Stake retain their positions. The list contains one stake.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "15-staking-empty-dark": {
+      "actual_sha256": "f9dbf4f326529daa3e3dc96f10a96a22acfadc584629fec9255957badee45152",
+      "expected_sha256": "77147dc9cf2099d9cf4fe7afd730b93374ce5340d870c3c20bbdc4fac7cb7e82",
+      "note": "None yet and the one-line Rewards group appear. The mark has a partial slash.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "15-staking-empty-light": {
+      "actual_sha256": "82fb9a4a15217e0f080eba9cdde8437d279d35cab010d089ec27f3c78bfb986f",
+      "expected_sha256": "3e3c2e9a394f96d2ccdef6b3286bdc51693757171112fb233d42bd8daf449ae2",
+      "note": "The empty panel and Rewards line align. The mark is at a different frame.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "16-pillars-dark": {
+      "actual_sha256": "8b0d7908f1628bd04ad1c541b3340da23f1c324dcdf95b3924e4e6aadaeda22b",
+      "expected_sha256": "2cc96ba5d5e143ec6b96dce6bfdd5bf0dd2d1950f647871f2e950f30b3991869",
+      "note": "The tabs and expanded row preserve the hierarchy. Search and delegation fixtures differ.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "16-pillars-light": {
+      "actual_sha256": "eb6162e973783301daa73a26ed3afdc37f3c36cc44552db9681068384e983ab3",
+      "expected_sha256": "d8a635852cfe165f21d62ce1445484859f8f4ab529af53ade636a360db082c86",
+      "note": "The open row and five columns align. Filtering yields one result.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "17-pillar-mine-dark": {
+      "actual_sha256": "ef0c9d5c33ef96260c1d00e93cb647f1c3fffaca2a395a1f0431cd9b638d7fdb",
+      "expected_sha256": "be1cd32ee83398cf27eaea46613b293293b8f4b3134f2e823c8b3c989a82d4df",
+      "note": "Collect moves to the far edge, Producing is absent and the ledger is taller.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "17-pillar-mine-light": {
+      "actual_sha256": "88697e213856f2d7ef56f70ea85c3e73bad6df1415dd9b079a0d61984cba2913",
+      "expected_sha256": "2ae8b41b7cb8cf108b27ba0b88d13f57ea432cdc1496942942f066af0517f6b5",
+      "note": "Art and four actions remain visible. The summary lacks Producing and moves Collect.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "18-sentinels-dark": {
+      "actual_sha256": "91a9cb36d18917e681142a8e117115fe60d4819e01dc8b8435b496fe8d503e1d",
+      "expected_sha256": "c20147415bdd29823b112970116bbbee1a60af084be501cd61624fcf2599b08c",
+      "note": "The Sentinel asset, Active badge and table align. One row and zero rewards are fixture differences.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "18-sentinels-light": {
+      "actual_sha256": "90a7362b0d154c76bb0d5477a0197caacb0091002f33c7cbb82b74e7d1c495cf",
+      "expected_sha256": "3171619370616652302c2a51d54bddf6a1cecca231c6819d1e6b41139487a899",
+      "note": "The operator strip, tab and status column align. The fixture has one sentinel and different revocability.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "19-spawn-dark": {
+      "actual_sha256": "3ad1b30980527a922f52cf1c84c1f4971e289c3da953c755b577c1584be191fe",
+      "expected_sha256": "828696b2e04b5c8db41e0d1593b56d418182380ec5a4f34d7e4cbc01040cfad9",
+      "note": "Blank name and producer fields and disabled Continue leave validation unseen. A tooltip crosses the form.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "19-spawn-light": {
+      "actual_sha256": "44db54cbb371789106c25052ef2d105987de54b70aeeb0522f98b92629366b72",
+      "expected_sha256": "8047d27504ccde9c0c3782b9eeab826b9c337f97d6765b93714f3a41a4de7b5a",
+      "note": "Step two is incomplete under an overlaid tooltip. The validated reference state is absent.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "20-pillar-done-dark": {
+      "actual_sha256": "d54de4e0f46a45b341f17a5615429304b5e08ab9a727bfb4e978cd45dac9c56d",
+      "expected_sha256": "416488f57fec82eaa8dba3b2fcf5e4275b0838555e91a55895ac04ea6112d9ae",
+      "note": "Address and chain metadata plus a secondary registration action extend the sidebar.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "20-pillar-done-light": {
+      "actual_sha256": "daf69bb77c5b4a590d8ecfd103b1640d9a460205753d0e5e1698c950234aad04",
+      "expected_sha256": "4e7adf75c1c3b758e8a9f4b8ebaef829d7cc0908ff88706a818bf569457360ba",
+      "note": "The sidebar is substantially longer. An address tooltip crosses the panel.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "21-plasma-dark": {
+      "actual_sha256": "d92a5e670c1be63ad81e7dfed1097459dcec09bf90093527da58193712259b57",
+      "expected_sha256": "00bf1d72858ad59603775e8a36a68b326446902e6c52f54756389729da6778bf",
+      "note": "The hero bolt is a faint outline with a different glow. The generating strip is absent.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "21-plasma-light": {
+      "actual_sha256": "544e46935b3b9bf62a2fc0d247d278d516c26baa4dd66e9e54576ee781f4b96f",
+      "expected_sha256": "45f4e4b332c3f332601ad355d8ff5438b97dcea4984c5cffdb2cb35853d27f97",
+      "note": "A hard black disc bounds the bolt glow. The generating strip and elapsed-time fixture are absent.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-dark": {
+      "actual_sha256": "8816830d395711d47ccc62edb05a8d2f9ef17571e3061bc3581cf019c3e7a450",
+      "expected_sha256": "bce0133d1e1586247a874af23a72c340f73261174a296f4d690b7c6c3c334360",
+      "note": "The inline form and disclosure appear. Unchecked rows omit the batch action, and the bolt glow differs.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-light": {
+      "actual_sha256": "d83b838d8647b391a4e8d9be88ca584ad93e2fa47a8cdf0a00220de02324cbbf",
+      "expected_sha256": "01ba9333c42b94249580c6c67789f19527d113e7861b9fd19e3c1e900f8f6c7f",
+      "note": "The black disc changes the hero. Unchecked rows omit the selection treatment and batch action.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "23-tokens-dark": {
+      "actual_sha256": "b364aca845f5f95e7e6cc579b1175c7341daf6eab0f3d82622f0fbd0a69bf1a3",
+      "expected_sha256": "c1ba43d7fd1ae7956a4e0c9d398e7d99341f7704a32fd5e60caa1e8f6cb3281e",
+      "note": "The empty Held fixture leaves balances, token rows and expanded owner controls unseen.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "23-tokens-light": {
+      "actual_sha256": "aa578cbe8f4b05919de8b1807ddca38cc2ab82f9beb760201f3a5acf17bdf2de",
+      "expected_sha256": "c262b77173db8b229a6a1267fc2b01240635d38b251e1280658e377f91b03f8a",
+      "note": "Headers remain. Populated rows and disclosure are absent.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "24-token-mine-dark": {
+      "actual_sha256": "b48aa1a7fe6ebd469c2335942977a62d902e5a2fce432d97bcdcdfe9aea6cc0f",
+      "expected_sha256": "b0a1718c7eef3fdd83895a252879eb09723bbc1f0a6d6c6742ad64ad787b01fb",
+      "note": "Owner actions, Mint selection and inline inputs align. Max and secondary links are added.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "24-token-mine-light": {
+      "actual_sha256": "01506a67063e96839dd5f4bc362be1e21bc9e0dbb67755f255ba4b1fb2297826",
+      "expected_sha256": "b84fab5c7625d57d23e35e0c043d4f64bc93e1a505d43ff6dfe85e4725364698",
+      "note": "The row and Mint hierarchy align. Secondary links extend the row.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "25-token-new-dark": {
+      "actual_sha256": "2f965b4f8bdadab2d9b9c6e44beae19e4230b20a7a1ac0149c9221fcc4b339bf",
+      "expected_sha256": "1f5247371b00a589364db563ede3eb0c92b00d92dd63dd5118494553a9fba591",
+      "note": "A plasma and refresh block pushes the preview down. The symbol validation tick is missing.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "25-token-new-light": {
+      "actual_sha256": "1e60fa90e6442d6b07002a594c454541ea5b888205a4b729fdea86e1132bfa68",
+      "expected_sha256": "59a37d30a0796f99dc1dd661987c1e62aa10c9a7929e1265d7851d83467e35d0",
+      "note": "Extra sidebar controls move the preview. The selected symbol field lacks the reference tick.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "26-swap-list-dark": {
+      "actual_sha256": "77aae94749af2052883792007e4ddd5ffd1bfc8a082e5640f862edbdd1812b59",
+      "expected_sha256": "fa5f0343dde5ad63afe7eaa915817f651ceb430ef6db66fdde3eff1b140ca1a7",
+      "note": "Waiting and the deposit ID appear. Completed and reclaimed rows are absent, and expiry, hashlock and secret fields differ.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "26-swap-list-light": {
+      "actual_sha256": "0def7f66de8f8a781ad723cd579bfd4f436bcdc3f04e1e3efdd753d99d0f069e",
+      "expected_sha256": "17e0adcd791340bbc35bb3d7f27faf732f358062f21b0451ceac53796e4c5473",
+      "note": "The expanded ledger uses different fields and timing. Completed and reclaimed rows are absent.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "27-swap-start-dark": {
+      "actual_sha256": "20722677c094c3e12277ee89a2ee8e17e00a4063b7c6c32487a49fc1058db1c9",
+      "expected_sha256": "b9153e855aeaf25b1e2e79f7fe961b7469226339af1a03e2920ddeeaf9b5dce8",
+      "note": "Two amount cards remain. The dialog is taller and uses an informational block in place of the amber warning.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "27-swap-start-light": {
+      "actual_sha256": "176e847aefcda3756bca7367aca8ac92108e85350c044fe57e3c014df7837e94",
+      "expected_sha256": "ba403a9e88b697bc2cee4512b846818de6db752714dcf726a3bd874ed18c6a50",
+      "note": "The taller dialog has a weaker shadow and changes the amber warning and join-window line.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "28-az-dark": {
+      "actual_sha256": "e18ed78b0bcd4ef0fd4d5170bfc779420903d6e81e02ce3475ebd1814e336660",
+      "expected_sha256": "a7ae04864a518b9382335f8cc67868163bf5a0de1895ab8f00451022a7c16651",
+      "note": "The empty Voting fixture leaves budgets, vote bars, quorum and status rows unseen.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "28-az-light": {
+      "actual_sha256": "bded3696d800ae96d9ad268aece9d775f92d63915d91903fe375ac833fae160d",
+      "expected_sha256": "99e642a82a19bdb86843f9dbf82f1328fc1043ccb580b9c36495e06a0c7027c4",
+      "note": "Fund and filters align. The empty table leaves voting rows unseen.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "29-az-project-dark": {
+      "actual_sha256": "cb460938d7818d21a0ba307fa0472dc99ec3036fac3b806fdf82c1f4994b3faf",
+      "expected_sha256": "a579330443576dd54ef2154c3e1b93a4934a918a3f1079896a6c4cc49fe88a97",
+      "note": "The vote column appears without phases or populated quorum.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "29-az-project-light": {
+      "actual_sha256": "354535a0769abd8004d19164cf2c7c44f30ed71c4a3d54f0abfe988229ec98dc",
+      "expected_sha256": "7d7d5e2d34626c69e3a85701e97c6f8719dc0c07baf86d86ac2852e35ebc9fc0",
+      "note": "The two-column layout appears without phase proofs, phase votes or populated quorum.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "30-set-node-dark": {
+      "actual_sha256": "763ae3be8e3ebb916d0c5da60ba6eaa515e7ae7902c02af15728dbeba0881d23",
+      "expected_sha256": "05d7211c092f7415b542294e254a86765fa57b7d7953fb2f9af5b1170ef7d003",
+      "note": "The pre-check state shows a repository input in place of the downloaded-and-verified callout.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "30-set-node-light": {
+      "actual_sha256": "02c9c8fca9bf2fc7c019cf627ecc8f15bedba5d8ef575d36ea244dc8e5b72cf5",
+      "expected_sha256": "a11078a238b2ab2107174698b0c1c1409d7545a22eac994608e57ea113c6faeb",
+      "note": "The earlier update state lacks the installed/latest and download verification treatment.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "31-set-security-dark": {
+      "actual_sha256": "71b1b3441c5e387b4f224a37c52f32d8eb41c3389d5734154a2c3af4d6743c74",
+      "expected_sha256": "1c3a735e770863e501cc898830ca699abb20ea01593643c263fad41f00a4f411",
+      "note": "The wrong-password limit shows 3, with the same segment, backup and collapsed actions.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "31-set-security-light": {
+      "actual_sha256": "edced7ab9ff64835e6c694592d9773a2d8f4a2967ac085bc41fb4061c07e12de",
+      "expected_sha256": "eb4cd651d0e487c080e8a0cc5c10289c14a35dff9dcdbe68a38cf12af58c26db",
+      "note": "The controls and warning align with 3 selected.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "32-set-display-dark": {
+      "actual_sha256": "0d359b931406914e0294d18a3fac1000a9838207fbd52015d560c6d3a798b503",
+      "expected_sha256": "f68b82b91f04df6c535c512da740e980026e8d980b0f68f8593fe4a070897c45",
+      "note": "The Display groups and enabled Dollar values switch align. Locale selection differs.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "32-set-display-light": {
+      "actual_sha256": "6978c7c1347682234664e3614e917b5fd0729c8843f5a8f0184ff92603fe3fb5",
+      "expected_sha256": "64977a34163f03e4ef2f5d9f59027d124e6e02788b08970f2c2d5c635a4e723e",
+      "note": "The layout and dollar toggle align. The captured theme selector highlights Light.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "33-set-wallet-dark": {
+      "actual_sha256": "d077fcbd28f5067deb046eb317eded7e902eacf9f36faf3a8220a1e232e31f9d",
+      "expected_sha256": "938c775e7ef2b578c1d3a21698e13e5baff96bd01001bbb0d73aafd81d0030c8",
+      "note": "Maintenance adds a row. Delete cache omits the preservation wording. Switch values differ.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "33-set-wallet-light": {
+      "actual_sha256": "e8c265ea79af593416b288494a719d3304fda0f4f70e825213fb833903d88ad3",
+      "expected_sha256": "82e2bc826d854d0764317b498db9a47cbe5aaaf3fcacf34e277db3dc3f90feba",
+      "note": "The extra Maintenance row and changed cache copy are visible. Auto-receive and notification selections differ.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "34-set-apps-dark": {
+      "actual_sha256": "8452f1dd925490f034d0e3a2d6cc7983827a3892b2bce19ec6951dbe4b2026b3",
+      "expected_sha256": "76efab8f738858389426bbff88f3935efc5610d64052b9f3946fda9af5086e48",
+      "note": "Apps is nested under Settings. The empty fixture leaves connected rows and Disconnect controls unseen.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "34-set-apps-light": {
+      "actual_sha256": "372c29d7816f4d5ac3fca450953ea523e8824acd42f77b847857b53611029d8b",
+      "expected_sha256": "21b9bdac58c975afa405e0ed1bceb6491b42743e30015f786240bdd562e1ad22",
+      "note": "The switch and WalletConnect group align. Connected sessions are absent.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "35-set-addresses-dark": {
+      "actual_sha256": "7e1500c0dcc825cc8fdf5dc614be9408fc838ccf7cd4a92b3b1a31ee20ed885f",
+      "expected_sha256": "500bab8c74c963bfee8d958d9fb06a647b04924da963a75db7caa98e7f241cad",
+      "note": "Address selection appears. The empty contact fixture omits contact, Send and edit rows.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "35-set-addresses-light": {
+      "actual_sha256": "ff753cc9082ebb0496e577fffda7e4af335e163eb18a7562288fa13da44aca9c",
+      "expected_sha256": "b4705b0f43a7f5382e383dfce6f19574622719f620ef1190b6976f10932ee98c",
+      "note": "Addresses are populated but Contacts is empty, leaving its rows unseen.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "36-set-about-dark": {
+      "actual_sha256": "297894898fbb1d2b96ca3993c0c8cfaf505fe33b552c849a698cd247ee644f18",
+      "expected_sha256": "ad7fba54bc95a111744164a264efef237e7c3ebea8fca8cb087cebc04f0d831b",
+      "note": "The version area, update actions and three closed groups align with different version data.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "36-set-about-light": {
+      "actual_sha256": "2735234dac08c635769fd392ff76abb0b00157275ff3495337c93df7282fc239",
+      "expected_sha256": "a8a8cf66e49fa88a25522dc8e759538b321f2f53c1f83d5d0d31edd3f8dd2072",
+      "note": "The light cards and update controls align with different version and update data.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-dark": {
+      "actual_sha256": "2abaf9feaf98f9e90c6061303d06256a68b252353a40819d499958a59af6acc9",
+      "expected_sha256": "057765aba7cc2e027010869bdfe14eff0beee921cbef85777efa3f7fa96ec991",
+      "note": "The end field is plain as specified. Per-row licence type is absent.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-light": {
+      "actual_sha256": "1cd1db182bed34b8119efe786d03b1034e33ed726b7682f151db4ed15ded00b8",
+      "expected_sha256": "4faec94b7502216de2bceb52b1e8ded1254a74a150014f5399d1dc85a19ac1d4",
+      "note": "The list and unlabeled field align. Per-row licence type is absent.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-dark": {
+      "actual_sha256": "15a01ffdfb25211b45be4233ded5888407031798ffa2bd0c23b73f18591a8f90",
+      "expected_sha256": "b852ac9fcbdbea159856c6c3b30ac5ca2e25f55f1137655c4b689dc4a89a504f",
+      "note": "The six tiles, utility row and Play launch align. The field is cleared and artwork samples differ.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-light": {
+      "actual_sha256": "51ab94dc934d061609b10b429e4ed0f00bcca4f1cde8a55212f7fd6bd18cdd2c",
+      "expected_sha256": "b82600455634b306377ea7626f2e0ee80c7977c60c1ae1a7e23243dcace9d3ed",
+      "note": "The card aligns and the field is cleared as specified. Asset phases and licence columns differ.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "39-launch-dark": {
+      "actual_sha256": "b43846c9e83d46711019ef6ed20f9dc26a13824b4007c7ce7d5cc2139167d2a8",
+      "expected_sha256": "595e587b7c5c34083d0b05371e94bc641603af6ce5546f01c7ad34ab36ffcea2",
+      "note": "The full-window black stage, green monogram and skip cue align.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "match"
+    },
+    "39-launch-light": {
+      "actual_sha256": "b43846c9e83d46711019ef6ed20f9dc26a13824b4007c7ce7d5cc2139167d2a8",
+      "expected_sha256": "595e587b7c5c34083d0b05371e94bc641603af6ce5546f01c7ad34ab36ffcea2",
+      "note": "The black stage, centered mark and skip cue align.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "match"
+    },
+    "40-launch-settle-dark": {
+      "actual_sha256": "655ed33fe17513cdd0c197cc94e4a89f644f912e7d44732863d9e7aea506561d",
+      "expected_sha256": "d015cb3c2505c97b0035ac4f906ef78cedaaa737c2aa49658d7ce0b1835eb20d",
+      "note": "The capture has a flat inset stage and early status strip. The reference shows the shader and emerging lock card.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "40-launch-settle-light": {
+      "actual_sha256": "02d8f36eb139c6cb8f91ef03c71608d895901c7ac164b32251cda60c028659a3",
+      "expected_sha256": "7733d47632878c9d7ce989f9aa869abbe90a0aeca236663218253e1b2c52f8f6",
+      "note": "The capture has a flat backdrop and smaller stage. The reference shows the shader, shadow and rising card.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "41-lock-screen-dark": {
+      "actual_sha256": "b6d3cccce62579d53c1b6b458d3c2f28953013babe65ea4fe644a869b95ea450",
+      "expected_sha256": "0423e793f7fc3a7dde6cef6cae3e34570aadbad6ddffeb74628ebf1cd8094d27",
+      "note": "The wordmark, password form and card align. Wallet labels and status data differ.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "match"
+    },
+    "41-lock-screen-light": {
+      "actual_sha256": "4e0686b2b79edb77edb99f5dbbaffaea45cd87f3841ef65945a591ebf161d440",
+      "expected_sha256": "7ade4369fb44fd27dd79cde415d4c2616778a5015936dd032b10224a61d0e4fd",
+      "note": "The card and sampled black well align. Both wells are blank, so the light end-frame wordmark remains unseen.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "match"
+    },
+    "42-lock-wrong-dark": {
+      "actual_sha256": "731b0ad22cd0f88c46572292b80045251de23a9d5567ec278eaf4217a20167c2",
+      "expected_sha256": "4ab7a113c2ddbfae98cf37b044fb7ae1eb95d1c303f9b55b5a2c7086473761d1",
+      "note": "The mark, crimson outline, warning icon and two-tries text align.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "match"
+    },
+    "42-lock-wrong-light": {
+      "actual_sha256": "7f352c99b83f21a1c7cc311015b90722f3a820f1b67d9a4878124ca6d09262be",
+      "expected_sha256": "08227212a1640dc33ef7b6d5de8385cf6637a6ceb2e7302728d05ffc40ac239e",
+      "note": "The warning and empty password field align. A focus caret is visible.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "match"
+    },
+    "43-lock-pick-dark": {
+      "actual_sha256": "0365c1723251b3fe96160b1014320ac8726f739e00b8e8685cc39b8c7bc99e42",
+      "expected_sha256": "c151673f42b879a452d17e929f8f3c562108986752233f528c759ff24fef5b6a",
+      "note": "The open picker has three choices, a selected item and Add a wallet.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "match"
+    },
+    "43-lock-pick-light": {
+      "actual_sha256": "fafcb0dc276a6b663cf4d711da2aade7e5442f73c61f97b4cec0cbd90f9146bb",
+      "expected_sha256": "74f5e23c6c1262e8e28d2409bb538b9751b6b81c12b60ca68b2090e3be1f505b",
+      "note": "Picker elevation and wordmark align. Wallet identifiers differ.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "match"
+    },
+    "44-welcome-dark": {
+      "actual_sha256": "d1334e6e7f6f307cff11fbb730baab734355699f7adb8e108684a9657fbd2324",
+      "expected_sha256": "4ffec4db314a53d10ea672cc57e7f7e931b0824bea34ca410522811b679c2181",
+      "note": "The globe, backdrop and three routes align.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "match"
+    },
+    "44-welcome-light": {
+      "actual_sha256": "e0bf7adc91189c7bd3dfa1fe8af30f91b50a6b488d982179f064842aa2e6d6d7",
+      "expected_sha256": "4698832240fb65ae6880c1b0a38bbfd777e3670721239828a1738bbf6d91b08c",
+      "note": "The globe and three light cards align in position and size.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "match"
+    },
+    "45-import-dark": {
+      "actual_sha256": "4d82f1ff138af83e0023a77735887c24b057878c4c88657efe73805687d1dac4",
+      "expected_sha256": "b2e9fcf95e68b7e244864184772082ddc6ac9108a7142f374bf0e9ecad3312de",
+      "note": "The stepper, drop zone, word count and disabled Continue align.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "45-import-light": {
+      "actual_sha256": "094e898d7aae5fc1c5bbe7663c86bf7fa69614b3ddc65716c0d4812aa3a0c20a",
+      "expected_sha256": "40a00f9f9fda41b1b8bd0337679a67be665436c994fcf9d35c64c130374f8c0d",
+      "note": "The light card and incomplete-entry presentation align.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "mismatch"
+    },
+    "46-seed-quiz-dark": {
+      "actual_sha256": "7f28482486d737709f46184b572a30b0f0d25b4843710a06aa8fbbda07541966",
+      "expected_sha256": "fd960ea2486c0f41005139ca068375a8f6e8ac0635ee951bcd3cc7e1280f00b5",
+      "note": "Challenge rows, answer pills and progress align. Fixture choices are wider and the copy shorter.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "match"
+    },
+    "46-seed-quiz-light": {
+      "actual_sha256": "8523de9e84d533335b4269f93f8c3de01945c52d0eae2aa7461540a50725d4be",
+      "expected_sha256": "045b9ce86746cd3663959877ed84e45c289d8e1f132740c4894a94be5ef47a81",
+      "note": "Question rows and disabled Continue align with different synthetic choices.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "match"
+    },
+    "47-wallet-ready-dark": {
+      "actual_sha256": "33b1316b51b38ebea452f1a677902857177202ebb6cdd6dc05b1d2b02bbe64ba",
+      "expected_sha256": "98b05b9d7a88952f636021a5ecd7f96e0976f86801ed986bf1b995ad503d693d",
+      "note": "The dotted map, completion card and Open wallet align. The address is fixture-specific.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "match"
+    },
+    "47-wallet-ready-light": {
+      "actual_sha256": "584028f5a07205f0ccaf73aa7d621891149b2bc8fc156f22f2ecffee899151ea",
+      "expected_sha256": "d3d74f8ab759686b11cff7ae6d6e3cd1fa10638302d1771fd93a769851492039",
+      "note": "The map, glass card and four completed stages align.",
+      "reviewed_at": "2026-11-18T14:53:47Z",
+      "reviewer": "Recorded strict review",
+      "verdict": "match"
+    }
+  }
+}
