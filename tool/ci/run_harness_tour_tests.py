@@ -37,7 +37,7 @@ except ImportError:
 # Includes the confirmed Pillar reference frame and restoration case.
 # Includes the repeated launch frame and retained image case.
 # Includes the offscreen Settings panel paint case.
-EXPECTED_DART_CASES = 1530
+EXPECTED_DART_CASES = 1531
 LAUNCH_ASSET_DART_CASES = 2
 TOUR_TEST_PATHS = (
     'test/zap/zap_form_test.dart',

@@ -3076,6 +3076,80 @@ void main() {
     }
   });
 
+  test('segment motion waits for the new selection and restores both pages',
+      () async {
+    String tab = 'dashboard';
+    final Map<String, String> selected = <String, String>{
+      'transfer': 'send', 'tokens': 'favorites',
+    };
+    const Map<String, List<int>> bounds = <String, List<int>>{
+      'send': <int>[3_000, 50_000],
+      'receive': <int>[53_000, 68_000],
+      'held': <int>[3_000, 50_000],
+      'favorites': <int>[53_000, 68_000],
+    };
+    String? previous;
+    int frame = 0;
+    final List<String> taps = <String>[];
+    final ReadonlyInspectionSession session = ReadonlyInspectionSession(
+      processId: 44,
+      original: (Map<String, Object?> command, Duration timeout) async {
+        if (command['cmd'] == 'tap') {
+          if (command['tab'] case final String destination) {
+            tab = destination;
+            taps.add(tab);
+          } else {
+            final String key = command['key']! as String;
+            taps.add(key);
+            previous = command['settleMs'] == 0 ? selected[tab] : null;
+            selected[tab] = key.split('_').last;
+            frame = 0;
+          }
+        }
+        final Map<String, dynamic> reply = _reply(wallet: true);
+        if (command['cmd'] == 'state') {
+          reply.addAll(<String, Object>{
+            'walletUnlocked': true, 'walletInitCompleted': true,
+            'tab': tab, 'tabs': <String>['dashboard', 'transfer', 'tokens'],
+            'locale': 'en', 'direction': 'ltr',
+          });
+        }
+        if (command['cmd'] == 'readonly-segment-motion') {
+          final String next = selected[tab]!;
+          final bool transitioning = previous != null;
+          final int sample = frame++;
+          final String choice = transitioning && sample == 0 ? previous! : next;
+          final List<int> target = bounds[choice]!;
+          final List<int> thumb = transitioning && sample == 1
+              ? <int>[28_000, 59_000]
+              : target;
+          reply['selected'] = choice;
+          reply['geometry'] = <int>[...thumb, ...target];
+        }
+        return reply;
+      },
+    );
+    await session.bindWallet();
+    final Map<String, Object> result = await session.observeSegmentMotion();
+    expect(taps, <String>[
+      'transfer', 'transfer_mode_receive', 'transfer_mode_send',
+      'tokens', 'tokens_filter_held', 'tokens_filter_favorites', 'dashboard',
+    ]);
+    expect(tab, 'dashboard');
+    expect(
+      selected,
+      <String, String>{'transfer': 'send', 'tokens': 'favorites'},
+    );
+    for (final String page in selected.keys) {
+      final Map<String, Object> evidence = result[page]! as Map<String, Object>;
+      expect(evidence['before'], bounds[selected[page]]);
+      final List<List<int>> samples = evidence['samples']! as List<List<int>>;
+      expect(samples, hasLength(2));
+      expect(samples.first.sublist(1, 3), <int>[28_000, 59_000]);
+      expect(samples.last.sublist(1, 3), samples.last.sublist(3));
+    }
+  });
+
   test('uncertain Home preparation holds before any UI input or restore',
       () async {
     final List<Map<String, dynamic>> faults = <Map<String, dynamic>>[
