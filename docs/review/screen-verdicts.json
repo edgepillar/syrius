@@ -1,0 +1,148 @@
+{
+  "reviews": {
+    "01-home-rest-dark": {
+      "actual_sha256": "090baa10d100481f9bd420b60fd0cea56eb045182c341d4b938d567ffa436e0d",
+      "expected_sha256": "70617942960638e9ad855344dcc7aa1433058bb4d060155f1cfb36592ca332a6",
+      "note": "The selected-address Activity history, empty rewards and absent Pending card differ from the illustrated state.",
+      "reviewed_at": "2026-11-21T19:44:52Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "01-home-rest-light": {
+      "actual_sha256": "d56f23b230a7e79392e1fbf1930551cf44b5a8102782db6836cac6533b45df86",
+      "expected_sha256": "280f31f618a20af2f275bd516afc3280849180f4788f38ae7c3fdebaedd36b7c",
+      "note": "The selected-address Activity history, empty rewards and absent Pending card differ from the illustrated state.",
+      "reviewed_at": "2026-11-21T19:44:52Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-dark": {
+      "actual_sha256": "8ba4874e1198bf5bc50e9e55766609257fcf16d5c60f78bd36ea18d8c58ff11e",
+      "expected_sha256": "ef3e3dfc4e9e4a6438516fe8803c55202d744b57c964104d6212c4eb2d3ebd97",
+      "note": "The expanded rail and Tokens header align. The empty rewards header and absent token rows change the card heights.",
+      "reviewed_at": "2026-11-21T19:44:52Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-light": {
+      "actual_sha256": "de958554dbdf6ba1b443f8174d3e9536f848afd72570793139f7cf3700d4965a",
+      "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
+      "note": "The expanded rail and Tokens header align. The empty rewards header and absent token rows change the card heights.",
+      "reviewed_at": "2026-11-21T19:44:52Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-dark": {
+      "actual_sha256": "5e64de8a92151a0b0090ce32a5a6bcb9bbf3ed2d437904f03b35ffd70a07d754",
+      "expected_sha256": "29421519af83d80baf69fcfe24beb37fc754d8da1c08b3a175e7224a27fedf16",
+      "note": "The hero and visible Activity amount are masked. The shorter Activity list and empty rewards differ from the reference.",
+      "reviewed_at": "2026-11-21T19:44:52Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-light": {
+      "actual_sha256": "d476ee518661e51ba2d2785fbd3a7a719147388a89b163c019514b3d6f225e63",
+      "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
+      "note": "The hero and visible Activity amount are masked. The shorter Activity list and empty rewards differ from the reference.",
+      "reviewed_at": "2026-11-21T19:44:52Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-dark": {
+      "actual_sha256": "ca3daf6b33fa18ec994d97f7f0ee0334272bdcedf9ddee7cfa1b498a546a9427",
+      "expected_sha256": "52ccc26f93bcad1c79ac91228648bb8c369a6cec14041f77f51d210afec0a1f9",
+      "note": "The overlay and result groups align. The blurred Activity surface has a different extent beneath the palette.",
+      "reviewed_at": "2026-11-21T19:44:52Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-light": {
+      "actual_sha256": "73eac9a4a5c77bee38a59acf132ded9fbdf7b69dc4365b0df80fe40395d07cac",
+      "expected_sha256": "f700f7b185b5064b45b1acc561abcee0fce392badb4dc2d58319914780b060bb",
+      "note": "The overlay and result groups align. The blurred Activity surface has a different extent beneath the palette.",
+      "reviewed_at": "2026-11-21T19:44:52Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "10-receive-qr-dark": {
+      "actual_sha256": "b408f4456add05fc1b1c00980b9cb07376b2be513f956ca0eb5b936d6051ad6c",
+      "expected_sha256": "7d0f473f9e93235a7032dbb227ceff6e683c91e92446565dee1bf037df78fad6",
+      "note": "The generated request has a token mark. The amount hint is shorter than the reference.",
+      "reviewed_at": "2026-11-21T19:48:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "10-receive-qr-light": {
+      "actual_sha256": "5d38bd224a5243399148fadcbc2872a72dac8a84f8c4e67ab4daf9108d0fbbf6",
+      "expected_sha256": "d3e867ff847f5c80f20afc1a8999441acfe57d9a6cbecad20d7633c8dcd62b17",
+      "note": "The generated request has a token mark. The amount hint is shorter than the reference.",
+      "reviewed_at": "2026-11-21T19:48:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-dark": {
+      "actual_sha256": "1c4b607b0e3bff6d7a7da96ebc47b12e80c365e77e4e8a003983adcebf1b8c4b",
+      "expected_sha256": "b58f5d7ea3ac3da980689c744d8d8a37b6ad70a5eae6a7542f4992f7dbba089c",
+      "note": "The form bounds align. The unavailable recipient state leaves the selection and result count absent.",
+      "reviewed_at": "2026-11-21T19:48:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-light": {
+      "actual_sha256": "4c4af364816757f911ef044bf1d4f85d5d76b7fcb937412b7a6500bc9cf63f3b",
+      "expected_sha256": "b3ab27949ed86fa2e78af721bd198fe7e258f9da5537ec914ae9ce3ccf753be8",
+      "note": "The form bounds align. The unavailable recipient state leaves the selection and result count absent.",
+      "reviewed_at": "2026-11-21T19:48:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-dark": {
+      "actual_sha256": "db337822d05204e827fd98aa537c678cf3eb4f4d626998e51445741e1d40ad1b",
+      "expected_sha256": "bce0133d1e1586247a874af23a72c340f73261174a296f4d690b7c6c3c334360",
+      "note": "The open form and two selected rows are visible. The address count and locked Fuse state differ from the reference.",
+      "reviewed_at": "2026-11-21T19:48:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-light": {
+      "actual_sha256": "678c47d694a0b96d280ff6cfdb506a2e2e69414b939a273573aef9819660019d",
+      "expected_sha256": "01ba9333c42b94249580c6c67789f19527d113e7861b9fd19e3c1e900f8f6c7f",
+      "note": "The open form and two selected rows are visible. The address count and locked Fuse state differ from the reference.",
+      "reviewed_at": "2026-11-21T19:48:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-dark": {
+      "actual_sha256": "fa390fb6c5d0921b90f5c19da118a405bb39b3601485a52acec0f5062a73f1be",
+      "expected_sha256": "057765aba7cc2e027010869bdfe14eff0beee921cbef85777efa3f7fa96ec991",
+      "note": "The installed package inventory, licence badges, Links count and status group differ from the reference.",
+      "reviewed_at": "2026-11-21T19:48:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-light": {
+      "actual_sha256": "19a6c17100b397d446c0628a049e880bee3abee892a9d137b17186227e6ed747",
+      "expected_sha256": "4faec94b7502216de2bceb52b1e8ded1254a74a150014f5399d1dc85a19ac1d4",
+      "note": "The installed package inventory, licence badges, Links count and status group differ from the reference.",
+      "reviewed_at": "2026-11-21T19:48:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-dark": {
+      "actual_sha256": "1c0e3796091175f06fee69f62856dc9f5b0d5af3cee59593b53d840751c2926c",
+      "expected_sha256": "b852ac9fcbdbea159856c6c3b30ac5ca2e25f55f1137655c4b689dc4a89a504f",
+      "note": "The gallery and footer align. The globe outlines and Map dot coverage differ from the reference.",
+      "reviewed_at": "2026-11-21T19:48:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-light": {
+      "actual_sha256": "005c08d91dd4872bc8b98d6d17f24f601c1fdc76cf3fe004e2ac2246f2e4cd46",
+      "expected_sha256": "b82600455634b306377ea7626f2e0ee80c7977c60c1ae1a7e23243dcace9d3ed",
+      "note": "The gallery and footer align. The globe outlines and Map dot coverage differ from the reference.",
+      "reviewed_at": "2026-11-21T19:48:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}

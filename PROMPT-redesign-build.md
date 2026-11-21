@@ -4167,7 +4167,9 @@ verifies the ten original PNGs and normal required closure.
 
 All ten originals were viewed beside their exact references. Both
 Licences originals have the same PNG digests as the earlier
-`31b5a23c` captures. The ten pairs retain differences under V01.
+`31b5a23c` captures. The ten [digest-bound verdicts](docs/review/screen-verdicts.json)
+remain mismatches under V01. The comparison tool binds each verdict to
+both original images and keeps captures from another target source separate.
 
 | Screen | Visible differences in both themes |
 | --- | --- |
@@ -4279,7 +4281,7 @@ and 44/67/48. The light pair reads 201/240/217 and 218/241/222. The greener
 appearance is consistent with the approved palette. These samples leave
 the whole-image findings open.
 
-The [eight recorded verdicts](docs/review/home-8b8feaaf-reviews.json)
+The [eight recorded verdicts](docs/review/screen-verdicts.json)
 bind both original PNG hashes. The comparison tool reads them through
 `--reviews` and reports eight reviewed mismatches for these exact pairs.
 The differences remain open under V01.
@@ -4288,7 +4290,11 @@ The Windows `home-catalog` selection uses the same eight literal shots and
 original motion probes as `home`. It retains the isolated wallet and lab
 closure checks. The parent omits the 24 generic tour images and four viewport
 images. The independent reader verifies the selected catalog and its parent
-without claiming evidence for the omitted tour or viewport scopes.
+without claiming evidence for the omitted tour or viewport scopes. The
+[first run](https://github.com/edgepillar/syrius/actions/runs/44942394026/job/136962247719)
+stopped at strict Dart analysis on a line-length finding. The
+[corrected run at `6569d890`](https://github.com/edgepillar/syrius/actions/runs/44942827087)
+started with that line split.
 
 The existing Windows Home catalog now samples the original toggle width
 on both opening and closing. The observer uses the original pointer and
