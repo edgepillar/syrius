@@ -2642,6 +2642,14 @@ confirm all 12 baseline checks, both Debug and Release builds,
 5,129 passing tests and one skip. Application and vendored analysis
 report zero errors and warnings. The final V06 audit remains open.
 
+The [fresh Windows baseline at `67f285c7`](https://github.com/edgepillar/syrius/actions/runs/44848510500/job/136674070333)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44851593363/job/136683966219)
+verify all twelve checks after the startup paint change. Debug and Release
+exit zero with complete output in 140.984 and 194.062 seconds. Application
+and vendored analysis report zero errors and warnings. The non-chain
+suite records 5,129 passes and one skip. This source precedes the Welcome
+text alignment. The full V06 audit remains open.
+
 The [natural launch run at `bc4733c6`](https://github.com/edgepillar/syrius/actions/runs/44836874820/job/136635399504)
 builds the ordinary Windows Release harness. Its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44838758916/job/136641642367)
 verifies the late and settled images and two normal exits per theme.
