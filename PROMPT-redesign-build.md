@@ -4161,9 +4161,11 @@ Map at twice its gallery dimensions and filters it back into the original
 centered bounds, inside the existing tile clip. The artwork, clock and
 other tiles keep their original paths. The gallery test checks the
 filtered bounds and retains the frame restoration cases. Strict local
-analysis passes. [Linux validation](https://github.com/edgepillar/syrius/actions/runs/44935256907)
-and the [Windows Details comparison](https://github.com/edgepillar/syrius/actions/runs/44935256963)
-are pending. The independent reader now emits mean absolute gray deviation
+analysis passes. [Linux at `4a6ff1e8`](https://github.com/edgepillar/syrius/actions/runs/44935256907/job/136940363741)
+passes application and strict selected analysis, both runs of the gallery
+test, the non-chain suite with 5,131 passes and one skip, and generated-file
+verification. The [Windows Details comparison](https://github.com/edgepillar/syrius/actions/runs/44935256963/job/136940365045)
+is pending. The independent reader now emits mean absolute gray deviation
 from the most common crop color for both PNGs in each theme. On the
 retained `59a1f859` archive, it reproduces 18.886 and 29.323 in light and
 records 0.966 and 0.861 in dark, in wallet and reference order.
