@@ -518,6 +518,17 @@ class WalletRecipe {
     return origin.members.first;
   }
 
+  /// The third member of the prepared four-address Settings fixture.
+  String get readonlyLabLabelMember {
+    final WalletAddressContext? origin = _addressOrigin;
+    if (_retired || _inspectionPid == null || _originalSigningChain != 321 ||
+        origin == null || origin.members.length != 4 || !origin.consistent ||
+        origin.selected != origin.members[1]) {
+      _refuse('wallet-recipe-owned-lab-required');
+    }
+    return origin.members[2];
+  }
+
   /// Append index two once through Settings, retaining the committed index one.
   Future<WalletAddressContext> prepareSeedAddress(
     WalletAddressContext original,

@@ -190,6 +190,7 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
   void Function(ScreenCaptureObservation step)? onStep,
   ReadonlyDetailsSelection selection = ReadonlyDetailsSelection.details,
   String? labRecipient,
+  String? labLabelMember,
   Future<void> Function()? requireReady,
   Future<void> Function(String event)? sendWarningWindow,
   Future<void> Function(Map<String, Object?> sample)? sendWarningSync,
@@ -201,6 +202,8 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
       selection == ReadonlyDetailsSelection.homeZapPreview;
   final bool swapStart = selection == ReadonlyDetailsSelection.swapStart;
   final bool walletReady = selection == ReadonlyDetailsSelection.walletReady;
+  final bool settingsReview =
+      selection == ReadonlyDetailsSelection.nodeVerified;
   final bool ownerAdmitted = walletReady
       ? !session.walletBound && requireReady != null
       : session.walletBound && requireReady == null;
@@ -208,7 +211,9 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
       sendWarning != (sendWarningWindow != null) ||
       sendWarning != (sendWarningSync != null) ||
       selection.requiresLabRecipient != (labRecipient != null) ||
-      labRecipient?.isEmpty == true) {
+      labRecipient?.isEmpty == true ||
+      settingsReview != (labLabelMember != null) ||
+      labLabelMember?.isEmpty == true) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.binding);
   }
   final _DetailsInstance instance = _DetailsInstance(session);
@@ -216,8 +221,6 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
   bool warningWindowOpened = false;
   bool swapWarningAcknowledged = false;
   bool settingsContactsSaved = false;
-  final bool settingsReview =
-      selection == ReadonlyDetailsSelection.nodeVerified;
   bool capturesAddresses(List<String> words) => settingsReview &&
       switch (words) {
         ['assert', '--key', 'addresses_account_chain_toggle'] => true,
@@ -417,11 +420,38 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
       await cli.run(instance, words.first, cli.Args(words.sublist(1)));
       if (words case ['tap', '--key', 'settings_addresses']
           when settingsReview && !settingsContactsSaved) {
+        final String rename = 'addresses_rename_$labLabelMember';
+        await cli.waitForTarget(instance, cli.Args(<String>[
+          '--key', rename, '--kind', 'button',
+          '--exact', '--ready', '--timeout', '10',
+        ]));
+        await cli.call(instance, <String, Object?>{
+          'cmd': 'tap', 'key': rename, 'exact': true,
+        });
+        await cli.waitForTarget(instance, cli.Args(<String>[
+          '--key', 'addresses_label_field', '--kind', 'field',
+          '--exact', '--ready', '--timeout', '10',
+        ]));
+        await typeReadonlyCatalogField(
+          instance, 'addresses_label_field', 'Reserve',
+        );
+        await cli.call(instance, const <String, Object?>{
+          'cmd': 'tap', 'key': 'addresses_save_label', 'exact': true,
+        });
+        await cli.call(instance, const <String, Object?>{
+          'cmd': 'wait', 'key': 'addresses_label_field', 'exact': true,
+          'gone': true, 'timeoutMs': 5000,
+        });
         await saveReadonlySettingsContacts(instance);
         settingsContactsSaved = true;
       }
       if (capturesAddresses(words)) {
         await requireReadonlySettingsContacts(instance);
+        for (final String text in const <String>['Reserve', 'Address 3']) {
+          await cli.call(instance, <String, Object?>{
+            'cmd': 'wait', 'text': text, 'exact': true, 'timeoutMs': 5000,
+          });
+        }
       }
       if (swapStart && !swapWarningAcknowledged && words.join(' ') ==
           'tap --key p2p_start_swap --kind button --exact') {

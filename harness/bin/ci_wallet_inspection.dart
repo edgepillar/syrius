@@ -146,6 +146,7 @@ class _InspectionInstance extends cli.Instance {
     String family, {
     void Function(ScreenCaptureObservation step)? onStep,
     String? labRecipient,
+    String? labLabelMember,
     Future<void> Function()? requireReady,
     Future<void> Function(String event)? sendWarningWindow,
     Future<void> Function(Map<String, Object?> sample)? sendWarningSync,
@@ -155,6 +156,7 @@ class _InspectionInstance extends cli.Instance {
       return captureReadonlyDetailsDefaults(
         repository: repository, session: _session, onStep: onStep,
         selection: choice, labRecipient: labRecipient,
+        labLabelMember: labLabelMember,
         requireReady: requireReady, sendWarningWindow: sendWarningWindow,
         sendWarningSync: sendWarningSync,
       );
@@ -445,6 +447,10 @@ Future<void> main() async {
           family,
           onStep: (ScreenCaptureObservation value) => lastCatalogStep = value,
           labRecipient: labRecipient,
+          labLabelMember: _detailsSelections[family] ==
+                  ReadonlyDetailsSelection.nodeVerified
+              ? recipe.readonlyLabLabelMember
+              : null,
           sendWarningWindow: family == harnessReadonlySendWarningCatalog
               ? warningWindow : null,
           sendWarningSync: family == harnessReadonlySendWarningCatalog
