@@ -6081,9 +6081,8 @@ class HarnessAgent {
     final WidgetsBinding binding = WidgetsBinding.instance;
     Element? switcher;
     void observe(Duration _) {
-      if (_interactiveStartUs != startUs || EntryCaptureRegistry.instance.held) {
-        return;
-      }
+      if (_interactiveStartUs != startUs) return;
+      if (EntryCaptureRegistry.instance.held) return;
       final Element? root = binding.rootElement;
       if (root == null || kCurrentPage != Tabs.settings) return;
       switcher ??= _findTimingChild(
