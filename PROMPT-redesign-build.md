@@ -3913,8 +3913,15 @@ retains width in logical pixels, chevron angle in milliradians and label
 opacity in thousandths. It continues through the opening label fade and
 requires the shell to return to its original rail setting. An endpoint-only
 sample reports no intermediate motion for that value. Earlier width-only
-receipts remain readable. The new fields require a fresh Windows run and
-record widget values without claiming pixel timing.
+receipts remain readable. The [Windows run at `706cc387`](https://github.com/edgepillar/syrius/actions/runs/44910273989/job/136864410257)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44912121067/job/136869948464)
+verify eight Home and four viewport PNGs, normal required closure, and
+intermediate widths and chevron angles in both directions. On opening,
+the toggle is 184 logical pixels wide at the last zero-opacity sample.
+The later label opacities are 0.148, 0.645 and 1.0. On closing, the first
+sample still has the full width and a zero-opacity label. These are
+original widget values sampled after the tap reply. Visual review of
+the transition and the separate frame-time comparison remain open.
 
 The label fade now updates the opacity of the existing text without
 rebuilding the destination buttons on each tick. The tooltip visibility
@@ -4178,7 +4185,7 @@ and generated-file verification. Native observation remains open under V02.
 | --- | --- | --- |
 | Launch settles into the lock card | Original film frame playback in `test/launch_film/launch_film_test.dart`. Verified native early, late and settled samples. | Inspect the retained images and verify the running 400 ms settle. |
 | Page change | `test/motion/rise_switcher_test.dart` checks the retained pages and both fade phases. Native Home to Settings frame timings. | See the fade and 6 px rise over the full transition. |
-| Rail open and close | `test/shell/rail_test.dart` checks the 200 ms width motion and 150 ms label fade. The [native Home reader](https://github.com/edgepillar/syrius/actions/runs/44908108982/job/136857929163) verifies intermediate toggle widths in both directions. | Observe the chevron and label fade during the running transition. |
+| Rail open and close | `test/shell/rail_test.dart` checks the 200 ms width motion and 150 ms label fade. The [native Home reader](https://github.com/edgepillar/syrius/actions/runs/44912121067/job/136869948464) verifies intermediate widths and chevron angles in both directions and the opening label fade after width expansion. | Visually review the complete running transition. |
 | Segment thumb slides | `test/segment/segment_test.dart` checks thumb motion and the 360 ms clock. | Switch segments in Transfer and Tokens. |
 | Disclosure opens | `test/disclosure/disclosure_test.dart` checks the reveal and chevron. Native About Licences frame timings. | See the slide and chevron turns in the requested groups. |
 | A value changes | `test/motion/value_flash_test.dart` checks the one 1.2 s flash. `test/row_detail/list_entrance_test.dart` checks the incoming row. | Observe a genuine value change and arrival in the isolated wallet. |
