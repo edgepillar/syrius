@@ -2751,6 +2751,34 @@ twelve precede observed settlement, eleven follow it and one crosses it.
 The measurements also include frames outside the visible motion interval.
 They do not identify which widget initiated each frame.
 
+Flutter 3.47.7 pins its engine to `deb28748`. That engine assigns the frame
+number when its vsync callback creates a recorder, before the animator
+reserves a pipeline slot.
+When the pipeline is full, the animator emits `PipelineFull`, requests
+another frame and returns before dispatching the Dart begin-frame callback.
+The rasterizer supplies reported timings after drawing. This engine path can
+produce a gap in the reported sequence without losing a completed timing
+record. The existing Windows receipts contain only reported timings, so the
+cause of their individual gaps remains unknown. A separate engine trace
+would need to correlate the vsync, pipeline and raster events in the same
+window. V02 keeps the original comparisons and all recorded frame gaps.
+[Recorder](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/flow/frame_timings.cc#L37-L45)
+| [Vsync callback](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/vsync_waiter.cc#L118-L134)
+| [Animator](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/animator.cc#L86-L108)
+| [Rasterizer](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/rasterizer.cc#L475-L507).
+
+The first [Linux](https://github.com/edgepillar/syrius/actions/runs/44853399650)
+and [Windows](https://github.com/edgepillar/syrius/actions/runs/44853399727/job/136689821182)
+runs at `ea5ad360` each report one line-length diagnostic in the new page
+settlement observer. Windows stops at analysis before the wallet build and
+produces no measurement window. The formatting correction at `0b101c42`
+keeps both admission checks and the same timestamp. Its own
+[Linux validation](https://github.com/edgepillar/syrius/actions/runs/44853679751)
+passes strict selected analysis. The
+[Windows run](https://github.com/edgepillar/syrius/actions/runs/44853738458)
+passes gated wallet analysis. Both runs are bound to the corrected source.
+The complete Linux result and Windows timing measurements are pending.
+
 The [Linux run at `c30e4b4e`](https://github.com/edgepillar/syrius/actions/runs/44837173040/job/136636422884)
 passes application and strict selected analysis, the focused licence
 tests, 5,129 non-chain tests with one skip, and generated-file verification.
