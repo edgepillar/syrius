@@ -637,6 +637,17 @@ def startup_pixel_comparison(name, data):
     return result
 
 
+def emit_startup_comparison(title, summary, reference_head):
+    comparisons = summary.pop('pixel_comparisons', {})
+    emit(title, summary)
+    for name, result in comparisons.items():
+        emit('Retained startup pixel comparison', dict(
+            scope='retained_startup_pixel_comparison', file=name,
+            source_head=summary['source_head'], source_run_id=summary['source_run_id'],
+            reference_head=reference_head, archive_sha256=summary['archive_sha256'],
+            visual_matches=0, **result))
+
+
 def entry_archive(raw, expected_sha, expected_size, head, tree, run_id, *, reference_dir=None):
     archive.need(type(raw) is bytes and type(expected_size) is int and digest(expected_sha)
                  and 0 < len(raw) == expected_size <= MAX_ENTRY_ARCHIVE
@@ -878,11 +889,11 @@ def main():
                 return 0
             readers = require_startup_job_set(listing['jobs'], job, head, run_id)
             PHASE = 'startup_artifacts'
+            reference_head = parent.get('WINDOWS_REFERENCE_HEAD')
+            archive.need(reference_head is None or
+                         re.fullmatch('[a-f0-9]{40}', reference_head) is not None)
             if job['name'] == startup.BATCH_JOB_NAME:
                 archive.need(run['head_branch'] == 'redesign')
-                reference_head = parent.get('WINDOWS_REFERENCE_HEAD')
-                archive.need(reference_head is None or
-                             re.fullmatch('[a-f0-9]{40}', reference_head) is not None)
                 batch_client = archive.Client(parent.get('GH_TOKEN'), max_calls=startup.BATCH_REQUESTS)
                 batch, results = startup.inspect_catalog_batch(
                     batch_client, head=head, tree=tree, run_id=run_id, job=job,
@@ -891,13 +902,8 @@ def main():
                     batch['parallel_windows_reader'] = {
                         key: readers[0][key] for key in ('id', 'conclusion')}
                 for summary in results:
-                    comparisons = summary.pop('pixel_comparisons', {})
-                    emit('Hosted original startup catalog inspection', summary)
-                    for name, result in comparisons.items():
-                        emit('Retained startup pixel comparison', dict(
-                            scope='retained_startup_pixel_comparison', file=name,
-                            source_head=head, source_run_id=run_id, reference_head=reference_head,
-                            archive_sha256=summary['archive_sha256'], visual_matches=0, **result))
+                    emit_startup_comparison('Hosted original startup catalog inspection',
+                                            summary, reference_head)
                 emit('Hosted shared Windows startup catalog inspection', batch)
                 return 0
             launch_titles = {
@@ -942,8 +948,10 @@ def main():
                         quiz=name == startup.quiz_catalog.JOB_STEP,
                         timing=name == startup.launch.TIMING_JOB_STEP,
                         lock_seams=name == startup.lock_catalog.SEAM_STEP,
+                        compare_png=(startup_pixel_comparison if reference_head and
+                                     name == startup.launch.SETTLE_JOB_STEP else None),
                         **({'motion': True} if motion else {}))
-                emit(launch_titles[name], summary)
+                emit_startup_comparison(launch_titles[name], summary, reference_head)
                 if gap_context is not None:
                     emit('Hosted cold lock frame key gaps', dict(
                         scope='reported_frames_only', source_head=head, source_tree=tree,

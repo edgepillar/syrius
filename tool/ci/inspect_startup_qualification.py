@@ -530,7 +530,8 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
 
 
 def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=False,
-                       quiz=False, timing=False, lock_seams=False, motion=False, item=None):
+                       quiz=False, timing=False, lock_seams=False, motion=False,
+                       item=None, compare_png=None):
     """Inspect the selected startup lane without an SDK or native process."""
     archive.need(job['name'] == JOB_NAME and job['head_sha'] == head
         and job['run_id'] == run_id and job['status'] == 'completed'
@@ -548,8 +549,20 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
             and steps['Build the ordinary Release harness target']['conclusion'] == 'success'
             and steps[launch.MOTION_JOB_STEP]['conclusion'] == job['conclusion']
             and steps[launch.MOTION_RETAIN_STEP]['conclusion'] == 'success')
+    if settle:
+        steps = {step['name']: step for step in job['steps']}
+        archive.need(len(steps) == len(job['steps']) and job['labels'] == ['windows-latest'])
+        for name, conclusion in (
+            ('Build the ordinary Release harness target', 'success'),
+            (launch.SETTLE_JOB_STEP, job['conclusion']),
+            ('Retain the original launch handoff manifest and PNGs', 'success'),
+        ):
+            step = steps.get(name, {})
+            archive.need(step.get('status') == 'completed'
+                         and step.get('conclusion') == conclusion)
     summary = _inspect_launch_artifact(client, head, tree, run_id,
-        settle=settle, lock=lock, quiz=quiz, timing=timing, lock_seams=lock_seams, motion=motion, item=item)
+        settle=settle, lock=lock, quiz=quiz, timing=timing, lock_seams=lock_seams,
+        motion=motion, item=item, compare_png=compare_png)
     archive.need((job['conclusion'] == 'success') is summary['artifact_reported_success'])
     summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'])
     return summary

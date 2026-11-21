@@ -384,7 +384,8 @@ class WindowsQualificationTests(unittest.TestCase):
 
     def _read_original(self, *, entry_change=None, entry_count=1, failed_root=False,
                        baseline_conclusion='success', baseline_change=None, baseline_count=1,
-                       log_failure=None, entry_data=None, quiz_job=None, extra_artifact=False):
+                       log_failure=None, entry_data=None, quiz_job=None, extra_artifact=False,
+                       reference_head=None):
         data = pixels() if entry_data is None else entry_data
         raw = package(entry_report(data), data)
         original_report = baseline()
@@ -461,11 +462,37 @@ class WindowsQualificationTests(unittest.TestCase):
         environment = dict(GITHUB_ACTIONS='true', SYRIUS_HOSTED_RUNNER='github-hosted',
             GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_REPOSITORY='edgepillar/syrius',
             WINDOWS_INSPECT_RUN='123', WINDOWS_INSPECT_HEAD=HEAD, GH_TOKEN='synthetic')
+        if reference_head is not None:
+            environment['WINDOWS_REFERENCE_HEAD'] = reference_head
         with mock.patch.dict(inspect.os.environ, environment, clear=True), \
                 mock.patch.object(inspect.archive, 'Client', Client), \
                 contextlib.redirect_stdout(io.StringIO()) as output:
             status = inspect.main()
         return status, calls, output.getvalue()
+
+    def test_standalone_handoff_routes_verified_pixels_to_the_reference_reader(self):
+        job = dict(id=8, name=inspect.startup.JOB_NAME, run_id=RUN, head_sha=HEAD,
+            status='completed', conclusion='success', labels=['windows-latest'],
+            steps=[dict(name=inspect.startup.launch.SETTLE_JOB_STEP,
+                        status='completed', conclusion='success')])
+        file = '40-launch-settle-dark.png'
+        reference_head = 'c' * 40
+
+        def read(client, **options):
+            self.assertTrue(options['settle'])
+            self.assertIs(options['compare_png'], inspect.startup_pixel_comparison)
+            return dict(source_head=HEAD, source_run_id=RUN, archive_sha256='d' * 64,
+                        pixel_comparisons={file: dict(changed_pixels=17)})
+
+        with mock.patch.object(inspect.startup, 'inspect_launch_run', side_effect=read):
+            status, _, output = self._read_original(quiz_job=job,
+                baseline_conclusion='skipped', entry_change=dict(conclusion='skipped'),
+                reference_head=reference_head)
+        self.assertEqual(status, 0, output)
+        rows = [json.loads(line) for line in output.splitlines() if line.startswith('{')]
+        self.assertEqual(rows[1], dict(scope='retained_startup_pixel_comparison', file=file,
+            source_head=HEAD, source_run_id=RUN, reference_head=reference_head,
+            archive_sha256='d' * 64, visual_matches=0, changed_pixels=17))
 
     def test_quiz_and_entry_share_one_artifact_listing_and_keep_both_receipts(self):
         def step(name):
