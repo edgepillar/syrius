@@ -3274,7 +3274,13 @@ puts it at row 120 in both themes. The header band and final divider
 stay at rows 79–80 and 159. The compact list now centers its painted
 rule on the row boundary before snapping to a physical pixel. The full
 list keeps its verified placement. The list-end regression checks the
-compact paint at device scale two. Fresh Windows capture is pending.
+compact paint at device scale two. The [recapture at `722326b2`](https://github.com/edgepillar/syrius/actions/runs/44883372421/job/136783330291)
+verifies ten catalog images and required process closure. The compact
+divider returns to row 119 in both themes and all 13 full-list rule
+positions still match. The [recapture at `1ae9288a`](https://github.com/edgepillar/syrius/actions/runs/44883459461/job/136783574962)
+verifies the same positions, ten catalog images and required closure.
+The Originals images at this source have 1,832 and 1,896 fewer pixels
+with a difference of at least 16 levels than at `31b5a23c`.
 
 The [same Details capture](https://github.com/edgepillar/syrius/actions/runs/44881281703/job/136776921970)
 places the Plasma Fuse batch Cancel fill at column 1143 in both themes
@@ -3282,9 +3288,17 @@ and the row actions at 1189 in dark and 1188 in light. The references
 start at 1141 and 1187 respectively. The right edges agree at column
 1248. The button now reserves the one-pixel outline outside its 10 px
 text inset, following the authored CSS. The existing layout case checks
-the inset and preserved right edge. Across the four sampled halo
-distances, each RGB channel was already within one level of its reference.
-Fresh Windows comparison remains open.
+the inset and preserved right edge. The [recapture at `1ae9288a`](https://github.com/edgepillar/syrius/actions/runs/44883459461/job/136783574962)
+places the batch fill at 1141 and row fills at 1187 in dark and 1186
+in light. The right boundaries remain at 1248. Across the four sampled
+halo distances, every sampled RGB channel remains within one level of
+its reference. Whole-image review remains open under V01.
+
+The [Linux run at `722326b2`](https://github.com/edgepillar/syrius/actions/runs/44881551135/job/136777737010)
+passes the compact-divider change. The [Linux run at `1ae9288a`](https://github.com/edgepillar/syrius/actions/runs/44881694356/job/136778180200)
+passes both layout changes. Each run passes eight focused licence cases,
+5,131 non-chain tests with one skip, strict analysis and generated-file
+verification. Both full suites include the 1,530 Windows-tour cases.
 
 The [Windows interface run at `1028445f`](https://github.com/edgepillar/syrius/actions/runs/44876122524/job/136761087924)
 and its [independent inspection](https://github.com/edgepillar/syrius/actions/runs/44877853952/job/136766426791)
