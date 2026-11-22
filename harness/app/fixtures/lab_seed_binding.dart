@@ -682,6 +682,7 @@ final class LabSeedBinding
   /// admitted and the original confirmed effect must be read before capture.
   Future<void> prepareNonOwnerHolding(
     String issuedHash,
+    SendTransactionBloc sender,
     void Function() requireOriginal,
   ) async {
     final Map<String, String> env = Platform.environment;
@@ -723,7 +724,7 @@ final class LabSeedBinding
     final TokenStandard standard = seedIssuedTokenStandard(issuedHash);
     final String nextOwner = environment.members[2];
     final TokenActionPublisher? publisher = TokenActionPublisher.capture(
-      sender: app.sl<SendTransactionBloc>(), address: environment.owner,
+      sender: sender, address: environment.owner,
     );
     if (publisher == null || publisher.session.chainId != 321 ||
         publisher.heldFor(standard) != null) {

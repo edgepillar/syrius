@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/send_transaction/send_transaction_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -77,6 +78,7 @@ final class SeedCommands {
     Future<void> Function(String, Seam, String, void Function())?
         observeSurfaceSeam,
     Future<void> Function(String, String, void Function())? observeHeldToken,
+    SendTransactionBloc Function()? readHolderSender,
     SeededTokenHolder Function(
       String, SeedEnvironment, void Function(), void Function(),
     )? captureTokenHolder,
@@ -193,8 +195,19 @@ final class SeedCommands {
         current();
         if (prepare) {
           _nonOwnerPreparationEntered = true;
-          await labSource.prepareNonOwnerHolding(hash, current);
-          current();
+          if (readHolderSender == null) {
+            throw const SeedRefused('seeded-token-holder-held');
+          }
+          final SendTransactionBloc sender = readHolderSender();
+          void requireSender() {
+            current();
+            if (sender.isClosed || !identical(readHolderSender(), sender)) {
+              throw const SeedRefused('seeded-token-holder-held');
+            }
+          }
+
+          await labSource.prepareNonOwnerHolding(hash, sender, requireSender);
+          requireSender();
           _nonOwnerPrepared = true;
           return <String, Object?>{'nonOwnerHoldingPrepared': true};
         }

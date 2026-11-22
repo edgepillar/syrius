@@ -1341,6 +1341,11 @@ Future<Map<String, Object>> _captureSeededCatalog(
 
   if (includeNonOwnerHolding) {
     await requireCurrent();
+    await cli.goto(instance, 'tokens');
+    await cli.waitForTarget(instance, cli.Args(<String>[
+      '--key', 'tokens_filter_held', '--exact', '--timeout', '30',
+    ]));
+    await requireCurrent();
     final Map<String, dynamic> receipt = await cli.call(
       instance, <String, Object?>{
         'cmd': 'seed', 'action': 'prepare-non-owner-holding',

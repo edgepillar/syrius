@@ -39,6 +39,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_update/
     show NodeUpdateCard;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/plasma_owner/plasma_session.dart'
     show parsePlasmaQsr;
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/send_transaction/send_transaction_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_confirmation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_populated.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/widgets/token_card.dart';
@@ -1317,6 +1318,7 @@ class HarnessAgent {
                   current,
                   balanceOnly: true,
                 ),
+            readHolderSender: _readSeededTokenHolderSender,
             captureTokenHolder: _captureSeededTokenHolder,
             captureTap: (Map<String, dynamic> selector) =>
                 _captureSeedTap(selector, preparation: seedPreparation),
@@ -2376,6 +2378,20 @@ class HarnessAgent {
     }
     owner.requireCurrent();
     return owner;
+  }
+
+  SendTransactionBloc _readSeededTokenHolderSender() {
+    final List<_Node> controls = _visibleKeyNodes('tokens_filter_held');
+    if (controls.length != 1) {
+      throw const SeedRefused('seeded-token-holder-held');
+    }
+    final Element element = controls.single.element;
+    final ModalRoute<dynamic>? route = ModalRoute.of(element);
+    if (!element.mounted || route == null || !route.isCurrent ||
+        !route.isActive || !TickerMode.valuesOf(element).enabled) {
+      throw const SeedRefused('seeded-token-holder-held');
+    }
+    return element.read<SendTransactionBloc>();
   }
 
   SeededTokenHolder _captureSeededTokenHolder(
