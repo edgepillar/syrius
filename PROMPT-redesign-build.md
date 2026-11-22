@@ -6873,8 +6873,16 @@ and startup indexes cover sixteen exact-source pairs. Whole-image
 verdicts remain open for fourteen of
 these sixteen pairs, and V01 remains open.
 
-The [Home catalog run](https://github.com/edgepillar/syrius/actions/runs/45070190929)
-uses the same source for eight further pairs.
+The [Home producer](https://github.com/edgepillar/syrius/actions/runs/45070190929/job/137355199489)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45072146847/job/137361290933)
+verify [eight further Home captures](docs/review/source-a4e0a9d3-home-captures.json),
+normal parent closure and three isolated fixture holdings in each theme.
+Against the same references used at `3d23a6c4`, body, caption and rail
+counts at the 16-level RGB threshold agree for all eight pairs. The
+changed counts are in the status strip and the Go To hero. For Home Open
+the whole-image counts are 43,847 dark and 54,039 light. The 24 original
+captures at `a4e0a9d3` include the two already reviewed Wrong Password
+matches. The other whole-image verdicts remain open.
 
 ### Import label alignment at `2c8fd31c` (2026-11-22)
 
