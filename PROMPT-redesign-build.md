@@ -6372,6 +6372,14 @@ The [first retrospective reader](https://github.com/edgepillar/syrius/actions/ru
 refuses the earlier `5ce7f74b` capture at producer-source admission. The
 earlier Start modal now uses the existing versioned-blob verification.
 It must match the exact Git blob named by the original producer tree.
+The [corrected retrospective reader](https://github.com/edgepillar/syrius/actions/runs/45032989293/job/137240477922)
+verifies the original archive and measures the same header crops. The
+older send label started 22 px farther right in dark and 21 px farther
+right in light, against 7 px in each new capture. The older receive label
+started 14 px farther right in both themes, against 1 px in dark and zero
+in light in the new captures. The older receive label began two pixels
+below the reference within its pane. That offset is one pixel in the new
+captures. These measurements describe the retained text bounds.
 
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
