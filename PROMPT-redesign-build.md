@@ -4645,6 +4645,15 @@ passes the Apps button-edge assertions in both themes. Full and strict
 Dart analysis pass, 5,133 non-chain tests pass with one skip, and
 generated files remain unchanged.
 
+The [Windows Settings producer at `1aaace57`](https://github.com/edgepillar/syrius/actions/runs/45020506048/job/137202107820)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45022381038/job/137207927304)
+verify [14 images](docs/review/source-1aaace57-settings-captures.json)
+and normal parent closure. Connect by link now paints from columns
+1119 through 1247 in both themes. The right edge and the rows
+115 through 140 agree with both references. The left edge remains
+4 px inside the reference. The settings catalog uses an 816,719-byte
+archive and retains zero accepted whole-image matches.
+
 On the two About images, the seven Settings labels' ink bounds are within
 one pixel of their references at the 32-level RGB contrast threshold.
 All 28 bounding coordinates per theme were checked. Twenty-one agree exactly in dark
