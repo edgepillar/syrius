@@ -4909,8 +4909,8 @@ passes strict selected analysis, 5,130 non-chain tests with one skip,
 and generated-file verification. Native observation remains open under V02. The readonly Home catalog now
 samples the drift used by the original Home painter alongside the existing
 status halo read. It uses the same requests and retains the same eight
-PNGs. The reader reports how many ordinary paints were sampled and
-whether their drift positions differ. Native results remain pending.
+PNGs. The [current native read](#home-at-28b39fab) verifies 29 samples with
+different painted drift positions.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
@@ -5261,14 +5261,36 @@ The baseline remains bound to its original source. The five end-state
 requirements still need the complete visual and running motion verdicts.
 
 
+#### Home at `28b39fab`
+
+The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/44974344229/job/137060766695)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44975968264/job/137065859893)
+verify eight original 1280 by 780 PNGs and normal closure for the required
+actors. The reader binds the original archive and verifies 98 source files.
+The [capture index](docs/review/source-28b39fab-home-captures.json) and
+[visual verdicts](docs/review/source-28b39fab-home-verdicts.json) bind the
+eight comparisons. All eight were viewed beside their tracked references.
+The original Home panels, eye and palette are present. The prepared profile
+has sparse selected-address Activity, no rewards or token rows, and no
+pending send. The Go To backdrop shows live Activity where its reference
+shows a loading skeleton. The eight whole-image verdicts remain mismatches.
+
+The same reader verifies 29 samples of the original Home painter's
+drift progress, ranging from 0.176478 to 0.689075. The original rail width
+and chevron move through intermediate positions in both directions, and
+the Transfer and Tokens thumbs each show intermediate positions.
+These observations establish movement during the sampled windows.
+The complete shader cycles, pause conditions and P06 frame comparisons
+remain open under V02.
+
 ### End-state audit at `28b39fab` (2026-11-22)
 
 | End-state item | Verified evidence and remaining check |
 | --- | --- |
 | Windows Debug and Release | The [environment guide](docs/environment.md) and [independent Windows baseline](https://github.com/edgepillar/syrius/actions/runs/44965996329/job/137035042343) cover the build at `f3a07338`. The runtime diff to `28b39fab` changes Tokens, Lock and Home field Dart source. The Windows runner, assets and locked dependencies match that baseline. The current source still needs a clean Debug and Release run. |
 | Analysis and tests | [Linux at `28b39fab`](https://github.com/edgepillar/syrius/actions/runs/44974609712/job/137061581911) passes application and strict analysis, 5,132 Dart tests with one skip, 1,531 Windows-tour cases within that suite, and the generated-file check. The run includes the painted Home drift read. |
-| All 94 visual pairs | The [Lock review](#lock-at-rest-at-f935a887) records six matches at its original source. The Held Tokens recapture remains open after a copied Stake pre-publication refusal. The Home catalog is in progress. The current-source gallery still needs all 94 native sides and matching verdicts. |
-| Motion, shaders and frame times | The [paired interaction read](https://github.com/edgepillar/syrius/actions/runs/44953288126/job/136995755269) retains both failed 16 ms comparisons. The [native Home run](https://github.com/edgepillar/syrius/actions/runs/44974344229) will supply the new painted-drift samples if that lane completes. The full running motion review and all three timing comparisons remain open. |
+| All 94 visual pairs | The [Lock review](#lock-at-rest-at-f935a887) records six matches at its original source. The Held Tokens recapture remains open after a copied Stake pre-publication refusal. The Home catalog has eight reviewed differences at this source. The current-source gallery still needs all 94 native sides and matching verdicts. |
+| Motion, shaders and frame times | The [paired interaction read](https://github.com/edgepillar/syrius/actions/runs/44953288126/job/136995755269) retains both failed 16 ms comparisons. The [native Home reader](https://github.com/edgepillar/syrius/actions/runs/44975968264/job/137065859893) verifies movement in the sampled Home field paints. The full running motion review and all three timing comparisons remain open. |
 | Seam refusals | The [V03 coverage](docs/review/source695-seam-coverage.md) records the original native refusals for all fifteen entries and the original Go To path. The seam registry and Go To implementation match the audited `564d01ab` source. The original native trials retain their own source pins. |
 
 The original checklist still has 77 accepted rows out of 80. V01, V02 and
@@ -5352,7 +5374,7 @@ V06 remain open.
 | N05 | done | 2026-10-23T15:54Z | e13abb387577 adds the original globe crop and three captured entry routes, preserving owned callbacks and Welcome motion; strict and full local checks pass; native comparison pending |
 | N06 | done | 2026-10-23T15:54Z | e13abb387577 adds pure Import and the bounded three-word quiz with original decrypt, access release and shared-axis routes; strict and full local checks pass; native authentication and comparison remain unqualified |
 | N07 | done | 2026-10-23T15:54Z | e13abb387577 adds the original map and Ready glass card, captured first address and once-only opening bound to original creation and local initialization; connection mismatch and uncertainty remain distinct from readiness; strict and full local checks pass; native acceptance pending |
-| V01 | review | 2026-11-22T00:20Z | The [94-pair historical review](docs/review/source-28f9c121-independent-visual-review.md) retains 14 accepted matches. X1277 through X1284 record the latest reviewed Home differences. The candidate gallery, prepared states and whole-image acceptance remain open. |
+| V01 | review | 2026-11-22T00:20Z | The [94-pair historical review](docs/review/source-28f9c121-independent-visual-review.md) retains 14 accepted matches. X1292 through X1299 bind the latest reviewed Home differences. The candidate gallery, prepared states and whole-image acceptance remain open. |
 | V02 | blocked | 2026-11-21 | The [latest paired interactive read at `9bce41b6`](https://github.com/edgepillar/syrius/actions/runs/44953288126/job/136995755269) verifies normal closure and retains the 16 ms failures and frame gaps for both interactions. The [earlier paired interactive read at `e94d5b07`](https://github.com/edgepillar/syrius/actions/runs/44809982892/job/136543747726) verifies both windows. The 16 ms comparison fails for page change and disclosure, and all four samples have frame-key gaps. The [cold startup comparison at `4055c536`](https://github.com/edgepillar/syrius/actions/runs/44794191118/job/136489337767) retains the raster and distinct-frame failures. The running motion and shader review remains open. Source715 producer 43344313240 and independent reader 43347311411 verify 234 current and 2,274 P06 frames and five normal actor exits. Acquisition passes; the unchanged 16 ms duration comparison fails raster and distinct-frame dominance, and both windows retain frame-number gaps. Page-change, disclosure, Motion and Shaders acceptance remain open. [Executed result](docs/review/source716-details-frame-context.md). Earlier Source698 evidence: Source698 producer 43240640136 and reader 43247422901 preserve STARTUP_DEADLINE in P06 measurement: 337 current frames, zero baseline frames and five normal actor exits. The baseline lock field remains disabled before initialization. No comparison or absence of added slow frames is established. Earlier evidence: Source622 adds opt-in frame windows to `harness/h stalls`. Source627 retains ENTRY_INVALID with two normal actor exits and zero frames in its [original run](https://github.com/edgepillar/syrius/actions/runs/42846425942) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42849507992). Source628 passes its selected analysis, tests and Release build. Its timing actor reports ENTRY_UNAVAILABLE with zero retained frames and both actors exit normally. The [original run](https://github.com/edgepillar/syrius/actions/runs/42851137227) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42853554717) preserve that result. Source629 selects the original password field by key and kind. The paired job builds P06 with the same SDK and locked cache after a valid current window. The three paired native measurements and the running Motion and Shaders review remain open. Source630 retains 270 current frames, P06 HTTP_FAILED with zero frames and five normal actor exits. The next controller polls the same lock predicate without a server-side wait. [Original producer](https://github.com/edgepillar/syrius/actions/runs/42865836277) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42868723130). Source631 retains 182 current frames, zero P06 frames at STARTUP_DEADLINE and five normal exits. The paired controller uses a common absolute readiness bound and records finite post-deadline state. [Producer](https://github.com/edgepillar/syrius/actions/runs/42870190367) and [reader](https://github.com/edgepillar/syrius/actions/runs/42873068988). Source632 retains 171 current frames and P06 COMMAND_FAILED with five normal exits. The next controller records which original request refused while preserving its outcome. [Producer](https://github.com/edgepillar/syrius/actions/runs/42874911893) and [reader](https://github.com/edgepillar/syrius/actions/runs/42878160400). Source633 isolates HTTP 400 at the P06 frame window request after the original lock checks. The next overlay exposes finite refusal reasons for the original request. [Producer](https://github.com/edgepillar/syrius/actions/runs/42879055212) and [reader](https://github.com/edgepillar/syrius/actions/runs/42882219474). |
 | V03 | done | 2026-11-12T03:23Z | Source648 673fe4a19468, Source670 2b2c4abdadae, Source676 5d555665a643 and Source686 15fec4c9120f provide executed native refusals for all fifteen current seam values and pointer/keyboard refusal for the only seamed palette target. No direct missing-feature shortcut or other seamed palette target is registered. All 1,213 current runtime entries match Source686; the sole older token observer difference is covered by its holder trial. Source670's producer control list remains distinct from its legacy reader's context/closure proof. The [Source695 audit](docs/review/source695-seam-coverage.md) closes the original requirement without relabelling the later incomplete eleven-control Home batch or its failures. No new native run or visual match is claimed. |
 | V04 | done | 2026-10-31T23:34Z | All four independently qualified Source265 minimum-window/Arabic originals were actually viewed in both themes. The owned review closes SUCCESS with actual controller exit zero; required original native closure stays source-bound. Minimum controls fit and RTL layout mirrors. English fallback/missing Arabic copy is retained as X414; exact saved locale preference and Arabic glyph quality remain separate unqualified observations |
@@ -5560,11 +5582,11 @@ whole-image acceptance.
 
 | # | Screen | Dark | Light |
 | --- | --- | --- | --- |
-| 01 | `home-rest` | X1277 | X1278 |
-| 02 | `home-open` | X1279 | X1280 |
-| 03 | `home-hidden` | X1281 | X1282 |
+| 01 | `home-rest` | X1292 | X1293 |
+| 02 | `home-open` | X1294 | X1295 |
+| 03 | `home-hidden` | X1296 | X1297 |
 | 04 | `home-bell` | X823 | X824 |
-| 05 | `home-goto` | X1283 | X1284 |
+| 05 | `home-goto` | X1298 | X1299 |
 | 06 | `home-zap` | X827 | X828 |
 | 07 | `send-rest` | X829 | X830 |
 | 08 | `send-warn` | X889 | X890 |
@@ -9161,3 +9183,11 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1289 | review | 2026-11-22T00:50Z | 23-tokens-dark at a2efda99. The Held filter, search field and table headings are visible. The original capture expands the issuing account's token and reveals an empty Mint form. The reference expands a token held by an account other than its issuer and presents holder actions. The reference branch remains unobserved. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |
 | X1290 | review | 2026-11-22T00:50Z | 23-tokens-light at a2efda99. The Held filter, search field and table headings are visible. The original capture expands the issuing account's token and reveals an empty Mint form. The reference expands a token held by an account other than its issuer and presents holder actions. The reference branch remains unobserved. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |
 | X1291 | done | 2026-11-22T01:49Z | Dark Wrong Password at `93888cd9` showed the active caret. The fresh `f935a887` frame confirms the empty field and the reference warning without a caret. [Original review](docs/review/source-93888cd9-lock-verdicts.json) and [verified recapture](docs/review/source-f935a887-lock-verdicts.json). |
+| X1292 | review | 2026-11-22T02:30Z | 01-home-rest in dark at `28b39fab`. The rail, hero and Activity layout align. The isolated profile shows selected-address Activity and empty rewards, and the reference Pending card is absent. [Review](docs/review/source-28b39fab-home-verdicts.json). |
+| X1293 | review | 2026-11-22T02:30Z | 01-home-rest in light at `28b39fab`. The rail, hero and Activity layout align. The isolated profile shows selected-address Activity and empty rewards, and the reference Pending card is absent. [Review](docs/review/source-28b39fab-home-verdicts.json). |
+| X1294 | review | 2026-11-22T02:30Z | 02-home-open in dark at `28b39fab`. The expanded rail and Tokens disclosure align. The empty Token and rewards panels and the selected-address Activity leave several reference rows unobserved. [Review](docs/review/source-28b39fab-home-verdicts.json). |
+| X1295 | review | 2026-11-22T02:30Z | 02-home-open in light at `28b39fab`. The expanded rail and Tokens disclosure align. The empty Token and rewards panels and the selected-address Activity leave several reference rows unobserved. [Review](docs/review/source-28b39fab-home-verdicts.json). |
+| X1296 | review | 2026-11-22T02:30Z | 03-home-hidden in dark at `28b39fab`. The eye and masked amounts are visible. The isolated Activity table and rewards panel have fewer rows than the reference. [Review](docs/review/source-28b39fab-home-verdicts.json). |
+| X1297 | review | 2026-11-22T02:30Z | 03-home-hidden in light at `28b39fab`. The eye and masked amounts are visible. The isolated Activity table and rewards panel have fewer rows than the reference. [Review](docs/review/source-28b39fab-home-verdicts.json). |
+| X1298 | review | 2026-11-22T02:30Z | 05-home-goto in dark at `28b39fab`. The search, selected result and keyboard footer align. The retained view shows a different contact and live Activity behind the overlay. The reference backdrop shows loading skeletons. [Review](docs/review/source-28b39fab-home-verdicts.json). |
+| X1299 | review | 2026-11-22T02:30Z | 05-home-goto in light at `28b39fab`. The search, selected result and keyboard footer align. The retained view shows a different contact and live Activity behind the overlay. The reference backdrop shows loading skeletons. [Review](docs/review/source-28b39fab-home-verdicts.json). |

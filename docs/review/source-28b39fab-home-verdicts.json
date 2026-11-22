@@ -1,0 +1,68 @@
+{
+  "reviews": {
+    "01-home-rest-dark": {
+      "actual_sha256": "da1bd43433c58a5ee9ecc7f63849781febee91352687b2d9426d05ab3b7d64aa",
+      "expected_sha256": "70617942960638e9ad855344dcc7aa1433058bb4d060155f1cfb36592ca332a6",
+      "note": "The rail, hero and Activity layout align. The isolated profile shows selected-address Activity and empty rewards, and the reference Pending card is absent.",
+      "reviewed_at": "2026-11-22T02:30:49Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "01-home-rest-light": {
+      "actual_sha256": "31bd0dd65f6740221bfd46d0ab491f57ae87632895253bcbc037ddfff7a07aac",
+      "expected_sha256": "280f31f618a20af2f275bd516afc3280849180f4788f38ae7c3fdebaedd36b7c",
+      "note": "The rail, hero and Activity layout align. The isolated profile shows selected-address Activity and empty rewards, and the reference Pending card is absent.",
+      "reviewed_at": "2026-11-22T02:30:49Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-dark": {
+      "actual_sha256": "6012d67d3c0b5ed8835b5393ca136a50d4d25aec30525df3dd9509763b57879d",
+      "expected_sha256": "ef3e3dfc4e9e4a6438516fe8803c55202d744b57c964104d6212c4eb2d3ebd97",
+      "note": "The expanded rail and Tokens disclosure align. The empty Token and rewards panels and the selected-address Activity leave several reference rows unobserved.",
+      "reviewed_at": "2026-11-22T02:30:49Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-light": {
+      "actual_sha256": "6729897ef1f451509135b35d2cc2fb5d35d0a7409eef1dcfdbfc60703fc057bb",
+      "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
+      "note": "The expanded rail and Tokens disclosure align. The empty Token and rewards panels and the selected-address Activity leave several reference rows unobserved.",
+      "reviewed_at": "2026-11-22T02:30:49Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-dark": {
+      "actual_sha256": "f9ae659b8556a7cbee9bc7edfc24908235dac2d8dbe94eadce00f6681ed31c53",
+      "expected_sha256": "29421519af83d80baf69fcfe24beb37fc754d8da1c08b3a175e7224a27fedf16",
+      "note": "The eye and masked amounts are visible. The isolated Activity table and rewards panel have fewer rows than the reference.",
+      "reviewed_at": "2026-11-22T02:30:49Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-light": {
+      "actual_sha256": "6683f8f1b47eb1d4b636565b3681f8cc1b6548c6a6bfa6e593d8a6c4e826177e",
+      "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
+      "note": "The eye and masked amounts are visible. The isolated Activity table and rewards panel have fewer rows than the reference.",
+      "reviewed_at": "2026-11-22T02:30:49Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-dark": {
+      "actual_sha256": "75cb9b841d57daf0cb7c9e46d42785d6ee2f2904c066fc16580dd628dd7e9245",
+      "expected_sha256": "52ccc26f93bcad1c79ac91228648bb8c369a6cec14041f77f51d210afec0a1f9",
+      "note": "The search, selected result and keyboard footer align. The retained view shows a different contact and live Activity behind the overlay. The reference backdrop shows loading skeletons.",
+      "reviewed_at": "2026-11-22T02:30:49Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-light": {
+      "actual_sha256": "fb0886370e1902c900bb91d4e7fa28b9a86f29be9a181fff6e3be95a8599dfa1",
+      "expected_sha256": "f700f7b185b5064b45b1acc561abcee0fce392badb4dc2d58319914780b060bb",
+      "note": "The search, selected result and keyboard footer align. The retained view shows a different contact and live Activity behind the overlay. The reference backdrop shows loading skeletons.",
+      "reviewed_at": "2026-11-22T02:30:49Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
