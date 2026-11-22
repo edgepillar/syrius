@@ -6950,6 +6950,23 @@ Their exact mismatch verdicts still apply. They retain the selected
 Light theme, the Maintenance group and disabled preferences, and the
 empty Connected table respectively.
 
+#### Paired launch and handoff at `2c8fd31c`
+
+The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45071406228/job/137358963323)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45073482703/job/137365460525)
+verify the original cold launch in both builds, five normal actor exits
+and the two [handoff PNGs](docs/review/source-2c8fd31c-launch-settle-captures.json)
+captured with the measured redesign binaries. The redesign reports 88
+frames and 28 gaps. P06 reports 1,971 frames and 1,904 gaps. The
+comparison fails the 16 ms build, raster and distinct-frame criteria.
+The highest raster is 156.887 ms versus 126.360 ms, and its start
+interval crosses the observed handoff boundary. All three redesign
+rasters starting after observed settlement exceed 16 ms.
+
+The handoff PNGs increase the candidate inventory to twenty originals
+and sixteen eligible pairs. The dark PNG is byte-identical to the
+earlier `a4e0a9d3` capture. Whole-image verdicts and V02 stay open.
+
 #### Welcome backdrop at `2c8fd31c`
 
 The verified Welcome PNG digests match the already retained
