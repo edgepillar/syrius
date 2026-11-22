@@ -5838,8 +5838,9 @@ targets the same Voting row code. It is in progress.
 The Project Detail vote summary now uses the reference's 12 px inset,
 8 px gaps and 13 px values. The existing two-theme detail test checks
 these metrics on the summary and its Unknown quorum value. The
-[Linux validation at `27d16c12`](https://github.com/edgepillar/syrius/actions/runs/45007679475)
-is in progress.
+[Linux validation at `27d16c12`](https://github.com/edgepillar/syrius/actions/runs/45007679475/job/137162816884)
+passes full and strict analysis, both theme cases in the non-chain test
+suite and generated-file verification.
 
 ### Rows
 
