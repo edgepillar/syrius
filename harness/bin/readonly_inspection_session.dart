@@ -333,7 +333,7 @@ class ReadonlyInspectionSession {
 
     Future<Map<String, dynamic>> window([String? action]) async {
       final Map<String, dynamic> reply = await send(
-        <String, Object?>{'cmd': 'window', if (action != null) 'do': action},
+        <String, Object?>{'cmd': 'window', 'do': ?action},
         timeout,
       );
       if (reply['ok'] != true) _refuse(ReadonlyInspectionReason.reply);

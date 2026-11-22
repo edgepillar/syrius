@@ -3103,7 +3103,7 @@ void main() {
     }
   });
 
-  test('Home field reads preserve the original window through minimize', () async {
+  test('Home field clock survives a native minimize', () async {
     final List<Object?> actions = <Object?>[];
     final List<List<Object>> clock = <List<Object>>[
       <Object>[true, 10000],
