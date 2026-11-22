@@ -915,6 +915,9 @@ approved brand colours and font rasterization account for the remaining
 differences. The [comparison verdicts](docs/review/screen-verdicts.json)
 bind the exact PNG hashes of these six pairs. See the
 [six original Windows images](https://github.com/edgepillar/syrius/actions/runs/44623282393/artifacts/14578324803).
+The [current reader](https://github.com/edgepillar/syrius/actions/runs/44967483807/job/137039687100)
+revalidates this archive and the exact older Lock producer without a new
+native launch. The original images carry no sampled password shake offsets.
 
 The retained Addresses captures at `06eda3f7` show the selected glyph in
 columns 299 through 312 and rows 165 through 178 in both themes. The authored
@@ -5071,8 +5074,16 @@ whole-image verdicts remain open. The
 [Windows harness tests at `361b0e51`](https://github.com/edgepillar/syrius/actions/runs/44964757317/job/137031146197)
 pass the isolated controllers, strict selected analysis and the focused
 startup ownership and recipe diagnostics cases. The
-[fresh prepared catalog at `a2efda99`](https://github.com/edgepillar/syrius/actions/runs/44965669857)
-uses a separate isolated wallet and lab to obtain current captures.
+[fresh prepared catalog at `a2efda99`](https://github.com/edgepillar/syrius/actions/runs/44965669857/job/137034015736)
+uses a separate isolated wallet and lab. The
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/44967547674/job/137039882288)
+verifies all six Staking, held Tokens and Token Mine PNGs, atomic capture,
+and normal required process closure. The
+[image index](docs/review/source-a2efda99-seeded-captures.json) binds the PNGs
+to the 342,424-byte archive. At a 16-level RGB threshold, the dark and light
+comparisons differ at 31,291 and 32,850 pixels for Staking, 48,175 and
+49,570 for held Tokens, and 37,656 and 46,206 for Token Mine. The comparison
+includes the rendered fixture data. Whole-image verdicts remain open.
 
 The [natural launch producer at `f3a07338`](https://github.com/edgepillar/syrius/actions/runs/44964183241/job/137029373106)
 passes the handoff widget, ownership and diagnostics checks and builds
