@@ -5062,7 +5062,22 @@ unobserved holding. Future failed Token receipts can carry one of
 those three observations from the final completed round, with no extra
 ledger reads or changes to confirmation and holding checks. The six
 earlier `f48f3ff2` captures keep their original source and the updated
-whole-image verdicts remain open.
+whole-image verdicts remain open. The
+[Windows harness tests at `361b0e51`](https://github.com/edgepillar/syrius/actions/runs/44964757317/job/137031146197)
+pass the isolated controllers, strict selected analysis and the focused
+startup ownership and recipe diagnostics cases. The
+[fresh prepared catalog at `a2efda99`](https://github.com/edgepillar/syrius/actions/runs/44965669857)
+uses a separate isolated wallet and lab to obtain current captures.
+
+The [natural launch producer at `f3a07338`](https://github.com/edgepillar/syrius/actions/runs/44964183241/job/137029373106)
+passes the handoff widget, ownership and diagnostics checks and builds
+the Release harness. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44965586588/job/137033752479)
+verifies five motion PNGs and two normal actor exits per theme. The
+light window retains all three samples, with first observed progress
+0.391. The dark window first observes progress 0.558 and retains only
+late and settled samples. Its early sample remains missing and the
+producer retains `LAUNCH_HANDOFF_FRAME_MISSED`. Uninterrupted motion and
+the authored duration remain unverified under V02.
 
 | Original requirement | Evidence at this revision |
 | --- | --- |
