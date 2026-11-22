@@ -273,15 +273,20 @@ void main() {
         final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
         expect(tokens.importWordChoicePadding,
             const EdgeInsets.symmetric(horizontal: 13.25, vertical: 5));
-        expect(tester.widget<Segment<int>>(find.byType(Segment<int>))
-            .pillPadding, tokens.importWordChoicePadding);
+        final Finder wordChoice = find.byType(Segment<int>);
+        expect(tester.widget<Segment<int>>(wordChoice).pillPadding,
+            tokens.importWordChoicePadding);
         // Two measured tabular-label insets, plus both 1px + 3px track sides.
         final double segmentWidth = tester.getSize(words12).width +
             tester.getSize(words24).width +
             2 * tokens.importWordChoicePadding.horizontal + 8;
         expect(
-          tester.getSize(find.byType(Segment<int>)).width,
+          tester.getSize(wordChoice).width,
           closeTo(segmentWidth, 0.01),
+        );
+        expect(
+          tester.getCenter(wordChoice).dy,
+          closeTo(tester.getCenter(action).dy + 0.5, 0.01),
         );
         await tester.tap(action);
         expect(continues, 1);

@@ -103,19 +103,23 @@ class ImportSurface extends StatelessWidget {
         alignment: WrapAlignment.spaceBetween,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: <Widget>[
-          Segment<int>(
-            keyPrefix: 'import_words',
-            pillPadding: tokens.importWordChoicePadding,
-            items: <SegmentItem<int>>[
-              for (final int count in <int>[12, 24])
-                SegmentItem<int>(
-                  value: count,
-                  label: context.l10n.seedChoiceWordsLabel(count),
-                  labelStyle: tokens.compactText,
-                ),
-            ],
-            selected: draft.expectedWords,
-            onChanged: onWordCountChanged,
+          Transform.translate(
+            // Align the footer track and its thumb to the reference rows.
+            offset: const Offset(0, 0.5),
+            child: Segment<int>(
+              keyPrefix: 'import_words',
+              pillPadding: tokens.importWordChoicePadding,
+              items: <SegmentItem<int>>[
+                for (final int count in <int>[12, 24])
+                  SegmentItem<int>(
+                    value: count,
+                    label: context.l10n.seedChoiceWordsLabel(count),
+                    labelStyle: tokens.compactText,
+                  ),
+              ],
+              selected: draft.expectedWords,
+              onChanged: onWordCountChanged,
+            ),
           ),
           PrimaryPill(
             key: const Key('import_continue'),

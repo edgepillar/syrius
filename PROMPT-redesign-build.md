@@ -6916,6 +6916,15 @@ illustrative ellipsis after the entered draft. Both Welcome pairs carry
 their existing digest-bound verdicts. The 90-pair inventory has 43
 current verdicts, including three matches and 40 mismatches.
 
+A read of both original Import PNGs at column 413 finds the word-count
+track edges split across rows 548–549 and 584–585. The reference has
+one full outline row at 549 and one at 585. The selected thumb shows
+the same half-pixel displacement. The Import footer now paints its
+word-count selector half a logical pixel lower. The shared Segment
+layout and input ownership stay in place. The existing footer case
+checks the center offset in both themes. Fresh Windows PNGs are
+needed to confirm the raster alignment.
+
 The [Linux run at `2c8fd31c`](https://github.com/edgepillar/syrius/actions/runs/45070486871/job/137356114553)
 passes strict analysis, both Import geometry cases, 5,135 non-chain
 tests with one skip, and generated-file verification.
