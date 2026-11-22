@@ -5958,6 +5958,13 @@ the reference at (21, 21, 21). The light caption still differs by at least
 16 in an RGB channel at 40,883 pixels. Whole-image and fresh Windows capture
 acceptance remain open.
 
+The [Linux run at `044f9aba`](https://github.com/edgepillar/syrius/actions/runs/45013026613/job/137179280188)
+also fails the two exterior pixel assertions with 5,130 passes and one skip.
+Flutter's automated widget binding disables shadow blur by default. The
+Swap pixel test now enables blur only during the original route capture and
+restores the setting before its other checks. It compares the same two
+positions and reports their measured channel values on failure.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since

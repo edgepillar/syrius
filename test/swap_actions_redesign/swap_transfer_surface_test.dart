@@ -1,6 +1,7 @@
 import 'dart:ui' as ui show Image, Tristate;
 
-import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
+import 'package:flutter/rendering.dart'
+    show RenderRepaintBoundary, debugDisableShadows;
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -107,32 +108,45 @@ void main() {
             ),
           ),
         );
-        await tester.tap(find.text('Open fixture'));
-        await tester.pumpAndSettle();
         final Finder dialog = find.byKey(const Key('fixture_transfer'));
-        final FrostedDialogRoute<Object?> route = ModalRoute.of<Object?>(
-          tester.element(dialog),
-        )! as FrostedDialogRoute<Object?>;
+        final bool originalShadows = debugDisableShadows;
+        debugDisableShadows = false;
+        try {
+          await tester.tap(find.text('Open fixture'));
+          await tester.pumpAndSettle();
+          final Rect bounds = tester.getRect(dialog);
+          final RenderRepaintBoundary scene = tester.renderObject(
+            find.byKey(sceneKey),
+          );
+          final ({int near, int far})? samples = await tester.runAsync(
+            () async {
+              final ui.Image image = await scene.toImage();
+              try {
+                final ByteData bytes = (await image.toByteData())!;
+                int redAt(double x, double y) => bytes.getUint8(
+                  (y.round() * image.width + x.round()) * 4,
+                );
+                return (
+                  near: redAt(bounds.right + 12, bounds.center.dy),
+                  far: redAt(bounds.right + 180, bounds.center.dy),
+                );
+              } finally {
+                image.dispose();
+              }
+            },
+          );
+          expect(samples, isNotNull);
+          expect(samples!.near, lessThan(samples.far));
+        } finally {
+          debugDisableShadows = originalShadows;
+        }
+        final FrostedDialogRoute<Object?> route =
+            ModalRoute.of<Object?>(
+                  tester.element(dialog),
+                )!
+                as FrostedDialogRoute<Object?>;
         expect(route.frostWindowCaption, isTrue);
-        final Rect bounds = tester.getRect(dialog);
-        expect(bounds.width, 480);
-        final RenderRepaintBoundary scene = tester.renderObject(
-          find.byKey(sceneKey),
-        );
-        final bool? hasShadow = await tester.runAsync(() async {
-          final ui.Image image = await scene.toImage();
-          try {
-            final ByteData bytes = (await image.toByteData())!;
-            int redAt(double x, double y) => bytes.getUint8(
-              (y.round() * image.width + x.round()) * 4,
-            );
-            return redAt(bounds.right + 12, bounds.center.dy) <
-                redAt(bounds.right + 180, bounds.center.dy);
-          } finally {
-            image.dispose();
-          }
-        });
-        expect(hasShadow, isTrue);
+        expect(tester.getSize(dialog).width, 480);
         final BoxDecoration border =
             tester.widget<DecoratedBox>(dialog).decoration as BoxDecoration;
         expect(border.borderRadius, BorderRadius.circular(12));
