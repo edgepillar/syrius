@@ -5855,6 +5855,16 @@ change still fails the 16 ms comparison for raster and distinct frames.
 Disclosure fails for build, raster and distinct frames. The counters
 record occupancy at the peak only. Raster cost attribution remains open.
 
+The same reader's motion-phase receipt shows four of six rasters above
+16 ms after the reported page settlement, and seven of seven after the
+reported disclosure settlement, grouped by raster start. The
+disclosure's peak raster starts 671.607 ms after pointer release. The
+page-change frame with the highest total duration spends 200.292 ms
+between build and raster, and 97.247 ms inside raster. These intervals
+show that work on settled views and time waiting for raster both matter
+to the measured result. They leave widget and presentation attribution
+open.
+
 In the pinned Flutter 3.47.7 engine, the raster timer surrounds
 `DrawToSurfaceUnsafe`, including the layer-tree raster and the frame
 submission. The Windows compositor forwards the presentation callback
