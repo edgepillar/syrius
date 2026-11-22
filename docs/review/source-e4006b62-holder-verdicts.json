@@ -1,0 +1,20 @@
+{
+  "reviews": {
+    "23-tokens-dark": {
+      "actual_sha256": "8c73ac652a4dfbd236c339fc3337d039cf2587436d18531cf030df1759a9813b",
+      "expected_sha256": "c1ba43d7fd1ae7956a4e0c9d398e7d99341f7704a32fd5e60caa1e8f6cb3281e",
+      "note": "The confirmed transfer status and empty Domain button are absent. The selected holding shows the singular summary, expanded facts, Send and Explorer. The reference has three holdings and the expanded token has a domain and holder Burn action.",
+      "reviewed_at": "2026-11-22T07:19:59Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "23-tokens-light": {
+      "actual_sha256": "0e4075333041cdc41deeb39c310429d15cd3ff9cafc85175e405678b1a857032",
+      "expected_sha256": "c262b77173db8b229a6a1267fc2b01240635d38b251e1280658e377f91b03f8a",
+      "note": "The confirmed transfer status and empty Domain button are absent. The selected holding shows the singular summary, expanded facts, Send and Explorer. The reference has three holdings and the expanded token has a domain and holder Burn action.",
+      "reviewed_at": "2026-11-22T07:19:59Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}

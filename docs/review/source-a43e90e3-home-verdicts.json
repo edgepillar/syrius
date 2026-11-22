@@ -16,6 +16,14 @@
       "reviewer": "Codex",
       "verdict": "mismatch"
     },
+    "02-home-open-dark": {
+      "actual_sha256": "b6c0e20504cbcd576f8cf7fd7cb82b4633719190c851f9168ea37b0b5d4ceae0",
+      "expected_sha256": "ef3e3dfc4e9e4a6438516fe8803c55202d744b57c964104d6212c4eb2d3ebd97",
+      "note": "The expanded rail and open Tokens panel align with their reference positions. The isolated selected-address Activity has one visible row, and Tokens and rewards are empty. The reference panels are populated.",
+      "reviewed_at": "2026-11-22T07:19:59Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
     "02-home-open-light": {
       "actual_sha256": "086c2c1cc8cfe99529d5bc3318aed43cd269175ecacafcc92bbc889ec6faa218",
       "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
@@ -24,11 +32,35 @@
       "reviewer": "Codex",
       "verdict": "mismatch"
     },
+    "03-home-hidden-dark": {
+      "actual_sha256": "b434877fc78fca47447046c5448649db7f0ad7472454e2507cbfb6278e255864",
+      "expected_sha256": "29421519af83d80baf69fcfe24beb37fc754d8da1c08b3a175e7224a27fedf16",
+      "note": "The eye and masked values are visible in the hero and Activity. Sparse selected-address Activity, no rewards and zero held tokens differ from the reference.",
+      "reviewed_at": "2026-11-22T07:19:59Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
     "03-home-hidden-light": {
       "actual_sha256": "048284481d7182c3947ec2906f565f5e4397e665d304682ddb785338281a0f16",
       "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
       "note": "The eye and masked balance and Activity amounts are visible. The isolated profile has one Activity row, empty rewards and zero tokens. The reference contains several masked rows, rewards and holdings. The captured and reference bytes match the reviewed 1cfd62d0 pair.",
       "reviewed_at": "2026-11-22T07:12:51Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-dark": {
+      "actual_sha256": "c22224bba164d545180dffc093d27c62e6714fbbb74d3a541a36aa30618023ce",
+      "expected_sha256": "52ccc26f93bcad1c79ac91228648bb8c369a6cec14041f77f51d210afec0a1f9",
+      "note": "The centered palette, selected result and keyboard footer align. The matching contact differs, and the live blurred Activity has a settled row where the reference shows loading skeletons.",
+      "reviewed_at": "2026-11-22T07:19:59Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-light": {
+      "actual_sha256": "0c27b9637c7bbb61b604abf8eb8c987cfdacc3cd43c5f78ee5c298793909f341",
+      "expected_sha256": "f700f7b185b5064b45b1acc561abcee0fce392badb4dc2d58319914780b060bb",
+      "note": "The centered palette, selected result and keyboard footer align. The matching contact differs, and the live blurred Activity has a settled row where the reference shows loading skeletons.",
+      "reviewed_at": "2026-11-22T07:19:59Z",
       "reviewer": "Codex",
       "verdict": "mismatch"
     }
