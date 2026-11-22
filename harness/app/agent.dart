@@ -4664,7 +4664,9 @@ class HarnessAgent {
             frameKey: key is ValueKey<String> ? key.value : null,
             active: frame?.active == true,
             busy: frame?.busy != false,
-            mintableToggle: fresh.node!.key == 'token_mintable_checkbox',
+            optionToggle: const <String>{
+              'token_mintable_checkbox', 'token_burnable_checkbox',
+            }.contains(fresh.node!.key),
           );
         }
         if (c['seedOwner'] != null) {

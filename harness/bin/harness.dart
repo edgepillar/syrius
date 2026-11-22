@@ -1261,7 +1261,8 @@ Future<Map<String, dynamic>> seed(
   try {
     final String name = pillarSponsor != null
         ? 'fuse-pillar-sponsor'
-        : restoredFunding && id == 'fuse' ? 'fuse-secondary' : id;
+        : restoredFunding && id == 'fuse' ? 'fuse-secondary'
+        : catalogTokenHolding ? 'token-catalog' : id;
     final File file = File('$repo/harness/seed/$name.txt');
     if (FileSystemEntity.typeSync(file.path, followLinks: false) !=
             FileSystemEntityType.file ||
@@ -1271,7 +1272,8 @@ Future<Map<String, dynamic>> seed(
     final String source = file.readAsStringSync();
     originalTrace.at(SeedOperationAction.source, SeedOperationStep.parse);
     final SeedRecipe plan = SeedRecipe.parse(id, source,
-        restoredFunding: restoredFunding, pillarSponsor: pillarSponsor != null);
+        restoredFunding: restoredFunding, pillarSponsor: pillarSponsor != null,
+        catalogTokenHolding: catalogTokenHolding);
     final Map<String, dynamic> ready = await command(<String, Object?>{
       'action': 'begin',
       'recipe': id,

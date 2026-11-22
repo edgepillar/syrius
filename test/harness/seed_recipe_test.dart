@@ -91,6 +91,17 @@ void main() {
           'tap --key token_create_continue',
         ],
       );
+      final String catalogToken =
+          File('harness/seed/token-catalog.txt').readAsStringSync();
+      final SeedRecipe catalogPlan = SeedRecipe.parse('token', catalogToken,
+          catalogTokenHolding: true);
+      expect(catalogPlan.lines.expand((List<String> words) => words),
+          containsAll(<String>['token_burnable_checkbox', catalogTokenDomain]));
+      expect(() => SeedRecipe.parse('token', catalogToken),
+          throwsA(isA<SeedRefused>()));
+      expect(() => SeedRecipe.parse('token',
+          catalogToken.replaceFirst(catalogTokenDomain, 'https://example.org'),
+          catalogTokenHolding: true), throwsA(isA<SeedRefused>()));
       final String deposit = File('harness/seed/deposit.txt')
           .readAsStringSync().replaceAll('\r\n', '\n');
       const String marker =
@@ -288,14 +299,14 @@ void main() {
       expect(
         () => requireSeedTokenPreparation(
           frameKey: 'token_create_options', active: true, busy: false,
-          mintableToggle: true,
+          optionToggle: true,
         ),
         returnsNormally,
       );
       expect(
         () => requireSeedTokenPreparation(
           frameKey: 'token_create_supply', active: true, busy: false,
-          mintableToggle: true,
+          optionToggle: true,
         ),
         throwsA(isA<SeedRefused>()),
       );

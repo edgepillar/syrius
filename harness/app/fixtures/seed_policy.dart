@@ -140,6 +140,9 @@ final class SeedConfirmationObservation {
 
 enum SeedPendingResult { absent, unconfirmed, effectPending }
 
+/// Reserved domain used only by the isolated token catalog.
+const String catalogTokenDomain = 'https://example.invalid';
+
 enum SeedTokenEffect {
   metadataAbsent('metadata_absent'),
   metadataMismatch('metadata_mismatch'),

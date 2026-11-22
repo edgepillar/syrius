@@ -329,6 +329,7 @@ final class SeedCommands {
           recipe,
           raw.cast<String>(),
           fuseTarget: fuseTarget,
+          catalogTokenHolding: _catalogTokenHolding,
         );
         if (recipe == 'deposit' && exact['key'] == 'p2p_warning_continue') {
           if (_depositEntryAttempted) {

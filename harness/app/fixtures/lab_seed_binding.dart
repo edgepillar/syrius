@@ -1234,6 +1234,8 @@ final class LabSeedBinding
           token.symbol == 'LAB' &&
           token.decimals == 0 &&
           token.isMintable &&
+          (!_catalogTokenHolding || token.isBurnable &&
+              token.domain == catalogTokenDomain) &&
           token.totalSupply == _initialSeedTokenUnits &&
           token.maxSupply == BigInt.from(10000);
       if (!issued) {

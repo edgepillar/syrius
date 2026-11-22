@@ -5298,6 +5298,13 @@ verify the preparation receipt and empty Domain button are absent in both
 themes. The illustrated Burn action and populated domain are absent in the
 fixture, and the reference has more holdings. Both pairs remain mismatches.
 
+The next isolated catalog prepares the Burn and Domain controls through the
+ordinary Token issue form. Its bounded recipe enters a reserved HTTPS domain
+and enables the burnable option. The original holding guard verifies both
+fields on the confirmed token, along with the existing owner, supply and
+balance checks. The standalone seed recipe keeps its original terms. Native
+visual verification is pending.
+
 A holder's Domain action now occupies the Domain value cell with the
 original external-link symbol when a domain exists. An empty value has no
 standalone button. The original owner controls and publication explorer

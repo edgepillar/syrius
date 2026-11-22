@@ -16,8 +16,10 @@ final class SeedRecipe {
   factory SeedRecipe.parse(String id, String text, {
     bool restoredFunding = false,
     bool pillarSponsor = false,
+    bool catalogTokenHolding = false,
   }) {
-    if (pillarSponsor && (id != 'fuse' || restoredFunding)) {
+    if (pillarSponsor && (id != 'fuse' || restoredFunding) ||
+        catalogTokenHolding && id != 'token') {
       throw const SeedRefused('recipe-prerequisite-missing');
     }
     final SeedFuseTarget? fuseTarget = pillarSponsor
@@ -123,7 +125,8 @@ final class SeedRecipe {
         throw const SeedRefused('seed-script-key-refused');
       }
       if (words.first == 'tap') {
-        seedPreparationTarget(id, words.sublist(1), fuseTarget: fuseTarget);
+        seedPreparationTarget(id, words.sublist(1), fuseTarget: fuseTarget,
+            catalogTokenHolding: catalogTokenHolding);
       }
       if (words.contains('--timeout')) {
         final int at = words.indexOf('--timeout');
@@ -180,6 +183,17 @@ final class SeedRecipe {
         throw const SeedRefused('original-fuse-terms-mismatch');
       }
     }
+    if (catalogTokenHolding) {
+      final Iterable<String> commands = lines.map((List<String> words) =>
+          words.join(' '));
+      if (commands.where((String command) =>
+              command == 'type --key token_domain_field $catalogTokenDomain')
+              .length != 1 ||
+          commands.where((String command) =>
+              command == 'tap --key token_burnable_checkbox').length != 1) {
+        throw const SeedRefused('recipe-prerequisite-missing');
+      }
+    }
     return SeedRecipe._(id, List<List<String>>.unmodifiable(lines));
   }
   /// The fixed recipe selected by the isolated fixture workflow.
@@ -217,6 +231,7 @@ List<String> seedPublishSelector(String recipe) => switch (recipe) {
 /// additionally requires its actual original preparation frame at pointer time.
 Map<String, Object> seedPreparationTarget(String recipe, List<String> words, {
   SeedFuseTarget? fuseTarget,
+  bool catalogTokenHolding = false,
 }) {
   final Set<String> allowed = switch (recipe) {
     'stake' => const <String>{
@@ -230,7 +245,8 @@ Map<String, Object> seedPreparationTarget(String recipe, List<String> words, {
         '--key ${fuseTarget.optionKey}',
       },
     },
-    'token' => const <String>{
+    'token' => <String>{
+      if (catalogTokenHolding) '--key token_burnable_checkbox',
       '--key tokens_create',
       '--key token_create_continue',
       '--key token_mintable_checkbox',
@@ -265,7 +281,7 @@ void requireSeedTokenPreparation({
   required String? frameKey,
   required bool active,
   required bool busy,
-  bool mintableToggle = false,
+  bool optionToggle = false,
 }) {
   const Set<String> frames = <String>{
     'token_create_details',
@@ -275,7 +291,7 @@ void requireSeedTokenPreparation({
   if (!active ||
       busy ||
       !frames.contains(frameKey) ||
-      (mintableToggle && frameKey != 'token_create_options')) {
+      (optionToggle && frameKey != 'token_create_options')) {
     throw const SeedRefused('token-publication-requires-guarded-publish');
   }
 }
