@@ -6209,6 +6209,21 @@ P06 input object IDs before allocating Flutter or a lab. The early check
 reads the checkout's Git metadata and the pinned P06 IDs. The measurement
 still compares the actual checked-out baseline and current input objects.
 
+The [restored-input Windows run at `15cffcfa`](https://github.com/edgepillar/syrius/actions/runs/45061850055/job/137329306824)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/45064139553/job/137336404040)
+verify both original interactions, two normal wallet exits, two normal
+entry exits and five normal node exits. Both interactions still fail
+the raster and distinct-frame comparisons at 16 ms.
+
+| Interaction | Redesign / P06 frames | Redesign / P06 peak raster | Missing frame numbers |
+| --- | --- | --- | --- |
+| Page change | 8 / 19 | 328.389 / 140.318 ms | 37 / 24 |
+| Disclosure | 15 / 24 | 56.469 / 43.756 ms | 23 / 16 |
+
+The reader also observes settled Node Settings raster peaks of 72.354
+ms and 34.822 ms, and closed About peaks of 43.772 ms and 41.583 ms.
+The result predates the muted-skeleton change. V02 remains open.
+
 #### Paired Windows cold launch timing at `f0b1a110`
 
 The [native producer](https://github.com/edgepillar/syrius/actions/runs/44979865019/job/137077797577)
