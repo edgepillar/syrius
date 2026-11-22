@@ -6878,6 +6878,19 @@ these sixteen pairs, and V01 remains open.
 The [Home catalog run](https://github.com/edgepillar/syrius/actions/runs/45070190929)
 uses the same source for eight further pairs.
 
+### Import label alignment at `2c8fd31c` (2026-11-22)
+
+The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45070486650/job/137356114381)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45071106988/job/137358021908)
+verify [four original entry PNGs](docs/review/source-2c8fd31c-entry-captures.json)
+with normal process exit. Against the same pinned references, pixels
+differing by at least 16 levels in any channel in the Import heading and
+steps region fall from 2,355 to 2,034 in dark and from 2,499 to 2,211 in
+light. Those decreases account for the full-image difference counts.
+All six Import numeral samples finish on reference row 283, and both
+Welcome PNG digests match the earlier capture. Full visual acceptance
+remains open.
+
 ### End-state audit at `f421d5d1` (2026-11-22)
 
 | End-state item | Verified evidence and remaining check |
