@@ -910,13 +910,21 @@ def home_pixel_comparisons(raw, reference_dir):
             yield _catalog_pixel_pair(zipped, reference_dir, screen, regions)
 
 
-def details_pixel_comparisons(raw, reference_dir):
-    """Compare each original Details pair against its numbered reference."""
+def details_pixel_comparisons(raw, reference_dir, *, files=producer.details.FILES):
+    """Compare verified Details or Token draft pairs with their numbered references."""
     regions = dict(caption=(0, 0, 1280, 32), rail=(0, 32, 60, 780),
                    content=(60, 32, 1280, 724), status=(60, 724, 1280, 780))
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
-        for screen in _catalog_pair_names(producer.details.FILES):
-            crop = _originals_pixel_regions(regions) if screen == '38-set-originals' else regions
+        for screen in _catalog_pair_names(files):
+            crop = regions
+            if screen == '38-set-originals':
+                crop = _originals_pixel_regions(regions)
+            elif screen == '25-token-new':
+                crop = dict(
+                    caption=regions['caption'], rail=regions['rail'], status=regions['status'],
+                    pane_header=(60, 32, 1280, 85),
+                    steps_and_fee=(60, 85, 360, 342), preview=(60, 342, 360, 724),
+                    form=(360, 85, 1280, 724))
             yield _catalog_pixel_pair(zipped, reference_dir, screen, crop)
 
 
@@ -1536,10 +1544,12 @@ def main(parent=None):
             if {'10-receive-qr-dark.png', '22-plasma-fuse-dark.png',
                     '37-set-licences-dark.png'} <= set(catalog['filenames']):
                 catalog['component_geometry'] = details_component_geometry(catalog_archive)
-            if schema == producer.details.FAMILY_SCHEMAS['details'] and reference_head is not None:
+            if (schema in (producer.details.FAMILY_SCHEMAS['details'],
+                           producer.details.FAMILY_SCHEMAS['token-draft'])
+                    and reference_head is not None):
                 need(digest(reference_head, 40))
                 catalog_comparisons = list(details_pixel_comparisons(
-                    catalog_archive, repo / 'mockups/redesign/shots'))
+                    catalog_archive, repo / 'mockups/redesign/shots', files=catalog['filenames']))
             if schema == producer.details.FAMILY_SCHEMAS['earn']:
                 catalog['staking_empty_bands'] = staking_empty_bands(catalog_archive)
             if schema == producer.details.FAMILY_SCHEMAS['sentinel-fixture']:

@@ -162,6 +162,26 @@ class ReaderTests(unittest.TestCase):
                        for theme in ('dark', 'light')},
         })
 
+    def test_token_draft_comparison_partitions_the_matching_reference_frames(self):
+        names = ('25-token-new-dark.png', '25-token-new-light.png')
+        raw = packed([(name, name.encode(), stat.S_IFREG) for name in names])
+        reference_dir = Path('references')
+        with mock.patch.object(reader.producer, 'read_original',
+                side_effect=lambda path, _: path.name.encode()) as read, \
+                mock.patch.object(reader.windows, 'pixel_comparison',
+                    side_effect=lambda actual, reference, _, **options: actual == reference):
+            [comparison] = reader.details_pixel_comparisons(raw, reference_dir, files=names)
+        self.assertEqual(comparison['screen'], '25-token-new')
+        self.assertEqual([call.args[0] for call in read.call_args_list],
+                         [reference_dir / name for name in names])
+        self.assertEqual(comparison['pairs'], {'dark': True, 'light': True})
+        bounds = comparison['region_bounds']
+        self.assertEqual(bounds['steps_and_fee'], (60, 85, 360, 342))
+        self.assertEqual(bounds['preview'], (60, 342, 360, 724))
+        self.assertEqual(bounds['form'], (360, 85, 1280, 724))
+        self.assertEqual(sum((right - left) * (bottom - top)
+                             for left, top, right, bottom in bounds.values()), 1280 * 780)
+
     def test_settings_comparison_covers_each_section_and_both_themes(self):
         screens = ('30-set-node', '31-set-security', '32-set-display',
                    '33-set-wallet', '34-set-apps', '35-set-addresses', '36-set-about')
