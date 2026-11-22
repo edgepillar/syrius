@@ -5219,6 +5219,22 @@ or transaction identifiers. The balance gate and eighteen reads still govern
 qualification. Only an existing pending receive handle can schedule the same
 bounded wait. Native confirmation of these diagnostics is pending.
 
+The [producer at `a07745fb`](https://github.com/edgepillar/syrius/actions/runs/44981333518)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44982821181/job/137086850443)
+verify both original seed receipts and a refusal on line 10 of the dark
+holder recipe. Its original Explorer control is guarded by the unavailable
+service seam, so the positive hit-test assertion refused as covered. The
+capture now waits for the same panel's original Send button to be ready and
+uses it for the readback assertion. The recipe does not activate Send. The
+bound non-owner holding checks still run around readback and the original
+Explorer seam stays in place. This run retained no holder images.
+
+[Fork Linux validation at `562597a7`](https://github.com/edgepillar/syrius/actions/runs/44982169688/job/137084834033)
+passes application and strict analysis, 5,132 tests with one skip, and
+generated-file verification. The producer also verifies 1,531 focused
+Windows-tour cases on Linux. The holder recipe adjustment needs a fresh
+native readback.
+
 The [natural launch producer at `f3a07338`](https://github.com/edgepillar/syrius/actions/runs/44964183241/job/137029373106)
 passes the handoff widget, ownership and diagnostics checks and builds
 the Release harness. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44965586588/job/137033752479)

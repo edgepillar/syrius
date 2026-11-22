@@ -546,7 +546,12 @@ void main() {
       final ScreenScript holder =
           ownedCapture(project: false, tokenHolder: true)
               .preflight('tokens').single;
-      expect(holder.assertion['key'], 'token_explorer_control');
+      expect(holder.lines[6].words, <String>[
+        'wait', '--key', 'token_send', '--kind', 'button', '--ready', '--exact',
+        '--timeout', '30',
+      ]);
+      expect(holder.assertion['key'], 'token_send');
+      expect(holder.assertion['kind'], 'button');
       expect(holder.assertion['exact'], isTrue);
       expect(holder.afterCapture.last.words, <String>[
         'wait', '--key', 'token_explorer_control', '--gone', '--timeout', '10',
