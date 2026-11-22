@@ -508,6 +508,7 @@ class SwapAmountPane extends StatelessWidget {
             decimals: token.decimals,
             style: tokens.ledgerText,
             symbol: token.symbol,
+            symbolFontSize: tokens.ledgerText.fontSize,
           );
     final Widget figure = Column(
       mainAxisSize: MainAxisSize.min,

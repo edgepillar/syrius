@@ -46,6 +46,7 @@ class AmountText extends StatelessWidget {
     required this.decimals,
     required this.style,
     this.symbol,
+    this.symbolFontSize,
     this.symbolColor,
     this.showPositiveSign = false,
     super.key,
@@ -60,8 +61,11 @@ class AmountText extends StatelessWidget {
   /// The style of the significant digits.
   final TextStyle style;
 
-  /// Shown after the amount, smaller.
+  /// Shown after the amount, smaller by default.
   final String? symbol;
+
+  /// The token symbol size when the whole amount shares a text role.
+  final double? symbolFontSize;
 
   /// The symbol's colour; the token's own colour where it has one.
   final Color? symbolColor;
@@ -75,6 +79,7 @@ class AmountText extends StatelessWidget {
     // even dimmed. Nothing is rounded; only zeros that say nothing go.
     final (String head, _) = splitAmount(raw, decimals);
     final TextStyle mono = monoStyle(style);
+    final double proportionalSymbolSize = (style.fontSize ?? 14) * 0.53;
     return Text.rich(
       TextSpan(
         style: mono,
@@ -87,9 +92,9 @@ class AmountText extends StatelessWidget {
             TextSpan(
               text: symbol,
               style: TextStyle(
-                fontSize: (style.fontSize ?? 14) * 0.53 < 13
-                    ? 13
-                    : (style.fontSize ?? 14) * 0.53,
+                fontSize:
+                    symbolFontSize ??
+                    (proportionalSymbolSize < 13 ? 13 : proportionalSymbolSize),
                 color: symbolColor,
               ),
             ),

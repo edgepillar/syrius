@@ -284,6 +284,13 @@ void main() {
         expect(partyStyle.fontSize, 11);
         expect(partyStyle.letterSpacing, 0.66);
         expect(tester.widget<AmountText>(balance).style, tokens.ledgerText);
+        final Text balanceText = tester.widget<Text>(
+          find.descendant(of: balance, matching: find.byType(Text)),
+        );
+        final TextSpan balanceSpan = balanceText.textSpan! as TextSpan;
+        final TextSpan unitSpan = balanceSpan.children!.last as TextSpan;
+        expect(unitSpan.text, 'ZNN');
+        expect(unitSpan.style!.fontSize, partyStyle.fontSize);
         final Finder token = find.widgetWithText(OutlinedButton, 'ZNN');
         expect(tester.getCenter(party).dy, tester.getCenter(balance).dy);
         expect(
