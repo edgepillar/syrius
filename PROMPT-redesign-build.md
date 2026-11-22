@@ -6067,6 +6067,13 @@ The original spans are [196, 309) and [332, 443), against the reference
 [186, 295) and [317, 427). The pane fill samples match both reference
 colors. The remaining displacement is vertical at this column.
 
+The shared custom route now includes the caption height when centering
+the Start and Join Swap dialogs. It uses the same client-area inset
+calculation as Send confirmation. The Windows caption remains reachable.
+The widget case verifies the centered position through the original
+caption frame and custom route. A fresh Windows capture must establish
+the resulting pane positions and whole-image verdicts.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since

@@ -92,7 +92,8 @@ Future<bool?> showDialogWithNoAndYesOptions({
 
 /// Shows [content], usually a `BaseModal`, centred over the page.
 ///
-/// Set [frostWindowCaption] to extend the route's frost to the app caption.
+/// Set [frostWindowCaption] to include the app caption in the frost and
+/// centre the dialog in the client area.
 Future<Object?> showCustomDialog({
   required BuildContext context,
   required Widget content,
@@ -133,13 +134,24 @@ Future<Object?> showCustomDialog({
           BuildContext context,
           Animation<double> animation,
           Animation<double> secondaryAnimation,
-        ) => Center(
-          child: clipContent
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(kCardRadius),
-                  child: content,
-                )
-              : content,
-        ),
+        ) {
+          final Widget dialog = Center(
+            child: clipContent
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(kCardRadius),
+                    child: content,
+                  )
+                : content,
+          );
+          if (!frostWindowCaption) return dialog;
+          final EdgeInsets insets = clientCentredDialogInsets(
+            context,
+            AppTokens.of(context).windowCaptionHeight / 2,
+          );
+          return Padding(
+            padding: EdgeInsets.only(bottom: insets.bottom - insets.top),
+            child: dialog,
+          );
+        },
   ),
 );

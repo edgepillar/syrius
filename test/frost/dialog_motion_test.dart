@@ -1,8 +1,14 @@
+import 'package:flutter/foundation.dart' as foundation;
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 
 double _rise(WidgetTester tester) => tester
     .widget<Transform>(
@@ -14,6 +20,64 @@ double _rise(WidgetTester tester) => tester
     .storage[13];
 
 void main() {
+  testWidgets('caption frost centres custom dialogs in the full client area', (
+    WidgetTester tester,
+  ) async {
+    const MethodChannel channel = MethodChannel('window_manager');
+    final TestDefaultBinaryMessenger messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          ..setMockMethodCallHandler(channel, (MethodCall call) async {
+            return switch (call.method) {
+              'isFullScreen' || 'isMaximized' => false,
+              _ => null,
+            };
+          });
+    addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+    tester.view
+      ..physicalSize = const Size(1280, 780)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    const Key probe = Key('client_centred_dialog');
+    final foundation.TargetPlatform? platform =
+        foundation.debugDefaultTargetPlatformOverride;
+    foundation.debugDefaultTargetPlatformOverride =
+        foundation.TargetPlatform.windows;
+    try {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.darkTheme,
+          localizationsDelegates: appLocalizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          builder: (_, Widget? child) => AppWindowFrame(child: child!),
+          home: Scaffold(
+            body: Builder(
+              builder: (BuildContext context) => TextButton(
+                onPressed: () => showCustomDialog(
+                  context: context,
+                  clipContent: false,
+                  frostWindowCaption: true,
+                  content: const SizedBox(key: probe, width: 480, height: 540),
+                ),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      );
+    } finally {
+      foundation.debugDefaultTargetPlatformOverride = platform;
+    }
+    expect(
+      find.byKey(const ValueKey<String>('window-caption')),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    expect(tester.getCenter(find.byKey(probe)), const Offset(640, 390));
+    await tester.pumpWidget(const SizedBox.shrink());
+    expect(FrostHold.count.value, 0);
+  });
+
   for (final bool platform in <bool>[false, true]) {
     for (final bool mediaQuery in <bool>[false, true]) {
       if (!platform && !mediaQuery) continue;
