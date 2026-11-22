@@ -1,0 +1,60 @@
+{
+  "reviews": {
+    "31-set-security-dark": {
+      "actual_sha256": "9199d1d9e13c41c76957030718496ec470f8b7ae202a687575067aee9ffc83bb",
+      "expected_sha256": "1c3a735e770863e501cc898830ca699abb20ea01593643c263fad41f00a4f411",
+      "note": "The lock, password and backup groups are present. The automatic removal explanation adds shared app data, and the navigation rail shows an unread marker above Settings that the reference lacks.",
+      "reviewed_at": "2026-11-22T22:39:46Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "31-set-security-light": {
+      "actual_sha256": "dfbde05cb40cca1b9f87724ecce86073dce3a5f5c4b18718ae7124efb39fd2bd",
+      "expected_sha256": "eb4cd651d0e487c080e8a0cc5c10289c14a35dff9dcdbe68a38cf12af58c26db",
+      "note": "The controls and selected lock timeout align. The removal explanation includes shared app data, and the rail and status strip show different notification and connection states.",
+      "reviewed_at": "2026-11-22T22:39:46Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "32-set-display-dark": {
+      "actual_sha256": "217f5c298070d161036c9a19fdb662d9cc26f4ac234090139b9cfde7e716b40d",
+      "expected_sha256": "f68b82b91f04df6c535c512da740e980026e8d980b0f68f8593fe4a070897c45",
+      "note": "All seven preferences are visible and both images select Dark and English. The Explorer selector is subdued in the actual capture, and the rail notification and connection strip differ.",
+      "reviewed_at": "2026-11-22T22:39:46Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "33-set-wallet-dark": {
+      "actual_sha256": "e782df48e0fad32530d5d496457cc37edb1da9d9e08120a934349b76a197c52e",
+      "expected_sha256": "938c775e7ef2b578c1d3a21698e13e5baff96bd01001bbb0d73aafd81d0030c8",
+      "note": "The actual wallet has Auto-receive and Desktop notifications off, while the reference shows both on. The extra Maintenance group and cache description are visible.",
+      "reviewed_at": "2026-11-22T22:39:46Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "34-set-apps-light": {
+      "actual_sha256": "0670af681ddd7bf94a8a55d9d8f6ae71de4c6155ee5181ffb60dd1555fc6d3dd",
+      "expected_sha256": "21b9bdac58c975afa405e0ed1bceb6491b42743e30015f786240bdd562e1ad22",
+      "note": "The actual Connected table is empty, and WalletConnect reports zero sessions and pairings. The reference shows two connected rows with Disconnect actions and a nonzero WalletConnect summary.",
+      "reviewed_at": "2026-11-22T22:39:46Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "36-set-about-dark": {
+      "actual_sha256": "19895222f3022f07530240f0af2f7bb63f49fd50895e0d4a5d7bddda9eba77f5",
+      "expected_sha256": "ad7fba54bc95a111744164a264efef237e7c3ebea8fca8cb087cebc04f0d831b",
+      "note": "The two update actions and three collapsed groups are visible. The actual embedded-node version is Unknown, the release badge is generic, and the Links count differs.",
+      "reviewed_at": "2026-11-22T22:39:46Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "36-set-about-light": {
+      "actual_sha256": "a0a85722a1440201b62135a000e8d70729fc1690c73809dc0ad5ffdcc69cac81",
+      "expected_sha256": "a8a8cf66e49fa88a25522dc8e759538b321f2f53c1f83d5d0d31edd3f8dd2072",
+      "note": "The actual build and update strip reports a different wallet build and no embedded-node version. The general update badge and Links count differ from the reference.",
+      "reviewed_at": "2026-11-22T22:39:46Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
