@@ -163,6 +163,27 @@ void main() {
         );
         expect(find.text('8 of 12'), findsOneWidget);
         final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
+        final Finder steps = find.byType(EntryStepPosition);
+        for (final String number in <String>['1', '2', '3']) {
+          final Finder numeral = find.descendant(
+            of: steps,
+            matching: find.text(number),
+          );
+          final Finder badge = find.ancestor(
+            of: numeral,
+            matching: find.byWidgetPredicate((Widget widget) {
+              if (widget is! Container) return false;
+              final Decoration? decoration = widget.decoration;
+              return decoration is BoxDecoration &&
+                  decoration.shape == BoxShape.circle;
+            }),
+          );
+          expect(tester.getSize(badge), const Size.square(22));
+          expect(
+            tester.getCenter(numeral).dy,
+            closeTo(tester.getCenter(badge).dy - 1, 0.01),
+          );
+        }
         final Finder field = find.byKey(const Key('import_seed_field'));
         final RenderEditable seed = tester.state<EditableTextState>(
           find.descendant(of: field, matching: find.byType(EditableText)),

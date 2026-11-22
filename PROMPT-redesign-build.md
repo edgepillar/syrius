@@ -6328,8 +6328,9 @@ against (34.0, 48.9, 36.2), and (206.3, 231.3, 216.4) in light against
 (215.6, 229.5, 217.8). The [design rules](docs/design/RULES.md) select
 `#00D557` and `#0061EB`. The [entry renderer](lib/rearchitecture/utils/widgets/entry_field.dart)
 uses the approved theme tokens, while the [reference stylesheet](mockups/redesign/src/00-head.html)
-uses `#4fd166` and `#006aff`. For the Import pair, the comparison reader
-now estimates each reference pixel as the opaque background plus three
+uses `#4fd166` and `#006aff`. For the Import pair, the
+[palette reader](https://github.com/edgepillar/syrius/actions/runs/45064802426/job/137338461250)
+estimates each reference pixel as the opaque background plus three
 effective sRGB light contributions. It holds those weights fixed and
 substitutes the approved green and blue. The mean absolute channel
 difference in the same crop falls from 3.940 to 0.631 in dark and from
@@ -6337,6 +6338,13 @@ difference in the same crop falls from 3.940 to 0.631 in dark and from
 retain their digests and verdicts. The estimate covers the sampled
 backdrop. The animation phase and the residual type differences still
 require their own evidence.
+
+At the centers of the three Import badges, both originals place their
+ring edges on rows 270 and 291. The digit ink reaches row 284 in the
+captures and row 283 in the references, in both themes. The shared entry
+step ledger moves only the numerals one logical pixel upward. The
+22-pixel circles, completed check marks and connector layout keep
+their existing geometry.
 
 The same reader finds zero horizontal and vertical shift for each of the
 three Welcome action labels in both themes within its two-pixel search.

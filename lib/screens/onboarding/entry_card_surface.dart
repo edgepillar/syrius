@@ -180,10 +180,15 @@ class EntryStepPosition extends StatelessWidget {
                         color: tokens.primaryButtonForeground,
                         size: 12,
                       )
-                    : Text(
-                        '${index + 1}',
-                        style: tokens.entryStepNumberText.copyWith(
-                          color: index == step ? tokens.znnInk : tokens.faint,
+                    : Transform.translate(
+                        // The badge already aligns with the reference ring.
+                        // Lift the numeral to its reference ink baseline.
+                        offset: const Offset(0, -1),
+                        child: Text(
+                          '${index + 1}',
+                          style: tokens.entryStepNumberText.copyWith(
+                            color: index == step ? tokens.znnInk : tokens.faint,
+                          ),
                         ),
                       ),
               ),
