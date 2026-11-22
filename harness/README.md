@@ -261,12 +261,25 @@ established by those tests. Page owners supply the scripts; the runner does
 not create missing pages, seed data or substitute mockup images.
 
 `harness/bin/screen_capture.dart` catalogs the 47 mockup IDs in their numbered
-order. `screens <id>` reads `harness/screens/<id>.txt`; `screens all` preflights
-all 47 scripts before changing the app. Both themes run the script separately,
-starting from unlocked Home with the rail collapsed. A missing script, unmet prerequisite, locked
-profile or unreachable Home stops the run. Launch, lock and onboarding shots
-still need explicit reversible preparation from F06 and the entry tasks.
-The runner does not guess passwords, restart the wallet or inject fixtures.
+order. `screens <id>` reads `harness/screens/<id>.txt`, and `screens all`
+preflights all 47 scripts before changing the app. A missing script or unmet
+prerequisite stops the run at preflight. An admitted Home script runs in each
+theme with the original wallet unlocked and the rail collapsed.
+
+The [Windows qualification workflow](../.github/workflows/public-contribution-qualification.yml)
+has dedicated entry routes that own the profile and process from startup:
+
+| Capture | Workflow inputs |
+| --- | --- |
+| Launch, launch handoff, Lock states and synthetic seed quiz | `windows_startup_probe=true`, `readonly_catalog_family=startup-catalog` |
+| Welcome and empty Import | `entry_capture_smoke=true` |
+| Ready | `windows_wallet_inspection=true`, `readonly_catalog_family=wallet-ready`, `chain321_backend=native`, `chain321_node_source=lab-fix` |
+
+Set `desktop_builds=false`, `presentation_smoke=false` and
+`devnet_tests=false` to run only the selected capture route.
+The entry prerequisites in the screen scripts reserve these states for
+their dedicated routes. Each native result retains its original source,
+run, profile scope and image digests for the comparison report.
 
 A page script uses UI commands and ends with a stable positive assertion:
 
