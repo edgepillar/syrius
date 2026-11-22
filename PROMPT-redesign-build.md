@@ -5494,6 +5494,14 @@ original captures are needed to verify the resulting column placement.
 The first [Linux dispatch](https://github.com/edgepillar/syrius/actions/runs/45029049477/job/137228349413)
 stopped at test discovery because the shared reader suite still expected
 134 cases. Its count now includes the new Domain measurement case.
+The [corrected Linux run at `0ad6f1dd`](https://github.com/edgepillar/syrius/actions/runs/45029309282/job/137229138779)
+passes the 1,269 Python cases with 17 skips, including the shared reader
+suite. The seed recipe cases, strict Dart analysis and generated-file
+verification pass. The Dart unit and widget suite passes 5,133 tests
+with one skip. The pinned
+[node validation](https://github.com/zenon-network/go-zenon/blob/2d1b929cc3fa5269cf133757d4a6963821137984/vm/embedded/implementation/token.go#L33-L44)
+accepts the fixture's domain format at the source level. The prepared
+Windows route supplies the runtime evidence for the new catalog.
 
 In the retained [Mint views at `a2efda99`](docs/review/source-a2efda99-seeded-captures.json),
 the amount and beneficiary field interiors read RGB (57, 59, 57) in dark
