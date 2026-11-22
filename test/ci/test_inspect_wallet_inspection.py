@@ -140,7 +140,7 @@ class ReaderTests(unittest.TestCase):
         with mock.patch.object(reader.producer, 'read_original',
                 side_effect=lambda path, _: path.name.encode()) as read, \
                 mock.patch.object(reader.windows, 'pixel_comparison',
-                    side_effect=lambda actual, reference, _, **options: actual == reference), \
+                    side_effect=lambda actual, reference, _, **options: actual == reference) as compare, \
                 mock.patch.object(reader.windows, '_png_crop', return_value=([swatch], 3)):
             comparisons = list(reader.details_pixel_comparisons(raw, reference_dir, files=names))
         self.assertEqual([row['screen'] for row in comparisons], list(screens))
@@ -151,6 +151,12 @@ class ReaderTests(unittest.TestCase):
         swap = comparisons[-2]['region_bounds']
         self.assertEqual(swap['amount_panes'], (400, 169, 880, 428))
         self.assertEqual(swap['footer'], (400, 590, 880, 661))
+        swap_samples = [call.kwargs['sample_points'] for call in compare.call_args_list
+                        if call.args[0].startswith(b'27-swap-start-')]
+        self.assertEqual(len(swap_samples), 2)
+        for samples in swap_samples:
+            self.assertEqual((samples['send_pane'], samples['pane_gap'], samples['receive_pane']),
+                             ((558, 230), (558, 306), (558, 375)))
         self.assertEqual(sum((right - left) * (bottom - top)
                              for left, top, right, bottom in swap.values()), 1280 * 780)
         self.assertEqual(comparisons[-2]['amount_pane_fill_rows']['themes'], {

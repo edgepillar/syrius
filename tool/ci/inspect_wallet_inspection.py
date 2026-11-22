@@ -970,7 +970,16 @@ def details_pixel_comparisons(raw, reference_dir, *, files=producer.details.FILE
                     backdrop_right=(880, 119, 1280, 661),
                     backdrop_bottom=(0, 661, 1280, 780),
                 )
-                samples = dict(near_shadow=(892, 410), far_backdrop=(1080, 410))
+                column = SWAP_AMOUNT_PANE_SCAN[0]
+                samples = dict(
+                    above_panes=(column, 170),
+                    send_pane=(column, 230),
+                    pane_gap=(column, 306),
+                    receive_pane=(column, 375),
+                    below_panes=(column, 436),
+                    near_shadow=(892, 410),
+                    far_backdrop=(1080, 410),
+                )
             yield _catalog_pixel_pair(zipped, reference_dir, screen, crop,
                                       sample_points=samples)
 
