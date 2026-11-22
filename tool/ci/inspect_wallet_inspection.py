@@ -879,9 +879,24 @@ def _map_gray_deviation(png):
     return round(1000 * weighted_error / (3 * sum(levels.values())))
 
 
+SWAP_AMOUNT_PANE_SCAN = (558, 155, 450)
+
+
+def _swap_amount_pane_rows(data, theme):
+    """Locate the two pane fills at a reference column clear of text."""
+    column, top, bottom = SWAP_AMOUNT_PANE_SCAN
+    fill = (46, 48, 46) if theme == 'dark' else (255, 255, 255)
+    bands = _image_vertical_bands(data, column, top, bottom)
+    # Short or clipped bands do not identify a complete reference pane.
+    spans = [[start, end] for (start, color), (end, _) in zip(bands, bands[1:])
+             if tuple(color[:3]) == fill and start > top and end - start >= 60]
+    return spans if len(spans) == 2 else None
+
+
 def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points=None):
     pairs = {}
     map_gray = {}
+    pane_rows = {}
     for theme in producer.THEMES:
         name = f'{screen}-{theme}.png'
         actual = zipped.read(name)
@@ -891,10 +906,17 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
         if screen == '38-set-originals':
             map_gray[theme] = dict(actual=_map_gray_deviation(actual),
                                   reference=_map_gray_deviation(reference))
+        if screen == '27-swap-start':
+            pane_rows[theme] = dict(actual=_swap_amount_pane_rows(actual, theme),
+                                    reference=_swap_amount_pane_rows(reference, theme))
     result = dict(screen=screen, region_bounds=regions, pairs=pairs)
     if map_gray:
         result['map_gray_deviation_milli'] = dict(bounds=ORIGINALS_MAP_CROP,
                                                  themes=map_gray)
+    if pane_rows:
+        column, top, bottom = SWAP_AMOUNT_PANE_SCAN
+        result['amount_pane_fill_rows'] = dict(column=column, scan_rows=[top, bottom],
+                                               themes=pane_rows)
     return result
 
 

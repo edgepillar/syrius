@@ -153,6 +153,18 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(swap['footer'], (400, 590, 880, 661))
         self.assertEqual(sum((right - left) * (bottom - top)
                              for left, top, right, bottom in swap.values()), 1280 * 780)
+        self.assertEqual(comparisons[-2]['amount_pane_fill_rows']['themes'], {
+            theme: {'actual': None, 'reference': None} for theme in ('dark', 'light')
+        })
+        dark_fill = bytes((46, 48, 46))
+        background = bytes((27, 28, 27))
+        bands = [(155, background), (186, dark_fill), (295, background),
+                 (317, dark_fill), (427, background)]
+        with mock.patch.object(reader, '_image_vertical_bands', return_value=bands) as scan:
+            self.assertEqual(reader._swap_amount_pane_rows(b'fixture', 'dark'),
+                             [[186, 295], [317, 427]])
+            self.assertIsNone(reader._swap_amount_pane_rows(b'fixture', 'light'))
+            scan.assert_called_with(b'fixture', 558, 155, 450)
         originals = comparisons[-1]['region_bounds']
         self.assertNotIn('content', originals)
         self.assertEqual(originals['launch_tile'], (260, 315, 444, 427))
