@@ -1,0 +1,276 @@
+{
+  "reviews": {
+    "04-home-bell-dark": {
+      "actual_sha256": "21790825136f7eb09f600d5d6d7309b9660311f5b63276b94ef5725a581629b4",
+      "expected_sha256": "c94032c722afe5a0fe2d87a521af918bb71c0770b9ee32054a006f222f71b2ea",
+      "note": "The right-hand drawer, title and close controls align. The isolated history contains three node events. The pending approval, incoming toast and mixed transaction history shown in the reference are absent.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "04-home-bell-light": {
+      "actual_sha256": "42a1b876f169b7a2fd98ab4ccc3e69393d4ce50425e4b95993804859daaeebbb",
+      "expected_sha256": "f1cb111f497ed571444b992e12e307e5172bb3c235dcbf4b2996bc8786c6286e",
+      "note": "The right-hand drawer, title and close controls align. The isolated history contains three node events. The pending approval, incoming toast and mixed transaction history shown in the reference are absent.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "06-home-zap-dark": {
+      "actual_sha256": "febc06b6ce914281ea5372b73f09c058e628b4af098e4e3c81b06514926a21c8",
+      "expected_sha256": "8434e8010f45800311638b759768bdd928e66e5f7cfa6fa8589bb9e0b8b4cfcb",
+      "note": "The frosted centered dialog, message panel, sender notice and two reply actions align. The original sample message, isolated sender and blurred wallet data follow the fixture allowances.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "06-home-zap-light": {
+      "actual_sha256": "e0886717a0d56ba9aa37a478ef9d874659649db516e1cf8a3fea30adf256eae2",
+      "expected_sha256": "a3fa83241f5d785fa642b4a8d5132bc5c3f282b3e627ae60c5bf439a3573eab1",
+      "note": "The frosted centered dialog, message panel, sender notice and two reply actions align. The original sample message, isolated sender and blurred wallet data follow the fixture allowances.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "07-send-rest-dark": {
+      "actual_sha256": "93b70f53cd126e07c32ebca98501d56f4ce409f20036f45604ab2b9220205764",
+      "expected_sha256": "511749787d2f186b2ffc3523fbb1060facc4669291275cb1c918a415acede6f2",
+      "note": "The prepared amount and Send action are present. The real fixture omits recent-recipient chips, the last-send line and the To receive panel that shape the reference page.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "07-send-rest-light": {
+      "actual_sha256": "25362037075342ae22535b037bc91228baca10d8752e620363c4506ec61eea5d",
+      "expected_sha256": "039197335de93690caee36086f94a62c0e3de0c2fe487623815efa653bd89b25",
+      "note": "The prepared amount and Send action are present. The real fixture omits recent-recipient chips, the last-send line and the To receive panel that shape the reference page.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "08-send-warn-dark": {
+      "actual_sha256": "d91725f093b14d8f34edc760d2591bb78b8f3e75d604f354b6eac6767f4b4aef",
+      "expected_sha256": "564be0177c1ed717b43342dd3cf2233e1474fd92af3b6b59309a37598bf1ab11",
+      "note": "The real sync warning, lookalike card and disabled submission are visible. The warning copy and height differ, and the reference's highlighted address and prior dust-transfer explanation are absent.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "08-send-warn-light": {
+      "actual_sha256": "7c353c4d060637b991868a00685e647e9dc19d4a618ef41ad865b85f38515401",
+      "expected_sha256": "2668d065def52c9089173488f5134378d1000077ee4599c9929d6bf7572ec116",
+      "note": "The real sync warning, lookalike card and disabled submission are visible. The warning copy and height differ, and the reference's highlighted address and prior dust-transfer explanation are absent.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "12-send-confirm-dark": {
+      "actual_sha256": "b65b4327b7464b3570628f1e7ecb2dc6aedfc40303f3f9645266423d9a4def81",
+      "expected_sha256": "fbc3d88a161dd949479bb5b40e39977453e7006ce8b4b11e33d3523f6a5d87a7",
+      "note": "The centered confirmation shows the real software signer and first-send note. The hardware prompt in the reference and its shorter recipient and Plasma presentation differ.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "12-send-confirm-light": {
+      "actual_sha256": "c63db02f5ce07b5ada98f946fa5e7a33c82c003c0318f1c0faadf86a7b6f7e25",
+      "expected_sha256": "51a04fbcade20aae27846b9ee00c931d1cd5c1ea3207826395e6184aada3d10b",
+      "note": "The centered confirmation shows the real software signer and first-send note. The hardware prompt in the reference and its shorter recipient and Plasma presentation differ.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "18-sentinels-dark": {
+      "actual_sha256": "baaeda258ac4c5e1c58bcb545f22d8a748aa5df887d94c5f3b2d679b4d88ca9e",
+      "expected_sha256": "c20147415bdd29823b112970116bbbee1a60af084be501cd61624fcf2599b08c",
+      "note": "The ownership strip and Sentinels table are visible. The fixture shows one immediately revocable sentinel and empty rewards. The reference includes multiple statuses, revocability dates and a populated reward summary.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "18-sentinels-light": {
+      "actual_sha256": "9f5f775a77f50fef4aeceb121c14605afb449bfecd64ed5247d9a7e185c0fc3c",
+      "expected_sha256": "3171619370616652302c2a51d54bddf6a1cecca231c6819d1e6b41139487a899",
+      "note": "The ownership strip and Sentinels table are visible. The fixture shows one immediately revocable sentinel and empty rewards. The reference includes multiple statuses, revocability dates and a populated reward summary.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "19-spawn-dark": {
+      "actual_sha256": "fed62a136dbacc08e8a20ae83d8eefe1e925ae7e5e85c679c54ed264a14ebd91",
+      "expected_sha256": "828696b2e04b5c8db41e0d1593b56d418182380ec5a4f34d7e4cbc01040cfad9",
+      "note": "The Name and addresses step is populated and Continue is enabled. The producer field adds a Clear control and the name guidance and available-balance rows differ.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "19-spawn-light": {
+      "actual_sha256": "14475d68f4862b28ec379fb5c1d954682e2164441738ea53b46b63961035f24b",
+      "expected_sha256": "8047d27504ccde9c0c3782b9eeab826b9c337f97d6765b93714f3a41a4de7b5a",
+      "note": "The Name and addresses step is populated and Continue is enabled. The producer field adds a Clear control and the name guidance and available-balance rows differ.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "20-pillar-done-dark": {
+      "actual_sha256": "11d87d697a80d54e778875bc8e93ec44131f4ef12c656cb697b5d4b7de95556b",
+      "expected_sha256": "416488f57fec82eaa8dba3b2fcf5e4275b0838555e91a55895ac04ea6112d9ae",
+      "note": "The completed steps, original Pillar artwork and success actions align. The return control has a visible keyboard-focus mark above the header that the reference frame lacks.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "20-pillar-done-light": {
+      "actual_sha256": "abd680cce35cd006a394929e020d8784c913cba77c2263f14b83c23010b87dde",
+      "expected_sha256": "4e7adf75c1c3b758e8a9f4b8ebaef829d7cc0908ff88706a818bf569457360ba",
+      "note": "The completed steps, original Pillar artwork and success actions align. The return control has a visible keyboard-focus mark above the header that the reference frame lacks.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "23-tokens-dark": {
+      "actual_sha256": "ceaa351af5756a9021bb626ae71761d2ee94956435af241f56d08ec8a3b18a0b",
+      "expected_sha256": "c1ba43d7fd1ae7956a4e0c9d398e7d99341f7704a32fd5e60caa1e8f6cb3281e",
+      "note": "Three holdings and the expanded non-owner controls are visible. The selected row and ownership presentation differ, and the Domain group starts to the left of the reference.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "23-tokens-light": {
+      "actual_sha256": "f03efefdf1cf75540578b55af71a16f82afe12a2145d1a2683a2252ddb73c83c",
+      "expected_sha256": "c262b77173db8b229a6a1267fc2b01240635d38b251e1280658e377f91b03f8a",
+      "note": "Three holdings and the expanded non-owner controls are visible. The selected row and ownership presentation differ, and the Domain group starts to the left of the reference.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "26-swap-list-dark": {
+      "actual_sha256": "2ece468a1908f05938a60add4ffd94f55ad76ed9a5ee871a332667ef2a2a96ec",
+      "expected_sha256": "fa5f0343dde5ad63afe7eaa915817f651ceb430ef6db66fdde3eff1b140ca1a7",
+      "note": "The prepared open swap expands and shows the waiting notice. The completed and reclaimed history rows, receive amount and populated rate and expiry information in the reference are absent.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "26-swap-list-light": {
+      "actual_sha256": "d3923dafa5e465f20cd93d884283c48da0ec7aa8fa0274e4c6153e447c2ee0e6",
+      "expected_sha256": "17e0adcd791340bbc35bb3d7f27faf732f358062f21b0451ceac53796e4c5473",
+      "note": "The prepared open swap expands and shows the waiting notice. The completed and reclaimed history rows, receive amount and populated rate and expiry information in the reference are absent.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "27-swap-start-dark": {
+      "actual_sha256": "aede8a57e627a3ef5e8d99ecd5267c6a25bfd4f583196c0b49aca96572117936",
+      "expected_sha256": "b9153e855aeaf25b1e2e79f7fe961b7469226339af1a03e2920ddeeaf9b5dce8",
+      "note": "The centered dialog retains both amount panes and the counterparty field. The actual form adds Max, uses an ungrouped receive amount and has a taller explanatory footer with different timing copy.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "27-swap-start-light": {
+      "actual_sha256": "d1562a89dfbd015f27d6b5db55c7fea60509fcd8ed688960cf68c778235e637b",
+      "expected_sha256": "ba403a9e88b697bc2cee4512b846818de6db752714dcf726a3bd874ed18c6a50",
+      "note": "The centered dialog retains both amount panes and the counterparty field. The actual form adds Max, uses an ungrouped receive amount and has a taller explanatory footer with different timing copy.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "28-az-dark": {
+      "actual_sha256": "7bbf840796b21a6458182e321457dbaf9ae6c92a7bd3dacd54457addd7c2c9f1",
+      "expected_sha256": "a7ae04864a518b9382335f8cc67868163bf5a0de1895ab8f00451022a7c16651",
+      "note": "The Voting filters and prepared project row are visible. The isolated list shows one project with unknown quorum and an empty vote bar. The reference shows four projects and populated vote and quorum data.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "28-az-light": {
+      "actual_sha256": "982f045ca08ef8397435ecffa3524115a68f3ef697f55e65a600ac352b74731b",
+      "expected_sha256": "99e642a82a19bdb86843f9dbf82f1328fc1043ccb580b9c36495e06a0c7027c4",
+      "note": "The Voting filters and prepared project row are visible. The isolated list shows one project with unknown quorum and an empty vote bar. The reference shows four projects and populated vote and quorum data.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "29-az-project-dark": {
+      "actual_sha256": "eaaf315381a0fec05b7cd51ee09fa0566888ebb079f7ae801223b3c96caadd9a",
+      "expected_sha256": "a579330443576dd54ef2154c3e1b93a4934a918a3f1079896a6c4cc49fe88a97",
+      "note": "The project and vote columns are visible with the Yes action. The phase table is empty and voting and quorum are unpopulated relative to the reference.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "29-az-project-light": {
+      "actual_sha256": "f6fe324ee6842acbf3d465930629ee20be88f771a27ffce84c8a4a83b219dfd3",
+      "expected_sha256": "7d7d5e2d34626c69e3a85701e97c6f8719dc0c07baf86d86ac2852e35ebc9fc0",
+      "note": "The project and vote columns are visible with the Yes action. The phase table is empty and voting and quorum are unpopulated relative to the reference.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "30-set-node-dark": {
+      "actual_sha256": "1b36e4ce1c84e771877e846abc52b5a199fb5c1330d198d81d53fdc95a754aaf",
+      "expected_sha256": "05d7211c092f7415b542294e254a86765fa57b7d7953fb2f9af5b1170ef7d003",
+      "note": "The verified download callout with checksum and signature checks is present. The node rows and installed state differ, and the Install and Cancel actions replace the reference's restart, bundled-node and install-from-file choices.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "30-set-node-light": {
+      "actual_sha256": "a9f1c3730db1daa38cba1c5faa088ca306efa61b79bb719fb77ffd590e3202d8",
+      "expected_sha256": "a11078a238b2ab2107174698b0c1c1409d7545a22eac994608e57ea113c6faeb",
+      "note": "The verified download callout with checksum and signature checks is present. The node rows and installed state differ, and the Install and Cancel actions replace the reference's restart, bundled-node and install-from-file choices.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "39-launch-dark": {
+      "actual_sha256": "122624a74e7cb7c63a452d9c8c33e89b9d9bbfa7a13e4cfe2516b07fb541bdd2",
+      "expected_sha256": "595e587b7c5c34083d0b05371e94bc641603af6ce5546f01c7ad34ab36ffcea2",
+      "note": "The full-window black film stage, centered green mark, title controls and skip cue agree at the sampled launch frame.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "39-launch-light": {
+      "actual_sha256": "122624a74e7cb7c63a452d9c8c33e89b9d9bbfa7a13e4cfe2516b07fb541bdd2",
+      "expected_sha256": "595e587b7c5c34083d0b05371e94bc641603af6ce5546f01c7ad34ab36ffcea2",
+      "note": "The full-window black film stage, centered green mark, title controls and skip cue agree at the sampled launch frame.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "40-launch-settle-dark": {
+      "actual_sha256": "1b49789510a0060848a1c31437d2498bc09a0bee3bda663b4bb476ff743afafe",
+      "expected_sha256": "d015cb3c2505c97b0035ac4f906ef78cedaaa737c2aa49658d7ce0b1835eb20d",
+      "note": "The inset black wordmark stage, coloured field and emerging Lock card agree at the retained handoff position. This verdict applies to the captured still.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "40-launch-settle-light": {
+      "actual_sha256": "a04a566be581a834ac20fab54dfcfba29f2f1d2134159ffe53a3f79f1f8e2c99",
+      "expected_sha256": "7733d47632878c9d7ce989f9aa869abbe90a0aeca236663218253e1b2c52f8f6",
+      "note": "The inset black wordmark stage, coloured field and emerging Lock card agree at the retained handoff position. This verdict applies to the captured still.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "46-seed-quiz-dark": {
+      "actual_sha256": "889870730dca6c82a875fa2a1f22d81e063c95cd258a3798b0c28388206541d8",
+      "expected_sha256": "fd960ea2486c0f41005139ca068375a8f6e8ac0635ee951bcd3cc7e1280f00b5",
+      "note": "The completion ledger, question rows, selected answer, progress and disabled Continue are visible at the reference positions. Word indices and answer widths reflect the synthetic fixture.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "46-seed-quiz-light": {
+      "actual_sha256": "90987b97260008d8da9204f21d85aa240dff36d26a62e4b37047b35b21b832f4",
+      "expected_sha256": "045b9ce86746cd3663959877ed84e45c289d8e1f132740c4894a94be5ef47a81",
+      "note": "The completion ledger, question rows, selected answer, progress and disabled Continue are visible at the reference positions. Word indices and answer widths reflect the synthetic fixture.",
+      "reviewed_at": "2026-11-22T23:48:44Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    }
+  }
+}
