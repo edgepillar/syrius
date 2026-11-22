@@ -273,10 +273,12 @@ has dedicated entry routes that own the profile and process from startup:
 | --- | --- |
 | Launch, launch handoff, Lock states and synthetic seed quiz | `windows_startup_probe=true`, `readonly_catalog_family=startup-catalog` |
 | Welcome and empty Import | `entry_capture_smoke=true` |
-| Ready | `windows_wallet_inspection=true`, `readonly_catalog_family=wallet-ready`, `chain321_backend=native`, `chain321_node_source=lab-fix` |
+| Ready | `windows_wallet_inspection=true`, `readonly_catalog_family=wallet-ready` |
 
 Set `desktop_builds=false`, `presentation_smoke=false` and
-`devnet_tests=false` to run only the selected capture route.
+`devnet_tests=false` to run only the selected capture route. For Ready,
+also use the native inspection inputs in
+[Hosted Windows capture coverage](#hosted-windows-capture-coverage).
 The entry prerequisites in the screen scripts reserve these states for
 their dedicated routes. Each native result retains its original source,
 run, profile scope and image digests for the comparison report.
@@ -381,6 +383,13 @@ Pin each producer to the same application commit and verify its retained
 archives before selecting the images for comparison. Each assignment below
 covers both themes. The startup catalog captures six screens on one Release
 build.
+
+For `windows_wallet_inspection` and `windows_wallet_tour`, select
+`chain321_backend=native`, `chain321_node_source=lab-fix` and
+`native_stack_diagnostic=true`. Admission checks these inputs before
+installing the SDK. The `settings-catalog` family uses
+`windows_wallet_inspection` and captures all seven Settings pages under a
+single retained archive. Dispatch it as a fresh run on `edgepillar/syrius`.
 
 | Workflow input | Catalog family | Screen numbers |
 | --- | --- | --- |

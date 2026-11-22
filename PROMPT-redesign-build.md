@@ -4660,7 +4660,19 @@ Disconnect actions in the connected table use the reference's quiet
 surface and show the outline on hover or keyboard focus. The existing
 populated two-theme case checks both button styles. The prior Windows
 catalog has no connected rows. The new styling still needs native
-visual verification with a populated session list.
+visual verification with a populated session list. The
+[Linux run at `773ab9b8`](https://github.com/edgepillar/syrius/actions/runs/45022689628/job/137208851291)
+passes those populated Apps cases in both themes. Dart analysis reports
+no issues, 5,133 unit and widget tests pass with one skip, and the
+generated-file check succeeds.
+
+Two Settings dispatches at `773ab9b8` stopped at hosted lab admission
+before SDK allocation. The [first run](https://github.com/edgepillar/syrius/actions/runs/45023235523/job/137210514867)
+used the default node source. The [second run](https://github.com/edgepillar/syrius/actions/runs/45023313652/job/137210757041)
+selected the corrected source with native stack diagnostics disabled.
+The [third run](https://github.com/edgepillar/syrius/actions/runs/45023375106/job/137210949740)
+passed admission with the corrected source and native stack diagnostics
+enabled. The first two runs produced no image evidence.
 
 On the two About images, the seven Settings labels' ink bounds are within
 one pixel of their references at the 32-level RGB contrast threshold.
