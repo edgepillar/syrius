@@ -506,7 +506,9 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
                               );
                             }
                             return Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: holderView
+                                  ? CrossAxisAlignment.center
+                                  : CrossAxisAlignment.start,
                               children: <Widget>[
                                 Expanded(child: facts),
                                 SizedBox(width: tokens.tokenDetailFactGap),
@@ -517,7 +519,8 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
                     )
                   else if (widget.fixedMode == null)
                     _buildSegment(),
-                  SizedBox(height: tokens.tokenDetailBodyGap),
+                  if (_loading || _proof == null || showForm)
+                    SizedBox(height: tokens.tokenDetailBodyGap),
                   if (_loading)
                     SizedBox(
                       height: tokens.tokenActionHeight,

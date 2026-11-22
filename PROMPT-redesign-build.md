@@ -5323,7 +5323,11 @@ closure. The [capture index](docs/review/source-e19f5467-holder-captures.json)
 binds the originals to the 106,217-byte archive. Pixel differences of at
 least 16 levels in one RGB channel total 28,600 in dark and 32,230 in
 light. The table accounts for 17,134 and 19,686 of those pixels,
-respectively. Whole-image acceptance remains open.
+respectively. Both images were then viewed beside their references directly
+from the verified archive. X1316 and X1317 record the visible controls and
+layout differences. The wide holder row now centers the actions beside the
+facts and applies the body gap only when a form, loading indicator or
+refusal follows. Fresh Windows images are needed to verify that adjustment.
 
 The Token issue form uses the same optional domain-name rule as the node.
 The existing form test covers a bare domain, an empty field, a full URL,
@@ -5953,7 +5957,7 @@ whole-image acceptance.
 | 20 | `pillar-done` | X1152 | X1153 |
 | 21 | `plasma` | X845 | X846 |
 | 22 | `plasma-fuse` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
-| 23 | `tokens` | X1310 | X1311 |
+| 23 | `tokens` | X1316 | X1317 |
 | 24 | `token-mine` | X1287 | X1288 |
 | 25 | `token-new` | X851 | X852 |
 | 26 | `swap-list` | X853 | X854 |
@@ -9556,3 +9560,5 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1313 | review | 2026-11-22 | `03-home-hidden-dark` at `a43e90e3`. The eye and masked values are visible in the hero and Activity. Sparse selected-address Activity, no rewards and zero held tokens differ from the reference. [Review](docs/review/source-a43e90e3-home-verdicts.json). |
 | X1314 | review | 2026-11-22 | `05-home-goto-dark` at `a43e90e3`. The centered palette, selected result and keyboard footer align. The matching contact differs, and the live blurred Activity has a settled row where the reference shows loading skeletons. [Review](docs/review/source-a43e90e3-home-verdicts.json). |
 | X1315 | review | 2026-11-22 | `05-home-goto-light` at `a43e90e3`. The centered palette, selected result and keyboard footer align. The matching contact differs, and the live blurred Activity has a settled row where the reference shows loading skeletons. [Review](docs/review/source-a43e90e3-home-verdicts.json). |
+| X1316 | review | 2026-11-22 | `23-tokens-dark` at `e19f5467`. The original burnable holding displays Burn, Send, Explorer and the populated inline Domain link. The reference uses three holdings and centers the actions against the facts. The tested row leaves more space below its facts. Whole-image acceptance remains open. |
+| X1317 | review | 2026-11-22 | `23-tokens-light` at `e19f5467`. The populated Domain and three holder actions are visible. The top-aligned actions and extra bottom space also appear in the light layout. The test profile holds one token and the reference shows three. Whole-image acceptance remains open. |

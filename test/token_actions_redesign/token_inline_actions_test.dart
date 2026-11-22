@@ -780,6 +780,20 @@ void main() {
               expect(fixture.tokenReads, originalTokenReads);
               expect(fixture.accountReads, originalAccountReads);
               expect(tester.getSize(burn).height, 26);
+              final Finder decimals = find.text('DECIMALS');
+              final Finder mintable = find.text('MINTABLE');
+              final double factsCenter =
+                  (tester.getCenter(decimals).dy +
+                      tester.getCenter(mintable).dy) /
+                  2;
+              expect(tester.getCenter(burn).dy, closeTo(factsCenter, 1));
+              final Finder details = find.byKey(
+                ValueKey<String>('token_detail_${fixture.token.tokenStandard}'),
+              );
+              expect(
+                tester.getBottomLeft(details).dy,
+                closeTo(tester.getBottomLeft(find.text('By any holder')).dy, 1),
+              );
               for (final String mode in <String>[
                 'mint',
                 'burn',
