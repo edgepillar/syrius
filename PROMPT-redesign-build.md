@@ -6026,6 +6026,16 @@ from 30,364 to 30,375 in light. Both caption counts remain zero and the
 shadow samples are unchanged. The changes align individual parts of the
 form with the reference. Both whole-image verdicts remain open.
 
+The [sampled-column reread](https://github.com/edgepillar/syrius/actions/runs/45017133745/job/137191756030)
+verifies the two theme fill colors at rows 230 and 375 on column 558.
+On the same column, rows 306 and 436 still have the pane fill in both
+Windows captures where the reference shows the dialog background. The
+[bounded band check](https://github.com/edgepillar/syrius/actions/runs/45017251388/job/137192116942)
+finds the two complete fill ranges in both references. It does not
+establish the actual pane edges, including with a two-level tolerance
+per channel. The samples preserve the difference without attributing it
+to a specific control or changing the whole-image verdicts.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since
