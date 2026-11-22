@@ -6314,6 +6314,11 @@ differences fall from 7,886 to 7,112 pixels in dark and from 10,821 to
 9,744 in light at the 16-level RGB threshold. The atomic-frame flag and
 both whole-image verdicts remain open.
 
+The address label and available balance in the amount-pane header now
+use the reference's 11 px monospaced ledger style. The existing
+two-theme test checks the face, size, tracking and balance style. Native
+vertical fill spans still need measurement after this change.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since

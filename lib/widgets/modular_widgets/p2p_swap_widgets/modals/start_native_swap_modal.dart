@@ -271,9 +271,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal>
         controller: _send,
         visible: current,
         balance: _funds?.balance(_from),
-        party: signerLabel == null
-            ? null
-            : Text(signerLabel, style: tokens.captionText),
+        party: signerLabel == null ? null : Text(signerLabel),
         hideBalances: hidden,
         dollars: widget.dollars,
         choices: _choices,
@@ -302,10 +300,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal>
         visible: current,
         party: signerLabel == null
             ? null
-            : Text(
-                context.l10n.swapActionReceiveTo(signerLabel),
-                style: tokens.captionText,
-              ),
+            : Text(context.l10n.swapActionReceiveTo(signerLabel)),
         hideBalances: hidden,
         dollars: widget.dollars,
         choices: _choices,

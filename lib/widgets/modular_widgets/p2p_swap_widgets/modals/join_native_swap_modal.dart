@@ -239,9 +239,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal>
         visible: current,
         hideBalances: hidden,
         balance: deposit.funds.balance(_from),
-        party: signerLabel == null
-            ? null
-            : Text(signerLabel, style: tokens.captionText),
+        party: signerLabel == null ? null : Text(signerLabel),
         choices: _choices,
         dollars: widget.dollars,
         canInteract: () => _editable(lease),

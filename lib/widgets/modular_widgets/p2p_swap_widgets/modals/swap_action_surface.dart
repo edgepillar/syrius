@@ -498,11 +498,11 @@ class SwapAmountPane extends StatelessWidget {
     final Widget? available = balance == null
         ? null
         : hideBalances
-        ? Text('••••', style: tokens.captionText)
+        ? const Text('••••')
         : AmountText(
             balance!,
             decimals: token.decimals,
-            style: tokens.captionText,
+            style: tokens.ledgerText,
             symbol: token.symbol,
           );
     final Widget figure = Column(
@@ -555,18 +555,19 @@ class SwapAmountPane extends StatelessWidget {
             children: <Widget>[
               Text(label.toUpperCase(), style: tokens.ledgerText),
               if (party != null || available != null)
-                Wrap(
-                  alignment: WrapAlignment.end,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: tokens.transferRecentGap,
-                  children: <Widget>[
-                    ?party,
-                    if (party != null && available != null)
-                      ExcludeSemantics(
-                        child: Text('·', style: tokens.captionText),
-                      ),
-                    ?available,
-                  ],
+                DefaultTextStyle.merge(
+                  style: tokens.ledgerText,
+                  child: Wrap(
+                    alignment: WrapAlignment.end,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: tokens.transferRecentGap,
+                    children: <Widget>[
+                      ?party,
+                      if (party != null && available != null)
+                        const ExcludeSemantics(child: Text('·')),
+                      ?available,
+                    ],
+                  ),
                 ),
             ],
           ),

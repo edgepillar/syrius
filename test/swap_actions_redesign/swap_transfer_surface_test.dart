@@ -269,6 +269,13 @@ void main() {
         );
         expect(tester.getBottomRight(balance).dy, lessThan(editorRect.top));
         final Finder party = find.text('Address 2');
+        final TextStyle partyStyle = DefaultTextStyle.of(
+          tester.element(party),
+        ).style;
+        expect(partyStyle.fontFamily, tokens.monoFontFamily);
+        expect(partyStyle.fontSize, 11);
+        expect(partyStyle.letterSpacing, 0.66);
+        expect(tester.widget<AmountText>(balance).style, tokens.ledgerText);
         final Finder token = find.widgetWithText(OutlinedButton, 'ZNN');
         expect(tester.getCenter(party).dy, tester.getCenter(balance).dy);
         expect(
