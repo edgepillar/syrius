@@ -5257,7 +5257,14 @@ normally. The [capture index](docs/review/source-01358b6b-holder-captures.json)
 binds both themes to the original archive. The read reports 28,433 dark and
 32,177 light pixels with an RGB channel difference of at least 16, including
 16,788 and 19,635 in the Tokens table. These counts include fixture data.
-The prepared capture is verified. Whole-image visual verdicts remain open.
+Both original images were viewed beside their tracked references. The
+[visual verdicts](docs/review/source-01358b6b-holder-verdicts.json) record
+mismatches. The Held filter, search and expanded non-owner panel are present,
+and the summary uses the singular label for one holding. The fixture has
+one row and no Burn action. Its original transfer leaves the Submitted and
+Another controls visible, and the disabled Domain action adds to the panel
+height. The reference shows several holdings and a populated domain. The
+result keeps the two prepared-state image comparisons open under V01.
 
 [Fork Linux validation at `562597a7`](https://github.com/edgepillar/syrius/actions/runs/44982169688/job/137084834033)
 passes application and strict analysis, 5,132 tests with one skip, and
@@ -5797,7 +5804,7 @@ whole-image acceptance.
 | 20 | `pillar-done` | X1152 | X1153 |
 | 21 | `plasma` | X845 | X846 |
 | 22 | `plasma-fuse` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
-| 23 | `tokens` | [review](#prepared-held-tokens-at-01358b6b) | [review](#prepared-held-tokens-at-01358b6b) |
+| 23 | `tokens` | [mismatch](#prepared-held-tokens-at-01358b6b) | [mismatch](#prepared-held-tokens-at-01358b6b) |
 | 24 | `token-mine` | X1287 | X1288 |
 | 25 | `token-new` | X851 | X852 |
 | 26 | `swap-list` | X853 | X854 |
