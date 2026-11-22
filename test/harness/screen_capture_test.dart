@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../harness/bin/ci_wallet_reopen.dart'
+    show restoredTokenHolderCaptureLines;
 import '../../harness/bin/harness.dart' as cli;
 import '../../harness/bin/screen_capture.dart';
 
@@ -550,6 +552,11 @@ void main() {
         'wait', '--key', 'token_send', '--kind', 'button', '--ready', '--exact',
         '--timeout', '30',
       ]);
+      expect(<String>{
+        for (final ScreenLine line in <ScreenLine>[
+          ...holder.lines, ...holder.afterCapture,
+        ]) line.words.join(' '),
+      }, restoredTokenHolderCaptureLines);
       expect(holder.assertion['key'], 'token_send');
       expect(holder.assertion['kind'], 'button');
       expect(holder.assertion['exact'], isTrue);

@@ -5239,6 +5239,14 @@ uses it for the readback assertion. The recipe does not activate Send. The
 bound non-owner holding checks still run around readback and the original
 Explorer seam stays in place. This run retained no holder images.
 
+The [next producer at `affad2e9`](https://github.com/edgepillar/syrius/actions/runs/44982985712/job/137087368912)
+and its [reader](https://github.com/edgepillar/syrius/actions/runs/44984466739/job/137091903323)
+verify both seed receipts and a refusal at line 9 before readback. The
+updated script used the original Send key, while the runner's exact command
+set still admitted the prior Explorer assertion. The runner now admits the
+same Send wait and assertion as the script. The existing recipe test compares
+all capture and cleanup commands with that set. No holder images were retained.
+
 [Fork Linux validation at `562597a7`](https://github.com/edgepillar/syrius/actions/runs/44982169688/job/137084834033)
 passes application and strict analysis, 5,132 tests with one skip, and
 generated-file verification. The producer also verifies 1,531 focused

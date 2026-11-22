@@ -952,15 +952,16 @@ const Set<String> _seededVisualLines = <String>{
   'wait --key token_action_mode_mint --gone --timeout 10',
 };
 
-const Set<String> _holderLines = <String>{
+/// Exact commands admitted for the prepared holder screen and its cleanup.
+const Set<String> restoredTokenHolderCaptureLines = <String>{
   'goto tokens',
   'wait --key tokens_filter_held --timeout 30',
   'tap --key tokens_filter_held',
   'key ctrl+r',
   'wait --key @issued-token-row --timeout 30',
   'tap --key @issued-token-row',
-  'wait --key token_explorer_control --timeout 30',
-  'assert --key token_explorer_control --exact',
+  'wait --key token_send --kind button --ready --exact --timeout 30',
+  'assert --key token_send --kind button --exact',
   'wait --key token_explorer_control --gone --timeout 10',
 };
 
@@ -1272,7 +1273,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
       : switch (selection) {
     RestoredSeedSelection.seededCatalog when includeNonOwnerHolding =>
       (schema: 21, screens: _holderScreens, files: _holderFiles,
-       lines: _holderLines),
+       lines: restoredTokenHolderCaptureLines),
     RestoredSeedSelection.seededCatalog when includeTokenList =>
       (schema: 18, screens: _seededVisualScreens, files: _seededVisualFiles,
        lines: _seededVisualLines),
