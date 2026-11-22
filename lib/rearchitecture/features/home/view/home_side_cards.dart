@@ -585,27 +585,30 @@ class _TokenRow extends StatelessWidget {
         ),
         SizedBox(width: tokens.inlineGap),
         Flexible(
-          child: Ltr(
-            child: _HorizontalSummary(
-              child: ValueFlash(
-                key: ValueKey<bool>(known),
-                value: known ? amount : null,
-                child: HiddenAmount(
-                  visibility: visibility,
-                  alignment: AlignmentDirectional.centerEnd,
-                  style: tokens.homeSideAmountText,
-                  child: known
-                      ? AmountText(
-                          amount,
-                          decimals: decimals,
-                          style: tokens.homeSideAmountText.copyWith(
-                            color: tokens.foreground,
+          child: Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: Ltr(
+              child: _HorizontalSummary(
+                child: ValueFlash(
+                  key: ValueKey<bool>(known),
+                  value: known ? amount : null,
+                  child: HiddenAmount(
+                    visibility: visibility,
+                    alignment: AlignmentDirectional.centerEnd,
+                    style: tokens.homeSideAmountText,
+                    child: known
+                        ? AmountText(
+                            amount,
+                            decimals: decimals,
+                            style: tokens.homeSideAmountText.copyWith(
+                              color: tokens.foreground,
+                            ),
+                          )
+                        : Text(
+                            context.l10n.homeAmountUnknown,
+                            style: tokens.homeSideAmountText,
                           ),
-                        )
-                      : Text(
-                          context.l10n.homeAmountUnknown,
-                          style: tokens.homeSideAmountText,
-                        ),
+                  ),
                 ),
               ),
             ),

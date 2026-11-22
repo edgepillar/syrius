@@ -5877,6 +5877,24 @@ the Tokens body as an exact passive region for the wait, assertion and
 after-capture disappearance checks, including when the body contains
 multiple rows. The three row checks still apply before each open shot.
 
+The [revised Windows producer](https://github.com/edgepillar/syrius/actions/runs/45053825425/job/137304581535)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45055836809/job/137310744166)
+verify [all eight original Home captures](docs/review/source-c9c0d20a-home-captures.json)
+and normal parent closure at `c9c0d20a`. Each open Tokens capture
+has three exact original row observations, bound to the same isolated
+genesis as the first run. The [Linux suite](https://github.com/edgepillar/syrius/actions/runs/45053825277/job/137304580492)
+passes analysis, generation and 5,134 non-chain tests with one skip.
+The retained open-Tokens crops were viewed beside their references in
+both themes. The three balances display as 0.0021, 12.4 and 40. The rows
+have their isolated labels, a different order and uniform pink badges.
+Their balances originally ended near the middle of the card rather than
+its trailing edge. The amount column now aligns to the trailing edge
+while preserving its horizontal overflow scroll and left-to-right digits.
+The existing precision case checks both original amount strings and
+their shared trailing edge. Fresh Windows images are needed for that
+layout change. Atomic-frame qualification and the whole-image visual
+verdicts remain open.
+
 All eight originals were viewed alongside their tracked references. The
 [reviewed pairs](docs/review/source-7fc58054-home-verdicts.json) show the
 expected rail, hero and palette placement. The isolated profile has sparse

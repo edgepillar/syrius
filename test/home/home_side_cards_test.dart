@@ -608,16 +608,16 @@ void main() {
       findsNothing,
     );
     expect(find.byTooltip(qsrZts.toString()), findsOneWidget);
-    final AmountText amount = tester.widget<AmountText>(
-      find
-          .descendant(
-            of: find.byKey(_body),
-            matching: find.byType(AmountText),
-          )
-          .last,
+    final Finder amounts = find.descendant(
+      of: find.byKey(_body), matching: find.byType(AmountText),
     );
+    final AmountText amount = tester.widget<AmountText>(amounts.last);
     expect(amount.raw, BigInt.from(210000));
     expect(amount.decimals, 8);
+    final Finder row = find.byKey(ValueKey<String>('home_token_$qsrZts'));
+    final double end = tester.getTopRight(row).dx;
+    expect(tester.getTopRight(amounts.first).dx, closeTo(end, 0.01));
+    expect(tester.getTopRight(amounts.last).dx, closeTo(end, 0.01));
   });
 
   testWidgets(
