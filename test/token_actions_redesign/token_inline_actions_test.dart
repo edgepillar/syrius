@@ -142,11 +142,13 @@ TokenHolderObservation? _holderObservation(
   TokenStandard? standard,
   String? selectedAddress,
   int? chainId,
+  bool requirePositiveBalance = false,
 }) => TokenInlineActions.captureHolderObservation(
   tester.element(find.byType(TokenInlineActions)),
   standard: standard ?? fixture.token.tokenStandard,
   selectedAddress: selectedAddress ?? fixture.session.address,
   chainId: chainId ?? fixture.session.chainId,
+  requirePositiveBalance: requirePositiveBalance,
 );
 
 Future<(NavigatorState, DialogRoute<void>, Future<void>)> _openTokenDialog(
@@ -684,6 +686,27 @@ void main() {
               findsOneWidget,
             );
             expect(_holderObservation(tester, fixture), isNull);
+            await _withFixture(tester, (ActionFixture empty) async {
+              empty
+                ..token = actionToken(owner: tokenAddress)
+                ..balance = BigInt.zero;
+              await tester.pumpWidget(_host(
+                TokenInlineActions(
+                  token: empty.token,
+                  publisher: empty.publisher,
+                  isCurrent: () => true,
+                  onSendToken: (_) {},
+                ),
+                brightness: brightness,
+                direction: direction,
+              ));
+              await pumpActionUntil(tester, () =>
+                _holderObservation(tester, empty)?.isCurrent == true);
+              expect(_holderObservation(tester, empty,
+                requirePositiveBalance: true,
+              ), isNull);
+              expect(empty.transport.calls, isEmpty);
+            });
             expect(fixture.transport.calls, isEmpty);
             expect(tester.takeException(), isNull);
           });
@@ -741,6 +764,9 @@ void main() {
               final TokenHolderObservation originalHolder =
                   _holderObservation(tester, fixture)!;
               expect(originalHolder.isCurrent, isTrue);
+              expect(_holderObservation(tester, fixture,
+                requirePositiveBalance: true,
+              )?.isCurrent, isTrue);
               final int originalTokenReads = fixture.tokenReads;
               final int originalAccountReads = fixture.accountReads;
               expect(_holderObservation(tester, fixture,

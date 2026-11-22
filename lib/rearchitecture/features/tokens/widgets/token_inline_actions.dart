@@ -116,12 +116,14 @@ class TokenInlineActions extends StatefulWidget {
     required TokenStandard standard,
     required String selectedAddress,
     required int chainId,
+    bool requirePositiveBalance = false,
   }) {
     if (context is! StatefulElement || !context.mounted) return null;
     final State<StatefulWidget> state = context.state;
     if (state is! _TokenInlineActionsState) return null;
     return state._captureHolderObservation(
       standard: standard, selectedAddress: selectedAddress, chainId: chainId,
+      requirePositiveBalance: requirePositiveBalance,
     );
   }
 
@@ -295,6 +297,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
     required TokenStandard standard,
     required String selectedAddress,
     required int chainId,
+    required bool requirePositiveBalance,
   }) {
     final TokenActionPublisher? publisher = _publisher;
     final TokenActionProof? proof = _proof;
@@ -313,6 +316,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
       publisher.session.chainId == chainId &&
       proof.token.tokenStandard == standard &&
       proof.token.owner.toString() != selectedAddress &&
+      (!requirePositiveBalance || proof.balance > BigInt.zero) &&
       widget.showFacts && widget.fixedMode == null &&
       modeEpoch == _modeEpoch && !_loading && !_holderBurnOpen &&
       !_submitting && !_rearming && !_confirming,

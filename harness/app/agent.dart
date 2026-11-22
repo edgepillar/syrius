@@ -1308,6 +1308,15 @@ class HarnessAgent {
             captureProjectPresentation: _captureSeedProjectPresentation,
             captureTokenPresentation: _captureSeedTokenPresentation,
             observeSurfaceSeam: _observeSeededSurfaceSeam,
+            observeHeldToken:
+                (String standard, String theme, void Function() current) =>
+                _observeSeededSurfaceSeam(
+                  standard,
+                  Seam.tokenExplorer,
+                  theme,
+                  current,
+                  balanceOnly: true,
+                ),
             captureTokenHolder: _captureSeededTokenHolder,
             captureTap: (Map<String, dynamic> selector) =>
                 _captureSeedTap(selector, preparation: seedPreparation),
@@ -2422,8 +2431,9 @@ class HarnessAgent {
   }
 
   Future<void> _observeSeededSurfaceSeam(
-    String standard, Seam seam, String theme, VoidCallback requireOwner,
-  ) async {
+    String standard, Seam seam, String theme, VoidCallback requireOwner, {
+    bool balanceOnly = false,
+  }) async {
     _requireCaptureFrameIdle();
     requireOwner();
     final SeededSurfaceSeamOwner owner = _originalSeededSurfaceOwner();
@@ -2459,6 +2469,7 @@ class HarnessAgent {
         : TokenInlineActions.captureHolderObservation(
             originalActions, standard: TokenStandard.parse(standard),
             selectedAddress: selectedAddress, chainId: 321,
+            requirePositiveBalance: balanceOnly,
           );
     if (seam == Seam.tokenExplorer && holder == null) {
       throw const SeedRefused('seeded-surface-seam-owner-changed');
@@ -2491,10 +2502,12 @@ class HarnessAgent {
     current();
     await owner.observeFrame(current);
     current();
-    await _observeSeamPointer(
-      seam, key, requireOwner: current,
-    );
-    current();
+    if (!balanceOnly) {
+      await _observeSeamPointer(
+        seam, key, requireOwner: current,
+      );
+      current();
+    }
   }
 
   SeedTokenPresentation _captureSeedTokenPresentation(

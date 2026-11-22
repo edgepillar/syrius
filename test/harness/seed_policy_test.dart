@@ -216,6 +216,7 @@ class _TokenHolderCommands {
   bool refuseCapture = false;
   int captures = 0;
   int pointers = 0;
+  int holdingReads = 0;
 
   Future<void> initialize() async {
     await guard.publish('token', () async {
@@ -282,6 +283,14 @@ class _TokenHolderCommands {
       requireCurrent();
       expect(standard, seedIssuedTokenStandard(_hash(9)).toString());
       pointers++;
+      requireCurrent();
+    },
+    observeHeldToken: (String standard, String theme,
+        void Function() requireCurrent) async {
+      requireCurrent();
+      expect(standard, seedIssuedTokenStandard(_hash(9)).toString());
+      expect(theme, 'dark');
+      holdingReads++;
       requireCurrent();
     },
   );
@@ -563,6 +572,11 @@ void main() {
     });
     expect(selected['current'], isTrue);
     expect((selected['selection']! as Map<String, Object>)['selectedIndex'], 2);
+    expect(await fixture.run(<String, dynamic>{
+      'action': 'holder-balance', 'theme': 'dark',
+    }), <String, Object?>{'positiveNonOwnerHolding': true});
+    expect(fixture.holdingReads, 1);
+    expect(fixture.pointers, 0);
     for (final Seam seam in seededSurfaceControls.keys) {
       for (final String theme in <String>['dark', 'light']) {
         final Map<String, Object?> receipt = await fixture.run(

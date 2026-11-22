@@ -74,6 +74,7 @@ final class SeedCommands {
     SeedTokenPresentation Function(int, String)? captureTokenPresentation,
     Future<void> Function(String, Seam, String, void Function())?
         observeSurfaceSeam,
+    Future<void> Function(String, String, void Function())? observeHeldToken,
     SeededTokenHolder Function(
       String, SeedEnvironment, void Function(), void Function(),
     )? captureTokenHolder,
@@ -82,7 +83,7 @@ final class SeedCommands {
     try {
       final String? action = command['action'] as String?;
       if (_holderTransitionAttempted) {
-        return await _runHolder(command, observeSurfaceSeam);
+        return await _runHolder(command, observeSurfaceSeam, observeHeldToken);
       }
       final bool catalogTokenHolding = command['catalogTokenHolding'] == true;
       if (command.containsKey('catalogTokenHolding') &&
@@ -462,6 +463,7 @@ final class SeedCommands {
   Future<Map<String, Object?>> _runHolder(
     Map<String, dynamic> command,
     Future<void> Function(String, Seam, String, void Function())? observe,
+    Future<void> Function(String, String, void Function())? observeHeldToken,
   ) async {
     final SeededTokenHolder? holder = _holder;
     final SeedGuard? guard = _guard;
@@ -483,10 +485,31 @@ final class SeedCommands {
         if (command['selected'] == true) 'selection': holder.selectionReceipt,
       };
     }
+    void current() {
+      if (_holderHeld || !identical(_holder, holder)) {
+        throw const SeedRefused('seeded-token-holder-held');
+      }
+      _requireFixtureClear();
+      holder.requireSelected();
+    }
+    final Object? theme = command['theme'];
+    if (command['action'] == 'holder-balance') {
+      if (command.keys.any((String key) =>
+              !const <String>{'cmd', 'action', 'hash', 'theme'}
+                  .contains(key)) ||
+          theme is! String ||
+          !const <String>{'dark', 'light'}.contains(theme) ||
+          observeHeldToken == null) {
+        throw const SeedRefused('seeded-token-holder-held');
+      }
+      current();
+      await observeHeldToken(holder.standard, theme, current);
+      current();
+      return <String, Object?>{'positiveNonOwnerHolding': true};
+    }
     final Object? seamName = command['seam'];
     final Seam? seam = seamName is String
         ? Seam.values.asNameMap()[seamName] : null;
-    final Object? theme = command['theme'];
     if (command['action'] != 'surface-seam' ||
         command.keys.any((String key) =>
             !const <String>{'cmd', 'action', 'hash', 'seam', 'theme'}
@@ -494,13 +517,6 @@ final class SeedCommands {
         seam == null || !seededSurfaceControls.containsKey(seam) ||
         theme is! String || observe == null) {
       throw const SeedRefused('seeded-token-holder-held');
-    }
-    void current() {
-      if (_holderHeld || !identical(_holder, holder)) {
-        throw const SeedRefused('seeded-token-holder-held');
-      }
-      _requireFixtureClear();
-      holder.requireSelected();
     }
     current();
     final SeededSurfaceSeam observation =

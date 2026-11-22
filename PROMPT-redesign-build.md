@@ -5106,7 +5106,11 @@ earlier Collect position. Both Held Tokens captures open the issuer's own
 token and show an empty Mint form. The reference opens a token held by an
 account other than its issuer. The comparison keeps the Mint images
 as diagnostic. Acceptance needs a prepared capture with a verified positive
-holding in the selected non-owner account. The Token summary uses its
+holding in the selected non-owner account. The isolated holder command now
+checks the exact mounted panel, current proof, chain, token owner and positive
+balance after retirement of the original seed. It observes a frame without
+dispatching input or publishing an operation. The native fixture still
+needs to create the positive holding and capture that state. The Token summary uses its
 existing singular label for one held token. The [Linux validation at `30112ab6`](https://github.com/edgepillar/syrius/actions/runs/44968418733/job/137042577611)
 passes analysis, unit and widget tests, and generated-file verification.
 Fresh native captures are needed to verify that label visually.
