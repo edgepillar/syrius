@@ -970,6 +970,13 @@ new normal Lock PNGs were viewed beside their tracked references. The
 card and status strip composition agree. The new observations identify
 the original run and archive. The running timing requirement remains open.
 
+At `0698b0a2`, the tracked capture indexes cover twelve designated startup
+pairs on unchanged production sources, assets, shaders, Windows runner and
+locked dependencies. The other indexed capture sources have changes in
+those paths. The twelve pairs keep their original `75cad6bb` source pin.
+Six have visual verdicts. The exact-source acceptance report for the
+current revision still needs a complete gallery.
+
 The retained Addresses captures at `06eda3f7` show the selected glyph in
 columns 299 through 312 and rows 165 through 178 in both themes. The authored
 selector specifies a 16 px circle with a 2 px ring and a filled centre for the
