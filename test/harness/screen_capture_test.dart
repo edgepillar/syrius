@@ -479,6 +479,7 @@ void main() {
       ScreenCapture ownedCapture({
         required bool project,
         bool tokenList = false,
+        bool tokenHolder = false,
         bool pillarSpawn = false,
         bool pillarDone = false,
       }) => ScreenCapture(
@@ -490,6 +491,7 @@ void main() {
             cli.assertionArgs(cli.Args(words.sublist(1))),
         restoredSeeded: true,
         restoredTokenList: tokenList,
+        restoredTokenHolder: tokenHolder,
         restoredProject: project,
         restoredPillarSpawn: pillarSpawn,
         restoredPillarDone: pillarDone,
@@ -539,6 +541,16 @@ void main() {
             'tap --key @issued-token-row',
             'wait --key token_action_mode_mint --gone --timeout 10',
           ]);
+      writeScript('prepared/token-holder',
+          File('harness/screens/prepared/token-holder.txt').readAsStringSync());
+      final ScreenScript holder =
+          ownedCapture(project: false, tokenHolder: true)
+              .preflight('tokens').single;
+      expect(holder.assertion['key'], 'token_explorer_control');
+      expect(holder.assertion['exact'], isTrue);
+      expect(holder.afterCapture.last.words, <String>[
+        'wait', '--key', 'token_explorer_control', '--gone', '--timeout', '10',
+      ]);
       writeScript('az-project',
           File('harness/screens/az-project.txt').readAsStringSync());
       expect(() => seededCapture.preflight('az-project'),

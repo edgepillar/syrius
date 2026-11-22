@@ -953,7 +953,8 @@ def main():
                 manifest_sha256=seeded['manifest_sha256'], images=seeded.pop('images'))
             seeded.update(catalog_capture_qualified=True, parent_closure_qualified=True,
                           atomic_frame_qualified=True)
-            if (family in (catalog.PROJECT_DETAIL_FAMILY, catalog.SEEDED_VISUAL_FAMILY)
+            if (family in (catalog.PROJECT_DETAIL_FAMILY, catalog.SEEDED_VISUAL_FAMILY,
+                           catalog.TOKEN_HOLDER_FAMILY)
                     and reference_head is not None):
                 PHASE = 'seeded_catalog_pixel_comparison'
                 need(re.fullmatch(r'[a-f0-9]{40}', reference_head) is not None)

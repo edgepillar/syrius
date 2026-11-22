@@ -47,6 +47,8 @@ final class SeedCommands {
   bool _catalogTokenHolding = false;
   bool _holderTransitionAttempted = false;
   bool _holderHeld = false;
+  bool _nonOwnerPreparationEntered = false;
+  bool _nonOwnerPrepared = false;
   SeededTokenHolder? _holder;
   final Map<Seam, SeededSurfaceSeam> _surfaceSeams =
       <Seam, SeededSurfaceSeam>{};
@@ -161,6 +163,55 @@ final class SeedCommands {
           labSource?.restoredFunding == true ? labSource : null;
       final SeedFuseTarget? fuseTarget = labSource?.fuseTarget;
       guard.requireCurrent();
+      if (action == 'prepare-non-owner-holding' ||
+          action == 'observe-non-owner-holding') {
+        final SeedTokenPresentation? presentation = _tokenPresentation;
+        final String? hash = guard.acceptedHash;
+        final bool prepare = action == 'prepare-non-owner-holding';
+        final Set<String> fields = <String>{
+          'cmd', 'action', 'hash', if (!prepare) 'theme',
+        };
+        if (command.keys.any((String key) => !fields.contains(key)) ||
+            command.containsKey('cmd') && command['cmd'] != 'seed' ||
+            !_catalogTokenHolding || !_confirmed || recipe != 'token' ||
+            labSource == null || presentation == null ||
+            !presentation.closed || hash == null || command['hash'] != hash ||
+            _holderHeld ||
+            (prepare ? _nonOwnerPreparationEntered : !_nonOwnerPrepared)) {
+          throw const SeedRefused('seeded-token-holder-held');
+        }
+        void current() {
+          _requireFixtureClear();
+          guard.requireCurrent();
+          if (_holderHeld || !identical(_guard, guard) ||
+              !identical(_tokenPresentation, presentation) ||
+              !presentation.closed) {
+            throw const SeedRefused('seeded-token-holder-held');
+          }
+        }
+
+        current();
+        if (prepare) {
+          _nonOwnerPreparationEntered = true;
+          await labSource.prepareNonOwnerHolding(hash, current);
+          current();
+          _nonOwnerPrepared = true;
+          return <String, Object?>{'nonOwnerHoldingPrepared': true};
+        }
+        final Object? theme = command['theme'];
+        if (observeHeldToken == null || theme is! String ||
+            !const <String>{'dark', 'light'}.contains(theme)) {
+          throw const SeedRefused('seeded-token-holder-held');
+        }
+        await observeHeldToken(
+          seedIssuedTokenStandard(hash).toString(), theme, current,
+        );
+        current();
+        return <String, Object?>{'positiveNonOwnerHolding': true};
+      }
+      if (_nonOwnerPreparationEntered) {
+        throw const SeedRefused('seeded-token-holder-held');
+      }
       if (action == 'retire-token') {
         _holderTransitionAttempted = true;
         final SeedTokenPresentation? presentation = _tokenPresentation;
@@ -451,10 +502,14 @@ final class SeedCommands {
         'hash': hash,
       };
     } on SeedRefused {
-      if (_holderTransitionAttempted) _holderHeld = true;
+      if (_holderTransitionAttempted || _nonOwnerPreparationEntered) {
+        _holderHeld = true;
+      }
       rethrow;
     } on Object {
-      if (_holderTransitionAttempted) _holderHeld = true;
+      if (_holderTransitionAttempted || _nonOwnerPreparationEntered) {
+        _holderHeld = true;
+      }
       // Do not return wallet paths, transport diagnostics or SDK payloads.
       throw const SeedRefused('seed-prerequisite-or-read-failed');
     }

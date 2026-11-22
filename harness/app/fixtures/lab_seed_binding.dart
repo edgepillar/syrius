@@ -7,8 +7,10 @@ import 'package:json_rpc_2/json_rpc_2.dart' as rpc;
 import 'package:path/path.dart' as path;
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/send_transaction/send_transaction_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/model/send_intent.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_balance/token_balance_snapshot.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/actions/token_action_publisher.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart'
     show kPillarPlasmaAmountNeeded;
@@ -455,6 +457,7 @@ final class LabSeedBinding
   final AcceleratorApi _accelerator;
   final AutoReceiveTxWorker? _receiveWorker;
   bool _revoked = false;
+  bool _holderPreparationAttempted = false;
   ({String hash, SeedStakeEffectObservation observation})? _stakeEffect;
   ({String hash, SeedFundingObservation observation})? _fundingEffect;
   ({String hash, SeedTokenEffect observation})? _tokenEffect;
@@ -673,6 +676,122 @@ final class LabSeedBinding
       _ => BigInt.zero,
     },
   );
+
+  /// Gives the original test token a distinct owner in the copied lab wallet.
+  /// The issuer's balance stays with that account. One wallet action is
+  /// admitted and the original confirmed effect must be read before capture.
+  Future<void> prepareNonOwnerHolding(
+    String issuedHash,
+    void Function() requireOriginal,
+  ) async {
+    final Map<String, String> env = Platform.environment;
+    if (!Platform.isWindows ||
+        env['GITHUB_ACTIONS'] != 'true' ||
+        env['GITHUB_EVENT_NAME'] != 'workflow_dispatch' ||
+        env['GITHUB_REPOSITORY'] != 'edgepillar/syrius' ||
+        env['SYRIUS_HOSTED_RUNNER'] != 'github-hosted' ||
+        env['SYRIUS_CI_WALLET_REOPEN'] != 'true' ||
+        env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'] != 'token-holder' ||
+        env['SYRIUS_CI_REOPEN_INSTANCE'] != environment.profile ||
+        !_catalogTokenHolding ||
+        _holderPreparationAttempted ||
+        environment.members.length != 3 ||
+        environment.selectedIndex != 1 ||
+        !seedHash(issuedHash)) {
+      throw const SeedRefused('seeded-token-holder-held');
+    }
+    _holderPreparationAttempted = true;
+    void current() {
+      _requireCurrent();
+      requireOriginal();
+    }
+
+    current();
+    final SeedConfirmed? issued = await confirmed('token', issuedHash)
+        .timeout(const Duration(seconds: 3));
+    current();
+    if (issued == null ||
+        issued.hash != issuedHash ||
+        issued.owner != environment.owner ||
+        issued.chain != 321 ||
+        !issued.positiveConfirmation ||
+        !issued.matchesRecipe ||
+        !await effect('token', issued).timeout(const Duration(seconds: 3))) {
+      throw const SeedRefused('seeded-token-holder-held');
+    }
+    current();
+    final TokenStandard standard = seedIssuedTokenStandard(issuedHash);
+    final String nextOwner = environment.members[2];
+    final TokenActionPublisher? publisher = TokenActionPublisher.capture(
+      sender: app.sl<SendTransactionBloc>(), address: environment.owner,
+    );
+    if (publisher == null || publisher.session.chainId != 321 ||
+        publisher.heldFor(standard) != null) {
+      throw const SeedRefused('seeded-token-holder-held');
+    }
+    final TokenActionProof proof =
+        await publisher.read(standard).timeout(const Duration(seconds: 3));
+    current();
+    if (!proof.permits(TokenActionMode.transfer) ||
+        proof.balance != _initialSeedTokenUnits ||
+        proof.token.owner.toString() != environment.owner ||
+        nextOwner == environment.owner ||
+        Address.parse(nextOwner).toString() != nextOwner) {
+      throw const SeedRefused('seeded-token-holder-held');
+    }
+    final TokenActionOutcome outcome = await publisher.publish(
+      TokenActionIntent(
+        proof: proof, mode: TokenActionMode.transfer, amount: BigInt.zero,
+        receiver: nextOwner,
+        isCurrent: () {
+          current();
+          return true;
+        },
+      ),
+    );
+    current();
+    final String? hash = outcome.publicationHash;
+    final AccountBlockTemplate? original = outcome.block;
+    if (outcome.status != TokenActionStatus.submitted ||
+        original == null || hash == null || !seedHash(hash) ||
+        outcome.intent.receiver != nextOwner ||
+        outcome.intent.standard != standard ||
+        original.chainIdentifier != 321) {
+      throw const SeedRefused('seeded-token-holder-held');
+    }
+    for (int round = 0; round < 18; round++) {
+      current();
+      final AccountBlock? block = await _ledger.getAccountBlockByHash(
+        Hash.parse(hash),
+      ).timeout(const Duration(seconds: 3));
+      current();
+      if (block != null && (block.hash != original.hash ||
+          block.address.toString() != environment.owner ||
+          block.chainIdentifier != 321 ||
+          block.blockType != original.blockType ||
+          block.toAddress != original.toAddress ||
+          block.tokenStandard != original.tokenStandard ||
+          block.amount != original.amount ||
+          !listEquals(block.data, original.data))) {
+        throw const SeedRefused('seeded-token-holder-held');
+      }
+      if (block != null && _positivelyConfirmed(block)) {
+        final TokenActionProof held = await publisher.read(standard)
+            .timeout(const Duration(seconds: 3));
+        current();
+        if (held.token.owner.toString() == nextOwner &&
+            held.balance == proof.balance &&
+            held.token.totalSupply == proof.token.totalSupply &&
+            held.token.maxSupply == proof.token.maxSupply) {
+          return;
+        }
+      }
+      if (round < 17) {
+        await Future<void>.delayed(const Duration(seconds: 2));
+      }
+    }
+    throw const SeedRefused('seeded-token-holder-held');
+  }
 
   /// Rechecks the sponsor receipt and live terms for the selected lab actor.
   Future<void> requirePillarDepositReady(String fusionHash) async {

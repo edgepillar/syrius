@@ -516,6 +516,7 @@ Map<String, Object?>? restoredChildFailure(
   bool pillarDone = false,
   bool swapList = false,
   bool includeTokenList = false,
+  bool includeNonOwnerHolding = false,
 }) {
   if (!restoredChildPhases.contains(phase)) return null;
   if (surfaceOperation != null &&
@@ -524,7 +525,8 @@ Map<String, Object?>? restoredChildFailure(
        captureStep?.screen != null || captureStep?.theme != null ||
        captureStep?.line != null ||
        selection != RestoredSeedSelection.seededCatalog ||
-       pillarSpawn || pillarDone || swapList || includeTokenList)) {
+       pillarSpawn || pillarDone || swapList || includeTokenList ||
+       includeNonOwnerHolding)) {
     return null;
   }
   String kind = 'OTHER_ERROR';
@@ -584,6 +586,8 @@ Map<String, Object?>? restoredChildFailure(
           : pillarDone ? 'restored_pillar_done_capture_failure'
           : pillarSpawn ? 'restored_pillar_spawn_capture_failure'
           : switch (selection) {
+        RestoredSeedSelection.seededCatalog when includeNonOwnerHolding =>
+          'restored_token_holder_capture_failure',
         RestoredSeedSelection.seededCatalog when includeTokenList =>
           'restored_seeded_visual_capture_failure',
         RestoredSeedSelection.stakeDraft =>
@@ -861,6 +865,11 @@ const List<String> _seededVisualFiles = <String>[
   '23-tokens-dark.png', '23-tokens-light.png',
   '24-token-mine-dark.png', '24-token-mine-light.png',
 ];
+const List<String> _holderScreens = <String>['tokens'];
+const List<String> _holderFiles = <String>[
+  '23-tokens-dark.png', '23-tokens-light.png',
+];
+
 const List<String> _stakeDraftScreens = <String>['staking-new'];
 const List<String> _stakeDraftFiles = <String>[
   '14-staking-new-dark.png', '14-staking-new-light.png',
@@ -911,6 +920,18 @@ const Set<String> _seededVisualLines = <String>{
   ..._seededLines,
   'assert --key token_action_mode_mint --exact',
   'wait --key token_action_mode_mint --gone --timeout 10',
+};
+
+const Set<String> _holderLines = <String>{
+  'goto tokens',
+  'wait --key tokens_filter_held --timeout 30',
+  'tap --key tokens_filter_held',
+  'key ctrl+r',
+  'wait --key @issued-token-row --timeout 30',
+  'tap --key @issued-token-row',
+  'wait --key token_explorer_control --timeout 30',
+  'assert --key token_explorer_control --exact',
+  'wait --key token_explorer_control --gone --timeout 10',
 };
 
 const Set<String> _stakeDraftLines = <String>{
@@ -1192,6 +1213,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
   required void Function(PreparedSurfaceOperation) onPreparedOperation,
   required bool observeSeededSeams,
   bool includeTokenList = false,
+  bool includeNonOwnerHolding = false,
   Future<PreparedTokenHolder> Function()? prepareTokenHolder,
   String? pillarSpawnProducer,
   bool pillarDone = false,
@@ -1218,6 +1240,9 @@ Future<Map<String, Object>> _captureSeededCatalog(
           files: const <String>['19-spawn-dark.png', '19-spawn-light.png'],
           lines: _spawnLines)
       : switch (selection) {
+    RestoredSeedSelection.seededCatalog when includeNonOwnerHolding =>
+      (schema: 21, screens: _holderScreens, files: _holderFiles,
+       lines: _holderLines),
     RestoredSeedSelection.seededCatalog when includeTokenList =>
       (schema: 18, screens: _seededVisualScreens, files: _seededVisualFiles,
        lines: _seededVisualLines),
@@ -1300,18 +1325,51 @@ Future<Map<String, Object>> _captureSeededCatalog(
     await emitMarker('CI_PREPARED_SURFACE_SEAM:${jsonEncode(expected)}');
   }
 
+  Future<void> observeNonOwnerHolding(Object? theme) async {
+    await requireCurrent();
+    final Map<String, dynamic> receipt = await cli.call(
+      instance, <String, Object?>{
+        'cmd': 'seed', 'action': 'observe-non-owner-holding',
+        'hash': confirmed('token'), 'theme': theme,
+      },
+    );
+    await requireCurrent();
+    if (receipt['positiveNonOwnerHolding'] != true) {
+      throw const FormatException('prepared non-owner holding refused');
+    }
+  }
+
+  if (includeNonOwnerHolding) {
+    await requireCurrent();
+    final Map<String, dynamic> receipt = await cli.call(
+      instance, <String, Object?>{
+        'cmd': 'seed', 'action': 'prepare-non-owner-holding',
+        'hash': confirmed('token'),
+      },
+    );
+    await requireCurrent();
+    if (receipt['nonOwnerHoldingPrepared'] != true) {
+      throw const FormatException('non-owner holding preparation refused');
+    }
+  }
+
   final ScreenCapture capture = ScreenCapture(
     repository: Directory(cli.repo),
     restoredSeeded: true,
     restoredTokenList: includeTokenList,
+    restoredTokenHolder: includeNonOwnerHolding,
     restoredProject: projectDetail,
     restoredPillarSpawn: pillarSpawn,
     restoredPillarDone: pillarDone,
     onStep: onStep,
     call: (Map<String, Object?> command) async {
       await requireCurrent();
+      final bool holderShot =
+          includeNonOwnerHolding && command['cmd'] == 'shot';
+      if (holderShot) await observeNonOwnerHolding(command['theme']);
       final Map<String, dynamic> result = await cli.call(instance, command);
       await requireCurrent();
+      if (holderShot) await observeNonOwnerHolding(command['theme']);
       return result;
     },
     prepareHome: pillarDone
@@ -1457,6 +1515,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
     'screens': catalog.screens, 'themes': const <String>['dark', 'light'],
     'files': catalog.files, 'width': 1280, 'height': 780, 'scale': 1,
     'capture_returned': true,
+    if (includeNonOwnerHolding) 'positive_non_owner_holding': true,
   };
 }
 
@@ -1470,6 +1529,7 @@ Future<void> main() async {
   bool pillarDone = false;
   bool swapList = false;
   bool includeTokenList = false;
+  bool includeNonOwnerHolding = false;
   try {
     final Map<String, String> env = Platform.environment;
     final String name = env['SYRIUS_CI_REOPEN_INSTANCE'] ?? '';
@@ -1485,7 +1545,8 @@ Future<void> main() async {
     selection = switch (captureMode) {
       null || 'false' || 'pillar-spawn' || 'pillar-done' || 'swap-seeded' =>
         RestoredSeedSelection.all,
-      'true' || 'seeded-states-visual' => RestoredSeedSelection.seededCatalog,
+      'true' || 'seeded-states-visual' || 'token-holder' =>
+        RestoredSeedSelection.seededCatalog,
       'stake-draft' => RestoredSeedSelection.stakeDraft,
       'project-detail' => RestoredSeedSelection.projectDetail,
       _ => throw const FormatException('seeded capture selection refused'),
@@ -1494,6 +1555,7 @@ Future<void> main() async {
     pillarDone = captureMode == 'pillar-done';
     swapList = captureMode == 'swap-seeded';
     includeTokenList = captureMode == 'seeded-states-visual';
+    includeNonOwnerHolding = captureMode == 'token-holder';
     final bool observeSeededSeams = captureMode == 'true';
     final bool seededCapture =
         pillarSpawn || pillarDone || swapList ||
@@ -1797,6 +1859,7 @@ Future<void> main() async {
         selection: selection,
         observeSeededSeams: observeSeededSeams,
         includeTokenList: includeTokenList,
+        includeNonOwnerHolding: includeNonOwnerHolding,
         emitMarker: marker,
         swapList: swapList,
         onPreparedOperation: (PreparedSurfaceOperation operation) =>
@@ -1833,6 +1896,7 @@ Future<void> main() async {
       surfaceOperation: surfaceOperation,
       selection: selection, pillarSpawn: pillarSpawn, pillarDone: pillarDone,
       swapList: swapList, includeTokenList: includeTokenList,
+      includeNonOwnerHolding: includeNonOwnerHolding,
     );
     if (failure != null) {
       stdout.writeln('CI_REOPEN_FAILURE:${jsonEncode(failure)}');

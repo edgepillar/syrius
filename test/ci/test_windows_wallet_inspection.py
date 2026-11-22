@@ -362,7 +362,7 @@ class InspectionTests(unittest.TestCase):
                       'launch-timing', 'launch-timing-pair', 'launch-timing-and-settle',
                       'interactive-timing-pair',
                       'lock-catalog', 'lock-seams', 'quiz-catalog', 'seeded-states',
-                      'seeded-states-visual', 'stake-draft', 'project-detail', 'pillar-spawn',
+                      'seeded-states-visual', 'token-holder', 'stake-draft', 'project-detail', 'pillar-spawn',
                       'pillar-done', 'swap-seeded'):
             with self.subTest(value=value), self.assertRaises(lab.Failure):
                 lab.wallet_inspection_requested('native',
@@ -381,7 +381,7 @@ class InspectionTests(unittest.TestCase):
              'launch-timing', 'launch-timing-pair', 'launch-timing-and-settle',
              'interactive-timing-pair',
              'lock-catalog', 'lock-seams', 'quiz-catalog', 'seeded-states',
-             'seeded-states-visual', 'swap-seeded', 'stake-draft', 'project-detail', 'pillar-spawn',
+             'seeded-states-visual', 'token-holder', 'swap-seeded', 'stake-draft', 'project-detail', 'pillar-spawn',
              'pillar-done'])
         self.assertIn('SYRIUS_READONLY_CATALOG_FAMILY: ${{ inputs.readonly_catalog_family }}', workflow)
         motion = workflow.split('      - name: Retain bounded launch motion samples\n', 1)[1]

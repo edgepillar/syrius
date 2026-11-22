@@ -377,6 +377,7 @@ class ScreenCapture {
     this.readonlyNodeVerified = false,
     this.restoredSeeded = false,
     this.restoredTokenList = false,
+    this.restoredTokenHolder = false,
     this.restoredProject = false,
     this.restoredPillarSpawn = false,
     this.restoredPillarDone = false,
@@ -399,6 +400,7 @@ class ScreenCapture {
   final bool readonlyNodeVerified;
   final bool restoredSeeded;
   final bool restoredTokenList;
+  final bool restoredTokenHolder;
   final bool restoredProject;
   final bool restoredPillarSpawn;
   final bool restoredPillarDone;
@@ -468,7 +470,8 @@ class ScreenCapture {
   ScreenScript _script(ScreenSpec screen) {
     final bool prepared = switch (screen.id) {
       'az' => restoredSeeded && restoredProject,
-      'tokens' => restoredSeeded && restoredTokenList && !restoredProject,
+      'tokens' => restoredSeeded &&
+          (restoredTokenList || restoredTokenHolder) && !restoredProject,
       'send-rest' => readonlySendConfirmation,
       'set-node' => readonlyNodeVerified,
       _ => false,
@@ -477,7 +480,11 @@ class ScreenCapture {
       'harness', 'screens', if (prepared) 'prepared',
     ];
     _checkParents(parts);
-    final List<String> fileParts = <String>[...parts, '${screen.id}.txt'];
+    final String scriptName = prepared && screen.id == 'tokens' &&
+        restoredTokenHolder
+        ? 'token-holder'
+        : screen.id;
+    final List<String> fileParts = <String>[...parts, '$scriptName.txt'];
     if (_type(fileParts) != FileSystemEntityType.file) {
       throw ScreenCaptureError(
         'missing script or refused link: ${fileParts.join('/')}',
@@ -505,8 +512,11 @@ class ScreenCapture {
             text == '# prerequisite: readonly-lab-swap-start';
         final bool tokenPrepared = restoredSeeded && !restoredProject &&
             (screen.id == 'token-mine' ||
-             (screen.id == 'tokens' && prepared)) &&
+             (screen.id == 'tokens' && prepared && !restoredTokenHolder)) &&
             text == '# prerequisite: restored-lab-token';
+        final bool holderPrepared = prepared && screen.id == 'tokens' &&
+            restoredTokenHolder &&
+            text == '# prerequisite: restored-lab-token-holder';
         final bool projectPrepared = restoredSeeded && restoredProject &&
             (screen.id == 'az' || screen.id == 'az-project') &&
             text == '# prerequisite: restored-lab-project';
@@ -526,7 +536,7 @@ class ScreenCapture {
             text != '# prerequisite: unlocked-home' &&
             !sendPrepared && !warningPrepared && !zapPreview &&
             !swapPrepared &&
-            !tokenPrepared &&
+            !tokenPrepared && !holderPrepared &&
             !projectPrepared && !spawnPrepared && !donePrepared &&
             !pillarPrepared && !readyPrepared) {
           throw ScreenCaptureError('${screen.id}: ${text.substring(2)}');

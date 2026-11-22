@@ -34,6 +34,8 @@ SEEDED_FAMILY = 'seeded-states'
 SEEDED_VISUAL_FAMILY = 'seeded-states-visual'
 SEEDED_SCHEMA = 4
 SEEDED_VISUAL_SCHEMA = 18
+TOKEN_HOLDER_FAMILY = 'token-holder'
+TOKEN_HOLDER_SCHEMA = 21
 SEEDED_SCREENS = ('staking', 'token-mine')
 SEEDED_FILES = ('13-staking-dark.png', '13-staking-light.png',
                 '24-token-mine-dark.png', '24-token-mine-light.png')
@@ -50,6 +52,7 @@ SWAP_SEEDED_FAMILY = 'swap-seeded'
 SWAP_SEEDED_SCHEMA = 15
 RESTORED_FAMILIES = {SEEDED_FAMILY: SEEDED_SCHEMA,
                      SEEDED_VISUAL_FAMILY: SEEDED_VISUAL_SCHEMA,
+                     TOKEN_HOLDER_FAMILY: TOKEN_HOLDER_SCHEMA,
                      STAKE_DRAFT_FAMILY: STAKE_DRAFT_SCHEMA,
                      PROJECT_DETAIL_FAMILY: PROJECT_CATALOG_SCHEMA,
                      PILLAR_SPAWN_FAMILY: PILLAR_SPAWN_SCHEMA,
@@ -59,6 +62,7 @@ RESTORED_SCHEMAS = frozenset((*RESTORED_FAMILIES.values(), PROJECT_DETAIL_SCHEMA
 RESTORED_FAILURE_KINDS = {
     SEEDED_SCHEMA: 'restored_seeded_capture_failure',
     SEEDED_VISUAL_SCHEMA: 'restored_seeded_visual_capture_failure',
+    TOKEN_HOLDER_SCHEMA: 'restored_token_holder_capture_failure',
     STAKE_DRAFT_SCHEMA: 'restored_stake_draft_capture_failure',
     PROJECT_DETAIL_SCHEMA: 'restored_project_detail_capture_failure',
     PROJECT_CATALOG_SCHEMA: 'restored_project_catalog_capture_failure',
@@ -85,6 +89,7 @@ CATALOGS = {
     SEEDED_VISUAL_SCHEMA: (('staking', 'tokens', 'token-mine'),
                            (*SEEDED_FILES[:2], '23-tokens-dark.png',
                             '23-tokens-light.png', *SEEDED_FILES[2:])),
+    TOKEN_HOLDER_SCHEMA: (('tokens',), ('23-tokens-dark.png', '23-tokens-light.png')),
     FAMILY_SCHEMAS['earn']: (EARN_SCREENS, EARN_FILES),
     FAMILY_SCHEMAS['sentinel-fixture']: (SENTINEL_FIXTURE_SCREENS,
                                          SENTINEL_FIXTURE_FILES),
@@ -312,6 +317,8 @@ def _script_field(schema):
 
 
 def catalog_script_name(schema, screen):
+    if (schema, screen) == (TOKEN_HOLDER_SCHEMA, 'tokens'):
+        return 'prepared/token-holder.txt'
     if (schema, screen) in {(PROJECT_CATALOG_SCHEMA, 'az'),
                             (SEND_CATALOG_SCHEMA, 'send-rest'),
                             (NODE_VERIFIED_SCHEMA, 'set-node'),
@@ -344,6 +351,8 @@ def capture_receipt(value):
         themes=list(THEMES), files=list(files),
         width=1280, height=780, scale=1, capture_returned=True)
     expected.update(screens=list(catalog_screens(schema)))
+    if schema == TOKEN_HOLDER_SCHEMA:
+        expected['positive_non_owner_holding'] = True
     need(set(value) == set(expected)
          and all(type(value[k]) is type(v) and value[k] == v
                  for k, v in expected.items()), 'CAPTURE_REFUSED')

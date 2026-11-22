@@ -5109,9 +5109,14 @@ as diagnostic. Acceptance needs a prepared capture with a verified positive
 holding in the selected non-owner account. The isolated holder command now
 checks the exact mounted panel, current proof, chain, token owner and positive
 balance after retirement of the original seed. It observes a frame without
-dispatching input or publishing an operation. The native fixture still
-needs to create the positive holding and capture that state. The Token summary uses its
-existing singular label for one held token. The [Linux validation at `30112ab6`](https://github.com/edgepillar/syrius/actions/runs/44968418733/job/137042577611)
+dispatching input or publishing an operation. A dedicated `token-holder`
+capture now prepares the same state in a fresh copied Windows CI lab.
+The fixture assigns ownership of its newly issued test token to a second
+derived lab account while preserving the selected account's positive balance.
+It checks the confirmed operation and verifies the open holder panel before
+and after each capture. The two original images and their visual verdicts
+remain pending. The Token summary uses its existing singular label for one
+held token. The [Linux validation at `30112ab6`](https://github.com/edgepillar/syrius/actions/runs/44968418733/job/137042577611)
 passes analysis, unit and widget tests, and generated-file verification.
 Fresh native captures are needed to verify that label visually.
 

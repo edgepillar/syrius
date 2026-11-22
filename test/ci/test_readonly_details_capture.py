@@ -73,6 +73,20 @@ def bundle(value, images, *, link=None):
 
 
 class DetailsCatalogTests(unittest.TestCase):
+    def test_holder_receipt_requires_positive_non_owner_state(self):
+        schema = details.RESTORED_FAMILIES['token-holder']
+        value = dict(receipt(), schema=schema,
+            scope='restored_native_seeded_catalog_capture', screens=['tokens'],
+            files=['23-tokens-dark.png', '23-tokens-light.png'])
+        with self.assertRaises(details.Refused):
+            details.capture_receipt(value)
+        with self.assertRaises(details.Refused):
+            details.capture_receipt(dict(value, positive_non_owner_holding=1))
+        value['positive_non_owner_holding'] = True
+        self.assertEqual(details.capture_receipt(value), value)
+        self.assertEqual(details.catalog_script_name(schema, 'tokens'),
+            'prepared/token-holder.txt')
+
     def test_single_state_only_admits_its_two_original_files_and_script(self):
         original, original_images = fixture()
         for schema, screen, number, stage in (
