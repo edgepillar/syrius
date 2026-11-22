@@ -1405,8 +1405,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
   TextStyle get swapActionPrimaryText =>
       bodyText.copyWith(fontSize: 17, fontWeight: FontWeight.w600);
 
-  /// The dedicated dollar line below an amount.
-  double get swapActionDollarHeight => 20;
+  /// Space for the 13 px dollar label at 1.45 line height, rounded up.
+  double get swapActionDollarHeight => 19;
 
   /// The token selector's minimum height.
   double get swapActionTokenHeight => 34;

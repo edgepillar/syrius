@@ -182,6 +182,14 @@ void main() {
 
         final Finder warning = find.byType(SwapNotice);
         final AppTokens tokens = AppTokens.of(tester.element(warning));
+        final Finder close = find.byKey(const Key('swap_action_close'));
+        expectMockupSymbol(
+          tester,
+          within: close,
+          symbol: 'x',
+          size: 14,
+          color: tokens.faint,
+        );
         expectMockupSymbol(
           tester,
           within: warning,
@@ -302,6 +310,8 @@ void main() {
         expect(find.byKey(const Key('fixture_deposit')), findsNothing);
         await tester.tap(cancel);
         expect(cancels, 1);
+        await tester.tap(close);
+        expect(cancels, 2);
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox.shrink());
       },
@@ -494,6 +504,18 @@ void main() {
       swapHost(_surface(amount, visible: false, dollars: dollars)),
     );
     expect(constructed, 0);
+    final Finder emptyLines = find.descendant(
+      of: find.byType(SwapAmountPane),
+      matching: find.byWidgetPredicate(
+        (Widget widget) =>
+            widget is ConstrainedBox &&
+            widget.constraints == const BoxConstraints(minHeight: 19) &&
+            widget.child is SizedBox,
+      ),
+    );
+    expect(emptyLines, findsNWidgets(2));
+    expect(tester.getSize(emptyLines.first).height, 19);
+    expect(tester.getSize(emptyLines.last).height, 19);
     await tester.pumpWidget(
       swapHost(_surface(amount, dollars: dollars), enabled: false),
     );
