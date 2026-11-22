@@ -5989,6 +5989,13 @@ The two exterior samples retain the preceding values in both themes.
 The body still differs at 38,900 dark and 73,754 light pixels by this
 threshold. Both whole-image verdicts remain open.
 
+The [section comparison](https://github.com/edgepillar/syrius/actions/runs/45014520890/job/137183858522)
+reuses the same archive. Within the dialog, the amount panes have the
+largest absolute count in both themes, at 10,452 dark and 30,364 light.
+The counterparty section differs at 7,907 dark and 19,776 light. These
+counts use fixed reference rectangles and include layout shifts and
+fixture differences.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since
