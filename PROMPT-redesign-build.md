@@ -6796,6 +6796,20 @@ targets `ce4fa96f`, the published source with the corrected Import
 numerals. It runs the clean Windows Debug and Release builds, Dart
 checks and DLL checks for that source.
 
+### Project Detail capture admission (2026-11-22)
+
+The comparison tool now requires the `project-detail` catalog for both
+Accelerator screens at the target revision. An unclassified or alternate
+Project Detail capture stays diagnostic, even when its source pin and
+image digest are valid. The verified prepared catalog already contains
+both screens in both themes.
+
+A read-only inventory at `310a8609` parses 55 tracked capture indexes
+against the 94 screen and theme keys. All 94 keys have an eligible
+first-parent capture record and none has an exact-source record at that
+revision. This inventory checks manifest metadata. PNG availability and
+whole-image verdicts still need exact-source evidence for V01.
+
 ### End-state audit at `f421d5d1` (2026-11-22)
 
 | End-state item | Verified evidence and remaining check |

@@ -28,8 +28,8 @@ Pass one manifest per verified batch. Add the optional top-level
 "catalog_family" from the verified producer to identify prepared captures.
 An index that combines families can set "catalog_family" on each entry.
 For an overlapping screen and theme, an exact target capture takes
-precedence. At that source the prepared Send, Tokens, Swap, Voting, Node and
-Addresses catalogs take precedence over their alternate captures. A
+precedence. At that source the prepared Send, Tokens, Swap, Voting, Project
+Detail, Node and Addresses catalogs take precedence over alternate captures. A
 target-source comparison counts these states only when their manifests identify
 the prepared catalog. Held Tokens needs a positive balance in the selected
 account and an expanded non-owner row. The seeded issuer's Mint form stays
@@ -125,6 +125,7 @@ PREPARED_CATALOGS = {
     "23-tokens": "token-holder",
     "26-swap-list": "swap-seeded",
     "28-az": "project-detail",
+    "29-az-project": "project-detail",
     "30-set-node": "node-verified",
     "35-set-addresses": "node-verified",
 }

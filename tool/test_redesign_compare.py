@@ -215,6 +215,25 @@ class ArchiveReadCacheTests(unittest.TestCase):
 
 
 class CaptureCatalogTests(unittest.TestCase):
+    def test_accelerator_requires_the_prepared_catalog_for_both_screens(self) -> None:
+        target = "a" * 40
+        ordinary = Path("navigation.json")
+        prepared = Path("project-detail.json")
+        for screen in ("28-az", "29-az-project"):
+            for theme in ("dark", "light"):
+                with self.subTest(screen=screen, theme=theme):
+                    stem = f"{screen}-{theme}"
+                    generic = Capture(Path("generic.png"), source_sha=target)
+                    project = Capture(Path("project.png"), source_sha=target,
+                                      catalog_family="project-detail")
+                    manifests = {ordinary: {stem: generic}, prepared: {stem: project}}
+                    with patch("redesign_compare.load_actual_manifest",
+                               side_effect=lambda path, _, **kwargs: manifests[path]):
+                        self.assertTrue(generic.is_diagnostic(stem, require_catalog_family=True))
+                        self.assertFalse(project.is_diagnostic(stem, require_catalog_family=True))
+                        self.assertEqual(select_actual_captures(
+                            (ordinary, prepared), {stem}, target), {stem: project})
+
     def test_node_and_addresses_use_prepared_settings_in_both_themes(self) -> None:
         target = "a" * 40
         ordinary = Path("settings.json")
