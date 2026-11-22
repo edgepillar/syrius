@@ -4962,7 +4962,7 @@ different painted drift positions.
 | List entrance | `test/row_detail/list_entrance_test.dart` and `test/row_detail/table_entrance_test.dart` cover the stagger and first-paint behavior. | Watch the Welcome rows and a freshly populated list. |
 | Primary pill sheen | `test/sheen/primary_pill_test.dart` and `test/sheen/sheen_test.dart` cover hover and completion feedback. | Observe the 600 ms hover and completion passes on their original controls. |
 | Stepper steps | `test/motion/step_switcher_test.dart` checks direction, height and preserved duration. | Observe steps in the Spawn, Token and onboarding flows. |
-| Row opens into a page | The existing Accelerator list test samples the original container halfway through both 300 ms transitions and checks the expanded and contracted geometry against the forward and reverse curves. Project Detail has a separate view test. | Observe both directions in the running Windows wallet. |
+| Row opens into a page | The existing Accelerator list test samples the original container halfway through both 300 ms transitions and checks the expanded and contracted geometry against the forward and reverse curves. Project Detail has a separate view test. The [full Linux validation at `029cb64e`](https://github.com/edgepillar/syrius/actions/runs/45008841144/job/137166385614) passes both tests, analysis and generation. | Observe both directions in the running Windows wallet. |
 | Panel and dialogs | `test/shell/bell/bell_panel_test.dart` and `test/frost/dialog_motion_test.dart` cover motion and interaction. | Open Bell, Go To and a confirmation, and view each motion. |
 | Toast | `test/toast/event_toast_test.dart` checks the 300 ms rise, 5 s drain and hover pause. | View the rise, pause and resumed drain. |
 | Zap arrived | `test/home/zap_sparks_test.dart` covers the 28 sparks and once-per-event behavior. | Observe the original animation using an explicitly identified preview or admitted isolated event. |
@@ -5839,6 +5839,16 @@ RGB channel.
 The archive remains hosted. The regional measurements locate the
 differences for direct visual review. No visual verdict is recorded
 from the measurements alone.
+
+A second read-only inventory at `f7e58f13` checks all 27 tracked capture
+indexes. All 94 screen/theme combinations now have an indexed prepared
+capture. For 92 pairs the newest locally available prepared images
+decode at 1280 by 780, with matching PNG and archive hashes across 26
+original archives and eleven producer commits. Both prepared Voting
+images are indexed from the hosted Accelerator archive. There are no
+ambiguous local selections. All locally available images are from
+earlier source commits, so none contributes to exact-target acceptance
+at `f7e58f13`.
 
 The Voting reference separators are at rows 210, 270, 329 and 389 in
 both themes. The Voting ledger now uses a 59 px minimum row body with
