@@ -891,7 +891,7 @@ SWAP_AMOUNT_FILL_TOLERANCE = 2
 SWAP_HEADER_COLUMNS = (610, 852)
 SWAP_HEADER_ROWS = (10, 34)
 SWAP_HEADER_CONTRAST = 32
-SWAP_COUNTERPARTY_SCAN = (812, 440, 520)
+SWAP_COUNTERPARTY_SCAN = (812, 430, 570)
 SWAP_COUNTERPARTY_ICON_COLUMNS = (821, 852)
 
 
@@ -973,15 +973,21 @@ def _swap_counterparty_geometry(data, theme):
     column, top, bottom = SWAP_COUNTERPARTY_SCAN
     fill = (46, 48, 46) if theme == 'dark' else (255, 255, 255)
     bands = _image_vertical_bands(data, column, top, bottom)
-    spans = [(start, end) for (start, color), (end, _) in zip(bands, bands[1:])
-             if start > top and 34 <= end - start <= 56 and tuple(color[:3]) == fill]
+    ends = [row for row, _ in bands[1:]] + [bottom]
+    solid = [dict(rows=[start, end], rgb=list(color[:3]))
+             for (start, color), end in zip(bands, ends) if end - start >= 14]
+    spans = [(start, end) for (start, color), end in zip(bands, ends)
+             if top < start < end < bottom and 34 <= end - start <= 56
+             and tuple(color[:3]) == fill]
+    result = dict(fill_rows=None, trailing_ink=None, solid_bands=solid)
     if len(spans) != 1:
-        return dict(fill_rows=None, trailing_ink=None)
+        return result
     start, end = spans[0]
     encoded = base64.b64encode(data).decode('ascii')
-    ink = _swap_ink_bounds(encoded, fill, 0, SWAP_COUNTERPARTY_ICON_COLUMNS,
-                           (start + 8, end - 8))
-    return dict(fill_rows=[start, end], trailing_ink=ink)
+    result['fill_rows'] = [start, end]
+    result['trailing_ink'] = _swap_ink_bounds(
+        encoded, fill, 0, SWAP_COUNTERPARTY_ICON_COLUMNS, (start + 8, end - 8))
+    return result
 
 
 def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points=None):

@@ -174,7 +174,10 @@ class ReaderTests(unittest.TestCase):
                          comparisons[-2]['amount_pane_fill_rows'])
         self.assertNotIn('counterparty_geometry', pixel[1])
         self.assertEqual(counterparty[1]['counterparty_geometry']['themes'], {
-            theme: {label: {'fill_rows': None, 'trailing_ink': None}
+            theme: {label: {
+                'fill_rows': None, 'trailing_ink': None,
+                'solid_bands': [dict(rows=[430, 570], rgb=[255, 255, 255])],
+            }
                     for label in ('actual', 'reference')} for theme in ('dark', 'light')
         })
         for _, frame in (pixel, geometry, counterparty):
@@ -233,10 +236,12 @@ class ReaderTests(unittest.TestCase):
         for theme in ('dark', 'light'):
             with self.subTest(theme=theme):
                 png = (shots / f'27-swap-start-{theme}.png').read_bytes()
-                self.assertEqual(reader._swap_counterparty_geometry(png, theme), {
-                    'fill_rows': [461, 501],
-                    'trailing_ink': [834, 476, 844, 488],
-                })
+                measured = reader._swap_counterparty_geometry(png, theme)
+                self.assertEqual(measured['fill_rows'], [461, 501])
+                self.assertEqual(measured['trailing_ink'], [834, 476, 844, 488])
+                self.assertIn(dict(rows=[461, 501],
+                    rgb=[46, 48, 46] if theme == 'dark' else [255, 255, 255]),
+                    measured['solid_bands'])
 
     def test_token_draft_comparison_partitions_the_matching_reference_frames(self):
         names = ('25-token-new-dark.png', '25-token-new-light.png')
