@@ -5530,6 +5530,18 @@ passes analysis, 5,132 Dart tests with one skip, and generated-file
 verification. The run includes the Home Activity loading-bar regression
 and retains 1,531 passing Windows-tour cases within the Linux suite.
 
+#### Verified Windows baseline at `d8f14048` (2026-11-22)
+
+The [clean Windows producer](https://github.com/edgepillar/syrius/actions/runs/44998067814/job/137133327255)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45000380952/job/137140401074)
+verify all twelve baseline checks. Debug and Release builds exit normally in
+140.562 and 194.047 seconds. The source, Debug and Release DLL digests
+agree, and all three pass map and export checks. Root analysis reports
+zero errors, zero warnings and 1,300 infos. The non-chain suite has
+5,132 passes and one skip. Generated localization files match the checkout.
+The entry-capture job was skipped. This baseline predates the Token form
+validation change.
+
 #### Paired Windows interaction timing at `5f6e049a`
 
 The [native producer](https://github.com/edgepillar/syrius/actions/runs/44976992353/job/137069000193)
@@ -5680,7 +5692,7 @@ V06 remain open.
 | V03 | done | 2026-11-12T03:23Z | Source648 673fe4a19468, Source670 2b2c4abdadae, Source676 5d555665a643 and Source686 15fec4c9120f provide executed native refusals for all fifteen current seam values and pointer/keyboard refusal for the only seamed palette target. No direct missing-feature shortcut or other seamed palette target is registered. All 1,213 current runtime entries match Source686; the sole older token observer difference is covered by its holder trial. Source670's producer control list remains distinct from its legacy reader's context/closure proof. The [Source695 audit](docs/review/source695-seam-coverage.md) closes the original requirement without relabelling the later incomplete eleven-control Home batch or its failures. No new native run or visual match is claimed. |
 | V04 | done | 2026-10-31T23:34Z | All four independently qualified Source265 minimum-window/Arabic originals were actually viewed in both themes. The owned review closes SUCCESS with actual controller exit zero; required original native closure stays source-bound. Minimum controls fit and RTL layout mirrors. English fallback/missing Arabic copy is retained as X414; exact saved locale preference and Arabic glyph quality remain separate unqualified observations |
 | V05 | done | 2026-11-18T13:45Z | fdb88d89 commits the fresh independent review of all 94 exact 28f9c121 pairs and X821 through X875. The visual verdicts guide further comparisons under V01. [Independent review](docs/review/source-28f9c121-independent-visual-review.md). |
-| V06 | review | 2026-11-22 | The [end-state audit](#end-state-audit-at-28b39fab-2026-11-22) and [latest Windows baseline](#verified-windows-baseline-at-5f6e049a-2026-11-22) record verified builds, analysis and tests. Visual and running motion acceptance remain open. |
+| V06 | review | 2026-11-22 | The [end-state audit](#end-state-audit-at-28b39fab-2026-11-22) and [latest Windows baseline](#verified-windows-baseline-at-d8f14048-2026-11-22) record verified builds, analysis and tests. Visual and running motion acceptance remain open. |
 | X01 | done | 2026-10-21T23:26Z | e13abb387577 restores loading-list sweep ink in lib/rearchitecture/utils/widgets/motion/skeleton.dart; all 19 existing Skeleton tests pass unchanged |
 | X02 | done | 2026-10-21T23:57Z | e13abb387577 keeps the status-strip dot visible at narrow widths and fixes asynchronous visibility tests |
 | X03 | done | 2026-10-21T23:57Z | e13abb387577 parses the bridge test's HTTP head before binary frames; compression refusal assertions retained |
