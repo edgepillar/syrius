@@ -369,9 +369,9 @@ class SwapChoice extends StatelessWidget {
                   Text(label, overflow: TextOverflow.ellipsis),
             ),
             SizedBox(width: tokens.transferRecentGap),
-            Icon(
-              Icons.expand_more,
-              size: tokens.swapActionTokenIconSize,
+            ShellSymbol(
+              'chev',
+              size: tokens.inlineGlyphSize,
               color: tokens.faint,
             ),
           ],
@@ -529,7 +529,7 @@ class SwapAmountPane extends StatelessWidget {
       decoration: BoxDecoration(
         color: tokens.card2,
         border: Border.all(color: tokens.line),
-        borderRadius: BorderRadius.circular(tokens.transferControlRadius),
+        borderRadius: BorderRadius.circular(tokens.dialogRadius),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -648,7 +648,7 @@ class _SwapTokenLabel extends StatelessWidget {
         Flexible(
           child: Text(
             token.symbol,
-            style: tokens.dataText,
+            style: tokens.bodyText,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -735,7 +735,7 @@ class SwapUnknownPane extends StatelessWidget {
       decoration: BoxDecoration(
         color: tokens.card2,
         border: Border.all(color: tokens.line),
-        borderRadius: BorderRadius.circular(tokens.transferControlRadius),
+        borderRadius: BorderRadius.circular(tokens.dialogRadius),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -197,6 +197,15 @@ void main() {
           matching: find.byType(SwapAmountPane),
         );
         final Finder receive = find.byType(SwapAmountPane).last;
+        for (final Finder pane in <Finder>[send, receive]) {
+          final Container container = tester.widget(
+            find.descendant(of: pane, matching: find.byType(Container)).first,
+          );
+          expect(
+            (container.decoration! as BoxDecoration).borderRadius,
+            BorderRadius.circular(12),
+          );
+        }
         final Finder arrow = find.byKey(const Key('swap_action_direction'));
         final Rect sendRect = tester.getRect(send);
         final Rect receiveRect = tester.getRect(receive);
@@ -339,6 +348,21 @@ void main() {
           tokens.card2,
         );
         expect(style.side!.resolve(<WidgetState>{})!.color, tokens.faint);
+        expectMockupSymbol(
+          tester,
+          within: button,
+          symbol: 'chev',
+          size: 12,
+          color: tokens.faint,
+        );
+        expect(
+          tester
+              .widget<Text>(
+                find.descendant(of: button, matching: find.text('ZNN')),
+              )
+              .style,
+          tokens.bodyText,
+        );
         expect(tester.widget<OutlinedButton>(button).onPressed, isNotNull);
         await tester.tap(button);
         await tester.pump();

@@ -5996,6 +5996,12 @@ The counterparty section differs at 7,907 dark and 19,776 light. These
 counts use fixed reference rectangles and include layout shifts and
 fixture differences.
 
+The amount panes now use the reference's 12 px corners. The token choice
+uses the same sans-serif label and 12 px chevron as the reference. Exact
+amounts, token choices and admission behavior retain their existing paths.
+The two-theme widget tests check the corners, label and symbol. Fresh
+Windows pixel evidence remains open.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since
