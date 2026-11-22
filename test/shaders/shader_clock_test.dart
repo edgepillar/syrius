@@ -198,6 +198,10 @@ void main() {
     );
     late ShaderClock clock;
     await tester.pumpWidget(_host((ShaderClock value) => clock = value));
+    await tester.pump(const Duration(milliseconds: 120));
+    expect(clock.value, 0);
+    expect(clock.isRunning, isFalse);
+    expect(tester.binding.transientCallbackCount, 0);
     clock.onWindowBlur();
     answer.complete(true);
     await tester.pump();

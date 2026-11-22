@@ -23,7 +23,8 @@ class ShaderClock extends ChangeNotifier
     binding.addObserver(this);
     windowManager.addListener(this);
     FrostHold.count.addListener(_sync);
-    unawaited(_readWindowFocus());
+    // A new surface may mount while the native window is unfocused.
+    unawaited(_readWindowFocus(holdUntilResolved: true));
   }
 
   late final Ticker _ticker;

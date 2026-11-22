@@ -7266,6 +7266,13 @@ durations, moving-pixel review, production Zap and toast events, other
 effects in the Motion and Shaders tables, and the 16 ms comparisons
 remain V02 work.
 
+A newly mounted shader clock now holds its first tick until the native
+focus query resolves or a newer focus event arrives. The startup focus
+race case exercises a pending answer across 120 ms and checks that the
+clock schedules no frame and accumulates no time. The same case retains
+the newer-blur check. Fresh running motion observations still need to
+qualify the lifecycle change.
+
 #### Paired launch and handoff at `2c8fd31c`
 
 The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45071406228/job/137358963323)
