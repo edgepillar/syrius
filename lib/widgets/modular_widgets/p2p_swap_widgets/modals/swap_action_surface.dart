@@ -921,6 +921,7 @@ class SwapTextEntry extends StatelessWidget {
     required this.onChanged,
     this.onPaste,
     this.onPickContact,
+    this.fieldCaption,
     this.onSubmitted,
     this.fieldKey,
     super.key,
@@ -941,6 +942,9 @@ class SwapTextEntry extends StatelessWidget {
   /// Opens the original address book for a counterparty draft.
   final VoidCallback? onPickContact;
 
+  /// A persistent label above the counterparty address field.
+  final String? fieldCaption;
+
   /// Guarded exact input submission callback, when applicable.
   final ValueChanged<String>? onSubmitted;
 
@@ -949,7 +953,13 @@ class SwapTextEntry extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
-    return TextField(
+    final String? caption = fieldCaption;
+    final OutlineInputBorder outline = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(
+        caption == null ? tokens.transferControlRadius : tokens.cardRadius,
+      ),
+    );
+    final Widget input = TextField(
       key: fieldKey,
       controller: controller,
       enabled: onChanged != null,
@@ -963,18 +973,42 @@ class SwapTextEntry extends StatelessWidget {
         hintText: label,
         counterText: '',
         contentPadding: tokens.transferFieldPadding,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(tokens.transferControlRadius),
-        ),
+        border: outline,
+        enabledBorder: caption == null
+            ? null
+            : outline.copyWith(borderSide: BorderSide(color: tokens.faint)),
+        fillColor: caption == null ? null : tokens.card2,
+        filled: caption == null ? null : true,
+        isDense: caption == null ? null : true,
+        suffixIconConstraints: caption == null
+            ? null
+            : BoxConstraints(minHeight: tokens.fieldHeight),
         suffixIcon: _trailingAction(context, tokens),
       ),
+    );
+    if (caption == null) return input;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: tokens.transferRecentGap,
+      children: <Widget>[
+        ExcludeSemantics(
+          child: Text(caption.toUpperCase(), style: tokens.ledgerText),
+        ),
+        Semantics(label: caption, child: input),
+      ],
     );
   }
 
   Widget? _trailingAction(BuildContext context, AppTokens tokens) {
-    if (onPickContact != null) {
+    if (fieldCaption != null) {
       return IconButton(
         key: const Key('swap_counterparty_contacts'),
+        style: IconButton.styleFrom(
+          minimumSize: Size(40, tokens.fieldHeight),
+          padding: EdgeInsets.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          visualDensity: VisualDensity.standard,
+        ),
         tooltip: context.l10n.sendAddressBook,
         onPressed: onPickContact,
         icon: ShellSymbol(

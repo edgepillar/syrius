@@ -187,8 +187,18 @@ void main() {
 
     final Finder book = find.byKey(const Key('swap_counterparty_contacts'));
     final Finder input = find.byKey(const Key('swap_counterparty_input'));
-    final TextEditingController controller =
-        tester.widget<TextField>(input).controller!;
+    final TextField addressField = tester.widget<TextField>(input);
+    final TextEditingController controller = addressField.controller!;
+    final Finder caption = find.text('COUNTERPARTY');
+    final Rect fieldBounds = tester.getRect(input);
+    expect(tester.getRect(caption).bottom + 6, fieldBounds.top);
+    expect(fieldBounds.height, 42);
+    expect(tester.getCenter(book).dx, fieldBounds.right - 20);
+    expect(
+      (addressField.decoration!.enabledBorder as OutlineInputBorder)
+          .borderRadius,
+      BorderRadius.circular(8),
+    );
     Finder contact(String address) =>
         find.byKey(ValueKey<String>('send_contact_$address'));
 
@@ -199,6 +209,7 @@ void main() {
     await tester.tap(contact(fixture.counterparty));
     await tester.pumpAndSettle();
     expect(controller.text, fixture.counterparty);
+    expect(caption, findsOneWidget);
     expect(fixture.mutations, 0);
 
     await tester.tap(find.byKey(const Key('swap_action_details_toggle')));
