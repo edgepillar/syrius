@@ -1,0 +1,68 @@
+{
+  "reviews": {
+    "01-home-rest-dark": {
+      "actual_sha256": "15298075377968b388a613687905a747540ef0787b88dc8f700bd2d6c4359109",
+      "expected_sha256": "70617942960638e9ad855344dcc7aa1433058bb4d060155f1cfb36592ca332a6",
+      "note": "The hero, tooltip and closed Tokens count are visible. Activity has one selected-address row, rewards are empty, and Pending has no in-flight block to display.",
+      "reviewed_at": "2026-11-22T19:10:16Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "01-home-rest-light": {
+      "actual_sha256": "f69af74cd1fcf0e368e9286e268b1e5d0ad944f19ef4660b61517c26618b191f",
+      "expected_sha256": "280f31f618a20af2f275bd516afc3280849180f4788f38ae7c3fdebaedd36b7c",
+      "note": "The tooltip and three-holding Tokens count are visible. The earlier ledger contents, rewards and Pending shown in the reference are absent in the isolated capture, and the light hero field differs.",
+      "reviewed_at": "2026-11-22T19:10:16Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-dark": {
+      "actual_sha256": "d6344242301cbc4cfc4d84c2e321ce9622a511599d1eececec009b3db3c0a94e",
+      "expected_sha256": "ef3e3dfc4e9e4a6438516fe8803c55202d744b57c964104d6212c4eb2d3ebd97",
+      "note": "The three full amounts share the trailing edge. The owned holding is pink and the other two badges are neutral. The Tokens card sits about 12 pixels above the reference, and row names, order, Activity and rewards differ.",
+      "reviewed_at": "2026-11-22T19:10:16Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-light": {
+      "actual_sha256": "f2ca0f9ba0bed4bb384d1cf03a01cbb9940e0b0369b74675c2d222649aadc243",
+      "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
+      "note": "The three full amounts share the trailing edge. The owned holding is pink and the other two badges are neutral. The Tokens card sits about 12 pixels above the reference, and row names, order, Activity and rewards differ.",
+      "reviewed_at": "2026-11-22T19:10:16Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-dark": {
+      "actual_sha256": "c449ce6d67bb75bdbeb643b34399bc3a97a1dd7ba12eae69b4d5aaee1ced05d1",
+      "expected_sha256": "29421519af83d80baf69fcfe24beb37fc754d8da1c08b3a175e7224a27fedf16",
+      "note": "The hero and Activity amounts are masked and Tokens is closed. The isolated ledger shows one selected-address row and the rewards area is empty.",
+      "reviewed_at": "2026-11-22T19:10:16Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-light": {
+      "actual_sha256": "ddd507e73f8cf518fcbbd937bd89677eab49398a07686fdcb303f48a51e3be4b",
+      "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
+      "note": "The hero and Activity amounts are masked and Tokens is closed. The isolated ledger and rewards remain sparse, and the light hero field differs from the reference.",
+      "reviewed_at": "2026-11-22T19:10:16Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-dark": {
+      "actual_sha256": "4d6fe38730c8e9e1b7949522916a56325d1e05c799a5921363cb553953b1fe8f",
+      "expected_sha256": "52ccc26f93bcad1c79ac91228648bb8c369a6cec14041f77f51d210afec0a1f9",
+      "note": "The centered palette, focused query, selection and footer are visible. The result address is the isolated contact and the backdrop shows settled Activity where the reference shows loading.",
+      "reviewed_at": "2026-11-22T19:10:16Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-light": {
+      "actual_sha256": "b9aebc0c968c4bcfadb33ca1aa2927d04751c4c03f8bdcd2f20745b5c149dd9c",
+      "expected_sha256": "f700f7b185b5064b45b1acc561abcee0fce392badb4dc2d58319914780b060bb",
+      "note": "The centered palette, focused query, selection and footer are visible. The isolated contact text and settled Activity backdrop differ from the reference.",
+      "reviewed_at": "2026-11-22T19:10:16Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
