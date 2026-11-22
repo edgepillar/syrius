@@ -6393,6 +6393,14 @@ The ink masks still differ by 106 to 125 pixels per label in dark and 26 to
 since the earlier [Welcome capture](https://github.com/edgepillar/syrius/actions/runs/44250072202)
 at `d0dfe4e0`. The residual ink and whole-image differences remain open.
 
+A read of the original `4901fde2` Import PNGs compares normalized
+luminance ink by row over the three step labels. Across both themes,
+a two-pixel upward shift minimizes squared row-profile error in each of
+the six label crops within the tested minus-four to plus-four pixel
+range. The equivalent samples from the historical `28f9c121` Seed Quiz
+and Wallet Ready captures favor zero or one pixel upward. The Import
+label observation is specific to the measured entry screen and source.
+
 The [prepared Accelerator producer](https://github.com/edgepillar/syrius/actions/runs/45005215508/job/137155190528)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45006705372/job/137159794086)
 verify four atomic Voting and Project Detail PNGs, normal parent closure
@@ -6839,9 +6847,32 @@ first-parent capture record and none has an exact-source record at that
 revision. This inventory checks manifest metadata. PNG availability and
 whole-image verdicts still need exact-source evidence for V01.
 
-All 35 comparison tests pass in an owned scratch run. The
-[fresh startup catalog](https://github.com/edgepillar/syrius/actions/runs/45068563665)
-targets `a4e0a9d3` for the cold launch, handoff, Lock and quiz captures.
+All 35 comparison tests pass in an owned scratch run.
+
+### Startup and entry captures at `a4e0a9d3` (2026-11-22)
+
+The [startup producer](https://github.com/edgepillar/syrius/actions/runs/45068563665/job/137350144550)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45069866432/job/137354207977)
+verify twelve 1280 by 780 PNGs across four original archives. The
+[startup capture index](docs/review/source-a4e0a9d3-startup-captures.json)
+pins the cold launch, handoff, three Lock states and Seed Quiz in both
+themes. Both Wrong Password captures and both corresponding references
+have the same digests as the images accepted in the
+[`f935a887` review](docs/review/source-f935a887-lock-verdicts.json).
+Those hash-bound verdicts apply to the two fresh captures. The reader's
+pixel comparisons do not assign verdicts to the other ten pairs.
+
+The [ordinary entry producer](https://github.com/edgepillar/syrius/actions/runs/45069472580/job/137352999881)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45069975104/job/137354538404)
+verify [four Welcome and Import PNGs](docs/review/source-a4e0a9d3-entry-captures.json)
+and the original normal process exit. All four image digests match the
+captures at `58a19a05`. All six Import numeral samples still end on
+reference row 283. The reviewed entry and startup indexes cover sixteen
+exact-source pairs. Whole-image verdicts remain open for fourteen of
+these sixteen pairs, and V01 remains open.
+
+The [Home catalog run](https://github.com/edgepillar/syrius/actions/runs/45070190929)
+uses the same source for eight further pairs.
 
 ### End-state audit at `f421d5d1` (2026-11-22)
 

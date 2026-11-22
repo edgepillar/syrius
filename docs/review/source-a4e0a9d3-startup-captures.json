@@ -1,0 +1,100 @@
+{
+  "actual": {
+    "39-launch-dark": {
+      "archive_member": "39-launch-dark.png",
+      "archive_sha256": "c9ba73914202f36285687656046ea04ec21749bca5521718f8dc7b527e7df580",
+      "catalog_family": "launch",
+      "path": "c9ba73914202f36285687656046ea04ec21749bca5521718f8dc7b527e7df580",
+      "sha256": "122624a74e7cb7c63a452d9c8c33e89b9d9bbfa7a13e4cfe2516b07fb541bdd2",
+      "source_sha": "a4e0a9d3f135366686fd5a286e6d45ba5f1cbb27"
+    },
+    "39-launch-light": {
+      "archive_member": "39-launch-light.png",
+      "archive_sha256": "c9ba73914202f36285687656046ea04ec21749bca5521718f8dc7b527e7df580",
+      "catalog_family": "launch",
+      "path": "c9ba73914202f36285687656046ea04ec21749bca5521718f8dc7b527e7df580",
+      "sha256": "122624a74e7cb7c63a452d9c8c33e89b9d9bbfa7a13e4cfe2516b07fb541bdd2",
+      "source_sha": "a4e0a9d3f135366686fd5a286e6d45ba5f1cbb27"
+    },
+    "40-launch-settle-dark": {
+      "archive_member": "40-launch-settle-dark.png",
+      "archive_sha256": "1ef9177844dad17d054a747d95864d91366e974d7e49fa8c1ee48ea952c46925",
+      "catalog_family": "launch-settle",
+      "path": "1ef9177844dad17d054a747d95864d91366e974d7e49fa8c1ee48ea952c46925",
+      "sha256": "1b49789510a0060848a1c31437d2498bc09a0bee3bda663b4bb476ff743afafe",
+      "source_sha": "a4e0a9d3f135366686fd5a286e6d45ba5f1cbb27"
+    },
+    "40-launch-settle-light": {
+      "archive_member": "40-launch-settle-light.png",
+      "archive_sha256": "1ef9177844dad17d054a747d95864d91366e974d7e49fa8c1ee48ea952c46925",
+      "catalog_family": "launch-settle",
+      "path": "1ef9177844dad17d054a747d95864d91366e974d7e49fa8c1ee48ea952c46925",
+      "sha256": "a9ca96d1a1bf90b4d35f662089d106b052248d7055bdb7874df2bc2fcc90fdba",
+      "source_sha": "a4e0a9d3f135366686fd5a286e6d45ba5f1cbb27"
+    },
+    "41-lock-screen-dark": {
+      "archive_member": "41-lock-screen-dark.png",
+      "archive_sha256": "0017fcf5d0e8297f2972bf83acadadc716b4d023c7cd3b8f65121e9b13aca8ad",
+      "catalog_family": "lock-catalog",
+      "path": "0017fcf5d0e8297f2972bf83acadadc716b4d023c7cd3b8f65121e9b13aca8ad",
+      "sha256": "b8d6714e01daf7ebd71878831c7c27618ad9e535ef348c879cd44e83c9f1f28b",
+      "source_sha": "a4e0a9d3f135366686fd5a286e6d45ba5f1cbb27"
+    },
+    "41-lock-screen-light": {
+      "archive_member": "41-lock-screen-light.png",
+      "archive_sha256": "0017fcf5d0e8297f2972bf83acadadc716b4d023c7cd3b8f65121e9b13aca8ad",
+      "catalog_family": "lock-catalog",
+      "path": "0017fcf5d0e8297f2972bf83acadadc716b4d023c7cd3b8f65121e9b13aca8ad",
+      "sha256": "6e20fe7a614b95323d2b12e01a79a79a226357d47bbb547b2fcc4a407af91191",
+      "source_sha": "a4e0a9d3f135366686fd5a286e6d45ba5f1cbb27"
+    },
+    "42-lock-wrong-dark": {
+      "archive_member": "42-lock-wrong-dark.png",
+      "archive_sha256": "0017fcf5d0e8297f2972bf83acadadc716b4d023c7cd3b8f65121e9b13aca8ad",
+      "catalog_family": "lock-catalog",
+      "path": "0017fcf5d0e8297f2972bf83acadadc716b4d023c7cd3b8f65121e9b13aca8ad",
+      "sha256": "793deeb05cfff39593f3a476bb17acd9905640c0addfca60e6eb647954c754bb",
+      "source_sha": "a4e0a9d3f135366686fd5a286e6d45ba5f1cbb27"
+    },
+    "42-lock-wrong-light": {
+      "archive_member": "42-lock-wrong-light.png",
+      "archive_sha256": "0017fcf5d0e8297f2972bf83acadadc716b4d023c7cd3b8f65121e9b13aca8ad",
+      "catalog_family": "lock-catalog",
+      "path": "0017fcf5d0e8297f2972bf83acadadc716b4d023c7cd3b8f65121e9b13aca8ad",
+      "sha256": "704fbe19525e73fa410f92b0e77d0cb333ac70e703fad8855fbe62f2085fc331",
+      "source_sha": "a4e0a9d3f135366686fd5a286e6d45ba5f1cbb27"
+    },
+    "43-lock-pick-dark": {
+      "archive_member": "43-lock-pick-dark.png",
+      "archive_sha256": "0017fcf5d0e8297f2972bf83acadadc716b4d023c7cd3b8f65121e9b13aca8ad",
+      "catalog_family": "lock-catalog",
+      "path": "0017fcf5d0e8297f2972bf83acadadc716b4d023c7cd3b8f65121e9b13aca8ad",
+      "sha256": "1fde882c19272920e46826e36720e21eb9afb88c8f5d28d48ae196d57aaa743d",
+      "source_sha": "a4e0a9d3f135366686fd5a286e6d45ba5f1cbb27"
+    },
+    "43-lock-pick-light": {
+      "archive_member": "43-lock-pick-light.png",
+      "archive_sha256": "0017fcf5d0e8297f2972bf83acadadc716b4d023c7cd3b8f65121e9b13aca8ad",
+      "catalog_family": "lock-catalog",
+      "path": "0017fcf5d0e8297f2972bf83acadadc716b4d023c7cd3b8f65121e9b13aca8ad",
+      "sha256": "ddb6b4cda6b7a0bb4c712073fba9d78834cfaaa20f0d05d323d1bc449fd0c2c2",
+      "source_sha": "a4e0a9d3f135366686fd5a286e6d45ba5f1cbb27"
+    },
+    "46-seed-quiz-dark": {
+      "archive_member": "46-seed-quiz-dark.png",
+      "archive_sha256": "cfaf9b0eb5d19a43240c8eb19993724f19b83dc9a2351caf712f2c3b7df9c9c7",
+      "catalog_family": "quiz-catalog",
+      "path": "cfaf9b0eb5d19a43240c8eb19993724f19b83dc9a2351caf712f2c3b7df9c9c7",
+      "sha256": "f41e2a6877d2e430e8312919df3c213c2bc470bb5450efe9ddcd3ad5f42e51a2",
+      "source_sha": "a4e0a9d3f135366686fd5a286e6d45ba5f1cbb27"
+    },
+    "46-seed-quiz-light": {
+      "archive_member": "46-seed-quiz-light.png",
+      "archive_sha256": "cfaf9b0eb5d19a43240c8eb19993724f19b83dc9a2351caf712f2c3b7df9c9c7",
+      "catalog_family": "quiz-catalog",
+      "path": "cfaf9b0eb5d19a43240c8eb19993724f19b83dc9a2351caf712f2c3b7df9c9c7",
+      "sha256": "90987b97260008d8da9204f21d85aa240dff36d26a62e4b37047b35b21b832f4",
+      "source_sha": "a4e0a9d3f135366686fd5a286e6d45ba5f1cbb27"
+    }
+  }
+}
