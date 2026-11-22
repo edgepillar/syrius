@@ -5750,6 +5750,19 @@ at both covered boundaries. After dismissal it runs at 12,156,250
 microseconds. The observed palette hold and resume are verified for the
 Home field. Window blur and hidden-page cases remain open.
 
+On app resume, the shared shader clock now waits for the current window
+focus result or a newer focus event. The [Linux run at `c9bb9228`](https://github.com/edgepillar/syrius/actions/runs/45033517549/job/137242090687)
+passes the delayed-focus case, strict selected analysis, generated-file
+verification and the 5,133 non-chain tests with one skip.
+
+The Home catalog now also observes the same field clock before native
+minimize, twice while minimized, and after the original window is shown.
+It restores the window before the segment probes leave Home and includes
+no new PNGs. Both earlier [Windows attempts](https://github.com/edgepillar/syrius/actions/runs/45033929876)
+and [ordering follow-up](https://github.com/edgepillar/syrius/actions/runs/45034113570)
+stopped at strict analysis before the wallet build. The [corrected job](https://github.com/edgepillar/syrius/actions/runs/45034436777)
+uses the updated 1,532-case preflight and awaits native evidence.
+
 The [new index](docs/review/source-a43e90e3-home-captures.json) binds the
 same eight filenames to the 710,606-byte archive. Four sets of PNG and
 reference bytes match the earlier [reviewed pairs](docs/review/source-a43e90e3-home-verdicts.json).
@@ -6380,6 +6393,13 @@ started 14 px farther right in both themes, against 1 px in dark and zero
 in light in the new captures. The older receive label began two pixels
 below the reference within its pane. That offset is one pixel in the new
 captures. These measurements describe the retained text bounds.
+
+The close control now uses the original 14 px mark and the empty dollar
+line reserves 19 px, the rounded height of the authored 13 px line. Both
+themes pass the dialog control checks, and the empty-line case passes in
+the [Linux suite at `c9bb9228`](https://github.com/edgepillar/syrius/actions/runs/45033517549/job/137242090687).
+The [next Windows Swap capture](https://github.com/edgepillar/syrius/actions/runs/45034477627)
+uses the same application files at `7fc58054`.
 
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
