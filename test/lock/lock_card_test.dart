@@ -602,6 +602,17 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 25));
       expect(_shakeX(tester), closeTo(4, 0.00001));
+      final Finder field = find.byKey(_password);
+      final FocusNode focus = tester.widget<TextField>(field).focusNode!;
+      expect(tester.widget<EditableText>(find.byType(EditableText)).showCursor,
+          isFalse);
+      expect(focus.hasFocus, isTrue);
+      await tester.enterText(field, 'retry');
+      await tester.pump();
+      expect(focus.hasFocus, isTrue);
+      expect(password.text, 'retry');
+      expect(tester.widget<EditableText>(find.byType(EditableText)).showCursor,
+          isTrue);
     },
   );
 

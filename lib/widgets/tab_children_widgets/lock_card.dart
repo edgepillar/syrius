@@ -571,6 +571,11 @@ class _LockCardState extends State<LockCard>
                 _passwordEnabled && (widget.startup?.interactive ?? true),
             enabled: _passwordEnabled,
             obscureText: _obscure,
+            // Keep the empty warning field quiet while it accepts a retry.
+            showCursor: widget.incorrectPassword &&
+                    widget.passwordController.text.isEmpty
+                ? false
+                : null,
             enableSuggestions: false,
             autocorrect: false,
             style: _obscure ? tokens.lockPasswordText : tokens.dataText,

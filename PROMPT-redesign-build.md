@@ -927,7 +927,9 @@ verify both themes of normal Lock, Wrong Password and the wallet picker.
 All six were viewed from the retained archive beside their references.
 Both normal pairs, the light warning and both picker pairs match under
 the same visual criteria as the earlier review. The dark warning shows
-a bright caret absent from the reference. The [image index](docs/review/source-93888cd9-lock-captures.json)
+a bright caret absent from the reference. The empty rejected-password
+field now suppresses the caret while keeping its focus and restoring the
+caret when a retry starts. The [image index](docs/review/source-93888cd9-lock-captures.json)
 and [verdicts](docs/review/source-93888cd9-lock-verdicts.json) bind these
 observations to the exact PNGs. The stills record the original film frame
 and warning state. V02 running motion remains open.
