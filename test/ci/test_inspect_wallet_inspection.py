@@ -519,6 +519,7 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(observed['visual_matches'], 0)
         self.assertNotIn('rail_motion', observed)
         self.assertNotIn('sync_pulse', observed)
+        self.assertNotIn('home_field_drift', observed)
         samples = dict(opening=[[12_000, 105], [180_000, 184]], closing=[[199_000, 40]])
         states['capture']['rail_motion'] = samples
         with_motion = [('manifest.json', encode(states), stat.S_IFREG), *state_files[1:]]
@@ -543,6 +544,15 @@ class ReaderTests(unittest.TestCase):
             sample_count=4, observed_intermediate=True, transparent_samples=2,
             resume_intervals_us=[(10, 200_010), (2_400_000, 2_600_010)],
             resume_separation_bounds_us=[[2_199_990, 2_600_000]]))
+        self.assertNotIn('home_field_drift', inspect_states(with_pulse))
+        states['capture']['sync_pulse'][0].append(28)
+        states['capture']['sync_pulse'][-1].append(110)
+        with_drift = [('manifest.json', encode(states), stat.S_IFREG), *state_files[1:]]
+        self.assertEqual(inspect_states(with_drift)['home_field_drift'], dict(
+            scope='original_home_field_paint', sample_count=2,
+            first_progress_millionths=28, last_progress_millionths=110,
+            minimum_progress_millionths=28, maximum_progress_millionths=110,
+            observed_change=True))
         states['capture']['segment_motion'] = {
             'transfer': dict(before=[3_000, 60_000], samples=[
                 [20_000, 4_000, 61_000, 63_000, 67_000],

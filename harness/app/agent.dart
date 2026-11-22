@@ -47,6 +47,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/widge
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/eye_toggle.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/go_to_palette.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/list_entrance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/rise_switcher.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/state_switcher.dart';
@@ -896,7 +897,17 @@ class HarnessAgent {
       if (phase == null || !phase.isFinite || phase < 0 || phase > 1) {
         throw const ReadonlyNativeCommandRefused();
       }
-      return <String, Object?>{'phaseMilli': (phase * 1000).floor()};
+      final Element? field =
+          _findTimingChild(root, (Widget widget) => widget is HeroField);
+      final double? drift = field == null
+          ? null : HeroField.paintedHomeDriftOf(field);
+      if (drift != null && (!drift.isFinite || drift < 0 || drift > 1)) {
+        throw const ReadonlyNativeCommandRefused();
+      }
+      return <String, Object?>{
+        'phaseMilli': (phase * 1000).floor(),
+        if (drift != null) 'paintedHomeDriftMillionths': (drift * 1e6).round(),
+      };
     }
     if (command['cmd'] == readonlyActivityMessageSeamCommand) {
       _requireCaptureFrameIdle();

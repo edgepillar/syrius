@@ -4906,7 +4906,11 @@ focus and still follows the existing route, lifecycle and frost holds.
 The widget case exercises that ordering and a restore that remains
 unfocused. The [Linux run at `bff0114c`](https://github.com/edgepillar/syrius/actions/runs/44862438840/job/136718608193)
 passes strict selected analysis, 5,130 non-chain tests with one skip,
-and generated-file verification. Native observation remains open under V02.
+and generated-file verification. Native observation remains open under V02. The readonly Home catalog now
+samples the drift used by the original Home painter alongside the existing
+status halo read. It uses the same requests and retains the same eight
+PNGs. The reader reports how many ordinary paints were sampled and
+whether their drift positions differ. Native results remain pending.
 
 | Motion | Existing check | Remaining Windows observation |
 | --- | --- | --- |
@@ -5134,8 +5138,10 @@ The [first producer at `2a9ee998`](https://github.com/edgepillar/syrius/actions/
 stopped during the initial wallet tour. The original one-ZNN lab send
 was absent from all 18 confirmation observations. The attempt reached
 neither the copied profile nor the holder preparation, and retained no
-holder PNGs. The original lab send remains unresolved. The next candidate
-starts with a fresh lab and the corrected page sender. The Token summary uses its existing singular label for one
+holder PNGs. The [independent read](https://github.com/edgepillar/syrius/actions/runs/44973945797/job/137059546508)
+verifies the unresolved send record, forced wallet cleanup and normal
+exits for all five nodes. The next candidate starts with a fresh lab and
+the corrected page sender. The Token summary uses its existing singular label for one
 held token. The [Linux validation at `30112ab6`](https://github.com/edgepillar/syrius/actions/runs/44968418733/job/137042577611)
 passes analysis, unit and widget tests, and generated-file verification.
 Fresh native captures are needed to verify that label visually.

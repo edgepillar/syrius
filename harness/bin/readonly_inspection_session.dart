@@ -238,7 +238,7 @@ class ReadonlyInspectionSession {
     return <String, List<List<int>>>{'opening': opening, 'closing': closing};
   }
 
-  /// Samples the original status halo over two cycles with no frame requests.
+  /// Samples the status halo and the painted Home drift without new frames.
   Future<List<List<int>>> observeSyncPulse() async {
     await _requireScreenHome();
     final Stopwatch elapsed = Stopwatch()..start();
@@ -253,12 +253,17 @@ class ReadonlyInspectionSession {
         limit - sent,
       );
       final Object? phase = reply['phaseMilli'];
-      if (reply['ok'] != true || phase is! int || phase < 0 || phase > 1000) {
+      final Object? drift = reply['paintedHomeDriftMillionths'];
+      if (reply['ok'] != true || phase is! int || phase < 0 || phase > 1000 ||
+          (drift != null && (drift is! int || drift < 0 || drift > 1000000))) {
         _refuse(ReadonlyInspectionReason.reply);
       }
       final Duration observed = elapsed.elapsed;
       if (observed > limit) break;
-      samples.add(<int>[sent.inMicroseconds, observed.inMicroseconds, phase]);
+      samples.add(<int>[
+        sent.inMicroseconds, observed.inMicroseconds, phase,
+        if (drift is int) drift,
+      ]);
       await Future<void>.delayed(interval);
     }
     await _requireScreenHome();

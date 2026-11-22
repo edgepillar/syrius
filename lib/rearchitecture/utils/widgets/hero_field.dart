@@ -46,6 +46,20 @@ class HeroField extends StatefulWidget {
 
   final bool _referenceHome;
 
+  /// Returns the drift used by the last ordinary Home field paint.
+  static double? paintedHomeDriftOf(BuildContext context) {
+    if (context case StatefulElement(:final _HeroFieldState state)) {
+      if (state.mounted && state.widget._referenceHome &&
+          state._clock.isRunning &&
+          identical(state._paintedSeconds, state._clock) &&
+          state._referenceFrame == null &&
+          (ModalRoute.of(context)?.isCurrent ?? true)) {
+        return state._paintedDrift;
+      }
+    }
+    return null;
+  }
+
   @override
   State<HeroField> createState() => _HeroFieldState();
 }
@@ -58,6 +72,7 @@ class _HeroFieldState extends State<HeroField>
   ReferenceArtworkFrame? _referenceFrame;
   ValueListenable<double>? _referenceSeconds;
   ValueListenable<double>? _paintedSeconds;
+  double? _paintedDrift;
 
   @override
   ReferenceArtworkKind get referenceArtworkKind =>
@@ -115,6 +130,7 @@ class _HeroFieldState extends State<HeroField>
       _referenceFrame = null;
       _referenceSeconds = null;
       _paintedSeconds = null;
+      _paintedDrift = null;
       _raster.dispose();
     }
   }
@@ -144,7 +160,10 @@ class _HeroFieldState extends State<HeroField>
           willChange: true,
           painter: _HomeHeroFieldPainter(
             seconds: seconds,
-            onPaint: () => _paintedSeconds = seconds,
+            onPaint: (double progress) {
+              _paintedSeconds = seconds;
+              _paintedDrift = progress;
+            },
             base: panelPaintsBase ? null : tokens.card,
             green: tokens.znn,
             blue: tokens.qsr,
@@ -263,7 +282,7 @@ class _HomeHeroFieldPainter extends CustomPainter {
   }) : super(repaint: seconds);
 
   final ValueListenable<double> seconds;
-  final VoidCallback onPaint;
+  final ValueChanged<double> onPaint;
   final Color? base;
   final Color green;
   final Color blue;
@@ -321,7 +340,7 @@ class _HomeHeroFieldPainter extends CustomPainter {
       );
     }
     canvas.restore();
-    onPaint();
+    onPaint(progress);
   }
 
   static void _paintBlurredField(Canvas canvas, Rect field, {

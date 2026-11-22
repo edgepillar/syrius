@@ -220,12 +220,13 @@ def segment_motion_receipt(value):
 
 
 def sync_pulse_receipt(value):
-    """Admit ordered elapsed times and halo phases from the original dot."""
+    """Admit ordered halo phases with optional painted Home drift."""
     need(type(value) is list and 1 <= len(value) <= 31
-         and all(type(row) is list and len(row) == 3
+         and all(type(row) is list and len(row) in (3, 4)
                  and all(type(item) is int for item in row)
                  and 0 <= row[0] <= row[1] <= 6_000_000
                  and 0 <= row[2] <= 1000
+                 and (len(row) == 3 or 0 <= row[3] <= 1_000_000)
                  for row in value)
          and all(left[1] < right[0] for left, right in zip(value, value[1:])),
          'CAPTURE_REFUSED')

@@ -512,14 +512,24 @@ def unpack_home_catalog(raw, expected_sha, expected_size, head, tree, run_id,
                    if left[2] == 1000 and right[2] < 1000]
         result['sync_pulse'] = dict(
             sample_count=len(samples),
-            observed_intermediate=any(0 < phase < 1000 for _, _, phase in samples),
-            transparent_samples=sum(phase == 1000 for _, _, phase in samples),
+            observed_intermediate=any(0 < row[2] < 1000 for row in samples),
+            transparent_samples=sum(row[2] == 1000 for row in samples),
             resume_intervals_us=resumes,
             resume_separation_bounds_us=[
                 [next_start - end, next_end - start]
                 for (start, end), (next_start, next_end) in zip(resumes, resumes[1:])
             ],
         )
+        drift = [row[3] for row in samples if len(row) == 4]
+        if drift:
+            result['home_field_drift'] = dict(
+                scope='original_home_field_paint', sample_count=len(drift),
+                first_progress_millionths=drift[0],
+                last_progress_millionths=drift[-1],
+                minimum_progress_millionths=min(drift),
+                maximum_progress_millionths=max(drift),
+                observed_change=min(drift) < max(drift),
+            )
     if 'eye_motion' in value['capture']:
         samples = producer.eye_motion_receipt(value['capture']['eye_motion'])
         result['eye_motion'] = {
@@ -1673,6 +1683,7 @@ def main(parent=None):
         sync_pulse = catalog.pop('sync_pulse', None)
         segment_motion = catalog.pop('segment_motion', None)
         eye_motion = catalog.pop('eye_motion', None)
+        home_field_drift = catalog.pop('home_field_drift', None)
         emit(f'Retained readonly {family} catalog', catalog)
         sampling_scope = summary.get('sampling_scope')
         capture_family = (sampling_scope.removesuffix('-only')
@@ -1692,6 +1703,10 @@ def main(parent=None):
             emit('Retained readonly status halo', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
                 manifest_sha256=catalog['manifest_sha256'], **sync_pulse))
+        if home_field_drift is not None:
+            emit('Retained readonly Home field drift', dict(source_head=head,
+                source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
+                manifest_sha256=catalog['manifest_sha256'], **home_field_drift))
         if segment_motion is not None:
             emit('Retained readonly segment motion', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
