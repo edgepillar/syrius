@@ -6465,6 +6465,24 @@ from 7,647 to 6,898 dark and from 10,788 to 9,641 light. Whole-image
 differences fall from 53,567 to 50,943 dark and from 58,907 to 55,004 light.
 The atomic-frame flag and whole-image verdicts remain open.
 
+Start Swap now uses the reference's address-book control. It opens the
+existing wallet contacts picker, excludes addresses belonging to the
+wallet, and fills the current draft only while its original source still
+owns it. Standard text-field paste remains available. The
+[Linux run at `0ef6672c`](https://github.com/edgepillar/syrius/actions/runs/45038368296/job/137257071688)
+passes full and strict Dart analysis, generation, and 5,134 non-chain
+tests with one skip. The existing Start ownership case checks selection,
+the own-address refusal and a stale source without submitting a swap.
+The [native producer](https://github.com/edgepillar/syrius/actions/runs/45038595312/job/137257792952)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45040307552/job/137263044684)
+verify [both original captures](docs/review/source-0ef6672c-swap-start-captures.json)
+and normal parent closure at the same source. At the 16-level RGB
+threshold, counterparty-region differences fall from 7,824 to 7,664
+pixels in dark and from 7,555 to 7,441 in light. Whole-image differences
+fall from 50,943 to 50,783 in dark and from 55,004 to 54,888 in light.
+The measured amount-pane spans stay [183, 296) and [318, 428) in both
+themes. Atomic-frame qualification and the visual verdicts remain open.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since
