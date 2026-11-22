@@ -7166,6 +7166,14 @@ X1341 retain the eight differences. The 90-pair inventory now has three
 accepted matches and eighteen mismatches, with 69 captured pairs awaiting
 whole-image review.
 
+The Receive review also exposed a difference between preview and export.
+The preview's foreground followed the theme, and the PNG encoder reused
+that foreground on a transparent background. Copy image and Save now
+send the same request and token mark to the encoder with light-surface
+ink, an opaque light background and a four-module quiet zone. The
+existing clipboard and Save case checks the export decoration on both
+actions. The platform export ownership checks remain in force.
+
 #### Navigation captures at `2c8fd31c`
 
 The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45072492443/job/137362369223)

@@ -8,6 +8,7 @@ import 'package:image/image.dart' as image;
 import 'package:material_ui/material_ui.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:zenon_syrius_wallet_flutter/services/windows_image_clipboard.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/receive_qr_image.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
@@ -117,6 +118,12 @@ void main() {
                   int size,
                 ) async {
                   sizes.add(size);
+                  expect(decoration.background, AppColors.lightCard2);
+                  expect(decoration.quietZone, PrettyQrQuietZone.standard);
+                  expect(
+                    (decoration.shape as PrettyQrSmoothSymbol).color,
+                    AppColors.foregroundLight,
+                  );
                   return Uint8List.fromList(<int>[4, 5, 6]);
                 },
             onSaveImage: (Uint8List bytes) async => saved.add(bytes.toList()),

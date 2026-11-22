@@ -9,6 +9,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/services/windows_image_clipboard.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
@@ -247,9 +248,18 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
       _exportFailed = false;
     });
     try {
+      // A saved or pasted PNG has no themed surface behind it.
+      final PrettyQrDecoration exportDecoration = decoration.copyWith(
+        background: AppColors.lightCard2,
+        shape: const PrettyQrSmoothSymbol(
+          color: AppColors.foregroundLight,
+          roundFactor: 0,
+        ),
+        quietZone: PrettyQrQuietZone.standard,
+      );
       final Uint8List? bytes = await (widget.encodeImage ?? _encodeImage)(
         image,
-        decoration,
+        exportDecoration,
         widget.size.toInt(),
       );
       if (!current()) return;
