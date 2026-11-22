@@ -5963,7 +5963,9 @@ completed at `6404de06` and uploaded four archives. Its [first reader](https://g
 refused before reporting any catalog verdict. The launch producer has since
 added validation for an optional interactive raster-cache field. The startup
 reader now accepts the exact preceding producer digest and keeps all archive
-and capture checks. The four original archives still require a successful read.
+and capture checks. The [second reader](https://github.com/edgepillar/syrius/actions/runs/45013519293/job/137180812725)
+verifies all four archives and 12 PNGs against the original startup job
+and its shared Release binaries. The batch reports zero accepted visual matches.
 
 ### Rows
 
