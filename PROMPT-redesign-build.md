@@ -5342,9 +5342,13 @@ profile still holds one token against the references' three.
 The holder grid now uses equal preferred widths for its two value tracks,
 matching the reference grid's two flexible tracks. It sizes them from
 the actual values. The existing holder test covers the two value widths
-in both themes and reading directions. The last Windows capture predates
-the Domain type and equal-track changes. Whole-image acceptance remains
-open.
+in both themes and reading directions. The [Windows producer at `fe882823`](https://github.com/edgepillar/syrius/actions/runs/45003936943/job/137151257181)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45005688576/job/137156653146)
+verify both original atomic captures and normal parent closure. Direct
+[comparison](docs/review/source-fe882823-holder-verdicts.json) shows the sans
+Domain link and centered actions in both themes. The second fact group starts
+left of the reference and the fixtures still differ by two holdings.
+Whole-image acceptance remains open.
 
 The Token issue form uses the same optional domain-name rule as the node.
 The existing form test covers a bare domain, an empty field, a full URL,
@@ -5648,6 +5652,19 @@ reports the slow raster count and longest raster for each build in a
 separate record. A missing window is recorded as unavailable. The
 original two comparisons still decide the 16 ms gate.
 
+The [paired producer at `3504836f`](https://github.com/edgepillar/syrius/actions/runs/45004412346/job/137152692605)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45005913195/job/137157347043)
+verify the two original interactions and both idle windows, with two
+normal entry exits, two normal wallet exits and five normal node exits.
+The redesign idle window retains 22 frames with 47 frame-number gaps.
+P06 retains 49 frames with 20 gaps. Every reported raster in both idle
+windows exceeds 16 ms. Peak raster durations are 66.647 ms and 30.979 ms
+respectively. The redesign retains 12 page-change frames against 24 at
+P06, and 17 disclosure frames against 30. Page change fails the raster
+and distinct comparisons. Disclosure fails build, raster and distinct.
+The data show that raster overruns continue after input and settlement.
+The cause of the additional raster cost remains undetermined.
+
 #### Paired Windows cold launch timing at `f0b1a110`
 
 The [native producer](https://github.com/edgepillar/syrius/actions/runs/44979865019/job/137077797577)
@@ -5722,9 +5739,15 @@ Voting state.
 
 The [ordinary entry capture](https://github.com/edgepillar/syrius/actions/runs/45005114493)
 and [prepared Accelerator capture](https://github.com/edgepillar/syrius/actions/runs/45005215508)
-both target `4901fde2`. They cover four Welcome and Import images and four
-Voting and Project Detail images, respectively. Both runs are in progress.
-This inventory grants no current-source visual verdicts.
+both target `4901fde2`. The [entry reader](https://github.com/edgepillar/syrius/actions/runs/45005537543/job/137156193720)
+verifies all four Welcome and Import PNGs and the original normal exit.
+The [image index](docs/review/source-4901fde2-entry-captures.json) binds the
+four originals. The PNGs have the same digests as the earlier captures at
+`3f53f404`. Both Import connectors occupy the reference row and the largest
+drop-outline error is 6,497 ppm against a 25,000 ppm tolerance. Four
+[visual reviews](docs/review/source-4901fde2-entry-verdicts.json) retain the
+visible glow and type differences. The prepared Voting and Project Detail
+capture remains in progress.
 
 ### Rows
 
@@ -5804,8 +5827,8 @@ This inventory grants no current-source visual verdicts.
 | N05 | done | 2026-10-23T15:54Z | e13abb387577 adds the original globe crop and three captured entry routes, preserving owned callbacks and Welcome motion; strict and full local checks pass; native comparison pending |
 | N06 | done | 2026-10-23T15:54Z | e13abb387577 adds pure Import and the bounded three-word quiz with original decrypt, access release and shared-axis routes; strict and full local checks pass; native authentication and comparison remain unqualified |
 | N07 | done | 2026-10-23T15:54Z | e13abb387577 adds the original map and Ready glass card, captured first address and once-only opening bound to original creation and local initialization; connection mismatch and uncertainty remain distinct from readiness; strict and full local checks pass; native acceptance pending |
-| V01 | review | 2026-11-22 | The [94-pair historical review](docs/review/source-28f9c121-independent-visual-review.md) retains 14 accepted matches. X1302 through X1319 record recent Home and Held Tokens views. The [latest audit](#end-state-audit-at-3504836f-2026-11-22) links the later Held Tokens recapture. The candidate gallery and whole-image acceptance remain open. |
-| V02 | blocked | 2026-11-22 | The [latest paired reader at `9fb78c7e`](https://github.com/edgepillar/syrius/actions/runs/45003004931/job/137148428771) verifies both interactions and retains their failed 16 ms comparisons. The [next pair](https://github.com/edgepillar/syrius/actions/runs/45004412346) adds an idle sample. The [paired interactive read at `5f6e049a`](#paired-windows-interaction-timing-at-5f6e049a) verifies both timing windows and retains 16 ms failures for raster and distinct frames in both. The [paired cold read at `f0b1a110`](#paired-windows-cold-launch-timing-at-f0b1a110) reports no added slow frames in the original counts and retains gaps in both windows. The [earlier read at `9bce41b6`](https://github.com/edgepillar/syrius/actions/runs/44953288126/job/136995755269) retains the earlier timings and gaps at its own source. The [earlier paired interactive read at `e94d5b07`](https://github.com/edgepillar/syrius/actions/runs/44809982892/job/136543747726) verifies both windows. The 16 ms comparison fails for page change and disclosure, and all four samples have frame-key gaps. The [cold startup comparison at `4055c536`](https://github.com/edgepillar/syrius/actions/runs/44794191118/job/136489337767) retains the raster and distinct-frame failures. The running motion and shader review remains open. Source715 producer 43344313240 and independent reader 43347311411 verify 234 current and 2,274 P06 frames and five normal actor exits. Acquisition passes; the unchanged 16 ms duration comparison fails raster and distinct-frame dominance, and both windows retain frame-number gaps. Page-change, disclosure, Motion and Shaders acceptance remain open. [Executed result](docs/review/source716-details-frame-context.md). Earlier Source698 evidence: Source698 producer 43240640136 and reader 43247422901 preserve STARTUP_DEADLINE in P06 measurement: 337 current frames, zero baseline frames and five normal actor exits. The baseline lock field remains disabled before initialization. No comparison or absence of added slow frames is established. Earlier evidence: Source622 adds opt-in frame windows to `harness/h stalls`. Source627 retains ENTRY_INVALID with two normal actor exits and zero frames in its [original run](https://github.com/edgepillar/syrius/actions/runs/42846425942) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42849507992). Source628 passes its selected analysis, tests and Release build. Its timing actor reports ENTRY_UNAVAILABLE with zero retained frames and both actors exit normally. The [original run](https://github.com/edgepillar/syrius/actions/runs/42851137227) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42853554717) preserve that result. Source629 selects the original password field by key and kind. The paired job builds P06 with the same SDK and locked cache after a valid current window. The three paired native measurements and the running Motion and Shaders review remain open. Source630 retains 270 current frames, P06 HTTP_FAILED with zero frames and five normal actor exits. The next controller polls the same lock predicate without a server-side wait. [Original producer](https://github.com/edgepillar/syrius/actions/runs/42865836277) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42868723130). Source631 retains 182 current frames, zero P06 frames at STARTUP_DEADLINE and five normal exits. The paired controller uses a common absolute readiness bound and records finite post-deadline state. [Producer](https://github.com/edgepillar/syrius/actions/runs/42870190367) and [reader](https://github.com/edgepillar/syrius/actions/runs/42873068988). Source632 retains 171 current frames and P06 COMMAND_FAILED with five normal exits. The next controller records which original request refused while preserving its outcome. [Producer](https://github.com/edgepillar/syrius/actions/runs/42874911893) and [reader](https://github.com/edgepillar/syrius/actions/runs/42878160400). Source633 isolates HTTP 400 at the P06 frame window request after the original lock checks. The next overlay exposes finite refusal reasons for the original request. [Producer](https://github.com/edgepillar/syrius/actions/runs/42879055212) and [reader](https://github.com/edgepillar/syrius/actions/runs/42882219474). |
+| V01 | review | 2026-11-22 | The [94-pair historical review](docs/review/source-28f9c121-independent-visual-review.md) retains 14 accepted matches. X1302 through X1325 record recent Home, entry and Held Tokens views. The [latest audit](#end-state-audit-at-3504836f-2026-11-22) links the later Held Tokens recapture. The candidate gallery and whole-image acceptance remain open. |
+| V02 | blocked | 2026-11-22 | The [latest paired reader at `9fb78c7e`](https://github.com/edgepillar/syrius/actions/runs/45003004931/job/137148428771) verifies both interactions and retains their failed 16 ms comparisons. The [idle and paired reader at `3504836f`](https://github.com/edgepillar/syrius/actions/runs/45005913195/job/137157347043) verifies slow idle raster in both builds and retains the failed interaction comparisons. The [paired interactive read at `5f6e049a`](#paired-windows-interaction-timing-at-5f6e049a) verifies both timing windows and retains 16 ms failures for raster and distinct frames in both. The [paired cold read at `f0b1a110`](#paired-windows-cold-launch-timing-at-f0b1a110) reports no added slow frames in the original counts and retains gaps in both windows. The [earlier read at `9bce41b6`](https://github.com/edgepillar/syrius/actions/runs/44953288126/job/136995755269) retains the earlier timings and gaps at its own source. The [earlier paired interactive read at `e94d5b07`](https://github.com/edgepillar/syrius/actions/runs/44809982892/job/136543747726) verifies both windows. The 16 ms comparison fails for page change and disclosure, and all four samples have frame-key gaps. The [cold startup comparison at `4055c536`](https://github.com/edgepillar/syrius/actions/runs/44794191118/job/136489337767) retains the raster and distinct-frame failures. The running motion and shader review remains open. Source715 producer 43344313240 and independent reader 43347311411 verify 234 current and 2,274 P06 frames and five normal actor exits. Acquisition passes; the unchanged 16 ms duration comparison fails raster and distinct-frame dominance, and both windows retain frame-number gaps. Page-change, disclosure, Motion and Shaders acceptance remain open. [Executed result](docs/review/source716-details-frame-context.md). Earlier Source698 evidence: Source698 producer 43240640136 and reader 43247422901 preserve STARTUP_DEADLINE in P06 measurement: 337 current frames, zero baseline frames and five normal actor exits. The baseline lock field remains disabled before initialization. No comparison or absence of added slow frames is established. Earlier evidence: Source622 adds opt-in frame windows to `harness/h stalls`. Source627 retains ENTRY_INVALID with two normal actor exits and zero frames in its [original run](https://github.com/edgepillar/syrius/actions/runs/42846425942) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42849507992). Source628 passes its selected analysis, tests and Release build. Its timing actor reports ENTRY_UNAVAILABLE with zero retained frames and both actors exit normally. The [original run](https://github.com/edgepillar/syrius/actions/runs/42851137227) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42853554717) preserve that result. Source629 selects the original password field by key and kind. The paired job builds P06 with the same SDK and locked cache after a valid current window. The three paired native measurements and the running Motion and Shaders review remain open. Source630 retains 270 current frames, P06 HTTP_FAILED with zero frames and five normal actor exits. The next controller polls the same lock predicate without a server-side wait. [Original producer](https://github.com/edgepillar/syrius/actions/runs/42865836277) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42868723130). Source631 retains 182 current frames, zero P06 frames at STARTUP_DEADLINE and five normal exits. The paired controller uses a common absolute readiness bound and records finite post-deadline state. [Producer](https://github.com/edgepillar/syrius/actions/runs/42870190367) and [reader](https://github.com/edgepillar/syrius/actions/runs/42873068988). Source632 retains 171 current frames and P06 COMMAND_FAILED with five normal exits. The next controller records which original request refused while preserving its outcome. [Producer](https://github.com/edgepillar/syrius/actions/runs/42874911893) and [reader](https://github.com/edgepillar/syrius/actions/runs/42878160400). Source633 isolates HTTP 400 at the P06 frame window request after the original lock checks. The next overlay exposes finite refusal reasons for the original request. [Producer](https://github.com/edgepillar/syrius/actions/runs/42879055212) and [reader](https://github.com/edgepillar/syrius/actions/runs/42882219474). |
 | V03 | done | 2026-11-12T03:23Z | Source648 673fe4a19468, Source670 2b2c4abdadae, Source676 5d555665a643 and Source686 15fec4c9120f provide executed native refusals for all fifteen current seam values and pointer/keyboard refusal for the only seamed palette target. No direct missing-feature shortcut or other seamed palette target is registered. All 1,213 current runtime entries match Source686; the sole older token observer difference is covered by its holder trial. Source670's producer control list remains distinct from its legacy reader's context/closure proof. The [Source695 audit](docs/review/source695-seam-coverage.md) closes the original requirement without relabelling the later incomplete eleven-control Home batch or its failures. No new native run or visual match is claimed. |
 | V04 | done | 2026-10-31T23:34Z | All four independently qualified Source265 minimum-window/Arabic originals were actually viewed in both themes. The owned review closes SUCCESS with actual controller exit zero; required original native closure stays source-bound. Minimum controls fit and RTL layout mirrors. English fallback/missing Arabic copy is retained as X414; exact saved locale preference and Arabic glyph quality remain separate unqualified observations |
 | V05 | done | 2026-11-18T13:45Z | fdb88d89 commits the fresh independent review of all 94 exact 28f9c121 pairs and X821 through X875. The visual verdicts guide further comparisons under V01. [Independent review](docs/review/source-28f9c121-independent-visual-review.md). |
@@ -6005,8 +6028,8 @@ the difference and its write paths in the note.
 ### Screens
 
 X821 through X872 refer to the exact 28f9c121 pairs reviewed independently.
-Other X rows retain their original capture sources. Welcome binds to
-Source901 in X775, Launch to 28f9c121 in X877 and Ready to 28f9c121 in X883.
+Other X rows retain their original capture sources. The earlier Welcome review remains at
+Source901 in X775. Launch binds to 28f9c121 in X877 and Ready to 28f9c121 in X883.
 The Lock rows link to the review at 75cad6bb. The V01 row tracks strict
 whole-image acceptance.
 
@@ -6034,7 +6057,7 @@ whole-image acceptance.
 | 20 | `pillar-done` | X1152 | X1153 |
 | 21 | `plasma` | X845 | X846 |
 | 22 | `plasma-fuse` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
-| 23 | `tokens` | X1318 | X1319 |
+| 23 | `tokens` | X1324 | X1325 |
 | 24 | `token-mine` | X1287 | X1288 |
 | 25 | `token-new` | X851 | X852 |
 | 26 | `swap-list` | X853 | X854 |
@@ -6055,8 +6078,8 @@ whole-image acceptance.
 | 41 | `lock-screen` | [match](#startup-catalog-at-75cad6bb) | [match](#startup-catalog-at-75cad6bb) |
 | 42 | `lock-wrong` | [match](#startup-catalog-at-75cad6bb) | [match](#startup-catalog-at-75cad6bb) |
 | 43 | `lock-pick` | [match](#startup-catalog-at-75cad6bb) | [match](#startup-catalog-at-75cad6bb) |
-| 44 | `welcome` | match | match |
-| 45 | `import` | X776 | X777 |
+| 44 | `welcome` | X1320 | X1321 |
+| 45 | `import` | X1322 | X1323 |
 | 46 | `seed-quiz` | match | match |
 | 47 | `wallet-ready` | match | match |
 | X189 | done | 2026-10-25T09:46Z | Use unittest discovery with the explicit test_inspect_chain321.py pattern so a runner test package cannot shadow this repository. The eight in-memory checks pass with the exact new command locally. The follow-up inspects the two original a9f7936dbb7b manifests only; it repeats no Go build or lab runtime. Hosted run 40181786928 at 5b3a08d17830 passes the eight cases and original artifact inspection. Both source-bound reports fail at build with undefined secp256k1 recovery/compression functions. Archive and manifest digests are verified inside Actions; only finite annotations are read locally, and no lab runtime is repeated |
@@ -9641,3 +9664,9 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1317 | review | 2026-11-22 | `23-tokens-light` at `e19f5467`. The populated Domain and three holder actions are visible. The top-aligned actions and extra bottom space also appear in the light layout. The test profile holds one token and the reference shows three. Whole-image acceptance remains open. |
 | X1318 | review | 2026-11-22 | `23-tokens-dark` at `9c714be9`. The Burn, Send and Explorer row centers beside the facts. The open-row fill at column 1040 is 119 pixels against 118 in the reference. The second fact pair still begins farther left and the test profile shows one holding. |
 | X1319 | review | 2026-11-22 | `23-tokens-light` at `9c714be9`. The centered action row and 119-pixel open-row fill match the dark geometry. The reference fill is 118 pixels. The second fact pair and fixture row count still differ. |
+| X1320 | review | 2026-11-22 | `44-welcome-dark` at `4901fde2`. The globe, introduction and three actions occupy the reference layout. The green glow at upper left is more saturated and the pink glow is stronger than in the reference. The action text retains visible weight differences. [Review](docs/review/source-4901fde2-entry-verdicts.json). |
+| X1321 | review | 2026-11-22 | `44-welcome-light` at `4901fde2`. The globe and three actions align with the reference. The upper-left green glow is stronger and the action labels are lighter and narrower than the reference. [Review](docs/review/source-4901fde2-entry-verdicts.json). |
+| X1322 | review | 2026-11-22 | `45-import-dark` at `4901fde2`. The card, dashed outline and disabled Continue are visible. Both connectors occupy the reference row. The upper-left glow is more saturated than the reference and the stage labels and field text retain visible type differences. [Review](docs/review/source-4901fde2-entry-verdicts.json). |
+| X1323 | review | 2026-11-22 | `45-import-light` at `4901fde2`. The card, dashed outline and disabled Continue follow the reference layout. Both connectors occupy the reference row. The green glow is stronger and the word-count field and footer have visible type differences. [Review](docs/review/source-4901fde2-entry-verdicts.json). |
+| X1324 | review | 2026-11-22 | `23-tokens-dark` at `fe882823`. The expanded row shows the Domain link, Burn, Send and Explorer. The Domain fact group starts left of the reference, while the actions remain centered vertically. The isolated profile has one holding and the reference has three. [Review](docs/review/source-fe882823-holder-verdicts.json). |
+| X1325 | review | 2026-11-22 | `23-tokens-light` at `fe882823`. The expanded row shows the Domain link, Burn, Send and Explorer. The Domain fact group starts left of the reference, as in dark mode. The single isolated holding leaves a different table silhouette from the three reference rows. [Review](docs/review/source-fe882823-holder-verdicts.json). |

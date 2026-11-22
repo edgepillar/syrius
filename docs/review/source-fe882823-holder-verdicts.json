@@ -1,0 +1,20 @@
+{
+  "reviews": {
+    "23-tokens-dark": {
+      "actual_sha256": "2e9bca2bdb9fcee9ac52c410645ae48777151d9484cf96c3e4213e0de6a670a1",
+      "expected_sha256": "c1ba43d7fd1ae7956a4e0c9d398e7d99341f7704a32fd5e60caa1e8f6cb3281e",
+      "note": "The expanded row shows the Domain link, Burn, Send and Explorer. The Domain fact group starts left of the reference, while the actions remain centered vertically. The isolated profile has one holding and the reference has three.",
+      "reviewed_at": "2026-11-22T09:11:00Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "23-tokens-light": {
+      "actual_sha256": "bda6e357e267f1c1d4a9f9a682a12a7b82a02853218e1704b5d5844bf34d35da",
+      "expected_sha256": "c262b77173db8b229a6a1267fc2b01240635d38b251e1280658e377f91b03f8a",
+      "note": "The expanded row shows the Domain link, Burn, Send and Explorer. The Domain fact group starts left of the reference, as in dark mode. The single isolated holding leaves a different table silhouette from the three reference rows.",
+      "reviewed_at": "2026-11-22T09:11:00Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}

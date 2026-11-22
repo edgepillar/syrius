@@ -1,0 +1,20 @@
+{
+  "actual": {
+    "23-tokens-dark": {
+      "archive_member": "23-tokens-dark.png",
+      "archive_sha256": "bed5170c7aa85aec82c1a69578bd0d43b6b62dd4f8e815b6e8f709c87394aca3",
+      "catalog_family": "token-holder",
+      "path": "bed5170c7aa85aec82c1a69578bd0d43b6b62dd4f8e815b6e8f709c87394aca3",
+      "sha256": "2e9bca2bdb9fcee9ac52c410645ae48777151d9484cf96c3e4213e0de6a670a1",
+      "source_sha": "fe882823eb929762a90e2d1d82d1607b5f1e001c"
+    },
+    "23-tokens-light": {
+      "archive_member": "23-tokens-light.png",
+      "archive_sha256": "bed5170c7aa85aec82c1a69578bd0d43b6b62dd4f8e815b6e8f709c87394aca3",
+      "catalog_family": "token-holder",
+      "path": "bed5170c7aa85aec82c1a69578bd0d43b6b62dd4f8e815b6e8f709c87394aca3",
+      "sha256": "bda6e357e267f1c1d4a9f9a682a12a7b82a02853218e1704b5d5844bf34d35da",
+      "source_sha": "fe882823eb929762a90e2d1d82d1607b5f1e001c"
+    }
+  }
+}

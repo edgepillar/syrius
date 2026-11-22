@@ -1,0 +1,36 @@
+{
+  "reviews": {
+    "44-welcome-dark": {
+      "actual_sha256": "a0382ea17f2c52dbe84d65ca0d017b56fb3d48164d03c17e3f921eec85b499a3",
+      "expected_sha256": "4ffec4db314a53d10ea672cc57e7f7e931b0824bea34ca410522811b679c2181",
+      "note": "The globe, introduction and three actions occupy the reference layout. The green glow at upper left is more saturated and the pink glow is stronger than in the reference. The action text retains visible weight differences.",
+      "reviewed_at": "2026-11-22T09:06:55Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "44-welcome-light": {
+      "actual_sha256": "703ac09b384d1d03b03a66d9c4908d8bfaabd815c31ac650ce93e2ac9312c841",
+      "expected_sha256": "4698832240fb65ae6880c1b0a38bbfd777e3670721239828a1738bbf6d91b08c",
+      "note": "The globe and three actions align with the reference. The upper-left green glow is stronger and the action labels are lighter and narrower than the reference.",
+      "reviewed_at": "2026-11-22T09:06:55Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "45-import-dark": {
+      "actual_sha256": "1b782dd97a1d4fe2f21288dbf645323fe3badc36177c9518e30f4e1755e15125",
+      "expected_sha256": "b2e9fcf95e68b7e244864184772082ddc6ac9108a7142f374bf0e9ecad3312de",
+      "note": "The card, dashed outline and disabled Continue are visible. Both connectors occupy the reference row. The upper-left glow is more saturated than the reference and the stage labels and field text retain visible type differences.",
+      "reviewed_at": "2026-11-22T09:06:55Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "45-import-light": {
+      "actual_sha256": "4c1e2cc7467220690506ed0001d85604709aafd92e99783a1163b16b01869c2b",
+      "expected_sha256": "40a00f9f9fda41b1b8bd0337679a67be665436c994fcf9d35c64c130374f8c0d",
+      "note": "The card, dashed outline and disabled Continue follow the reference layout. Both connectors occupy the reference row. The green glow is stronger and the word-count field and footer have visible type differences.",
+      "reviewed_at": "2026-11-22T09:06:55Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
