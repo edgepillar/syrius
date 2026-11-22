@@ -6085,6 +6085,10 @@ calculation as Send confirmation. The Windows caption remains reachable.
 The widget case verifies the centered position through the original
 caption frame and custom route. A fresh Windows capture must establish
 the resulting pane positions and whole-image verdicts.
+The [Linux run at `e329a4e6`](https://github.com/edgepillar/syrius/actions/runs/45019370618/job/137198638415)
+passes the client-area centering test with the Windows caption fixture.
+Full and strict analysis pass, 5,133 non-chain tests pass with one skip,
+and generated files remain unchanged.
 
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
