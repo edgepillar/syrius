@@ -5807,6 +5807,11 @@ Rows can grow for scaled text. The existing two-theme list test checks
 both visible row heights and their spacing. The copied project data,
 unknown quorum and phase-row layout are outside this change.
 
+The Project Detail vote summary now uses the reference's 12 px inset,
+8 px gaps and 13 px values. The existing two-theme detail test checks
+these metrics on the summary and its Unknown quorum value. The vote
+source and action checks retain their original behavior.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |

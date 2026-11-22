@@ -739,26 +739,25 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
               child: Text(label),
             ),
     );
-    Widget number(String label, String value) => Padding(
-      padding: EdgeInsets.symmetric(vertical: tokens.inlineGap / 2),
-      child: Row(
-        children: <Widget>[
-          Expanded(
-            child: Text(
-              label,
-              style: tokens.compactText.copyWith(color: tokens.dim),
-            ),
+    Widget number(String label, String value) => Row(
+      children: <Widget>[
+        Expanded(
+          child: Text(
+            label,
+            style: tokens.compactText.copyWith(color: tokens.dim),
           ),
-          SizedBox(width: tokens.inlineGap),
-          Expanded(
-            child: Text(
-              value,
-              style: tokens.dataText,
-              textAlign: TextAlign.end,
+        ),
+        SizedBox(width: tokens.inlineGap),
+        Expanded(
+          child: Text(
+            value,
+            style: tokens.dataText.copyWith(
+              fontSize: tokens.compactText.fontSize,
             ),
+            textAlign: TextAlign.end,
           ),
-        ],
-      ),
+        ),
+      ],
     );
     final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final int? left =
@@ -806,11 +805,13 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
         ),
         SizedBox(height: tokens.panelGap),
         Material(
+          key: const Key('accelerator_vote_summary'),
           color: tokens.card2,
           borderRadius: BorderRadius.circular(tokens.cardRadius),
           child: Padding(
-            padding: tokens.cardPadding,
+            padding: const EdgeInsets.all(12),
             child: Column(
+              spacing: tokens.inlineGap,
               children: <Widget>[
                 number(
                   context.l10n.acceleratorYes,
@@ -829,7 +830,6 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
                   context.l10n.acceleratorQuorum,
                   context.l10n.acceleratorUnknown,
                 ),
-                SizedBox(height: tokens.inlineGap),
                 const AccMeter(parts: <(double, Color)>[]),
               ],
             ),

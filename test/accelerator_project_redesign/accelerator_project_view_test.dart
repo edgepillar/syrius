@@ -88,6 +88,26 @@ void main() {
           expect(find.text('Unknown'), findsOneWidget);
           expect(find.text('28 of 33'), findsNothing);
           expect(find.text('Your vote'), findsOneWidget);
+          final Finder summary = find.byKey(
+            const Key('accelerator_vote_summary'),
+          );
+          final Rect summaryBounds = tester.getRect(summary);
+          final Rect yes = tester.getRect(
+            find.descendant(of: summary, matching: find.text('Yes')),
+          );
+          final Rect no = tester.getRect(
+            find.descendant(of: summary, matching: find.text('No')),
+          );
+          expect(yes.left - summaryBounds.left, 12);
+          expect(yes.top - summaryBounds.top, closeTo(12, 0.75));
+          expect(no.top - yes.bottom, closeTo(8, 0.75));
+          final Finder quorum = find.descendant(
+            of: summary,
+            matching: find.text('Unknown'),
+          );
+          expect(tester.widget<Text>(quorum).style!.fontSize, 13);
+          expect(summaryBounds.right - tester.getRect(quorum).right, 12);
+
           final Finder budget = find.byKey(
             const Key('accelerator_project_budget'),
           );
