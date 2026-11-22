@@ -8,7 +8,7 @@ Python, Visual Studio's desktop C++ workload, the Windows SDK and CMake.
 The workflow provisions Flutter 3.47.7 on the stable channel and uses its
 bundled Dart SDK. The [original inventory](#complete-hosted-windows-inventory)
 describes the earlier hosted image. The current successful build used the
-following toolchain. [Windows baseline log](https://github.com/edgepillar/syrius/actions/runs/44952696600/job/136993905785)
+following toolchain at `2c8fd31c`. [Windows baseline log](https://github.com/edgepillar/syrius/actions/runs/45071349706/job/137358788180)
 
 | Provisioning | Observed tools |
 | --- | --- |
@@ -30,14 +30,27 @@ flutter build windows --debug --no-pub --dart-define-from-file=.dart_tool/git_me
 flutter build windows --release --no-pub --dart-define-from-file=.dart_tool/git_metadata.json
 ```
 
-The independently verified baseline at `18d42024` covers both builds and all
-12 baseline checks. The original Windows run reports 5,132 passing non-chain
-tests, one skip and zero analyzer errors or warnings. The Debug and Release DLL
-digests agree with the source DLL. [Independent reader](https://github.com/edgepillar/syrius/actions/runs/44955001234/job/137001041306)
+The independently verified baseline at `2c8fd31c` covers both builds and
+all twelve baseline checks. The original Windows run reports 5,135 passing
+non-chain tests, one skip and zero analyzer errors or warnings. The bundled,
+Debug and Release DLL digests agree and their map and export checks pass.
+Generated localization is unchanged. [Independent reader](https://github.com/edgepillar/syrius/actions/runs/45074427967/job/137368372546)
 
-The redesign ledger tracks visual and motion acceptance. [Current audit](../PROMPT-redesign-build.md#end-state-audit-at-e3047adc-2026-11-21)
+## Current qualification status (2026-11-22)
 
-## Current qualification status (2026-11-18)
+The [publication candidate](https://github.com/sol-znn/syrius/pull/6) is
+`2c8fd31c`. Its clean Windows baseline and Linux validation pass. The
+owner-approved isolated Windows native route covers P03 and P09. The
+original Docker Desktop and WSL route remains unqualified.
+
+The accepted checklist scope is 77 of 80 rows. V01 whole-image
+acceptance, V02 running motion and the paired 16 ms criterion, and V06
+final acceptance are open. The [paired cold launch reader](https://github.com/edgepillar/syrius/actions/runs/45073482703/job/137365460525)
+verifies five original actor exits and retains the failed timing result.
+The [redesign ledger](../PROMPT-redesign-build.md#capture-route-inventory-at-2c8fd31c-2026-11-22)
+records the exact-source image coverage and capture run IDs.
+
+## Historical qualification snapshot (2026-11-18)
 
 PR #6 is [Ready for review](https://github.com/sol-znn/syrius/pull/6).
 The owner accepted the executed isolated Windows native CI route for P03/P09.
