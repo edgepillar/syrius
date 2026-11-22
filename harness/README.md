@@ -351,8 +351,10 @@ python tool/redesign_compare.py \
 
 The summary lists every pair still needed at the target commit. Once all 94
 pairs are available, omit `--no-diff-images` for the visual review. Use
-`--require-reviewed` to require all 94 explicit match verdicts. Within one
-report directory, identical heatmaps link to a single verified PNG.
+`--require-reviewed` with `--target-source` to require all 94 explicit match
+verdicts at that commit. A report without a target can display individual
+verdicts. Its overall visual review stays incomplete. Within one report
+directory, identical heatmaps link to a single verified PNG.
 
 Use `--summary-only` in place of `--no-diff-images` and `--output-dir` to
 check coverage from retained ZIPs and emit JSON to stdout. This checks

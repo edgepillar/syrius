@@ -4688,6 +4688,10 @@ The comparison tool accepts repeated `--reviews` arguments, so the earlier
 and recent review files can be read together without copying verdicts.
 Each verdict still requires both original image digests. A disagreement
 between verdicts for the exact same pair remains visible and unreviewed.
+The overall visual review requires all 94 matches at an explicit target
+commit. Reports without a target still display individual verdicts. Ten
+in-memory tests pass, covering the target requirement, catalog selection,
+and retained archive handling.
 
 The private comparison gallery keeps recently used, verified ZIP bytes
 in a 4 MiB cache. A larger archive within the existing input limit can

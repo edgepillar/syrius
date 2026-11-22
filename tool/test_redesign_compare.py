@@ -44,6 +44,46 @@ from redesign_compare import (
 TEST_ROOT: Path | None = None
 
 
+class VisualAcceptanceTests(unittest.TestCase):
+    def test_all_matches_require_one_explicit_target(self) -> None:
+        repo = Path(__file__).resolve().parents[1]
+        target = "a" * 40
+        manifest = Path("captures.json")
+
+        def reviewed_pair(screen, theme, *args, **kwargs):
+            return {
+                "id": screen.stem(theme),
+                "number": screen.number,
+                "theme": theme,
+                "state": "reviewed-match",
+            }
+
+        with (
+            patch("redesign_compare.select_actual_captures", return_value={}),
+            patch("redesign_compare.compare_pair", side_effect=reviewed_pair),
+        ):
+            for source, expected in ((None, "INCOMPLETE"), (target, "COMPLETE")):
+                with self.subTest(target_source=source):
+                    summary = generate_report(
+                        repo, None, None, actual_manifest=manifest, target_source=source,
+                    )["summary"]
+                    self.assertEqual(summary["states"], {"reviewed-match": 94})
+                    self.assertEqual(summary["visual_review"], expected)
+
+    def test_require_reviewed_without_target_refuses_before_report(self) -> None:
+        args = ["redesign_compare.py", "--require-reviewed", "--summary-only"]
+        with (
+            patch("sys.argv", args),
+            patch("sys.stderr", new_callable=io.StringIO) as errors,
+            patch("redesign_compare.generate_report") as report,
+        ):
+            with self.assertRaises(SystemExit) as result:
+                main()
+        self.assertEqual(result.exception.code, 2)
+        self.assertIn("--require-reviewed requires --target-source", errors.getvalue())
+        report.assert_not_called()
+
+
 class ArchiveReadCacheTests(unittest.TestCase):
     def test_reuses_verified_bytes_until_the_archive_identity_changes(self) -> None:
         original, replacement = b"original", b"replaced"

@@ -8,7 +8,7 @@
     python tool/redesign_compare.py --actual-manifest <archive-captures.json> --serve
     python tool/redesign_compare.py --actual-manifest <archive-index.json> --archive-dir <archive-store> --serve
     python tool/redesign_compare.py --actual-manifest <first.json> --actual-manifest <second.json> --target-source <commit> --require-current-captures --no-diff-images
-    python tool/redesign_compare.py --reviews <reviews.json> --require-reviewed
+    python tool/redesign_compare.py --actual-manifest <captures.json> --target-source <commit> --reviews <reviews.json> --require-reviewed
     python tool/redesign_compare.py --no-diff-images --output-dir <compact-report>
 
 Requires Pillow, also used by the mockup pipeline. Input images are linked,
@@ -922,12 +922,16 @@ def generate_report(
             pairs.append(pair)
     pairs.sort(key=lambda pair: (pair["number"], THEMES.index(pair["theme"])))
     states = dict(Counter(pair["state"] for pair in pairs))
+    all_pairs_match = (
+        target_source is not None
+        and states.get("reviewed-match", 0) == len(pairs) == 94
+    )
     summary = {
         "screens": len(screens),
         "pairs": len(pairs),
         "required_image_size": list(required_size),
         "states": states,
-        "visual_review": "COMPLETE" if states.get("reviewed-match", 0) == 94 else "INCOMPLETE",
+        "visual_review": "COMPLETE" if all_pairs_match else "INCOMPLETE",
         "unrecognized_review_ids": sorted(set(reviews) - {pair["id"] for pair in pairs}),
     }
     if target_source is not None:
@@ -969,12 +973,15 @@ def main() -> int:
                       help="Serve a private loopback gallery in memory with support for retained ZIP captures")
     mode.add_argument("--summary-only", action="store_true",
                       help="Print JSON after checking images without writing a report or diff images")
-    parser.add_argument("--require-reviewed", action="store_true", help="Exit 1 unless all 94 pairs are reviewed matches")
+    parser.add_argument("--require-reviewed", action="store_true",
+                        help="Exit 1 unless all 94 pairs are reviewed matches at --target-source")
     parser.add_argument("--require-current-captures", action="store_true",
                         help="Exit 1 unless all 94 pairs are available at --target-source")
     args = parser.parse_args()
     if args.require_current_captures and args.target_source is None:
         parser.error("--require-current-captures requires --target-source")
+    if args.require_reviewed and args.target_source is None:
+        parser.error("--require-reviewed requires --target-source")
     if args.summary_only and args.output_dir is not None:
         parser.error("--summary-only prints to stdout and cannot use --output-dir")
     gallery = ReportGallery() if args.serve else None
