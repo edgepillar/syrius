@@ -5786,6 +5786,18 @@ change still fails the 16 ms comparison for raster and distinct frames.
 Disclosure fails for build, raster and distinct frames. The counters
 record occupancy at the peak only. Raster cost attribution remains open.
 
+In the pinned Flutter 3.47.7 engine, the raster timer surrounds
+`DrawToSurfaceUnsafe`, including the layer-tree raster and the frame
+submission. The Windows compositor forwards the presentation callback
+to the selected compositor. Its OpenGL path includes a framebuffer blit
+and buffer swap. The retained measurements have no separate duration
+for drawing and presentation. The two stages therefore remain unresolved
+within the measured peak intervals.
+[Raster timer](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/rasterizer.cc#L689-L715)
+[Frame submission](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/rasterizer.cc#L808-L843)
+[Windows presentation](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/platform/windows/flutter_windows_engine.cc#L1169-L1182)
+[OpenGL compositor](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/platform/windows/compositor_opengl.cc#L233-L253)
+
 #### Paired Windows cold launch timing at `f0b1a110`
 
 The [native producer](https://github.com/edgepillar/syrius/actions/runs/44979865019/job/137077797577)
