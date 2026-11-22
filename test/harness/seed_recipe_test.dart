@@ -29,6 +29,21 @@ void main() {
         );
         expect(plan.lines.last.first, 'assert');
       }
+      final SeedRecipe stake = SeedRecipe.parse(
+        'stake', File('harness/seed/stake.txt').readAsStringSync(),
+      );
+      const String stakeSubmitWait =
+          'wait --key create_stake_submit_button --kind button '
+          '--exact --timeout 30';
+      expect(
+        stake.lines.map((List<String> words) => words.join(' ')),
+        containsAllInOrder(<String>[
+          'type --key create_stake_amount_field 300',
+          stakeSubmitWait,
+          'assert --key create_stake_submit_button',
+          'publish --key create_stake_submit_button',
+        ]),
+      );
       final String fuse =
           File('harness/seed/fuse-secondary.txt').readAsStringSync();
       const String beneficiary = 'fuse_plasma_beneficiary_option_2';

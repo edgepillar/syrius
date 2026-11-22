@@ -5140,8 +5140,14 @@ was absent from all 18 confirmation observations. The attempt reached
 neither the copied profile nor the holder preparation, and retained no
 holder PNGs. The [independent read](https://github.com/edgepillar/syrius/actions/runs/44973945797/job/137059546508)
 verifies the unresolved send record, forced wallet cleanup and normal
-exits for all five nodes. The next candidate starts with a fresh lab and
-the corrected page sender. The Token summary uses its existing singular label for one
+exits for all five nodes. The [next producer at `03bb7b14`](https://github.com/edgepillar/syrius/actions/runs/44973829909/job/137059184388)
+completes the original twelve-page tour and stops in the copied profile
+at the Stake submit assertion. The [independent read](https://github.com/edgepillar/syrius/actions/runs/44975544372/job/137064511237)
+verifies the original entry exit and the copied refusal before any Stake
+publication call. The holder preparation remains unreached. The Stake
+recipe now waits up to 30 seconds for the exact submit button after
+entering the amount, then runs the existing assertion before publication.
+The earlier refusal does not identify the inner UI cause. The Token summary uses its existing singular label for one
 held token. The [Linux validation at `30112ab6`](https://github.com/edgepillar/syrius/actions/runs/44968418733/job/137042577611)
 passes analysis, unit and widget tests, and generated-file verification.
 Fresh native captures are needed to verify that label visually.
@@ -5254,6 +5260,20 @@ changed harness test has its own [focused Windows result at `361b0e51`](https://
 The baseline remains bound to its original source. The five end-state
 requirements still need the complete visual and running motion verdicts.
 
+
+### End-state audit at `28b39fab` (2026-11-22)
+
+| End-state item | Verified evidence and remaining check |
+| --- | --- |
+| Windows Debug and Release | The [environment guide](docs/environment.md) and [independent Windows baseline](https://github.com/edgepillar/syrius/actions/runs/44965996329/job/137035042343) cover the build at `f3a07338`. The runtime diff to `28b39fab` changes Tokens, Lock and Home field Dart source. The Windows runner, assets and locked dependencies match that baseline. The current source still needs a clean Debug and Release run. |
+| Analysis and tests | [Linux at `28b39fab`](https://github.com/edgepillar/syrius/actions/runs/44974609712/job/137061581911) passes application and strict analysis, 5,132 Dart tests with one skip, 1,531 Windows-tour cases within that suite, and the generated-file check. The run includes the painted Home drift read. |
+| All 94 visual pairs | The [Lock review](#lock-at-rest-at-f935a887) records six matches at its original source. The Held Tokens recapture remains open after a copied Stake pre-publication refusal. The Home catalog is in progress. The current-source gallery still needs all 94 native sides and matching verdicts. |
+| Motion, shaders and frame times | The [paired interaction read](https://github.com/edgepillar/syrius/actions/runs/44953288126/job/136995755269) retains both failed 16 ms comparisons. The [native Home run](https://github.com/edgepillar/syrius/actions/runs/44974344229) will supply the new painted-drift samples if that lane completes. The full running motion review and all three timing comparisons remain open. |
+| Seam refusals | The [V03 coverage](docs/review/source695-seam-coverage.md) records the original native refusals for all fifteen entries and the original Go To path. The seam registry and Go To implementation match the audited `564d01ab` source. The original native trials retain their own source pins. |
+
+The original checklist still has 77 accepted rows out of 80. V01, V02 and
+V06 remain open.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |
@@ -5337,7 +5357,7 @@ requirements still need the complete visual and running motion verdicts.
 | V03 | done | 2026-11-12T03:23Z | Source648 673fe4a19468, Source670 2b2c4abdadae, Source676 5d555665a643 and Source686 15fec4c9120f provide executed native refusals for all fifteen current seam values and pointer/keyboard refusal for the only seamed palette target. No direct missing-feature shortcut or other seamed palette target is registered. All 1,213 current runtime entries match Source686; the sole older token observer difference is covered by its holder trial. Source670's producer control list remains distinct from its legacy reader's context/closure proof. The [Source695 audit](docs/review/source695-seam-coverage.md) closes the original requirement without relabelling the later incomplete eleven-control Home batch or its failures. No new native run or visual match is claimed. |
 | V04 | done | 2026-10-31T23:34Z | All four independently qualified Source265 minimum-window/Arabic originals were actually viewed in both themes. The owned review closes SUCCESS with actual controller exit zero; required original native closure stays source-bound. Minimum controls fit and RTL layout mirrors. English fallback/missing Arabic copy is retained as X414; exact saved locale preference and Arabic glyph quality remain separate unqualified observations |
 | V05 | done | 2026-11-18T13:45Z | fdb88d89 commits the fresh independent review of all 94 exact 28f9c121 pairs and X821 through X875. The visual verdicts guide further comparisons under V01. [Independent review](docs/review/source-28f9c121-independent-visual-review.md). |
-| V06 | review | 2026-11-22T00:19Z | The [latest audit](#end-state-audit-at-6a456a69-2026-11-21) includes an [independently verified Windows baseline](#verified-windows-baseline-at-f3a07338-2026-11-22). V01 and V02 still need their final visual and motion evidence. |
+| V06 | review | 2026-11-22 | The [current audit](#end-state-audit-at-28b39fab-2026-11-22) records the verified Linux result, the original Windows baseline and the open current-source gates. |
 | X01 | done | 2026-10-21T23:26Z | e13abb387577 restores loading-list sweep ink in lib/rearchitecture/utils/widgets/motion/skeleton.dart; all 19 existing Skeleton tests pass unchanged |
 | X02 | done | 2026-10-21T23:57Z | e13abb387577 keeps the status-strip dot visible at narrow widths and fixes asynchronous visibility tests |
 | X03 | done | 2026-10-21T23:57Z | e13abb387577 parses the bridge test's HTTP head before binary frames; compression refusal assertions retained |
