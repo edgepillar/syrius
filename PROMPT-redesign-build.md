@@ -5979,6 +5979,10 @@ Flutter's automated widget binding disables shadow blur by default. The
 Swap pixel test now enables blur only during the original route capture and
 restores the setting before its other checks. It compares the same two
 positions and reports their measured channel values on failure.
+The [Linux run at `33b58506`](https://github.com/edgepillar/syrius/actions/runs/45013988087/job/137182235907)
+passes both exterior pixel assertions. Full and strict analysis pass,
+5,132 non-chain tests pass with one skip, and generated files remain
+unchanged at that revision.
 
 The [Windows capture at `044f9aba`](https://github.com/edgepillar/syrius/actions/runs/45013026627/job/137179281480)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45014288092/job/137183151936)
