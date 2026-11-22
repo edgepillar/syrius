@@ -5980,6 +5980,15 @@ Swap pixel test now enables blur only during the original route capture and
 restores the setting before its other checks. It compares the same two
 positions and reports their measured channel values on failure.
 
+The [Windows capture at `044f9aba`](https://github.com/edgepillar/syrius/actions/runs/45013026627/job/137179281480)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45014288092/job/137183151936)
+verify both [new images](docs/review/source-044f9aba-swap-start-captures.json)
+and normal parent closure. Caption pixels differing by at least 16 in an
+RGB channel drop from 264 to zero in dark and from 40,883 to zero in light.
+The two exterior samples retain the preceding values in both themes.
+The body still differs at 38,900 dark and 73,754 light pixels by this
+threshold. Both whole-image verdicts remain open.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since

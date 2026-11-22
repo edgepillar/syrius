@@ -1,0 +1,20 @@
+{
+  "actual": {
+    "27-swap-start-dark": {
+      "archive_member": "27-swap-start-dark.png",
+      "archive_sha256": "64de869b076386342f4d965a91487d3a51259d98c443f457d9f8ab8483765c7a",
+      "catalog_family": "swap-start",
+      "path": "64de869b076386342f4d965a91487d3a51259d98c443f457d9f8ab8483765c7a",
+      "sha256": "e7c4a4d2abd250121ca8ebf10ca2a1876ceb27c81ad5348e927b4664cdab408e",
+      "source_sha": "044f9aba24cb186c6acc9f38176cc745ee3d5dcd"
+    },
+    "27-swap-start-light": {
+      "archive_member": "27-swap-start-light.png",
+      "archive_sha256": "64de869b076386342f4d965a91487d3a51259d98c443f457d9f8ab8483765c7a",
+      "catalog_family": "swap-start",
+      "path": "64de869b076386342f4d965a91487d3a51259d98c443f457d9f8ab8483765c7a",
+      "sha256": "985b4075e4c2f715768d7a9bfd7c5b16d300b5e8c5bee2f7194ea4d767b5f57a",
+      "source_sha": "044f9aba24cb186c6acc9f38176cc745ee3d5dcd"
+    }
+  }
+}
