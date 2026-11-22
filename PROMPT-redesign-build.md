@@ -5427,6 +5427,10 @@ inline Domain icon uses the value's foreground color. The two value
 tracks still size themselves from their actual text. The existing holder
 cases check the type size, matching track widths and inline icon. The
 smaller fixture still needs native comparison against both references.
+The [Linux run at `853bb984`](https://github.com/edgepillar/syrius/actions/runs/45025461220/job/137217400561)
+passes the holder cases in both themes and both reading directions. Full
+and strict Dart analysis and generated-file verification pass. The unit
+and widget suite passes 5,133 tests with one skip.
 
 In the retained [Mint views at `a2efda99`](docs/review/source-a2efda99-seeded-captures.json),
 the amount and beneficiary field interiors read RGB (57, 59, 57) in dark
@@ -6203,6 +6207,16 @@ the scroll padding. Windows pane positions still need a new capture.
 The [Linux run at `f8372e19`](https://github.com/edgepillar/syrius/actions/runs/45023841257/job/137212420364)
 passes the two Start cases, full and strict Dart analysis, and generated
 file verification. The unit and widget suite passes 5,133 tests with one skip.
+
+The [Windows producer at `78fc9302`](https://github.com/edgepillar/syrius/actions/runs/45024798090/job/137215370049)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45026169353/job/137219573175)
+verify both [original PNGs](docs/review/source-78fc9302-swap-start-captures.json)
+and normal parent closure. At column 558 both fill spans shift down 2 px.
+The first is [182, 295) against [186, 295) in the reference. The second is
+[318, 429) against [317, 427). At the 16-level RGB threshold, amount-pane
+differences fall from 8,398 to 7,886 pixels in dark and from 12,305 to
+10,821 in light. Whole-image differences fall from 54,228 to 53,634 in dark
+and from 62,161 to 59,252 in light. Both visual verdicts remain open.
 
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
