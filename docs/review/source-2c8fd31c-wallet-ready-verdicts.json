@@ -1,0 +1,20 @@
+{
+  "reviews": {
+    "47-wallet-ready-dark": {
+      "actual_sha256": "1b2ad3f93180967b29b2749a3dec35d01dccb70dc6335fc8603b6b957fff460c",
+      "expected_sha256": "98b05b9d7a88952f636021a5ecd7f96e0976f86801ed986bf1b995ad503d693d",
+      "note": "The original dotted map, centered glass card, completed steps, address row, copy control and Open wallet match the reference layout. The generated address, native text rasterization and approved brand colours account for the visible variations.",
+      "reviewed_at": "2026-11-22T22:54:35Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "47-wallet-ready-light": {
+      "actual_sha256": "f9d390d36238c686bf91cb93454bbe5c99700af5b3cfb2a1efeb957e73dcdcb8",
+      "expected_sha256": "d3d74f8ab759686b11cff7ae6d6e3cd1fa10638302d1771fd93a769851492039",
+      "note": "The map, outer card shadow, four completed steps, address row and primary action agree with the reference. The isolated address and approved brand colours remain visible.",
+      "reviewed_at": "2026-11-22T22:54:35Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    }
+  }
+}
