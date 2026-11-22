@@ -40,6 +40,7 @@ PRE_LIGHT_MOTION_LAUNCH_PRODUCER_SHA = '090cfbe23429e293c5e7b9c7eef93c2ee903ad29
 PRE_AUTH_PHASE_LAUNCH_PRODUCER_SHA = '7dfdc17484942d61429e0bca2f48085ef9964d70414f3fb75511a942b0c560bc'
 PRE_STAGE_LAYOUT_LAUNCH_PRODUCER_SHA = 'dc0c379a8abaa7b0e2ab39f1ff445a7325a5c29e804add276e646c5a6b7e1982'
 PRE_RASTER_STARTS_LAUNCH_PRODUCER_SHA = '0c726ce6e6b7bfc5de9ce77702782366d489b7215815d1cd6b8833a03996a2df'
+PRE_RASTER_CACHE_LAUNCH_PRODUCER_SHA = '5f45d05a139fb1a8931cf18b91e508d13c0eda5eaeac86d8c8c50e0e8df77563'
 # The timing lane preserves earlier launch, lock and quiz producers.
 PRE_TIMING_LAUNCH_PRODUCER_SHA = 'e579d76e178e69189069f5269a0ba8981f3e435a10e0f80f69bb2d559b4761a2'
 FIRST_TIMING_LAUNCH_PRODUCER_SHA = '6880559d501bc59bff26865155af96efe56322a61a587a04edccc37b41a487a5'
@@ -623,8 +624,9 @@ def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=F
                 prior = PRIOR_QUIZ_PRODUCER_SHAS
             if name == 'tool/ci/windows_launch_catalog.py':
                 prior = (*prior, PRE_BATCH_LAUNCH_PRODUCER_SHA)
-            before_raster_starts = (name == 'tool/ci/windows_launch_catalog.py'
-                                    and archive.sha(body) == PRE_RASTER_STARTS_LAUNCH_PRODUCER_SHA)
+            compatible_raster_diagnostics = (name == 'tool/ci/windows_launch_catalog.py'
+                and archive.sha(body) in (PRE_RASTER_STARTS_LAUNCH_PRODUCER_SHA,
+                                          PRE_RASTER_CACHE_LAUNCH_PRODUCER_SHA))
             before_phase_capture = (name == 'tool/ci/windows_launch_catalog.py'
                                     and archive.sha(body) in (PRE_PHASE_LAUNCH_PRODUCER_SHA,
                                                              PRE_MOTION_LAUNCH_PRODUCER_SHA))
@@ -646,7 +648,7 @@ def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=F
             prior_lock = ((lock or lock_seams)
                           and name == 'tool/ci/windows_lock_catalog.py'
                           and archive.sha(body) in PRIOR_LOCK_PRODUCER_SHAS)
-            archive.need(body == current or before_auth_phase or before_raster_starts
+            archive.need(body == current or before_auth_phase or compatible_raster_diagnostics
                          or prior_lock or motion_theme == launch.TIMING_THEME and legacy)
         else:
             pins[key] = archive.sha(body)

@@ -5949,8 +5949,21 @@ completed at `6404de06`. Its [first independent reader](https://github.com/edgep
 refused the source check because the Swap surface changed between
 producer and reader. The reader now resolves the original Swap surface
 by its Git blob ID, with the existing blob and content verification.
-Its pixel results, the fresh Windows capture and whole-image acceptance
-remain open.
+The [second reader](https://github.com/edgepillar/syrius/actions/runs/45013342006/job/137180247828)
+verifies both [original captures](docs/review/source-6404de06-swap-start-captures.json)
+and normal parent closure. With the outer clip removed, the light sample
+beside the dialog reads (136, 136, 136) against the reference (136, 137, 136).
+The far sample stays at (160, 161, 160) and the dark near sample matches
+the reference at (21, 21, 21). The light caption still differs by at least
+16 in an RGB channel at 40,883 pixels. Whole-image and fresh Windows capture
+acceptance remain open.
+
+The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
+completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
+refused before reporting any catalog verdict. The launch producer has since
+added validation for an optional interactive raster-cache field. The startup
+reader now accepts the exact preceding producer digest and keeps all archive
+and capture checks. The four original archives still require a successful read.
 
 ### Rows
 
