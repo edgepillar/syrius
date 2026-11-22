@@ -5357,7 +5357,12 @@ interiors read (46, 48, 46) and (255, 255, 255). The surrounding form fill
 already agrees in both themes. The Mint inputs now explicitly use the
 reference's secondary surface colour, including on hover. The existing
 theme and reading-direction matrix checks both fields and the occupied
-border. Targeted analysis passes. Native confirmation remains open.
+border. Targeted analysis passes. The [native capture at `1ae351cb`](https://github.com/edgepillar/syrius/actions/runs/45009502952)
+is in progress. The independent reader samples the amount, beneficiary
+and surrounding form at fixed interior coordinates in both themes, with
+a separate bounded notice for those RGB values. Reading the retained
+`a2efda99` archive through the same sampler reproduces the original
+difference without another native run or local transfer.
 
 The Token issue form uses the same optional domain-name rule as the node.
 The existing form test covers a bare domain, an empty field, a full URL,
