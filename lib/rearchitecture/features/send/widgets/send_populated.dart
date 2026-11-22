@@ -14,6 +14,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notification
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/model/send_intent.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_confirmation.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_contacts_picker.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/transfer/view/transfer_token_mark.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/dollar_text.dart';
@@ -37,7 +38,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-part 'send_contacts_picker.dart';
 part 'send_recipient_warning.dart';
 
 /// How a party to a send is named in a notification: its label, else its
@@ -824,7 +824,10 @@ class _SendPopulatedState extends State<SendPopulated>
     if (_busy) return;
     final String? selected = await showFrostedDialog<String>(
       context: context,
-      builder: (_) => _SendContactsPicker(contacts: _contacts, sender: _sender),
+      builder: (_) => WalletContactsPicker(
+        contacts: _contacts,
+        busy: _sender.busy,
+      ),
     );
     if (!mounted || _busy || selected == null) return;
     _selectRecipient(selected);

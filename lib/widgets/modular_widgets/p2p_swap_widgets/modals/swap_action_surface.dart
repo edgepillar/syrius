@@ -920,6 +920,7 @@ class SwapTextEntry extends StatelessWidget {
     required this.label,
     required this.onChanged,
     this.onPaste,
+    this.onPickContact,
     this.onSubmitted,
     this.fieldKey,
     super.key,
@@ -936,6 +937,9 @@ class SwapTextEntry extends StatelessWidget {
 
   /// Explicit finite clipboard read owned by the captured modal.
   final VoidCallback? onPaste;
+
+  /// Opens the original address book for a counterparty draft.
+  final VoidCallback? onPickContact;
 
   /// Guarded exact input submission callback, when applicable.
   final ValueChanged<String>? onSubmitted;
@@ -962,14 +966,29 @@ class SwapTextEntry extends StatelessWidget {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(tokens.transferControlRadius),
         ),
-        suffixIcon: onPaste == null
-            ? null
-            : IconButton(
-                tooltip: context.l10n.swapActionPaste,
-                onPressed: onPaste,
-                icon: const Icon(Icons.content_paste),
-              ),
+        suffixIcon: _trailingAction(context, tokens),
       ),
+    );
+  }
+
+  Widget? _trailingAction(BuildContext context, AppTokens tokens) {
+    if (onPickContact != null) {
+      return IconButton(
+        key: const Key('swap_counterparty_contacts'),
+        tooltip: context.l10n.sendAddressBook,
+        onPressed: onPickContact,
+        icon: ShellSymbol(
+          'book',
+          size: tokens.smallActionGlyphSize,
+          color: tokens.faint,
+        ),
+      );
+    }
+    if (onPaste == null) return null;
+    return IconButton(
+      tooltip: context.l10n.swapActionPaste,
+      onPressed: onPaste,
+      icon: const Icon(Icons.content_paste),
     );
   }
 }

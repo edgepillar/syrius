@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/p2p_swap/htlc_swap/swap_action_origin.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/p2p_swap/htlc_swap/swap_actions.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_contacts_picker.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/missing_services.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
+import 'package:zenon_syrius_wallet_flutter/services/contacts_store.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
@@ -13,6 +15,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_wid
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/swap_action_data.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/swap_action_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/swap_modal_state.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// The quoted offer is gated; the existing one-sided deposit stays explicit.
@@ -23,6 +26,7 @@ class StartNativeSwapModal extends StatefulWidget {
     this.source,
     this.sourceIsCurrent,
     this.dollars = swapLiveDollars,
+    this.contacts,
     super.key,
   });
 
@@ -37,6 +41,9 @@ class StartNativeSwapModal extends StatefulWidget {
 
   /// Dollar-line rendering capability; finite fixtures may replace price reads.
   final SwapDollarBuilder dollars;
+
+  /// The existing address book unless a finite fixture supplies one.
+  final ContactsStore? contacts;
   @override
   State<StartNativeSwapModal> createState() => _StartNativeSwapModalState();
 }
@@ -60,6 +67,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal>
   bool _reading = false;
   bool _readFailed = false;
   bool _releaseFailed = false;
+  bool _choosingContact = false;
   String? _submittedSigner;
   late final ValueChanged<String> _onOpened;
 
@@ -127,6 +135,63 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal>
       _amount != null &&
       _amount! > BigInt.zero &&
       _funds!.balance(_from) >= _amount!;
+
+  Future<void> _chooseCounterparty(SwapViewLease lease) async {
+    if (!_editable(lease) || _choosingContact) return;
+    final SwapActionOrigin? original = origin;
+    if (original == null) return;
+    final ContactsStore contacts = widget.contacts ?? ContactsStore.instance;
+    final Object attachment = contacts.storageIdentity;
+    final Object originalEpoch = epoch;
+    final ModalRoute<dynamic>? swapRoute = ModalRoute.of(context);
+    final String draft = _counterparty.text;
+    bool draftIsCurrent() =>
+        sourceCurrent &&
+        !busy &&
+        !held &&
+        !_reading &&
+        identical(epoch, originalEpoch) &&
+        _counterparty.text == draft &&
+        identical(contacts.storageIdentity, attachment) &&
+        identical(widget.contacts ?? ContactsStore.instance, contacts);
+    bool valid(String address) => swapCounterparty(address, original.members);
+    _choosingContact = true;
+    try {
+      final String? selected = await showFrostedDialog<String>(
+        context: context,
+        builder: (_) => SwapActionBoundary(
+          source: originalEpoch,
+          builder: (_, SwapViewLease pickerLease) => WalletContactsPicker(
+            contacts: contacts,
+            canChoose: (String address) =>
+                pickerLease.isCurrent &&
+                draftIsCurrent() &&
+                valid(address),
+          ),
+        ),
+      );
+      // Opening the picker revokes the parent view lease. Only its result may
+      // update the unchanged draft on the original route after the pop.
+      if (selected == null ||
+          !draftIsCurrent() ||
+          ModalRoute.of(context) != swapRoute ||
+          swapRoute?.isCurrent == false ||
+          contacts.byAddress(selected) == null ||
+          !valid(selected)) {
+        return;
+      }
+      setState(() {
+        _counterparty.value = TextEditingValue(
+          text: selected,
+          selection: TextSelection.collapsed(offset: selected.length),
+        );
+        epoch = Object();
+        shownResult = null;
+      });
+    } finally {
+      _choosingContact = false;
+    }
+  }
 
   Future<void> _createDeposit(SwapViewLease lease) async {
     if (!_editable(lease) || !_validAddress || !_funded) return;
@@ -319,9 +384,9 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal>
         fieldKey: const Key('swap_counterparty_input'),
         label: context.l10n.swapActionEnterAddress,
         onChanged: !editable ? null : (_) => change(lease, () {}),
-        onPaste: !editable
+        onPickContact: !editable
             ? null
-            : () => unawaited(paste(lease, _counterparty)),
+            : () => unawaited(_chooseCounterparty(lease)),
       ),
       rate: SwapRate(
         fromAmount: _amount,

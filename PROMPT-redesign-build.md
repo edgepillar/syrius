@@ -5798,6 +5798,15 @@ The observation now takes one additional read when the first sample
 after show still has the minimized time. It leaves frame scheduling with
 the original wallet.
 
+The [independent Windows reader](https://github.com/edgepillar/syrius/actions/runs/45038046853/job/137256054302)
+verifies both holds and both resumes at `73290d3c`. In the original
+Home field, the two minimized samples stop at 11,687,500 microseconds and
+the restored clock advances to 11,906,250. Go To holds both covered
+samples at 10,875,000 microseconds and the clock advances to 11,671,875
+after dismissal. This read covers the Home field's original clock across
+the two interruptions. The remaining Motion and Shaders rows and the
+paired P06 timing criteria stay open.
+
 All eight originals were viewed alongside their tracked references. The
 [reviewed pairs](docs/review/source-7fc58054-home-verdicts.json) show the
 expected rail, hero and palette placement. The isolated profile has sparse

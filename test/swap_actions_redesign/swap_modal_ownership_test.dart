@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/p2p_swap/htlc_swap/swap_action
 import 'package:zenon_syrius_wallet_flutter/model/p2p_swap/htlc_swap.dart';
 import 'package:zenon_syrius_wallet_flutter/model/p2p_swap/p2p_swap.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/widgets/amount_text.dart';
+import 'package:zenon_syrius_wallet_flutter/services/contacts_store.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/join_native_swap_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/native_p2p_swap_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/recover_deposit_modal.dart';
@@ -145,6 +146,15 @@ void main() {
   ) async {
     prepareSwapViewport(tester);
     final SwapUiFixture fixture = SwapUiFixture();
+    final ContactsStore contacts = ContactsStore();
+    final String otherAddress = fixtureAddress(8);
+    addTearDown(contacts.dispose);
+    await contacts.add(
+      name: 'Fixture recipient',
+      address: fixture.counterparty,
+    );
+    await contacts.add(name: 'Fixture own address', address: fixture.owner);
+    await contacts.add(name: 'Other fixture recipient', address: otherAddress);
     final Completer<AccountInfo> original = Completer<AccountInfo>();
     fixture.accountReply = original.future;
     await tester.pumpWidget(
@@ -153,6 +163,7 @@ void main() {
           onSwapStarted: (_) {},
           source: fixture.origin,
           dollars: fixtureDollars,
+          contacts: contacts,
         ),
       ),
     );
@@ -173,6 +184,22 @@ void main() {
     expect(find.byKey(const Key('swap_create_deposit')), findsNothing);
     expect(find.text('Address 1'), findsOneWidget);
     expect(find.text('to Address 1'), findsOneWidget);
+
+    final Finder book = find.byKey(const Key('swap_counterparty_contacts'));
+    final Finder input = find.byKey(const Key('swap_counterparty_input'));
+    final TextEditingController controller =
+        tester.widget<TextField>(input).controller!;
+    Finder contact(String address) =>
+        find.byKey(ValueKey<String>('send_contact_$address'));
+
+    await tester.ensureVisible(book);
+    await tester.tap(book);
+    await tester.pumpAndSettle();
+    expect(tester.widget<ListTile>(contact(fixture.owner)).enabled, isFalse);
+    await tester.tap(contact(fixture.counterparty));
+    await tester.pumpAndSettle();
+    expect(controller.text, fixture.counterparty);
+    expect(fixture.mutations, 0);
 
     await tester.tap(find.byKey(const Key('swap_action_details_toggle')));
     await tester.pumpAndSettle();
@@ -199,6 +226,19 @@ void main() {
     expect(find.text('Address 1'), findsNothing);
     expect(find.text('Address 2'), findsOneWidget);
     expect(find.text('to Address 2'), findsOneWidget);
+    expect(fixture.mutations, 0);
+
+    await tester.ensureVisible(book);
+    await tester.tap(book);
+    await tester.pumpAndSettle();
+    expect(controller.text, fixture.counterparty);
+    final VoidCallback retained = tester.widget<ListTile>(
+      contact(otherAddress),
+    ).onTap!;
+    fixture.current = false;
+    retained();
+    await tester.pumpAndSettle();
+    expect(controller.text, fixture.counterparty);
     expect(fixture.mutations, 0);
   });
 
