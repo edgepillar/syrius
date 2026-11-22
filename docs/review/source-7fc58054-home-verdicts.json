@@ -1,0 +1,68 @@
+{
+  "reviews": {
+    "01-home-rest-dark": {
+      "actual_sha256": "da1bd43433c58a5ee9ecc7f63849781febee91352687b2d9426d05ab3b7d64aa",
+      "expected_sha256": "70617942960638e9ad855344dcc7aa1433058bb4d060155f1cfb36592ca332a6",
+      "note": "The rail, hero and main panels occupy the reference positions. The isolated profile displays one Activity row for the selected address and empty rewards. The reference Pending panel has no corresponding active item in the capture.",
+      "reviewed_at": "2026-11-22T15:12:56Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "01-home-rest-light": {
+      "actual_sha256": "7b18f6ef0ddf5afb0f54391435bb23f01104e0111fefe91dc40017051282d339",
+      "expected_sha256": "280f31f618a20af2f275bd516afc3280849180f4788f38ae7c3fdebaedd36b7c",
+      "note": "The rail, hero and main panels occupy the reference positions. The isolated profile displays one Activity row for the selected address and empty rewards. The reference Pending panel has no corresponding active item in the capture.",
+      "reviewed_at": "2026-11-22T15:12:56Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-dark": {
+      "actual_sha256": "6012d67d3c0b5ed8835b5393ca136a50d4d25aec30525df3dd9509763b57879d",
+      "expected_sha256": "ef3e3dfc4e9e4a6438516fe8803c55202d744b57c964104d6212c4eb2d3ebd97",
+      "note": "The expanded rail and the open Tokens disclosure align with the reference. The original Tokens panel renders the empty state at this profile, while the reference shows three holdings. Activity and rewards remain sparse.",
+      "reviewed_at": "2026-11-22T15:12:56Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-light": {
+      "actual_sha256": "866ee6f4664d69e2e92e39f07c880d7bf27e428c6a120f6d49b9edf846630b62",
+      "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
+      "note": "The expanded rail and the open Tokens disclosure align with the reference. The original Tokens panel renders the empty state at this profile, while the reference shows three holdings. Activity and rewards remain sparse.",
+      "reviewed_at": "2026-11-22T15:12:56Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-dark": {
+      "actual_sha256": "f9ae659b8556a7cbee9bc7edfc24908235dac2d8dbe94eadce00f6681ed31c53",
+      "expected_sha256": "29421519af83d80baf69fcfe24beb37fc754d8da1c08b3a175e7224a27fedf16",
+      "note": "The eye control and masked balances are visible in the hero and Activity. The original profile has one Activity row, no held tokens and empty rewards. The reference shows more masked rows and populated rewards.",
+      "reviewed_at": "2026-11-22T15:12:56Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-light": {
+      "actual_sha256": "3b0f8d73abc2cf0e9638e65761988e8d0283365bfc4f6cf2b24a5dc3e809ce19",
+      "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
+      "note": "The eye control and masked balances are visible in the hero and Activity. The original profile has one Activity row, no held tokens and empty rewards. The reference shows more masked rows and populated rewards.",
+      "reviewed_at": "2026-11-22T15:12:56Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-dark": {
+      "actual_sha256": "f3f34b5938896c7c34178bf2212711d6936823c3eecfeac8df9de1bd750cfbb8",
+      "expected_sha256": "52ccc26f93bcad1c79ac91228648bb8c369a6cec14041f77f51d210afec0a1f9",
+      "note": "The centered palette, selected result and keyboard footer align. The captured contact is the isolated fixture. The backdrop is settled Activity and the reference backdrop shows loading skeletons.",
+      "reviewed_at": "2026-11-22T15:12:56Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-light": {
+      "actual_sha256": "48b509ba0faf3d5edc6e5fe57aa58e794bc1a64b1522893fb563af46e4eab3d1",
+      "expected_sha256": "f700f7b185b5064b45b1acc561abcee0fce392badb4dc2d58319914780b060bb",
+      "note": "The centered palette, selected result and keyboard footer align. The captured contact is the isolated fixture. The backdrop is settled Activity and the reference backdrop shows loading skeletons.",
+      "reviewed_at": "2026-11-22T15:12:56Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}

@@ -5783,6 +5783,15 @@ The observation now takes one additional read when the first sample
 after show still has the minimized time. It leaves frame scheduling with
 the original wallet.
 
+All eight originals were viewed alongside their tracked references. The
+[reviewed pairs](docs/review/source-7fc58054-home-verdicts.json) show the
+expected rail, hero and palette placement. The isolated profile has sparse
+Activity, empty rewards and holdings, and no pending transfer. Go To covers
+settled Activity while its reference shows loading. All eight whole-image
+verdicts remain mismatches. A summary-only comparison at `7fc58054`
+verifies those eight verdicts and lists the remaining 86 pairs as missing
+from this source's review input.
+
 The [new index](docs/review/source-a43e90e3-home-captures.json) binds the
 same eight filenames to the 710,606-byte archive. Four sets of PNG and
 reference bytes match the earlier [reviewed pairs](docs/review/source-a43e90e3-home-verdicts.json).
