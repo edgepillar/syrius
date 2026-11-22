@@ -301,6 +301,9 @@ class _SwapListViewState extends State<SwapListView> {
       String? created;
       await showCustomDialog(
         context: context,
+        // The glass clips its own contents. Its outer shadow must extend
+        // beyond that surface.
+        clipContent: false,
         content: Builder(
           builder: (BuildContext dialogContext) {
             void completed(String id) {

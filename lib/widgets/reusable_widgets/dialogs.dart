@@ -94,6 +94,7 @@ Future<bool?> showDialogWithNoAndYesOptions({
 Future<Object?> showCustomDialog({
   required BuildContext context,
   required Widget content,
+  bool clipContent = true,
 }) => Navigator.of(context, rootNavigator: true).push<Object?>(
   FrostedDialogRoute<Object?>(
     barrierLabel: '',
@@ -129,10 +130,12 @@ Future<Object?> showCustomDialog({
           Animation<double> animation,
           Animation<double> secondaryAnimation,
         ) => Center(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(kCardRadius),
-            child: content,
-          ),
+          child: clipContent
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(kCardRadius),
+                  child: content,
+                )
+              : content,
         ),
   ),
 );

@@ -5917,9 +5917,17 @@ reader compares the fixed reference dialog, header and exterior regions
 and records two RGB samples beside and away from the shadow. In the
 retained `28f9c121` light pair, both exterior samples have RGB
 (160, 161, 160) in the capture. The reference reads (136, 137, 136)
-beside the dialog and (160, 161, 160) farther away. The same reader
-verifies the new capture when available without a second local transfer.
-The pixel measurements do not decide whole-image acceptance.
+beside the dialog and (160, 161, 160) farther away. The
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/45011495093/job/137174602343)
+verifies both [new captures](docs/review/source-fba14d52-swap-start-captures.json)
+and normal parent closure. The same light samples again read
+(160, 161, 160) both beside and away from the dialog. The shared custom
+route clips its content to the dialog rectangle, which also clips the
+Swap surface's outer shadow. Start and Join now use that route without
+the extra clip and retain the glass's own rounded clip. The existing
+two-theme widget test opens the route and checks a pixel outside the
+card against the distant backdrop. Fresh Windows verification and
+whole-image acceptance remain open.
 
 ### Rows
 

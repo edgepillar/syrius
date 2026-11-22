@@ -1,5 +1,6 @@
-import 'dart:ui' show Tristate;
+import 'dart:ui' as ui show Image, Tristate;
 
+import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/swap_action_surface.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../helpers/mockup_symbol.dart';
@@ -80,18 +82,51 @@ void main() {
         addTearDown(amount.dispose);
         int cancels = 0;
         bool current = true;
+        const Key sceneKey = Key('swap_scene');
         await tester.pumpWidget(
-          swapHost(
-            _surface(
-              amount,
-              onClose: () => cancels++,
-              onToggleDetails: () => current,
+          RepaintBoundary(
+            key: sceneKey,
+            child: swapHost(
+              Builder(
+                builder: (BuildContext context) => TextButton(
+                  onPressed: () => showCustomDialog(
+                    context: context,
+                    clipContent: false,
+                    content: _surface(
+                      amount,
+                      onClose: () => cancels++,
+                      onToggleDetails: () => current,
+                    ),
+                  ),
+                  child: const Text('Open fixture'),
+                ),
+              ),
+              light: light,
             ),
-            light: light,
           ),
         );
+        await tester.tap(find.text('Open fixture'));
+        await tester.pumpAndSettle();
         final Finder dialog = find.byKey(const Key('fixture_transfer'));
-        expect(tester.getSize(dialog).width, 480);
+        final Rect bounds = tester.getRect(dialog);
+        expect(bounds.width, 480);
+        final RenderRepaintBoundary scene = tester.renderObject(
+          find.byKey(sceneKey),
+        );
+        final bool? hasShadow = await tester.runAsync(() async {
+          final ui.Image image = await scene.toImage();
+          try {
+            final ByteData bytes = (await image.toByteData())!;
+            int redAt(double x, double y) => bytes.getUint8(
+              (y.round() * image.width + x.round()) * 4,
+            );
+            return redAt(bounds.right + 12, bounds.center.dy) <
+                redAt(bounds.right + 180, bounds.center.dy);
+          } finally {
+            image.dispose();
+          }
+        });
+        expect(hasShadow, isTrue);
         final BoxDecoration border =
             tester.widget<DecoratedBox>(dialog).decoration as BoxDecoration;
         expect(border.borderRadius, BorderRadius.circular(12));
@@ -421,8 +456,8 @@ void main() {
         final SemanticsNode node = tester.getSemantics(
           find.byKey(const Key('fixture_gate')),
         );
-        expect(node.flagsCollection.isEnabled, isNot(Tristate.none));
-        expect(node.flagsCollection.isEnabled, Tristate.isFalse);
+        expect(node.flagsCollection.isEnabled, isNot(ui.Tristate.none));
+        expect(node.flagsCollection.isEnabled, ui.Tristate.isFalse);
         expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isFalse);
       } finally {
         await tester.pumpWidget(const SizedBox.shrink());
