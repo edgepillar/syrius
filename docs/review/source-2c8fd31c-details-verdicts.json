@@ -1,0 +1,68 @@
+{
+  "reviews": {
+    "10-receive-qr-dark": {
+      "actual_sha256": "002899b80b70df245d64eef512b708ead437e13f4b8fd6a6b10fae2af2ea68c3",
+      "expected_sha256": "7d0f473f9e93235a7032dbb227ceff6e683c91e92446565dee1bf037df78fad6",
+      "note": "The request amount, QSR selector and image actions are present. The actual QR contains finder marks and a blue centre glyph where the reference shows uniform dots and a dark centre. The hint ends after the first sentence.",
+      "reviewed_at": "2026-11-22T22:27:07Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "10-receive-qr-light": {
+      "actual_sha256": "f6b4f8629eb24b3a14388e11d2db83fb6a5d0efdfd4afe0c08c703a540778279",
+      "expected_sha256": "d3e867ff847f5c80f20afc1a8999441acfe57d9a6cbecad20d7633c8dcd62b17",
+      "note": "The request layout remains visible. The actual QR has finder marks, a white field and a blue centre glyph, while the reference shows a dark field with uniform dots. The hint is shorter.",
+      "reviewed_at": "2026-11-22T22:27:07Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-dark": {
+      "actual_sha256": "827005588e7351a00dbfd45c7a7e3d05295f9eeda99e11f3471a94b7e1c22d9e",
+      "expected_sha256": "b58f5d7ea3ac3da980689c744d8d8a37b6ad70a5eae6a7542f4992f7dbba089c",
+      "note": "The address field is empty and shows Not yet, and the candidate summary reports Recipients unavailable. The reference shows a selected recipient and a populated candidate summary. The draft amounts and message are present.",
+      "reviewed_at": "2026-11-22T22:27:07Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-dark": {
+      "actual_sha256": "e85240c120d6e1ec865cdebad1e6a4b7af23f1d08da3d6d815740b6c31e1ddf9",
+      "expected_sha256": "bce0133d1e1586247a874af23a72c340f73261174a296f4d690b7c6c3c334360",
+      "note": "The form, selection and batch action are visible. All three fuses show Cancellable, while the reference shows one timed lock. The Plasma meter is filled to the right edge and the reference stops short of it.",
+      "reviewed_at": "2026-11-22T22:27:07Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-light": {
+      "actual_sha256": "19e6a92314666207b79373e967cd6553d7b681f77eb0fb8b1149d413a7a05d5f",
+      "expected_sha256": "01ba9333c42b94249580c6c67789f19527d113e7861b9fd19e3c1e900f8f6c7f",
+      "note": "The form and two selected rows are visible. The actual list has three cancellable fuses rather than a locked row alongside two cancellable rows. The hero meter and per-address fills differ.",
+      "reviewed_at": "2026-11-22T22:27:07Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-dark": {
+      "actual_sha256": "a3fea174afe32f1333aaca50c81f0cfbaea75b946a988ebd0807fe06ca7dab53",
+      "expected_sha256": "057765aba7cc2e027010869bdfe14eff0beee921cbef85777efa3f7fa96ec991",
+      "note": "The open Licences section and bottom field are visible. The runtime package inventory has different rows and several visible entries have empty licence cells where the reference shows a populated type column.",
+      "reviewed_at": "2026-11-22T22:27:07Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-dark": {
+      "actual_sha256": "2eec6cd2e7b5a157c257954b2b4ea5f1931fdd3e775ce9b10983f6cdb075a862",
+      "expected_sha256": "b852ac9fcbdbea159856c6c3b30ac5ca2e25f55f1137655c4b689dc4a89a504f",
+      "note": "The six tiles, utility row and Play launch are visible. The cleared input follows the specified interaction. The globe and ZTS artwork are at different animation phases, and the licence rows above the card differ.",
+      "reviewed_at": "2026-11-22T22:27:07Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-light": {
+      "actual_sha256": "7d34b04b0caec38290a7fc67c644e6a062d5b369be0271e7418f0a8f4bf03da0",
+      "expected_sha256": "b82600455634b306377ea7626f2e0ee80c7977c60c1ae1a7e23243dcace9d3ed",
+      "note": "The cleared field, six tiles, utility row and Play launch are visible. The map tile is visibly lighter than the reference and the globe artwork differs in phase. The visible licence rows also differ.",
+      "reviewed_at": "2026-11-22T22:27:07Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
