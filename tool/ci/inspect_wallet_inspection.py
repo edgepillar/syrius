@@ -1455,6 +1455,19 @@ def emit(title, value):
     print('::notice title=' + title + '::' + raw.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'), flush=True)
 
 
+def catalog_pixel_frames(family, comparison, pins):
+    overview = dict(comparison)
+    panes = overview.pop('amount_pane_fill_rows', None)
+    frames = [(f'Retained {family} pixel comparison', dict(
+        scope=f'retained_{family.lower()}_pixel_comparison', visual_matches=0,
+        **pins, **overview))]
+    if panes is not None:
+        frames.append(('Retained Swap amount pane geometry', dict(
+            scope='retained_swap_amount_pane_geometry', screen=comparison['screen'],
+            **pins, amount_pane_fill_rows=panes)))
+    return frames
+
+
 def catalog_pixel_summary(family, head, run_id, archive_sha, reference_head,
                           comparisons):
     """Render the verified pixel measurements for the Actions job summary."""
@@ -1847,11 +1860,11 @@ def main(parent=None):
             emit('Retained readonly Home eye motion', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
                 manifest_sha256=catalog['manifest_sha256'], directions=eye_motion))
+        pixel_pins = dict(source_head=head, source_run_id=run_id,
+                          archive_sha256=catalog['archive_sha256'], reference_head=reference_head)
         for comparison in catalog_comparisons:
-            emit(f'Retained {family} pixel comparison', dict(
-                scope=f'retained_{family.lower()}_pixel_comparison', source_head=head,
-                source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
-                reference_head=reference_head, visual_matches=0, **comparison))
+            for title, frame in catalog_pixel_frames(family, comparison, pixel_pins):
+                emit(title, frame)
         step_summary = parent.get('GITHUB_STEP_SUMMARY')
         if step_summary and catalog_comparisons:
             with Path(step_summary).open('a', encoding='utf-8') as stream:

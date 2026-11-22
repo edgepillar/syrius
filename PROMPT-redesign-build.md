@@ -6289,6 +6289,11 @@ each measured top edge. It resolves columns [422, 858) at rows 200 and
 331 in both references. All 135 retained reader cases pass, including
 the pane-width check with text interrupting the fill. This measurement
 checks native pane width alongside the scroll-area widget assertion.
+The [first read of the newer Windows archive](https://github.com/edgepillar/syrius/actions/runs/45029604719/job/137230055900)
+verified the two PNG digests and stopped while emitting the combined
+pixel and geometry notice. The reader now emits the geometry separately
+under the same source, archive and reference pins. The 3,800-byte limit
+still applies to each notice.
 
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)

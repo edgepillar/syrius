@@ -164,6 +164,17 @@ class ReaderTests(unittest.TestCase):
                             'fill_columns': []}
                     for label in ('actual', 'reference')} for theme in ('dark', 'light')
         })
+        pins = dict(source_head='a' * 40, reference_head='b' * 40,
+                    source_run_id=123, archive_sha256='c' * 64)
+        pixel, geometry = reader.catalog_pixel_frames('Details', comparisons[-2], pins)
+        self.assertEqual(pixel[0], 'Retained Details pixel comparison')
+        self.assertNotIn('amount_pane_fill_rows', pixel[1])
+        self.assertEqual(geometry[0], 'Retained Swap amount pane geometry')
+        self.assertEqual(geometry[1]['amount_pane_fill_rows'],
+                         comparisons[-2]['amount_pane_fill_rows'])
+        for _, frame in (pixel, geometry):
+            self.assertEqual({key: frame[key] for key in pins}, pins)
+            self.assertLessEqual(len(reader.encode_notice(frame)), reader.MAX_NOTICE_BYTES)
         dark_fill = bytes((46, 48, 46))
         background = bytes((27, 28, 27))
         bands = [(90, background), (186, dark_fill), (295, background),
