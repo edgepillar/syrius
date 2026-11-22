@@ -29,6 +29,28 @@ int? momentumsBehind(NodeSyncStatusState state) {
   return behind < 3 ? null : behind;
 }
 
+enum _SyncKind { disconnected, connecting, synced, syncing }
+
+typedef _SyncPresentation = (_SyncKind, (int, int)?);
+
+_SyncPresentation _syncPresentation(NodeSyncStatusState state) {
+  if (state.status == TimerStatus.failure) {
+    return (_SyncKind.disconnected, null);
+  }
+  final SyncInfo? info = state.data?.second;
+  if (state.status != TimerStatus.success || info == null) {
+    return (_SyncKind.connecting, null);
+  }
+  final bool hasHeights = info.currentHeight > 0 && info.targetHeight > 0;
+  if (info.state == SyncState.syncDone ||
+      (hasHeights && momentumsBehind(state) == null)) {
+    return (_SyncKind.synced, null);
+  }
+  return hasHeights
+      ? (_SyncKind.syncing, (info.currentHeight, info.targetHeight))
+      : (_SyncKind.connecting, null);
+}
+
 /// The node connection as one dot: green when connected and in sync, the
 /// warning tone while connecting, syncing or stalled, the error colour when
 /// the node cannot be reached. The tooltip names the state.
@@ -45,36 +67,25 @@ class SyncDot extends StatelessWidget {
   /// Paints the mark at the leading edge of its full tooltip target.
   final bool alignStart;
 
+  /// Updates the mark only when its tone or localized status inputs change.
+  static bool presentationChanged(
+    NodeSyncStatusState before,
+    NodeSyncStatusState after,
+  ) => _syncPresentation(before) != _syncPresentation(after);
+
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
-    final Pair<SyncState, SyncInfo>? data = state.data;
-    final Color color;
-    final String message;
-    if (state.status == TimerStatus.failure) {
-      color = tokens.error;
-      message = context.l10n.stripDisconnected;
-    } else if (state.status != TimerStatus.success || data == null) {
-      color = tokens.warn;
-      message = context.l10n.stripConnecting;
-    } else {
-      final SyncInfo info = data.second;
-      final bool hasHeights = info.currentHeight > 0 && info.targetHeight > 0;
-      if (info.state == SyncState.syncDone ||
-          (hasHeights && momentumsBehind(state) == null)) {
-        color = tokens.znn;
-        message = context.l10n.stripSynced;
-      } else if (hasHeights) {
-        color = tokens.warn;
-        message = context.l10n.stripSyncing(
-          info.currentHeight,
-          info.targetHeight,
-        );
-      } else {
-        color = tokens.warn;
-        message = context.l10n.stripConnecting;
-      }
-    }
+    final (_SyncKind kind, (int, int)? heights) = _syncPresentation(state);
+    final (Color color, String message) = switch (kind) {
+      _SyncKind.disconnected => (tokens.error, context.l10n.stripDisconnected),
+      _SyncKind.connecting => (tokens.warn, context.l10n.stripConnecting),
+      _SyncKind.synced => (tokens.znn, context.l10n.stripSynced),
+      _SyncKind.syncing => (
+        tokens.warn,
+        context.l10n.stripSyncing(heights!.$1, heights.$2),
+      ),
+    };
     return Semantics(
       label: message,
       child: Tooltip(

@@ -6224,6 +6224,13 @@ The reader also observes settled Node Settings raster peaks of 72.354
 ms and 34.822 ms, and closed About peaks of 43.772 ms and 41.583 ms.
 The result predates the muted-skeleton change. V02 remains open.
 
+The status strip now rebuilds the sync indicator when its tone or
+tooltip inputs change. The height label and in-flight confirmation
+listener still handle each new height. A steady synced indicator retains
+its widget and tooltip while its halo pulses and the counter updates.
+While catching up, both heights remain part of the localized tooltip. The existing
+strip case exercises those two transitions.
+
 #### Paired Windows cold launch timing at `f0b1a110`
 
 The [native producer](https://github.com/edgepillar/syrius/actions/runs/44979865019/job/137077797577)

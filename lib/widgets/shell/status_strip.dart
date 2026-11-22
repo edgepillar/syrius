@@ -130,6 +130,7 @@ class StatusStrip extends StatelessWidget {
                   children: <Widget>[
                     BlocBuilder<NodeSyncStatusCubit, NodeSyncStatusState>(
                       bloc: syncCubit,
+                      buildWhen: SyncDot.presentationChanged,
                       builder: (BuildContext context, NodeSyncStatusState s) =>
                           SyncDot(state: s, alignStart: locked),
                     ),

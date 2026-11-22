@@ -208,6 +208,26 @@ void main() {
     final Rect strip = tester.getRect(find.byType(StatusStrip));
     expect(tester.getCenter(find.byKey(_sync)).dx - strip.left, 24);
     expect(tester.getCenter(find.byKey(_sync)).dy - strip.top, 22);
+    final Finder tooltip = find.ancestor(
+      of: find.byKey(_sync),
+      matching: find.byType(Tooltip),
+    );
+    final Tooltip synced = tester.widget(tooltip);
+    rig.sync.answer(current: 3281905, target: 3281905);
+    await tester.pump();
+    expect(find.text('#3,281,905'), findsOneWidget);
+    expect(tester.widget(tooltip), same(synced));
+
+    rig.sync.answer(current: 80, target: 100, done: false);
+    await tester.pump();
+    final Tooltip syncing = tester.widget(tooltip);
+    expect(syncing.message, 'Syncing, momentum 80 of 100');
+    rig.sync.answer(current: 81, target: 101, done: false);
+    await tester.pump();
+    expect(
+      tester.widget<Tooltip>(tooltip).message,
+      'Syncing, momentum 81 of 101',
+    );
     expect(tester.takeException(), isNull);
   });
 
