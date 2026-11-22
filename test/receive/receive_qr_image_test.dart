@@ -187,7 +187,8 @@ void main() {
         const AssetImage('assets/images/qr_code_child_image_znn_cut.png'),
         tester.element(find.byType(ReceiveQrImage)),
       );
-      await tester.tap(find.byKey(const Key('receive_share_image')));
+      final Finder copy = find.byKey(const Key('receive_share_image'));
+      tester.widget<TextButton>(copy).onPressed!();
       return copied.future.timeout(const Duration(seconds: 10));
     });
     expect(bytes, isNotNull);

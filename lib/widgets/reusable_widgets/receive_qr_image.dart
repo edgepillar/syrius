@@ -280,7 +280,7 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
     }
   }
 
-  static Future<Uint8List?> _encodeImage(
+  Future<Uint8List?> _encodeImage(
     QrImage image,
     PrettyQrDecoration decoration,
     int size,
@@ -288,6 +288,7 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
     final ui.Image raster = await image.toImage(
       size: size,
       decoration: decoration,
+      configuration: createLocalImageConfiguration(context),
     );
     try {
       final ByteData? data = await raster.toByteData(

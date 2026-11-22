@@ -7188,6 +7188,15 @@ actions. A dark-theme case decodes the actual clipboard PNG and checks
 opaque margins and finder ink. The encoder releases its raster after
 encoding. The platform export ownership checks remain in force.
 
+The [Linux run at `213197de`](https://github.com/edgepillar/syrius/actions/runs/45082681962/job/137394161266)
+passes the analyzers and stops in the unit and widget suite. Its new
+dark-theme clipboard case receives no PNG before the ten-second test
+deadline. The follow-up supplies the preview's local image configuration
+to rasterization and calls the Copy control's action directly inside the
+test's real async block. The existing gesture case continues to exercise
+pointer input. The reason for the original timeout remains unconfirmed
+pending fresh execution.
+
 #### Navigation captures at `2c8fd31c`
 
 The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45072492443/job/137362369223)
