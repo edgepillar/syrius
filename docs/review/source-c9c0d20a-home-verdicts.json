@@ -1,0 +1,68 @@
+{
+  "reviews": {
+    "01-home-rest-dark": {
+      "actual_sha256": "2457c01a1f7fe89f19121839c09cda46f48a88298eb192250c0f225b93f60c81",
+      "expected_sha256": "70617942960638e9ad855344dcc7aa1433058bb4d060155f1cfb36592ca332a6",
+      "note": "The rail, hero and card structure remain visible with three holdings in the Tokens count. Activity contains one selected-address row, rewards are empty, and the reference Pending panel has no corresponding item.",
+      "reviewed_at": "2026-11-22T18:53:28Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "01-home-rest-light": {
+      "actual_sha256": "352f450eecdc67a603827aac52bc30e2fe7ae5bea300669ccbf576defc2fc21f",
+      "expected_sha256": "280f31f618a20af2f275bd516afc3280849180f4788f38ae7c3fdebaedd36b7c",
+      "note": "The rail, hero and card structure remain visible with three holdings in the Tokens count. Activity contains one selected-address row, rewards are empty, and the reference Pending panel has no corresponding item.",
+      "reviewed_at": "2026-11-22T18:53:28Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-dark": {
+      "actual_sha256": "37a1e83b3abd40b87f449bce9b9827d1b1215f822a3bf314cae894c5000ada22",
+      "expected_sha256": "ef3e3dfc4e9e4a6438516fe8803c55202d744b57c964104d6212c4eb2d3ebd97",
+      "note": "The expanded rail and Tokens disclosure show three positive holdings with the original precision. The balances end near the middle of the card and all badges use pink. The reference aligns amounts to the trailing edge and uses two neutral badges. Activity and rewards are sparse.",
+      "reviewed_at": "2026-11-22T18:53:28Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-light": {
+      "actual_sha256": "a65259055ee9faad0e7436602e011a8a22fa65866b82c6589d72196d5ac2fe04",
+      "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
+      "note": "The expanded rail and Tokens disclosure show three positive holdings with the original precision. The balances end near the middle of the card and all badges use pink. The reference aligns amounts to the trailing edge and uses two neutral badges. Activity and rewards are sparse.",
+      "reviewed_at": "2026-11-22T18:53:28Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-dark": {
+      "actual_sha256": "97e0e7566dc6514f84d392c767a094795040646eef71203c525b87aecb5db5ce",
+      "expected_sha256": "29421519af83d80baf69fcfe24beb37fc754d8da1c08b3a175e7224a27fedf16",
+      "note": "The hero and visible Activity amount use their mask. The Tokens count remains visible with the disclosure closed. The isolated profile has one Activity row and empty rewards, where the reference uses a populated masked list.",
+      "reviewed_at": "2026-11-22T18:53:28Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-light": {
+      "actual_sha256": "714ea5280b73811ac9e04a1d8885b0b9ee29a3a44b67ac184daea48b4c564ae1",
+      "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
+      "note": "The hero and visible Activity amount use their mask. The Tokens count remains visible with the disclosure closed. The isolated profile has one Activity row and empty rewards, where the reference uses a populated masked list.",
+      "reviewed_at": "2026-11-22T18:53:28Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-dark": {
+      "actual_sha256": "02cf45fab29745868bb490c6492c015a66f12831a2c9c48bf7c5a6efc9c5d8ac",
+      "expected_sha256": "52ccc26f93bcad1c79ac91228648bb8c369a6cec14041f77f51d210afec0a1f9",
+      "note": "The palette has its centered surface, selected result and keyboard footer. It shows one isolated contact and a settled Activity backdrop. The reference shows a longer address lane and a loading Activity backdrop.",
+      "reviewed_at": "2026-11-22T18:53:28Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-light": {
+      "actual_sha256": "5db8f21305bdff6249c231ce3e66b7e4e116d057c6c7e919fc5490abd0c641a5",
+      "expected_sha256": "f700f7b185b5064b45b1acc561abcee0fce392badb4dc2d58319914780b060bb",
+      "note": "The palette has its centered surface, selected result and keyboard footer. It shows one isolated contact and a settled Activity backdrop. The reference shows a longer address lane and a loading Activity backdrop.",
+      "reviewed_at": "2026-11-22T18:53:28Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}

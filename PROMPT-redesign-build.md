@@ -5884,8 +5884,11 @@ and normal parent closure at `c9c0d20a`. Each open Tokens capture
 has three exact original row observations, bound to the same isolated
 genesis as the first run. The [Linux suite](https://github.com/edgepillar/syrius/actions/runs/45053825277/job/137304580492)
 passes analysis, generation and 5,134 non-chain tests with one skip.
-The retained open-Tokens crops were viewed beside their references in
-both themes. The three balances display as 0.0021, 12.4 and 40. The rows
+The [source-bound review](docs/review/source-c9c0d20a-home-verdicts.json)
+records all eight inspected pairs. The summary-only comparison
+validates eight reviewed mismatches for this Home-only manifest.
+The open-Tokens crops were also viewed beside their references at
+original scale. The three balances display as 0.0021, 12.4 and 40. The rows
 have their isolated labels, a different order and uniform pink badges.
 Their balances originally ended near the middle of the card rather than
 its trailing edge. The amount column now aligns to the trailing edge
@@ -5895,9 +5898,23 @@ their shared trailing edge. Home now shares the Tokens page's badge
 fill rule. A custom token owned by a wallet member uses the pink
 accent, and holdings from other owners use the neutral fill. The
 fixture has one owned token and two holdings from other owners.
-The precision case also checks both badge states. Fresh Windows
-images are needed for these layout and color changes. Atomic-frame
-qualification and the whole-image visual verdicts remain open.
+The precision case also checks both badge states.
+
+At `634ab9c0`, [Linux CI](https://github.com/edgepillar/syrius/actions/runs/45056413572/job/137312536523)
+passes application and strict analysis, the non-chain tests and
+generation verification. The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45056413427/job/137312537908)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45057970507/job/137317347976)
+verify the same three holdings in both themes, all eight original PNG
+digests and normal required parent closure. The reader reports 43,824
+dark and 53,996 light open-view pixels with a channel difference of at
+least 16. This read establishes the captures at the alignment revision.
+Atomic-frame qualification and whole-image acceptance remain open.
+
+At `3d23a6c4`, [Linux CI](https://github.com/edgepillar/syrius/actions/runs/45056772909/job/137313641216)
+passes application and strict analysis, generation verification and
+5,134 non-chain tests with one skip. The existing Home precision case
+checks the shared trailing edge and the distinct badge fills for wallet
+members and other owners.
 
 All eight originals were viewed alongside their tracked references. The
 [reviewed pairs](docs/review/source-7fc58054-home-verdicts.json) show the
