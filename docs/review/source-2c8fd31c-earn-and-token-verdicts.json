@@ -1,0 +1,100 @@
+{
+  "reviews": {
+    "13-staking-dark": {
+      "actual_sha256": "e236dd350a71aed4aed631fc7b1de4dc173dae02f2a35469dc3e932d2f4e1970",
+      "expected_sha256": "0b905e21642c670d6dfe590535f272642d17286d9939079230d0d81a9ccdf1ca",
+      "note": "The summary and locked countdown row are visible. The isolated ledger shows one stake and zero rewards. Two additional reference rows, including the unlocked state, are absent.",
+      "reviewed_at": "2026-11-22T23:42:20Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "13-staking-light": {
+      "actual_sha256": "2f6502a4d0c33139cb5f2f75e273c13931ff11be2b8c736d9307a8942a36e92e",
+      "expected_sha256": "83952c70a35db8822caeb6f924016d85b7ef2f202344cd62f47d0f825c77d2a2",
+      "note": "The locked row and Cancel action are visible. The reward summary is zero and the table has one row in place of the reference's two locked rows and one unlocked row.",
+      "reviewed_at": "2026-11-22T23:42:20Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "14-staking-new-dark": {
+      "actual_sha256": "4dce844400631d3c68a92719f206d09a4f30a649866ed9b5dc85a68b1762bff4",
+      "expected_sha256": "8d4fe845c95ea6191bdbc74f0a655dd850653dc311f1070ca9b4a2c4c3c675d8",
+      "note": "The inline six-month form, amount, unlock date and Stake action are visible. The available amount and date follow the isolated profile, and the table shows one locked stake instead of three mixed rows.",
+      "reviewed_at": "2026-11-22T23:42:20Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "14-staking-new-light": {
+      "actual_sha256": "44d2cdeab4afda38530e347b5322c50626a0413ea6c4c460a9513ddb2eff91a3",
+      "expected_sha256": "7f90bad74c1436fb8cd56cbcdcc56e45d067b126890574df3eaf3dd6daa5cb64",
+      "note": "The inline form and selected duration follow the reference layout. The active amount caret, computed unlock date and one-row underlying table differ from the reference frame.",
+      "reviewed_at": "2026-11-22T23:42:20Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "15-staking-empty-dark": {
+      "actual_sha256": "4dae0d81e0461a106b40e95bfebb537c74bd7b307595418396b8373069488c59",
+      "expected_sha256": "77147dc9cf2099d9cf4fe7afd730b93374ce5340d870c3c20bbdc4fac7cb7e82",
+      "note": "The completed empty mark, None yet label, zero summary and collapsed Rewards line agree with the reference. Connection and update details reflect the isolated run and the approved palette.",
+      "reviewed_at": "2026-11-22T23:42:20Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "15-staking-empty-light": {
+      "actual_sha256": "f12d908aa1ca8aebdc40c78ca4bba2be7ba92786b050b2573ca45cdf4a55f630",
+      "expected_sha256": "3e3c2e9a394f96d2ccdef6b3286bdc51693757171112fb233d42bd8daf449ae2",
+      "note": "The resting empty illustration, zero summary and collapsed Rewards line match the reference layout. The status strip uses the live isolated connection data and the approved brand colours.",
+      "reviewed_at": "2026-11-22T23:42:20Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "17-pillar-mine-dark": {
+      "actual_sha256": "d1fa848b8dfe840af03f658545ff671a8af3d7657f2aa672345b8a060a59669e",
+      "expected_sha256": "be1cd32ee83398cf27eaea46613b293293b8f4b3134f2e823c8b3c989a82d4df",
+      "note": "The ownership illustration and the Update, Deposit, Withdraw and Disassemble controls are present. Producing is absent, Collect is disabled, and the registration cost and ledger metrics differ from the reference.",
+      "reviewed_at": "2026-11-22T23:42:20Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "17-pillar-mine-light": {
+      "actual_sha256": "bda6f087ee4aef26dbf846d990f2a46e605f140e6c5356cd7ec23a538d75fd61",
+      "expected_sha256": "2ae8b41b7cb8cf108b27ba0b88d13f57ea432cdc1496942942f066af0517f6b5",
+      "note": "The owner's art and action list are visible, while Producing is absent and Collect is disabled. The isolated ledger has different registration details and leaves its APR estimates unavailable.",
+      "reviewed_at": "2026-11-22T23:42:20Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "24-token-mine-dark": {
+      "actual_sha256": "4b4499f3a994eea70c51039d25779bbc952b094b0e19ad303942535bf42427bd",
+      "expected_sha256": "b0a1718c7eef3fdd83895a252879eb09723bbc1f0a6d6c6742ad64ad787b01fb",
+      "note": "The issuer row and open Mint form are present. The actual surface adds a search field, Max and secondary links. The fixture's one holding leaves the reference's two additional holdings unseen.",
+      "reviewed_at": "2026-11-22T23:42:20Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "24-token-mine-light": {
+      "actual_sha256": "0c44b15f2cdce55feaf0c8efd60bc06d666dee7c723d66e2d8c61d8ada9ce429",
+      "expected_sha256": "b84fab5c7625d57d23e35e0c043d4f64bc93e1a505d43ff6dfe85e4725364698",
+      "note": "The Mint inputs and action are visible within the issuer row. The search field, Max and secondary links are extra. The reference table also has two holdings outside the opened row.",
+      "reviewed_at": "2026-11-22T23:42:20Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "25-token-new-dark": {
+      "actual_sha256": "2881c5167f17de73242a59553cbd47178f62a21c1a605690723275a59bed2765",
+      "expected_sha256": "1f5247371b00a589364db563ede3eb0c92b00d92dd63dd5118494553a9fba591",
+      "note": "The Name and symbol step and Continue action are present. The form uses a narrower field column and the sidebar adds eligibility and Refresh details. The preview contains different metadata.",
+      "reviewed_at": "2026-11-22T23:42:20Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "25-token-new-light": {
+      "actual_sha256": "bf53bf1c8bf5cbf0d8621dd9480302f4f637db9f08287912e7fc7f40b981566e",
+      "expected_sha256": "59a37d30a0796f99dc1dd661987c1e62aa10c9a7929e1265d7851d83467e35d0",
+      "note": "The symbol validation tick is visible. The active caret, narrower form, different preview metadata and the added eligibility and Refresh block differ from the reference.",
+      "reviewed_at": "2026-11-22T23:42:20Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
