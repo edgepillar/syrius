@@ -161,7 +161,7 @@ class ReaderTests(unittest.TestCase):
                              for left, top, right, bottom in swap.values()), 1280 * 780)
         self.assertEqual(comparisons[-2]['amount_pane_fill_rows']['themes'], {
             theme: {label: {'fill_rows': None, 'solid_bands': [], 'near_fill_rows': [],
-                            'fill_columns': []}
+                            'fill_columns': [], 'right_header_ink': []}
                     for label in ('actual', 'reference')} for theme in ('dark', 'light')
         })
         pins = dict(source_head='a' * 40, reference_head='b' * 40,
@@ -181,8 +181,18 @@ class ReaderTests(unittest.TestCase):
                  (317, dark_fill), (427, background)]
         horizontal = (background * 22 + dark_fill * 200 + background * 36
                       + dark_fill * 200 + background * 22)
+        empty_caption = [dark_fill * 242] * 24
+        caption = list(empty_caption)
+        caption[7] = dark_fill * 233 + bytes((160, 160, 160)) + dark_fill * 8
+
+        def crop(_, columns, rows):
+            if columns == (400, 880):
+                return [horizontal], 3
+            self.assertEqual(columns, (610, 852))
+            return (caption if rows == (196, 220) else empty_caption), 3
+
         with (mock.patch.object(reader, '_image_vertical_bands', return_value=bands) as scan,
-              mock.patch.object(reader.windows, '_png_crop', return_value=([horizontal], 3))):
+              mock.patch.object(reader.windows, '_png_crop', side_effect=crop)):
             dark = reader._swap_amount_pane_rows(b'fixture', 'dark')
             light = reader._swap_amount_pane_rows(b'fixture', 'light')
             self.assertEqual(dark['fill_rows'],
@@ -190,6 +200,7 @@ class ReaderTests(unittest.TestCase):
             self.assertEqual(dark['near_fill_rows'], dark['fill_rows'])
             self.assertEqual(dark['fill_columns'], [
                 dict(row=200, columns=[422, 858]), dict(row=331, columns=[422, 858])])
+            self.assertEqual(dark['right_header_ink'], [[843, 17, 844, 18], None])
             self.assertIsNone(light['fill_rows'])
             self.assertEqual(light['near_fill_rows'], [])
             self.assertEqual(light['fill_columns'], [])

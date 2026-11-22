@@ -883,11 +883,13 @@ SWAP_AMOUNT_PANE_SCAN = (558, 90, 520)
 SWAP_AMOUNT_PANE_COLUMNS = (400, 880)
 SWAP_AMOUNT_PANE_ROW_INSET = 14
 SWAP_AMOUNT_FILL_TOLERANCE = 2
+SWAP_HEADER_COLUMNS = (610, 852)
+SWAP_HEADER_ROWS = (10, 34)
+SWAP_HEADER_CONTRAST = 32
 
 
-def _swap_amount_pane_width(data, fill, row):
+def _swap_amount_pane_width(encoded, fill, row):
     left, right = SWAP_AMOUNT_PANE_COLUMNS
-    encoded = base64.b64encode(data).decode('ascii')
     rows, channels = windows._png_crop(encoded, (left, right), (row, row + 1))
     if not windows._opaque(rows, channels):
         return None
@@ -903,6 +905,25 @@ def _swap_amount_pane_width(data, fill, row):
     if left < start < end < right and width >= 360 and 4 * len(matching) >= 3 * width:
         return [start, end]
     return None
+
+
+def _swap_header_ink(encoded, fill, pane_top):
+    """Measure right-hand caption ink relative to its own pane."""
+    left, _ = SWAP_HEADER_COLUMNS
+    top, bottom = SWAP_HEADER_ROWS
+    rows, channels = windows._png_crop(encoded, SWAP_HEADER_COLUMNS,
+                                       (pane_top + top, pane_top + bottom))
+    if not windows._opaque(rows, channels):
+        return None
+    points = [(left + offset // channels, y)
+              for y, row in enumerate(rows, top)
+              for offset in range(0, len(row), channels)
+              if any(abs(value - base) >= SWAP_HEADER_CONTRAST
+                     for value, base in zip(row[offset:offset + 3], fill))]
+    if not points:
+        return None
+    xs, ys = zip(*points)
+    return [min(xs), min(ys), max(xs) + 1, max(ys) + 1]
 
 
 def _swap_amount_pane_rows(data, theme):
@@ -927,13 +948,16 @@ def _swap_amount_pane_rows(data, theme):
             near_fill.append([start, end])
     near_fill = [[start, end] for start, end in near_fill
                  if start > top and end - start >= 60]
-    fill_columns = []
+    fill_columns, right_header_ink = [], []
     if len(near_fill) == 2:
+        encoded = base64.b64encode(data).decode('ascii')
         for start, _ in near_fill:
             row = start + SWAP_AMOUNT_PANE_ROW_INSET
-            fill_columns.append(dict(row=row, columns=_swap_amount_pane_width(data, fill, row)))
+            fill_columns.append(dict(row=row, columns=_swap_amount_pane_width(encoded, fill, row)))
+            right_header_ink.append(_swap_header_ink(encoded, fill, start))
     return dict(fill_rows=spans if len(spans) == 2 else None, solid_bands=solid,
-                near_fill_rows=near_fill, fill_columns=fill_columns)
+                near_fill_rows=near_fill, fill_columns=fill_columns,
+                right_header_ink=right_header_ink)
 
 
 def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points=None):
@@ -961,6 +985,9 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
         result['amount_pane_fill_rows'] = dict(column=column, scan_rows=[top, bottom],
                                                scan_columns=SWAP_AMOUNT_PANE_COLUMNS,
                                                channel_tolerance=SWAP_AMOUNT_FILL_TOLERANCE,
+                                               header_crop=dict(columns=SWAP_HEADER_COLUMNS,
+                                                   pane_relative_rows=SWAP_HEADER_ROWS,
+                                                   contrast=SWAP_HEADER_CONTRAST),
                                                themes=pane_rows)
     return result
 
