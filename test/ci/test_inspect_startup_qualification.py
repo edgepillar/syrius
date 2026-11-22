@@ -953,6 +953,19 @@ class StartupInspectionTests(unittest.TestCase):
         self.assertLessEqual(len(json.dumps(summary, separators=(',', ':')).encode('ascii')), 3800)
         self.assertEqual(summary['states'][1]['remaining'], 2)
         self.assertEqual([state['artwork_seconds'] for state in summary['states']], [6] * 6)
+        self.assertNotIn('wrong_shake_offsets', summary)
+        offsets = [-4000, 4000] * 11 + [-4000, 0]
+        with_shake = [dict(row, shake_offsets=offsets) if index in (1, 4)
+                      else row for index, row in enumerate(captures)]
+        observed = read(dict(report, captures=with_shake))
+        self.assertEqual(observed['wrong_shake_offsets'], dict(dark=offsets, light=offsets))
+        self.assertLessEqual(len(json.dumps(observed, separators=(',', ':')).encode('ascii')), 3800)
+        for index, invalid in ((0, offsets), (1, offsets + [1]), (1, [4001]),
+                               (1, [-4001]), (1, [0, 0]), (1, [False]), (1, None)):
+            broken = list(captures)
+            broken[index] = dict(broken[index], shake_offsets=invalid)
+            with self.subTest(index=index, invalid=invalid), self.assertRaises(inspect.archive.Refused):
+                read(dict(report, captures=broken))
         for index, change in ((1, dict(failures=0)), (2, dict(picker_gates=3)),
                               (4, dict(frame=55)), (5, dict(theme='dark')),
                               (0, dict(artwork_seconds=6.0)), (1, dict(artwork_seconds=5)),

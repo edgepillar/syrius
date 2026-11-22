@@ -119,6 +119,12 @@ def capture_progress(body):
     return dict(status='observed', phases=phases)
 
 
+def shake_offsets_match(values):
+    return (type(values) is list and len(values) <= 24
+            and all(type(value) is int and -4000 <= value <= 4000 for value in values)
+            and all(left != right for left, right in zip(values, values[1:])))
+
+
 def frame_matches(value, screen):
     expected = {
         'lock-screen': (55, 0, 3, 0, len(SAMPLE)),
@@ -130,7 +136,9 @@ def frame_matches(value, screen):
             and type(value['frames']) is int and value['frames'] == 56
             and startup.integer(value['artwork_seconds'], ARTWORK_SECONDS, ARTWORK_SECONDS)
             and all(type(value[field]) is int for field in fields)
-            and tuple(value[field] for field in fields) == expected[screen])
+            and tuple(value[field] for field in fields) == expected[screen]
+            and ('shake_offsets' not in value or
+                 screen == 'lock-wrong' and shake_offsets_match(value['shake_offsets'])))
 
 
 def closed_lock_timeout(report):
@@ -361,12 +369,14 @@ class LockProcess(launch.LaunchProcess):
         self._rpc(dict(cmd='key', key='enter', settleMs=0))
         body = self._wait_catalog('wrong-frame', 27)
         need(set(body) == {'ok', 'status', 'theme', 'frame', 'frames',
-                           'failures', 'remaining', 'artwork_seconds', 'png'}
+                           'failures', 'remaining', 'artwork_seconds', 'png',
+                           'shake_offsets'}
              and body['status'] == 'captured' and body['theme'] == theme)
         self._lock_view(1)
         state = dict(screen='lock-wrong', frame=body['frame'], frames=body['frames'],
             failures=body['failures'], remaining=body['remaining'], picker_gates=0,
-            masked_chars=0, artwork_seconds=body['artwork_seconds'])
+            masked_chars=0, artwork_seconds=body['artwork_seconds'],
+            shake_offsets=body['shake_offsets'])
         wrong = self._pixels(body, state)
         self._accept('restore-artwork')
         need(self._wait_catalog('artwork-status', 8) ==

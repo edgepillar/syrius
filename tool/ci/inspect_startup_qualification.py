@@ -25,6 +25,7 @@ BACKDROP_SAMPLE_POINTS = dict(upper_left=(80, 90), upper_right=(1200, 90),
     bottom_left=(60, 744), bottom_right=(1220, 744))
 # One listing, fifteen source reads and two requests per archive.
 BATCH_REQUESTS = 24
+PRE_SHAKE_LOCK_PRODUCER_SHA = 'd34a92abacc3cc54537a05d9954e9cb432321021a037ee64037aeefb05d8'
 PRE_FIRST_PROGRESS_LAUNCH_PRODUCER_SHA = 'e494d6a5fffc539a9a0c63ccf13c813c3e58a50af507432976c1af109352166c'
 PRE_P06_FILM_FLAGS_LAUNCH_PRODUCER_SHA = '2953d8dc15680d8e2fc5d0eb49fb719be23b32f5c91027f1d0a314b3c72806f5'
 PRE_P06_WARMUP_LAUNCH_PRODUCER_SHA = 'a75408a79109738ba997eef4b09692db7ff3f1354833a1bd022a7160c04b5fc5'
@@ -421,8 +422,10 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         for index, (row, name) in enumerate(zip(captures, () if motion else files)):
             theme, phase = divmod(index, per_theme)
             actor = 0 if quiz else 2 * theme + 1
-            archive.need(type(row) is dict
-                and set(row) == {'theme', 'file', 'bytes', 'sha256'} | frame_fields
+            fields = {'theme', 'file', 'bytes', 'sha256'} | frame_fields
+            if lock and type(row) is dict and 'shake_offsets' in row:
+                fields.add('shake_offsets')
+            archive.need(type(row) is dict and set(row) == fields
                 and row['theme'] == launch.THEMES[theme] and row['file'] == name
                 and type(row['bytes']) is int and 0 < row['bytes'] <= launch.MAX_PNG
                 and len(attempts) > actor and launch.attempt_passed(attempts[actor]))
@@ -518,6 +521,10 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         summary['film_pixel_bounds'] = film_bounds
         summary['picker_divider_rows'] = picker_divider_rows
         summary['wrong_action_gradient'] = wrong_action_gradient
+        shake = {row['theme']: row['shake_offsets'] for row in captures
+                 if 'shake_offsets' in row}
+        if shake:
+            summary['wrong_shake_offsets'] = shake
     else:
         summary['frames'] = 56
         summary['frame'] = 55 if settle else 23
@@ -633,8 +640,11 @@ def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=F
             legacy = (before_lock_settle or before_p06_diagnostics or before_first_progress
                       or before_light_motion or not motion and (before_phase_capture
                           or shared_binaries is None and archive.sha(body) in prior))
+            before_shake = ((lock or lock_seams)
+                            and name == 'tool/ci/windows_lock_catalog.py'
+                            and archive.sha(body) == PRE_SHAKE_LOCK_PRODUCER_SHA)
             archive.need(body == current or before_auth_phase or before_raster_starts
-                         or motion_theme == launch.TIMING_THEME and legacy)
+                         or before_shake or motion_theme == launch.TIMING_THEME and legacy)
         else:
             pins[key] = archive.sha(body)
     if item is None:

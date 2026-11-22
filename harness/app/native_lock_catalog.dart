@@ -50,6 +50,7 @@ final class NativeLockCatalog {
   static const int _frames = 56;
   static const int _referenceFrame = 23;
   static const int _referenceArtworkSeconds = 6;
+  static const int _maxShakeSamples = 24;
   static const Set<String> _pickerKeys = <String>{
     'lock_wallet_picker_entry_0', 'lock_wallet_picker_entry_1',
     'lock_wallet_picker_entry_2', 'lock_wallet_picker_add',
@@ -64,6 +65,8 @@ final class NativeLockCatalog {
   ReferenceArtworkFrame? _artwork;
   bool _restoringArtwork = false;
   Stopwatch? _wrongClock;
+  Element? _shakeElement;
+  final List<int> _shakeOffsets = <int>[];
   bool _replayVisible = false;
   String? _refusal;
   Uint8List? _wrongPng;
@@ -198,6 +201,7 @@ final class NativeLockCatalog {
           if (_picker.value || artworkSeconds == null) {
             throw const CaptureRefused('lock-catalog-state-refused');
           }
+          _shakeElement = _findShakeElement(original.well);
           _wrongClock = Stopwatch()..start();
           WidgetsBinding.instance.addPostFrameCallback(_observeWrong);
         } else {
@@ -257,6 +261,7 @@ final class NativeLockCatalog {
           'failures': failures,
           'remaining': 3 - failures,
           'artwork_seconds': seconds,
+          'shake_offsets': List<int>.unmodifiable(_shakeOffsets),
           'png': base64Encode(png),
         };
       default:
@@ -378,6 +383,43 @@ final class NativeLockCatalog {
     return duplicate ? 0 : keys.length;
   }
 
+  Element? _findShakeElement(Element well) {
+    final List<Element> matches = <Element>[];
+    void visit(Element element) {
+      if (element.widget case Transform(
+        key: ValueKey<String>(value: 'lock_password_shake'),
+      )) {
+        matches.add(element);
+        return;
+      }
+      element.visitChildElements(visit);
+    }
+
+    well.visitAncestorElements((Element ancestor) {
+      if (ancestor.widget is! LockCard) return true;
+      ancestor.visitChildElements(visit);
+      return false;
+    });
+    return matches.length == 1 ? matches.single : null;
+  }
+
+  void _observeShake() {
+    if (_shakeOffsets.length == _maxShakeSamples) return;
+    final Element? element = _shakeElement;
+    if (element == null || !element.mounted) return;
+    final RenderObject? render = element.findRenderObject();
+    if (render is! RenderTransform || !render.attached || !render.hasSize) {
+      return;
+    }
+    final Transform widget = element.widget as Transform;
+    final double horizontal = widget.transform.entry(0, 3);
+    if (!horizontal.isFinite || horizontal.abs() > 4) return;
+    final int milliPixels = (horizontal * 1000).round();
+    if (_shakeOffsets.isEmpty || _shakeOffsets.last != milliPixels) {
+      _shakeOffsets.add(milliPixels);
+    }
+  }
+
   void _observeWrong(Duration _) {
     final _Lock? lock = _original;
     if (lock == null || !_current(lock) || _artwork?.observed != true ||
@@ -386,6 +428,7 @@ final class NativeLockCatalog {
       _refusal = 'lock-catalog-replay-refused';
       return;
     }
+    if (kNumFailedUnlockAttempts == 1) _observeShake();
     final LaunchFilmController film = lock.owner.film;
     if (kNumFailedUnlockAttempts == 1 && !film.isDone &&
         film.frame < _frames - 1) {
