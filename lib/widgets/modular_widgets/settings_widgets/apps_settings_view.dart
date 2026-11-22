@@ -597,6 +597,7 @@ class _ConnectionsTable extends StatelessWidget {
                                       key: Key('apps_disconnect_$index'),
                                       label:
                                           context.l10n.appsSettingsDisconnect,
+                                      quiet: true,
                                       onPressed: enabled
                                           ? () => disconnect(row)
                                           : null,
@@ -796,32 +797,47 @@ class _AppsButton extends StatelessWidget {
     required this.label,
     this.onPressed,
     this.icon,
+    this.quiet = false,
     super.key,
   });
   final String label;
   final VoidCallback? onPressed;
   final String? icon;
+  final bool quiet;
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
     return OutlinedButton(
       onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: tokens.foreground,
-        backgroundColor: tokens.card2,
-        disabledForegroundColor: tokens.faint,
-        side: BorderSide(color: tokens.line),
-        minimumSize: Size(0, tokens.nodeSettingsCompactButtonHeight),
-        padding: EdgeInsets.symmetric(
-          horizontal: tokens.nodeSettingsCompactButtonInset,
-        ),
-        visualDensity: VisualDensity.standard,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        textStyle: tokens.captionText.copyWith(
-          color: tokens.foreground,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
+      style:
+          OutlinedButton.styleFrom(
+            foregroundColor: quiet ? tokens.dim : tokens.foreground,
+            backgroundColor: quiet ? Colors.transparent : tokens.card2,
+            disabledForegroundColor: tokens.faint,
+            side: BorderSide(color: tokens.line),
+            minimumSize: Size(0, tokens.nodeSettingsCompactButtonHeight),
+            padding: EdgeInsets.symmetric(
+              // Include the reference's one-pixel CSS border in the inset.
+              horizontal: tokens.nodeSettingsCompactButtonInset + 1,
+            ),
+            visualDensity: VisualDensity.standard,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            textStyle: tokens.captionText.copyWith(
+              color: tokens.foreground,
+              fontWeight: FontWeight.w500,
+            ),
+          ).copyWith(
+            side: quiet
+                ? WidgetStateProperty.resolveWith<BorderSide>(
+                    (Set<WidgetState> states) =>
+                        !states.contains(WidgetState.disabled) &&
+                            (states.contains(WidgetState.hovered) ||
+                                states.contains(WidgetState.focused))
+                        ? BorderSide(color: tokens.faint)
+                        : const BorderSide(color: Colors.transparent),
+                  )
+                : null,
+          ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
@@ -832,7 +848,7 @@ class _AppsButton extends StatelessWidget {
               size: tokens.settingsCompactButtonIconSize,
               color: onPressed == null ? tokens.faint : tokens.foreground,
             ),
-            SizedBox(width: tokens.fieldLabelGap),
+            SizedBox(width: tokens.inlineGap),
           ],
           Flexible(child: Text(label)),
         ],

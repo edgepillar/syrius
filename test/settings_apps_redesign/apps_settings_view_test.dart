@@ -175,6 +175,43 @@ void main() {
         final Finder connected = find.byKey(
           const Key('apps_settings_connected'),
         );
+        final Finder connect = find.byKey(const Key('apps_settings_connect'));
+        final Finder disconnect = find.byKey(const Key('apps_disconnect_0'));
+        final ButtonStyle disconnectStyle = tester
+            .widget<OutlinedButton>(
+              find.descendant(
+                of: disconnect,
+                matching: find.byType(OutlinedButton),
+              ),
+            )
+            .style!;
+        final AppTokens tokens = AppTokens.of(tester.element(disconnect));
+        expect(
+          disconnectStyle.backgroundColor!.resolve(<WidgetState>{}),
+          Colors.transparent,
+        );
+        expect(
+          disconnectStyle.side!.resolve(<WidgetState>{})!.color,
+          Colors.transparent,
+        );
+        expect(
+          disconnectStyle.side!.resolve(<WidgetState>{
+            WidgetState.focused,
+          })!.color,
+          tokens.faint,
+        );
+        final ButtonStyle connectStyle = tester
+            .widget<OutlinedButton>(
+              find.descendant(
+                of: connect,
+                matching: find.byType(OutlinedButton),
+              ),
+            )
+            .style!;
+        expect(
+          connectStyle.padding!.resolve(<WidgetState>{}),
+          const EdgeInsets.symmetric(horizontal: 11),
+        );
         final double connectedHeight = tester.getSize(connected).height;
         expect(connectedHeight, greaterThan(450));
         expect(
@@ -198,10 +235,7 @@ void main() {
           16,
         );
         expect(
-          tester.getTopRight(connected).dx -
-              tester
-                  .getTopRight(find.byKey(const Key('apps_settings_connect')))
-                  .dx,
+          tester.getTopRight(connected).dx - tester.getTopRight(connect).dx,
           16,
         );
         final Finder tableHeader = find.ancestor(

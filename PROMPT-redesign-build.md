@@ -4654,6 +4654,14 @@ and normal parent closure. Connect by link now paints from columns
 4 px inside the reference. The settings catalog uses an 816,719-byte
 archive and retains zero accepted whole-image matches.
 
+The compact Apps actions now account for the reference's 1 px border
+in their horizontal inset. Connect by link uses the 8 px icon gap.
+Disconnect actions in the connected table use the reference's quiet
+surface and show the outline on hover or keyboard focus. The existing
+populated two-theme case checks both button styles. The prior Windows
+catalog has no connected rows. The new styling still needs native
+visual verification with a populated session list.
+
 On the two About images, the seven Settings labels' ink bounds are within
 one pixel of their references at the 32-level RGB contrast threshold.
 All 28 bounding coordinates per theme were checked. Twenty-one agree exactly in dark
