@@ -5,9 +5,9 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/view/za
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/zap.dart'
     show ZapReceivedMessage;
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/event_toast.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modals.dart'
     show showFrostedDialog;
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/event_toast.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart' show Address;
 
 /// Labels the sample directly inside the message area of the original card.

@@ -283,7 +283,8 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
     call: (Map<String, Object?> command) async {
       if (zapPreview && command['cmd'] == 'shot') {
         final Object? theme = command['theme'];
-        final observation = pendingMotion;
+        final ({Map<String, int> sparks, Map<String, int> toast})?
+            observation = pendingMotion;
         if (theme is! String ||
             !const <String>{'dark', 'light'}.contains(theme) ||
             observation == null ||
