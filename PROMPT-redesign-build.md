@@ -5285,6 +5285,16 @@ It still reads at most eighteen times and makes no replacement publication.
 The fixture contents and the visual differences reported above still
 require review on a fresh run.
 
+The [producer at `e4006b62`](https://github.com/edgepillar/syrius/actions/runs/44995406361)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44997163027/job/137130578055)
+verify both original holder images after the confirmed receipt preparation
+and the Domain change. Normal required closure and atomic capture are
+verified. The [image index](docs/review/source-e4006b62-holder-captures.json)
+binds both themes to the 101,822-byte archive. The Tokens table has 16,303
+and 18,775 pixels with an RGB channel difference of at least 16, compared
+with 16,788 and 19,635 in the earlier images. The counts include the fixture
+contents. Fresh visual verdicts remain open.
+
 A holder's Domain action now occupies the Domain value cell with the
 original external-link symbol when a domain exists. An empty value has no
 standalone button. The original owner controls and publication explorer
@@ -5470,7 +5480,7 @@ values. The catalog keeps its eight PNG filenames.
 The [native producer](https://github.com/edgepillar/syrius/actions/runs/44995657150/job/137126012819)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44997076172/job/137130311930)
 verify both ordinary clock conditions and normal required closure. The
-clock advances before Go To, stops, and reports 11,296,875 microseconds
+clock is running before Go To, stops, and reports 11,296,875 microseconds
 at both covered boundaries. After dismissal it runs at 12,156,250
 microseconds. The observed palette hold and resume are verified for the
 Home field. Window blur and hidden-page cases remain open.
