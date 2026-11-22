@@ -31,7 +31,9 @@ For an overlapping screen and theme, an exact target capture takes
 precedence. At that source the prepared Send, Tokens, Swap, Voting, Node and
 Addresses catalogs take precedence over their alternate captures. A
 target-source comparison counts these states only when their manifests identify
-the prepared catalog. Alternate captures remain available for diagnosis.
+the prepared catalog. Held Tokens needs a positive balance in the selected
+account and an expanded non-owner row. The seeded issuer's Mint form stays
+available for diagnosis. Alternate captures remain available for diagnosis.
 Multiple distinct files with equal precedence require an explicit selection.
 For a static report on Windows, place the report and all images on the same drive.
 
@@ -120,7 +122,7 @@ GIT_SHA = re.compile(r"[0-9a-f]{40}\Z")
 CATALOG_FAMILY = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\Z")
 PREPARED_CATALOGS = {
     "07-send-rest": "send-confirm",
-    "23-tokens": "seeded-states-visual",
+    "23-tokens": "token-holder",
     "26-swap-list": "swap-seeded",
     "28-az": "project-detail",
     "30-set-node": "node-verified",

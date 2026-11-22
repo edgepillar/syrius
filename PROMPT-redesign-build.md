@@ -4983,7 +4983,7 @@ are diagnostic because the target state needs additional preparation.
 | Pairs still needing a prepared capture | Required catalog |
 | --- | --- |
 | Send rest, both themes | `send-confirm` |
-| Tokens held, both themes | `seeded-states-visual` |
+| Tokens held, both themes | `token-holder` with a verified positive balance and the non-owner row open |
 | Accelerator voting, both themes | `project-detail` |
 | Node update and named Addresses, both themes | `node-verified` |
 
@@ -5089,8 +5089,10 @@ are recorded. The Staking figures use content-sized widths in both the product
 and reference. The short balances and absence of rewards account for the
 earlier Collect position. Both Held Tokens captures open the issuer's own
 token and show an empty Mint form. The reference opens a token held by an
-account other than its issuer. The reference branch still needs a prepared
-capture. The Token summary now uses its existing singular label for one
+account other than its issuer. The comparison keeps the Mint images
+as diagnostic. Acceptance needs a prepared capture with a verified positive
+holding in the selected non-owner account. The Token summary uses its
+existing singular label for one
 held token. Fresh native captures are needed to verify that change.
 
 The [natural launch producer at `f3a07338`](https://github.com/edgepillar/syrius/actions/runs/44964183241/job/137029373106)

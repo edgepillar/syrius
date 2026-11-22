@@ -194,6 +194,24 @@ class CaptureCatalogTests(unittest.TestCase):
                         self.assertEqual(select_actual_captures(
                             (ordinary, verified), {stem}, target), {stem: ready})
 
+    def test_held_tokens_requires_a_prepared_holder_capture(self) -> None:
+        target = "a" * 40
+        issuer_index, holder_index = Path("issuer.json"), Path("holder.json")
+        for theme in ("dark", "light"):
+            with self.subTest(theme=theme):
+                stem = f"23-tokens-{theme}"
+                issuer = Capture(Path("mint.png"), source_sha=target,
+                                 catalog_family="seeded-states-visual")
+                holder = Capture(Path("held.png"), source_sha=target,
+                                 catalog_family="token-holder")
+                manifests = {issuer_index: {stem: issuer}, holder_index: {stem: holder}}
+                with patch("redesign_compare.load_actual_manifest",
+                           side_effect=lambda path, _, **kwargs: manifests[path]):
+                    self.assertTrue(issuer.is_diagnostic(stem, require_catalog_family=True))
+                    self.assertFalse(holder.is_diagnostic(stem, require_catalog_family=True))
+                    self.assertEqual(select_actual_captures(
+                        (issuer_index, holder_index), {stem}, target), {stem: holder})
+
     def test_ambiguous_history_does_not_abort_exact_target_coverage(self) -> None:
         target = "a" * 40
         exact = Capture(Path("present.png"), source_sha=target)
