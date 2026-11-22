@@ -7027,6 +7027,10 @@ including the captured connection and update presentation. The
 current revision has 48 independently indexed PNG records and 36
 distinct eligible screen and theme pairs. Ten of those 36 pairs share
 their capture and reference digests with existing mismatch verdicts.
+The byte-identical captures for all ten are available in five earlier
+verified local archives. Reading those originals requires no new
+transport or extraction. Their archive paths and producer pins remain
+attached to their respective capture records.
 
 #### Paired launch and handoff at `2c8fd31c`
 
