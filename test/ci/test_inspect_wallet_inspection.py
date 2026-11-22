@@ -160,21 +160,28 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(sum((right - left) * (bottom - top)
                              for left, top, right, bottom in swap.values()), 1280 * 780)
         self.assertEqual(comparisons[-2]['amount_pane_fill_rows']['themes'], {
-            theme: {label: {'fill_rows': None, 'solid_bands': [], 'near_fill_rows': []}
+            theme: {label: {'fill_rows': None, 'solid_bands': [], 'near_fill_rows': [],
+                            'fill_columns': []}
                     for label in ('actual', 'reference')} for theme in ('dark', 'light')
         })
         dark_fill = bytes((46, 48, 46))
         background = bytes((27, 28, 27))
         bands = [(90, background), (186, dark_fill), (295, background),
                  (317, dark_fill), (427, background)]
-        with mock.patch.object(reader, '_image_vertical_bands', return_value=bands) as scan:
+        horizontal = (background * 22 + dark_fill * 200 + background * 36
+                      + dark_fill * 200 + background * 22)
+        with (mock.patch.object(reader, '_image_vertical_bands', return_value=bands) as scan,
+              mock.patch.object(reader.windows, '_png_crop', return_value=([horizontal], 3))):
             dark = reader._swap_amount_pane_rows(b'fixture', 'dark')
             light = reader._swap_amount_pane_rows(b'fixture', 'light')
             self.assertEqual(dark['fill_rows'],
                              [[186, 295], [317, 427]])
             self.assertEqual(dark['near_fill_rows'], dark['fill_rows'])
+            self.assertEqual(dark['fill_columns'], [
+                dict(row=200, columns=[422, 858]), dict(row=331, columns=[422, 858])])
             self.assertIsNone(light['fill_rows'])
             self.assertEqual(light['near_fill_rows'], [])
+            self.assertEqual(light['fill_columns'], [])
             self.assertEqual(light['solid_bands'], dark['solid_bands'])
             scan.assert_called_with(b'fixture', 558, 90, 520)
             bands.insert(2, (240, bytes((47, 47, 46))))

@@ -880,7 +880,29 @@ def _map_gray_deviation(png):
 
 
 SWAP_AMOUNT_PANE_SCAN = (558, 90, 520)
+SWAP_AMOUNT_PANE_COLUMNS = (400, 880)
+SWAP_AMOUNT_PANE_ROW_INSET = 14
 SWAP_AMOUNT_FILL_TOLERANCE = 2
+
+
+def _swap_amount_pane_width(data, fill, row):
+    left, right = SWAP_AMOUNT_PANE_COLUMNS
+    encoded = base64.b64encode(data).decode('ascii')
+    rows, channels = windows._png_crop(encoded, (left, right), (row, row + 1))
+    if not windows._opaque(rows, channels):
+        return None
+    matching = [left + offset // channels
+                for offset in range(0, len(rows[0]), channels)
+                if all(abs(value - expected) <= SWAP_AMOUNT_FILL_TOLERANCE
+                       for value, expected in zip(rows[0][offset:offset + 3], fill))]
+    if not matching:
+        return None
+    start, end = matching[0], matching[-1] + 1
+    width = end - start
+    # Allow label pixels inside the fill. Require both edges and most of the row.
+    if left < start < end < right and width >= 360 and 4 * len(matching) >= 3 * width:
+        return [start, end]
+    return None
 
 
 def _swap_amount_pane_rows(data, theme):
@@ -905,8 +927,13 @@ def _swap_amount_pane_rows(data, theme):
             near_fill.append([start, end])
     near_fill = [[start, end] for start, end in near_fill
                  if start > top and end - start >= 60]
+    fill_columns = []
+    if len(near_fill) == 2:
+        for start, _ in near_fill:
+            row = start + SWAP_AMOUNT_PANE_ROW_INSET
+            fill_columns.append(dict(row=row, columns=_swap_amount_pane_width(data, fill, row)))
     return dict(fill_rows=spans if len(spans) == 2 else None, solid_bands=solid,
-                near_fill_rows=near_fill)
+                near_fill_rows=near_fill, fill_columns=fill_columns)
 
 
 def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points=None):
@@ -932,6 +959,7 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
     if pane_rows:
         column, top, bottom = SWAP_AMOUNT_PANE_SCAN
         result['amount_pane_fill_rows'] = dict(column=column, scan_rows=[top, bottom],
+                                               scan_columns=SWAP_AMOUNT_PANE_COLUMNS,
                                                channel_tolerance=SWAP_AMOUNT_FILL_TOLERANCE,
                                                themes=pane_rows)
     return result

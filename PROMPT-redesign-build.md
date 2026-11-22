@@ -6284,6 +6284,12 @@ passes the outline assertion in both themes, full and strict Dart
 analysis, and generated-file verification. The unit and widget suite
 passes 5,133 tests with one skip.
 
+The independent reader also samples horizontal pane fill 14 px below
+each measured top edge. It resolves columns [422, 858) at rows 200 and
+331 in both references. All 135 retained reader cases pass, including
+the pane-width check with text interrupting the fill. This measurement
+checks native pane width alongside the scroll-area widget assertion.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since
