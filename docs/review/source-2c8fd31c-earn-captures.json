@@ -1,0 +1,36 @@
+{
+  "actual": {
+    "15-staking-empty-dark": {
+      "archive_member": "15-staking-empty-dark.png",
+      "archive_sha256": "0c228ca587b7c8d76cbd550e8ed456516f260bdad2458c5b839b8634a7a1e9bb",
+      "catalog_family": "earn",
+      "path": "0c228ca587b7c8d76cbd550e8ed456516f260bdad2458c5b839b8634a7a1e9bb",
+      "sha256": "4dae0d81e0461a106b40e95bfebb537c74bd7b307595418396b8373069488c59",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "15-staking-empty-light": {
+      "archive_member": "15-staking-empty-light.png",
+      "archive_sha256": "0c228ca587b7c8d76cbd550e8ed456516f260bdad2458c5b839b8634a7a1e9bb",
+      "catalog_family": "earn",
+      "path": "0c228ca587b7c8d76cbd550e8ed456516f260bdad2458c5b839b8634a7a1e9bb",
+      "sha256": "f12d908aa1ca8aebdc40c78ca4bba2be7ba92786b050b2573ca45cdf4a55f630",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "17-pillar-mine-dark": {
+      "archive_member": "17-pillar-mine-dark.png",
+      "archive_sha256": "0c228ca587b7c8d76cbd550e8ed456516f260bdad2458c5b839b8634a7a1e9bb",
+      "catalog_family": "earn",
+      "path": "0c228ca587b7c8d76cbd550e8ed456516f260bdad2458c5b839b8634a7a1e9bb",
+      "sha256": "d1fa848b8dfe840af03f658545ff671a8af3d7657f2aa672345b8a060a59669e",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "17-pillar-mine-light": {
+      "archive_member": "17-pillar-mine-light.png",
+      "archive_sha256": "0c228ca587b7c8d76cbd550e8ed456516f260bdad2458c5b839b8634a7a1e9bb",
+      "catalog_family": "earn",
+      "path": "0c228ca587b7c8d76cbd550e8ed456516f260bdad2458c5b839b8634a7a1e9bb",
+      "sha256": "bda6f087ee4aef26dbf846d990f2a46e605f140e6c5356cd7ec23a538d75fd61",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    }
+  }
+}

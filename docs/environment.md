@@ -58,6 +58,12 @@ The accepted scope is now 77/80 rows. V01, V02 and V06 remain open. The
 original Docker/WSL route stays unqualified. Earlier records retain their
 original platform criteria.
 
+The independently verified baseline at `18d42024` covered both builds
+and all twelve baseline checks at that source, with 5,132 passing
+non-chain tests, one skip and zero analyzer errors or warnings. Its
+Debug and Release DLL digests agreed with the source DLL.
+[Independent reader](https://github.com/edgepillar/syrius/actions/runs/44955001234/job/137001041306)
+
 The [independent review](review/source-28f9c121-independent-visual-review.md)
 closes V05. All 94 Windows/reference pairs for 28f9c121 were viewed and
 findings were logged in X821 through X875. Whole-image acceptance remains

@@ -6967,6 +6967,81 @@ inspection. Whole-image reviews retain their separate verdicts.
 | `pillar-done` | 2 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074873468) |
 | `swap-seeded` | 2 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074873422) |
 
+#### Startup, Notifications and Swap Start captures at `2c8fd31c`
+
+The [startup reader](https://github.com/edgepillar/syrius/actions/runs/45076273266/job/137374080381)
+verifies twelve original PNGs from four catalogs with complete original
+closure. The two handoff PNG digests match the existing
+launch-and-handoff index, so the [startup index](docs/review/source-2c8fd31c-startup-captures.json)
+adds the ten other PNGs. Both Wrong Password captures and the light
+Lock picker share capture and reference digests with their
+[Wrong Password](docs/review/source-f935a887-lock-verdicts.json)
+and [Lock picker](docs/review/source-93888cd9-lock-verdicts.json) match
+verdicts.
+
+The [Notifications reader](https://github.com/edgepillar/syrius/actions/runs/45076273174/job/137374080129)
+and [Swap Start reader](https://github.com/edgepillar/syrius/actions/runs/45076273292/job/137374081005)
+verify [two Notifications](docs/review/source-2c8fd31c-home-bell-captures.json)
+and [two Swap Start PNGs](docs/review/source-2c8fd31c-swap-start-captures.json)
+with normal parent closure. Together these results bring the candidate
+to 68 indexed original PNG records and 56 distinct eligible pairs.
+The exact image reviews currently provide three matches and ten
+mismatches at this candidate.
+
+#### Ready, Sentinel and Spawn captures at `2c8fd31c`
+
+| Catalog | Original pairs | Independent inspection |
+| --- | ---: | --- |
+| [Wallet Ready](docs/review/source-2c8fd31c-wallet-ready-captures.json) | 2 | [Reader](https://github.com/edgepillar/syrius/actions/runs/45076575017/job/137375024703) |
+| [Sentinels](docs/review/source-2c8fd31c-sentinel-fixture-captures.json) | 2 | [Reader](https://github.com/edgepillar/syrius/actions/runs/45076575054/job/137375025330) |
+| [Pillar Spawn](docs/review/source-2c8fd31c-pillar-spawn-captures.json) | 2 | [Reader](https://github.com/edgepillar/syrius/actions/runs/45076732353/job/137375518172) |
+
+All three readers verify the original capture digests and parent
+closure. The prepared Spawn archive also has atomic frame evidence.
+The six additions increase the candidate inventory to 74 original
+records and 62 distinct eligible pairs. Their whole-image verdicts
+remain open.
+
+#### Send, Zap and Earn captures at `2c8fd31c`
+
+| Catalog | Original pairs | Independent inspection |
+| --- | ---: | --- |
+| [Send and confirmation](docs/review/source-2c8fd31c-send-confirm-captures.json) | 4 | [Reader](https://github.com/edgepillar/syrius/actions/runs/45076833435/job/137375836627) |
+| [Send warning](docs/review/source-2c8fd31c-send-warn-captures.json) | 2 | [Reader](https://github.com/edgepillar/syrius/actions/runs/45076833553/job/137375836336) |
+| [Home Zap preview](docs/review/source-2c8fd31c-home-zap-preview-captures.json) | 2 | [Reader](https://github.com/edgepillar/syrius/actions/runs/45076833258/job/137375834842) |
+| [Earn](docs/review/source-2c8fd31c-earn-captures.json) | 4 | [Reader](https://github.com/edgepillar/syrius/actions/runs/45076833505/job/137375835282) |
+
+The readers verify all twelve original PNGs and parent closure. The
+prepared Send list supersedes its Navigation diagnostic. The candidate
+has 86 indexed original records and 74 distinct eligible pairs.
+
+The [seeded-states producer](https://github.com/edgepillar/syrius/actions/runs/45074870104/job/137369763543)
+reports a format failure during the copied-wallet seeded-capture phase,
+after the capture step reports complete. The
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/45076856196)
+retains the original checkpoint refusal. No seeded PNG archive was
+published by that producer. The [seeded-states-visual run](https://github.com/edgepillar/syrius/actions/runs/45076969397)
+uses the existing visual-only producer for the Staking and Token Mine
+pairs at the same revision. The original V03 refusal evidence and this
+failed attempt keep their own scopes.
+
+#### Home, New Token, New Stake and Pillar Done at `2c8fd31c`
+
+| Catalog | Original pairs | Independent inspection |
+| --- | ---: | --- |
+| [Home](docs/review/source-2c8fd31c-home-catalog-captures.json) | 8 | [Reader](https://github.com/edgepillar/syrius/actions/runs/45076984175/job/137376307549) |
+| [New Token](docs/review/source-2c8fd31c-token-draft-captures.json) | 2 | [Reader](https://github.com/edgepillar/syrius/actions/runs/45076984487/job/137376308278) |
+| [New Stake](docs/review/source-2c8fd31c-stake-draft-captures.json) | 2 | [Reader](https://github.com/edgepillar/syrius/actions/runs/45076983804/job/137376307293) |
+| [Pillar Done](docs/review/source-2c8fd31c-pillar-done-captures.json) | 2 | [Reader](https://github.com/edgepillar/syrius/actions/runs/45076984183/job/137376308318) |
+
+All fourteen PNGs verify with normal parent closure. The prepared
+New Stake and Pillar Done archives also have atomic frame evidence.
+The [prepared Swap List reader](https://github.com/edgepillar/syrius/actions/runs/45077326838/job/137377362818)
+verifies [two more original PNGs](docs/review/source-2c8fd31c-swap-seeded-captures.json),
+atomic frame evidence and normal parent closure. Together the current
+records give 102 indexed originals and 90 eligible pairs. The four
+missing pairs are Staking and Token Mine.
+
 #### Settings captures at `2c8fd31c`
 
 The [Settings producer](https://github.com/edgepillar/syrius/actions/runs/45071349540/job/137358788137)
@@ -7073,8 +7148,22 @@ rasters starting after observed settlement exceed 16 ms.
 The handoff PNGs increase the candidate inventory to twenty originals
 and sixteen eligible pairs. The dark PNG is byte-identical to the
 earlier `a4e0a9d3` capture. Whole-image verdicts and V02 stay open.
-The [paired page-change and disclosure run](https://github.com/edgepillar/syrius/actions/runs/45074928832)
-uses the same publication candidate.
+The [paired page-change and disclosure producer](https://github.com/edgepillar/syrius/actions/runs/45074928832/job/137369949577)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45077214140/job/137377016124)
+verify both interactions at this publication candidate, with two normal
+wallet exits, two normal entry exits and five normal node exits.
+
+| Interaction | Redesign / P06 frames | Redesign / P06 peak raster | Missing frame numbers |
+| --- | --- | --- | --- |
+| Page change | 11 / 19 | 193.111 / 121.310 ms | 34 / 24 |
+| Disclosure | 15 / 23 | 80.606 / 37.315 ms | 25 / 15 |
+
+The page change fails the 16 ms raster and distinct-frame comparisons.
+Disclosure fails build, raster and distinct-frame comparisons. The
+longest redesigned page-change frame spends 188.661 ms waiting for
+raster, with 4.020 ms in build and 72.341 ms in raster. The highest
+disclosure raster starts 33.441 ms after observed settlement. V02
+remains open.
 
 #### Welcome backdrop at `2c8fd31c`
 
@@ -7214,7 +7303,7 @@ The acceptance checklist records 77 of 80 rows. V01, V02 and V06 remain open.
 | N05 | done | 2026-10-23T15:54Z | e13abb387577 adds the original globe crop and three captured entry routes, preserving owned callbacks and Welcome motion; strict and full local checks pass; native comparison pending |
 | N06 | done | 2026-10-23T15:54Z | e13abb387577 adds pure Import and the bounded three-word quiz with original decrypt, access release and shared-axis routes; strict and full local checks pass; native authentication and comparison remain unqualified |
 | N07 | done | 2026-10-23T15:54Z | e13abb387577 adds the original map and Ready glass card, captured first address and once-only opening bound to original creation and local initialization; connection mismatch and uncertainty remain distinct from readiness; strict and full local checks pass; native acceptance pending |
-| V01 | review | 2026-11-22 | The [94-pair historical review](docs/review/source-28f9c121-independent-visual-review.md) retains 14 accepted matches. X1302 through X1333 record Home, entry and Held Tokens views, including the [eight Home verdicts](docs/review/source-3d23a6c4-home-verdicts.json). The [captures at `a4e0a9d3`](#startup-and-entry-captures-at-a4e0a9d3-2026-11-22) verify 24 original pairs, with two byte-identical Wrong Password matches carried forward. The [inventory at `2c8fd31c`](#prepared-held-tokens-at-2c8fd31c) records 42 distinct eligible pairs and ten byte-bound mismatch verdicts. The candidate gallery and whole-image acceptance remain open. |
+| V01 | review | 2026-11-22 | The [94-pair historical review](docs/review/source-28f9c121-independent-visual-review.md) retains 14 accepted matches. X1302 through X1333 record Home, entry and Held Tokens views, including the [eight Home verdicts](docs/review/source-3d23a6c4-home-verdicts.json). The [captures at `a4e0a9d3`](#startup-and-entry-captures-at-a4e0a9d3-2026-11-22) verify 24 original pairs, with two byte-identical Wrong Password matches carried forward. The [inventory at `2c8fd31c`](#home-new-token-new-stake-and-pillar-done-at-2c8fd31c) records 90 distinct eligible pairs, three byte-bound matches and ten byte-bound mismatches. The candidate gallery and whole-image acceptance remain open. |
 | V02 | blocked | 2026-11-22 | The [paired reader at `43d58fb3`](https://github.com/edgepillar/syrius/actions/runs/45014161564/job/137182764541) verifies empty idle cache snapshots and failed 16 ms comparisons for both interactions. The [earlier paired reader at `9fb78c7e`](https://github.com/edgepillar/syrius/actions/runs/45003004931/job/137148428771) verifies both interactions and retains their failed 16 ms comparisons. The [idle and paired reader at `3504836f`](https://github.com/edgepillar/syrius/actions/runs/45005913195/job/137157347043) verifies slow idle raster in both builds and retains the failed interaction comparisons. The [closed and open reader at `d37778da`](https://github.com/edgepillar/syrius/actions/runs/45008298338/job/137164707801) verifies raster overruns before the Licences panel opens and retains both failed interaction comparisons. The [paired interactive read at `5f6e049a`](#paired-windows-interaction-timing-at-5f6e049a) verifies both timing windows and retains 16 ms failures for raster and distinct frames in both. The [paired cold read at `f0b1a110`](#paired-windows-cold-launch-timing-at-f0b1a110) reports no added slow frames in the original counts and retains gaps in both windows. The [earlier read at `9bce41b6`](https://github.com/edgepillar/syrius/actions/runs/44953288126/job/136995755269) retains the earlier timings and gaps at its own source. The [earlier paired interactive read at `e94d5b07`](https://github.com/edgepillar/syrius/actions/runs/44809982892/job/136543747726) verifies both windows. The 16 ms comparison fails for page change and disclosure, and all four samples have frame-key gaps. The [cold startup comparison at `4055c536`](https://github.com/edgepillar/syrius/actions/runs/44794191118/job/136489337767) retains the raster and distinct-frame failures. The running motion and shader review remains open. Source715 producer 43344313240 and independent reader 43347311411 verify 234 current and 2,274 P06 frames and five normal actor exits. Acquisition passes; the unchanged 16 ms duration comparison fails raster and distinct-frame dominance, and both windows retain frame-number gaps. Page-change, disclosure, Motion and Shaders acceptance remain open. [Executed result](docs/review/source716-details-frame-context.md). Earlier Source698 evidence: Source698 producer 43240640136 and reader 43247422901 preserve STARTUP_DEADLINE in P06 measurement: 337 current frames, zero baseline frames and five normal actor exits. The baseline lock field remains disabled before initialization. No comparison or absence of added slow frames is established. Earlier evidence: Source622 adds opt-in frame windows to `harness/h stalls`. Source627 retains ENTRY_INVALID with two normal actor exits and zero frames in its [original run](https://github.com/edgepillar/syrius/actions/runs/42846425942) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42849507992). Source628 passes its selected analysis, tests and Release build. Its timing actor reports ENTRY_UNAVAILABLE with zero retained frames and both actors exit normally. The [original run](https://github.com/edgepillar/syrius/actions/runs/42851137227) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42853554717) preserve that result. Source629 selects the original password field by key and kind. The paired job builds P06 with the same SDK and locked cache after a valid current window. The three paired native measurements and the running Motion and Shaders review remain open. Source630 retains 270 current frames, P06 HTTP_FAILED with zero frames and five normal actor exits. The next controller polls the same lock predicate without a server-side wait. [Original producer](https://github.com/edgepillar/syrius/actions/runs/42865836277) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42868723130). Source631 retains 182 current frames, zero P06 frames at STARTUP_DEADLINE and five normal exits. The paired controller uses a common absolute readiness bound and records finite post-deadline state. [Producer](https://github.com/edgepillar/syrius/actions/runs/42870190367) and [reader](https://github.com/edgepillar/syrius/actions/runs/42873068988). Source632 retains 171 current frames and P06 COMMAND_FAILED with five normal exits. The next controller records which original request refused while preserving its outcome. [Producer](https://github.com/edgepillar/syrius/actions/runs/42874911893) and [reader](https://github.com/edgepillar/syrius/actions/runs/42878160400). Source633 isolates HTTP 400 at the P06 frame window request after the original lock checks. The next overlay exposes finite refusal reasons for the original request. [Producer](https://github.com/edgepillar/syrius/actions/runs/42879055212) and [reader](https://github.com/edgepillar/syrius/actions/runs/42882219474). |
 | V03 | done | 2026-11-12T03:23Z | Source648 673fe4a19468, Source670 2b2c4abdadae, Source676 5d555665a643 and Source686 15fec4c9120f provide executed native refusals for all fifteen current seam values and pointer/keyboard refusal for the only seamed palette target. No direct missing-feature shortcut or other seamed palette target is registered. All 1,213 current runtime entries match Source686; the sole older token observer difference is covered by its holder trial. Source670's producer control list remains distinct from its legacy reader's context/closure proof. The [Source695 audit](docs/review/source695-seam-coverage.md) closes the original requirement without relabelling the later incomplete eleven-control Home batch or its failures. No new native run or visual match is claimed. |
 | V04 | done | 2026-10-31T23:34Z | All four independently qualified Source265 minimum-window/Arabic originals were actually viewed in both themes. The owned review closes SUCCESS with actual controller exit zero; required original native closure stays source-bound. Minimum controls fit and RTL layout mirrors. English fallback/missing Arabic copy is retained as X414; exact saved locale preference and Arabic glyph quality remain separate unqualified observations |

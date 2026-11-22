@@ -1,0 +1,20 @@
+{
+  "actual": {
+    "08-send-warn-dark": {
+      "archive_member": "08-send-warn-dark.png",
+      "archive_sha256": "d425ed8bd1a30db4f5541eb9a4db4a07f199d86bcba2c5dba34f8260f362103d",
+      "catalog_family": "send-warn",
+      "path": "d425ed8bd1a30db4f5541eb9a4db4a07f199d86bcba2c5dba34f8260f362103d",
+      "sha256": "d91725f093b14d8f34edc760d2591bb78b8f3e75d604f354b6eac6767f4b4aef",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "08-send-warn-light": {
+      "archive_member": "08-send-warn-light.png",
+      "archive_sha256": "d425ed8bd1a30db4f5541eb9a4db4a07f199d86bcba2c5dba34f8260f362103d",
+      "catalog_family": "send-warn",
+      "path": "d425ed8bd1a30db4f5541eb9a4db4a07f199d86bcba2c5dba34f8260f362103d",
+      "sha256": "7c353c4d060637b991868a00685e647e9dc19d4a618ef41ad865b85f38515401",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    }
+  }
+}

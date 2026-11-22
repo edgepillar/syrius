@@ -1,0 +1,20 @@
+{
+  "actual": {
+    "14-staking-new-dark": {
+      "archive_member": "14-staking-new-dark.png",
+      "archive_sha256": "10382bb5d5cb6517e5efc43f5b1c1ea30c3632b0dbd0d168b7fc167a7247b788",
+      "catalog_family": "stake-draft",
+      "path": "10382bb5d5cb6517e5efc43f5b1c1ea30c3632b0dbd0d168b7fc167a7247b788",
+      "sha256": "4dce844400631d3c68a92719f206d09a4f30a649866ed9b5dc85a68b1762bff4",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "14-staking-new-light": {
+      "archive_member": "14-staking-new-light.png",
+      "archive_sha256": "10382bb5d5cb6517e5efc43f5b1c1ea30c3632b0dbd0d168b7fc167a7247b788",
+      "catalog_family": "stake-draft",
+      "path": "10382bb5d5cb6517e5efc43f5b1c1ea30c3632b0dbd0d168b7fc167a7247b788",
+      "sha256": "44d2cdeab4afda38530e347b5322c50626a0413ea6c4c460a9513ddb2eff91a3",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    }
+  }
+}

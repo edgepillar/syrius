@@ -1,0 +1,20 @@
+{
+  "actual": {
+    "18-sentinels-dark": {
+      "archive_member": "18-sentinels-dark.png",
+      "archive_sha256": "97acbe5a9e54b48ba0147b6c0717c977bd4adc048522e12db2e152c208ab54f4",
+      "catalog_family": "sentinel-fixture",
+      "path": "97acbe5a9e54b48ba0147b6c0717c977bd4adc048522e12db2e152c208ab54f4",
+      "sha256": "baaeda258ac4c5e1c58bcb545f22d8a748aa5df887d94c5f3b2d679b4d88ca9e",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "18-sentinels-light": {
+      "archive_member": "18-sentinels-light.png",
+      "archive_sha256": "97acbe5a9e54b48ba0147b6c0717c977bd4adc048522e12db2e152c208ab54f4",
+      "catalog_family": "sentinel-fixture",
+      "path": "97acbe5a9e54b48ba0147b6c0717c977bd4adc048522e12db2e152c208ab54f4",
+      "sha256": "9f5f775a77f50fef4aeceb121c14605afb449bfecd64ed5247d9a7e185c0fc3c",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    }
+  }
+}

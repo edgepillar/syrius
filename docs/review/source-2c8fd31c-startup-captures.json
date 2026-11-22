@@ -1,0 +1,84 @@
+{
+  "actual": {
+    "39-launch-dark": {
+      "archive_member": "39-launch-dark.png",
+      "archive_sha256": "b60cb81f14de9d3fb4274451e801e1842d65a4b10d625af0ee60e0730173915a",
+      "catalog_family": "launch",
+      "path": "b60cb81f14de9d3fb4274451e801e1842d65a4b10d625af0ee60e0730173915a",
+      "sha256": "122624a74e7cb7c63a452d9c8c33e89b9d9bbfa7a13e4cfe2516b07fb541bdd2",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "39-launch-light": {
+      "archive_member": "39-launch-light.png",
+      "archive_sha256": "b60cb81f14de9d3fb4274451e801e1842d65a4b10d625af0ee60e0730173915a",
+      "catalog_family": "launch",
+      "path": "b60cb81f14de9d3fb4274451e801e1842d65a4b10d625af0ee60e0730173915a",
+      "sha256": "122624a74e7cb7c63a452d9c8c33e89b9d9bbfa7a13e4cfe2516b07fb541bdd2",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "41-lock-screen-dark": {
+      "archive_member": "41-lock-screen-dark.png",
+      "archive_sha256": "276cbd8afdd7eb875d7c761085a53ef0bba06202e97a3b6404af212081b501b7",
+      "catalog_family": "lock-catalog",
+      "path": "276cbd8afdd7eb875d7c761085a53ef0bba06202e97a3b6404af212081b501b7",
+      "sha256": "39a410b326afe239539877af210b68b409fed84c44573087058d46a88326de8f",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "41-lock-screen-light": {
+      "archive_member": "41-lock-screen-light.png",
+      "archive_sha256": "276cbd8afdd7eb875d7c761085a53ef0bba06202e97a3b6404af212081b501b7",
+      "catalog_family": "lock-catalog",
+      "path": "276cbd8afdd7eb875d7c761085a53ef0bba06202e97a3b6404af212081b501b7",
+      "sha256": "bf480b7b1a7b256edcb231cf1f1c7fc783a5160d74d01deb48ab43842fe1d473",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "42-lock-wrong-dark": {
+      "archive_member": "42-lock-wrong-dark.png",
+      "archive_sha256": "276cbd8afdd7eb875d7c761085a53ef0bba06202e97a3b6404af212081b501b7",
+      "catalog_family": "lock-catalog",
+      "path": "276cbd8afdd7eb875d7c761085a53ef0bba06202e97a3b6404af212081b501b7",
+      "sha256": "793deeb05cfff39593f3a476bb17acd9905640c0addfca60e6eb647954c754bb",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "42-lock-wrong-light": {
+      "archive_member": "42-lock-wrong-light.png",
+      "archive_sha256": "276cbd8afdd7eb875d7c761085a53ef0bba06202e97a3b6404af212081b501b7",
+      "catalog_family": "lock-catalog",
+      "path": "276cbd8afdd7eb875d7c761085a53ef0bba06202e97a3b6404af212081b501b7",
+      "sha256": "704fbe19525e73fa410f92b0e77d0cb333ac70e703fad8855fbe62f2085fc331",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "43-lock-pick-dark": {
+      "archive_member": "43-lock-pick-dark.png",
+      "archive_sha256": "276cbd8afdd7eb875d7c761085a53ef0bba06202e97a3b6404af212081b501b7",
+      "catalog_family": "lock-catalog",
+      "path": "276cbd8afdd7eb875d7c761085a53ef0bba06202e97a3b6404af212081b501b7",
+      "sha256": "1fde882c19272920e46826e36720e21eb9afb88c8f5d28d48ae196d57aaa743d",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "43-lock-pick-light": {
+      "archive_member": "43-lock-pick-light.png",
+      "archive_sha256": "276cbd8afdd7eb875d7c761085a53ef0bba06202e97a3b6404af212081b501b7",
+      "catalog_family": "lock-catalog",
+      "path": "276cbd8afdd7eb875d7c761085a53ef0bba06202e97a3b6404af212081b501b7",
+      "sha256": "cdeb5cfc71d98127ba739f90d1b459ac1751e6f7c1009e91634e1d3be92e9af3",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "46-seed-quiz-dark": {
+      "archive_member": "46-seed-quiz-dark.png",
+      "archive_sha256": "4eda98976af974abf1b1c68a27813a9d0a51a1250aff6043f4187ef5b18be4c5",
+      "catalog_family": "quiz-catalog",
+      "path": "4eda98976af974abf1b1c68a27813a9d0a51a1250aff6043f4187ef5b18be4c5",
+      "sha256": "889870730dca6c82a875fa2a1f22d81e063c95cd258a3798b0c28388206541d8",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "46-seed-quiz-light": {
+      "archive_member": "46-seed-quiz-light.png",
+      "archive_sha256": "4eda98976af974abf1b1c68a27813a9d0a51a1250aff6043f4187ef5b18be4c5",
+      "catalog_family": "quiz-catalog",
+      "path": "4eda98976af974abf1b1c68a27813a9d0a51a1250aff6043f4187ef5b18be4c5",
+      "sha256": "90987b97260008d8da9204f21d85aa240dff36d26a62e4b37047b35b21b832f4",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    }
+  }
+}

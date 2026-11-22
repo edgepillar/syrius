@@ -1,0 +1,20 @@
+{
+  "actual": {
+    "04-home-bell-dark": {
+      "archive_member": "04-home-bell-dark.png",
+      "archive_sha256": "6a92f6773a895fe4dfd759477b56eb3cadbed34b0e281bc12db9d3f9e69b489d",
+      "catalog_family": "home",
+      "path": "6a92f6773a895fe4dfd759477b56eb3cadbed34b0e281bc12db9d3f9e69b489d",
+      "sha256": "21790825136f7eb09f600d5d6d7309b9660311f5b63276b94ef5725a581629b4",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "04-home-bell-light": {
+      "archive_member": "04-home-bell-light.png",
+      "archive_sha256": "6a92f6773a895fe4dfd759477b56eb3cadbed34b0e281bc12db9d3f9e69b489d",
+      "catalog_family": "home",
+      "path": "6a92f6773a895fe4dfd759477b56eb3cadbed34b0e281bc12db9d3f9e69b489d",
+      "sha256": "42a1b876f169b7a2fd98ab4ccc3e69393d4ce50425e4b95993804859daaeebbb",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    }
+  }
+}

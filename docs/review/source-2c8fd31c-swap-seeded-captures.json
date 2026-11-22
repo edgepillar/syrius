@@ -1,0 +1,20 @@
+{
+  "actual": {
+    "26-swap-list-dark": {
+      "archive_member": "26-swap-list-dark.png",
+      "archive_sha256": "d7ccf3c198a03a6be5c054ec1e79ecd9afc3425632e9ec0b969f6ebc2ca837ba",
+      "catalog_family": "swap-seeded",
+      "path": "d7ccf3c198a03a6be5c054ec1e79ecd9afc3425632e9ec0b969f6ebc2ca837ba",
+      "sha256": "2ece468a1908f05938a60add4ffd94f55ad76ed9a5ee871a332667ef2a2a96ec",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "26-swap-list-light": {
+      "archive_member": "26-swap-list-light.png",
+      "archive_sha256": "d7ccf3c198a03a6be5c054ec1e79ecd9afc3425632e9ec0b969f6ebc2ca837ba",
+      "catalog_family": "swap-seeded",
+      "path": "d7ccf3c198a03a6be5c054ec1e79ecd9afc3425632e9ec0b969f6ebc2ca837ba",
+      "sha256": "d3923dafa5e465f20cd93d884283c48da0ec7aa8fa0274e4c6153e447c2ee0e6",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    }
+  }
+}

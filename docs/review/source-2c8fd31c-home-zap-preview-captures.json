@@ -1,0 +1,20 @@
+{
+  "actual": {
+    "06-home-zap-dark": {
+      "archive_member": "06-home-zap-dark.png",
+      "archive_sha256": "eddcee03ab38da293645164c337f168f0f1d3d2abcbcebfca9616cb8cfb67ace",
+      "catalog_family": "home-zap-preview",
+      "path": "eddcee03ab38da293645164c337f168f0f1d3d2abcbcebfca9616cb8cfb67ace",
+      "sha256": "febc06b6ce914281ea5372b73f09c058e628b4af098e4e3c81b06514926a21c8",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    },
+    "06-home-zap-light": {
+      "archive_member": "06-home-zap-light.png",
+      "archive_sha256": "eddcee03ab38da293645164c337f168f0f1d3d2abcbcebfca9616cb8cfb67ace",
+      "catalog_family": "home-zap-preview",
+      "path": "eddcee03ab38da293645164c337f168f0f1d3d2abcbcebfca9616cb8cfb67ace",
+      "sha256": "e0886717a0d56ba9aa37a478ef9d874659649db516e1cf8a3fea30adf256eae2",
+      "source_sha": "2c8fd31c02a2afee33669f6afa0cd6506372d5d4"
+    }
+  }
+}
