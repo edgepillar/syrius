@@ -5944,8 +5944,13 @@ existing pixel test remains the regression check. The most recent
 light capture before the shadow fix also has 40,883 caption pixels that differ by at least 16
 in an RGB channel. Start and Join now request the same isolated caption
 frost as Send confirmation. The route test checks that flag in both
-themes. The in-flight shadow capture isolates the preceding change.
-Fresh Windows capture and whole-image acceptance remain open.
+themes. The [preceding Windows capture](https://github.com/edgepillar/syrius/actions/runs/45011858196)
+completed at `6404de06`. Its [first independent reader](https://github.com/edgepillar/syrius/actions/runs/45013191273/job/137179778929)
+refused the source check because the Swap surface changed between
+producer and reader. The reader now resolves the original Swap surface
+by its Git blob ID, with the existing blob and content verification.
+Its pixel results, the fresh Windows capture and whole-image acceptance
+remain open.
 
 ### Rows
 
