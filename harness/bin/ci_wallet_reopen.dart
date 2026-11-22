@@ -63,6 +63,7 @@ const Set<String> restoredTokenHolderFailureCodes = <String>{
   'token-holder-confirmation',
   'token-holder-block-binding',
   'token-holder-effect',
+  'token-holder-presentation',
 };
 
 const Set<String> restoredObserveFailureCodes = <String>{

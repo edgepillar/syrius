@@ -5266,6 +5266,15 @@ Another controls visible, and the disabled Domain action adds to the panel
 height. The reference shows several holdings and a populated domain. The
 result keeps the two prepared-state image comparisons open under V01.
 
+The prepared catalog now retires the confirmed transfer's presentation via
+its original Another operation after verifying the original block, the
+changed owner and the unchanged balance and supply. The wallet's own
+confirmation gate must admit that operation. It reads a fresh proof,
+keeps the original publication record and makes no new publication.
+A failure at this step retains the fixed holder presentation label.
+The fixture contents and the visual differences reported above still
+require review on a fresh run.
+
 [Fork Linux validation at `562597a7`](https://github.com/edgepillar/syrius/actions/runs/44982169688/job/137084834033)
 passes application and strict analysis, 5,132 tests with one skip, and
 generated-file verification. The producer also verifies 1,531 focused
@@ -5804,7 +5813,7 @@ whole-image acceptance.
 | 20 | `pillar-done` | X1152 | X1153 |
 | 21 | `plasma` | X845 | X846 |
 | 22 | `plasma-fuse` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
-| 23 | `tokens` | [mismatch](#prepared-held-tokens-at-01358b6b) | [mismatch](#prepared-held-tokens-at-01358b6b) |
+| 23 | `tokens` | X1300 | X1301 |
 | 24 | `token-mine` | X1287 | X1288 |
 | 25 | `token-new` | X851 | X852 |
 | 26 | `swap-list` | X853 | X854 |
@@ -9391,3 +9400,5 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1297 | review | 2026-11-22T02:30Z | 03-home-hidden in light at `28b39fab`. The eye and masked amounts are visible. The isolated Activity table and rewards panel have fewer rows than the reference. [Review](docs/review/source-28b39fab-home-verdicts.json). |
 | X1298 | review | 2026-11-22T02:30Z | 05-home-goto in dark at `28b39fab`. The search, selected result and keyboard footer align. The retained view shows a different contact and live Activity behind the overlay. The reference backdrop shows loading skeletons. [Review](docs/review/source-28b39fab-home-verdicts.json). |
 | X1299 | review | 2026-11-22T02:30Z | 05-home-goto in light at `28b39fab`. The search, selected result and keyboard footer align. The retained view shows a different contact and live Activity behind the overlay. The reference backdrop shows loading skeletons. [Review](docs/review/source-28b39fab-home-verdicts.json). |
+| X1300 | review | 2026-11-22 | Held Tokens in dark at `01358b6b`. The verified positive non-owner panel shows one holding, no Burn control, and the original transfer receipt and disabled Domain action. The reference shows multiple rows and no preparation receipt. [Review](#prepared-held-tokens-at-01358b6b). |
+| X1301 | review | 2026-11-22 | Held Tokens in light at `01358b6b`. The verified positive non-owner panel shows one holding, no Burn control, and the original transfer receipt and disabled Domain action. The reference shows multiple rows and no preparation receipt. [Review](#prepared-held-tokens-at-01358b6b). |

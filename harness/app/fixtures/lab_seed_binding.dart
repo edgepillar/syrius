@@ -807,7 +807,27 @@ final class LabSeedBinding
                 held.balance == proof.balance &&
                 held.token.totalSupply == proof.token.totalSupply &&
                 held.token.maxSupply == proof.token.maxSupply) {
-              return;
+              stage = 'token-holder-presentation';
+              if (publisher.canStartAnother(outcome)) {
+                // Retire the confirmed preparation receipt through the same
+                // wallet operation that backs the original Another control.
+                final TokenActionProof? ready = await publisher.another(
+                  outcome,
+                  isCurrent: () {
+                    current();
+                    return true;
+                  },
+                ).timeout(const Duration(seconds: 3));
+                current();
+                if (ready == null ||
+                    ready.token.owner.toString() != nextOwner ||
+                    ready.balance != held.balance ||
+                    ready.token.totalSupply != held.token.totalSupply ||
+                    ready.token.maxSupply != held.token.maxSupply) {
+                  throw SeedRefused(stage);
+                }
+                return;
+              }
             }
           } on TokenActionRefused {
             current();
