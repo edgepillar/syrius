@@ -6218,6 +6218,12 @@ differences fall from 8,398 to 7,886 pixels in dark and from 12,305 to
 10,821 in light. Whole-image differences fall from 54,228 to 53,634 in dark
 and from 62,161 to 59,252 in light. Both visual verdicts remain open.
 
+Start and Join now reserve the outline inside their 480 px width, as in
+the reference's border-box layout. The existing two-theme test checks
+that the scroll area is 478 px wide and centered. The authored glass
+RGBA values already agree with the app tokens. The measured interior
+tint difference remains open for backdrop composition review.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since

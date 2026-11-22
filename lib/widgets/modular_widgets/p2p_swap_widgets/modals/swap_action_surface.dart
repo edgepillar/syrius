@@ -86,6 +86,7 @@ class SwapDialogSurface extends StatelessWidget {
     final BorderRadius radius = BorderRadius.circular(
       footer == null ? tokens.transferCardRadius : tokens.dialogRadius,
     );
+    final Border outline = Border.all(color: tokens.line);
     final BoxShadow shadow = tokens.dialogShadow;
     final double extent =
         (5 * shadow.blurSigma + shadow.spreadRadius).ceilToDouble();
@@ -112,79 +113,84 @@ class SwapDialogSurface extends StatelessWidget {
                   position: DecorationPosition.foreground,
                   decoration: BoxDecoration(
                     borderRadius: radius,
-                    border: Border.all(color: tokens.line),
+                    border: outline,
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          border: Border(top: tokens.glassTopEdge),
-                        ),
-                        child: Padding(
-                          padding: tokens.swapActionHeaderPadding,
-                          child: LayoutBuilder(
-                            builder: (_, BoxConstraints constraints) => Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: Text(title, style: tokens.headingText),
-                                ),
-                                if (headerAction != null)
-                                  ConstrainedBox(
-                                    constraints: BoxConstraints(
-                                      maxWidth: constraints.maxWidth / 2,
+                  child: Padding(
+                    padding: footer == null
+                        ? EdgeInsets.zero
+                        : outline.dimensions,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            border: Border(top: tokens.glassTopEdge),
+                          ),
+                          child: Padding(
+                            padding: tokens.swapActionHeaderPadding,
+                            child: LayoutBuilder(
+                              builder: (_, BoxConstraints constraints) => Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Text(title, style: tokens.headingText),
+                                  ),
+                                  if (headerAction != null)
+                                    ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        maxWidth: constraints.maxWidth / 2,
+                                      ),
+                                      child: headerAction,
                                     ),
-                                    child: headerAction,
+                                  IconButton(
+                                    key: const Key('swap_action_close'),
+                                    padding: EdgeInsets.zero,
+                                    visualDensity: VisualDensity.compact,
+                                    constraints: BoxConstraints.tightFor(
+                                      width: tokens.smallButtonHeight,
+                                      height: tokens.smallButtonHeight,
+                                    ),
+                                    iconSize: tokens.swapActionTokenIconSize,
+                                    tooltip: context.l10n.commonClose,
+                                    onPressed: onClose,
+                                    icon: Icon(Icons.close, color: tokens.faint),
                                   ),
-                                IconButton(
-                                  key: const Key('swap_action_close'),
-                                  padding: EdgeInsets.zero,
-                                  visualDensity: VisualDensity.compact,
-                                  constraints: BoxConstraints.tightFor(
-                                    width: tokens.smallButtonHeight,
-                                    height: tokens.smallButtonHeight,
-                                  ),
-                                  iconSize: tokens.swapActionTokenIconSize,
-                                  tooltip: context.l10n.commonClose,
-                                  onPressed: onClose,
-                                  icon: Icon(Icons.close, color: tokens.faint),
-                                ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Divider(height: 1, color: tokens.line),
+                        Flexible(
+                          child: SingleChildScrollView(
+                            key: const Key('swap_action_scroll'),
+                            padding: footer == null
+                                ? tokens.swapActionBodyPadding
+                                : tokens.dialogBodyPadding,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: <Widget>[
+                                child,
+                                if (notice != null) ...<Widget>[
+                                  SizedBox(height: tokens.swapActionGap),
+                                  notice!,
+                                ],
+                                if (primary != null) ...<Widget>[
+                                  SizedBox(height: tokens.transferFormGap),
+                                  primary!,
+                                ],
                               ],
                             ),
                           ),
                         ),
-                      ),
-                      Divider(height: 1, color: tokens.line),
-                      Flexible(
-                        child: SingleChildScrollView(
-                          key: const Key('swap_action_scroll'),
-                          padding: footer == null
-                              ? tokens.swapActionBodyPadding
-                              : tokens.dialogBodyPadding,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: <Widget>[
-                              child,
-                              if (notice != null) ...<Widget>[
-                                SizedBox(height: tokens.swapActionGap),
-                                notice!,
-                              ],
-                              if (primary != null) ...<Widget>[
-                                SizedBox(height: tokens.transferFormGap),
-                                primary!,
-                              ],
-                            ],
+                        if (footer != null)
+                          Padding(
+                            padding: tokens.dialogFooterPadding,
+                            child: footer,
                           ),
-                        ),
-                      ),
-                      if (footer != null)
-                        Padding(
-                          padding: tokens.dialogFooterPadding,
-                          child: footer,
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
