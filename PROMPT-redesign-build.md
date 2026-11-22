@@ -2888,14 +2888,19 @@ When the pipeline is full, the animator emits `PipelineFull`, requests
 another frame and returns before dispatching the Dart begin-frame callback.
 The rasterizer supplies reported timings after drawing. This engine path can
 produce a gap in the reported sequence without losing a completed timing
-record. The existing Windows receipts contain only reported timings, so the
-cause of their individual gaps remains unknown. A separate engine trace
-would need to correlate the vsync, pipeline and raster events in the same
-window. V02 keeps the original comparisons and all recorded frame gaps.
+record. The animator can also finish a numbered frame without enqueuing it
+when no view submits a layer tree. The existing Windows receipts contain
+only reported timings, so the cause of their individual gaps remains unknown.
+The pinned Windows Release engine compiles out the Flutter timeline event
+handlers. A trace-file flag alone cannot record its `PipelineFull` events.
+An engine timeline collected in Profile would be separate diagnostic evidence.
+V02 keeps the original Release comparisons and all recorded frame gaps.
 [Recorder](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/flow/frame_timings.cc#L37-L45)
 | [Vsync callback](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/vsync_waiter.cc#L118-L134)
-| [Animator](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/animator.cc#L86-L108)
-| [Rasterizer](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/rasterizer.cc#L475-L507).
+| [Animator](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/animator.cc#L86-L141)
+| [Rasterizer](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/rasterizer.cc#L475-L507)
+| [Timeline build condition](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/fml/trace_event.h#L58-L65)
+| [Disabled timeline handlers](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/fml/trace_event.cc#L345-L401).
 
 The first [Linux](https://github.com/edgepillar/syrius/actions/runs/44853399650)
 and [Windows](https://github.com/edgepillar/syrius/actions/runs/44853399727/job/136689821182)
