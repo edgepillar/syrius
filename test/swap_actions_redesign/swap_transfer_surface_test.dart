@@ -12,6 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/swap_action_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../helpers/mockup_symbol.dart';
@@ -92,6 +93,7 @@ void main() {
                   onPressed: () => showCustomDialog(
                     context: context,
                     clipContent: false,
+                    frostWindowCaption: true,
                     content: _surface(
                       amount,
                       onClose: () => cancels++,
@@ -108,6 +110,10 @@ void main() {
         await tester.tap(find.text('Open fixture'));
         await tester.pumpAndSettle();
         final Finder dialog = find.byKey(const Key('fixture_transfer'));
+        final FrostedDialogRoute<Object?> route = ModalRoute.of<Object?>(
+          tester.element(dialog),
+        )! as FrostedDialogRoute<Object?>;
+        expect(route.frostWindowCaption, isTrue);
         final Rect bounds = tester.getRect(dialog);
         expect(bounds.width, 480);
         final RenderRepaintBoundary scene = tester.renderObject(

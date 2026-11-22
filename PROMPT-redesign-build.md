@@ -5935,8 +5935,12 @@ route clips its content to the dialog rectangle, which also clips the
 Swap surface's outer shadow. Start and Join now use that route without
 the extra clip and retain the glass's own rounded clip. The existing
 two-theme widget test opens the route and checks a pixel outside the
-card against the distant backdrop. Fresh Windows verification and
-whole-image acceptance remain open.
+card against the distant backdrop. The most recent light capture before
+the shadow fix also has 40,883 caption pixels that differ by at least 16
+in an RGB channel. Start and Join now request the same isolated caption
+frost as Send confirmation. The route test checks that flag in both
+themes. The in-flight shadow capture isolates the preceding change.
+Fresh Windows capture and whole-image acceptance remain open.
 
 ### Rows
 

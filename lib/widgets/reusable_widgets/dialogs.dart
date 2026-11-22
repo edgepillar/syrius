@@ -91,13 +91,17 @@ Future<bool?> showDialogWithNoAndYesOptions({
 );
 
 /// Shows [content], usually a `BaseModal`, centred over the page.
+///
+/// Set [frostWindowCaption] to extend the route's frost to the app caption.
 Future<Object?> showCustomDialog({
   required BuildContext context,
   required Widget content,
   bool clipContent = true,
+  bool frostWindowCaption = false,
 }) => Navigator.of(context, rootNavigator: true).push<Object?>(
   FrostedDialogRoute<Object?>(
     barrierLabel: '',
+    frostWindowCaption: frostWindowCaption,
     transitionDuration: const Duration(milliseconds: 240),
     transitionBuilder:
         (
