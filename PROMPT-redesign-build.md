@@ -6027,6 +6027,23 @@ and capture checks. The [second reader](https://github.com/edgepillar/syrius/act
 verifies all four archives and 12 PNGs against the original startup job
 and its shared Release binaries. The batch reports zero accepted visual matches.
 
+### Verified Windows baseline at `33b58506` (2026-11-22)
+
+The [original Windows job](https://github.com/edgepillar/syrius/actions/runs/45014057610/job/137182447475)
+and [independent inspection](https://github.com/edgepillar/syrius/actions/runs/45016538916/job/137189962608)
+verify all twelve baseline checks. Debug and Release complete normally in
+143.000 and 197.563 seconds. The bundled, Debug and Release DLL digests
+agree and all three map and export checks pass. Root analysis has zero
+errors, zero warnings and 1,301 infos. The non-chain suite passes 5,132
+tests with one skip. Generated localization is unchanged.
+
+The later application change affects only the Swap surface. Its new
+amount pane corners and token selector are covered by the
+[`1389664f` Linux suite](https://github.com/edgepillar/syrius/actions/runs/45014739046/job/137184528885)
+and the [Windows Release capture and inspection](https://github.com/edgepillar/syrius/actions/runs/45015954119/job/137188204210).
+The clean Windows Debug and Release baseline stays pinned to
+`33b58506`. Visual matches, running motion and final acceptance remain open.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |
@@ -6110,7 +6127,7 @@ and its shared Release binaries. The batch reports zero accepted visual matches.
 | V03 | done | 2026-11-12T03:23Z | Source648 673fe4a19468, Source670 2b2c4abdadae, Source676 5d555665a643 and Source686 15fec4c9120f provide executed native refusals for all fifteen current seam values and pointer/keyboard refusal for the only seamed palette target. No direct missing-feature shortcut or other seamed palette target is registered. All 1,213 current runtime entries match Source686; the sole older token observer difference is covered by its holder trial. Source670's producer control list remains distinct from its legacy reader's context/closure proof. The [Source695 audit](docs/review/source695-seam-coverage.md) closes the original requirement without relabelling the later incomplete eleven-control Home batch or its failures. No new native run or visual match is claimed. |
 | V04 | done | 2026-10-31T23:34Z | All four independently qualified Source265 minimum-window/Arabic originals were actually viewed in both themes. The owned review closes SUCCESS with actual controller exit zero; required original native closure stays source-bound. Minimum controls fit and RTL layout mirrors. English fallback/missing Arabic copy is retained as X414; exact saved locale preference and Arabic glyph quality remain separate unqualified observations |
 | V05 | done | 2026-11-18T13:45Z | fdb88d89 commits the fresh independent review of all 94 exact 28f9c121 pairs and X821 through X875. The visual verdicts guide further comparisons under V01. [Independent review](docs/review/source-28f9c121-independent-visual-review.md). |
-| V06 | review | 2026-11-22 | The [latest end-state audit](#end-state-audit-at-3504836f-2026-11-22) records the Linux result and the independently verified clean Windows run at that candidate. The later Voting rows and the current visual and running motion criteria remain open. |
+| V06 | review | 2026-11-22 | The [Windows baseline at `33b58506`](#verified-windows-baseline-at-33b58506-2026-11-22) verifies both builds. The [earlier end-state audit](#end-state-audit-at-3504836f-2026-11-22) records the Linux result and the independently verified clean Windows run at that candidate. The later Voting rows and the current visual and running motion criteria remain open. |
 | X01 | done | 2026-10-21T23:26Z | e13abb387577 restores loading-list sweep ink in lib/rearchitecture/utils/widgets/motion/skeleton.dart; all 19 existing Skeleton tests pass unchanged |
 | X02 | done | 2026-10-21T23:57Z | e13abb387577 keeps the status-strip dot visible at narrow widths and fixes asynchronous visibility tests |
 | X03 | done | 2026-10-21T23:57Z | e13abb387577 parses the bridge test's HTTP head before binary frames; compression refusal assertions retained |
