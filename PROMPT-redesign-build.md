@@ -5731,8 +5731,9 @@ skip, and generated localization stays unchanged.
 
 The baseline is bound to its original source. The subsequent Voting row
 layout changes two application files and the corresponding Dart test.
-The [Linux validation of that change at `fd82bbc4`](https://github.com/edgepillar/syrius/actions/runs/45007035152)
-is in progress. The paired closed- and open-view Windows timing
+The [Linux validation at `fd82bbc4`](https://github.com/edgepillar/syrius/actions/runs/45007035152/job/137160813615)
+passes full and strict analysis, the non-chain tests and generated-file
+verification. The paired closed- and open-view Windows timing
 measurement has its own [run at `d37778da`](https://github.com/edgepillar/syrius/actions/runs/45006712928).
 
 ### End-state audit at `3504836f` (2026-11-22)
@@ -5804,13 +5805,16 @@ The Voting reference separators are at rows 210, 270, 329 and 389 in
 both themes. The Voting ledger now uses a 59 px minimum row body with
 a separate 1 px divider and the reference's 9 px vertical cell inset.
 Rows can grow for scaled text. The existing two-theme list test checks
-both visible row heights and their spacing. The copied project data,
-unknown quorum and phase-row layout are outside this change.
+both visible row heights and their spacing. Both theme cases pass in the
+[full Linux suite at `fd82bbc4`](https://github.com/edgepillar/syrius/actions/runs/45007035152/job/137160813615).
+The [Windows capture at `4e4bd7ec`](https://github.com/edgepillar/syrius/actions/runs/45007446982)
+targets the same Voting row code. It is in progress.
 
 The Project Detail vote summary now uses the reference's 12 px inset,
 8 px gaps and 13 px values. The existing two-theme detail test checks
-these metrics on the summary and its Unknown quorum value. The vote
-source and action checks retain their original behavior.
+these metrics on the summary and its Unknown quorum value. The
+[Linux validation at `27d16c12`](https://github.com/edgepillar/syrius/actions/runs/45007679475)
+is in progress.
 
 ### Rows
 
