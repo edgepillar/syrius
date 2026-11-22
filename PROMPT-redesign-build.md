@@ -5715,7 +5715,24 @@ page-change and disclosure comparisons keep their original frame
 criteria. The Node Settings window replaces the optional open-About
 idle sample in new runs so the manifest still fits its existing cap.
 Retained open-About evidence is still readable. The 162 local reader,
-controller and hosted lab policy tests pass. Native results are pending.
+controller and hosted lab policy tests pass.
+
+The [native producer at `980f186a`](https://github.com/edgepillar/syrius/actions/runs/45008666804/job/137165856305)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45010597618/job/137171856203)
+verify all four windows and the normal exit of the required wallet,
+entry and node processes.
+
+| Settled view | Redesign idle raster | P06 idle raster |
+| --- | --- | --- |
+| Node Settings | 19 of 19 over 16 ms, maximum 80.174 ms, 53 missing frame numbers | 41 of 41 over 16 ms, maximum 30.749 ms, 30 missing frame numbers |
+| About with Licences closed | 21 of 25 over 16 ms, maximum 70.111 ms, 38 missing frame numbers | 48 of 49 over 16 ms, maximum 31.766 ms, 21 missing frame numbers |
+
+The redesign overruns the budget on both views. The Node result shows
+that the slow rasters can occur outside the About and Licences widgets.
+It does not isolate the shared route, shell or renderer. On the original
+interactions, the page change retains 13 redesign and 19 P06 frames.
+The disclosure retains 10 redesign and 24 P06 frames. Both comparisons
+exceed the raster and distinct criteria and retain frame-number gaps.
 
 #### Paired Windows cold launch timing at `f0b1a110`
 
@@ -5865,8 +5882,17 @@ closed-copy checkpoint fails during the original Project seed action
 after publication-call entry. Its retained result is
 `original-outcome-unknown`. No prepared Accelerator PNGs were retained
 by this attempt. The separately dispatched
-[Windows run at `f56cd37e`](https://github.com/edgepillar/syrius/actions/runs/45008877438)
-targets the candidate with both Accelerator layout changes.
+[Windows run at `f56cd37e`](https://github.com/edgepillar/syrius/actions/runs/45008877438/job/137166502490)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45010705567/job/137172185385)
+bind the candidate containing both Accelerator layout changes to four
+atomic captures and normal parent closure. The
+[capture index](docs/review/source-f56cd37e-accelerator-captures.json)
+pins the four originals. The updated Project Detail voting panel has
+7,751 dark and 8,869 light pixels with differences of at least 16 in
+any RGB channel. The previous source had 8,217 and 10,503. At the
+updated source the Voting table has 39,984 dark and 29,660 light
+differences, compared with 29,536 and 29,714 previously. The counts
+locate differences for direct review. No whole-image match was decided.
 
 The Project Detail vote summary now uses the reference's 12 px inset,
 8 px gaps and 13 px values. The existing two-theme detail test checks

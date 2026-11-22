@@ -1,0 +1,36 @@
+{
+  "actual": {
+    "28-az-dark": {
+      "archive_member": "28-az-dark.png",
+      "archive_sha256": "8f7dc8998bbd6917e68cd2457dd76065e49f1c665ab7844845bf43996a787086",
+      "catalog_family": "project-detail",
+      "path": "8f7dc8998bbd6917e68cd2457dd76065e49f1c665ab7844845bf43996a787086",
+      "sha256": "74f95ff2da4c253f27b55142c5adb5450ecaac79f1eb913523a95511973efd1d",
+      "source_sha": "f56cd37e8cc7f0306417b55eb23c7b3b556eab29"
+    },
+    "28-az-light": {
+      "archive_member": "28-az-light.png",
+      "archive_sha256": "8f7dc8998bbd6917e68cd2457dd76065e49f1c665ab7844845bf43996a787086",
+      "catalog_family": "project-detail",
+      "path": "8f7dc8998bbd6917e68cd2457dd76065e49f1c665ab7844845bf43996a787086",
+      "sha256": "34b9e86257067f819f60d04e2212e7bf1aafff2964affa99e8c75363196d7f46",
+      "source_sha": "f56cd37e8cc7f0306417b55eb23c7b3b556eab29"
+    },
+    "29-az-project-dark": {
+      "archive_member": "29-az-project-dark.png",
+      "archive_sha256": "8f7dc8998bbd6917e68cd2457dd76065e49f1c665ab7844845bf43996a787086",
+      "catalog_family": "project-detail",
+      "path": "8f7dc8998bbd6917e68cd2457dd76065e49f1c665ab7844845bf43996a787086",
+      "sha256": "b30b57c38c69ad465b4454808fe14c0ed9081fa53bc2b7d097f7157fe61c5d2d",
+      "source_sha": "f56cd37e8cc7f0306417b55eb23c7b3b556eab29"
+    },
+    "29-az-project-light": {
+      "archive_member": "29-az-project-light.png",
+      "archive_sha256": "8f7dc8998bbd6917e68cd2457dd76065e49f1c665ab7844845bf43996a787086",
+      "catalog_family": "project-detail",
+      "path": "8f7dc8998bbd6917e68cd2457dd76065e49f1c665ab7844845bf43996a787086",
+      "sha256": "85fd6bbf932d4c2f0de9acf14d3fa999837876d6e9746c9fe8da895dc6a79bf1",
+      "source_sha": "f56cd37e8cc7f0306417b55eb23c7b3b556eab29"
+    }
+  }
+}
