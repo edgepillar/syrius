@@ -1,0 +1,68 @@
+{
+  "reviews": {
+    "01-home-rest-dark": {
+      "actual_sha256": "73b69a731e0cff33dd1bbcfaa7c5f4747286e26808936cfeb92bcb5597b3635d",
+      "expected_sha256": "70617942960638e9ad855344dcc7aa1433058bb4d060155f1cfb36592ca332a6",
+      "note": "The rail, hero and card positions agree. The isolated profile shows one Activity row scoped to the selected address, zero tokens, empty rewards and no Pending card. The reference contains several Activity rows and a pending send.",
+      "reviewed_at": "2026-11-22T06:39:09Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "01-home-rest-light": {
+      "actual_sha256": "1df54dc09529591b3900340d2f871ee1990c4d6ad47fbebcdb0165d1535daad6",
+      "expected_sha256": "280f31f618a20af2f275bd516afc3280849180f4788f38ae7c3fdebaedd36b7c",
+      "note": "The rail, hero and card positions agree. The isolated profile shows one Activity row scoped to the selected address, zero tokens, empty rewards and no Pending card. The reference contains several Activity rows and a pending send.",
+      "reviewed_at": "2026-11-22T06:39:09Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-dark": {
+      "actual_sha256": "de65bde6da6c424625e2c4eb666ffabb91a41b0e0710a4544689b94aa1c24a3e",
+      "expected_sha256": "ef3e3dfc4e9e4a6438516fe8803c55202d744b57c964104d6212c4eb2d3ebd97",
+      "note": "The expanded rail and open Tokens disclosure are visible in the expected positions. The isolated profile has an empty Tokens body and rewards. Its selected-address Activity shows one row and the reference shows several.",
+      "reviewed_at": "2026-11-22T06:39:09Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-light": {
+      "actual_sha256": "086c2c1cc8cfe99529d5bc3318aed43cd269175ecacafcc92bbc889ec6faa218",
+      "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
+      "note": "The expanded rail and open Tokens disclosure are visible in the expected positions. The isolated profile has an empty Tokens body and rewards. Its selected-address Activity shows one row and the reference shows several.",
+      "reviewed_at": "2026-11-22T06:39:09Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-dark": {
+      "actual_sha256": "614007cbba98b5ca090f87ef00fdd505b1cc7d186e77895604ee013edcbe071f",
+      "expected_sha256": "29421519af83d80baf69fcfe24beb37fc754d8da1c08b3a175e7224a27fedf16",
+      "note": "The eye and masked balance and Activity amounts are visible. The isolated profile has one Activity row, empty rewards and zero tokens. The reference contains several masked rows, rewards and holdings.",
+      "reviewed_at": "2026-11-22T06:39:09Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-light": {
+      "actual_sha256": "048284481d7182c3947ec2906f565f5e4397e665d304682ddb785338281a0f16",
+      "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
+      "note": "The eye and masked balance and Activity amounts are visible. The isolated profile has one Activity row, empty rewards and zero tokens. The reference contains several masked rows, rewards and holdings.",
+      "reviewed_at": "2026-11-22T06:39:09Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-dark": {
+      "actual_sha256": "417ecc5acd972cacf529f296672a621d4c2c4d2fb90d15bf93efa8c859b34fc7",
+      "expected_sha256": "52ccc26f93bcad1c79ac91228648bb8c369a6cec14041f77f51d210afec0a1f9",
+      "note": "The palette, selected result and keyboard footer align. The isolated contact differs and the blurred backdrop contains a settled Activity row. The reference backdrop shows loading skeletons.",
+      "reviewed_at": "2026-11-22T06:39:09Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-light": {
+      "actual_sha256": "9a2a36b86e2b326f8df0f8dff45f136a83257e7223208099cfde2af1e97ab12d",
+      "expected_sha256": "f700f7b185b5064b45b1acc561abcee0fce392badb4dc2d58319914780b060bb",
+      "note": "The palette, selected result and keyboard footer align. The isolated contact differs and the blurred backdrop contains a settled Activity row. The reference backdrop shows loading skeletons.",
+      "reviewed_at": "2026-11-22T06:39:09Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
