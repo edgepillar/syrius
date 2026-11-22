@@ -4640,6 +4640,10 @@ columns 1127 through 1255 and rows 115 through 140. Both references
 put it at columns 1115 through 1247 and the same rows. The independent
 Settings reader now reports these bounds for each theme using the
 header background and a fixed crop. The new native capture remains open.
+The [Linux run at `1aaace57`](https://github.com/edgepillar/syrius/actions/runs/45020505991/job/137202110917)
+passes the Apps button-edge assertions in both themes. Full and strict
+Dart analysis pass, 5,133 non-chain tests pass with one skip, and
+generated files remain unchanged.
 
 On the two About images, the seven Settings labels' ink bounds are within
 one pixel of their references at the 32-level RGB contrast threshold.
