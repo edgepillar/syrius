@@ -114,6 +114,20 @@ class AssetGenerationTests(unittest.TestCase):
             self.assertEqual(holder.pop(standard) + other.pop(standard), token['totalSupply'])
         del tokens[2:]
         self.assertEqual(restored, original)
+        home = lab.holder_catalog_genesis(raw, home_catalog=True)
+        self.assertEqual(home, lab.holder_catalog_genesis(raw, home_catalog=True))
+        restored_home = json.loads(home)
+        home_tokens = restored_home['TokenConfig']['Tokens'][2:]
+        self.assertEqual([token['tokenStandard'] for token in home_tokens],
+                         list(lab.HOME_FIXTURE_TOKEN_STANDARDS))
+        holder, other = [block['BalanceList']
+                         for block in restored_home['GenesisBlocks']['Blocks']]
+        for token, expected in zip(home_tokens, (4_000_000_000, 210_000, 1_240_000_000)):
+            standard = token['tokenStandard']
+            self.assertEqual(holder.pop(standard), expected)
+            self.assertEqual(expected + other.pop(standard), token['totalSupply'])
+        del restored_home['TokenConfig']['Tokens'][2:]
+        self.assertEqual(restored_home, original)
         for invalid in (prepared, json.dumps(dict(original, ChainIdentifier=69)).encode()):
             with self.assertRaises(lab.Failure):
                 lab.holder_catalog_genesis(invalid)

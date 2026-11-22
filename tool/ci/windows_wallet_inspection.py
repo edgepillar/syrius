@@ -28,7 +28,7 @@ from . import readonly_details_capture as details
 from . import send_warning_window
 from .windows_debug_process import IMAGE_NAMES
 from .hosted_chain321 import (EARN_INSPECTION_SCHEMA, HOME_BELL_INSPECTION_SCHEMA,
-    HOME_CATALOG_INSPECTION_SCHEMA,
+    HOME_CATALOG_INSPECTION_SCHEMA, HOME_FIXTURE_TOKEN_STANDARDS,
     HOME_SEAMS_FAMILY, HOME_ZAP_PREVIEW_INSPECTION_SCHEMA,
     READONLY_CATALOG_SCHEMAS, SEND_CONFIRM_INSPECTION_SCHEMA, SENTINEL_INSPECTION_SCHEMA,
     SEND_WARNING_INSPECTION_SCHEMA, SETTINGS_SEAMS_FAMILY, SWAP_START_INSPECTION_SCHEMA,
@@ -162,7 +162,7 @@ def home_capture_receipt(value):
     expected.update(dict(screen='home-rest', number=1) if schema == 1
                     else dict(screens=list(home_catalog_screens(schema))))
     optional = {'rail_motion', 'sync_pulse', 'segment_motion', 'eye_motion',
-        'home_field_occlusion', 'home_field_minimize'} if schema == 4 else set()
+        'home_field_occlusion', 'home_field_minimize', 'fixture_holdings'} if schema == 4 else set()
     need(set(expected) <= set(value) <= set(expected) | optional
          and all(type(value[k]) is type(v) and value[k] == v
                  for k, v in expected.items()), 'CAPTURE_REFUSED')
@@ -178,6 +178,10 @@ def home_capture_receipt(value):
         segment_motion_receipt(value['segment_motion'])
     if 'eye_motion' in value:
         eye_motion_receipt(value['eye_motion'])
+    if 'fixture_holdings' in value:
+        need(value['fixture_holdings'] == {
+            theme: list(HOME_FIXTURE_TOKEN_STANDARDS) for theme in THEMES},
+            'CAPTURE_REFUSED')
     return value
 
 

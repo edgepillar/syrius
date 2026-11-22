@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import '../app/fixtures/home_goto_contact.dart';
+import '../app/readonly_native_mode.dart' show readonlyHomeFixtureStandards;
 import 'harness.dart' as cli;
 import 'readonly_catalog_contact.dart';
 import 'readonly_inspection_session.dart';
@@ -104,6 +105,7 @@ ScreenCapture _homeCapture({
   required ReadonlyInspectionSession session,
   void Function(ScreenCaptureObservation step)? onStep,
   bool withGoToContact = false,
+  Map<String, List<String>>? fixtureHoldings,
 }) {
   final _CatalogInstance instance = _CatalogInstance(session);
   bool contactSaved = false;
@@ -114,7 +116,27 @@ ScreenCapture _homeCapture({
       };
   return ScreenCapture(
     repository: repository,
-    call: (Map<String, Object?> command) => cli.call(instance, command),
+    call: (Map<String, Object?> command) async {
+      final Object? expectation = command['expect'];
+      if (fixtureHoldings != null && command['cmd'] == 'shot' &&
+          expectation is Map<String, Object?> &&
+          expectation['key'] == 'home_tokens_body') {
+        final Object? theme = command['theme'];
+        if (theme is! String ||
+            !const <String>{'dark', 'light'}.contains(theme) ||
+            fixtureHoldings.containsKey(theme)) {
+          throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
+        }
+        for (final String standard in readonlyHomeFixtureStandards) {
+          await cli.waitForTarget(instance, cli.Args(<String>[
+            '--key', 'home_token_$standard', '--exact', '--ready',
+            '--timeout', '5',
+          ]));
+        }
+        fixtureHoldings[theme] = readonlyHomeFixtureStandards.toList();
+      }
+      return cli.call(instance, command);
+    },
     prepareHome: session.prepareScreenHome,
     runLine: (List<String> words) async {
       if (withGoToContact && !contactSaved &&
@@ -223,13 +245,16 @@ Future<Map<String, Object>> captureReadonlyHomeGotoStates({
   required ReadonlyInspectionSession session,
   void Function(ScreenCaptureObservation step)? onStep,
   bool observeMotion = false,
+  bool requireFixtureHoldings = false,
 }) async {
   if (!session.walletBound) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.binding);
   }
+  final Map<String, List<String>>? holdings =
+      requireFixtureHoldings ? <String, List<String>>{} : null;
   final ScreenCapture capture = _homeCapture(
     repository: repository, session: session, onStep: onStep,
-    withGoToContact: true,
+    withGoToContact: true, fixtureHoldings: holdings,
   );
   const List<String> files = <String>[
     '01-home-rest-dark.png', '01-home-rest-light.png',
@@ -259,6 +284,12 @@ Future<Map<String, Object>> captureReadonlyHomeGotoStates({
     'themes': const <String>['dark', 'light'], 'files': files,
     'width': 1280, 'height': 780, 'scale': 1, 'capture_returned': true,
   };
+  if (holdings != null) {
+    if (holdings.length != 2) {
+      throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
+    }
+    receipt['fixture_holdings'] = holdings;
+  }
   if (observeMotion) {
     receipt['rail_motion'] = await session.observeRailMotion();
     receipt['sync_pulse'] = await session.observeSyncPulse();

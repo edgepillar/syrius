@@ -5152,8 +5152,11 @@ class HarnessAgent {
     final bool zapPreview = _readonlyHomeZapPreview &&
         key == 'zap_received_card';
     final bool homeContact = _readonlyHomeCatalog && key == homeGotoContactKey;
+    final bool homeHolding = _readonlyHomeCatalog &&
+        catalog == 'home-catalog' && key.startsWith('home_token_') &&
+        readonlyHomeFixtureStandards.contains(key.substring(11));
     if (!pillarDone && !sentinelRegion && !readyRegion && !warningRegion &&
-        !zapPreview && !homeContact &&
+        !zapPreview && !homeContact && !homeHolding &&
         !const <String>{
           'home_hero', 'home_znn', 'rail_label_dashboard',
           'bell_panel',

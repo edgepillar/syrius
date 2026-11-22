@@ -5858,6 +5858,16 @@ after dismissal. This read covers the Home field's original clock across
 the two interruptions. The remaining Motion and Shaders rows and the
 paired P06 timing criteria stay open.
 
+The dedicated Home catalog now allocates three synthetic token
+holdings in the isolated chain-321 genesis before the node starts.
+The open-Tokens recipe requires the three original visible row keys in
+both themes. The independent reader binds those observations to the
+catalog's original genesis receipt and PNGs. Ordinary Home inspection
+and the established two-companion Token Holder fixture retain their
+existing balances. The new capture covers populated Tokens, while
+the reference's populated Activity, rewards and pending-transfer
+states keep their own acceptance requirements.
+
 All eight originals were viewed alongside their tracked references. The
 [reviewed pairs](docs/review/source-7fc58054-home-verdicts.json) show the
 expected rail, hero and palette placement. The isolated profile has sparse

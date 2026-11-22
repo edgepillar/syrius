@@ -401,8 +401,15 @@ def make_assets(commands, repo, source, assets, report):
     need(progress['script_complete'], 'CONFIG_REFUSED')
 
 
-def holder_catalog_genesis(raw):
-    """Allocate the two companion holdings in the isolated token catalog."""
+HOME_FIXTURE_TOKEN_STANDARDS = (
+    'zts1rzqgpnxzhnvqc9jnudvyp7',
+    'zts174uwn8ux594pw4f3suj9cm',
+    'zts19d76xks8c2fg7enc2yyauu',
+)
+
+
+def holder_catalog_genesis(raw, *, home_catalog=False):
+    """Allocate fixed holdings for the isolated token and Home catalogs."""
     genesis = json.loads(raw)
     need(genesis['ChainIdentifier'] == 321 and genesis['ExtraData'] == 'SYRIUS LAB',
          'CONFIG_REFUSED')
@@ -426,12 +433,15 @@ def holder_catalog_genesis(raw):
     # Fixed ZTS values derived from synthetic labels. The separately issued
     # and transferred token still supplies the original expanded holder row.
     units = 100_000_000
-    for standard, name, symbol, owner, held, total, maximum in (
-        ('zts1rzqgpnxzhnvqc9jnudvyp7', 'Lab Points', 'LPTS', holder,
-         40 * units, 1_000_000 * units, 10_000_000 * units),
-        ('zts19d76xks8c2fg7enc2yyauu', 'Lab Pool', 'LPOOL', other,
-         1_240_000_000, 5_210 * units, 5_210 * units),
-    ):
+    points, wrapped, pool = HOME_FIXTURE_TOKEN_STANDARDS
+    allocations = [(points, 'Lab Points', 'LPTS', holder,
+                    40 * units, 1_000_000 * units, 10_000_000 * units)]
+    if home_catalog:
+        allocations.append((wrapped, 'Lab Wrapped', 'LWRAP', other,
+                            210_000, 10 * units, 10 * units))
+    allocations.append((pool, 'Lab Pool', 'LPOOL', other,
+                        1_240_000_000, 5_210 * units, 5_210 * units))
+    for standard, name, symbol, owner, held, total, maximum in allocations:
         need(all(token['tokenStandard'] != standard for token in tokens)
              and all(standard not in balances for balances in blocks.values()), 'CONFIG_REFUSED')
         tokens.append(dict(owner=owner, tokenName=name, tokenSymbol=symbol, tokenDomain='',
@@ -1366,6 +1376,7 @@ def run(backend):
     interactive = parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == INTERACTIVE_FRAME_PAIR_FAMILY
     send_warning = inspection and readonly_catalog_family(parent) == send_warning_window.FAMILY
     holder_catalog = wallet_tour and parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == TOKEN_HOLDER_FAMILY
+    home_holdings = inspection and parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == 'home-catalog'
     stack_debug = backend == "native" and parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") == "true"
     node_source = parent.get("SYRIUS_LAB_NODE_SOURCE", "original")
     node_sha, node_tree = selected_node_source(node_source)
@@ -1456,6 +1467,13 @@ def run(backend):
             report['token_holder_genesis'] = dict(
                 base_genesis_sha256=base_genesis_sha256,
                 genesis_sha256=digest(genesis), companion_holdings=2)
+        if home_holdings:
+            base_genesis_sha256 = digest(genesis)
+            genesis = holder_catalog_genesis(genesis, home_catalog=True)
+            report['home_catalog_genesis'] = dict(
+                base_genesis_sha256=base_genesis_sha256,
+                genesis_sha256=digest(genesis),
+                token_standards=list(HOME_FIXTURE_TOKEN_STANDARDS))
         report["genesis_sha256"] = digest(genesis)
         configs, pins, keyfile_pins = {}, {}, {}
         report["keyfile_relocations"] = []

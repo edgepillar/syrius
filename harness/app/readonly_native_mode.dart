@@ -108,3 +108,10 @@ bool harnessReadonlyNativeWalletMatches(
       wallet['selectedIndex'] is int && wallet['selectedIndex'] == 1 &&
       wallet['nativeFrameObserved'] == true;
 }
+
+/// The three synthetic token standards for the isolated Home catalog.
+const List<String> readonlyHomeFixtureStandards = <String>[
+  'zts1rzqgpnxzhnvqc9jnudvyp7',
+  'zts174uwn8ux594pw4f3suj9cm',
+  'zts19d76xks8c2fg7enc2yyauu',
+];

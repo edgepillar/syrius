@@ -651,6 +651,12 @@ class InspectionTests(unittest.TestCase):
             width=1280, height=780, scale=1, capture_returned=True,
             screens=list(inspection.HOME_GOTO_SCREENS), rail_motion=motion)
         self.assertIs(inspection.home_capture_receipt(catalog), catalog)
+        standards = list(inspection.HOME_FIXTURE_TOKEN_STANDARDS)
+        holdings_catalog = dict(catalog, fixture_holdings=dict(dark=standards, light=standards))
+        self.assertEqual(inspection.home_capture_receipt(holdings_catalog), holdings_catalog)
+        for invalid in (dict(dark=standards), dict(dark=standards[:2], light=standards)):
+            with self.assertRaises(inspection.Refused):
+                inspection.home_capture_receipt(dict(catalog, fixture_holdings=invalid))
         extended = dict(opening=[[6000, 90, 1092, 0], [15000, 184, 3142, 450],
                                  [24000, 184, 3142, 1000]], closing=[[5000, 40, 0, 0]])
         self.assertIs(inspection.rail_motion_receipt(extended), extended)

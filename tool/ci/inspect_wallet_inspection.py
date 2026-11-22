@@ -55,6 +55,7 @@ VERSIONED_INPUTS = frozenset((
     'harness/app/ready_reference_artwork.dart',
     'harness/app/fixtures/home_zap_preview.dart',
     'harness/app/readonly_native_commands.dart',
+    'harness/app/readonly_native_mode.dart',
     'lib/rearchitecture/utils/widgets/entry_field.dart',
     'lib/rearchitecture/features/latest_transactions/view/latest_transactions_card.dart',
     'lib/rearchitecture/features/pillars/view/pillars_card.dart',
@@ -497,6 +498,8 @@ def unpack_home_catalog(raw, expected_sha, expected_size, head, tree, run_id,
     result.update(dict(screen='home-rest', number=1) if schema == 1
                   else dict(screens=list(producer.home_catalog_screens(schema))))
     result[script_field] = script_sha
+    if 'fixture_holdings' in value['capture']:
+        result['fixture_holdings'] = value['capture']['fixture_holdings']
     if 'rail_motion' in value['capture']:
         samples = producer.rail_motion_receipt(value['capture']['rail_motion'])
         result['rail_motion'] = dict(
@@ -1821,6 +1824,21 @@ def main(parent=None):
                     need(digest(reference_head, 40))
                     catalog_comparisons = list(home_pixel_comparisons(
                         catalog_archive, repo / 'mockups/redesign/shots'))
+        holdings_fixture = lab.get('home_catalog_genesis')
+        need(('fixture_holdings' in catalog) == (holdings_fixture is not None))
+        if holdings_fixture is not None:
+            need(summary.get('sampling_scope') == 'home-catalog-only'
+                 and type(holdings_fixture) is dict
+                 and set(holdings_fixture) == {
+                     'base_genesis_sha256', 'genesis_sha256', 'token_standards'}
+                 and holdings_fixture['base_genesis_sha256']
+                     == archive.TOKEN_HOLDER_GENESIS['base_genesis_sha256']
+                 and digest(holdings_fixture['genesis_sha256'])
+                 and holdings_fixture['genesis_sha256'] == lab.get('genesis_sha256')
+                 and holdings_fixture['genesis_sha256'] != holdings_fixture['base_genesis_sha256']
+                 and holdings_fixture['token_standards']
+                     == list(producer.HOME_FIXTURE_TOKEN_STANDARDS))
+            catalog['holdings_genesis'] = holdings_fixture
         catalog_index = dict(artifact_id=item['id'], archive_bytes=item['size_in_bytes'],
             images=catalog_image_pins(catalog_archive, catalog))
         if catalog_comparisons:
