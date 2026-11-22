@@ -5733,6 +5733,13 @@ It does not isolate the shared route, shell or renderer. On the original
 interactions, the page change retains 13 redesign and 19 P06 frames.
 The disclosure retains 10 redesign and 24 P06 frames. Both comparisons
 exceed the raster and distinct criteria and retain frame-number gaps.
+For all 29 missing page-change numbers and all 21 missing disclosure
+numbers in this redesign sample, the next observed build starts while
+the preceding reported raster is still in progress. The reader also
+finds redesign rasters above 16 ms whose builds start after the observed
+settlement in both actions. These observations connect the timing gaps
+to raster overlap in this sample. They do not identify which work
+occupied the raster thread or how the missing frame attempts ended.
 
 #### Paired Windows cold launch timing at `f0b1a110`
 
