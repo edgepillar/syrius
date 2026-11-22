@@ -5455,6 +5455,16 @@ passes the holder cases in both themes and both reading directions. Full
 and strict Dart analysis and generated-file verification pass. The unit
 and widget suite passes 5,133 tests with one skip.
 
+The [Windows producer at `f2cdc88d`](https://github.com/edgepillar/syrius/actions/runs/45026424284/job/137220349914)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45028476732/job/137226601671)
+verify the [two original atomic holder PNGs](docs/review/source-f2cdc88d-holder-captures.json)
+and normal parent closure. At the 16-level RGB threshold, the table
+differs at 17,125 pixels in dark and 19,407 in light, against 17,124 and
+19,528 at `fe882823` with the same reference digests. Whole-image counts
+are 28,585 and 32,110. The regional counts include the fixture contents.
+The position of the Domain fact and the two whole-image verdicts still
+need review.
+
 In the retained [Mint views at `a2efda99`](docs/review/source-a2efda99-seeded-captures.json),
 the amount and beneficiary field interiors read RGB (57, 59, 57) in dark
 and (245, 245, 245) in light. At the same coordinates the reference field
