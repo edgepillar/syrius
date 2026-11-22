@@ -164,10 +164,15 @@ void main() {
         expect(find.text('8 of 12'), findsOneWidget);
         final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
         final Finder steps = find.byType(EntryStepPosition);
-        for (final String number in <String>['1', '2', '3']) {
+        const List<String> stepLabels = <String>[
+          'Seed or file',
+          'Password',
+          'Ready',
+        ];
+        for (int index = 0; index < stepLabels.length; index++) {
           final Finder numeral = find.descendant(
             of: steps,
-            matching: find.text(number),
+            matching: find.text('${index + 1}'),
           );
           final Finder badge = find.ancestor(
             of: numeral,
@@ -182,6 +187,14 @@ void main() {
           expect(
             tester.getCenter(numeral).dy,
             closeTo(tester.getCenter(badge).dy - 1, 0.01),
+          );
+          final Finder label = find.descendant(
+            of: steps,
+            matching: find.text(stepLabels[index]),
+          );
+          expect(
+            tester.getCenter(label).dy,
+            closeTo(tester.getCenter(badge).dy - 2, 0.01),
           );
         }
         final Finder field = find.byKey(const Key('import_seed_field'));

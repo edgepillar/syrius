@@ -18,6 +18,7 @@ class EntryCardSurface extends StatelessWidget {
     this.footer,
     this.background,
     this.quiz = false,
+    this.stepLabelOffset = 0,
     super.key,
   });
 
@@ -47,6 +48,9 @@ class EntryCardSurface extends StatelessWidget {
 
   /// Uses quiz spacing while retaining the same shared entry-card surface.
   final bool quiz;
+
+  /// Vertical paint offset for step labels, relative to the badge center.
+  final double stepLabelOffset;
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +130,11 @@ class EntryCardSurface extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                                EntryStepPosition(steps: steps, step: step),
+                                EntryStepPosition(
+                                  steps: steps,
+                                  step: step,
+                                  labelOffset: stepLabelOffset,
+                                ),
                                 child,
                                 ?footer,
                               ],
@@ -147,13 +155,21 @@ class EntryCardSurface extends StatelessWidget {
 /// A horizontal step ledger that wraps whole labels when text grows.
 class EntryStepPosition extends StatelessWidget {
   /// Displays completed, current and future positions without owning actions.
-  const EntryStepPosition({required this.steps, required this.step, super.key});
+  const EntryStepPosition({
+    required this.steps,
+    required this.step,
+    this.labelOffset = 0,
+    super.key,
+  });
 
   /// Localized ordered labels for the entry flow.
   final List<String> steps;
 
   /// Zero-based current position, after the already completed steps.
   final int step;
+
+  /// Vertical paint offset for the text without changing the ledger layout.
+  final double labelOffset;
 
   @override
   Widget build(BuildContext context) {
@@ -195,10 +211,13 @@ class EntryStepPosition extends StatelessWidget {
             ),
             SizedBox(width: tokens.entryStepGap),
             Flexible(
-              child: Text(
-                steps[index],
-                style: tokens.entryStepText.copyWith(
-                  color: index == step ? tokens.foreground : tokens.faint,
+              child: Transform.translate(
+                offset: Offset(0, labelOffset),
+                child: Text(
+                  steps[index],
+                  style: tokens.entryStepText.copyWith(
+                    color: index == step ? tokens.foreground : tokens.faint,
+                  ),
                 ),
               ),
             ),

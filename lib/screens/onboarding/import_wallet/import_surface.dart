@@ -92,6 +92,9 @@ class ImportSurface extends StatelessWidget {
         context.l10n.entryReady,
       ],
       step: 0,
+      // The reference places the label ink two pixels higher than Flutter's
+      // centered text, while the badge and connector already align.
+      stepLabelOffset: -2,
       onBack: onBack,
       background: background,
       footer: Wrap(

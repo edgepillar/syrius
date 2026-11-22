@@ -6867,7 +6867,11 @@ and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45069
 verify [four Welcome and Import PNGs](docs/review/source-a4e0a9d3-entry-captures.json)
 and the original normal process exit. All four image digests match the
 captures at `58a19a05`. All six Import numeral samples still end on
-reference row 283. The reviewed entry and startup indexes cover sixteen
+reference row 283. In the six exact-source Import step-label crops, a
+two-pixel upward shift again minimizes the row-profile error. The Import
+seed view moves just the three labels up two logical pixels. Its shared
+step ledger keeps its badge, connector, spacing and text styles.
+The reviewed entry and startup indexes cover sixteen
 exact-source pairs. Whole-image verdicts remain open for fourteen of
 these sixteen pairs, and V01 remains open.
 
