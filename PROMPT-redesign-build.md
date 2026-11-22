@@ -5299,11 +5299,19 @@ themes. The illustrated Burn action and populated domain are absent in the
 fixture, and the reference has more holdings. Both pairs remain mismatches.
 
 The next isolated catalog prepares the Burn and Domain controls through the
-ordinary Token issue form. Its bounded recipe enters a reserved HTTPS domain
+ordinary Token issue form. Its bounded recipe enters a reserved domain name
 and enables the burnable option. The original holding guard verifies both
 fields on the confirmed token, along with the existing owner, supply and
 balance checks. The standalone seed recipe keeps its original terms. Native
 visual verification is pending.
+
+The [original Held Tokens run at `d8f14048`](https://github.com/edgepillar/syrius/actions/runs/44998021393/job/137133173138)
+reaches Token publication at command 23 after confirming Stake. The
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/44999582325/job/137137949975)
+retains the failed publication with unknown outcome and no Token receipt or
+images. The [node source used by that run](https://github.com/zenon-network/go-zenon/blob/2d1b929cc3fa5269cf133757d4a6963821137984/vm/embedded/implementation/token.go#L36-L48)
+accepts a bare domain name in this field. The scoped recipe and receipt
+check now use `example.invalid`.
 
 A holder's Domain action now occupies the Domain value cell with the
 original external-link symbol when a domain exists. An empty value has no

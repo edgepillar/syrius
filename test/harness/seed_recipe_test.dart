@@ -100,7 +100,7 @@ void main() {
       expect(() => SeedRecipe.parse('token', catalogToken),
           throwsA(isA<SeedRefused>()));
       expect(() => SeedRecipe.parse('token',
-          catalogToken.replaceFirst(catalogTokenDomain, 'https://example.org'),
+          catalogToken.replaceFirst(catalogTokenDomain, 'https://$catalogTokenDomain'),
           catalogTokenHolding: true), throwsA(isA<SeedRefused>()));
       final String deposit = File('harness/seed/deposit.txt')
           .readAsStringSync().replaceAll('\r\n', '\n');
