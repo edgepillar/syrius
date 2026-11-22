@@ -724,7 +724,7 @@ void main() {
   );
 
   testWidgets(
-    'a malformed nonblank domain blocks Continue while blank remains valid',
+    'Continue accepts only an empty field or a valid token domain',
     (WidgetTester tester) async {
       _viewport(tester, const Size(1100, 650));
       final TokenCreateFixture fixture = TokenCreateFixture();
@@ -739,18 +739,30 @@ void main() {
         );
         await _clock(tester);
         await _details(tester);
-        await tester.enterText(_field('token_domain_field'), 'bad domain');
-        await tester.pump(const Duration(milliseconds: 1));
-        expect(
-          tester.widget<OutlinedButton>(_action('details')).onPressed,
-          isNull,
-        );
-        await tester.enterText(_field('token_domain_field'), '');
-        await tester.pump(const Duration(milliseconds: 1));
-        expect(
-          tester.widget<OutlinedButton>(_action('details')).onPressed,
-          isNotNull,
-        );
+        final Finder domain = _field('token_domain_field');
+        for (final String invalid in <String>[
+          'bad domain',
+          'https://example.invalid',
+          'example.invalid/path',
+          '${'a' * 63}.${'b' * 61}.com',
+        ]) {
+          await tester.enterText(domain, invalid);
+          await tester.pump(const Duration(milliseconds: 1));
+          expect(
+            tester.widget<OutlinedButton>(_action('details')).onPressed,
+            isNull,
+            reason: invalid,
+          );
+        }
+        for (final String valid in <String>['sub.example.invalid', '']) {
+          await tester.enterText(domain, valid);
+          await tester.pump(const Duration(milliseconds: 1));
+          expect(
+            tester.widget<OutlinedButton>(_action('details')).onPressed,
+            isNotNull,
+            reason: valid,
+          );
+        }
       } finally {
         await tester.pumpWidget(const SizedBox.shrink());
         fixture.dispose();

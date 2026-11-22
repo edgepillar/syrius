@@ -93,7 +93,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
       _symbol.text.isNotEmpty &&
       Validations.tokenName(_name.text) == null &&
       Validations.tokenSymbol(_symbol.text) == null &&
-      (_domain.text.isEmpty || InputValidators.checkUrl(_domain.text) == null);
+      InputValidators.checkTokenDomain(_domain.text) == null;
 
   NewTokenData? get _supply => tokenCreateSupplyDraft(
     draft: _draft.value,
@@ -275,9 +275,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
                   style: tokens.bodyText,
                   decoration: InputDecoration(
                     hintText: context.l10n.createTokenDomainHint,
-                    errorText: _domain.text.isEmpty
-                        ? null
-                        : InputValidators.checkUrl(_domain.text),
+                    errorText: InputValidators.checkTokenDomain(_domain.text),
                   ),
                 ),
               ),

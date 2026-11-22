@@ -210,6 +210,18 @@ class InputValidators {
     return currentL10n.validatorInvalidUrl;
   }
 
+  static final RegExp _tokenDomainPattern = RegExp(
+    r'^([A-Za-z0-9][A-Za-z0-9-]{0,61}[A-Za-z0-9]\.)+[A-Za-z]{2,}$',
+  );
+
+  static String? checkTokenDomain(String value) {
+    if (value.isEmpty ||
+        (value.length <= 128 && _tokenDomainPattern.hasMatch(value))) {
+      return null;
+    }
+    return currentL10n.validatorInvalidUrl;
+  }
+
   static String? checkHash(String? value) {
     try {
       if (Hash.parse(value!).runtimeType == Hash) {

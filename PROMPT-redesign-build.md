@@ -5313,6 +5313,10 @@ images. The [node source used by that run](https://github.com/zenon-network/go-z
 accepts a bare domain name in this field. The scoped recipe and receipt
 check now use `example.invalid`.
 
+The Token issue form uses the same optional domain-name rule as the node.
+The existing form test covers a bare domain, an empty field, a full URL,
+a URL path and a name above the 128-character limit.
+
 A holder's Domain action now occupies the Domain value cell with the
 original external-link symbol when a domain exists. An empty value has no
 standalone button. The original owner controls and publication explorer

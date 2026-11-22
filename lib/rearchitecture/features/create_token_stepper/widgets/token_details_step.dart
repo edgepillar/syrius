@@ -54,7 +54,7 @@ class _TokenDetailsStepState extends State<TokenDetailsStep> {
       Validations.tokenSymbol(widget.tokenSymbolController.text);
 
   String? get _domainError =>
-      InputValidators.checkUrl(widget.tokenDomainController.text);
+      InputValidators.checkTokenDomain(widget.tokenDomainController.text);
 
   @override
   Widget build(BuildContext context) {
@@ -104,8 +104,6 @@ class _TokenDetailsStepState extends State<TokenDetailsStep> {
                 ),
               ),
               SizedBox(height: gap),
-              // Blockchain seems to accept only "testing.com" URLs, not
-              // "https://testing.com" also
               AccField(
                 label: context.l10n.tokenDomain,
                 child: TextField(
@@ -113,9 +111,7 @@ class _TokenDetailsStepState extends State<TokenDetailsStep> {
                   controller: widget.tokenDomainController,
                   style: text,
                   decoration: InputDecoration(
-                    errorText: widget.tokenDomainController.text.isNotEmpty
-                        ? _domainError
-                        : null,
+                    errorText: _domainError,
                     hintText: context.l10n.createTokenDomainHint,
                     suffixIcon: FieldSuffixButtons(
                       controller: widget.tokenDomainController,
