@@ -86,6 +86,13 @@ class SwapDialogSurface extends StatelessWidget {
     final BorderRadius radius = BorderRadius.circular(
       footer == null ? tokens.transferCardRadius : tokens.dialogRadius,
     );
+    final BoxShadow shadow = tokens.dialogShadow;
+    final double extent =
+        (5 * shadow.blurSigma + shadow.spreadRadius).ceilToDouble();
+    final EdgeInsets shadowInsets = EdgeInsets.symmetric(
+      horizontal: extent + shadow.offset.dx.abs(),
+      vertical: extent + shadow.offset.dy.abs(),
+    );
     return ConstrainedBox(
       constraints: BoxConstraints(
         maxWidth: tokens.swapActionWidth,
@@ -93,95 +100,113 @@ class SwapDialogSurface extends StatelessWidget {
       ),
       child: SizedBox(
         width: tokens.swapActionWidth,
-        child: CustomPaint(
-          foregroundPainter: OuterShadowPainter(
-            borderRadius: radius,
-            shadows: <BoxShadow>[tokens.dialogShadow],
-          ),
-          child: FrostedSurface(
-            borderRadius: radius,
-            child: Material(
-              type: MaterialType.transparency,
-              child: DecoratedBox(
-                key: marker,
-                position: DecorationPosition.foreground,
-                decoration: BoxDecoration(
-                  borderRadius: radius,
-                  border: Border.all(color: tokens.line),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    DecoratedBox(
-                      decoration: BoxDecoration(
-                        border: Border(top: tokens.glassTopEdge),
-                      ),
-                      child: Padding(
-                        padding: tokens.swapActionHeaderPadding,
-                        child: LayoutBuilder(
-                          builder: (_, BoxConstraints constraints) => Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: Text(title, style: tokens.headingText),
-                              ),
-                              if (headerAction != null)
-                                ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    maxWidth: constraints.maxWidth / 2,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: <Widget>[
+            FrostedSurface(
+              borderRadius: radius,
+              child: Material(
+                type: MaterialType.transparency,
+                child: DecoratedBox(
+                  key: marker,
+                  position: DecorationPosition.foreground,
+                  decoration: BoxDecoration(
+                    borderRadius: radius,
+                    border: Border.all(color: tokens.line),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          border: Border(top: tokens.glassTopEdge),
+                        ),
+                        child: Padding(
+                          padding: tokens.swapActionHeaderPadding,
+                          child: LayoutBuilder(
+                            builder: (_, BoxConstraints constraints) => Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Text(title, style: tokens.headingText),
+                                ),
+                                if (headerAction != null)
+                                  ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth: constraints.maxWidth / 2,
+                                    ),
+                                    child: headerAction,
                                   ),
-                                  child: headerAction,
+                                IconButton(
+                                  key: const Key('swap_action_close'),
+                                  padding: EdgeInsets.zero,
+                                  visualDensity: VisualDensity.compact,
+                                  constraints: BoxConstraints.tightFor(
+                                    width: tokens.smallButtonHeight,
+                                    height: tokens.smallButtonHeight,
+                                  ),
+                                  iconSize: tokens.swapActionTokenIconSize,
+                                  tooltip: context.l10n.commonClose,
+                                  onPressed: onClose,
+                                  icon: Icon(Icons.close, color: tokens.faint),
                                 ),
-                              IconButton(
-                                key: const Key('swap_action_close'),
-                                padding: EdgeInsets.zero,
-                                visualDensity: VisualDensity.compact,
-                                constraints: BoxConstraints.tightFor(
-                                  width: tokens.smallButtonHeight,
-                                  height: tokens.smallButtonHeight,
-                                ),
-                                iconSize: tokens.swapActionTokenIconSize,
-                                tooltip: context.l10n.commonClose,
-                                onPressed: onClose,
-                                icon: Icon(Icons.close, color: tokens.faint),
-                              ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Divider(height: 1, color: tokens.line),
+                      Flexible(
+                        child: SingleChildScrollView(
+                          key: const Key('swap_action_scroll'),
+                          padding: tokens.swapActionBodyPadding,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: <Widget>[
+                              child,
+                              if (notice != null) ...<Widget>[
+                                SizedBox(height: tokens.swapActionGap),
+                                notice!,
+                              ],
+                              if (primary != null) ...<Widget>[
+                                SizedBox(height: tokens.transferFormGap),
+                                primary!,
+                              ],
                             ],
                           ),
                         ),
                       ),
-                    ),
-                    Divider(height: 1, color: tokens.line),
-                    Flexible(
-                      child: SingleChildScrollView(
-                        key: const Key('swap_action_scroll'),
-                        padding: tokens.swapActionBodyPadding,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: <Widget>[
-                            child,
-                            if (notice != null) ...<Widget>[
-                              SizedBox(height: tokens.swapActionGap),
-                              notice!,
-                            ],
-                            if (primary != null) ...<Widget>[
-                              SizedBox(height: tokens.transferFormGap),
-                              primary!,
-                            ],
-                          ],
+                      if (footer != null)
+                        Padding(
+                          padding: tokens.dialogFooterPadding,
+                          child: footer,
                         ),
-                      ),
-                    ),
-                    if (footer != null)
-                      Padding(
-                        padding: tokens.dialogFooterPadding,
-                        child: footer,
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
+            // Reserve paint bounds for the blur outside the card, and paint
+            // after the glass has sampled its backdrop.
+            Positioned(
+              left: -shadowInsets.left,
+              top: -shadowInsets.top,
+              right: -shadowInsets.right,
+              bottom: -shadowInsets.bottom,
+              child: IgnorePointer(
+                child: RepaintBoundary(
+                  child: CustomPaint(
+                    painter: OuterShadowPainter(
+                      borderRadius: radius,
+                      shadows: <BoxShadow>[shadow],
+                      surfaceInsets: shadowInsets,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

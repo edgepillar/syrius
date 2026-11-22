@@ -5935,8 +5935,13 @@ route clips its content to the dialog rectangle, which also clips the
 Swap surface's outer shadow. Start and Join now use that route without
 the extra clip and retain the glass's own rounded clip. The existing
 two-theme widget test opens the route and checks a pixel outside the
-card against the distant backdrop. The most recent light capture before
-the shadow fix also has 40,883 caption pixels that differ by at least 16
+card against the distant backdrop. The [Linux run at `6404de06`](https://github.com/edgepillar/syrius/actions/runs/45011858422/job/137175711875)
+passes 5,130 tests with one skip and fails both shadow pixel cases. The
+shadow still paints outside the bounds of its own painter. The Swap
+surface now reserves a separate repaint area around the glass for the
+same shadow and paints it after the glass samples its backdrop. The
+existing pixel test remains the regression check. The most recent
+light capture before the shadow fix also has 40,883 caption pixels that differ by at least 16
 in an RGB channel. Start and Join now request the same isolated caption
 frost as Send confirmation. The route test checks that flag in both
 themes. The in-flight shadow capture isolates the preceding change.
