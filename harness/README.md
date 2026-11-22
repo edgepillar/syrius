@@ -338,13 +338,15 @@ links to the existing file. Preserve each capture's original run evidence.
 For a comparison at one revision, record the verified producer commit as
 `source_sha` in each capture entry. Pass one manifest per batch. If batches
 overlap, a unique capture from the target commit takes precedence. Resolve
-conflicting selections at equal precedence in the manifests.
+conflicting selections at equal precedence in the manifests. Set
+`CANDIDATE_SHA` to the full commit verified from the original hosted runs.
+The checkout used to assemble the report can include later review notes.
 
 ```sh
 python tool/redesign_compare.py \
   --actual-manifest .harness/home-captures.json \
   --actual-manifest .harness/entry-captures.json \
-  --target-source "$(git rev-parse HEAD)" \
+  --target-source "${CANDIDATE_SHA:?Set the verified producer commit}" \
   --require-current-captures --no-diff-images \
   --output-dir .harness/compare-current
 ```
@@ -384,7 +386,9 @@ remain required for every command.
 Pin each producer to the same application commit and verify its retained
 archives before selecting the images for comparison. Each assignment below
 covers both themes. The startup catalog captures six screens on one Release
-build.
+build. For a capture-only dispatch set `desktop_builds`,
+`presentation_smoke` and `devnet_tests` to `false` so the separate build,
+smoke and devnet jobs do not repeat for each catalog.
 
 For `windows_wallet_inspection` and `windows_wallet_tour`, select
 `chain321_backend=native`, `chain321_node_source=lab-fix` and
