@@ -59,8 +59,10 @@ BalanceInfoListItem _token({
   BigInt? balance,
   bool missingBalance = false,
   TokenStandard? standard,
+  Address? owner,
 }) {
   final _Token token = _Token();
+  when(() => token.owner).thenReturn(owner ?? emptyAddress);
   when(() => token.symbol).thenReturn(symbol);
   when(() => token.decimals).thenReturn(decimals);
   when(() => token.tokenStandard).thenReturn(standard ?? znnZts);
@@ -143,6 +145,7 @@ void main() {
     bool reduced = false,
     double textScale = 1,
     double width = 500,
+    Set<String> walletAddresses = const <String>{},
     Key? cardsKey,
   }) => MaterialApp(
     theme: theme ?? (light ? AppTheme.lightTheme : AppTheme.darkTheme),
@@ -166,6 +169,7 @@ void main() {
             height: 540,
             child: HomeSideCards(
               key: cardsKey,
+              walletAddresses: walletAddresses,
               snapshot: noSnapshot ? null : snapshot ?? _snapshot(),
               failed: failed,
               collectEnabled: enabled,
@@ -200,6 +204,7 @@ void main() {
     bool reduced = false,
     double textScale = 1,
     double width = 500,
+    Set<String> walletAddresses = const <String>{},
     Key? cardsKey,
   }) async {
     await tester.pumpWidget(
@@ -219,6 +224,7 @@ void main() {
         textScale: textScale,
         width: width,
         cardsKey: cardsKey,
+        walletAddresses: walletAddresses,
       ),
     );
     await tester.pump();
@@ -586,16 +592,25 @@ void main() {
   testWidgets('token rows use their original precision and have no prices', (
     WidgetTester tester,
   ) async {
+    final TokenStandard points = TokenStandard.parse(
+      'zts1rzqgpnxzhnvqc9jnudvyp7',
+    );
+    final TokenStandard wrapped = TokenStandard.parse(
+      'zts174uwn8ux594pw4f3suj9cm',
+    );
+    final Address external = Address('z', <int>[0, ...List<int>.filled(19, 7)]);
     await show(
       tester,
+      walletAddresses: <String>{emptyAddress.toString()},
       snapshot: _snapshot(
         tokens: <BalanceInfoListItem>[
-          _token(balance: BigInt.from(40)),
+          _token(balance: BigInt.from(40), standard: points),
           _token(
             symbol: 'WBTC',
             decimals: 8,
             balance: BigInt.from(210000),
-            standard: qsrZts,
+            standard: wrapped,
+            owner: external,
           ),
         ],
       ),
@@ -607,14 +622,25 @@ void main() {
       find.descendant(of: find.byKey(_body), matching: find.byType(DollarText)),
       findsNothing,
     );
-    expect(find.byTooltip(qsrZts.toString()), findsOneWidget);
+    expect(find.byTooltip(wrapped.toString()), findsOneWidget);
     final Finder amounts = find.descendant(
       of: find.byKey(_body), matching: find.byType(AmountText),
     );
     final AmountText amount = tester.widget<AmountText>(amounts.last);
     expect(amount.raw, BigInt.from(210000));
     expect(amount.decimals, 8);
-    final Finder row = find.byKey(ValueKey<String>('home_token_$qsrZts'));
+    final Finder row = find.byKey(ValueKey<String>('home_token_$wrapped'));
+    final Finder owned = find.byKey(ValueKey<String>('home_token_$points'));
+    final AppTokens tokens = AppTokens.of(tester.element(row));
+    Color? badgeFill(Finder parent) {
+      final Container badge = tester.widget<Container>(find.descendant(
+        of: parent, matching: find.byKey(const Key('home_token_badge')),
+      ));
+      return (badge.decoration! as BoxDecoration).color;
+    }
+
+    expect(badgeFill(owned), tokens.pink);
+    expect(badgeFill(row), tokens.faint);
     final double end = tester.getTopRight(row).dx;
     expect(tester.getTopRight(amounts.first).dx, closeTo(end, 0.01));
     expect(tester.getTopRight(amounts.last).dx, closeTo(end, 0.01));

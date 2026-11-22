@@ -5891,9 +5891,13 @@ Their balances originally ended near the middle of the card rather than
 its trailing edge. The amount column now aligns to the trailing edge
 while preserving its horizontal overflow scroll and left-to-right digits.
 The existing precision case checks both original amount strings and
-their shared trailing edge. Fresh Windows images are needed for that
-layout change. Atomic-frame qualification and the whole-image visual
-verdicts remain open.
+their shared trailing edge. Home now shares the Tokens page's badge
+fill rule. A custom token owned by a wallet member uses the pink
+accent, and holdings from other owners use the neutral fill. The
+fixture has one owned token and two holdings from other owners.
+The precision case also checks both badge states. Fresh Windows
+images are needed for these layout and color changes. Atomic-frame
+qualification and the whole-image visual verdicts remain open.
 
 All eight originals were viewed alongside their tracked references. The
 [reviewed pairs](docs/review/source-7fc58054-home-verdicts.json) show the

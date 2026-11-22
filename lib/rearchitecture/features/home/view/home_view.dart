@@ -124,6 +124,7 @@ class _View extends StatelessWidget {
     final HomeCollectionController? owner = collection;
     Widget content() => HomeSideCards(
       snapshot: state.snapshot,
+      walletAddresses: kDefaultAddressList.whereType<String>().toSet(),
       failed: state.status == HomeStatus.failed,
       collectEnabled: owner?.canCollect(state.snapshot) ?? false,
       collectBusy: owner?.busy ?? false,

@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart' show SliverConstraints;
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart'
+    show cardTokenBadgeFill;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/cubit/home_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/widgets/amount_text.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
@@ -38,6 +40,7 @@ class HomeSideCards extends StatelessWidget {
     this.collectionNotice,
     this.visibility,
     this.priceFeed,
+    this.walletAddresses = const <String>{},
     super.key,
   });
 
@@ -67,6 +70,9 @@ class HomeSideCards extends StatelessWidget {
 
   /// The existing shared price feed, with no price source added by this view.
   final PriceFeed? priceFeed;
+
+  /// Wallet member addresses used for the owned-token badge accent.
+  final Set<String> walletAddresses;
 
   @override
   Widget build(BuildContext context) {
@@ -122,6 +128,7 @@ class HomeSideCards extends StatelessWidget {
             snapshot: snapshot,
             failed: failed,
             visibility: balances,
+            walletAddresses: walletAddresses,
           ),
         ],
       ),
@@ -465,11 +472,13 @@ class _TokensCard extends StatelessWidget {
     required this.snapshot,
     required this.failed,
     required this.visibility,
+    required this.walletAddresses,
   });
 
   final HomeSnapshot? snapshot;
   final bool failed;
   final BalanceVisibility visibility;
+  final Set<String> walletAddresses;
 
   @override
   Widget build(BuildContext context) {
@@ -515,6 +524,9 @@ class _TokensCard extends StatelessWidget {
                       ),
                       item: rows[i],
                       visibility: visibility,
+                      owned: walletAddresses.contains(
+                        rows[i].token?.owner.toString(),
+                      ),
                     ),
                   ],
               ],
@@ -530,11 +542,13 @@ class _TokenRow extends StatelessWidget {
   const _TokenRow({
     required this.item,
     required this.visibility,
+    required this.owned,
     super.key,
   });
 
   final BalanceInfoListItem item;
   final BalanceVisibility visibility;
+  final bool owned;
 
   @override
   Widget build(BuildContext context) {
@@ -558,12 +572,15 @@ class _TokenRow extends StatelessWidget {
       children: <Widget>[
         ExcludeSemantics(
           child: Container(
+            key: const Key('home_token_badge'),
             width: tokens.homeTokenBadgeSize,
             height: tokens.homeTokenBadgeSize,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: tokens.pink,
+              color: cardTokenBadgeFill(
+                tokens, token?.tokenStandard, owned: owned,
+              ),
             ),
             child: Text(
               symbol.isEmpty ? '?' : String.fromCharCode(symbol.runes.first),

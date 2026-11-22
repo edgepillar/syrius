@@ -13,7 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/row_det
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart' show kQsrCoin, kZnnCoin;
+import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart' show kZnnCoin;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// The height of a token row.
@@ -122,13 +122,9 @@ class _TokenCardState extends State<TokenCard> {
     final AppTokens theme = AppTokens.of(context);
     final bool isOwn = kDefaultAddressList.contains(token.owner.toString());
     final bool isZnn = token.tokenStandard == kZnnCoin.tokenStandard;
-    final Color badgeFill = isZnn
-        ? theme.znn
-        : token.tokenStandard == kQsrCoin.tokenStandard
-        ? theme.qsr
-        : isOwn
-        ? theme.pink
-        : theme.faint;
+    final Color badgeFill = cardTokenBadgeFill(
+      theme, token.tokenStandard, owned: isOwn,
+    );
     final int epoch = _epoch;
     final bool Function()? originalDetailCurrent = widget.detailIsCurrent;
     bool current() =>

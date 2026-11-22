@@ -143,6 +143,17 @@ Color cardReadableInk(BuildContext context, Color own) {
       : theme.textTheme.bodyLarge?.color ?? theme.colorScheme.onSurface;
 }
 
+/// Native badges use their coin colors; owned custom badges use pink.
+Color cardTokenBadgeFill(
+  AppTokens tokens,
+  TokenStandard? standard, {
+  required bool owned,
+}) {
+  if (standard == znnZts) return tokens.znn;
+  if (standard == qsrZts) return tokens.qsr;
+  return owned ? tokens.pink : tokens.faint;
+}
+
 /// A token's colour as text or as a line: the one rule for every symbol.
 ///
 /// ZNN and QSR take the theme's inks. A ZTS token's colour is the last three
