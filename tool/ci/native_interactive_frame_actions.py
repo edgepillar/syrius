@@ -3,7 +3,8 @@
 import time
 
 from . import windows_startup_probe as startup
-from .windows_launch_catalog import PEAK_BUILD_WAIT_FIELD, RASTER_STARTS_FIELD, TIMING_FIELDS
+from .windows_launch_catalog import (PEAK_BUILD_WAIT_FIELD, RASTER_CACHE_FIELD,
+                                     RASTER_STARTS_FIELD, TIMING_FIELDS)
 
 
 MIN_WINDOW_US = 600_000
@@ -70,6 +71,8 @@ def _end(send, validate_window, phase_field):
     for field in (PEAK_BUILD_WAIT_FIELD, RASTER_STARTS_FIELD):
         if field in reply:
             window[field] = reply[field]
+    if phase_field is None and RASTER_CACHE_FIELD in reply:
+        window[RASTER_CACHE_FIELD] = reply[RASTER_CACHE_FIELD]
     validate_window(window)
     return window, reply.get(phase_field)
 

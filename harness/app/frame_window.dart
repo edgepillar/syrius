@@ -73,6 +73,8 @@ class HarnessFrameWindow {
   final Completer<void> _delivered = Completer<void>();
   int? _endUs;
   HarnessFrameWindowRefusal? _failure;
+  int _peakRasterUs = -1;
+  Map<String, int>? _peakRasterCache;
 
   /// Records only frames whose UI build began inside this window.
   void observe(List<ui.FrameTiming> timings) {
@@ -114,6 +116,26 @@ class HarnessFrameWindow {
           total > _maxWindowUs) {
         _refuse(HarnessFrameWindowRefusal.frameTiming);
         return;
+      }
+      if (_includeInteractiveDiagnostics && raster > _peakRasterUs) {
+        _peakRasterUs = raster;
+        final int layers = timing.layerCacheCount;
+        final int layerBytes = timing.layerCacheBytes;
+        final int pictures = timing.pictureCacheCount;
+        final int pictureBytes = timing.pictureCacheBytes;
+        _peakRasterCache =
+            layers >= 0 && layers < 1 << 32 &&
+            pictures >= 0 && pictures < 1 << 32 &&
+            layerBytes >= 0 && layerBytes <= 1 << 40 &&
+            pictureBytes >= 0 && pictureBytes <= 1 << 40
+            ? <String, int>{
+                'frame': number,
+                'layer_count': layers,
+                'layer_bytes': layerBytes,
+                'picture_count': pictures,
+                'picture_bytes': pictureBytes,
+              }
+            : null;
       }
       _samples.add((
         number: number,
@@ -174,6 +196,11 @@ class HarnessFrameWindow {
         'rasterStartsUs': <int>[
           for (final _Sample sample in _samples) sample.rasterStart - _startUs,
         ],
+      if (_peakRasterCache case final Map<String, int> peak)
+        'rasterCacheAtPeak': <String, int>{
+          ...peak,
+          'frame': peak['frame']! - first,
+        },
       'frames': <List<int>>[
         for (final _Sample sample in _samples)
           <int>[

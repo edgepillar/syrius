@@ -5744,6 +5744,15 @@ settlement in both actions. These observations connect the timing gaps
 to raster overlap in this sample. They do not identify which work
 occupied the raster thread or how the missing frame attempts ended.
 
+The next interactive collector adds the Flutter raster cache snapshot
+for the longest raster in each current idle window. The reader binds
+the layer and picture counts and bytes to the original peak frame
+number. The original frame rows and 16 ms comparison stay the same.
+The P06 collector, patch and overlay tree retain their original pins.
+A cache snapshot identifies retained cache entries at that frame. It
+does not measure cache hits or attribute time to particular widgets.
+Local reader tests and strict Dart analysis pass.
+
 #### Paired Windows cold launch timing at `f0b1a110`
 
 The [native producer](https://github.com/edgepillar/syrius/actions/runs/44979865019/job/137077797577)

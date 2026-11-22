@@ -16,6 +16,10 @@ ui.FrameTiming _frame(int number, int start) => ui.FrameTiming(
   rasterFinish: start + 16000,
   rasterFinishWallTime: start + 16000,
   frameNumber: number,
+  layerCacheCount: number,
+  layerCacheBytes: number * 1024,
+  pictureCacheCount: number + 1,
+  pictureCacheBytes: number * 2048,
 );
 
 void main() {
@@ -43,6 +47,13 @@ void main() {
     expect(receipt['windowUs'], 50000);
     expect(receipt['peakBuildWaitUs'], 1000);
     expect(receipt['rasterStartsUs'], <int>[11000, 60999]);
+    expect(receipt['rasterCacheAtPeak'], <String, int>{
+      'frame': 0,
+      'layer_count': 3,
+      'layer_bytes': 3072,
+      'picture_count': 4,
+      'picture_bytes': 6144,
+    });
     expect(receipt['frames'], <List<int>>[
       <int>[0, 0, 10000, 5000, 17000],
       <int>[1, 49999, 10000, 5000, 17000],

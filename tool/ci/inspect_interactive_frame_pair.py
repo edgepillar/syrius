@@ -73,7 +73,9 @@ def _idle_summary(sample):
     return dict(status='measured', window_us=window['windowUs'], frames=len(frames),
         frame_number_gaps=frames[-1][0] + 1 - len(frames),
         longest_raster_us=max(frame[3] for frame in frames),
-        slow_rasters=sum(frame[3] > pair.shared.FRAME_BUDGET_US for frame in frames))
+        slow_rasters=sum(frame[3] > pair.shared.FRAME_BUDGET_US for frame in frames),
+        **({'raster_cache_at_peak': window[pair.shared.launch.RASTER_CACHE_FIELD]}
+           if pair.shared.launch.RASTER_CACHE_FIELD in window else {}))
 
 
 def sample_receipts(value, *, allow_tap_release=False):

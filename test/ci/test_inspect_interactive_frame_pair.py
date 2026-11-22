@@ -269,6 +269,11 @@ class InteractiveFramePairTests(unittest.TestCase):
         current['idle_before_disclosure'] = dict(status='measured',
             window=dict(current['windows']['page_change'], windowUs=1_100_000))
         p06['idle_before_disclosure'] = dict(status='unavailable')
+        idle_window = current['idle_before_disclosure']['window']
+        peak_frame = max(idle_window['frames'], key=lambda row: row[3])[0]
+        peak = dict(frame=peak_frame, layer_count=2, layer_bytes=262144,
+                    picture_count=3, picture_bytes=1048576)
+        idle_window['rasterCacheAtPeak'] = peak
         with_idle = self.project(offered)
         self.assertEqual(with_idle['verified_comparisons'], result['verified_comparisons'])
         self.assertEqual(with_idle['timing_criterion_passed'], result['timing_criterion_passed'])
@@ -278,7 +283,13 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(idle['p06'], {'status': 'unavailable'})
         closed = with_idle['verified_idle_before_disclosure']
         self.assertEqual(closed['current']['window_us'], 1_100_000)
+        self.assertEqual(closed['current']['raster_cache_at_peak'], peak)
         self.assertEqual(closed['p06'], {'status': 'unavailable'})
+        for edit in (dict(frame=peak_frame + 512), dict(layer_count=True),
+                     dict(picture_bytes=-1), dict(extra=0)):
+            with self.subTest(edit=edit), self.assertRaises(archive.Refused):
+                inspect._idle_summary(dict(status='measured',
+                    window=dict(idle_window, rasterCacheAtPeak=dict(peak, **edit))))
         for field in ('idle_before_disclosure', 'idle_after_disclosure'):
             damaged = deepcopy(offered)
             damaged['samples']['current']['observation'][field]['window']['windowUs'] = 1_000_000
@@ -1457,7 +1468,9 @@ class InteractiveFramePairTests(unittest.TestCase):
             frames=[[0 if i == 0 else 2**32 - 512 + i,
                      pair.actions.MAX_WINDOW_US - 1, 20000000, 20000000, 60000000]
                     for i in range(pair.shared.launch.MAX_TIMING_FRAMES)])
-        idle = dict(full, frames=full['frames'][:pair.actions.MAX_IDLE_FRAMES])
+        idle = dict(full, frames=full['frames'][:pair.actions.MAX_IDLE_FRAMES],
+            rasterCacheAtPeak=dict(frame=0, layer_count=2**32 - 1, picture_count=2**32 - 1,
+                                   layer_bytes=2**40, picture_bytes=2**40))
         for sample in offered['samples'].values():
             sample['observation']['windows'] = dict.fromkeys(pair.WINDOWS, full)
             sample['observation']['idle_on_node_settings'] = dict(status='measured', window=idle)

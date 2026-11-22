@@ -46,6 +46,7 @@ PAIRED_TIMING_REPLY_CAP = 128 * 1024
 TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frames')
 PEAK_BUILD_WAIT_FIELD = 'peakBuildWaitUs'
 RASTER_STARTS_FIELD = 'rasterStartsUs'
+RASTER_CACHE_FIELD = 'rasterCacheAtPeak'
 PACKED_TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frameCount', 'packedFrames')
 STARTUP_PHASE_FIELD = 'startupPhaseUs'
 STARTUP_AUTH_FIELD = 'startupAuthInShellUs'
@@ -222,7 +223,7 @@ def frame_timing_rows(value, *, allow_packed=False):
     duration = value['windowUs']
     fields = set(TIMING_FIELDS)
     if (value['schema'] == 1
-            and fields <= set(value) <= fields | {PEAK_BUILD_WAIT_FIELD, RASTER_STARTS_FIELD}):
+            and fields <= set(value) <= fields | {PEAK_BUILD_WAIT_FIELD, RASTER_STARTS_FIELD, RASTER_CACHE_FIELD}):
         rows = value['frames']
         need(type(rows) is list and 0 < len(rows) <= MAX_TIMING_FRAMES)
     elif allow_packed and value['schema'] == 2:
@@ -258,6 +259,16 @@ def frame_timing_rows(value, *, allow_packed=False):
         need(type(starts) is list and len(starts) == len(rows))
         need(all(startup.integer(raster_start, start + build, start + total - raster)
                  for (_, start, build, raster, total), raster_start in zip(rows, starts)))
+    if RASTER_CACHE_FIELD in value:
+        cache = value[RASTER_CACHE_FIELD]
+        need(type(cache) is dict
+             and set(cache) == {'frame', 'layer_count', 'layer_bytes', 'picture_count', 'picture_bytes'}
+             and type(cache['frame']) is int
+             and cache['frame'] == max(rows, key=lambda row: row[3])[0]
+             and all(startup.integer(cache[field], 0, 2**32 - 1)
+                     for field in ('layer_count', 'picture_count'))
+             and all(startup.integer(cache[field], 0, 2**40)
+                     for field in ('layer_bytes', 'picture_bytes')))
     return rows
 
 
