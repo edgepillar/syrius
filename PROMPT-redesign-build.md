@@ -5385,8 +5385,14 @@ longest reported raster takes 219.316 ms and starts before settlement.
 Three of the five reported rasters starting after settlement exceed
 16 ms. The disclosure settles at 307.302 ms. All five reported rasters
 starting after settlement exceed 16 ms, with a maximum of 83.566 ms.
-The measurements establish where the slow frames occur in the sampled
-windows. The responsible render work remains unqualified.
+The reader also separates the post-settlement rasters by their original
+build starts. The one page-change sample built before settlement reaches
+9.686 ms raster. Three of the four samples built after settlement exceed
+16 ms, reaching 70.596 ms. For Licences, the one sample built before
+settlement reaches 70.511 ms. All four built after settlement exceed
+16 ms, reaching 83.566 ms. The retained slow frames include builds that
+start after the observed transition settles. The responsible render work
+remains unqualified.
 
 #### Paired Windows cold launch timing at `f0b1a110`
 
