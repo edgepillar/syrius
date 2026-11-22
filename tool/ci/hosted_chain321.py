@@ -1759,6 +1759,10 @@ if __name__ == "__main__":
         _bind_runtime_module()
         if options.admission_only:
             requested = require_environment(options.backend, os.environ)
+            if os.environ.get('SYRIUS_READONLY_CATALOG_FAMILY') == INTERACTIVE_FRAME_PAIR_FAMILY:
+                from tool.ci import windows_launch_timing_pair
+                need(windows_launch_timing_pair.current_inputs_match(Path.cwd(), os.environ),
+                     'SOURCE_REFUSED')
             print(json.dumps(dict(schema=1, scope='hosted_lab_admission',
                 success=True, wallet_tour_requested=requested)))
             sys.exit(0)

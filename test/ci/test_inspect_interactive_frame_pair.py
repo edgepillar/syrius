@@ -57,7 +57,7 @@ def package(value, **options):
 
 
 class InteractiveFramePairTests(unittest.TestCase):
-    def test_current_entry_bytes_match_preparation_source_pin(self):
+    def test_entry_and_paired_inputs_use_the_pinned_sources(self):
         repo = Path(__file__).resolve().parents[2]
         entry = repo / pair.profile.ENTRY
         self.assertFalse(entry.is_symlink())
@@ -66,6 +66,26 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertLessEqual(len(data), 16384)
         self.assertEqual(hashlib.sha256(data).hexdigest(),
                          pair.profile.ENTRY_SHA256)
+
+        shared = pair.shared
+        parent = {'GITHUB_SHA': HEAD}
+        objects = [HEAD, *shared.P06_INPUT_OBJECTS.values()]
+        changed_runner = objects.copy()
+        changed_runner[1 + shared.SAME_INPUTS.index('windows')] = 'f' * 40
+        with mock.patch.object(shared.shutil, 'which', return_value='git'), \
+                mock.patch.object(shared.baseline, 'run_bounded') as run:
+            for actual, admitted in (
+                (objects, True),
+                (['f' * 40, *objects[1:]], False),
+                (changed_runner, False),
+            ):
+                run.return_value = SimpleNamespace(
+                    success=True, output=('\n'.join(actual) + '\n').encode('ascii'))
+                self.assertEqual(shared.current_inputs_match(repo, parent), admitted)
+            run.assert_called_with(
+                ['git', '--no-pager', 'rev-parse', 'HEAD',
+                 *('HEAD:' + path for path in shared.SAME_INPUTS)],
+                cwd=repo, env=parent, timeout=10, cap=1024)
 
     def project(self, value, **options):
         raw, item, lab = package(value, **options)

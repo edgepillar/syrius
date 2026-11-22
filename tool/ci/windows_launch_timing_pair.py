@@ -34,9 +34,17 @@ PATCH_SHA256 = '5ecb9e38a08f0c19639a9708eab6bed6c2a3b7c587a0afe435d6d99ea14e6752
 # The baseline continues using the original collector after current diagnostics change.
 BASELINE_COLLECTOR = Path('tool/ci/fixtures/p06-frame-window.dart.fixture')
 COLLECTOR_SHA256 = '0dc574f904ebf0233b9381d59f5a60d2ec89890f6092971f570d3e7ba24722ec'
-SAME_INPUTS = ('pubspec.yaml', 'pubspec.lock', 'patched_packages/reown_core-1.3.8',
-               'tool/generate_git_metadata.dart', 'windows', 'lib/utils/wallet_file.dart',
-               'lib/utils/constants.dart')
+# Objects from P06_SOURCE, in the order used by the retained comparison.
+P06_INPUT_OBJECTS = {
+    'pubspec.yaml': '5f1e5bc20cd9472163efe922fee49d74a5ca9037',
+    'pubspec.lock': '56f10c449aa1b4484d45a0169d2ac76ad8a9bdaf',
+    'patched_packages/reown_core-1.3.8': '93dec79ff3650e61a0eee55bcc7ef446df14dbdc',
+    'tool/generate_git_metadata.dart': 'ef2aa0a03cf1955db16bdafd78a4c691eb05fd48',
+    'windows': '007fa2a8f13d099a590c9f8424e6e759e75bbb74',
+    'lib/utils/wallet_file.dart': 'f28dbe0224a3b4cc92a1a51a39066bd6051a91c2',
+    'lib/utils/constants.dart': '6560e4694227bbb5d5fcd8f321fc7618225a7b3f',
+}
+SAME_INPUTS = tuple(P06_INPUT_OBJECTS)
 ORIGIN = 'https://github.com/edgepillar/syrius.git'
 
 
@@ -44,6 +52,18 @@ class PairRefused(Exception):
     def __init__(self, code):
         self.code = code if code in ('SPACE_REFUSED', 'TOOL_REFUSED') else 'INTERNAL_ERROR'
         super().__init__(self.code)
+
+
+def current_inputs_match(repo, parent):
+    """Check the dispatched HEAD and comparison inputs without a baseline fetch."""
+    git = shutil.which('git', path=parent.get('PATH', ''))
+    if git is None:
+        return False
+    outcome = baseline.run_bounded(
+        [git, '--no-pager', 'rev-parse', 'HEAD', *('HEAD:' + path for path in SAME_INPUTS)],
+        cwd=repo, env=parent, timeout=10, cap=1024)
+    expected = [parent.get('GITHUB_SHA'), *P06_INPUT_OBJECTS.values()]
+    return outcome.success and outcome.output.decode('ascii', errors='replace').splitlines() == expected
 
 
 def check_space(repo, storage):
