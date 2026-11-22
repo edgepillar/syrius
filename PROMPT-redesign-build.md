@@ -5873,6 +5873,16 @@ these metrics on the summary and its Unknown quorum value. The
 passes full and strict analysis, both theme cases in the non-chain test
 suite and generated-file verification.
 
+The [Start Swap capture at `fba14d52`](https://github.com/edgepillar/syrius/actions/runs/45010056810)
+opens and closes the draft through the original controls. The independent
+reader compares the fixed reference dialog, header and exterior regions
+and records two RGB samples beside and away from the shadow. In the
+retained `28f9c121` light pair, both exterior samples have RGB
+(160, 161, 160) in the capture. The reference reads (136, 137, 136)
+beside the dialog and (160, 161, 160) farther away. The same reader
+verifies the new capture when available without a second local transfer.
+The pixel measurements do not decide whole-image acceptance.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |

@@ -914,12 +914,13 @@ def home_pixel_comparisons(raw, reference_dir):
 
 
 def details_pixel_comparisons(raw, reference_dir, *, files=producer.details.FILES):
-    """Compare verified Details or Token draft pairs with their numbered references."""
+    """Compare verified Details and prepared draft pairs with their numbered references."""
     regions = dict(caption=(0, 0, 1280, 32), rail=(0, 32, 60, 780),
                    content=(60, 32, 1280, 724), status=(60, 724, 1280, 780))
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         for screen in _catalog_pair_names(files):
             crop = regions
+            samples = None
             if screen == '38-set-originals':
                 crop = _originals_pixel_regions(regions)
             elif screen == '25-token-new':
@@ -928,7 +929,19 @@ def details_pixel_comparisons(raw, reference_dir, *, files=producer.details.FILE
                     pane_header=(60, 32, 1280, 85),
                     steps_and_fee=(60, 85, 360, 342), preview=(60, 342, 360, 724),
                     form=(360, 85, 1280, 724))
-            yield _catalog_pixel_pair(zipped, reference_dir, screen, crop)
+            elif screen == '27-swap-start':
+                crop = dict(
+                    caption=regions['caption'],
+                    backdrop_top=(0, 32, 1280, 119),
+                    dialog_header=(400, 119, 880, 169),
+                    dialog_body=(400, 169, 880, 661),
+                    backdrop_left=(0, 119, 400, 661),
+                    backdrop_right=(880, 119, 1280, 661),
+                    backdrop_bottom=(0, 661, 1280, 780),
+                )
+                samples = dict(near_shadow=(892, 410), far_backdrop=(1080, 410))
+            yield _catalog_pixel_pair(zipped, reference_dir, screen, crop,
+                                      sample_points=samples)
 
 
 def settings_pixel_comparisons(raw, reference_dir, *, files=None):
@@ -1548,7 +1561,8 @@ def main(parent=None):
                     '37-set-licences-dark.png'} <= set(catalog['filenames']):
                 catalog['component_geometry'] = details_component_geometry(catalog_archive)
             if (schema in (producer.details.FAMILY_SCHEMAS['details'],
-                           producer.details.FAMILY_SCHEMAS['token-draft'])
+                           producer.details.FAMILY_SCHEMAS['token-draft'],
+                           producer.details.FAMILY_SCHEMAS['swap-start'])
                     and reference_head is not None):
                 need(digest(reference_head, 40))
                 catalog_comparisons = list(details_pixel_comparisons(
