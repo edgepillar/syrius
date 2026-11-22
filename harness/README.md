@@ -402,26 +402,29 @@ single retained archive. Dispatch it as a fresh run on `edgepillar/syrius`.
 | `windows_wallet_inspection` | `send-warn` | 08 |
 | `windows_wallet_inspection` | `details` | 10, 11, 22, 37, 38 |
 | `windows_wallet_inspection` | `send-confirm` | 07, 12 |
-| `windows_wallet_tour` | `seeded-states-visual` | 13, 23, 24 |
+| `windows_wallet_tour` | `seeded-states-visual` | 13, 24 |
 | `windows_wallet_tour` | `stake-draft` | 14 |
 | `windows_wallet_inspection` | `earn` | 15, 17 |
 | `windows_wallet_inspection` | `sentinel-fixture` | 18 |
 | `windows_wallet_tour` | `pillar-spawn` | 19 |
 | `windows_wallet_tour` | `pillar-done` | 20 |
+| `windows_wallet_tour` | `token-holder` | 23 |
 | `windows_wallet_inspection` | `token-draft` | 25 |
 | `windows_wallet_tour` | `swap-seeded` | 26 |
 | `windows_wallet_inspection` | `swap-start` | 27 |
 | `windows_wallet_tour` | `project-detail` | 28, 29 |
-| `windows_wallet_inspection` | `settings` | 30, 31, 32, 33, 34, 35, 36 |
+| `windows_wallet_inspection` | `node-verified` | 30, 35 |
+| `windows_wallet_inspection` | `settings-catalog` | 31, 32, 33, 34, 36 |
 | `windows_startup_probe` | `startup-catalog` | 39, 40, 41, 42, 43, 46 |
 | `entry_capture_smoke` | Ordinary entry | 44, 45 |
 | `windows_wallet_inspection` | `wallet-ready` | 47 |
 
-Select the filled Send draft from `send-confirm` for screen 07, the held
-token disclosure from `seeded-states-visual` for screen 23, the populated
-Swap list from `swap-seeded` for screen 26, and the populated Voting list
-from `project-detail` for screen 28. The `navigation` archive also retains
-the unprepared Send, Tokens, Swap and Accelerator screens.
+Use the prepared pairs from `send-confirm`, `token-holder`, `swap-seeded`,
+`project-detail` and `node-verified` for screens 07, 23, 26, 28, 30 and 35
+as assigned above. The `seeded-states-visual` archive also retains the issuer
+view for screen 23. The `navigation` archive retains unprepared Send,
+Tokens, Swap and Accelerator screens. The `settings-catalog` archive also
+retains the pre-check Node and ordinary Addresses views.
 Add `"catalog_family"` beside `"actual"` in each input manifest to select
 these prepared pairs automatically. Use the family from the verified
 producer and the full source SHA on every capture. With `--target-source`,
