@@ -6410,6 +6410,17 @@ the [Linux suite at `c9bb9228`](https://github.com/edgepillar/syrius/actions/run
 The [next Windows Swap capture](https://github.com/edgepillar/syrius/actions/runs/45034477627)
 uses the same application files at `7fc58054`.
 
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/45036104207/job/137250098766)
+verifies [two original PNGs](docs/review/source-7fc58054-swap-start-captures.json)
+and normal parent closure. In both themes the pane fills span [183, 296)
+and [318, 428), against [186, 295) and [317, 427) in the reference. The
+first pane starts one pixel closer to its reference, and the second ends
+one pixel closer. Right caption bounds relative to their panes are
+unchanged. At the 16-level RGB threshold, amount-pane differences fall
+from 7,647 to 6,898 dark and from 10,788 to 9,641 light. Whole-image
+differences fall from 53,567 to 50,943 dark and from 58,907 to 55,004 light.
+The atomic-frame flag and whole-image verdicts remain open.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since
