@@ -2515,6 +2515,17 @@ class HarnessAgent {
     if (route == null || routeNavigator == null) {
       throw const SeedRefused('seeded-surface-seam-owner-changed');
     }
+    final bool companionHoldings = balanceOnly &&
+        Platform.environment['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'] ==
+            'token-holder';
+    Element? holderRows;
+    if (companionHoldings) {
+      control.visitAncestorElements((Element ancestor) {
+        if (ancestor.widget.key != const Key('tokens_rows')) return true;
+        holderRows = ancestor;
+        return false;
+      });
+    }
     void current() {
       requireOwner();
       owner.requireCurrent();
@@ -2532,6 +2543,30 @@ class HarnessAgent {
             widget.token.tokenStandard.toString() != standard ||
             holder?.isCurrent != true) {
           throw const SeedRefused('seeded-surface-seam-owner-changed');
+        }
+        if (companionHoldings) {
+          final Set<String> held = <String>{};
+          void collect(Element element) {
+            final Widget item = element.widget;
+            if (item is TokenCard) {
+              if (item.key case ValueKey<String>(value: final String rowKey)
+                  when rowKey.startsWith('token_row_') &&
+                      (item.balance ?? BigInt.zero) > BigInt.zero) {
+                held.add(rowKey.substring('token_row_'.length));
+              }
+              return;
+            }
+            element.visitChildElements(collect);
+          }
+
+          final Element? rows = holderRows;
+          if (rows == null || !rows.mounted) {
+            throw const SeedRefused('seeded-surface-seam-owner-changed');
+          }
+          rows.visitChildElements(collect);
+          if (held.length != 3 || !held.contains(standard)) {
+            throw const SeedRefused('seeded-surface-seam-owner-changed');
+          }
         }
       }
     }

@@ -29,7 +29,9 @@ from tool.ci.windows_presentation_smoke import OutputDrain
 from tool.ci.loopback_relay import PAIRS as RELAY_PAIRS, TARGET as RELAY_TARGET, Relay
 from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch, read_first_client_fixture
 from tool.ci import lab_asset_progress, lab_failure_probe, send_warning_window
-from tool.ci.readonly_details_capture import PILLAR_DONE_FAMILY, PILLAR_SPAWN_FAMILY, RESTORED_FAMILIES
+from tool.ci.readonly_details_capture import (
+    PILLAR_DONE_FAMILY, PILLAR_SPAWN_FAMILY, RESTORED_FAMILIES, TOKEN_HOLDER_FAMILY,
+)
 from tools.devnet.lab import owned_lab as wire_policy
 from tools.devnet.lab.socket_transport import make_transports
 
@@ -397,6 +399,47 @@ def make_assets(commands, repo, source, assets, report):
                 pass
         report['asset_generation'] = progress
     need(progress['script_complete'], 'CONFIG_REFUSED')
+
+
+def holder_catalog_genesis(raw):
+    """Allocate the two companion holdings in the isolated token catalog."""
+    genesis = json.loads(raw)
+    need(genesis['ChainIdentifier'] == 321 and genesis['ExtraData'] == 'SYRIUS LAB',
+         'CONFIG_REFUSED')
+    tokens = genesis['TokenConfig']['Tokens']
+    need(len(tokens) == 2 and {token['tokenSymbol'] for token in tokens} == {'ZNN', 'QSR'},
+         'CONFIG_REFUSED')
+    fusions = genesis['PlasmaConfig']['Fusions']
+    owners = {fusion['owner'] for fusion in fusions}
+    need(len(fusions) == 3 and len(owners) == 1, 'CONFIG_REFUSED')
+    holder, = owners
+    blocks = {block['Address']: block['BalanceList']
+              for block in genesis['GenesisBlocks']['Blocks']}
+    need(len(blocks) == len(genesis['GenesisBlocks']['Blocks']) and holder in blocks,
+         'CONFIG_REFUSED')
+    members = owners | {fusion['beneficiaryAddress'] for fusion in fusions}
+    native_standards = {token['tokenStandard'] for token in tokens}
+    other = next((address for address, balances in blocks.items() if address not in members
+                  and all(balances.get(standard, 0) > 0 for standard in native_standards)), None)
+    need(other is not None, 'CONFIG_REFUSED')
+
+    # Fixed ZTS values derived from synthetic labels. The separately issued
+    # and transferred token still supplies the original expanded holder row.
+    units = 100_000_000
+    for standard, name, symbol, owner, held, total, maximum in (
+        ('zts1rzqgpnxzhnvqc9jnudvyp7', 'Lab Points', 'LPTS', holder,
+         40 * units, 1_000_000 * units, 10_000_000 * units),
+        ('zts19d76xks8c2fg7enc2yyauu', 'Lab Pool', 'LPOOL', other,
+         1_240_000_000, 5_210 * units, 5_210 * units),
+    ):
+        need(all(token['tokenStandard'] != standard for token in tokens)
+             and all(standard not in balances for balances in blocks.values()), 'CONFIG_REFUSED')
+        tokens.append(dict(owner=owner, tokenName=name, tokenSymbol=symbol, tokenDomain='',
+            totalSupply=total, maxSupply=maximum, decimals=8, isMintable=maximum > total,
+            isBurnable=False, isUtility=False, tokenStandard=standard))
+        blocks[holder][standard] = held
+        blocks[other][standard] = total - held
+    return (json.dumps(genesis, indent=4) + '\n').encode('utf-8')
 
 
 def prepare_producer_patch(commands, repo, source, report):
@@ -1322,6 +1365,7 @@ def run(backend):
     inspection = wallet_inspection_requested(backend, parent)
     interactive = parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == INTERACTIVE_FRAME_PAIR_FAMILY
     send_warning = inspection and readonly_catalog_family(parent) == send_warning_window.FAMILY
+    holder_catalog = wallet_tour and parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == TOKEN_HOLDER_FAMILY
     stack_debug = backend == "native" and parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") == "true"
     node_source = parent.get("SYRIUS_LAB_NODE_SOURCE", "original")
     node_sha, node_tree = selected_node_source(node_source)
@@ -1406,6 +1450,12 @@ def run(backend):
         make_assets(commands, repo, source, assets, report)
         genesis = regular(assets / "genesis.json")
         need(json.loads(genesis)["ChainIdentifier"] == 321, "CONFIG_REFUSED")
+        if holder_catalog:
+            base_genesis_sha256 = digest(genesis)
+            genesis = holder_catalog_genesis(genesis)
+            report['token_holder_genesis'] = dict(
+                base_genesis_sha256=base_genesis_sha256,
+                genesis_sha256=digest(genesis), companion_holdings=2)
         report["genesis_sha256"] = digest(genesis)
         configs, pins, keyfile_pins = {}, {}, {}
         report["keyfile_relocations"] = []

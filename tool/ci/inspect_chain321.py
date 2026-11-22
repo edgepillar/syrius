@@ -811,7 +811,7 @@ def holder_domain_label_bounds(png, columns, lines):
     return bounds
 
 
-def seeded_catalog_pixel_comparisons(raw, schema, references):
+def seeded_catalog_pixel_comparisons(raw, schema, references, *, companion_holdings=False):
     """Measure verified state captures against the tracked PNGs."""
     from .inspect_windows_qualification import pixel_comparison
 
@@ -850,7 +850,7 @@ def seeded_catalog_pixel_comparisons(raw, schema, references):
             comparison = pixel_comparison(actual, reference, regions,
                                           sample_points=samples.get(screen))
             need(comparison is not None)
-            if schema == catalog.TOKEN_HOLDER_SCHEMA:
+            if schema == catalog.TOKEN_HOLDER_SCHEMA and not companion_holdings:
                 columns = (318, 510)
                 actual_rows, reference_rows = (267, 290), (322, 345)
                 comparison['domain_label_ink'] = dict(
@@ -992,6 +992,17 @@ def main():
             family = (catalog.PROJECT_DETAIL_FAMILY if schema == catalog.PROJECT_DETAIL_SCHEMA
                       else next(name for name, value in catalog.RESTORED_FAMILIES.items()
                                 if schema == value))
+            holder_genesis = wallet_lab.get('token_holder_genesis')
+            if holder_genesis is not None:
+                need(family == catalog.TOKEN_HOLDER_FAMILY and type(holder_genesis) is dict
+                     and set(holder_genesis) == {'base_genesis_sha256', 'genesis_sha256', 'companion_holdings'}
+                     and type(holder_genesis['companion_holdings']) is int
+                     and holder_genesis['companion_holdings'] == 2
+                     and all(type(holder_genesis[key]) is str and re.fullmatch('[a-f0-9]{64}', holder_genesis[key])
+                             for key in ('base_genesis_sha256', 'genesis_sha256'))
+                     and holder_genesis['genesis_sha256'] == wallet_lab.get('genesis_sha256')
+                     and holder_genesis['base_genesis_sha256'] != holder_genesis['genesis_sha256'])
+                seeded['token_holder_genesis'] = holder_genesis
             seeded_index = dict(scope='retained_restored_catalog_image_index',
                 source_head=head, source_run_id=run_id, source_attempt=1,
                 catalog_family=family, artifact_id=item['id'],
@@ -1005,7 +1016,8 @@ def main():
                 PHASE = 'seeded_catalog_pixel_comparison'
                 need(re.fullmatch(r'[a-f0-9]{40}', reference_head) is not None)
                 references = Path(__file__).resolve().parents[2] / 'mockups/redesign/shots'
-                catalog_comparisons = seeded_catalog_pixel_comparisons(raw, schema, references)
+                catalog_comparisons = seeded_catalog_pixel_comparisons(
+                    raw, schema, references, companion_holdings=holder_genesis is not None)
             surface_seams = reopen.get('seeded_surface_seams')
             if surface_seams is not None:
                 from . import seeded_surface_seams

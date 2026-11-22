@@ -5513,6 +5513,15 @@ it 43 and 42 px to the left. Whole-image counts at the 16-level RGB
 threshold are 28,738 dark and 32,236 light. The capture shows one
 holding and the reference shows three. Whole-image verdicts remain open.
 
+The isolated `token-holder` catalog now allocates two companion holdings
+from its own chain-321 genesis. The captured account has one companion
+token under its own address and one under another funded fixture account.
+Their full supplies reconcile with their genesis allocations. The original
+Issue and ownership-transfer actions still supply the expanded row. The
+screen observer requires three distinct positive balance rows around the
+original readback. The admission checks and the pinned upstream genesis
+transformation pass in memory. Native capture remains pending.
+
 In the retained [Mint views at `a2efda99`](docs/review/source-a2efda99-seeded-captures.json),
 the amount and beneficiary field interiors read RGB (57, 59, 57) in dark
 and (245, 245, 245) in light. At the same coordinates the reference field

@@ -89,6 +89,35 @@ class ClosedCheckpointAuthorityTests(unittest.TestCase):
 
 
 class AssetGenerationTests(unittest.TestCase):
+    def test_holder_catalog_allocates_two_tokens_without_moving_native_balances(self):
+        original = dict(ChainIdentifier=321, ExtraData='SYRIUS LAB',
+            TokenConfig=dict(Tokens=[dict(tokenSymbol=symbol, tokenStandard=symbol)
+                                     for symbol in ('ZNN', 'QSR')]),
+            PlasmaConfig=dict(Fusions=[dict(owner='fixture-holder',
+                                             beneficiaryAddress='fixture-holder')] * 3),
+            GenesisBlocks=dict(Blocks=[
+                dict(Address='fixture-holder', BalanceList=dict(ZNN=100, QSR=200)),
+                dict(Address='fixture-other', BalanceList=dict(ZNN=300, QSR=400)),
+            ]))
+        raw = json.dumps(original).encode()
+        prepared = lab.holder_catalog_genesis(raw)
+        self.assertEqual(prepared, lab.holder_catalog_genesis(raw))
+        restored = json.loads(prepared)
+        tokens = restored['TokenConfig']['Tokens']
+        self.assertEqual(tokens[:2], original['TokenConfig']['Tokens'])
+        self.assertEqual([token['owner'] for token in tokens[2:]],
+                         ['fixture-holder', 'fixture-other'])
+        holder, other = [block['BalanceList'] for block in restored['GenesisBlocks']['Blocks']]
+        for token, expected in zip(tokens[2:], (4_000_000_000, 1_240_000_000)):
+            standard = token['tokenStandard']
+            self.assertEqual(holder[standard], expected)
+            self.assertEqual(holder.pop(standard) + other.pop(standard), token['totalSupply'])
+        del tokens[2:]
+        self.assertEqual(restored, original)
+        for invalid in (prepared, json.dumps(dict(original, ChainIdentifier=69)).encode()):
+            with self.assertRaises(lab.Failure):
+                lab.holder_catalog_genesis(invalid)
+
     def test_original_helper_success_keeps_the_same_timeout_and_complete_phase(self):
         raw = b''.join(lab.lab_asset_progress.PREFIX + phase.encode() + b'\n'
                        for phase in lab.lab_asset_progress.PHASES)
