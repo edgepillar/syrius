@@ -1,0 +1,28 @@
+{
+  "reviews": {
+    "41-lock-screen-dark": {
+      "actual_sha256": "39a410b326afe239539877af210b68b409fed84c44573087058d46a88326de8f",
+      "expected_sha256": "0423e793f7fc3a7dde6cef6cae3e34570aadbad6ddffeb74628ebf1cd8094d27",
+      "note": "The settled wordmark, card, masked password, Unlock action and footer links match the reference layout. Selected-wallet and live connection details reflect the isolated profile, and the gradient uses the approved brand colours.",
+      "reviewed_at": "2026-11-22T22:58:47Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "41-lock-screen-light": {
+      "actual_sha256": "bf480b7b1a7b256edcb231cf1f1c7fc783a5160d74d01deb48ab43842fe1d473",
+      "expected_sha256": "7ade4369fb44fd27dd79cde415d4c2616778a5015936dd032b10224a61d0e4fd",
+      "note": "The settled wordmark, password form, card shadow, primary action and lower links align. The isolated wallet and the live connection and update labels supply the differing status values.",
+      "reviewed_at": "2026-11-22T22:58:47Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "43-lock-pick-dark": {
+      "actual_sha256": "1fde882c19272920e46826e36720e21eb9afb88c8f5d28d48ae196d57aaa743d",
+      "expected_sha256": "c151673f42b879a452d17e929f8f3c562108986752233f528c759ff24fef5b6a",
+      "note": "The open picker, selected row, two other choices, final divider, Add a wallet row and disabled Unlock align. The isolated wallet identifiers and approved palette account for the visible variations.",
+      "reviewed_at": "2026-11-22T22:58:47Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    }
+  }
+}
