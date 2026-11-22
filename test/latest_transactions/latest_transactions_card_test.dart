@@ -14,6 +14,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/latest_trans
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/infinite_list/infinite_list_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/models/card/card_type.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/eye_toggle.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/skeleton.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
@@ -272,6 +273,23 @@ void main() {
     (WidgetTester tester) async {
       await mount(tester, const InfiniteListState<AccountBlock>.initial());
       expect(find.byType(ActivityRow), findsNothing);
+      final Finder bars = find.byType(Skeleton);
+      expect(bars, findsNWidgets(3));
+      final double activityWidth = tester.getSize(
+        find.byKey(const Key('home_activity')),
+      ).width;
+      const List<double> fractions = <double>[0.6, 0.4, 0.7];
+      for (int i = 0; i < fractions.length; i++) {
+        final Finder bar = bars.at(i);
+        expect(tester.getSize(bar).width,
+            closeTo((activityWidth - 32) * fractions[i], 0.01));
+        expect(tester.getSize(bar).height, 10);
+        expect(tester.widget<Skeleton>(bar).radius, 5);
+        if (i > 0) {
+          expect(tester.getTopLeft(bar).dy -
+              tester.getBottomLeft(bars.at(i - 1)).dy, 10);
+        }
+      }
       states.add(
         const InfiniteListState<AccountBlock>(
           status: InfiniteListStatus.failure,
@@ -283,6 +301,7 @@ void main() {
       await tester.pump();
       expect(find.text('None yet'), findsOneWidget);
       expect(find.byType(ActivityRow), findsNothing);
+      expect(bars, findsNothing);
     },
   );
 }

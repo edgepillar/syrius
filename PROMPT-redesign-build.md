@@ -5274,6 +5274,10 @@ The original Home panels, eye and palette are present. The prepared profile
 has sparse selected-address Activity, no rewards or token rows, and no
 pending send. The Go To backdrop shows live Activity where its reference
 shows a loading skeleton. The eight whole-image verdicts remain mismatches.
+The real Home Activity loading state now uses the reference's 60, 40 and
+70 percent bars, with 10 px height and spacing and 5 px corner radii.
+The existing shared sweep remains in use. A native capture of the live
+loading state with the palette open remains pending.
 
 The same reader verifies 29 samples of the original Home painter's
 drift progress, ranging from 0.176478 to 0.689075. The original rail width

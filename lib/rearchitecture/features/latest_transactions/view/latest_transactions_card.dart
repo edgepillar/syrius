@@ -83,7 +83,9 @@ class LatestTransactionsCard extends StatelessWidget {
                   _Header(address: owner),
                   Expanded(
                     child: switch (state.status) {
-                      InfiniteListStatus.initial => const _Loading(),
+                      InfiniteListStatus.initial => _Loading(
+                        home: type == CardType.latestTransactionsDashboard,
+                      ),
                       InfiniteListStatus.failure => Center(
                         child: Text(
                           context.l10n.activityUnavailable,
@@ -202,7 +204,9 @@ class _Header extends StatelessWidget {
 }
 
 class _Loading extends StatelessWidget {
-  const _Loading();
+  const _Loading({this.home = false});
+
+  final bool home;
 
   @override
   Widget build(BuildContext context) {
@@ -211,7 +215,28 @@ class _Loading extends StatelessWidget {
       alignment: Alignment.topCenter,
       child: Padding(
         padding: tokens.cardPadding,
-        child: SkeletonRows(gap: tokens.activityColumnGap),
+        child: home
+            ? const Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  FractionallySizedBox(
+                    widthFactor: 0.6,
+                    child: Skeleton(height: 10, radius: 5),
+                  ),
+                  SizedBox(height: 10),
+                  FractionallySizedBox(
+                    widthFactor: 0.4,
+                    child: Skeleton(height: 10, radius: 5),
+                  ),
+                  SizedBox(height: 10),
+                  FractionallySizedBox(
+                    widthFactor: 0.7,
+                    child: Skeleton(height: 10, radius: 5),
+                  ),
+                ],
+              )
+            : SkeletonRows(gap: tokens.activityColumnGap),
       ),
     );
   }
