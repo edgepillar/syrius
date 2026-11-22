@@ -5532,6 +5532,11 @@ at the 16-level RGB threshold. The table accounts for 19,676 and 21,525 of
 those counts. The new positive holding rows qualify their presence in the
 capture. Whole-image verdicts still need review.
 
+The [follow-up reader](https://github.com/edgepillar/syrius/actions/runs/45037580477/job/137254646424)
+measures one Domain label in the second row's detail band in each theme.
+The label starts at (376, 330) in dark and (375, 330) in light, one
+pixel right and two pixels lower than the respective reference positions.
+
 In the retained [Mint views at `a2efda99`](docs/review/source-a2efda99-seeded-captures.json),
 the amount and beneficiary field interiors read RGB (57, 59, 57) in dark
 and (245, 245, 245) in light. At the same coordinates the reference field
