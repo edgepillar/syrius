@@ -6235,6 +6235,24 @@ strip case exercises those two transitions. [Linux CI at `50efd7a4`](https://git
 passes the strip case, application analysis, strict analysis and generation
 verification. The full non-chain suite reports 5,135 passes and one skip.
 
+The [original paired Windows job](https://github.com/edgepillar/syrius/actions/runs/45066625029/job/137344124323)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45068896149/job/137351180273)
+verify both interactive samples at `50efd7a4`, two normal wallet exits,
+two normal entry exits and five normal node exits. Page change fails the
+16 ms raster and distinct-frame comparisons. Disclosure fails the build,
+raster and distinct-frame comparisons.
+
+| Interaction | Redesign / P06 frames | Redesign / P06 peak raster | Missing frame numbers |
+| --- | --- | --- | --- |
+| Page change | 12 / 20 | 203.306 / 124.934 ms | 34 / 24 |
+| Disclosure | 10 / 24 | 100.474 / 37.174 ms | 27 / 16 |
+
+After observed settlement, three of five page-change rasters and all
+three disclosure rasters exceed 16 ms. The idle peak on Node Settings
+is 95.258 ms versus 35.616 ms on P06. Before disclosure it is 60.904 ms
+versus 26.273 ms. Both redesigned idle peaks report zero engine-cached
+layers and pictures. V02 remains open.
+
 #### Paired Windows cold launch timing at `f0b1a110`
 
 The [native producer](https://github.com/edgepillar/syrius/actions/runs/44979865019/job/137077797577)
@@ -6791,10 +6809,21 @@ and the [Windows Release capture and inspection](https://github.com/edgepillar/s
 The clean Windows Debug and Release baseline stays pinned to
 `33b58506`. Visual matches, running motion and final acceptance remain open.
 
-The [fresh hosted baseline](https://github.com/edgepillar/syrius/actions/runs/45066387355/job/137343369960)
-targets `ce4fa96f`, the published source with the corrected Import
-numerals. It runs the clean Windows Debug and Release builds, Dart
-checks and DLL checks for that source.
+### Verified Windows baseline at `ce4fa96f` (2026-11-22)
+
+The [original Windows job](https://github.com/edgepillar/syrius/actions/runs/45066387355/job/137343369960)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45069282752/job/137352393070)
+verify all twelve baseline checks at the source with the corrected
+Import numerals. Debug builds in 141.812 seconds and Release in 194.547
+seconds, both with complete output and exit zero. The bundled, Debug
+and Release DLL digests agree and all three map and export checks pass.
+Root analysis records zero errors, zero warnings and 1,305 infos.
+The non-chain suite passes 5,135 tests with one skip. Generated
+localization is unchanged.
+
+The only application changes between this baseline and `a4e0a9d3` are
+the two sync indicator files. The checklists remain open for the current
+candidate's clean Windows baseline and the final visual and motion gates.
 
 ### Project Detail capture admission (2026-11-22)
 
@@ -6809,6 +6838,10 @@ against the 94 screen and theme keys. All 94 keys have an eligible
 first-parent capture record and none has an exact-source record at that
 revision. This inventory checks manifest metadata. PNG availability and
 whole-image verdicts still need exact-source evidence for V01.
+
+All 35 comparison tests pass in an owned scratch run. The
+[fresh startup catalog](https://github.com/edgepillar/syrius/actions/runs/45068563665)
+targets `a4e0a9d3` for the cold launch, handoff, Lock and quiz captures.
 
 ### End-state audit at `f421d5d1` (2026-11-22)
 
