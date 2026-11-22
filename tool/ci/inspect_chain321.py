@@ -1004,7 +1004,8 @@ def main():
         comparisons = interactive_result.pop('verified_comparisons', None)
         raster_overruns = interactive_result.pop('verified_raster_rank_overruns', {})
         diagnostics = interactive_result.pop('verified_window_diagnostics', None)
-        idle = interactive_result.pop('verified_idle_after_disclosure', {})
+        idle_before = interactive_result.pop('verified_idle_before_disclosure', {})
+        idle_after = interactive_result.pop('verified_idle_after_disclosure', {})
         gap_raster_states = {label: windows for label, windows in
                              interactive_result.pop('verified_gap_raster_states', {}).items()
                              if windows}
@@ -1036,13 +1037,14 @@ def main():
             title = (inspect_interactive_frame_pair.CURRENT_DIAGNOSTICS_TITLE if current_only
                      else inspect_interactive_frame_pair.DIAGNOSTICS_TITLE)
             print('::notice title=' + title + '::' + encoded_diagnostics, flush=True)
-            if idle:
-                idle_summary = dict(identity,
-                    scope='retained_interactive_idle_after_disclosure', windows=idle)
-                encoded_idle = json.dumps(idle_summary, sort_keys=True, separators=(',', ':'))
-                need(len(encoded_idle.encode('ascii')) <= 3800)
-                print('::notice title=Retained idle timing after disclosure::' + encoded_idle,
-                      flush=True)
+            for position, idle in (('before', idle_before), ('after', idle_after)):
+                if idle:
+                    idle_summary = dict(identity,
+                        scope=f'retained_interactive_idle_{position}_disclosure', windows=idle)
+                    encoded_idle = json.dumps(idle_summary, sort_keys=True, separators=(',', ':'))
+                    need(len(encoded_idle.encode('ascii')) <= 3800)
+                    print(f'::notice title=Retained idle timing {position} disclosure::'
+                          + encoded_idle, flush=True)
             if pointer:
                 pointer_summary = dict(identity,
                     scope='retained_interactive_pointer_timing', windows=pointer)

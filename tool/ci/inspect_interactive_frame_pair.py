@@ -119,7 +119,8 @@ def sample_receipts(value, *, allow_tap_release=False):
     observed = False
     if observation != {}:
         required = {'phase', 'lab_revalidations', 'entry', 'windows', 'success'}
-        optional = {'action_progress', 'preparation_failure', 'idle_after_disclosure'}
+        optional = {'action_progress', 'preparation_failure', 'idle_after_disclosure',
+                    'idle_before_disclosure'}
         if allow_tap_release:
             optional.update(('tap_release_us', 'disclosure_phases_us', 'page_settled_us',
                              'pointer_phases_us'))
@@ -169,6 +170,10 @@ def sample_receipts(value, *, allow_tap_release=False):
         archive.need(not windows or entry_closed and observation['lab_revalidations'] >= 2)
         archive.need(all(pair.actions.MIN_WINDOW_US <= window['windowUs']
                          <= pair.actions.MAX_WINDOW_US for window in windows.values()))
+        if 'idle_before_disclosure' in observation:
+            archive.need('page_change' in windows
+                and observation['phase'] in ('measure', 'verify_after', 'complete'))
+            _idle_summary(observation['idle_before_disclosure'])
         if 'idle_after_disclosure' in observation:
             archive.need(set(windows) == set(pair.WINDOWS)
                 and observation['phase'] in ('measure', 'verify_after', 'complete'))
@@ -476,6 +481,11 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         no_frame_number_gaps=None if comparisons is None else {
             name: value['no_frame_number_gaps'] for name,value in comparisons.items()},
         verified_comparisons=comparisons,
+        verified_idle_before_disclosure={
+            label: _idle_summary(samples[label]['observation']['idle_before_disclosure'])
+            for label in diagnostic_windows
+            if 'idle_before_disclosure' in samples[label]['observation']
+        },
         verified_idle_after_disclosure={
             label: _idle_summary(samples[label]['observation']['idle_after_disclosure'])
             for label in diagnostic_windows

@@ -113,7 +113,7 @@ def _measure(send, validate_window, sleep, selector, phase_field):
 
 
 def _observe_idle(send, validate_window, sleep):
-    """Read a separate quiet window from the same open Licences view."""
+    """Read a separate quiet window without sending pointer input."""
     sleep(1.0)
     try:
         reply = _original(send, cmd='stalls', frameWindow='begin')
@@ -134,7 +134,7 @@ def _observe_idle(send, validate_window, sleep):
 def observe_interactive(send, validate_window, *, size, windows=None,
                         tap_releases=None, disclosure_phases=None,
                         page_phases=None, pointer_phases=None, idle_sample=None,
-                        sleep=time.sleep):
+                        closed_idle_sample=None, sleep=time.sleep):
     """Observe Home to Settings and the closed About licences disclosure.
 
     The caller binds the owned release process and profile. A confirmed page
@@ -162,6 +162,11 @@ def observe_interactive(send, validate_window, *, size, windows=None,
     _target(_original(send, cmd='tap', key='settings_about'), key='settings_about')
     _wait(send, 'about_licences_toggle')
     _licences(send, gone=True)
+    if closed_idle_sample is not None:
+        _require(type(closed_idle_sample) is dict and not closed_idle_sample)
+        closed_idle_sample.update(_observe_idle(send, validate_window, sleep))
+        _wallet(send, 'settings', size, address)
+        _licences(send, gone=True)
     disclosure, disclosure_release, phases, disclosure_pointer = _measure(
         send, validate_window, sleep, {'key': 'about_licences_toggle'},
         'interactiveDisclosurePhasesUs')

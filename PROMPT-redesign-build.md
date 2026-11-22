@@ -5665,6 +5665,16 @@ and distinct comparisons. Disclosure fails build, raster and distinct.
 The data show that raster overruns continue after input and settlement.
 The cause of the additional raster cost remains undetermined.
 
+The paired controller also attempts an idle window on the closed About
+view before the original disclosure tap. It uses the same one-second
+settling delay and 1.1-second observation as the open view. The controller
+rechecks the current Settings wallet and the absence of visible Licences
+before the original tap. Both views produce separate, bounded diagnostics.
+The disclosure now begins after that additional interval. The 16 ms rule
+continues to compare the original page-change and disclosure windows. The
+local Python cases cover both receipt positions and their unavailable
+results. Native execution of the new closed-view diagnostic is pending.
+
 #### Paired Windows cold launch timing at `f0b1a110`
 
 The [native producer](https://github.com/edgepillar/syrius/actions/runs/44979865019/job/137077797577)
