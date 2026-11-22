@@ -190,7 +190,9 @@ class _TokensPageState extends State<_TokenSourcePage> {
                     text: '${held?.toString() ?? '-'} ',
                     children: <TextSpan>[
                       TextSpan(
-                        text: context.l10n.tokens.toLowerCase(),
+                        text: (held == 1
+                            ? context.l10n.tokensToken
+                            : context.l10n.tokens).toLowerCase(),
                         style: tokens.tokenStripCountUnitText,
                       ),
                     ],

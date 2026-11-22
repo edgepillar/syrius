@@ -461,7 +461,7 @@ void main() {
             .widget<Text>(find.byKey(const Key('tokens_figure_held')))
             .textSpan!
             .toPlainText(),
-        '1 tokens',
+        '1 token',
       );
       expect(
         tester.widget<Text>(find.byKey(const Key('tokens_figure_issued'))).data,

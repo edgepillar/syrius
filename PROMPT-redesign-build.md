@@ -4897,7 +4897,7 @@ and generated-file verification. Native observation remains open under V02.
 | Object assembles | `test/lottie/app_lottie_test.dart` covers original asset timing and endpoints. | Observe the confirmed states and permitted hover replays. |
 | The eye | `test/hidden_balances/hidden_balances_test.dart` checks both original eye segments. The [Windows Home reader at `d8ffb93d`](https://github.com/edgepillar/syrius/actions/runs/44963360005/job/137026831994) verifies 12 hide and 13 show observations, including intermediate frames in both directions and restoration of visible balances. The first observed endpoint arrives 535.741 ms and 551.840 ms after the respective tap replies. | Visually review the running eye and masked values. The sample offsets include observation delay. |
 | The bolt | `test/shell/strip/plasma_lifecycle_test.dart` checks repeat during generation and exit to idle. | Watch a complete loop while generation is in progress. |
-| Wrong password | The Lock catalog retains the wrong-password state after input. It can now retain up to 24 distinct consecutive horizontal offsets, in thousandths of a logical pixel, from the original password field's post-frame transform. The observer uses the existing rejected test input and the existing replay window. | Verify the native samples and visually review both shake cycles and the original well replay. Native qualification of the new observation is pending. |
+| Wrong password | The [Windows run at `e948ac40`](https://github.com/edgepillar/syrius/actions/runs/44966515178/job/137036664972) and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44967944061/job/137041111456) verify six Lock PNGs and the original frame-23 replay state in both themes. The observed field offsets alternate positive and negative twice in light, reaching +4.000 px and −2.828 px. Dark retains only a −2.828 px excursion. Both return to zero in the retained sequence. | Verify both dark cycles and visually review the shake and original well replay in the running wallet. The sampled offsets establish direction and displacement without measuring the authored 200 ms duration. |
 | Sync dot | `test/shell/strip/sync_pulse_test.dart` checks the 2.4 s pulse and the halo phase read from the original widget. The [Windows reader at `f1364c6a`](https://github.com/edgepillar/syrius/actions/runs/44934750545/job/136938840976) verifies intermediate phases, seven transparent observations and a 2.067810–2.492401 s interval between observed resumes. [Linux at the same source](https://github.com/edgepillar/syrius/actions/runs/44932698713/job/136932579266) passes both pulse cases, the full non-chain suite with 5,131 passes and one skip, and generated-file verification. | Visually review a full pulse in the running wallet. |
 | Skeleton sweep | `test/motion/skeleton_test.dart` checks one shared clock and the 1.4 s sweep. | Watch loading rows sweep in step. |
 
@@ -5083,7 +5083,12 @@ and normal required process closure. The
 to the 342,424-byte archive. At a 16-level RGB threshold, the dark and light
 comparisons differ at 31,291 and 32,850 pixels for Staking, 48,175 and
 49,570 for held Tokens, and 37,656 and 46,206 for Token Mine. The comparison
-includes the rendered fixture data. Whole-image verdicts remain open.
+includes the rendered fixture data. The Staking and Token Mine originals
+were viewed in both themes and their four whole-image differences are
+[recorded](docs/review/source-a2efda99-seeded-verdicts.json). The Token
+summary now uses its existing singular label for one held token. Fresh
+native captures are needed to verify that change. Held Tokens still needs
+the direct visual verdicts.
 
 The [natural launch producer at `f3a07338`](https://github.com/edgepillar/syrius/actions/runs/44964183241/job/137029373106)
 passes the handoff widget, ownership and diagnostics checks and builds
@@ -5491,7 +5496,7 @@ whole-image acceptance.
 | 10 | `receive-qr` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
 | 11 | `zap-form` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
 | 12 | `send-confirm` | X837 | X838 |
-| 13 | `staking` | X891 | X892 |
+| 13 | `staking` | X1285 | X1286 |
 | 14 | `staking-new` | X893 | X894 |
 | 15 | `staking-empty` | X895 | X896 |
 | 16 | `pillars` | X625 | X626 |
@@ -5502,7 +5507,7 @@ whole-image acceptance.
 | 21 | `plasma` | X845 | X846 |
 | 22 | `plasma-fuse` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
 | 23 | `tokens` | X849 | X850 |
-| 24 | `token-mine` | X899 | X900 |
+| 24 | `token-mine` | X1287 | X1288 |
 | 25 | `token-new` | X851 | X852 |
 | 26 | `swap-list` | X853 | X854 |
 | 27 | `swap-start` | X855 | X856 |
@@ -9073,3 +9078,7 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1282 | review | 2026-11-22T00:20Z | home-hidden in light at `d8ffb93d`. The green eye and masked balances and Activity amount are visible. The Activity contents and scope, blank rewards details and hero palette differ from the reference. [Review](docs/review/source-d8ffb93d-home-verdicts.json). |
 | X1283 | review | 2026-11-22T00:20Z | home-goto in dark at `d8ffb93d`. The centered palette, selected first result and keyboard footer follow the reference. The contact result and underlying blurred Activity and hero differ. [Review](docs/review/source-d8ffb93d-home-verdicts.json). |
 | X1284 | review | 2026-11-22T00:20Z | home-goto in light at `d8ffb93d`. The centered palette, selected first result and keyboard footer follow the reference. The contact result and underlying blurred Activity and hero differ. [Review](docs/review/source-d8ffb93d-home-verdicts.json). |
+| X1285 | review | 2026-11-22T00:47Z | 13-staking-dark at a2efda99. The table bands and locked-status chip follow the reference layout. The isolated session shows one stake and no collectable rewards, leaving fewer rows and a disabled Collect action. The summary figures and Collect action begin farther left than in the reference. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |
+| X1286 | review | 2026-11-22T00:47Z | 13-staking-light at a2efda99. The table bands and locked-status chip follow the reference layout. The isolated session shows one stake and no collectable rewards, leaving fewer rows and a disabled Collect action. The summary figures and Collect action begin farther left than in the reference. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |
+| X1287 | review | 2026-11-22T00:47Z | 24-token-mine-dark at a2efda99. The owned row is expanded and the Mint form is visible. The search field, copy and owner controls, extra footer actions and single issued-token row differ from the reference. The summary shows a plural unit with a count of one. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |
+| X1288 | review | 2026-11-22T00:47Z | 24-token-mine-light at a2efda99. The owned row is expanded and the Mint form is visible. The search field, copy and owner controls, extra footer actions and single issued-token row differ from the reference. The summary shows a plural unit with a count of one. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |

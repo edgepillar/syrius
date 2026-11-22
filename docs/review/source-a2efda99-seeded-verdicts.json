@@ -1,0 +1,36 @@
+{
+  "reviews": {
+    "13-staking-dark": {
+      "actual_sha256": "047e80a8f243add2467b6a9f6c90ec4cfbc8fb338785365668e8095fb4210d9b",
+      "expected_sha256": "0b905e21642c670d6dfe590535f272642d17286d9939079230d0d81a9ccdf1ca",
+      "note": "The table bands and locked-status chip follow the reference layout. The isolated session shows one stake and no collectable rewards, leaving fewer rows and a disabled Collect action. The summary figures and Collect action begin farther left than in the reference.",
+      "reviewed_at": "2026-11-22T00:47:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "13-staking-light": {
+      "actual_sha256": "698391093f73f79633a8485205e0d70c9056440f9a89d6a679dc23b311b1493c",
+      "expected_sha256": "83952c70a35db8822caeb6f924016d85b7ef2f202344cd62f47d0f825c77d2a2",
+      "note": "The table bands and locked-status chip follow the reference layout. The isolated session shows one stake and no collectable rewards, leaving fewer rows and a disabled Collect action. The summary figures and Collect action begin farther left than in the reference.",
+      "reviewed_at": "2026-11-22T00:47:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "24-token-mine-dark": {
+      "actual_sha256": "af6574fa53e352a4434b8e594df6b3f3c14e225f8e9b04015e70be6848ba7fdf",
+      "expected_sha256": "b0a1718c7eef3fdd83895a252879eb09723bbc1f0a6d6c6742ad64ad787b01fb",
+      "note": "The owned row is expanded and the Mint form is visible. The search field, copy and owner controls, extra footer actions and single issued-token row differ from the reference. The summary shows a plural unit with a count of one.",
+      "reviewed_at": "2026-11-22T00:47:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "24-token-mine-light": {
+      "actual_sha256": "680ff4b227d04b3011ed243cc16491a7ab5946e9cecd24a03871b53cd1e57ca7",
+      "expected_sha256": "b84fab5c7625d57d23e35e0c043d4f64bc93e1a505d43ff6dfe85e4725364698",
+      "note": "The owned row is expanded and the Mint form is visible. The search field, copy and owner controls, extra footer actions and single issued-token row differ from the reference. The summary shows a plural unit with a count of one.",
+      "reviewed_at": "2026-11-22T00:47:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
