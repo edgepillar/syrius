@@ -16,6 +16,22 @@
       "reviewer": "Codex",
       "verdict": "mismatch"
     },
+    "23-tokens-dark": {
+      "actual_sha256": "47af79228fd3fe3722ee2635389e7f03277dc205764b818526f004103935e044",
+      "expected_sha256": "c1ba43d7fd1ae7956a4e0c9d398e7d99341f7704a32fd5e60caa1e8f6cb3281e",
+      "note": "The Held filter, search field and table headings are visible. The original capture expands the issuing account's token and reveals an empty Mint form. The reference expands a token held by an account other than its issuer and presents holder actions. The reference branch remains unobserved.",
+      "reviewed_at": "2026-11-22T00:50:33Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "23-tokens-light": {
+      "actual_sha256": "9c682a7a9eea18491cf9f50e3f48f3dc0980880c738f1ea7ed61445a68f92646",
+      "expected_sha256": "c262b77173db8b229a6a1267fc2b01240635d38b251e1280658e377f91b03f8a",
+      "note": "The Held filter, search field and table headings are visible. The original capture expands the issuing account's token and reveals an empty Mint form. The reference expands a token held by an account other than its issuer and presents holder actions. The reference branch remains unobserved.",
+      "reviewed_at": "2026-11-22T00:50:33Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
     "24-token-mine-dark": {
       "actual_sha256": "af6574fa53e352a4434b8e594df6b3f3c14e225f8e9b04015e70be6848ba7fdf",
       "expected_sha256": "b0a1718c7eef3fdd83895a252879eb09723bbc1f0a6d6c6742ad64ad787b01fb",

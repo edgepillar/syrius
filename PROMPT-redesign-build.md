@@ -5083,12 +5083,15 @@ and normal required process closure. The
 to the 342,424-byte archive. At a 16-level RGB threshold, the dark and light
 comparisons differ at 31,291 and 32,850 pixels for Staking, 48,175 and
 49,570 for held Tokens, and 37,656 and 46,206 for Token Mine. The comparison
-includes the rendered fixture data. The Staking and Token Mine originals
-were viewed in both themes and their four whole-image differences are
-[recorded](docs/review/source-a2efda99-seeded-verdicts.json). The Token
-summary now uses its existing singular label for one held token. Fresh
-native captures are needed to verify that change. Held Tokens still needs
-the direct visual verdicts.
+includes the rendered fixture data. All six originals were viewed beside their
+references and their [differences](docs/review/source-a2efda99-seeded-verdicts.json)
+are recorded. The Staking figures use content-sized widths in both the product
+and reference. The short balances and absence of rewards account for the
+earlier Collect position. Both Held Tokens captures open the issuer's own
+token and show an empty Mint form. The reference opens a token held by an
+account other than its issuer. The reference branch still needs a prepared
+capture. The Token summary now uses its existing singular label for one
+held token. Fresh native captures are needed to verify that change.
 
 The [natural launch producer at `f3a07338`](https://github.com/edgepillar/syrius/actions/runs/44964183241/job/137029373106)
 passes the handoff widget, ownership and diagnostics checks and builds
@@ -5506,7 +5509,7 @@ whole-image acceptance.
 | 20 | `pillar-done` | X1152 | X1153 |
 | 21 | `plasma` | X845 | X846 |
 | 22 | `plasma-fuse` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
-| 23 | `tokens` | X849 | X850 |
+| 23 | `tokens` | X1289 | X1290 |
 | 24 | `token-mine` | X1287 | X1288 |
 | 25 | `token-new` | X851 | X852 |
 | 26 | `swap-list` | X853 | X854 |
@@ -9082,3 +9085,5 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1286 | review | 2026-11-22T00:47Z | 13-staking-light at a2efda99. The table bands and locked-status chip follow the reference layout. The isolated session shows one stake and no collectable rewards, leaving fewer rows and a disabled Collect action. The summary figures and Collect action begin farther left than in the reference. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |
 | X1287 | review | 2026-11-22T00:47Z | 24-token-mine-dark at a2efda99. The owned row is expanded and the Mint form is visible. The search field, copy and owner controls, extra footer actions and single issued-token row differ from the reference. The summary shows a plural unit with a count of one. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |
 | X1288 | review | 2026-11-22T00:47Z | 24-token-mine-light at a2efda99. The owned row is expanded and the Mint form is visible. The search field, copy and owner controls, extra footer actions and single issued-token row differ from the reference. The summary shows a plural unit with a count of one. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |
+| X1289 | review | 2026-11-22T00:50Z | 23-tokens-dark at a2efda99. The Held filter, search field and table headings are visible. The original capture expands the issuing account's token and reveals an empty Mint form. The reference expands a token held by an account other than its issuer and presents holder actions. The reference branch remains unobserved. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |
+| X1290 | review | 2026-11-22T00:50Z | 23-tokens-light at a2efda99. The Held filter, search field and table headings are visible. The original capture expands the issuing account's token and reveals an empty Mint form. The reference expands a token held by an account other than its issuer and presents holder actions. The reference branch remains unobserved. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |
