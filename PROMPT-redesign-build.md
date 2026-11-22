@@ -2910,6 +2910,15 @@ It retains late and settled frames and its original
 `LAUNCH_HANDOFF_FRAME_MISSED` failure. The two-theme natural motion
 observation and uninterrupted handoff timing remain open under V02.
 
+A [read of the six original `899933c0` samples](https://github.com/edgepillar/syrius/actions/runs/45025798166/job/137218429157)
+uses the same exterior pixels as the later reader. In both themes the
+early and late samples have equal RGB values on either side of the film.
+The later `affad2e9` samples show green on the left and blue on the right
+during the light handoff's early and late frames and the dark handoff's
+late frame. Both runs show those tints at settlement. This verifies the
+observed reveal colors at the named phases. The newer dark early frame
+and uninterrupted natural timing still need evidence.
+
 The [Windows startup catalog at `0404243e`](https://github.com/edgepillar/syrius/actions/runs/44845157102/job/136662941987)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44847199243/job/136669735118)
 verify all twelve original Launch, Launch Settle, Lock and Seed Quiz images.
