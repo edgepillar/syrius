@@ -5709,6 +5709,23 @@ The Windows runner, assets and locked dependencies match that baseline.
 
 Accepted scope is 77 of 80 rows. V01, V02 and V06 remain open.
 
+A read-only comparison inventory at `4901fde2` loads the 24 tracked capture
+indexes for all 94 screen/theme pairs. For each available prepared pair, the
+comparison tool verifies the newest locally retained capture on the
+candidate's first-parent history. It checks both image digests and sizes
+and reads the archive objects directly, without extracting files.
+Ninety-two pairs decode at 1280 by 780 across 26 archives and ten producer
+commits. All 92 remain marked as other-source. The two Accelerator Voting
+pairs are the remaining local gaps among the prepared catalogs. The
+historical navigation images exist but do not exercise the prepared
+Voting state.
+
+The [ordinary entry capture](https://github.com/edgepillar/syrius/actions/runs/45005114493)
+and [prepared Accelerator capture](https://github.com/edgepillar/syrius/actions/runs/45005215508)
+both target `4901fde2`. They cover four Welcome and Import images and four
+Voting and Project Detail images, respectively. Both runs are in progress.
+This inventory grants no current-source visual verdicts.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |
