@@ -229,6 +229,23 @@ class HolderLabelTests(unittest.TestCase):
             self.assertIsNone(inspect.holder_domain_label_bounds(
                 b'fixture', (318, 398), (267, 281)))
 
+        def bounds(png, _, band):
+            if png == b'reference':
+                return [375, 328, 416, 336]
+            if band in slots:
+                return [376, band[0] + 6, 417, band[0] + 14]
+            return None
+
+        slots = [(327, 350)]
+        with mock.patch.object(inspect, 'holder_domain_label_bounds', side_effect=bounds):
+            unique = inspect.holder_domain_ink(b'actual', b'reference', companion_holdings=True)
+            self.assertEqual(unique['actual_rows'], slots[0])
+            self.assertEqual(unique['actual'], [376, 333, 417, 341])
+            slots.append((387, 410))
+            ambiguous = inspect.holder_domain_ink(b'actual', b'reference', companion_holdings=True)
+            self.assertEqual(ambiguous['matched_rows'], slots)
+            self.assertIsNone(ambiguous['actual'])
+
 
 class InspectionTests(unittest.TestCase):
     def test_missing_or_incomplete_reopen_does_not_grant_live_ownership(self):

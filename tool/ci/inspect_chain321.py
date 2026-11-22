@@ -818,6 +818,27 @@ def holder_domain_label_bounds(png, columns, lines):
     return bounds
 
 
+def holder_domain_ink(actual, reference, *, companion_holdings):
+    columns = (318, 510)
+    reference_rows = (322, 345)
+    if companion_holdings:
+        # Each preceding closed TokenCard adds one 60 px ledger row.
+        row_bands = [(267 + 60 * index, 290 + 60 * index) for index in range(3)]
+        matches = [(band, ink) for band in row_bands
+                   if (ink := holder_domain_label_bounds(actual, columns, band)) is not None]
+        actual_rows, actual_ink = matches[0] if len(matches) == 1 else (None, None)
+    else:
+        actual_rows = (267, 290)
+        actual_ink = holder_domain_label_bounds(actual, columns, actual_rows)
+    evidence = dict(columns=columns, contrast=32, actual_rows=actual_rows,
+                    reference_rows=reference_rows, actual=actual_ink,
+                    reference=holder_domain_label_bounds(reference, columns, reference_rows))
+    if companion_holdings:
+        evidence['candidate_rows'] = row_bands
+        evidence['matched_rows'] = [band for band, _ in matches]
+    return evidence
+
+
 def seeded_catalog_pixel_comparisons(raw, schema, references, *, companion_holdings=False):
     """Measure verified state captures against the tracked PNGs."""
     from .inspect_windows_qualification import pixel_comparison
@@ -857,15 +878,9 @@ def seeded_catalog_pixel_comparisons(raw, schema, references, *, companion_holdi
             comparison = pixel_comparison(actual, reference, regions,
                                           sample_points=samples.get(screen))
             need(comparison is not None)
-            if schema == catalog.TOKEN_HOLDER_SCHEMA and not companion_holdings:
-                columns = (318, 510)
-                actual_rows, reference_rows = (267, 290), (322, 345)
-                comparison['domain_label_ink'] = dict(
-                    columns=columns, contrast=32, actual_rows=actual_rows,
-                    reference_rows=reference_rows,
-                    actual=holder_domain_label_bounds(actual, columns, actual_rows),
-                    reference=holder_domain_label_bounds(reference, columns, reference_rows),
-                )
+            if schema == catalog.TOKEN_HOLDER_SCHEMA:
+                comparison['domain_label_ink'] = holder_domain_ink(
+                    actual, reference, companion_holdings=companion_holdings)
             result = screens.setdefault(
                 screen, dict(screen=screen, region_bounds=regions, pairs={}))
             result['pairs'][theme_file.removesuffix('.png')] = comparison

@@ -5520,7 +5520,17 @@ Their full supplies reconcile with their genesis allocations. The original
 Issue and ownership-transfer actions still supply the expanded row. The
 screen observer requires three distinct positive balance rows around the
 original readback. The admission checks and the pinned upstream genesis
-transformation pass in memory. Native capture remains pending.
+transformation pass in memory.
+
+The [Windows run at `223e2872`](https://github.com/edgepillar/syrius/actions/runs/45035189354/job/137247260724)
+passes the three-row observation around its original readback. The
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/45037310577/job/137253818078)
+verifies the base and prepared genesis digests, normal parent closure and
+[both atomic PNGs](docs/review/source-223e2872-holder-captures.json).
+Whole-image differences remain at 30,822 pixels in dark and 33,662 in light
+at the 16-level RGB threshold. The table accounts for 19,676 and 21,525 of
+those counts. The new positive holding rows qualify their presence in the
+capture. Whole-image verdicts still need review.
 
 In the retained [Mint views at `a2efda99`](docs/review/source-a2efda99-seeded-captures.json),
 the amount and beneficiary field interiors read RGB (57, 59, 57) in dark
