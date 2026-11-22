@@ -5746,8 +5746,15 @@ four originals. The PNGs have the same digests as the earlier captures at
 `3f53f404`. Both Import connectors occupy the reference row and the largest
 drop-outline error is 6,497 ppm against a 25,000 ppm tolerance. Four
 [visual reviews](docs/review/source-4901fde2-entry-verdicts.json) retain the
-visible glow and type differences. The prepared Voting and Project Detail
-capture remains in progress.
+visible glow and type differences. Across both screens, the 30-by-30-pixel
+upper-left sample at (220, 235) averages RGB (24.9, 50.3, 35.0) in dark
+against (34.0, 48.9, 36.2), and (206.3, 231.3, 216.4) in light against
+(215.6, 229.5, 217.8). The [design rules](docs/design/RULES.md) select
+`#00D557` and `#0061EB`. The [entry renderer](lib/rearchitecture/utils/widgets/entry_field.dart)
+uses the approved theme tokens, while the [reference stylesheet](mockups/redesign/src/00-head.html)
+uses `#4fd166` and `#006aff`. The paired stills do not isolate the effect of
+the palette from the animated field phase. The prepared Voting and Project
+Detail capture remains in progress.
 
 ### Rows
 
