@@ -383,7 +383,6 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal>
         controller: _counterparty,
         fieldKey: const Key('swap_counterparty_input'),
         label: context.l10n.swapActionEnterAddress,
-        caption: context.l10n.swapListCounterparty,
         onChanged: !editable ? null : (_) => change(lease, () {}),
         onPickContact: !editable
             ? null
