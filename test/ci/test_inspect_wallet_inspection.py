@@ -166,13 +166,18 @@ class ReaderTests(unittest.TestCase):
         })
         pins = dict(source_head='a' * 40, reference_head='b' * 40,
                     source_run_id=123, archive_sha256='c' * 64)
-        pixel, geometry = reader.catalog_pixel_frames('Details', comparisons[-2], pins)
+        pixel, geometry, counterparty = reader.catalog_pixel_frames('Details', comparisons[-2], pins)
         self.assertEqual(pixel[0], 'Retained Details pixel comparison')
         self.assertNotIn('amount_pane_fill_rows', pixel[1])
         self.assertEqual(geometry[0], 'Retained Swap amount pane geometry')
         self.assertEqual(geometry[1]['amount_pane_fill_rows'],
                          comparisons[-2]['amount_pane_fill_rows'])
-        for _, frame in (pixel, geometry):
+        self.assertNotIn('counterparty_geometry', pixel[1])
+        self.assertEqual(counterparty[1]['counterparty_geometry']['themes'], {
+            theme: {label: {'fill_rows': None, 'trailing_ink': None}
+                    for label in ('actual', 'reference')} for theme in ('dark', 'light')
+        })
+        for _, frame in (pixel, geometry, counterparty):
             self.assertEqual({key: frame[key] for key in pins}, pins)
             self.assertLessEqual(len(reader.encode_notice(frame)), reader.MAX_NOTICE_BYTES)
         dark_fill = bytes((46, 48, 46))
@@ -222,6 +227,16 @@ class ReaderTests(unittest.TestCase):
             'themes': {theme: {'actual': 85000, 'reference': 85000}
                        for theme in ('dark', 'light')},
         })
+
+    def test_swap_counterparty_geometry_reads_the_tracked_reference(self):
+        shots = Path(__file__).resolve().parents[2] / 'mockups' / 'redesign' / 'shots'
+        for theme in ('dark', 'light'):
+            with self.subTest(theme=theme):
+                png = (shots / f'27-swap-start-{theme}.png').read_bytes()
+                self.assertEqual(reader._swap_counterparty_geometry(png, theme), {
+                    'fill_rows': [461, 501],
+                    'trailing_ink': [834, 476, 844, 488],
+                })
 
     def test_token_draft_comparison_partitions_the_matching_reference_frames(self):
         names = ('25-token-new-dark.png', '25-token-new-light.png')

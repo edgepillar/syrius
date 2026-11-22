@@ -891,6 +891,8 @@ SWAP_AMOUNT_FILL_TOLERANCE = 2
 SWAP_HEADER_COLUMNS = (610, 852)
 SWAP_HEADER_ROWS = (10, 34)
 SWAP_HEADER_CONTRAST = 32
+SWAP_COUNTERPARTY_SCAN = (812, 440, 520)
+SWAP_COUNTERPARTY_ICON_COLUMNS = (821, 852)
 
 
 def _swap_amount_pane_width(encoded, fill, row):
@@ -912,12 +914,12 @@ def _swap_amount_pane_width(encoded, fill, row):
     return None
 
 
-def _swap_header_ink(encoded, fill, pane_top):
-    """Measure right-hand caption ink relative to its own pane."""
-    left, _ = SWAP_HEADER_COLUMNS
-    top, bottom = SWAP_HEADER_ROWS
-    rows, channels = windows._png_crop(encoded, SWAP_HEADER_COLUMNS,
-                                       (pane_top + top, pane_top + bottom))
+def _swap_ink_bounds(encoded, fill, origin, columns, relative_rows):
+    """Measure contrasting ink inside the specified fill crop."""
+    left, _ = columns
+    top, bottom = relative_rows
+    rows, channels = windows._png_crop(encoded, columns,
+                                       (origin + top, origin + bottom))
     if not windows._opaque(rows, channels):
         return None
     points = [(left + offset // channels, y)
@@ -959,16 +961,34 @@ def _swap_amount_pane_rows(data, theme):
         for start, _ in near_fill:
             row = start + SWAP_AMOUNT_PANE_ROW_INSET
             fill_columns.append(dict(row=row, columns=_swap_amount_pane_width(encoded, fill, row)))
-            right_header_ink.append(_swap_header_ink(encoded, fill, start))
+            right_header_ink.append(_swap_ink_bounds(
+                encoded, fill, start, SWAP_HEADER_COLUMNS, SWAP_HEADER_ROWS))
     return dict(fill_rows=spans if len(spans) == 2 else None, solid_bands=solid,
                 near_fill_rows=near_fill, fill_columns=fill_columns,
                 right_header_ink=right_header_ink)
+
+
+def _swap_counterparty_geometry(data, theme):
+    """Measure the isolated field fill and trailing ink at the original resolution."""
+    column, top, bottom = SWAP_COUNTERPARTY_SCAN
+    fill = (46, 48, 46) if theme == 'dark' else (255, 255, 255)
+    bands = _image_vertical_bands(data, column, top, bottom)
+    spans = [(start, end) for (start, color), (end, _) in zip(bands, bands[1:])
+             if start > top and 34 <= end - start <= 56 and tuple(color[:3]) == fill]
+    if len(spans) != 1:
+        return dict(fill_rows=None, trailing_ink=None)
+    start, end = spans[0]
+    encoded = base64.b64encode(data).decode('ascii')
+    ink = _swap_ink_bounds(encoded, fill, 0, SWAP_COUNTERPARTY_ICON_COLUMNS,
+                           (start + 8, end - 8))
+    return dict(fill_rows=[start, end], trailing_ink=ink)
 
 
 def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points=None):
     pairs = {}
     map_gray = {}
     pane_rows = {}
+    counterparty = {}
     for theme in producer.THEMES:
         name = f'{screen}-{theme}.png'
         actual = zipped.read(name)
@@ -981,6 +1001,8 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
         if screen == '27-swap-start':
             pane_rows[theme] = dict(actual=_swap_amount_pane_rows(actual, theme),
                                     reference=_swap_amount_pane_rows(reference, theme))
+            counterparty[theme] = dict(actual=_swap_counterparty_geometry(actual, theme),
+                                       reference=_swap_counterparty_geometry(reference, theme))
     result = dict(screen=screen, region_bounds=regions, pairs=pairs)
     if map_gray:
         result['map_gray_deviation_milli'] = dict(bounds=ORIGINALS_MAP_CROP,
@@ -994,6 +1016,10 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
                                                    pane_relative_rows=SWAP_HEADER_ROWS,
                                                    contrast=SWAP_HEADER_CONTRAST),
                                                themes=pane_rows)
+        column, top, bottom = SWAP_COUNTERPARTY_SCAN
+        result['counterparty_geometry'] = dict(column=column, scan_rows=[top, bottom],
+                                               icon_columns=SWAP_COUNTERPARTY_ICON_COLUMNS,
+                                               themes=counterparty)
     return result
 
 
@@ -1490,6 +1516,7 @@ def emit(title, value):
 def catalog_pixel_frames(family, comparison, pins):
     overview = dict(comparison)
     panes = overview.pop('amount_pane_fill_rows', None)
+    counterparty = overview.pop('counterparty_geometry', None)
     frames = [(f'Retained {family} pixel comparison', dict(
         scope=f'retained_{family.lower()}_pixel_comparison', visual_matches=0,
         **pins, **overview))]
@@ -1497,6 +1524,10 @@ def catalog_pixel_frames(family, comparison, pins):
         frames.append(('Retained Swap amount pane geometry', dict(
             scope='retained_swap_amount_pane_geometry', screen=comparison['screen'],
             **pins, amount_pane_fill_rows=panes)))
+    if counterparty is not None:
+        frames.append(('Retained Swap counterparty geometry', dict(
+            scope='retained_swap_counterparty_geometry', screen=comparison['screen'],
+            **pins, counterparty_geometry=counterparty)))
     return frames
 
 
