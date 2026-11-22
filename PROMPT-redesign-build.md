@@ -2917,7 +2917,18 @@ The later `affad2e9` samples show green on the left and blue on the right
 during the light handoff's early and late frames and the dark handoff's
 late frame. Both runs show those tints at settlement. This verifies the
 observed reveal colors at the named phases. The newer dark early frame
-and uninterrupted natural timing still need evidence.
+and uninterrupted natural timing still need evidence at that source.
+
+The [Windows run at `d34092dc`](https://github.com/edgepillar/syrius/actions/runs/45025941906/job/137218875224)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/45026917423/job/137221854682)
+verify all six original early, late and settled PNGs and two normal exits
+per theme. Both runs first observe progress 0.391 and settle 390.625 ms
+after their first sample. At settlement, the film occupies the same
+418-by-118 rectangle as the Lock well in both themes. The two exterior
+sample points show green on the left and blue on the right at all three
+phases, including the dark early frame missing from the previous run.
+These observations cover the sampled handoff states. Continuous visual
+review and the separate 16 ms timing comparisons remain open.
 
 The [Windows startup catalog at `0404243e`](https://github.com/edgepillar/syrius/actions/runs/44845157102/job/136662941987)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44847199243/job/136669735118)
