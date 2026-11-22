@@ -7020,10 +7020,17 @@ reports a format failure during the copied-wallet seeded-capture phase,
 after the capture step reports complete. The
 [independent reader](https://github.com/edgepillar/syrius/actions/runs/45076856196)
 retains the original checkpoint refusal. No seeded PNG archive was
-published by that producer. The [seeded-states-visual run](https://github.com/edgepillar/syrius/actions/runs/45076969397)
-uses the existing visual-only producer for the Staking and Token Mine
-pairs at the same revision. The original V03 refusal evidence and this
-failed attempt keep their own scopes.
+published by that producer.
+
+The first [visual-only producer](https://github.com/edgepillar/syrius/actions/runs/45076969397/job/137376262166)
+stopped in the original owned lab before the copied wallet was admitted.
+Its Send confirmation check reported the exact block absent on all
+18 polls. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/45078434180/job/137380822819)
+retains the original entry failure and required actor cleanup. The run
+published the original tour and lab records and zero catalog PNGs. The
+underlying reason for the missing confirmation remains unknown. A single
+[fresh visual-only run](https://github.com/edgepillar/syrius/actions/runs/45078584910)
+uses the same code and acceptance checks for Staking and Token Mine.
 
 #### Home, New Token, New Stake and Pillar Done at `2c8fd31c`
 
