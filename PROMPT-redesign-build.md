@@ -4674,6 +4674,15 @@ The [third run](https://github.com/edgepillar/syrius/actions/runs/45023375106/jo
 passed admission with the corrected source and native stack diagnostics
 enabled. The first two runs produced no image evidence.
 
+The third run completed. Its
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/45025111539/job/137216369167)
+verifies all [14 Settings images](docs/review/source-773ab9b8-settings-captures.json)
+from the 817,421-byte archive and verifies normal parent closure. In both
+themes, Connect by link paints from columns 1115 through 1247 and rows
+115 through 140. These bounds agree with both references. The catalog
+retains the original empty connection state and zero accepted whole-image
+matches. The populated Disconnect actions still need native visual review.
+
 On the two About images, the seven Settings labels' ink bounds are within
 one pixel of their references at the 32-level RGB contrast threshold.
 All 28 bounding coordinates per theme were checked. Twenty-one agree exactly in dark
