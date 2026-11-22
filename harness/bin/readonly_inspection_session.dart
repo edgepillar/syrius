@@ -361,7 +361,12 @@ class ReadonlyInspectionSession {
       _refuse(ReadonlyInspectionReason.reply);
     }
     await Future<void>.delayed(spacing);
-    final List<Object>? after = await _readHomeFieldClock(timeout);
+    List<Object>? after = await _readHomeFieldClock(timeout);
+    if (after != null && minimizedEnd != null && after[1] == minimizedEnd[1]) {
+      // A restarted ticker may not have received an advancing frame yet.
+      await Future<void>.delayed(spacing);
+      after = await _readHomeFieldClock(timeout);
+    }
     await _requireScreenHome();
     return <String, Object?>{
       'before': before,

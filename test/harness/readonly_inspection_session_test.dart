@@ -3109,6 +3109,7 @@ void main() {
       <Object>[true, 10000],
       <Object>[false, 20000],
       <Object>[false, 20000],
+      <Object>[true, 20000],
       <Object>[true, 30000],
     ];
     final ReadonlyInspectionSession session = ReadonlyInspectionSession(

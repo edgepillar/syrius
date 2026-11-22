@@ -5772,6 +5772,17 @@ and [ordering follow-up](https://github.com/edgepillar/syrius/actions/runs/45034
 stopped at strict analysis before the wallet build. The [corrected job](https://github.com/edgepillar/syrius/actions/runs/45034436777)
 uses the updated 1,532-case preflight and awaits native evidence.
 
+The [independent Home reader](https://github.com/edgepillar/syrius/actions/runs/45036346159/job/137250839422)
+verifies [eight original captures](docs/review/source-7fc58054-home-captures.json)
+and normal actor closure at `7fc58054`. Go To again holds its clock at
+11,359,375 microseconds and advancing time resumes after dismissal. Both
+minimized samples report a stopped clock at 12,234,375 microseconds. The
+first sample after show reports a running clock at that same time. The
+minimize hold is observed and advancing time after show remains open.
+The observation now takes one additional read when the first sample
+after show still has the minimized time. It leaves frame scheduling with
+the original wallet.
+
 The [new index](docs/review/source-a43e90e3-home-captures.json) binds the
 same eight filenames to the 710,606-byte archive. Four sets of PNG and
 reference bytes match the earlier [reviewed pairs](docs/review/source-a43e90e3-home-verdicts.json).
