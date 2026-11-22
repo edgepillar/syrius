@@ -27,6 +27,13 @@ from tool.ci import readonly_details_capture as catalog
 API = "https://api.github.com/repos/edgepillar/syrius"
 MAX_ARCHIVE = 1024**2
 MAX_MANIFEST = 512 * 1024
+# The pinned upstream devnet fixture after the chain-321 rewrite, and after
+# the two companion token allocations used by the isolated holder catalog.
+TOKEN_HOLDER_GENESIS = {
+    'base_genesis_sha256': '83d11a5031073c8caaf55ff4eda47631e8c9d2a0b06776b64857fd4ddfd53ca7',
+    'genesis_sha256': '269ee3dea1238c1a8e6dfc1cef24a1cac94bb574329f16137ceec97b622f0f44',
+    'companion_holdings': 2,
+}
 DIAGNOSTICS = frozenset((
     "GO_VERSION_REQUIRED", "BUILD_TAGS_REQUIRED", "LOCKED_MODULE_CHANGED",
     "VCS_STATUS_REFUSED", "DEPENDENCY_TLS_REFUSED", "DEPENDENCY_NETWORK_FAILED",
@@ -995,13 +1002,9 @@ def main():
             holder_genesis = wallet_lab.get('token_holder_genesis')
             if holder_genesis is not None:
                 need(family == catalog.TOKEN_HOLDER_FAMILY and type(holder_genesis) is dict
-                     and set(holder_genesis) == {'base_genesis_sha256', 'genesis_sha256', 'companion_holdings'}
+                     and holder_genesis == TOKEN_HOLDER_GENESIS
                      and type(holder_genesis['companion_holdings']) is int
-                     and holder_genesis['companion_holdings'] == 2
-                     and all(type(holder_genesis[key]) is str and re.fullmatch('[a-f0-9]{64}', holder_genesis[key])
-                             for key in ('base_genesis_sha256', 'genesis_sha256'))
-                     and holder_genesis['genesis_sha256'] == wallet_lab.get('genesis_sha256')
-                     and holder_genesis['base_genesis_sha256'] != holder_genesis['genesis_sha256'])
+                     and holder_genesis['genesis_sha256'] == wallet_lab.get('genesis_sha256'))
                 seeded['token_holder_genesis'] = holder_genesis
             seeded_index = dict(scope='retained_restored_catalog_image_index',
                 source_head=head, source_run_id=run_id, source_attempt=1,
