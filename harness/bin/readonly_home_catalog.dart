@@ -251,7 +251,7 @@ Future<Map<String, Object>> captureReadonlyHomeGotoStates({
       throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
     }
   }
-  return <String, Object>{
+  final Map<String, Object> receipt = <String, Object>{
     'schema': 4, 'scope': 'readonly_native_home_catalog_capture',
     'screens': const <String>[
       'home-rest', 'home-open', 'home-hidden', 'home-goto',
@@ -265,6 +265,12 @@ Future<Map<String, Object>> captureReadonlyHomeGotoStates({
     if (observeMotion) 'segment_motion': await session.observeSegmentMotion(),
     if (observeMotion) 'eye_motion': await session.observeEyeMotion(),
   };
+  if (observeMotion) {
+    final Map<String, Object?>? minimize =
+        await session.observeHomeFieldMinimize();
+    if (minimize != null) receipt['home_field_minimize'] = minimize;
+  }
+  return receipt;
 }
 
 /// Captures the two Bell states through the already bound Home session.

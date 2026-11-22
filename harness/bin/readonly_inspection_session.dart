@@ -270,24 +270,25 @@ class ReadonlyInspectionSession {
     return samples;
   }
 
+  Future<List<Object>?> _readHomeFieldClock(Duration timeout) async {
+    final Map<String, dynamic> reply = await send(
+      <String, Object?>{'cmd': readonlySyncPulseCommand}, timeout,
+    );
+    final Object? clock = reply['homeFieldClock'];
+    if (reply['ok'] != true) _refuse(ReadonlyInspectionReason.reply);
+    if (clock == null) return null;
+    if (clock case [final bool running, final int us]
+        when us >= 0 && us <= 1800000000) {
+      return <Object>[running, us];
+    }
+    _refuse(ReadonlyInspectionReason.reply);
+  }
+
   /// Reads the same Home field around one normal Go To open and dismissal.
   Future<Map<String, Object?>> observeHomeFieldOcclusion() async {
     await _requireScreenHome();
     const Duration timeout = Duration(seconds: 5);
     const Duration spacing = Duration(milliseconds: 250);
-    Future<List<Object>?> read() async {
-      final Map<String, dynamic> reply = await send(
-        <String, Object?>{'cmd': readonlySyncPulseCommand}, timeout,
-      );
-      final Object? clock = reply['homeFieldClock'];
-      if (reply['ok'] != true) _refuse(ReadonlyInspectionReason.reply);
-      if (clock == null) return null;
-      if (clock case [final bool running, final int us]
-          when us >= 0 && us <= 1800000000) {
-        return <Object>[running, us];
-      }
-      _refuse(ReadonlyInspectionReason.reply);
-    }
 
     Future<void> key(String value) async {
       final Map<String, dynamic> reply = await send(
@@ -306,21 +307,67 @@ class ReadonlyInspectionSession {
       if (reply['ok'] != true) _refuse(ReadonlyInspectionReason.reply);
     }
 
-    final List<Object>? before = await read();
+    final List<Object>? before = await _readHomeFieldClock(timeout);
     await key('ctrl+k');
     await waitForPalette(gone: false);
     await Future<void>.delayed(spacing);
-    final List<Object>? coveredStart = await read();
+    final List<Object>? coveredStart = await _readHomeFieldClock(timeout);
     await Future<void>.delayed(spacing);
-    final List<Object>? coveredEnd = await read();
+    final List<Object>? coveredEnd = await _readHomeFieldClock(timeout);
     await key('escape');
     await waitForPalette(gone: true);
     await Future<void>.delayed(spacing);
-    final List<Object>? after = await read();
+    final List<Object>? after = await _readHomeFieldClock(timeout);
     await _requireScreenHome();
     return <String, Object?>{
       'before': before, 'covered_start': coveredStart,
       'covered_end': coveredEnd, 'after': after,
+    };
+  }
+
+  /// Observes the original Home clock through native minimize and show.
+  Future<Map<String, Object?>?> observeHomeFieldMinimize() async {
+    await _requireScreenHome();
+    const Duration timeout = Duration(seconds: 5);
+    const Duration spacing = Duration(milliseconds: 250);
+
+    Future<Map<String, dynamic>> window([String? action]) async {
+      final Map<String, dynamic> reply = await send(
+        <String, Object?>{'cmd': 'window', if (action != null) 'do': action},
+        timeout,
+      );
+      if (reply['ok'] != true) _refuse(ReadonlyInspectionReason.reply);
+      return reply;
+    }
+
+    final Map<String, dynamic> initial = await window();
+    final Object? bounds = initial['window'];
+    if (initial['minimized'] != false || initial['maximized'] != false ||
+        bounds is! List || bounds.length != 4 ||
+        bounds.any((dynamic value) => value is! num || !value.isFinite)) {
+      return null;
+    }
+    final List<Object>? before = await _readHomeFieldClock(timeout);
+    if (before == null) return null;
+    final Map<String, dynamic> minimized = await window('minimize');
+    if (minimized['minimized'] != true) _refuse(ReadonlyInspectionReason.reply);
+    await Future<void>.delayed(spacing);
+    final List<Object>? minimizedStart = await _readHomeFieldClock(timeout);
+    await Future<void>.delayed(spacing);
+    final List<Object>? minimizedEnd = await _readHomeFieldClock(timeout);
+    final Map<String, dynamic> shown = await window('show');
+    if (shown['minimized'] != false || shown['maximized'] != false ||
+        jsonEncode(shown['window']) != jsonEncode(bounds)) {
+      _refuse(ReadonlyInspectionReason.reply);
+    }
+    await Future<void>.delayed(spacing);
+    final List<Object>? after = await _readHomeFieldClock(timeout);
+    await _requireScreenHome();
+    return <String, Object?>{
+      'before': before,
+      'minimized_start': minimizedStart,
+      'minimized_end': minimizedEnd,
+      'after': after,
     };
   }
 

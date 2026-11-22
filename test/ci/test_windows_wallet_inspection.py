@@ -673,6 +673,14 @@ class InspectionTests(unittest.TestCase):
                         dict(occlusion, address='private')):
             with self.subTest(home_field_occlusion=invalid), self.assertRaises(inspection.Refused):
                 inspection.home_capture_receipt(dict(catalog, home_field_occlusion=invalid))
+        minimized = dict(before=[True, 10_000], minimized_start=[False, 20_000],
+            minimized_end=[False, 20_000], after=[True, 30_000])
+        self.assertIs(inspection.home_capture_receipt(
+            dict(catalog, home_field_minimize=minimized))['home_field_minimize'], minimized)
+        for invalid in (occlusion, dict(minimized, minimized_end=[False, 0]),
+                        dict(minimized, window=[100, 120, 1280, 780])):
+            with self.subTest(home_field_minimize=invalid), self.assertRaises(inspection.Refused):
+                inspection.home_capture_receipt(dict(catalog, home_field_minimize=invalid))
         settled = dict(before=[0, 50_000], samples=[
             [300_000, 50_000, 60_000, 50_000, 60_000],
         ])

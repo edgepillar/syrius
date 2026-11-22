@@ -162,7 +162,7 @@ def home_capture_receipt(value):
     expected.update(dict(screen='home-rest', number=1) if schema == 1
                     else dict(screens=list(home_catalog_screens(schema))))
     optional = {'rail_motion', 'sync_pulse', 'segment_motion', 'eye_motion',
-        'home_field_occlusion'} if schema == 4 else set()
+        'home_field_occlusion', 'home_field_minimize'} if schema == 4 else set()
     need(set(expected) <= set(value) <= set(expected) | optional
          and all(type(value[k]) is type(v) and value[k] == v
                  for k, v in expected.items()), 'CAPTURE_REFUSED')
@@ -172,6 +172,8 @@ def home_capture_receipt(value):
         sync_pulse_receipt(value['sync_pulse'])
     if 'home_field_occlusion' in value:
         home_field_occlusion_receipt(value['home_field_occlusion'])
+    if 'home_field_minimize' in value:
+        home_field_occlusion_receipt(value['home_field_minimize'], minimized=True)
     if 'segment_motion' in value:
         segment_motion_receipt(value['segment_motion'])
     if 'eye_motion' in value:
@@ -222,9 +224,10 @@ def segment_motion_receipt(value):
     return value
 
 
-def home_field_occlusion_receipt(value):
-    """Admit only finite clock observations around the original Go To route."""
-    phases = ('before', 'covered_start', 'covered_end', 'after')
+def home_field_occlusion_receipt(value, *, minimized=False):
+    """Admit finite clock observations with mode-specific phase labels."""
+    middle = ('minimized_start', 'minimized_end') if minimized else ('covered_start', 'covered_end')
+    phases = ('before', *middle, 'after')
     need(type(value) is dict and set(value) == set(phases), 'CAPTURE_REFUSED')
     need(all(row is None or (type(row) is list and len(row) == 2
         and type(row[0]) is bool and type(row[1]) is int

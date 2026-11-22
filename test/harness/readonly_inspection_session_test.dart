@@ -3103,6 +3103,47 @@ void main() {
     }
   });
 
+  test('Home field reads preserve the original window through minimize', () async {
+    final List<Object?> actions = <Object?>[];
+    final List<List<Object>> clock = <List<Object>>[
+      <Object>[true, 10000],
+      <Object>[false, 20000],
+      <Object>[false, 20000],
+      <Object>[true, 30000],
+    ];
+    final ReadonlyInspectionSession session = ReadonlyInspectionSession(
+      processId: 44,
+      original: (Map<String, Object?> command, Duration timeout) async {
+        final Object? action = command['do'];
+        if (command['cmd'] == 'window') actions.add(action);
+        return <String, dynamic>{
+          ..._reply(wallet: true),
+          if (command['cmd'] == 'state') ...<String, dynamic>{
+            'walletUnlocked': true, 'walletInitCompleted': true,
+            'tab': 'dashboard', 'tabs': <String>['dashboard'],
+            'locale': 'en', 'direction': 'ltr',
+          },
+          if (command['cmd'] == 'window') ...<String, dynamic>{
+            'window': <int>[100, 120, 1280, 780],
+            'minimized': action == 'minimize',
+            'maximized': false,
+          },
+          if (command['cmd'] == 'readonly-sync-pulse')
+            'homeFieldClock': clock.removeAt(0),
+        };
+      },
+    );
+    await session.bindWallet();
+    expect(await session.observeHomeFieldMinimize(), <String, Object>{
+      'before': <Object>[true, 10000],
+      'minimized_start': <Object>[false, 20000],
+      'minimized_end': <Object>[false, 20000],
+      'after': <Object>[true, 30000],
+    });
+    expect(actions, <Object?>[null, 'minimize', 'show']);
+    expect(clock, isEmpty);
+  });
+
   test('motion sampling restores the segment choices and Home balances',
       () async {
     String tab = 'dashboard';

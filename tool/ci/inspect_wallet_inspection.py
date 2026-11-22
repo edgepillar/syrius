@@ -535,13 +535,17 @@ def unpack_home_catalog(raw, expected_sha, expected_size, head, tree, run_id,
                 maximum_progress_millionths=max(drift),
                 observed_change=min(drift) < max(drift),
             )
-    if 'home_field_occlusion' in value['capture']:
+    for field, scope, prefix in (
+            ('home_field_occlusion', 'original_home_field_go_to', 'covered'),
+            ('home_field_minimize', 'original_home_field_minimize', 'minimized')):
+        if field not in value['capture']:
+            continue
         observed = producer.home_field_occlusion_receipt(
-            value['capture']['home_field_occlusion'])
-        start, end = observed['covered_start'], observed['covered_end']
+            value['capture'][field], minimized=prefix == 'minimized')
+        start, end = observed[prefix + '_start'], observed[prefix + '_end']
         before, after = observed['before'], observed['after']
-        result['home_field_occlusion'] = dict(
-            scope='original_home_field_go_to', samples=observed,
+        result[field] = dict(
+            scope=scope, samples=observed,
             held_observed=(start is not None and end is not None
                 and not start[0] and not end[0] and start[1] == end[1]),
             resume_observed=(before is not None and before[0] and end is not None
@@ -1853,6 +1857,7 @@ def main(parent=None):
         eye_motion = catalog.pop('eye_motion', None)
         home_field_drift = catalog.pop('home_field_drift', None)
         home_field_occlusion = catalog.pop('home_field_occlusion', None)
+        home_field_minimize = catalog.pop('home_field_minimize', None)
         emit(f'Retained readonly {family} catalog', catalog)
         sampling_scope = summary.get('sampling_scope')
         capture_family = (sampling_scope.removesuffix('-only')
@@ -1880,6 +1885,10 @@ def main(parent=None):
             emit('Retained readonly Home field under Go To', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
                 manifest_sha256=catalog['manifest_sha256'], **home_field_occlusion))
+        if home_field_minimize is not None:
+            emit('Retained readonly Home field through minimize', dict(source_head=head,
+                source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
+                manifest_sha256=catalog['manifest_sha256'], **home_field_minimize))
         if segment_motion is not None:
             emit('Retained readonly segment motion', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
