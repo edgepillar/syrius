@@ -7212,7 +7212,11 @@ pointer input. The [follow-up Linux run at `2dc269d0`](https://github.com/edgepi
 retains a second timeout. The next test passes the actual request,
 decoration and size from the Copy boundary directly to the production
 rasterizer in the real async zone, where it can verify the PNG rather
-than waiting for a clipboard callback. Runtime verification remains open.
+than waiting for a clipboard callback. The [Linux run at `de957d89`](https://github.com/edgepillar/syrius/actions/runs/45085060855/job/137401685388)
+passes application and strict analysis, the Ready surface checks and
+5,136 non-chain unit and widget cases with one skip. Generated-file
+verification also passes. Native clipboard and Save verification
+remains open.
 
 The [Windows launch-motion run at `2dc269d0`](https://github.com/edgepillar/syrius/actions/runs/45083913390)
 and [independent reader job](https://github.com/edgepillar/syrius/actions/runs/45085573549/job/137403287687)
