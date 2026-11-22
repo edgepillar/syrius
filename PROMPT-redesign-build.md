@@ -5640,6 +5640,14 @@ frames built after the observed settlement exceed 16 ms raster, reaching
 59.069 ms. The one disclosure frame built after settlement reaches 59.330 ms
 raster. V02 remains open.
 
+The paired route now attempts a separate idle window after both original
+interactions, with the same Licences view open in each owned wallet. It
+waits one second after the existing scroll and collects for 1.1 seconds
+without input. The independent reader validates the original frames and
+reports the slow raster count and longest raster for each build in a
+separate record. A missing window is recorded as unavailable. The
+original two comparisons still decide the 16 ms gate.
+
 #### Paired Windows cold launch timing at `f0b1a110`
 
 The [native producer](https://github.com/edgepillar/syrius/actions/runs/44979865019/job/137077797577)

@@ -57,6 +57,25 @@ def split_phase_diagnostics(windows):
     return phases
 
 
+def _idle_summary(sample):
+    """Verify the optional static-view interval without changing the paired gate."""
+    archive.need(type(sample) is dict)
+    if sample == {'status': 'unavailable'}:
+        return sample
+    archive.need(set(sample) == {'status', 'window'} and sample['status'] == 'measured')
+    window = sample['window']
+    try:
+        frames = pair.shared.launch.frame_timing_rows(window)
+    except pair.shared.launch.startup.Failure:
+        raise archive.Refused('INSPECTION_REFUSED') from None
+    archive.need(pair.actions.IDLE_WINDOW_US <= window['windowUs'] <= pair.actions.MAX_WINDOW_US
+        and len(frames) <= pair.actions.MAX_IDLE_FRAMES)
+    return dict(status='measured', window_us=window['windowUs'], frames=len(frames),
+        frame_number_gaps=frames[-1][0] + 1 - len(frames),
+        longest_raster_us=max(frame[3] for frame in frames),
+        slow_rasters=sum(frame[3] > pair.shared.FRAME_BUDGET_US for frame in frames))
+
+
 def sample_receipts(value, *, allow_tap_release=False):
     if value == {}:
         return {}, False, False, False
@@ -100,7 +119,7 @@ def sample_receipts(value, *, allow_tap_release=False):
     observed = False
     if observation != {}:
         required = {'phase', 'lab_revalidations', 'entry', 'windows', 'success'}
-        optional = {'action_progress', 'preparation_failure'}
+        optional = {'action_progress', 'preparation_failure', 'idle_after_disclosure'}
         if allow_tap_release:
             optional.update(('tap_release_us', 'disclosure_phases_us', 'page_settled_us',
                              'pointer_phases_us'))
@@ -150,6 +169,10 @@ def sample_receipts(value, *, allow_tap_release=False):
         archive.need(not windows or entry_closed and observation['lab_revalidations'] >= 2)
         archive.need(all(pair.actions.MIN_WINDOW_US <= window['windowUs']
                          <= pair.actions.MAX_WINDOW_US for window in windows.values()))
+        if 'idle_after_disclosure' in observation:
+            archive.need(set(windows) == set(pair.WINDOWS)
+                and observation['phase'] in ('measure', 'verify_after', 'complete'))
+            _idle_summary(observation['idle_after_disclosure'])
         if 'tap_release_us' in observation:
             releases = observation['tap_release_us']
             archive.need(type(releases) is dict and 0 < len(releases) <= len(windows)
@@ -453,6 +476,11 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         no_frame_number_gaps=None if comparisons is None else {
             name: value['no_frame_number_gaps'] for name,value in comparisons.items()},
         verified_comparisons=comparisons,
+        verified_idle_after_disclosure={
+            label: _idle_summary(samples[label]['observation']['idle_after_disclosure'])
+            for label in diagnostic_windows
+            if 'idle_after_disclosure' in samples[label]['observation']
+        },
         verified_raster_rank_overruns=raster_overruns,
         verified_gap_raster_states={
             label: {name: _frame_gaps_by_previous_raster(window)

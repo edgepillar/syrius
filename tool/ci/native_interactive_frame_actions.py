@@ -2,11 +2,14 @@
 
 import time
 
+from . import windows_startup_probe as startup
 from .windows_launch_catalog import PEAK_BUILD_WAIT_FIELD, RASTER_STARTS_FIELD, TIMING_FIELDS
 
 
 MIN_WINDOW_US = 600_000
 MAX_WINDOW_US = 2_500_000
+IDLE_WINDOW_US = 1_100_000
+MAX_IDLE_FRAMES = 96
 
 
 class FrameActionRefused(RuntimeError):
@@ -109,9 +112,28 @@ def _measure(send, validate_window, sleep, selector, phase_field):
     return window, release, phases, pointers
 
 
+def _observe_idle(send, validate_window, sleep):
+    """Read a separate quiet window from the same open Licences view."""
+    sleep(1.0)
+    try:
+        reply = _original(send, cmd='stalls', frameWindow='begin')
+        _require(reply.get('frameWindow') == 'collecting')
+        sleep(IDLE_WINDOW_US / 1_000_000)
+        window, _ = _end(send, validate_window, None)
+        _require(IDLE_WINDOW_US <= window['windowUs'] <= MAX_WINDOW_US
+                 and len(window['frames']) <= MAX_IDLE_FRAMES)
+        return dict(status='measured', window=window)
+    except startup.Failure as error:
+        if error.code != 'COMMAND_FAILED':
+            raise
+    except FrameActionRefused:
+        pass
+    return dict(status='unavailable')
+
+
 def observe_interactive(send, validate_window, *, size, windows=None,
                         tap_releases=None, disclosure_phases=None,
-                        page_phases=None, pointer_phases=None,
+                        page_phases=None, pointer_phases=None, idle_sample=None,
                         sleep=time.sleep):
     """Observe Home to Settings and the closed About licences disclosure.
 
@@ -160,4 +182,9 @@ def observe_interactive(send, validate_window, *, size, windows=None,
     if (disclosure_phases is not None and valid_disclosure_phases(
             phases, disclosure_release, disclosure['windowUs'])):
         disclosure_phases.update(phases)
+    if idle_sample is not None:
+        _require(type(idle_sample) is dict and not idle_sample)
+        idle_sample.update(_observe_idle(send, validate_window, sleep))
+        _wallet(send, 'settings', size, address)
+        _licences(send)
     return windows
