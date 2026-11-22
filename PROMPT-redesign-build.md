@@ -7215,11 +7215,11 @@ rasterizer in the real async zone, where it can verify the PNG rather
 than waiting for a clipboard callback. Runtime verification remains open.
 
 The [Windows launch-motion run at `2dc269d0`](https://github.com/edgepillar/syrius/actions/runs/45083913390)
-retains late and settled captures in both themes and reports
-`LAUNCH_HANDOFF_FRAME_MISSED` for the early slot in each theme. The first
-observed progress was 0.662 in dark and 0.558 in light. Both preparation
-and capture processes closed normally in each theme. Early-frame
-qualification remains open.
+and [independent reader job](https://github.com/edgepillar/syrius/actions/runs/45085573549/job/137403287687)
+verify four late and settled captures and two normal process exits in each
+theme. Both themes report `LAUNCH_HANDOFF_FRAME_MISSED` for the early slot.
+The first observed progress was 0.662 in dark and 0.558 in light.
+Early-frame qualification remains open.
 
 #### Navigation captures at `2c8fd31c`
 
@@ -11395,8 +11395,8 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1383 | review | 2026-11-22 | `18-sentinels-light` at `2c8fd31c`. The ownership strip and Sentinels table are visible. The fixture shows one immediately revocable sentinel and empty rewards. The reference includes multiple statuses, revocability dates and a populated reward summary. [Review](docs/review/source-2c8fd31c-remaining-screen-verdicts.json). |
 | X1384 | review | 2026-11-22 | `19-spawn-dark` at `2c8fd31c`. The Name and addresses step is populated and Continue is enabled. The producer field adds a Clear control and the name guidance and available-balance rows differ. [Review](docs/review/source-2c8fd31c-remaining-screen-verdicts.json). |
 | X1385 | review | 2026-11-22 | `19-spawn-light` at `2c8fd31c`. The Name and addresses step is populated and Continue is enabled. The producer field adds a Clear control and the name guidance and available-balance rows differ. [Review](docs/review/source-2c8fd31c-remaining-screen-verdicts.json). |
-| X1386 | review | 2026-11-22 | `20-pillar-done-dark` at `2c8fd31c`. The completed steps, original Pillar artwork and success actions align. The return control has a visible keyboard-focus mark above the header that the reference frame lacks. [Review](docs/review/source-2c8fd31c-remaining-screen-verdicts.json). |
-| X1387 | review | 2026-11-22 | `20-pillar-done-light` at `2c8fd31c`. The completed steps, original Pillar artwork and success actions align. The return control has a visible keyboard-focus mark above the header that the reference frame lacks. [Review](docs/review/source-2c8fd31c-remaining-screen-verdicts.json). |
+| X1386 | review | 2026-11-22 | `20-pillar-done-dark` at `2c8fd31c`. The completed steps, original Pillar artwork and success actions align. A thin green line is visible above the header beside the return control. The reference does not show the line. [Review](docs/review/source-2c8fd31c-remaining-screen-verdicts.json). |
+| X1387 | review | 2026-11-22 | `20-pillar-done-light` at `2c8fd31c`. The completed steps, original Pillar artwork and success actions align. A thin green line is visible above the header beside the return control. The reference does not show the line. [Review](docs/review/source-2c8fd31c-remaining-screen-verdicts.json). |
 | X1388 | review | 2026-11-22 | `23-tokens-dark` at `2c8fd31c`. Three holdings and the expanded non-owner controls are visible. The selected row and ownership presentation differ, and the Domain group starts to the left of the reference. [Review](docs/review/source-2c8fd31c-remaining-screen-verdicts.json). |
 | X1389 | review | 2026-11-22 | `23-tokens-light` at `2c8fd31c`. Three holdings and the expanded non-owner controls are visible. The selected row and ownership presentation differ, and the Domain group starts to the left of the reference. [Review](docs/review/source-2c8fd31c-remaining-screen-verdicts.json). |
 | X1390 | review | 2026-11-22 | `26-swap-list-dark` at `2c8fd31c`. The prepared open swap expands and shows the waiting notice. The completed and reclaimed history rows, receive amount and populated rate and expiry information in the reference are absent. [Review](docs/review/source-2c8fd31c-remaining-screen-verdicts.json). |

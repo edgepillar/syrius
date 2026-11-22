@@ -115,7 +115,7 @@
     "20-pillar-done-dark": {
       "actual_sha256": "11d87d697a80d54e778875bc8e93ec44131f4ef12c656cb697b5d4b7de95556b",
       "expected_sha256": "416488f57fec82eaa8dba3b2fcf5e4275b0838555e91a55895ac04ea6112d9ae",
-      "note": "The completed steps, original Pillar artwork and success actions align. The return control has a visible keyboard-focus mark above the header that the reference frame lacks.",
+      "note": "The completed steps, original Pillar artwork and success actions align. A thin green line is visible above the header beside the return control. The reference does not show the line.",
       "reviewed_at": "2026-11-22T23:48:44Z",
       "reviewer": "Codex",
       "verdict": "mismatch"
@@ -123,7 +123,7 @@
     "20-pillar-done-light": {
       "actual_sha256": "abd680cce35cd006a394929e020d8784c913cba77c2263f14b83c23010b87dde",
       "expected_sha256": "4e7adf75c1c3b758e8a9f4b8ebaef829d7cc0908ff88706a818bf569457360ba",
-      "note": "The completed steps, original Pillar artwork and success actions align. The return control has a visible keyboard-focus mark above the header that the reference frame lacks.",
+      "note": "The completed steps, original Pillar artwork and success actions align. A thin green line is visible above the header beside the return control. The reference does not show the line.",
       "reviewed_at": "2026-11-22T23:48:44Z",
       "reviewer": "Codex",
       "verdict": "mismatch"
