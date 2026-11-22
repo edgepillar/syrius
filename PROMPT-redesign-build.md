@@ -6328,8 +6328,15 @@ against (34.0, 48.9, 36.2), and (206.3, 231.3, 216.4) in light against
 (215.6, 229.5, 217.8). The [design rules](docs/design/RULES.md) select
 `#00D557` and `#0061EB`. The [entry renderer](lib/rearchitecture/utils/widgets/entry_field.dart)
 uses the approved theme tokens, while the [reference stylesheet](mockups/redesign/src/00-head.html)
-uses `#4fd166` and `#006aff`. The paired stills do not isolate the effect of
-the palette from the animated field phase.
+uses `#4fd166` and `#006aff`. For the Import pair, the comparison reader
+now estimates each reference pixel as the opaque background plus three
+effective sRGB light contributions. It holds those weights fixed and
+substitutes the approved green and blue. The mean absolute channel
+difference in the same crop falls from 3.940 to 0.631 in dark and from
+4.176 to 0.815 in light. The original PNGs and whole-image comparisons
+retain their digests and verdicts. The estimate covers the sampled
+backdrop. The animation phase and the residual type differences still
+require their own evidence.
 
 The same reader finds zero horizontal and vertical shift for each of the
 three Welcome action labels in both themes within its two-pixel search.

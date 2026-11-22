@@ -271,6 +271,19 @@ class WindowsQualificationTests(unittest.TestCase):
                 action_chevrons=0, action_right_edge=0, footer=0, outside_crops=0)))
         self.assertIsNone(inspect.entry_pixel_comparison(actual, pixels(), 'welcome'))
 
+        for theme, observed, original in (
+            ('dark', (24, 47, 33), (32, 46, 34)),
+            ('light', (211, 232, 219), (219, 232, 221)),
+        ):
+            with self.subTest(backdrop=theme):
+                a_rows = [bytes(observed) * 250] * 265
+                r_rows = [bytes(original) * 250] * 265
+                estimate = inspect.import_backdrop_palette_model(a_rows, 3, r_rows, 3, theme)
+                self.assertEqual(estimate['status'], 'estimated')
+                self.assertEqual(estimate['crop'], [220, 235, 250, 265])
+                self.assertEqual(estimate['raw_mean_rgb_error_milli'], 3333)
+                self.assertLess(estimate['modeled_mean_rgb_error_milli'], 700)
+
         handoff = pixels(520, 744, opaque=True, welcome_rows=(14, 240), welcome_x=300)
         with mock.patch.object(Path, 'open', return_value=io.BytesIO(pixels(opaque=True))):
             comparison = inspect.startup_pixel_comparison('40-launch-settle-dark.png', handoff)

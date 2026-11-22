@@ -606,14 +606,59 @@ def welcome_action_alignment(actual, a_channels, expected, e_channels):
     return results
 
 
-def entry_pixel_comparison(data, reference, screen):
+def import_backdrop_palette_model(actual, a_channels, reference, r_channels, theme):
+    """Recolor the same modeled light contributions in an unobstructed crop."""
+    base = {'dark': (27, 28, 27), 'light': (234, 234, 234)}[theme]
+    original = ((79, 209, 102), (0, 106, 255), (249, 22, 144))
+    approved = ((0, 213, 87), (0, 97, 235), original[2])
+    offsets = [tuple(channel - bg for channel, bg in zip(color, base))
+               for color in original]
+
+    def dot(a, b):
+        return sum(x * y for x, y in zip(a, b))
+
+    def cross(a, b):
+        return (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
+                a[0] * b[1] - a[1] * b[0])
+
+    green, blue, pink = offsets
+    cofactors = (cross(blue, pink), cross(pink, green), cross(green, blue))
+    determinant = dot(green, cofactors[0])
+    # Each observed pixel is the base plus three effective light contributions.
+    # Keep those weights and replace just the authored green and blue values.
+    shifts = [tuple(after - before for before, after in zip(old, new))
+              for old, new in zip(original, approved)]
+    channel_shifts = tuple(zip(*shifts))
+    left, top, right, bottom = 220, 235, 250, 265
+    raw_error = modeled_error = 0.0
+    for y in range(top, bottom):
+        for x in range(left, right):
+            a, r = x * a_channels, x * r_channels
+            observed = actual[y][a:a + 3]
+            sample = reference[y][r:r + 3]
+            centered = tuple(value - bg for value, bg in zip(sample, base))
+            weights = [dot(centered, cofactor) / determinant for cofactor in cofactors]
+            if any(weight < -0.03 for weight in weights) or sum(weights) > 0.38:
+                return dict(status='unavailable', crop=[left, top, right, bottom])
+            model = [value + dot(weights, channel)
+                     for value, channel in zip(sample, channel_shifts)]
+            raw_error += sum(abs(a - b) for a, b in zip(observed, sample))
+            modeled_error += sum(abs(a - b) for a, b in zip(observed, model))
+    count = 3 * (right - left) * (bottom - top)
+    return dict(status='estimated', crop=[left, top, right, bottom],
+                raw_mean_rgb_error_milli=round(1000 * raw_error / count),
+                modeled_mean_rgb_error_milli=round(1000 * modeled_error / count))
+
+
+def entry_pixel_comparison(data, reference, screen, *, theme=None):
     """Summarize original RGB differences without writing or grading an image."""
     return pixel_comparison(data, reference, ENTRY_REGIONS[screen],
-                            align_welcome_actions=screen == 'welcome')
+                            align_welcome_actions=screen == 'welcome',
+                            import_background_theme=theme if screen == 'import' else None)
 
 
 def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
-                     sample_points=None):
+                     sample_points=None, import_background_theme=None):
     """Compare original opaque client images in the supplied fixed regions."""
     def decode(png):
         encoded = base64.b64encode(png).decode('ascii')
@@ -649,6 +694,9 @@ def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
                 mean_rgb_error_milli=round(1000 * total / (1280 * 780 * 3)))
     if align_welcome_actions:
         result['action_alignment'] = welcome_action_alignment(actual, a_channels, expected, e_channels)
+    if import_background_theme is not None:
+        result['backdrop_palette_model'] = import_backdrop_palette_model(
+            actual, a_channels, expected, e_channels, import_background_theme)
     if sample_points is not None:
         result['sample_rgb'] = {
             name: dict(point=[x, y],
@@ -747,7 +795,8 @@ def entry_archive(raw, expected_sha, expected_size, head, tree, run_id, *, refer
                 with (reference_dir / ENTRY_REFERENCE_FILES[name]).open('rb') as stream:
                     reference = stream.read(entry.MAX_PNG + 1)
                 archive.need(0 < len(reference) <= entry.MAX_PNG)
-                comparisons[name] = entry_pixel_comparison(data, reference, name.split('-', 1)[0])
+                screen, theme = name.removesuffix('.png').split('-', 1)
+                comparisons[name] = entry_pixel_comparison(data, reference, screen, theme=theme)
     summary.update(archive_sha256=archive.sha(raw), manifest_sha256=archive.sha(manifest),
                    import_connector_coverage=connector, import_drop_border_coverage=drop,
                    welcome_text_bounds=welcome, entry_pixel_comparisons=comparisons,
@@ -869,6 +918,12 @@ def inspect_entry(client, text, head, tree, run_id, job, *, item=None):
                 scope='retained_welcome_action_alignment', **binding,
                 reference_head=reference_head, minimum_red_contrast=WELCOME_ACTION_INK_CONTRAST,
                 alignment=alignment))
+        palette = {name: value.pop('backdrop_palette_model') for name, value in comparisons.items()
+                   if value is not None and 'backdrop_palette_model' in value}
+        if palette:
+            emit('Hosted Import backdrop palette model', dict(
+                scope='retained_import_backdrop_palette_model', **binding,
+                reference_head=reference_head, estimates=palette))
         emit('Hosted entry pixel comparisons', dict(
             scope='retained_entry_pixel_comparisons', **binding,
             reference_head=reference_head, size=[1280, 780],
