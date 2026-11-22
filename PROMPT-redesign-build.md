@@ -5606,6 +5606,14 @@ settlement reaches 70.511 ms. All four built after settlement exceed
 start after the observed transition settles. The responsible render work
 remains unqualified.
 
+The Node settings page now keeps its rendered widget tree when a focus
+notification leaves its visibility and input authority unchanged. The
+existing Node geometry tests exercise an unrelated ancestor traversal
+change in both themes and directions. The [Linux run at `9fb78c7e`](https://github.com/edgepillar/syrius/actions/runs/45001404872/job/137143529920)
+passes analysis, 5,132 non-chain tests with one skip, and generated-file
+verification. The [paired Windows measurement](https://github.com/edgepillar/syrius/actions/runs/45001405132/job/137143531660)
+is required to establish its timing effect.
+
 #### Paired Windows cold launch timing at `f0b1a110`
 
 The [native producer](https://github.com/edgepillar/syrius/actions/runs/44979865019/job/137077797577)
