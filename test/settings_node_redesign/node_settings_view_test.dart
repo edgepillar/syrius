@@ -226,6 +226,20 @@ void main() {
           radio.innerRadius?.resolve(<WidgetState>{WidgetState.selected}),
           3.5,
         );
+        final Finder page = find.byKey(const Key('node_settings_page'));
+        final Widget renderedPage = tester.widget(page);
+        final FocusNode ancestor = Focus.of(
+          tester.element(find.byType(NodeSettingsView)),
+          scopeOk: true,
+        );
+        final bool skipTraversal = ancestor.skipTraversal;
+        try {
+          ancestor.skipTraversal = !skipTraversal;
+          await tester.pump();
+          expect(tester.widget(page), same(renderedPage));
+        } finally {
+          ancestor.skipTraversal = skipTraversal;
+        }
         expect(source.calls, <String>['network:$embeddedNode']);
         expect(tester.takeException(), isNull);
         await close(tester);

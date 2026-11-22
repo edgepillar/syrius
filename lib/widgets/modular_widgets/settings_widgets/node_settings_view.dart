@@ -173,8 +173,9 @@ class _NodeSettingsViewState extends State<NodeSettingsView>
   void _focusVisibilityChanged() {
     if (!mounted) return;
     _watchFocusSources();
+    final bool wasVisible = _visible;
     _synchronizeVisibility();
-    _changed();
+    if (_visible != wasVisible) _changed();
   }
 
   void _synchronizeVisibility({bool refresh = false}) {
