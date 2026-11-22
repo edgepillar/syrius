@@ -5070,7 +5070,7 @@ different painted drift positions.
 | Row opens into a page | The existing Accelerator list test samples the original container halfway through both 300 ms transitions and checks the expanded and contracted geometry against the forward and reverse curves. Project Detail has a separate view test. The [full Linux validation at `029cb64e`](https://github.com/edgepillar/syrius/actions/runs/45008841144/job/137166385614) passes both tests, analysis and generation. | Observe both directions in the running Windows wallet. |
 | Panel and dialogs | `test/shell/bell/bell_panel_test.dart` and `test/frost/dialog_motion_test.dart` cover motion and interaction. | Open Bell, Go To and a confirmation, and view each motion. |
 | Toast | `test/toast/event_toast_test.dart` checks the 300 ms rise, 5 s drain and hover pause. | View the rise, pause and resumed drain. |
-| Zap arrived | `test/home/zap_sparks_test.dart` covers the 28 sparks and once-per-event behavior. The [Home Zap catalog](docs/review/source-28f9c121-captures.json) captures the original message card with sample data. | Observe the separate spark animation using an explicitly identified preview or admitted isolated event. |
+| Zap arrived | `test/home/zap_sparks_test.dart` covers the 28 sparks and once-per-event behavior. The [Windows preview reader](https://github.com/edgepillar/syrius/actions/runs/45048983272/job/137289697266) verifies 40 active paint phases in each theme and the terminal paint. | The native paint receipt covers the isolated preview. Review of the moving pixels and live receipt qualification remain open. |
 | Object assembles | `test/lottie/app_lottie_test.dart` covers original asset timing and endpoints. | Observe the confirmed states and permitted hover replays. |
 | The eye | `test/hidden_balances/hidden_balances_test.dart` checks both original eye segments. The [Windows Home reader at `d8ffb93d`](https://github.com/edgepillar/syrius/actions/runs/44963360005/job/137026831994) verifies 12 hide and 13 show observations, including intermediate frames in both directions and restoration of visible balances. The first observed endpoint arrives 535.741 ms and 551.840 ms after the respective tap replies. | Visually review the running eye and masked values. The sample offsets include observation delay. |
 | The bolt | `test/shell/strip/plasma_lifecycle_test.dart` checks repeat during generation and exit to idle. | Watch a complete loop while generation is in progress. |
@@ -5097,6 +5097,18 @@ Earlier message-only archives retain their original scope. The new
 observation covers preview rendering. Live receipt admission, durable
 once-per-hash behavior and the paired P06 timing comparison keep their
 own acceptance requirements.
+
+The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45047245145/job/137284414922)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45048983272/job/137289697266)
+verify the original receipt at `099721b5`, both
+[sample-message PNGs](docs/review/source-099721b5-home-zap-captures.json),
+and normal parent closure. Each theme records 40 distinct active
+paint phases, from 0 to 989 per thousand, 28 destinations and a terminal
+paint at 1000. The still images show the subsequent sample message.
+The [Linux job](https://github.com/edgepillar/syrius/actions/runs/45047245134/job/137284413698)
+passes full and strict analysis, generation and 5,134 non-chain tests
+with one skip. Atomic-frame qualification and the full V02 review
+remain open.
 
 ### End-state audit at `ae94c35a` (2026-11-21)
 
