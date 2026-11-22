@@ -934,6 +934,20 @@ and [verdicts](docs/review/source-93888cd9-lock-verdicts.json) bind these
 observations to the exact PNGs. The stills record the original film frame
 and warning state. V02 running motion remains open.
 
+#### Lock at rest at `f935a887`
+
+The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/44971559981)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44972827967/job/137056121905)
+verify the six original Lock PNGs. All six were viewed beside the tracked
+references. Both empty rejected-password fields show the reference
+placeholder, outline and warning without a caret. Normal Lock and the
+picker retain their composition in both themes. The isolated wallet label,
+node state and approved accent colours account for visible differences.
+The [image index](docs/review/source-f935a887-lock-captures.json) and
+[visual verdicts](docs/review/source-f935a887-lock-verdicts.json) bind six
+matches to the original PNGs. The earlier bright-caret finding remains
+recorded at its original source. Running motion under V02 remains open.
+
 The retained Addresses captures at `06eda3f7` show the selected glyph in
 columns 299 through 312 and rows 165 through 178 in both themes. The authored
 selector specifies a 16 px circle with a 2 px ring and a filled centre for the
@@ -5509,7 +5523,7 @@ the difference and its write paths in the note.
 X821 through X872 refer to the exact 28f9c121 pairs reviewed independently.
 Other X rows retain their original capture sources. Welcome binds to
 Source901 in X775, Launch to 28f9c121 in X877 and Ready to 28f9c121 in X883.
-The Lock rows link to the review at 93888cd9. The V01 row tracks strict
+The Lock rows link to the review at f935a887. The V01 row tracks strict
 whole-image acceptance.
 
 | # | Screen | Dark | Light |
@@ -5554,9 +5568,9 @@ whole-image acceptance.
 | 38 | `set-originals` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
 | 39 | `launch` | match | match |
 | 40 | `launch-settle` | X871 | X872 |
-| 41 | `lock-screen` | [match](#lock-at-rest-at-93888cd9) | [match](#lock-at-rest-at-93888cd9) |
-| 42 | `lock-wrong` | X1291 | [match](#lock-at-rest-at-93888cd9) |
-| 43 | `lock-pick` | [match](#lock-at-rest-at-93888cd9) | [match](#lock-at-rest-at-93888cd9) |
+| 41 | `lock-screen` | [match](#lock-at-rest-at-f935a887) | [match](#lock-at-rest-at-f935a887) |
+| 42 | `lock-wrong` | [match](#lock-at-rest-at-f935a887) | [match](#lock-at-rest-at-f935a887) |
+| 43 | `lock-pick` | [match](#lock-at-rest-at-f935a887) | [match](#lock-at-rest-at-f935a887) |
 | 44 | `welcome` | match | match |
 | 45 | `import` | X776 | X777 |
 | 46 | `seed-quiz` | match | match |
@@ -9114,4 +9128,4 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1288 | review | 2026-11-22T00:47Z | 24-token-mine-light at a2efda99. The owned row is expanded and the Mint form is visible. The search field, copy and owner controls, extra footer actions and single issued-token row differ from the reference. The summary shows a plural unit with a count of one. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |
 | X1289 | review | 2026-11-22T00:50Z | 23-tokens-dark at a2efda99. The Held filter, search field and table headings are visible. The original capture expands the issuing account's token and reveals an empty Mint form. The reference expands a token held by an account other than its issuer and presents holder actions. The reference branch remains unobserved. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |
 | X1290 | review | 2026-11-22T00:50Z | 23-tokens-light at a2efda99. The Held filter, search field and table headings are visible. The original capture expands the issuing account's token and reveals an empty Mint form. The reference expands a token held by an account other than its issuer and presents holder actions. The reference branch remains unobserved. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |
-| X1291 | review | 2026-11-22T01:25Z | Dark Wrong Password at `93888cd9` shows the active caret. The frame-23 art, warning and field outline agree. [Review](docs/review/source-93888cd9-lock-verdicts.json). |
+| X1291 | done | 2026-11-22T01:49Z | Dark Wrong Password at `93888cd9` showed the active caret. The fresh `f935a887` frame confirms the empty field and the reference warning without a caret. [Original review](docs/review/source-93888cd9-lock-verdicts.json) and [verified recapture](docs/review/source-f935a887-lock-verdicts.json). |
