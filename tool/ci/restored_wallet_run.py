@@ -257,11 +257,11 @@ def seed_stake_effect_projection(value):
     return dict(value)
 
 
-def seed_confirmation_projection(value, *, allow_funding=False):
+def seed_confirmation_projection(value, *, allow_funding=False, allow_token_effect=False):
     """Only eighteen completed negative original rounds; no operation data."""
     fields = {'polls', 'absent', 'unconfirmed', 'effect_pending', 'last'}
     checkpoint.need(type(value) is dict and set(value) in
-        (fields, fields | {'funding'})
+        (fields, fields | {'funding'}, fields | {'token_effect'})
         and type(value['polls']) is int and value['polls'] == 18
         and all(type(value[key]) is int and 0 <= value[key] <= 18
                 for key in ('absent', 'unconfirmed', 'effect_pending'))
@@ -283,6 +283,11 @@ def seed_confirmation_projection(value, *, allow_funding=False):
             and type(funding['paired_receive']) is bool
             and (not funding['paired_receive'] or funding['ledger'] == 'balance_pending'))
         result['funding'] = dict(funding)
+    if 'token_effect' in value:
+        token_effect = value['token_effect']
+        checkpoint.need(allow_token_effect and value['last'] == 'effect_pending'
+            and type(token_effect) is str
+            and token_effect in {'metadata_absent', 'metadata_mismatch', 'holding_pending'})
     return result
 
 
@@ -417,7 +422,8 @@ def seed_failure_projection(value, phase):
             and value['kind'] == 'refused'
             and value['reason'] == 'exact-confirmation-or-effect-pending')
         result['confirmation'] = seed_confirmation_projection(value['confirmation'],
-            allow_funding=value['recipe'] == 'fund-address')
+            allow_funding=value['recipe'] == 'fund-address',
+            allow_token_effect=value['recipe'] == 'token')
     if 'stake_effect' in value:
         checkpoint.need(value['recipe'] == 'stake'
             and result['confirmation']['last'] == 'effect_pending')

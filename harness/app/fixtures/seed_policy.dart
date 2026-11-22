@@ -113,6 +113,7 @@ final class SeedConfirmationObservation {
     required this.effectPending,
     required this.last,
     this.funding,
+    this.tokenEffect,
   });
 
   final int absent;
@@ -120,6 +121,7 @@ final class SeedConfirmationObservation {
   final int effectPending;
   final SeedPendingResult last;
   final SeedFundingObservation? funding;
+  final SeedTokenEffect? tokenEffect;
 
   Map<String, Object> get public =>
       Map<String, Object>.unmodifiable(<String, Object>{
@@ -132,10 +134,27 @@ final class SeedConfirmationObservation {
           SeedPendingResult.effectPending => 'effect_pending',
         },
         'funding': ?funding?.public,
+        'token_effect': ?tokenEffect?.wire,
       });
 }
 
 enum SeedPendingResult { absent, unconfirmed, effectPending }
+
+enum SeedTokenEffect {
+  metadataAbsent('metadata_absent'),
+  metadataMismatch('metadata_mismatch'),
+  holdingPending('holding_pending');
+
+  const SeedTokenEffect(this.wire);
+
+  final String wire;
+}
+
+// The optional observer stays bound to the original source.
+// ignore: one_member_abstracts
+abstract interface class SeedTokenEffectSource {
+  SeedTokenEffect? observeTokenEffect(String hash);
+}
 
 enum SeedFundingLedger {
   confirmed('confirmed'),
@@ -211,15 +230,19 @@ Map<String, Object>? _seedFundingProjection(Object? value) {
 Map<String, Object>? seedConfirmationProjection(
   Object? value, {
   bool allowFunding = false,
+  bool allowTokenEffect = false,
 }) {
   const Set<String> fields = <String>{
     'polls', 'absent', 'unconfirmed', 'effect_pending', 'last',
   };
   if (value is! Map<String, Object?>) return null;
   final bool hasFunding = value.containsKey('funding');
-  if (value.length != fields.length + (hasFunding ? 1 : 0) ||
+  final bool hasTokenEffect = value.containsKey('token_effect');
+  if (value.length != fields.length + (hasFunding ? 1 : 0) +
+          (hasTokenEffect ? 1 : 0) ||
       !value.keys.toSet().containsAll(fields) ||
-      (hasFunding && !allowFunding)) {
+      (hasFunding && (!allowFunding || hasTokenEffect)) ||
+      (hasTokenEffect && !allowTokenEffect)) {
     return null;
   }
   final Object? polls = value['polls'];
@@ -241,10 +264,19 @@ Map<String, Object>? seedConfirmationProjection(
   }
   final Map<String, Object>? funding = _seedFundingProjection(value['funding']);
   if (hasFunding && (last != 'effect_pending' || funding == null)) return null;
+  final Object? tokenEffect = value['token_effect'];
+  if (hasTokenEffect &&
+      (last != 'effect_pending' || tokenEffect is! String ||
+          !SeedTokenEffect.values.any(
+            (SeedTokenEffect effect) => effect.wire == tokenEffect,
+          ))) {
+    return null;
+  }
   return Map<String, Object>.unmodifiable(<String, Object>{
     'polls': 18, 'absent': absent, 'unconfirmed': unconfirmed,
     'effect_pending': pending, 'last': last,
     'funding': ?funding,
+    if (tokenEffect is String) 'token_effect': tokenEffect,
   });
 }
 
@@ -421,7 +453,7 @@ Map<String, Object>? seedRefusalDetail(
   final Map<String, Object>? confirmation =
       error.code == 'exact-confirmation-or-effect-pending'
       ? seedConfirmationProjection(error.confirmation?.public,
-          allowFunding: true) : null;
+          allowFunding: true, allowTokenEffect: true) : null;
   if (confirmation != null) {
     final Map<String, Object>? stake =
         confirmation['last'] == 'effect_pending'
@@ -807,12 +839,14 @@ final class SeedGuard {
     SeedPendingResult last = SeedPendingResult.absent;
     SeedStakeEffectObservation? stakeEffect;
     SeedFundingObservation? fundingEffect;
+    SeedTokenEffect? tokenEffect;
     bool waitedForContractReceive = false;
     bool waitedForReceive = false;
     const int rounds = 18;
     for (int poll = 0; poll < rounds; poll++) {
       stakeEffect = null;
       fundingEffect = null;
+      tokenEffect = null;
       final SeedConfirmed? block = await _read(
         () => source.confirmed(recipe, hash),
       );
@@ -838,6 +872,14 @@ final class SeedGuard {
                 .observeStakeEffect(hash);
           } on Object {
             // Passive data cannot replace the original negative outcome.
+          }
+        }
+        if (recipe == 'token' && source is SeedTokenEffectSource) {
+          try {
+            tokenEffect = (source as SeedTokenEffectSource)
+                .observeTokenEffect(hash);
+          } on Object {
+            // The observation cannot change the original result.
           }
         }
         if (recipe == 'fund-address' && source is SeedFundingEffectSource) {
@@ -893,6 +935,7 @@ final class SeedGuard {
         absent: absent, unconfirmed: unconfirmed,
         effectPending: effectPending, last: last,
         funding: fundingEffect,
+        tokenEffect: tokenEffect,
       ),
     );
   }

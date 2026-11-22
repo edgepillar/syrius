@@ -2214,6 +2214,21 @@ void main() {
     ]) {
       expect(observed.containsKey(key), isFalse);
     }
+    for (final SeedTokenEffect effect in SeedTokenEffect.values) {
+      final Map<String, Object> offered = <String, Object>{
+        ...observed, 'token_effect': effect.wire,
+      };
+      expect(seedConfirmationProjection(offered, allowTokenEffect: true),
+          offered);
+      expect(seedConfirmationProjection(offered), isNull);
+    }
+    expect(seedConfirmationProjection(<String, Object>{
+      ...observed, 'token_effect': 'synthetic-private-value',
+    }, allowTokenEffect: true), isNull);
+    expect(seedConfirmationProjection(<String, Object>{
+      ...observed, 'absent': 1, 'effect_pending': 17,
+      'last': 'absent', 'token_effect': 'holding_pending',
+    }, allowTokenEffect: true), isNull);
     expect(seedConfirmationProjection(null), isNull);
   });
 

@@ -179,7 +179,8 @@ bool _positivelyConfirmed(AccountBlock block) =>
 /// Every wrapper and transport below is captured before the first await.
 /// No fixture installs a client into the ordinary app's global SDK.
 final class LabSeedBinding
-    implements SeedSource, SeedStakeEffectSource, SeedFundingEffectSource {
+    implements SeedSource, SeedStakeEffectSource, SeedFundingEffectSource,
+        SeedTokenEffectSource {
   LabSeedBinding._({
     required this.environment,
     required this.home,
@@ -456,6 +457,14 @@ final class LabSeedBinding
   bool _revoked = false;
   ({String hash, SeedStakeEffectObservation observation})? _stakeEffect;
   ({String hash, SeedFundingObservation observation})? _fundingEffect;
+  ({String hash, SeedTokenEffect observation})? _tokenEffect;
+
+  @override
+  SeedTokenEffect? observeTokenEffect(String hash) {
+    final ({String hash, SeedTokenEffect observation})? captured = _tokenEffect;
+    return isCurrent && captured != null && captured.hash == hash
+        ? captured.observation : null;
+  }
 
   @override
   SeedStakeEffectObservation? observeStakeEffect(String hash) {
@@ -951,6 +960,7 @@ final class LabSeedBinding
     _requireCurrent();
     _stakeEffect = null;
     _fundingEffect = null;
+    _tokenEffect = null;
     final String hash = original.hash;
     final Address owner = Address.parse(environment.owner);
     if (recipe == 'stake') {
@@ -1039,8 +1049,13 @@ final class LabSeedBinding
       final TokenStandard standard = seedIssuedTokenStandard(hash);
       final Token? token = await _token.getByZts(standard);
       _requireCurrent();
-      final bool issued = token != null &&
-          token.tokenStandard == standard &&
+      if (token == null) {
+        _tokenEffect = (
+          hash: hash, observation: SeedTokenEffect.metadataAbsent,
+        );
+        return false;
+      }
+      final bool issued = token.tokenStandard == standard &&
           token.owner == owner &&
           token.name == 'LabToken' &&
           token.symbol == 'LAB' &&
@@ -1048,11 +1063,23 @@ final class LabSeedBinding
           token.isMintable &&
           token.totalSupply == _initialSeedTokenUnits &&
           token.maxSupply == BigInt.from(10000);
-      if (!issued || !_catalogTokenHolding) return issued;
-      return readSeedTokenHolding(
+      if (!issued) {
+        _tokenEffect = (
+          hash: hash, observation: SeedTokenEffect.metadataMismatch,
+        );
+        return false;
+      }
+      if (!_catalogTokenHolding) return true;
+      final bool held = await readSeedTokenHolding(
         ledger: _ledger, owner: owner, standard: standard,
         requireCurrent: _requireCurrent,
       );
+      if (!held) {
+        _tokenEffect = (
+          hash: hash, observation: SeedTokenEffect.holdingPending,
+        );
+      }
+      return held;
     }
     if (recipe == 'project') {
       final Project? project = await readSeedContractEntry<Project>(

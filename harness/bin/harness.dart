@@ -1062,7 +1062,8 @@ class SeedOperationTrace {
             _step == SeedOperationStep.reply && _publicationCallEntered &&
             _replyCode == 'exact-confirmation-or-effect-pending'
         ? seedConfirmationProjection(confirmation,
-            allowFunding: _recipe == 'fund-address') : null;
+            allowFunding: _recipe == 'fund-address',
+            allowTokenEffect: _recipe == 'token') : null;
     _frontier = _knownRecipe &&
             _action == SeedOperationAction.publish &&
             _step == SeedOperationStep.reply && _publicationCallEntered &&

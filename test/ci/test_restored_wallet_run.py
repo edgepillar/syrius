@@ -1277,6 +1277,19 @@ class SeedFailureProjectionTests(unittest.TestCase):
             self.assertEqual(result['confirmation']['absent'], 6)
             child = self.child(result)
             self.assertEqual(restored.child_failure_projection(child)['seed'], result)
+        for status in ('metadata_absent', 'metadata_mismatch', 'holding_pending'):
+            token = dict(self.exhausted(), recipe='token', command_index=21,
+                confirmation=self.counts(token_effect=status))
+            self.assertEqual(restored.child_failure_projection(
+                self.child(token, phase='seed_token'))['seed'], token)
+            other_recipe = dict(token, recipe='fuse', command_index=7)
+            with self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(other_recipe, 'seed_fuse')
+        for change in (dict(token_effect=True), dict(token_effect='private'),
+                dict(token_effect='holding_pending', last='absent')):
+            invalid = dict(token, confirmation=self.counts(**change))
+            with self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(invalid, 'seed_token')
         legacy = self.seed()
         self.assertNotIn('confirmation', restored.seed_failure_projection(legacy, 'seed_stake'))
         for key in ('confirmed', 'complete', 'hash', 'retry', 'success', 'address'):

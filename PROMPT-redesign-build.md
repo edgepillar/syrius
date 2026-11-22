@@ -5054,10 +5054,15 @@ type and Tokens badge changes. The [independent reader](https://github.com/edgep
 verifies the original entry closed normally and the restored Stake
 confirmed with a consistent retained journal. The Token attempt reached
 its original publication call. Its bounded confirmation reads record
-three absent observations and fifteen with the expected effect still
-pending. The run retains `CHECKPOINT_REFUSED` and produces no prepared
-catalog. The six earlier `f48f3ff2` captures keep their original source
-and the updated whole-image verdicts remain open.
+three absent observations and fifteen positively confirmed observations
+with the expected effect still pending. The run retains
+`CHECKPOINT_REFUSED` and produces no prepared catalog. Its receipt
+cannot distinguish missing token metadata, mismatched metadata or an
+unobserved holding. Future failed Token receipts can carry one of
+those three observations from the final completed round, with no extra
+ledger reads or changes to confirmation and holding checks. The six
+earlier `f48f3ff2` captures keep their original source and the updated
+whole-image verdicts remain open.
 
 | Original requirement | Evidence at this revision |
 | --- | --- |
