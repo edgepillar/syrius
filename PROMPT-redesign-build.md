@@ -5359,12 +5359,15 @@ reference's secondary surface colour, including on hover. The existing
 theme and reading-direction matrix checks both fields and the occupied
 border. The [full Linux validation at `1ae351cb`](https://github.com/edgepillar/syrius/actions/runs/45009464999/job/137168350171)
 passes analysis, the non-chain suite and generation. The
-[native capture at the same source](https://github.com/edgepillar/syrius/actions/runs/45009502952)
-is in progress. The independent reader samples the amount, beneficiary
-and surrounding form at fixed interior coordinates in both themes, with
-a separate bounded notice for those RGB values. Reading the retained
-`a2efda99` archive through the same sampler reproduces the original
-difference without another native run or local transfer.
+[native capture at the same source](https://github.com/edgepillar/syrius/actions/runs/45009502952/job/137168461883)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45011164159/job/137173590036)
+verify six atomic PNGs and normal parent closure. The
+[capture index](docs/review/source-1ae351cb-seeded-captures.json) pins
+the original hosted archive. At both sampled Mint field interiors, the
+capture and reference agree at RGB (46, 48, 46) in dark and
+(255, 255, 255) in light. The surrounding form sample also agrees in
+both themes. The older archive retains the previous colour difference.
+This verifies the sampled colours. Whole-image acceptance remains open.
 
 The Token issue form uses the same optional domain-name rule as the node.
 The existing form test covers a bare domain, an empty field, a full URL,
