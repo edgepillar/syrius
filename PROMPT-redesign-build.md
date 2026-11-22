@@ -6346,6 +6346,17 @@ step ledger moves only the numerals one logical pixel upward. The
 22-pixel circles, completed check marks and connector layout keep
 their existing geometry.
 
+The [Windows producer at `58a19a05`](https://github.com/edgepillar/syrius/actions/runs/45064992943/job/137339049323)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45065571758/job/137340836980)
+verify [four original PNGs](docs/review/source-58a19a05-entry-captures.json)
+and normal Windows process exit.
+All three Import numerals now end on row 283 in both themes, matching
+their reference samples. The Welcome PNG digests match the preceding
+`4901fde2` capture. [Linux CI at the same source](https://github.com/edgepillar/syrius/actions/runs/45064993146/job/137339050471)
+passes both Import geometry cases, analysis and generation verification,
+with 5,135 non-chain tests passed and one skip. Whole-image acceptance
+remains open.
+
 The same reader finds zero horizontal and vertical shift for each of the
 three Welcome action labels in both themes within its two-pixel search.
 The ink masks still differ by 106 to 125 pixels per label in dark and 26 to
