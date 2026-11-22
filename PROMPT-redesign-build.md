@@ -6253,6 +6253,16 @@ is 95.258 ms versus 35.616 ms on P06. Before disclosure it is 60.904 ms
 versus 26.273 ms. Both redesigned idle peaks report zero engine-cached
 layers and pictures. V02 remains open.
 
+The longest redesigned page-change frame spends 2.510 ms building,
+76.834 ms waiting for raster and 203.306 ms in raster. The longest
+disclosure frame spends 0.223 ms building, 88.858 ms waiting for raster
+and 68.121 ms in raster. The frame with the largest disclosure raster
+begins building before settlement and begins raster 51.363 ms after
+the observed settlement. Raster also overruns on frames whose builds
+start after settlement. These measurements locate waiting and raster
+time on the original trace. The split between drawing and Windows
+presentation remains unresolved.
+
 #### Paired Windows cold launch timing at `f0b1a110`
 
 The [native producer](https://github.com/edgepillar/syrius/actions/runs/44979865019/job/137077797577)
@@ -6921,6 +6931,40 @@ The [clean Windows baseline](https://github.com/edgepillar/syrius/actions/runs/4
 and [paired launch and handoff](https://github.com/edgepillar/syrius/actions/runs/45071406228)
 target this revision. The paired launch route captures the two handoff
 images with the same Release binaries used for the 16 ms measurement.
+
+The [Details](https://github.com/edgepillar/syrius/actions/runs/45072437740),
+[Navigation](https://github.com/edgepillar/syrius/actions/runs/45072492443)
+and [verified Node and Addresses](https://github.com/edgepillar/syrius/actions/runs/45072492696)
+routes target twenty distinct acceptance pairs at the same revision.
+
+#### Welcome backdrop at `2c8fd31c`
+
+The verified Welcome PNG digests match the already retained
+`a4e0a9d3` bytes. The comparison reads those bytes directly from their
+verified archive. The original source and archive pins for each run
+remain in their respective indexes.
+
+The three-light model holds the reference light contributions fixed
+and substitutes the owner's green and blue in each 30 by 30 crop. The
+values below are mean absolute RGB channel differences before and
+after the palette substitution.
+
+| Crop origin | Dark | Light |
+| --- | ---: | ---: |
+| Upper left (220, 235) | 3.940 to 0.631 | 4.176 to 0.815 |
+| Top center (610, 110) | 0.837 to 0.640 | 2.020 to 1.198 |
+| Lower right (1045, 624) | 0.561 to 1.005 | 1.460 to 1.059 |
+
+The approved palette accounts for most of the upper-left difference
+in both themes. The dark lower-right sample moves farther from the
+capture under the same model. The crop measurements leave that
+residual, action text and whole-image verdicts open.
+
+The globe's blue mask has 98.14 percent overlap in both themes at a
+blue-minus-red threshold of 48 and green-minus-red threshold of 24.
+In a search within two pixels of the original position, no shift improves
+the overlap, including at the tested thresholds of 36 and 60. This
+checks the position of the sampled globe features at the capture phase.
 
 ### End-state audit at `f421d5d1` (2026-11-22)
 
