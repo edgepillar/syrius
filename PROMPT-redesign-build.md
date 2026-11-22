@@ -5317,6 +5317,22 @@ The Token issue form uses the same optional domain-name rule as the node.
 The existing form test covers a bare domain, an empty field, a full URL,
 a URL path and a name above the 128-character limit.
 
+The [full Linux validation at `f5a50ec3`](https://github.com/edgepillar/syrius/actions/runs/45000005025/job/137139248430)
+passes application and strict analysis, 5,132 non-chain tests with one skip,
+and generated-file verification. The suite includes 1,531 Windows-tour
+cases on Linux.
+
+The original [Create Token producer](https://github.com/edgepillar/syrius/actions/runs/44405207876/job/135158492764)
+and [first successful reader](https://github.com/edgepillar/syrius/actions/runs/44410584487/job/135177336787)
+retain both draft PNGs at `726306d2`. The pixel comparison now divides the
+images by the reference header, stages and fee, preview and form. The
+[first comparison attempt](https://github.com/edgepillar/syrius/actions/runs/45000653405/job/137141243658)
+stopped at the stale reader test count. The [next attempt](https://github.com/edgepillar/syrius/actions/runs/45000722984/job/137141462149)
+passed all 134 controls and stopped at source binding. The reader now
+verifies three more historical inputs against their exact producer blobs.
+All 91 required source files resolve locally, using 35 distinct historical
+blobs. The hosted comparison still needs to verify the original archives.
+
 A holder's Domain action now occupies the Domain value cell with the
 original external-link symbol when a domain exists. An empty value has no
 standalone button. The original owner controls and publication explorer

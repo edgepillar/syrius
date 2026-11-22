@@ -42,6 +42,7 @@ VERSIONED_INPUTS = frozenset((
     'tool/ci/run_harness_tour_tests.py',
     'tool/ci/windows_wallet_inspection.py',
     'harness/bin/ci_wallet_inspection.dart',
+    'harness/bin/harness.dart',
     'harness/bin/ci_wallet_reopen.dart',
     'harness/bin/readonly_catalog_contact.dart',
     'harness/bin/readonly_details_catalog.dart',
@@ -54,6 +55,8 @@ VERSIONED_INPUTS = frozenset((
     'harness/app/ready_reference_artwork.dart',
     'harness/app/readonly_native_commands.dart',
     'lib/rearchitecture/utils/widgets/entry_field.dart',
+    'lib/rearchitecture/features/latest_transactions/view/latest_transactions_card.dart',
+    'lib/rearchitecture/features/pillars/view/pillars_card.dart',
     'lib/rearchitecture/utils/widgets/eye_toggle.dart',
     'lib/rearchitecture/utils/widgets/segment.dart',
     'lib/utils/reference_artwork_source.dart',
@@ -1389,9 +1392,9 @@ def main(parent=None):
     text, head = parent.get('WALLET_INSPECT_RUN', ''), parent.get('WALLET_INSPECT_HEAD', '')
     need(type(text) is str and re.fullmatch('[1-9][0-9]{0,19}', text) and digest(head, 40))
     run_id = int(text)
-    # Allow 15 metadata and artifact requests plus 25 exact producer blobs,
+    # Allow 15 metadata and artifact requests plus 35 exact producer blobs,
     # including the workflow. The metadata reads after transport still apply.
-    client = archive.Client(parent.get('GH_TOKEN'), max_calls=40)
+    client = archive.Client(parent.get('GH_TOKEN'), max_calls=50)
     PHASE = 'producer_metadata'
     run = client.json('/actions/runs/' + text)
     need(type(run.get('id')) is int and run['id'] == run_id and run.get('head_sha') == head
