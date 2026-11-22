@@ -5313,6 +5313,18 @@ images. The [node source used by that run](https://github.com/zenon-network/go-z
 accepts a bare domain name in this field. The scoped recipe and receipt
 check now use `example.invalid`.
 
+The [Held Tokens producer at `e19f5467`](https://github.com/edgepillar/syrius/actions/runs/44999882055/job/137138866356)
+confirms the issued token and captures the prepared holding in both themes.
+The [first reader dispatch](https://github.com/edgepillar/syrius/actions/runs/45001688936/job/137144413559)
+requested both backends and refused the native-only run at artifact metadata.
+The [native reader](https://github.com/edgepillar/syrius/actions/runs/45001744218/job/137144584074)
+verifies both original 1280 by 780 PNGs, atomic frames and normal parent
+closure. The [capture index](docs/review/source-e19f5467-holder-captures.json)
+binds the originals to the 106,217-byte archive. Pixel differences of at
+least 16 levels in one RGB channel total 28,600 in dark and 32,230 in
+light. The table accounts for 17,134 and 19,686 of those pixels,
+respectively. Whole-image acceptance remains open.
+
 The Token issue form uses the same optional domain-name rule as the node.
 The existing form test covers a bare domain, an empty field, a full URL,
 a URL path and a name above the 128-character limit.
