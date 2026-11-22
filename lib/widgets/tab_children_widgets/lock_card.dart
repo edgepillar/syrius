@@ -244,7 +244,14 @@ class _LockCardState extends State<LockCard>
     }
     if (oldWidget.passwordFailures != widget.passwordFailures) {
       _obscure = true;
-      _shake.forward(from: 0);
+      _shake.reset();
+      final int failure = widget.passwordFailures;
+      // Start the shake clock after the warning frame has painted.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && widget.passwordFailures == failure) {
+          _shake.forward();
+        }
+      });
       _replay();
     }
     _reportEntryStatus();

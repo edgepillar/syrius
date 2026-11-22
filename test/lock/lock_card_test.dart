@@ -575,7 +575,8 @@ void main() {
           attemptsRemaining: 2,
         ),
       );
-      await tester.pump();
+      // A late first frame must still start the shake at rest.
+      await tester.pump(const Duration(milliseconds: 120));
       expect(_shakeX(tester), 0);
       for (final (int milliseconds, double x) in <(int, double)>[
         (25, 4),
