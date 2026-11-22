@@ -1532,6 +1532,7 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(observed['node_table_rows']['themes'], dict(dark=None, light=None))
         self.assertEqual(observed['about_card_bands']['themes'], dict(dark=None, light=None))
         self.assertEqual(observed['about_update_badge_bounds'], dict(dark=None, light=None))
+        self.assertEqual(observed['apps_connect_action_bounds'], dict(dark=None, light=None))
         packed = io.BytesIO()
         with zipfile.ZipFile(packed, 'w') as zipped:
             for theme, green, pink in (
@@ -1578,10 +1579,17 @@ class ReaderTests(unittest.TestCase):
                 image = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                          + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
                 zipped.writestr(f'36-set-about-{theme}.png', image)
+                button = (b'\0' + background * 1115 + bytes((140, 140, 140, 255)) * 133
+                          + background * 32)
+                pixels = ordinary * 115 + button * 26 + ordinary * 639
+                image = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
+                         + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
+                zipped.writestr(f'34-set-apps-{theme}.png', image)
         address = dict(left=298, top=164, right=313, bottom=179)
         node = dict(left=288, top=214, right=303, bottom=229)
         about = dict(version=[36, 106], links=[118, 162], computer=[174, 218], licences=[230, 274])
         badge_bounds = dict(left=830, top=58, right=915, bottom=83)
+        app_button = dict(left=1115, top=115, right=1247, bottom=140)
         self.assertEqual(reader.settings_catalog_geometry(packed.getvalue()), dict(
             address_selector_bounds=dict(dark=address, light=address),
             node_selector_bounds=dict(dark=node, light=node),
@@ -1593,6 +1601,7 @@ class ReaderTests(unittest.TestCase):
             }),
             about_card_bands=dict(column=700, scan_rows=[35, 279], themes=dict(dark=about, light=about)),
             about_update_badge_bounds=dict(dark=badge_bounds, light=badge_bounds),
+            apps_connect_action_bounds=dict(dark=app_button, light=app_button),
         ))
         with zipfile.ZipFile(packed) as zipped, mock.patch.object(
                 reader.producer, 'read_original', side_effect=lambda path, _: zipped.read(path.name)):

@@ -4635,6 +4635,11 @@ the title inset. The Apps header now applies the standard card inset to
 its action as well. The existing populated widget case checks the
 button edge. The original empty session capture remains a reviewed
 state and full visual acceptance remains open.
+The two retained `e3047adc` Apps PNGs put the painted button at
+columns 1127 through 1255 and rows 115 through 140. Both references
+put it at columns 1115 through 1247 and the same rows. The independent
+Settings reader now reports these bounds for each theme using the
+header background and a fixed crop. The new native capture remains open.
 
 On the two About images, the seven Settings labels' ink bounds are within
 one pixel of their references at the 32-level RGB contrast threshold.

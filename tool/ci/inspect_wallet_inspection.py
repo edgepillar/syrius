@@ -1170,6 +1170,10 @@ def settings_catalog_geometry(raw):
             about_update_badge_bounds=_ink_bounds(
                 zipped, '36-set-about', (740, 1248), (47, 95), _update_badge_ink,
                 minimum_fill=300),
+            apps_connect_action_bounds=_ink_bounds(
+                zipped, '34-set-apps', (1080, 1264), (111, 145),
+                lambda red, green, blue: max(red, green, blue) >= 8,
+                relative_to_background=True),
         )
 
 
