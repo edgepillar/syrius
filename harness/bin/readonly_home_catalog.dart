@@ -258,17 +258,17 @@ Future<Map<String, Object>> captureReadonlyHomeGotoStates({
     ],
     'themes': const <String>['dark', 'light'], 'files': files,
     'width': 1280, 'height': 780, 'scale': 1, 'capture_returned': true,
-    if (observeMotion) 'rail_motion': await session.observeRailMotion(),
-    if (observeMotion) 'sync_pulse': await session.observeSyncPulse(),
-    if (observeMotion) 'home_field_occlusion':
-      await session.observeHomeFieldOcclusion(),
-    if (observeMotion) 'segment_motion': await session.observeSegmentMotion(),
-    if (observeMotion) 'eye_motion': await session.observeEyeMotion(),
   };
   if (observeMotion) {
+    receipt['rail_motion'] = await session.observeRailMotion();
+    receipt['sync_pulse'] = await session.observeSyncPulse();
+    receipt['home_field_occlusion'] = await session.observeHomeFieldOcclusion();
+    // The segment observations leave Home and retire this field owner.
     final Map<String, Object?>? minimize =
         await session.observeHomeFieldMinimize();
     if (minimize != null) receipt['home_field_minimize'] = minimize;
+    receipt['segment_motion'] = await session.observeSegmentMotion();
+    receipt['eye_motion'] = await session.observeEyeMotion();
   }
   return receipt;
 }
