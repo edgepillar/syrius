@@ -5832,8 +5832,15 @@ a separate 1 px divider and the reference's 9 px vertical cell inset.
 Rows can grow for scaled text. The existing two-theme list test checks
 both visible row heights and their spacing. Both theme cases pass in the
 [full Linux suite at `fd82bbc4`](https://github.com/edgepillar/syrius/actions/runs/45007035152/job/137160813615).
-The [Windows capture at `4e4bd7ec`](https://github.com/edgepillar/syrius/actions/runs/45007446982)
-targets the same Voting row code. It is in progress.
+The [Windows producer at `4e4bd7ec`](https://github.com/edgepillar/syrius/actions/runs/45007446982/job/137162076093)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45008916689/job/137166625798)
+verify the twelve-page wallet tour and five normal node exits. The
+closed-copy checkpoint fails during the original Project seed action
+after publication-call entry. Its retained result is
+`original-outcome-unknown`. No prepared Accelerator PNGs were retained
+by this attempt. The separately dispatched
+[Windows run at `f56cd37e`](https://github.com/edgepillar/syrius/actions/runs/45008877438)
+targets the candidate with both Accelerator layout changes.
 
 The Project Detail vote summary now uses the reference's 12 px inset,
 8 px gaps and 13 px values. The existing two-theme detail test checks
