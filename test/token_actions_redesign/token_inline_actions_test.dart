@@ -870,6 +870,10 @@ void main() {
                 matching: find.textContaining('example.invalid',
                     findRichText: true),
               ), findsOneWidget);
+              expect(
+                tester.getSize(find.text('Yes, by owner')).width,
+                closeTo(tester.getSize(domain).width, 1),
+              );
               final TextButton domainButton = tester.widget<TextButton>(domain);
               final AppTokens tokens = AppTokens.of(tester.element(domain));
               expect(

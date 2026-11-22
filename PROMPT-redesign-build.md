@@ -5328,8 +5328,23 @@ from the verified archive. X1316 and X1317 record the visible controls and
 layout differences. The wide holder row now centers the actions beside the
 facts and applies the body gap only when a form, loading indicator or
 refusal follows. Domain values use the same body type as the reference;
-the decimal count remains numeric. Fresh Windows images are needed to
-verify these adjustments.
+the decimal count keeps its monospaced figures.
+
+The [Windows producer at `9c714be9`](https://github.com/edgepillar/syrius/actions/runs/45002191813/job/137145953517)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45003548876/job/137150067814)
+verify the two original atomic images and normal parent closure. Both
+[retained PNGs](docs/review/source-9c714be9-holder-captures.json) were viewed
+beside their references. The action row is centered beside the two lines of
+facts. At column 1040, the uninterrupted open-row fill shrinks from 131 to
+119 pixels in both themes. The two references have 118 pixels. The isolated
+profile still holds one token against the references' three.
+
+The holder grid now uses equal preferred widths for its two value tracks,
+matching the reference grid's two flexible tracks. It sizes them from
+the actual values. The existing holder test covers the two value widths
+in both themes and reading directions. The last Windows capture predates
+the Domain type and equal-track changes. Whole-image acceptance remains
+open.
 
 The Token issue form uses the same optional domain-name rule as the node.
 The existing form test covers a bare domain, an empty field, a full URL,
@@ -5976,7 +5991,7 @@ whole-image acceptance.
 | 20 | `pillar-done` | X1152 | X1153 |
 | 21 | `plasma` | X845 | X846 |
 | 22 | `plasma-fuse` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
-| 23 | `tokens` | X1316 | X1317 |
+| 23 | `tokens` | X1318 | X1319 |
 | 24 | `token-mine` | X1287 | X1288 |
 | 25 | `token-new` | X851 | X852 |
 | 26 | `swap-list` | X853 | X854 |
@@ -9581,3 +9596,5 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1315 | review | 2026-11-22 | `05-home-goto-light` at `a43e90e3`. The centered palette, selected result and keyboard footer align. The matching contact differs, and the live blurred Activity has a settled row where the reference shows loading skeletons. [Review](docs/review/source-a43e90e3-home-verdicts.json). |
 | X1316 | review | 2026-11-22 | `23-tokens-dark` at `e19f5467`. The original burnable holding displays Burn, Send, Explorer and the populated inline Domain link. The reference uses three holdings and centers the actions against the facts. The tested row leaves more space below its facts. Whole-image acceptance remains open. |
 | X1317 | review | 2026-11-22 | `23-tokens-light` at `e19f5467`. The populated Domain and three holder actions are visible. The top-aligned actions and extra bottom space also appear in the light layout. The test profile holds one token and the reference shows three. Whole-image acceptance remains open. |
+| X1318 | review | 2026-11-22 | `23-tokens-dark` at `9c714be9`. The Burn, Send and Explorer row centers beside the facts. The open-row fill at column 1040 is 119 pixels against 118 in the reference. The second fact pair still begins farther left and the test profile shows one holding. |
+| X1319 | review | 2026-11-22 | `23-tokens-light` at `9c714be9`. The centered action row and 119-pixel open-row fill match the dark geometry. The reference fill is 118 pixels. The second fact pair and fixture row count still differ. |

@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:math' as math;
 
+import 'package:flutter/rendering.dart' show RenderBox, RenderTable;
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
@@ -485,6 +487,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
                                   !holderView &&
                                   _mode == TokenActionMode.flags,
                               includeUtility: !holderView,
+                              balanceValueColumns: holderView,
                               onOpenDomain: holderView
                                   ? _domainAction(token)
                                   : null,
@@ -1423,6 +1426,7 @@ class _TokenFacts extends StatelessWidget {
     this.flagsOnly = false,
     this.metadataOnly = false,
     this._includeUtility = true,
+    this.balanceValueColumns = false,
     this.onOpenDomain,
   });
 
@@ -1430,6 +1434,7 @@ class _TokenFacts extends StatelessWidget {
   final bool flagsOnly;
   final bool metadataOnly;
   final bool _includeUtility;
+  final bool balanceValueColumns;
   final VoidCallback? onOpenDomain;
 
   @override
@@ -1499,6 +1504,8 @@ class _TokenFacts extends StatelessWidget {
             ? 2
             : 1;
         final int columns = pairs * 2;
+        final bool balanceColumns = pairs == 2 && balanceValueColumns;
+        final double gap = tokens.tokenDetailColumnGap;
         return Align(
           alignment: AlignmentDirectional.centerStart,
           child: IntrinsicWidth(
@@ -1506,9 +1513,12 @@ class _TokenFacts extends StatelessWidget {
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
               columnWidths: <int, TableColumnWidth>{
                 for (int column = 0; column < columns; column++)
-                  column: column.isEven
-                      ? const IntrinsicColumnWidth()
-                      : const IntrinsicColumnWidth(flex: 1),
+                  column: switch (column) {
+                    1 when balanceColumns => _PairedTokenValueWidth(3, gap),
+                    3 when balanceColumns => _PairedTokenValueWidth(1, -gap),
+                    _ when column.isEven => const IntrinsicColumnWidth(),
+                    _ => const IntrinsicColumnWidth(flex: 1),
+                  },
               },
               children: <TableRow>[
                 for (int start = 0; start < facts.length; start += pairs)
@@ -1542,6 +1552,28 @@ class _TokenFacts extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+/// The holder grid has two equal value tracks, plus the intervening gap.
+class _PairedTokenValueWidth extends IntrinsicColumnWidth {
+  const _PairedTokenValueWidth(this.otherColumn, this.gapDifference)
+    : super(flex: 1);
+
+  final int otherColumn;
+  final double gapDifference;
+
+  @override
+  double maxIntrinsicWidth(Iterable<RenderBox> cells, double containerWidth) {
+    final double ownWidth = super.maxIntrinsicWidth(cells, containerWidth);
+    if (cells.firstOrNull?.parent case final RenderTable table) {
+      final double otherWidth = super.maxIntrinsicWidth(
+        table.column(otherColumn),
+        containerWidth,
+      );
+      return math.max(ownWidth, otherWidth + gapDifference);
+    }
+    return ownWidth;
   }
 }
 
