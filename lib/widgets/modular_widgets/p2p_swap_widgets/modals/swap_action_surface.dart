@@ -380,7 +380,7 @@ class SwapChoice extends StatelessWidget {
             ShellSymbol(
               'chev',
               size: tokens.inlineGlyphSize,
-              color: tokens.faint,
+              color: onSelected == null ? tokens.faint : tokens.foreground,
             ),
           ],
         ),

@@ -377,7 +377,7 @@ void main() {
           within: button,
           symbol: 'chev',
           size: 12,
-          color: tokens.faint,
+          color: tokens.foreground,
         );
         expect(
           tester
@@ -414,6 +414,13 @@ void main() {
         await show();
         expect(tester.getSize(button).height, 34);
         expect(tester.widget<OutlinedButton>(button).onPressed, isNull);
+        expectMockupSymbol(
+          tester,
+          within: button,
+          symbol: 'chev',
+          size: 12,
+          color: tokens.faint,
+        );
         expect(
           tester.widget<TextField>(find.byType(TextField)).enabled,
           isFalse,
