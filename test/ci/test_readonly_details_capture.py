@@ -134,6 +134,22 @@ class DetailsCatalogTests(unittest.TestCase):
                     observed = details.unpack(raw_paint, details.sha(raw_paint),
                         len(raw_paint), HEAD, TREE, RUN, reference_paint, pins)
                     self.assertEqual(observed['zap_spark_preview'], measured['spark_paint'])
+                    self.assertNotIn('event_toast_preview', observed)
+                    toast = dict(rise_milli_px=6000, before_hold_permille=910,
+                                 held_start_permille=907, held_end_permille=907,
+                                 resumed_permille=858, dismissed_ms=5312)
+                    measured['toast_motion'] = dict(dark=toast, light=toast)
+                    raw_motion, reference_motion = bundle(updated, images)
+                    observed = details.unpack(raw_motion, details.sha(raw_motion),
+                        len(raw_motion), HEAD, TREE, RUN, reference_motion, pins)
+                    self.assertEqual(observed['event_toast_preview'], measured['toast_motion'])
+                    for invalid_toast in (dict(toast, held_end_permille=903),
+                                          dict(toast, resumed_permille=907),
+                                          dict(toast, dismissed_ms=4000),
+                                          dict(toast, rise_milli_px=0)):
+                        with self.assertRaises(details.Refused):
+                            details.capture_receipt(dict(measured, toast_motion=dict(
+                                dark=invalid_toast, light=toast)))
                     for invalid in (dict(paint, active_frames=1),
                                     dict(paint, destinations=True),
                                     dict(paint, terminal_permille=999),

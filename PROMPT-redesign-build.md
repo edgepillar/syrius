@@ -5110,6 +5110,18 @@ passes full and strict analysis, generation and 5,134 non-chain tests
 with one skip. Atomic-frame qualification and the full V02 review
 remain open.
 
+#### Isolated Home notification motion preview
+
+The same Windows recipe now places an original `EventToast` over Home
+with an explicitly labelled sample notification. It reads the card's
+rendered rise and the width factor of its original countdown bar.
+The harness sends pointer input through the wallet's normal hit testing,
+checks that the bar holds across a 240 ms interval, then checks that the
+bar shrinks after the pointer leaves. It waits for the original dismissal
+and includes the bounded observations in the same two-theme archive.
+The ordinary application toast, desktop startup and wallet data paths
+retain their original scope.
+
 ### End-state audit at `ae94c35a` (2026-11-21)
 
 The runtime sources, assets, shaders, desktop runners and locked dependencies

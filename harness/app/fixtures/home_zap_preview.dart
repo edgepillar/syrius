@@ -5,6 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/view/za
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/zap.dart'
     show ZapReceivedMessage;
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/event_toast.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modals.dart'
     show showFrostedDialog;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart' show Address;
@@ -144,4 +145,109 @@ class _ObservedSparkPaint extends ZapSparksPainter {
     super.paint(canvas, size);
     if (!size.isEmpty) didPaint(progress);
   }
+}
+
+/// Observes the original toast through its rendered card and countdown bar.
+Future<Map<String, int>> observeHomeToast(
+  BuildContext context, {
+  required Future<void> Function(Offset) movePointer,
+  required VoidCallback requireWallet,
+}) async {
+  final ModalRoute<dynamic>? route = ModalRoute.of(context);
+  final OverlayState overlay = Overlay.of(context, rootOverlay: true);
+  final AppTokens tokens = AppTokens.of(context);
+  final GlobalKey<State<EventToast>> toast = GlobalKey<State<EventToast>>();
+  final Completer<void> dismissed = Completer<void>();
+  const Duration interval = Duration(milliseconds: 240);
+  const Offset outside = Offset(1, 1);
+
+  void requireOwner() {
+    requireWallet();
+    if (!context.mounted || route?.isCurrent != true) {
+      throw StateError('Home toast preview owner changed');
+    }
+  }
+
+  ({Rect card, int remaining}) sample() {
+    requireOwner();
+    final Element? root = toast.currentContext as Element?;
+    if (root == null) throw StateError('Home toast preview did not mount');
+    final Element? card = _findToastElement<MouseRegion>(root);
+    final Element? bar = _findToastElement<FractionallySizedBox>(root);
+    final RenderObject? render = card?.findRenderObject();
+    final double? remaining =
+        (bar?.widget as FractionallySizedBox?)?.widthFactor;
+    if (render is! RenderBox ||
+        !render.hasSize ||
+        remaining == null ||
+        !remaining.isFinite) {
+      throw StateError('Home toast preview geometry is unavailable');
+    }
+    return (
+      card: render.localToGlobal(Offset.zero) & render.size,
+      remaining: (remaining * 1000).round(),
+    );
+  }
+
+  await movePointer(outside);
+  requireOwner();
+  final OverlayEntry entry = OverlayEntry(
+    builder: (_) => PositionedDirectional(
+      top: tokens.toastTop,
+      start: tokens.toastEdge,
+      end: tokens.toastEdge,
+      child: Align(
+        alignment: AlignmentDirectional.topEnd,
+        heightFactor: 1,
+        child: EventToast(
+          key: toast,
+          message: 'Sample notification for visual inspection.',
+          onDismiss: dismissed.complete,
+        ),
+      ),
+    ),
+  );
+  overlay.insert(entry);
+  final Stopwatch elapsed = Stopwatch()..start();
+  try {
+    await WidgetsBinding.instance.endOfFrame;
+    final double firstTop = sample().card.top;
+    await Future<void>.delayed(const Duration(milliseconds: 360));
+    final ({Rect card, int remaining}) settled = sample();
+    await movePointer(settled.card.center);
+    await WidgetsBinding.instance.endOfFrame;
+    final int heldStart = sample().remaining;
+    await Future<void>.delayed(interval);
+    final int heldEnd = sample().remaining;
+    await movePointer(outside);
+    await Future<void>.delayed(interval);
+    final int resumed = sample().remaining;
+    await dismissed.future.timeout(const Duration(seconds: 8));
+    await WidgetsBinding.instance.endOfFrame;
+    requireOwner();
+    if (_findToastElement<MouseRegion>(toast.currentContext as Element?) !=
+        null) {
+      throw StateError('Dismissed toast preview still has a card');
+    }
+    return <String, int>{
+      'rise_milli_px': ((firstTop - settled.card.top) * 1000).round(),
+      'before_hold_permille': settled.remaining,
+      'held_start_permille': heldStart,
+      'held_end_permille': heldEnd,
+      'resumed_permille': resumed,
+      'dismissed_ms': elapsed.elapsedMilliseconds,
+    };
+  } finally {
+    entry
+      ..remove()
+      ..dispose();
+  }
+}
+
+Element? _findToastElement<T extends Widget>(Element? root) {
+  Element? target;
+  root?.visitChildElements((Element child) {
+    target ??= child.widget is T ? child : _findToastElement<T>(child);
+  });
+  return target;
 }

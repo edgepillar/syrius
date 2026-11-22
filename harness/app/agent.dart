@@ -974,13 +974,18 @@ class HarnessAgent {
       native.requireCurrentWallet();
       final Element home = heroes.single.element;
       final Map<String, int> sparks = await observeHomeZapSparks(home);
+      final Map<String, int> toast = await observeHomeToast(
+        home, movePointer: _moveTo, requireWallet: native.requireCurrentWallet,
+      );
       native.requireCurrentWallet();
       if (!home.mounted || ModalRoute.of(home)?.isCurrent != true) {
         throw const ReadonlyNativeCommandRefused();
       }
       unawaited(showHomeZapPreview(home));
       await _settle();
-      return <String, Object?>{'fixture': 'home-zap-preview', 'sparks': sparks};
+      return <String, Object?>{
+        'fixture': 'home-zap-preview', 'sparks': sparks, 'toast': toast,
+      };
     }
     final Map<String, Object?> result = await _runWalletCommand(command);
     if (command['cmd'] == 'state') {

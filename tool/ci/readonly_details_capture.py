@@ -369,6 +369,20 @@ def capture_receipt(value):
                  and sample['terminal_permille'] == 1000
                  and sample['destinations'] == 28, 'CAPTURE_REFUSED')
         expected['spark_paint'] = paint
+        if 'toast_motion' in value:
+            motion = value['toast_motion']
+            need(type(motion) is dict and set(motion) == set(THEMES), 'CAPTURE_REFUSED')
+            for sample in motion.values():
+                need(type(sample) is dict and set(sample) == {
+                    'rise_milli_px', 'before_hold_permille', 'held_start_permille',
+                    'held_end_permille', 'resumed_permille', 'dismissed_ms'}
+                    and all(type(number) is int for number in sample.values()),
+                    'CAPTURE_REFUSED')
+                need(0 < sample['rise_milli_px'] <= 6000
+                     and 0 < sample['resumed_permille'] < sample['held_end_permille']
+                     == sample['held_start_permille'] <= sample['before_hold_permille'] <= 1000
+                     and 5000 <= sample['dismissed_ms'] <= 16000, 'CAPTURE_REFUSED')
+            expected['toast_motion'] = motion
     need(set(value) == set(expected)
          and all(type(value[k]) is type(v) and value[k] == v
                  for k, v in expected.items()), 'CAPTURE_REFUSED')
@@ -606,4 +620,6 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id,
         result['presentation_fixture'] = 'sample_zap_message'
         if 'spark_paint' in value['capture']:
             result['zap_spark_preview'] = value['capture']['spark_paint']
+        if 'toast_motion' in value['capture']:
+            result['event_toast_preview'] = value['capture']['toast_motion']
     return result
