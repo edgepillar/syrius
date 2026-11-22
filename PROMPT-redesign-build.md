@@ -6208,6 +6208,8 @@ The interactive job checks the dispatched commit and all seven existing
 P06 input object IDs before allocating Flutter or a lab. The early check
 reads the checkout's Git metadata and the pinned P06 IDs. The measurement
 still compares the actual checked-out baseline and current input objects.
+The [paired Windows job at `50efd7a4`](https://github.com/edgepillar/syrius/actions/runs/45066625029/job/137344124323)
+passes this early admission check before allocating Flutter.
 
 The [restored-input Windows run at `15cffcfa`](https://github.com/edgepillar/syrius/actions/runs/45061850055/job/137329306824)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/45064139553/job/137336404040)
@@ -6229,7 +6231,9 @@ tooltip inputs change. The height label and in-flight confirmation
 listener still handle each new height. A steady synced indicator retains
 its widget and tooltip while its halo pulses and the counter updates.
 While catching up, both heights remain part of the localized tooltip. The existing
-strip case exercises those two transitions.
+strip case exercises those two transitions. [Linux CI at `50efd7a4`](https://github.com/edgepillar/syrius/actions/runs/45066624869/job/137344126885)
+passes the strip case, application analysis, strict analysis and generation
+verification. The full non-chain suite reports 5,135 passes and one skip.
 
 #### Paired Windows cold launch timing at `f0b1a110`
 
@@ -6786,6 +6790,11 @@ amount pane corners and token selector are covered by the
 and the [Windows Release capture and inspection](https://github.com/edgepillar/syrius/actions/runs/45015954119/job/137188204210).
 The clean Windows Debug and Release baseline stays pinned to
 `33b58506`. Visual matches, running motion and final acceptance remain open.
+
+The [fresh hosted baseline](https://github.com/edgepillar/syrius/actions/runs/45066387355/job/137343369960)
+targets `ce4fa96f`, the published source with the corrected Import
+numerals. It runs the clean Windows Debug and Release builds, Dart
+checks and DLL checks for that source.
 
 ### End-state audit at `f421d5d1` (2026-11-22)
 
