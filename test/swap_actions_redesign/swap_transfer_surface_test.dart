@@ -164,9 +164,12 @@ void main() {
           tester.getTopRight(cancel).dx,
           lessThan(tester.getTopLeft(primary).dx),
         );
-        final Rect form = tester.getRect(
-          find.byKey(const Key('swap_action_scroll')),
+        final Finder formScroll = find.byKey(const Key('swap_action_scroll'));
+        expect(
+          tester.widget<SingleChildScrollView>(formScroll).padding,
+          const EdgeInsetsDirectional.symmetric(horizontal: 20, vertical: 16),
         );
+        final Rect form = tester.getRect(formScroll);
         final Finder help = find.byKey(const Key('swap_action_details_toggle'));
         expect(tester.getBottomRight(help).dy, lessThan(form.top));
         expect(

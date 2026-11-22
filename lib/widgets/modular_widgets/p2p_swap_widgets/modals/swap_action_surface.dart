@@ -159,7 +159,9 @@ class SwapDialogSurface extends StatelessWidget {
                       Flexible(
                         child: SingleChildScrollView(
                           key: const Key('swap_action_scroll'),
-                          padding: tokens.swapActionBodyPadding,
+                          padding: footer == null
+                              ? tokens.swapActionBodyPadding
+                              : tokens.dialogBodyPadding,
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.stretch,

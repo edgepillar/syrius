@@ -6146,6 +6146,11 @@ the 16-level RGB threshold drops from 10,414 to 8,398 pixels in dark
 and from 28,211 to 12,305 in light. Both caption counts remain zero.
 The two whole-image verdicts remain open.
 
+Start and Join now use the reference dialog's 16 px vertical body inset
+above their separate action footer. The body-only review and recovery
+dialogs keep their existing spacing. The two-theme Start case checks
+the scroll padding. Windows pane positions still need a new capture.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since
