@@ -1459,13 +1459,10 @@ class _TokenFacts extends StatelessWidget {
           token.isUtility ? context.l10n.tokensYes : context.l10n.tokensNo,
         ),
     ];
-    TextStyle valueStyle(String label) => tokens.compactText.copyWith(
-      fontFamily:
-          label == context.l10n.createTokenDecimalsLabel ||
-              label == context.l10n.tokensDomain
-          ? tokens.monoFontFamily
-          : null,
-    );
+    TextStyle valueStyle(String label) =>
+        label == context.l10n.createTokenDecimalsLabel
+        ? tokens.compactText.copyWith(fontFamily: tokens.monoFontFamily)
+        : tokens.compactText;
     Widget valueCell((String, String) fact) {
       final (String label, String value) = fact;
       final TextStyle style = valueStyle(label);

@@ -870,8 +870,15 @@ void main() {
                 matching: find.textContaining('example.invalid',
                     findRichText: true),
               ), findsOneWidget);
-              final VoidCallback oldDomain =
-                  tester.widget<TextButton>(domain).onPressed!;
+              final TextButton domainButton = tester.widget<TextButton>(domain);
+              final AppTokens tokens = AppTokens.of(tester.element(domain));
+              expect(
+                domainButton.style?.textStyle
+                    ?.resolve(<WidgetState>{})
+                    ?.fontFamily,
+                tokens.compactText.fontFamily,
+              );
+              final VoidCallback oldDomain = domainButton.onPressed!;
               update(() => active = replacement);
               await tester.pump();
               await pumpActionUntil(

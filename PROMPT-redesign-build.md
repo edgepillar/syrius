@@ -5327,7 +5327,9 @@ respectively. Both images were then viewed beside their references directly
 from the verified archive. X1316 and X1317 record the visible controls and
 layout differences. The wide holder row now centers the actions beside the
 facts and applies the body gap only when a form, loading indicator or
-refusal follows. Fresh Windows images are needed to verify that adjustment.
+refusal follows. Domain values use the same body type as the reference;
+the decimal count remains numeric. Fresh Windows images are needed to
+verify these adjustments.
 
 The Token issue form uses the same optional domain-name rule as the node.
 The existing form test covers a bare domain, an empty field, a full URL,
@@ -5612,7 +5614,16 @@ existing Node geometry tests exercise an unrelated ancestor traversal
 change in both themes and directions. The [Linux run at `9fb78c7e`](https://github.com/edgepillar/syrius/actions/runs/45001404872/job/137143529920)
 passes analysis, 5,132 non-chain tests with one skip, and generated-file
 verification. The [paired Windows measurement](https://github.com/edgepillar/syrius/actions/runs/45001405132/job/137143531660)
-is required to establish its timing effect.
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45003004931/job/137148428771)
+verify both interaction windows using the same fixture address, with two
+normal entry exits, two normal wallet exits and five normal node exits.
+Page change retains 11 redesign and 25 P06 frames. Its slow-frame comparison
+fails for raster and distinct frames. Disclosure retains 9 redesign and 29
+P06 frames and fails the build, raster and distinct comparisons. Both
+windows have frame-number gaps on both builds. Three of the four page-change
+frames built after the observed settlement exceed 16 ms raster, reaching
+59.069 ms. The one disclosure frame built after settlement reaches 59.330 ms
+raster. V02 remains open.
 
 #### Paired Windows cold launch timing at `f0b1a110`
 
