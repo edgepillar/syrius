@@ -6078,6 +6078,13 @@ uses the approved theme tokens, while the [reference stylesheet](mockups/redesig
 uses `#4fd166` and `#006aff`. The paired stills do not isolate the effect of
 the palette from the animated field phase.
 
+The same reader finds zero horizontal and vertical shift for each of the
+three Welcome action labels in both themes within its two-pixel search.
+The ink masks still differ by 106 to 125 pixels per label in dark and 26 to
+49 in light. The label typography tokens and bundled fonts are unchanged
+since the earlier [Welcome capture](https://github.com/edgepillar/syrius/actions/runs/44250072202)
+at `d0dfe4e0`. The residual ink and whole-image differences remain open.
+
 The [prepared Accelerator producer](https://github.com/edgepillar/syrius/actions/runs/45005215508/job/137155190528)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45006705372/job/137159794086)
 verify four atomic Voting and Project Detail PNGs, normal parent closure
@@ -6329,6 +6336,13 @@ two-theme test checks the face, size, tracking and balance style. The
 passes both theme cases, strict selected Dart analysis, generated-file
 verification and the non-chain suite with 5,133 passes and one skip.
 Native vertical fill spans still need measurement after this change.
+
+The enabled selector chevron now uses the reference chip's foreground.
+The [Linux run at `9c96e94d`](https://github.com/edgepillar/syrius/actions/runs/45030975056/job/137234279199)
+passes the enabled and disabled selector checks in both themes, strict
+selected Dart analysis and generated-file verification. The non-chain
+suite passes 5,133 tests with one skip. The [Windows Swap capture](https://github.com/edgepillar/syrius/actions/runs/45031397803)
+targets the same source with both the header and chevron changes.
 
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
