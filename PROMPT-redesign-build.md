@@ -5784,6 +5784,13 @@ The archive remains hosted. The regional measurements locate the
 differences for direct visual review. No visual verdict is recorded
 from the measurements alone.
 
+The Voting reference separators are at rows 210, 270, 329 and 389 in
+both themes. The Voting ledger now uses a 59 px minimum row body with
+a separate 1 px divider and the reference's 9 px vertical cell inset.
+Rows can grow for scaled text. The existing two-theme list test checks
+both visible row heights and their spacing. The copied project data,
+unknown quorum and phase-row layout are outside this change.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |

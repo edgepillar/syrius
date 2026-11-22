@@ -149,7 +149,7 @@ class AcceleratorProjectListItem extends StatelessWidget {
           children: <Widget>[
             Expanded(
               child: Padding(
-                padding: tokens.acceleratorCellPadding,
+                padding: tokens.acceleratorListRowPadding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -235,7 +235,7 @@ class AcceleratorProjectListItem extends StatelessWidget {
   Widget _cell(double width, AppTokens tokens, Widget child) => SizedBox(
     width: width,
     child: Padding(
-      padding: tokens.acceleratorCellPadding,
+      padding: tokens.acceleratorListRowPadding,
       child: Center(
         heightFactor: 1,
         child: Align(alignment: AlignmentDirectional.centerStart, child: child),

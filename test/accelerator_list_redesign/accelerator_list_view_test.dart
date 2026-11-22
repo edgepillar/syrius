@@ -189,6 +189,13 @@ void main() {
           final Finder project = find.byKey(
             ValueKey<String>('accelerator_project_${listHash(1)}'),
           );
+          final Rect first = tester.getRect(project);
+          final Rect second = tester.getRect(find.byKey(
+            ValueKey<String>('accelerator_project_${listHash(2)}'),
+          ));
+          expect(first.height, closeTo(59, 1));
+          expect(second.height, closeTo(59, 1));
+          expect((second.top - first.top).abs(), closeTo(60, 1));
           expectMockupSymbol(
             tester,
             within: project,

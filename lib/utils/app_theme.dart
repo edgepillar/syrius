@@ -1556,8 +1556,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Minimum height of Accelerator search and sort controls.
   double get acceleratorToolbarHeight => 59;
 
-  /// Minimum height of a project row before text scaling.
-  double get acceleratorRowHeight => 60;
+  /// Minimum project-row body height. The separator adds one pixel.
+  double get acceleratorRowHeight => 59;
+
+  /// Voting-table cells use the reference's nine-pixel vertical inset.
+  EdgeInsetsDirectional get acceleratorListRowPadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 9);
 
   /// The project table's quiet column header.
   double get acceleratorHeaderHeight => 32;
