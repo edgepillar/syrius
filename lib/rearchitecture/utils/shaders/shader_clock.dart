@@ -33,6 +33,7 @@ class ShaderClock extends ChangeNotifier
   bool _active = false;
   bool _visible = false;
   bool _focused = true;
+  bool _waitingForFocus = false;
   bool _minimized = false;
   bool _disposed = false;
   int _focusRevision = 0;
@@ -71,6 +72,7 @@ class ShaderClock extends ChangeNotifier
         _active &&
         _visible &&
         _focused &&
+        !_waitingForFocus &&
         !_minimized &&
         resumed &&
         FrostHold.count.value == 0;
@@ -90,24 +92,29 @@ class ShaderClock extends ChangeNotifier
     notifyListeners();
   }
 
-  Future<void> _readWindowFocus() async {
+  Future<void> _readWindowFocus({bool holdUntilResolved = false}) async {
     final int revision = ++_focusRevision;
+    _waitingForFocus = holdUntilResolved;
+    if (holdUntilResolved) _sync();
+    bool? focused;
     try {
-      final bool focused = await windowManager.isFocused();
-      // A focus event arriving during this query is newer than its answer.
-      if (_disposed || revision != _focusRevision) return;
-      _focused = focused;
-      _sync();
+      focused = await windowManager.isFocused();
     } on Object {
       // A missing desktop plugin must not prevent the flat fallback or an
       // isolated widget preview. Lifecycle and TickerMode still apply.
     }
+    // A focus event arriving during this query is newer than its answer.
+    if (_disposed || revision != _focusRevision) return;
+    _focused = focused ?? _focused;
+    _waitingForFocus = false;
+    _sync();
   }
 
   @override
   void onWindowBlur() {
     _focusRevision += 1;
     _focused = false;
+    _waitingForFocus = false;
     _sync();
   }
 
@@ -115,6 +122,7 @@ class ShaderClock extends ChangeNotifier
   void onWindowFocus() {
     _focusRevision += 1;
     _focused = true;
+    _waitingForFocus = false;
     _sync();
   }
 
@@ -136,9 +144,11 @@ class ShaderClock extends ChangeNotifier
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _lifecycle = state;
-    _sync();
     if (state == AppLifecycleState.resumed) {
-      unawaited(_readWindowFocus());
+      // The focus value from before suspension may no longer be current.
+      unawaited(_readWindowFocus(holdUntilResolved: true));
+    } else {
+      _sync();
     }
   }
 

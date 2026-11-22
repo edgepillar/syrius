@@ -246,7 +246,19 @@ void main() {
     expect(clock.isRunning, isFalse);
     await tester.pump(const Duration(seconds: 60));
     expect(clock.value, held);
+    final Completer<bool> resumedFocus = Completer<bool>();
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      _window,
+      (MethodCall call) => resumedFocus.future,
+    );
     clock.didChangeAppLifecycleState(AppLifecycleState.resumed);
+    expect(clock.isRunning, isFalse);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(clock.value, held);
+    resumedFocus.complete(false);
+    await tester.pump();
+    expect(clock.isRunning, isFalse);
+    clock.onWindowFocus();
     await tester.pump();
     expect(clock.value, held);
     await tester.pump(const Duration(milliseconds: 100));
