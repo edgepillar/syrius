@@ -5463,7 +5463,23 @@ The Home catalog now reads the original field's clock around one Go To open
 and dismissal. Four bounded observations use the same mounted field, with
 two readings while the palette covers it. Missing values stay explicit.
 The reader reports a held clock and resumed advancement from the retained
-values. This adds no PNGs and still needs its native execution.
+values. The catalog keeps its eight PNG filenames.
+
+#### Home field under Go To at `a43e90e3`
+
+The [native producer](https://github.com/edgepillar/syrius/actions/runs/44995657150/job/137126012819)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44997076172/job/137130311930)
+verify both ordinary clock conditions and normal required closure. The
+clock advances before Go To, stops, and reports 11,296,875 microseconds
+at both covered boundaries. After dismissal it runs at 12,156,250
+microseconds. The observed palette hold and resume are verified for the
+Home field. Window blur and hidden-page cases remain open.
+
+The [new index](docs/review/source-a43e90e3-home-captures.json) binds the
+same eight filenames to the 710,606-byte archive. Four sets of PNG and
+reference bytes match the earlier [reviewed pairs](docs/review/source-a43e90e3-home-verdicts.json).
+Four native PNGs differ and need fresh visual verdicts. The original review
+stays at `1cfd62d0`.
 
 ### End-state audit at `28b39fab` (2026-11-22)
 

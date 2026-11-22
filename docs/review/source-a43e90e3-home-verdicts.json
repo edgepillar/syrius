@@ -1,0 +1,36 @@
+{
+  "reviews": {
+    "01-home-rest-dark": {
+      "actual_sha256": "73b69a731e0cff33dd1bbcfaa7c5f4747286e26808936cfeb92bcb5597b3635d",
+      "expected_sha256": "70617942960638e9ad855344dcc7aa1433058bb4d060155f1cfb36592ca332a6",
+      "note": "The rail, hero and card positions agree. The isolated profile shows one Activity row scoped to the selected address, zero tokens, empty rewards and no Pending card. The reference contains several Activity rows and a pending send. The captured and reference bytes match the reviewed 1cfd62d0 pair.",
+      "reviewed_at": "2026-11-22T07:12:51Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "01-home-rest-light": {
+      "actual_sha256": "1df54dc09529591b3900340d2f871ee1990c4d6ad47fbebcdb0165d1535daad6",
+      "expected_sha256": "280f31f618a20af2f275bd516afc3280849180f4788f38ae7c3fdebaedd36b7c",
+      "note": "The rail, hero and card positions agree. The isolated profile shows one Activity row scoped to the selected address, zero tokens, empty rewards and no Pending card. The reference contains several Activity rows and a pending send. The captured and reference bytes match the reviewed 1cfd62d0 pair.",
+      "reviewed_at": "2026-11-22T07:12:51Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-light": {
+      "actual_sha256": "086c2c1cc8cfe99529d5bc3318aed43cd269175ecacafcc92bbc889ec6faa218",
+      "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
+      "note": "The expanded rail and open Tokens disclosure are visible in the expected positions. The isolated profile has an empty Tokens body and rewards. Its selected-address Activity shows one row and the reference shows several. The captured and reference bytes match the reviewed 1cfd62d0 pair.",
+      "reviewed_at": "2026-11-22T07:12:51Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-light": {
+      "actual_sha256": "048284481d7182c3947ec2906f565f5e4397e665d304682ddb785338281a0f16",
+      "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
+      "note": "The eye and masked balance and Activity amounts are visible. The isolated profile has one Activity row, empty rewards and zero tokens. The reference contains several masked rows, rewards and holdings. The captured and reference bytes match the reviewed 1cfd62d0 pair.",
+      "reviewed_at": "2026-11-22T07:12:51Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
