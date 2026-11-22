@@ -780,17 +780,26 @@ final class LabSeedBinding
             block.tokenStandard != original.tokenStandard ||
             block.amount != original.amount ||
             !listEquals(block.data, original.data))) {
+          stage = 'token-holder-block-binding';
           throw SeedRefused(stage);
         }
         if (block != null && _positivelyConfirmed(block)) {
-          final TokenActionProof held = await publisher.read(standard)
-              .timeout(const Duration(seconds: 3));
-          current();
-          if (held.token.owner.toString() == nextOwner &&
-              held.balance == proof.balance &&
-              held.token.totalSupply == proof.token.totalSupply &&
-              held.token.maxSupply == proof.token.maxSupply) {
-            return;
+          stage = 'token-holder-effect';
+          try {
+            // The token registry and the account can reflect adjacent
+            // momentums. Require complete agreement before capture.
+            final TokenActionProof held =
+                await publisher.session.prove(standard)
+                    .timeout(const Duration(seconds: 3));
+            current();
+            if (held.token.owner.toString() == nextOwner &&
+                held.balance == proof.balance &&
+                held.token.totalSupply == proof.token.totalSupply &&
+                held.token.maxSupply == proof.token.maxSupply) {
+              return;
+            }
+          } on TokenActionRefused {
+            current();
           }
         }
         if (round < 17) {

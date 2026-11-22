@@ -5157,7 +5157,17 @@ generic refusal before a screen capture step and retained no holder PNGs.
 The source now uses the original Home preparation before opening Tokens.
 A subsequent refusal can retain the last entered preparation stage from
 navigation through owner confirmation. The original attempt remains held
-and its holder outcome is unestablished. The Token summary uses its existing singular label for one
+and its holder outcome is unestablished.
+
+The [producer at `75cad6bb`](https://github.com/edgepillar/syrius/actions/runs/44977718607/job/137071236004)
+and its [independent read](https://github.com/edgepillar/syrius/actions/runs/44979401702/job/137076370945)
+retain two original confirmed seed receipts in the copied profile and
+record the holder confirmation boundary after sender acceptance. It retains
+no holder PNGs. The next candidate keeps the bounded confirmation window
+and rechecks complete token and account agreement if the first proof reads
+adjacent ledger states. A conflicting original block still refuses
+immediately. The same read loop retains the exact submitted block, and
+cannot submit a second action. The Token summary uses its existing singular label for one
 held token. The [Linux validation at `30112ab6`](https://github.com/edgepillar/syrius/actions/runs/44968418733/job/137042577611)
 passes analysis, unit and widget tests, and generated-file verification.
 Fresh native captures are needed to verify that label visually.
@@ -5338,6 +5348,22 @@ starting after settlement exceed 16 ms, with a maximum of 83.566 ms.
 The measurements establish where the slow frames occur in the sampled
 windows. The responsible render work remains unqualified.
 
+#### Verified Windows baseline at `5f6e049a` (2026-11-22)
+
+The [clean Windows producer](https://github.com/edgepillar/syrius/actions/runs/44976799171/job/137068393742)
+and the [independent log reader](https://github.com/edgepillar/syrius/actions/runs/44979160120/job/137075628549)
+verify all twelve checks. Debug and Release builds exit normally in
+140.922 and 193.984 seconds. The source, Debug and Release DLL digests
+agree and all three pass the mapping and export checks. Root analysis has
+zero errors, zero warnings and 1,300 infos. The non-chain suite passes
+5,132 tests with one skip. Generated localization remains unchanged.
+
+The production sources, assets, Windows runner, vendored dependencies
+and package locks match the published source at `83ac9505`. The
+baseline evidence keeps its original `5f6e049a` source pin. The later
+commits update the harness and documentation. The [environment guide](docs/environment.md)
+records the Windows setup. Visual and running motion acceptance remain open.
+
 The original checklist still has 77 accepted rows out of 80. V01, V02 and
 V06 remain open.
 
@@ -5424,7 +5450,7 @@ V06 remain open.
 | V03 | done | 2026-11-12T03:23Z | Source648 673fe4a19468, Source670 2b2c4abdadae, Source676 5d555665a643 and Source686 15fec4c9120f provide executed native refusals for all fifteen current seam values and pointer/keyboard refusal for the only seamed palette target. No direct missing-feature shortcut or other seamed palette target is registered. All 1,213 current runtime entries match Source686; the sole older token observer difference is covered by its holder trial. Source670's producer control list remains distinct from its legacy reader's context/closure proof. The [Source695 audit](docs/review/source695-seam-coverage.md) closes the original requirement without relabelling the later incomplete eleven-control Home batch or its failures. No new native run or visual match is claimed. |
 | V04 | done | 2026-10-31T23:34Z | All four independently qualified Source265 minimum-window/Arabic originals were actually viewed in both themes. The owned review closes SUCCESS with actual controller exit zero; required original native closure stays source-bound. Minimum controls fit and RTL layout mirrors. English fallback/missing Arabic copy is retained as X414; exact saved locale preference and Arabic glyph quality remain separate unqualified observations |
 | V05 | done | 2026-11-18T13:45Z | fdb88d89 commits the fresh independent review of all 94 exact 28f9c121 pairs and X821 through X875. The visual verdicts guide further comparisons under V01. [Independent review](docs/review/source-28f9c121-independent-visual-review.md). |
-| V06 | review | 2026-11-22 | The [current audit](#end-state-audit-at-28b39fab-2026-11-22) records the verified Linux result, the original Windows baseline and the open current-source gates. |
+| V06 | review | 2026-11-22 | The [end-state audit](#end-state-audit-at-28b39fab-2026-11-22) and [latest Windows baseline](#verified-windows-baseline-at-5f6e049a-2026-11-22) record verified builds, analysis and tests. Visual and running motion acceptance remain open. |
 | X01 | done | 2026-10-21T23:26Z | e13abb387577 restores loading-list sweep ink in lib/rearchitecture/utils/widgets/motion/skeleton.dart; all 19 existing Skeleton tests pass unchanged |
 | X02 | done | 2026-10-21T23:57Z | e13abb387577 keeps the status-strip dot visible at narrow widths and fixes asynchronous visibility tests |
 | X03 | done | 2026-10-21T23:57Z | e13abb387577 parses the bridge test's HTTP head before binary frames; compression refusal assertions retained |

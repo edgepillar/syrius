@@ -52,6 +52,7 @@ TOKEN_HOLDER_FAILURE_CODES = frozenset((
     'token-holder-request', 'token-holder-owner', 'token-holder-admission',
     'token-holder-issued-proof', 'token-holder-sender', 'token-holder-owner-proof',
     'token-holder-transfer', 'token-holder-confirmation',
+    'token-holder-block-binding', 'token-holder-effect',
 ))
 OBSERVE_FAILURE_CODES = frozenset((
     'OBSERVE_READINESS_FORMAT', 'OBSERVE_STATE_FORMAT',
