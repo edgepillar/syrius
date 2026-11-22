@@ -6931,7 +6931,11 @@ and normal process exit. Both Welcome PNGs have the earlier digests.
 Against the same references, Import footer pixels differing by at
 least 16 levels in one RGB channel fall from 1,789 to 1,787 in dark and
 from 2,285 to 1,819 in light. The other measured regions keep their
-counts. The revised Import pairs still require whole-image review.
+counts. The [Linux validation at the same source](https://github.com/edgepillar/syrius/actions/runs/45081486840/job/137390415603)
+passes full unit and widget tests, application and strict analysis, and
+generated-file verification. The Windows tour selection has 1,532
+passing cases across 113 files on Linux. The revised Import pairs still
+require whole-image review.
 
 The [Linux run at `2c8fd31c`](https://github.com/edgepillar/syrius/actions/runs/45070486871/job/137356114553)
 passes strict analysis, both Import geometry cases, 5,135 non-chain
