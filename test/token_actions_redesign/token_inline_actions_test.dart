@@ -881,11 +881,20 @@ void main() {
               );
               final TextButton domainButton = tester.widget<TextButton>(domain);
               final AppTokens tokens = AppTokens.of(tester.element(domain));
+              final TextStyle? domainStyle = domainButton.style?.textStyle
+                  ?.resolve(<WidgetState>{});
+              expect(domainStyle?.fontFamily, tokens.sansFontFamily);
+              expect(domainStyle?.fontSize, 13.5);
               expect(
-                domainButton.style?.textStyle
-                    ?.resolve(<WidgetState>{})
-                    ?.fontFamily,
-                tokens.compactText.fontFamily,
+                tester.widget<Text>(find.text('Yes, by owner')).style?.fontSize,
+                13.5,
+              );
+              expectMockupSymbol(
+                tester,
+                within: domain,
+                symbol: 'ext',
+                size: 12,
+                color: tokens.foreground,
               );
               final VoidCallback oldDomain = domainButton.onPressed!;
               update(() => active = replacement);

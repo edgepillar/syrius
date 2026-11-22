@@ -5413,6 +5413,12 @@ Domain link and centered actions in both themes. The second fact group starts
 left of the reference and the fixtures still differ by two holdings.
 Whole-image acceptance remains open.
 
+The holder fact values now use the reference's 13.5 px type, and the
+inline Domain icon uses the value's foreground color. The two value
+tracks still size themselves from their actual text. The existing holder
+cases check the type size, matching track widths and inline icon. The
+smaller fixture still needs native comparison against both references.
+
 In the retained [Mint views at `a2efda99`](docs/review/source-a2efda99-seeded-captures.json),
 the amount and beneficiary field interiors read RGB (57, 59, 57) in dark
 and (245, 245, 245) in light. At the same coordinates the reference field

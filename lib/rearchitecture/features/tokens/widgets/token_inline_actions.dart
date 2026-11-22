@@ -487,7 +487,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
                                   !holderView &&
                                   _mode == TokenActionMode.flags,
                               includeUtility: !holderView,
-                              balanceValueColumns: holderView,
+                              holderView: holderView,
                               onOpenDomain: holderView
                                   ? _domainAction(token)
                                   : null,
@@ -1432,7 +1432,7 @@ class _TokenFacts extends StatelessWidget {
     this.flagsOnly = false,
     this.metadataOnly = false,
     this._includeUtility = true,
-    this.balanceValueColumns = false,
+    this.holderView = false,
     this.onOpenDomain,
   });
 
@@ -1440,7 +1440,7 @@ class _TokenFacts extends StatelessWidget {
   final bool flagsOnly;
   final bool metadataOnly;
   final bool _includeUtility;
-  final bool balanceValueColumns;
+  final bool holderView;
   final VoidCallback? onOpenDomain;
 
   @override
@@ -1470,10 +1470,13 @@ class _TokenFacts extends StatelessWidget {
           token.isUtility ? context.l10n.tokensYes : context.l10n.tokensNo,
         ),
     ];
+    final TextStyle factValue = holderView
+        ? tokens.bodyText.copyWith(fontSize: 13.5)
+        : tokens.compactText;
     TextStyle valueStyle(String label) =>
         label == context.l10n.createTokenDecimalsLabel
-        ? tokens.compactText.copyWith(fontFamily: tokens.monoFontFamily)
-        : tokens.compactText;
+        ? factValue.copyWith(fontFamily: tokens.monoFontFamily)
+        : factValue;
     Widget valueCell((String, String) fact) {
       final (String label, String value) = fact;
       final TextStyle style = valueStyle(label);
@@ -1496,7 +1499,9 @@ class _TokenFacts extends StatelessWidget {
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
             child: ShellSymbol(
-              'ext', size: tokens.inlineGlyphSize, color: tokens.dim,
+              'ext',
+              size: tokens.inlineGlyphSize,
+              color: tokens.foreground,
             ),
           ),
         ])),
@@ -1510,7 +1515,7 @@ class _TokenFacts extends StatelessWidget {
             ? 2
             : 1;
         final int columns = pairs * 2;
-        final bool balanceColumns = pairs == 2 && balanceValueColumns;
+        final bool balanceColumns = pairs == 2 && holderView;
         final double gap = tokens.tokenDetailColumnGap;
         return Align(
           alignment: AlignmentDirectional.centerStart,
