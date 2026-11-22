@@ -294,7 +294,10 @@ def seed_confirmation_projection(value, *, allow_funding=False, allow_token_effe
         token_effect = value['token_effect']
         checkpoint.need(allow_token_effect and value['last'] == 'effect_pending'
             and type(token_effect) is str
-            and token_effect in {'metadata_absent', 'metadata_mismatch', 'holding_pending'})
+            and token_effect in {'metadata_absent', 'metadata_mismatch', 'holding_pending',
+                'holding_send_unverified', 'holding_worker_unavailable',
+                'holding_receive_unseen', 'holding_receive_pending',
+                'holding_receive_accepted', 'holding_receive_held'})
     return result
 
 

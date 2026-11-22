@@ -143,7 +143,13 @@ enum SeedPendingResult { absent, unconfirmed, effectPending }
 enum SeedTokenEffect {
   metadataAbsent('metadata_absent'),
   metadataMismatch('metadata_mismatch'),
-  holdingPending('holding_pending');
+  holdingPending('holding_pending'),
+  holdingSendUnverified('holding_send_unverified'),
+  holdingWorkerUnavailable('holding_worker_unavailable'),
+  holdingReceiveUnseen('holding_receive_unseen'),
+  holdingReceivePending('holding_receive_pending'),
+  holdingReceiveAccepted('holding_receive_accepted'),
+  holdingReceiveHeld('holding_receive_held');
 
   const SeedTokenEffect(this.wire);
 
@@ -506,6 +512,7 @@ final class SeedConfirmed {
     this.fundAddressReceiveConfirmed = false,
     this.pillarDepositReceivePending = false,
     this.pendingTokenHoldingReceive,
+    this.tokenHoldingObservation = SeedTokenEffect.holdingPending,
   });
   final String hash;
   final String owner;
@@ -519,6 +526,9 @@ final class SeedConfirmed {
 
   /// The existing wallet result can only schedule another exact ledger read.
   final Future<Object?>? pendingTokenHoldingReceive;
+
+  /// Closed observation of the original issued send and wallet receive.
+  final SeedTokenEffect tokenHoldingObservation;
 }
 
 abstract interface class SeedSource {

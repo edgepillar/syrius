@@ -1278,7 +1278,10 @@ class SeedFailureProjectionTests(unittest.TestCase):
             self.assertEqual(result['confirmation']['absent'], 6)
             child = self.child(result)
             self.assertEqual(restored.child_failure_projection(child)['seed'], result)
-        for status in ('metadata_absent', 'metadata_mismatch', 'holding_pending'):
+        for status in ('metadata_absent', 'metadata_mismatch', 'holding_pending',
+                'holding_send_unverified', 'holding_worker_unavailable',
+                'holding_receive_unseen', 'holding_receive_pending',
+                'holding_receive_accepted', 'holding_receive_held'):
             token = dict(self.exhausted(), recipe='token', command_index=21,
                 confirmation=self.counts(token_effect=status))
             self.assertEqual(restored.child_failure_projection(

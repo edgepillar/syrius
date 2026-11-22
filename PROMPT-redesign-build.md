@@ -5204,6 +5204,14 @@ holding in the original account. The copied profile stopped before entering
 holder preparation and retained no holder PNGs. The ownership effect and the
 cause of the pending issued holding remain unverified.
 
+When metadata agrees but the balance remains pending, the next fixture records
+whether the original issuance reply identifies an exact contract send. For an
+identified send it records the matching wallet worker's availability and its
+unseen, pending, accepted or held status. The observations contain no account
+or transaction identifiers. The balance gate and eighteen reads still govern
+qualification. Only an existing pending receive handle can schedule the same
+bounded wait. Native confirmation of these diagnostics is pending.
+
 The [natural launch producer at `f3a07338`](https://github.com/edgepillar/syrius/actions/runs/44964183241/job/137029373106)
 passes the handoff widget, ownership and diagnostics checks and builds
 the Release harness. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44965586588/job/137033752479)

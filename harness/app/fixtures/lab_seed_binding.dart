@@ -527,19 +527,30 @@ final class LabSeedBinding
     );
   }
 
-  Future<Object?>? _pendingIssuedTokenReceive(AccountBlock original) {
+  ({SeedTokenEffect effect, Future<Object?>? result})
+  _observeIssuedTokenReceive(AccountBlock original) {
     try {
       final String? hash = seedIssuedTokenSendHash(original);
       if (hash == null || original.address.toString() != environment.owner) {
-        return null;
+        return (effect: SeedTokenEffect.holdingSendUnverified, result: null);
       }
       final ({SeedFundingReceive status, Future<Object?>? result}) receive =
           _observeReceive(hash, original.address);
-      return receive.status == SeedFundingReceive.pending
-          ? receive.result : null;
+      final SeedTokenEffect effect = switch (receive.status) {
+        SeedFundingReceive.unavailable =>
+          SeedTokenEffect.holdingWorkerUnavailable,
+        SeedFundingReceive.unseen => SeedTokenEffect.holdingReceiveUnseen,
+        SeedFundingReceive.pending => SeedTokenEffect.holdingReceivePending,
+        SeedFundingReceive.accepted => SeedTokenEffect.holdingReceiveAccepted,
+        SeedFundingReceive.held => SeedTokenEffect.holdingReceiveHeld,
+      };
+      return (
+        effect: effect,
+        result: receive.status == SeedFundingReceive.pending
+            ? receive.result : null,
+      );
     } on Object {
-      // A missing observation leaves the original ledger checks in place.
-      return null;
+      return (effect: SeedTokenEffect.holdingWorkerUnavailable, result: null);
     }
   }
 
@@ -1054,6 +1065,9 @@ final class LabSeedBinding
       ),
       _ => throw const SeedRefused('recipe-prerequisite-missing'),
     };
+    final ({SeedTokenEffect effect, Future<Object?>? result})? tokenReceive =
+        recipe == 'token' && _catalogTokenHolding
+            ? _observeIssuedTokenReceive(block) : null;
     return SeedConfirmed(
       hash: block.hash.toString(),
       owner: block.address.toString(),
@@ -1068,8 +1082,9 @@ final class LabSeedBinding
             target,
             block.hash,
           ),
-      pendingTokenHoldingReceive: recipe == 'token' && _catalogTokenHolding
-          ? _pendingIssuedTokenReceive(block) : null,
+      pendingTokenHoldingReceive: tokenReceive?.result,
+      tokenHoldingObservation:
+          tokenReceive?.effect ?? SeedTokenEffect.holdingPending,
       matchesRecipe:
           block.blockType == BlockTypeEnum.userSend.index &&
           block.toAddress == target &&
@@ -1214,7 +1229,7 @@ final class LabSeedBinding
       );
       if (!held) {
         _tokenEffect = (
-          hash: hash, observation: SeedTokenEffect.holdingPending,
+          hash: hash, observation: original.tokenHoldingObservation,
         );
       }
       return held;
