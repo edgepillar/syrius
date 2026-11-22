@@ -6939,6 +6939,36 @@ The [prepared Accelerator screens](https://github.com/edgepillar/syrius/actions/
 and [Held Tokens](https://github.com/edgepillar/syrius/actions/runs/45073751037)
 routes target another six pairs on the same isolated Windows lane.
 
+#### Remaining exact-source capture dispatches
+
+With those two prepared routes already running, the following sixteen
+dispatches cover the other 52 missing pairs at `2c8fd31c`. Each run's
+source is checked against the publication candidate. The startup batch
+also repeats the two handoff PNGs already indexed at this source.
+Coverage increases only after the producer archives pass independent
+inspection. Whole-image reviews retain their separate verdicts.
+
+| Catalog | Missing pairs targeted | Run |
+| --- | ---: | --- |
+| `startup-catalog` | 10 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074863640) |
+| `home-catalog` | 8 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074863445) |
+| `home-bell` | 2 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074863412) |
+| `token-draft` | 2 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074863396) |
+| `send-confirm` | 4 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074866748) |
+| `earn` | 4 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074866766) |
+| `sentinel-fixture` | 2 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074866722) |
+| `swap-start` | 2 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074866829) |
+| `wallet-ready` | 2 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074870004) |
+| `send-warn` | 2 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074870247) |
+| `home-zap-preview` | 2 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074870155) |
+| `seeded-states` | 4 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074870104) |
+| `stake-draft` | 2 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074873481) |
+| `pillar-spawn` | 2 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074873579) |
+| `pillar-done` | 2 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074873468) |
+| `swap-seeded` | 2 | [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45074873422) |
+
+#### Settings captures at `2c8fd31c`
+
 The [Settings producer](https://github.com/edgepillar/syrius/actions/runs/45071349540/job/137358788137)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45073276793/job/137364817617)
 verify [fourteen original Settings PNGs](docs/review/source-2c8fd31c-settings-captures.json)
@@ -7014,6 +7044,8 @@ rasters starting after observed settlement exceed 16 ms.
 The handoff PNGs increase the candidate inventory to twenty originals
 and sixteen eligible pairs. The dark PNG is byte-identical to the
 earlier `a4e0a9d3` capture. Whole-image verdicts and V02 stay open.
+The [paired page-change and disclosure run](https://github.com/edgepillar/syrius/actions/runs/45074928832)
+uses the same publication candidate.
 
 #### Welcome backdrop at `2c8fd31c`
 
