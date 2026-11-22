@@ -650,6 +650,18 @@ def import_backdrop_palette_model(actual, a_channels, reference, r_channels, the
                 modeled_mean_rgb_error_milli=round(1000 * modeled_error / count))
 
 
+def import_numeral_bottom_rows(rows, channels):
+    """Read digit ink away from the top and bottom of each badge ring."""
+    background = rows[294][400 * channels:400 * channels + 3]
+    bottoms = []
+    for x in (369, 621, 862):
+        start = x * channels
+        ink = [y for y in range(274, 289)
+               if max(abs(a - b) for a, b in zip(rows[y][start:start + 3], background)) >= 16]
+        bottoms.append(max(ink) if ink else None)
+    return bottoms
+
+
 def entry_pixel_comparison(data, reference, screen, *, theme=None):
     """Summarize original RGB differences without writing or grading an image."""
     return pixel_comparison(data, reference, ENTRY_REGIONS[screen],
@@ -697,6 +709,9 @@ def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
     if import_background_theme is not None:
         result['backdrop_palette_model'] = import_backdrop_palette_model(
             actual, a_channels, expected, e_channels, import_background_theme)
+        result['step_numeral_bottom_rows'] = dict(
+            actual=import_numeral_bottom_rows(actual, a_channels),
+            reference=import_numeral_bottom_rows(expected, e_channels))
     if sample_points is not None:
         result['sample_rgb'] = {
             name: dict(point=[x, y],
@@ -924,6 +939,13 @@ def inspect_entry(client, text, head, tree, run_id, job, *, item=None):
             emit('Hosted Import backdrop palette model', dict(
                 scope='retained_import_backdrop_palette_model', **binding,
                 reference_head=reference_head, estimates=palette))
+        numerals = {name: value.pop('step_numeral_bottom_rows')
+                    for name, value in comparisons.items()
+                    if value is not None and 'step_numeral_bottom_rows' in value}
+        if numerals:
+            emit('Hosted Import step numeral rows', dict(
+                scope='retained_import_step_numeral_rows', **binding,
+                reference_head=reference_head, rows=numerals))
         emit('Hosted entry pixel comparisons', dict(
             scope='retained_entry_pixel_comparisons', **binding,
             reference_head=reference_head, size=[1280, 780],

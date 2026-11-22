@@ -284,6 +284,15 @@ class WindowsQualificationTests(unittest.TestCase):
                 self.assertEqual(estimate['raw_mean_rgb_error_milli'], 3333)
                 self.assertLess(estimate['modeled_mean_rgb_error_milli'], 700)
 
+        numeral_rows = [bytes(1280 * 3)] * 295
+        ink = bytearray(numeral_rows[284])
+        for x in (369, 862):
+            ink[x * 3] = 16
+        numeral_rows[284] = bytes(ink)
+        numeral_rows[291] = bytes(ink)
+        self.assertEqual(inspect.import_numeral_bottom_rows(numeral_rows, 3),
+                         [284, None, 284])
+
         handoff = pixels(520, 744, opaque=True, welcome_rows=(14, 240), welcome_x=300)
         with mock.patch.object(Path, 'open', return_value=io.BytesIO(pixels(opaque=True))):
             comparison = inspect.startup_pixel_comparison('40-launch-settle-dark.png', handoff)
