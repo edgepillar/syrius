@@ -5350,6 +5350,15 @@ Domain link and centered actions in both themes. The second fact group starts
 left of the reference and the fixtures still differ by two holdings.
 Whole-image acceptance remains open.
 
+In the retained [Mint views at `a2efda99`](docs/review/source-a2efda99-seeded-captures.json),
+the amount and beneficiary field interiors read RGB (57, 59, 57) in dark
+and (245, 245, 245) in light. At the same coordinates the reference field
+interiors read (46, 48, 46) and (255, 255, 255). The surrounding form fill
+already agrees in both themes. The Mint inputs now explicitly use the
+reference's secondary surface colour, including on hover. The existing
+theme and reading-direction matrix checks both fields and the occupied
+border. Targeted analysis passes. Native confirmation remains open.
+
 The Token issue form uses the same optional domain-name rule as the node.
 The existing form test covers a bare domain, an empty field, a full URL,
 a URL path and a name above the 128-character limit.

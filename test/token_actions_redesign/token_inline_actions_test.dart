@@ -280,7 +280,12 @@ void main() {
               TextField beneficiary() => tester.widget<TextField>(
                 find.byKey(const Key(beneficiaryKey)),
               );
-              expect(beneficiary().decoration!.enabledBorder, occupied);
+              for (final TextField input in <TextField>[field, beneficiary()]) {
+                expect(input.decoration!.filled, isTrue);
+                expect(input.decoration!.fillColor, tokens.card2);
+                expect(input.decoration!.hoverColor, Colors.transparent);
+                expect(input.decoration!.enabledBorder, occupied);
+              }
               final Finder shortcut = find.widgetWithText(
                 TextButton,
                 'This address',

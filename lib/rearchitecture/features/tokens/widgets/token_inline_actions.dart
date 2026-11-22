@@ -767,6 +767,9 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
       decoration: InputDecoration(
         isDense: true,
         constraints: BoxConstraints(minHeight: tokens.tokenActionHeight),
+        filled: isMint ? true : null,
+        fillColor: isMint ? tokens.card2 : null,
+        hoverColor: isMint ? Colors.transparent : null,
         enabledBorder: isMint && amount.text.isNotEmpty
             ? filledMintBorder
             : null,
@@ -807,6 +810,9 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
       decoration: InputDecoration(
         isDense: true,
         constraints: BoxConstraints(minHeight: tokens.tokenActionHeight),
+        filled: isMint ? true : null,
+        fillColor: isMint ? tokens.card2 : null,
+        hoverColor: isMint ? Colors.transparent : null,
         enabledBorder: isMint && receiver.text.isNotEmpty
             ? filledMintBorder
             : null,
