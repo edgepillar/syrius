@@ -806,6 +806,8 @@ class InteractiveFramePairTests(unittest.TestCase):
         window = dict(fixture()['samples']['current']['observation']['windows']['page_change'],
                       peakBuildWaitUs=0)
         window['rasterStartsUs'] = [row[1] + row[2] for row in window['frames']]
+        window['rasterCacheAtPeak'] = dict(frame=max(window['frames'], key=lambda row: row[3])[0],
+            layer_count=1, layer_bytes=4096, picture_count=0, picture_bytes=0)
         for fault in (None, 'closed', 'content', 'address', 'scroll', 'tap_offset',
                       'phase_offset', 'pointer_order', 'idle_unavailable'):
             calls, validated, pauses = [], [], []
@@ -1478,6 +1480,9 @@ class InteractiveFramePairTests(unittest.TestCase):
             sample['shutdown_trace'] = dict(status='observed', phase='exitRequested',
                 failed=False, event_count=20, output_complete=True,
                 elapsed_ms=120_000, max_gap_ms=110_000, max_gap_after='windowPositionRead')
+        cache = idle['rasterCacheAtPeak']
+        offered['samples']['current']['observation']['windows'] = dict.fromkeys(
+            pair.WINDOWS, dict(full, rasterCacheAtPeak=cache))
         offered['samples']['current']['observation']['tap_release_us'] = dict.fromkeys(
             pair.WINDOWS, pair.actions.MAX_WINDOW_US - 1)
         offered['samples']['current']['observation']['pointer_phases_us'] = dict.fromkeys(
@@ -1495,6 +1500,9 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(result['frame_counts']['p06'], {'page_change': 512, 'disclosure': 512})
         self.assertEqual(result.pop('verified_comparisons'), offered['comparisons'])
         diagnostics = result.pop('verified_window_diagnostics')
+        for name in pair.WINDOWS:
+            self.assertEqual(diagnostics['current'][name]['raster_cache_at_peak'], cache)
+            self.assertNotIn('raster_cache_at_peak', diagnostics['p06'][name])
         self.assertEqual(result.pop('verified_idle_after_disclosure'), {})
         idle_summary = result.pop('verified_idle_on_node_settings')
         self.assertEqual(result.pop('verified_idle_before_disclosure'), idle_summary)

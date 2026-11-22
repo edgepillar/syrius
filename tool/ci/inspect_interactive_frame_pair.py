@@ -253,6 +253,9 @@ def _frame_gaps_by_previous_raster(window):
 def _window_diagnostics(window, tap_release_us, motion_us, observed_phases=None,
                         pointer_phases=None):
     result = cold.window_diagnostics(window, peak_starts=True)
+    cache_field = pair.shared.launch.RASTER_CACHE_FIELD
+    if cache_field in window:
+        result['raster_cache_at_peak'] = window[cache_field]
     if tap_release_us is not None:
         rows = pair.shared.launch.frame_timing_rows(window, allow_packed=True)
         raster_starts = cold.recorded_raster_starts(rows, window)

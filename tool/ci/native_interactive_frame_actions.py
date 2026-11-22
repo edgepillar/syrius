@@ -68,11 +68,9 @@ def _end(send, validate_window, phase_field):
     reply = _original(send, cmd='stalls', frameWindow='end')
     _require(all(field in reply for field in TIMING_FIELDS))
     window = {field: reply[field] for field in TIMING_FIELDS}
-    for field in (PEAK_BUILD_WAIT_FIELD, RASTER_STARTS_FIELD):
+    for field in (PEAK_BUILD_WAIT_FIELD, RASTER_STARTS_FIELD, RASTER_CACHE_FIELD):
         if field in reply:
             window[field] = reply[field]
-    if phase_field is None and RASTER_CACHE_FIELD in reply:
-        window[RASTER_CACHE_FIELD] = reply[RASTER_CACHE_FIELD]
     validate_window(window)
     return window, reply.get(phase_field)
 

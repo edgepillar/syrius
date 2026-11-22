@@ -5768,6 +5768,14 @@ gaps. The page change and disclosure retain two and eleven raster-rank
 overruns after settlement, respectively. The two empty idle cache
 snapshots leave the cause of the interactive overruns open.
 
+The next paired run retains the engine's layer and picture cache counters
+on the peak frame of each interactive window as well. The independent
+reader exposes those counters against the peak frame already verified in
+the original rows. The comparison rule, the P06 collector and the archive
+limit remain unchanged. The maximum-size manifest and notice tests cover
+the additional counters. The measurements describe cache occupancy at
+those frames. They cannot attribute raster time to a widget or a cache hit.
+
 #### Paired Windows cold launch timing at `f0b1a110`
 
 The [native producer](https://github.com/edgepillar/syrius/actions/runs/44979865019/job/137077797577)
