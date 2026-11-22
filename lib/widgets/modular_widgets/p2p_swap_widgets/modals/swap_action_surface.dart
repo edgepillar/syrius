@@ -920,12 +920,21 @@ class SwapTextEntry extends StatelessWidget {
     required this.label,
     required this.onChanged,
     this.onPaste,
-    this.onPickContact,
-    this.fieldCaption,
     this.onSubmitted,
     this.fieldKey,
     super.key,
-  });
+  }) : fieldCaption = null, onPickContact = null;
+
+  /// The labelled address control in the Start Swap form.
+  const SwapTextEntry.counterparty({
+    required this.controller,
+    required this.label,
+    required String caption,
+    required this.onChanged,
+    required this.onPickContact,
+    this.fieldKey,
+    super.key,
+  }) : fieldCaption = caption, onPaste = null, onSubmitted = null;
 
   /// Caller-owned draft text, retained across this input's rebuilds.
   final TextEditingController controller;
