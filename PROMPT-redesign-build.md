@@ -6922,8 +6922,16 @@ one full outline row at 549 and one at 585. The selected thumb shows
 the same half-pixel displacement. The Import footer now paints its
 word-count selector half a logical pixel lower. The shared Segment
 layout and input ownership stay in place. The existing footer case
-checks the center offset in both themes. Fresh Windows PNGs are
-needed to confirm the raster alignment.
+checks the center offset in both themes.
+
+The [Windows producer at `dddaf51f`](https://github.com/edgepillar/syrius/actions/runs/45081487130/job/137390418332)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45082032211/job/137392113748)
+verify [four original entry PNGs](docs/review/source-dddaf51f-entry-captures.json)
+and normal process exit. Both Welcome PNGs have the earlier digests.
+Against the same references, Import footer pixels differing by at
+least 16 levels in one RGB channel fall from 1,789 to 1,787 in dark and
+from 2,285 to 1,819 in light. The other measured regions keep their
+counts. The revised Import pairs still require whole-image review.
 
 The [Linux run at `2c8fd31c`](https://github.com/edgepillar/syrius/actions/runs/45070486871/job/137356114553)
 passes strict analysis, both Import geometry cases, 5,135 non-chain
