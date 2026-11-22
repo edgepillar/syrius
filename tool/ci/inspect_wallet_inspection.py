@@ -530,6 +530,19 @@ def unpack_home_catalog(raw, expected_sha, expected_size, head, tree, run_id,
                 maximum_progress_millionths=max(drift),
                 observed_change=min(drift) < max(drift),
             )
+    if 'home_field_occlusion' in value['capture']:
+        observed = producer.home_field_occlusion_receipt(
+            value['capture']['home_field_occlusion'])
+        start, end = observed['covered_start'], observed['covered_end']
+        before, after = observed['before'], observed['after']
+        result['home_field_occlusion'] = dict(
+            scope='original_home_field_go_to', samples=observed,
+            held_observed=(start is not None and end is not None
+                and not start[0] and not end[0] and start[1] == end[1]),
+            resume_observed=(before is not None and before[0] and end is not None
+                and not end[0] and after is not None and after[0]
+                and after[1] > end[1]),
+        )
     if 'eye_motion' in value['capture']:
         samples = producer.eye_motion_receipt(value['capture']['eye_motion'])
         result['eye_motion'] = {
@@ -1684,6 +1697,7 @@ def main(parent=None):
         segment_motion = catalog.pop('segment_motion', None)
         eye_motion = catalog.pop('eye_motion', None)
         home_field_drift = catalog.pop('home_field_drift', None)
+        home_field_occlusion = catalog.pop('home_field_occlusion', None)
         emit(f'Retained readonly {family} catalog', catalog)
         sampling_scope = summary.get('sampling_scope')
         capture_family = (sampling_scope.removesuffix('-only')
@@ -1707,6 +1721,10 @@ def main(parent=None):
             emit('Retained readonly Home field drift', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
                 manifest_sha256=catalog['manifest_sha256'], **home_field_drift))
+        if home_field_occlusion is not None:
+            emit('Retained readonly Home field under Go To', dict(source_head=head,
+                source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
+                manifest_sha256=catalog['manifest_sha256'], **home_field_occlusion))
         if segment_motion is not None:
             emit('Retained readonly segment motion', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],

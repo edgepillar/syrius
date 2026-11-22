@@ -161,7 +161,8 @@ def home_capture_receipt(value):
         width=1280, height=780, scale=1, capture_returned=True)
     expected.update(dict(screen='home-rest', number=1) if schema == 1
                     else dict(screens=list(home_catalog_screens(schema))))
-    optional = {'rail_motion', 'sync_pulse', 'segment_motion', 'eye_motion'} if schema == 4 else set()
+    optional = {'rail_motion', 'sync_pulse', 'segment_motion', 'eye_motion',
+        'home_field_occlusion'} if schema == 4 else set()
     need(set(expected) <= set(value) <= set(expected) | optional
          and all(type(value[k]) is type(v) and value[k] == v
                  for k, v in expected.items()), 'CAPTURE_REFUSED')
@@ -169,6 +170,8 @@ def home_capture_receipt(value):
         rail_motion_receipt(value['rail_motion'])
     if 'sync_pulse' in value:
         sync_pulse_receipt(value['sync_pulse'])
+    if 'home_field_occlusion' in value:
+        home_field_occlusion_receipt(value['home_field_occlusion'])
     if 'segment_motion' in value:
         segment_motion_receipt(value['segment_motion'])
     if 'eye_motion' in value:
@@ -216,6 +219,18 @@ def segment_motion_receipt(value):
              and rows[-1][1:3] == rows[-1][3:] != motion['before']
              and all(row[1:3] != row[3:] for row in rows[:-1]),
              'CAPTURE_REFUSED')
+    return value
+
+
+def home_field_occlusion_receipt(value):
+    """Admit only finite clock observations around the original Go To route."""
+    phases = ('before', 'covered_start', 'covered_end', 'after')
+    need(type(value) is dict and set(value) == set(phases), 'CAPTURE_REFUSED')
+    need(all(row is None or (type(row) is list and len(row) == 2
+        and type(row[0]) is bool and type(row[1]) is int
+        and 0 <= row[1] <= 1_800_000_000) for row in value.values()), 'CAPTURE_REFUSED')
+    elapsed = [value[phase][1] for phase in phases if value[phase] is not None]
+    need(elapsed == sorted(elapsed), 'CAPTURE_REFUSED')
     return value
 
 

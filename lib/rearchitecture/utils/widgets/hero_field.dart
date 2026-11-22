@@ -60,6 +60,19 @@ class HeroField extends StatefulWidget {
     return null;
   }
 
+  /// Reads the ordinary Home clock without advancing or painting the field.
+  static (bool, int)? homeClockOf(BuildContext context) {
+    if (context case StatefulElement(:final _HeroFieldState state)) {
+      if (state.mounted && state.widget._referenceHome &&
+          state._referenceFrame == null) {
+        final ShaderClock clock = state._clock;
+        return (clock.isRunning,
+            (clock.value * Duration.microsecondsPerSecond).round());
+      }
+    }
+    return null;
+  }
+
   @override
   State<HeroField> createState() => _HeroFieldState();
 }

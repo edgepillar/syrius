@@ -270,6 +270,60 @@ class ReadonlyInspectionSession {
     return samples;
   }
 
+  /// Reads the same Home field around one normal Go To open and dismissal.
+  Future<Map<String, Object?>> observeHomeFieldOcclusion() async {
+    await _requireScreenHome();
+    const Duration timeout = Duration(seconds: 5);
+    const Duration spacing = Duration(milliseconds: 250);
+    Future<List<Object>?> read() async {
+      final Map<String, dynamic> reply = await send(
+        <String, Object?>{'cmd': readonlySyncPulseCommand}, timeout,
+      );
+      final Object? clock = reply['homeFieldClock'];
+      if (reply['ok'] != true) _refuse(ReadonlyInspectionReason.reply);
+      if (clock == null) return null;
+      if (clock case [final bool running, final int us]
+          when us >= 0 && us <= 1800000000) {
+        return <Object>[running, us];
+      }
+      _refuse(ReadonlyInspectionReason.reply);
+    }
+
+    Future<void> key(String value) async {
+      final Map<String, dynamic> reply = await send(
+        <String, Object?>{'cmd': 'key', 'key': value}, timeout,
+      );
+      if (reply['ok'] != true || reply['handled'] != true) {
+        _refuse(ReadonlyInspectionReason.reply);
+      }
+    }
+
+    Future<void> waitForPalette({required bool gone}) async {
+      final Map<String, dynamic> reply = await send(<String, Object?>{
+        'cmd': 'wait', 'key': 'go_to_field', 'exact': true, 'gone': gone,
+        'timeoutMs': 4000,
+      }, timeout);
+      if (reply['ok'] != true) _refuse(ReadonlyInspectionReason.reply);
+    }
+
+    final List<Object>? before = await read();
+    await key('ctrl+k');
+    await waitForPalette(gone: false);
+    await Future<void>.delayed(spacing);
+    final List<Object>? coveredStart = await read();
+    await Future<void>.delayed(spacing);
+    final List<Object>? coveredEnd = await read();
+    await key('escape');
+    await waitForPalette(gone: true);
+    await Future<void>.delayed(spacing);
+    final List<Object>? after = await read();
+    await _requireScreenHome();
+    return <String, Object?>{
+      'before': before, 'covered_start': coveredStart,
+      'covered_end': coveredEnd, 'after': after,
+    };
+  }
+
   /// Samples both directions of the original Home balance eye and restores it.
   Future<Map<String, List<List<int>>>> observeEyeMotion() async {
     await _requireScreenHome();

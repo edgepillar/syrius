@@ -571,6 +571,7 @@ class HarnessAgent {
   ReadyReferenceArtwork? _readyArtwork;
   bool _readyArtworkRefused = false;
   bool _homeArtworkRefused = false;
+  Element? _homeClockOwner;
   bool _stakingArtworkRefused = false;
   bool _originalsArtworkRefused = false;
   PillarReferenceArtwork? _pillarArtwork;
@@ -904,8 +905,16 @@ class HarnessAgent {
       if (drift != null && (!drift.isFinite || drift < 0 || drift > 1)) {
         throw const ReadonlyNativeCommandRefused();
       }
+      (bool, int)? clock;
+      if (_readonlyHomeCatalog && field != null) {
+        _homeClockOwner ??= field;
+        if (identical(_homeClockOwner, field)) {
+          clock = HeroField.homeClockOf(field);
+        }
+      }
       return <String, Object?>{
         'phaseMilli': (phase * 1000).floor(),
+        if (clock != null) 'homeFieldClock': <Object>[clock.$1, clock.$2],
         if (drift != null) 'paintedHomeDriftMillionths': (drift * 1e6).round(),
       };
     }

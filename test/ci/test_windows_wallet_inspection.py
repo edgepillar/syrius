@@ -661,6 +661,18 @@ class InspectionTests(unittest.TestCase):
                         [[10, 20, 950, True]], [[10, 20, 950, 1_000_001]]):
             with self.subTest(sync_pulse=invalid), self.assertRaises(inspection.Refused):
                 inspection.home_capture_receipt(dict(catalog, sync_pulse=invalid))
+        occlusion = dict(before=[True, 10_000], covered_start=[False, 20_000],
+            covered_end=[False, 20_000], after=[True, 30_000])
+        self.assertIs(inspection.home_capture_receipt(
+            dict(catalog, home_field_occlusion=occlusion))['home_field_occlusion'], occlusion)
+        self.assertIsNotNone(inspection.home_field_occlusion_receipt(
+            dict(occlusion, covered_start=None)))
+        for invalid in (dict(occlusion, after=[1, 30_000]),
+                        dict(occlusion, after=[True, True]),
+                        dict(occlusion, covered_end=[False, 0]),
+                        dict(occlusion, address='private')):
+            with self.subTest(home_field_occlusion=invalid), self.assertRaises(inspection.Refused):
+                inspection.home_capture_receipt(dict(catalog, home_field_occlusion=invalid))
         settled = dict(before=[0, 50_000], samples=[
             [300_000, 50_000, 60_000, 50_000, 60_000],
         ])

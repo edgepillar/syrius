@@ -5459,6 +5459,11 @@ The isolated profile's Activity scope and sparse rows leave the populated
 reference states open. Both Go To images show a settled Activity backdrop.
 The running Home field read verifies 28 painted samples with progress from
 0.162893 to 0.655857. Complete motion and pause conditions remain open.
+The Home catalog now reads the original field's clock around one Go To open
+and dismissal. Four bounded observations use the same mounted field, with
+two readings while the palette covers it. Missing values stay explicit.
+The reader reports a held clock and resumed advancement from the retained
+values. This adds no PNGs and still needs its native execution.
 
 ### End-state audit at `28b39fab` (2026-11-22)
 
