@@ -5673,7 +5673,8 @@ before the original tap. Both views produce separate, bounded diagnostics.
 The disclosure now begins after that additional interval. The 16 ms rule
 continues to compare the original page-change and disclosure windows. The
 local Python cases cover both receipt positions and their unavailable
-results. Native execution of the new closed-view diagnostic is pending.
+results. The [paired native run at `d37778da`](https://github.com/edgepillar/syrius/actions/runs/45006712928)
+is in progress.
 
 #### Paired Windows cold launch timing at `f0b1a110`
 
@@ -5730,7 +5731,7 @@ The Windows runner, assets and locked dependencies match that baseline.
 | --- | --- |
 | Clean Windows Debug and Release | The [baseline at `d8f14048`](#verified-windows-baseline-at-d8f14048-2026-11-22) verifies clean builds and DLL correspondence at that revision. A [clean Windows run at `3504836f`](https://github.com/edgepillar/syrius/actions/runs/45004717701) is in progress. |
 | Analysis and tests | The [Linux run at `fe882823`](https://github.com/edgepillar/syrius/actions/runs/45003936918/job/137151255314) passes analysis, 5,132 non-chain tests with one skip and generated-file verification. Its Dart suite executes 1,531 Windows-tour cases on Linux, including all four Held Tokens tests covering equal value tracks. The later CI observer changes pass the local Python suite with 1,268 cases and 17 skips. |
-| All 47 screens in both themes | The [independent historical review](docs/review/source-28f9c121-independent-visual-review.md) records all 94 comparisons and 14 accepted matches at its original source. X1318 and X1319 record the latest reviewed Held Tokens row. The [Windows recapture at `fe882823`](https://github.com/edgepillar/syrius/actions/runs/45003936943) checks the later Domain type and equal tracks. The current candidate gallery and whole-image verdicts remain open. |
+| All 47 screens in both themes | The [independent historical review](docs/review/source-28f9c121-independent-visual-review.md) records all 94 comparisons and 14 accepted matches at its original source. X1324 and X1325 record the latest reviewed Held Tokens row. The [Windows recapture at `fe882823`](https://github.com/edgepillar/syrius/actions/runs/45003936943) checks the later Domain type and equal tracks. The current candidate gallery and whole-image verdicts remain open. |
 | Running motion, shaders and P06 timing | The [paired read at `9fb78c7e`](https://github.com/edgepillar/syrius/actions/runs/45003004931/job/137148428771) records both failed comparisons and normal required exits. The [next pair at `3504836f`](https://github.com/edgepillar/syrius/actions/runs/45004412346) retains the original timing gate and adds the idle observation. The full running visual review and 16 ms gate remain open. |
 | Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) retains the original native refusals. The seam registry and gate files are unchanged since the `d8f14048` baseline. The new timing observer performs no seam actions. |
 
@@ -5763,8 +5764,25 @@ against (34.0, 48.9, 36.2), and (206.3, 231.3, 216.4) in light against
 `#00D557` and `#0061EB`. The [entry renderer](lib/rearchitecture/utils/widgets/entry_field.dart)
 uses the approved theme tokens, while the [reference stylesheet](mockups/redesign/src/00-head.html)
 uses `#4fd166` and `#006aff`. The paired stills do not isolate the effect of
-the palette from the animated field phase. The prepared Voting and Project
-Detail capture remains in progress.
+the palette from the animated field phase.
+
+The [prepared Accelerator producer](https://github.com/edgepillar/syrius/actions/runs/45005215508/job/137155190528)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45006705372/job/137159794086)
+verify four atomic Voting and Project Detail PNGs, normal parent closure
+and five normal node exits. The [capture index](docs/review/source-4901fde2-accelerator-captures.json)
+records the original 184,128-byte hosted artifact and its PNG digests.
+The reader compares every original with the pinned reference, with the
+following pixel counts at an absolute difference of at least 16 in any
+RGB channel.
+
+| Screen | Dark total | Light total | Region with the most changed pixels |
+| --- | ---: | ---: | --- |
+| Voting | 41,658 | 41,708 | Voting table (29,536 dark and 29,714 light) |
+| Project Detail | 46,005 | 48,041 | Project and phases (26,125 dark and 25,357 light) |
+
+The archive remains hosted. The regional measurements locate the
+differences for direct visual review. No visual verdict is recorded
+from the measurements alone.
 
 ### Rows
 
