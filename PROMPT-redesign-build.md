@@ -5114,8 +5114,13 @@ The [retained pixel comparisons](https://github.com/edgepillar/syrius/actions/ru
 use the same eight images. At the 16-level RGB threshold, the dark and
 light difference counts are 46,454 and 58,528 for Rest, 42,428 and
 52,547 for Open, 29,564 and 40,504 for Hidden, and 14,701 and 15,453
-for Go To. The counts include the rendered wallet state. Whole-image
-and running visual review remain open under V01 and V02.
+for Go To. All eight originals were viewed beside their references and
+recorded as [reviewed differences](docs/review/source-d8ffb93d-home-verdicts.json).
+The hidden eye and masked values are visible in both themes. The Rest
+and Open captures show a different Activity scope and contents, and Go To
+shows a different contact and blurred backdrop. The reviews apply to the
+exact retained image pairs. V01 whole-image acceptance and V02 running
+visual review remain open.
 
 The Rest and Open reference PNGs match those used by the
 [prior Home comparison at `8b8feaaf`](https://github.com/edgepillar/syrius/actions/runs/44939548878/job/136953508820).

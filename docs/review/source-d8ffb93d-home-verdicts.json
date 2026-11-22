@@ -1,0 +1,68 @@
+{
+  "reviews": {
+    "01-home-rest-dark": {
+      "actual_sha256": "d9442479635490b9fc25c80716080d50e9dcf34e344c79e9f4f76949ecb3bcc2",
+      "expected_sha256": "70617942960638e9ad855344dcc7aa1433058bb4d060155f1cfb36592ca332a6",
+      "note": "The collapsed rail, hero and Activity panel are in the reference positions. The selected-address scope, sparse Activity, empty rewards, absent Pending card and hero palette differ visibly.",
+      "reviewed_at": "2026-11-22T00:10:45Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "01-home-rest-light": {
+      "actual_sha256": "3c82c89491021ffcbc070701396202d8aae33e5865fe6675d03c8e857382de87",
+      "expected_sha256": "280f31f618a20af2f275bd516afc3280849180f4788f38ae7c3fdebaedd36b7c",
+      "note": "The collapsed rail, hero and Activity panel are in the reference positions. The selected-address scope, sparse Activity, empty rewards, absent Pending card and hero palette differ visibly.",
+      "reviewed_at": "2026-11-22T00:10:45Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-dark": {
+      "actual_sha256": "3cd27e1c268071b13d3e3ab14ae8e5f77e44d7a9fea5b200e87fe3ba7944da9f",
+      "expected_sha256": "ef3e3dfc4e9e4a6438516fe8803c55202d744b57c964104d6212c4eb2d3ebd97",
+      "note": "The expanded rail and open Tokens disclosure are present. The empty token list, empty rewards, selected-address Activity and stronger hero gradient differ from the reference.",
+      "reviewed_at": "2026-11-22T00:10:45Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-light": {
+      "actual_sha256": "3e4f8f384e0afc2647d56b3f7b6c1b338727a8497d913c1bc7ca0bac3f18f4e0",
+      "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
+      "note": "The expanded rail and open Tokens disclosure are present. The empty token list, empty rewards, selected-address Activity and stronger hero gradient differ from the reference.",
+      "reviewed_at": "2026-11-22T00:10:45Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-dark": {
+      "actual_sha256": "07025f310d3f1a1f031c80f603c6bee36c75a78aa34edbd5522e2d50bae660ef",
+      "expected_sha256": "29421519af83d80baf69fcfe24beb37fc754d8da1c08b3a175e7224a27fedf16",
+      "note": "The green eye and masked balances and Activity amount are visible. The Activity contents and scope, blank rewards details and hero palette differ from the reference.",
+      "reviewed_at": "2026-11-22T00:10:45Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-light": {
+      "actual_sha256": "47e165bf9a2d0a9ee9c4e426aaecfddf3b5bd19a27f50f1892507a81a304aca5",
+      "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
+      "note": "The green eye and masked balances and Activity amount are visible. The Activity contents and scope, blank rewards details and hero palette differ from the reference.",
+      "reviewed_at": "2026-11-22T00:10:45Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-dark": {
+      "actual_sha256": "3506978b313702d4811636ee0e201927876da2510514e96bc44768fccc49b611",
+      "expected_sha256": "52ccc26f93bcad1c79ac91228648bb8c369a6cec14041f77f51d210afec0a1f9",
+      "note": "The centered palette, selected first result and keyboard footer follow the reference. The contact result and underlying blurred Activity and hero differ.",
+      "reviewed_at": "2026-11-22T00:10:45Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-light": {
+      "actual_sha256": "7a836efde774d0601693a0aeba8c646a904257b57046e5361f7bd5192239ae32",
+      "expected_sha256": "f700f7b185b5064b45b1acc561abcee0fce392badb4dc2d58319914780b060bb",
+      "note": "The centered palette, selected first result and keyboard footer follow the reference. The contact result and underlying blurred Activity and hero differ.",
+      "reviewed_at": "2026-11-22T00:10:45Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
