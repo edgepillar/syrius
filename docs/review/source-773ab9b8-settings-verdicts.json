@@ -1,0 +1,68 @@
+{
+  "reviews": {
+    "31-set-security-dark": {
+      "verdict": "mismatch",
+      "reviewer": "edgepillar",
+      "reviewed_at": "2026-11-22T13:31:02Z",
+      "expected_sha256": "1c3a735e770863e501cc898830ca699abb20ea01593643c263fad41f00a4f411",
+      "actual_sha256": "ddba02d360b2f4b40ccd21ea8757628031ecd0c0e77fcc49032a8f08aeda6671",
+      "note": "The controls, backup actions and closed groups align. The failed-password warning includes deletion of shared app data, and its line extends farther across the native row."
+    },
+    "31-set-security-light": {
+      "verdict": "mismatch",
+      "reviewer": "edgepillar",
+      "reviewed_at": "2026-11-22T13:31:02Z",
+      "expected_sha256": "eb4cd651d0e487c080e8a0cc5c10289c14a35dff9dcdbe68a38cf12af58c26db",
+      "actual_sha256": "8096e798888378341880e3dd9bc0c62f7c0484b5ec28081820baca5119bcfc97",
+      "note": "The controls, backup actions and closed groups align. The failed-password warning includes deletion of shared app data, and its line extends farther across the native row."
+    },
+    "32-set-display-dark": {
+      "verdict": "mismatch",
+      "reviewer": "edgepillar",
+      "reviewed_at": "2026-11-22T13:31:02Z",
+      "expected_sha256": "f68b82b91f04df6c535c512da740e980026e8d980b0f68f8593fe4a070897c45",
+      "actual_sha256": "5c2eaeadbaafb0b4f1e320bf667f3dbb7edf78b735bde606ee2159c55231f5b6",
+      "note": "The settings rows align. The native explorer control is visibly disabled for this chain, while the reference shows active ink. The Windows theme control shows the selected capture theme."
+    },
+    "32-set-display-light": {
+      "verdict": "mismatch",
+      "reviewer": "edgepillar",
+      "reviewed_at": "2026-11-22T13:31:02Z",
+      "expected_sha256": "64977a34163f03e4ef2f5d9f59027d124e6e02788b08970f2c2d5c635a4e723e",
+      "actual_sha256": "65df98d2d65829b7b9fce0cccfe62750cfd57fdf3f0091c05fa55b999f7c818f",
+      "note": "The settings rows align. The native explorer control is visibly disabled for this chain, while the reference shows active ink. The Windows theme control shows the selected capture theme."
+    },
+    "33-set-wallet-dark": {
+      "verdict": "mismatch",
+      "reviewer": "edgepillar",
+      "reviewed_at": "2026-11-22T13:31:02Z",
+      "expected_sha256": "938c775e7ef2b578c1d3a21698e13e5baff96bd01001bbb0d73aafd81d0030c8",
+      "actual_sha256": "04c77ce6cea623f429c26c2893088973c3eb94fe37760231b5fb4b967c86fc8e",
+      "note": "The native layout includes the closed Maintenance group. Auto-receive and desktop notifications are off in the isolated profile. The wallet catalog has a closed unavailable opener with no local wallet count."
+    },
+    "33-set-wallet-light": {
+      "verdict": "mismatch",
+      "reviewer": "edgepillar",
+      "reviewed_at": "2026-11-22T13:31:02Z",
+      "expected_sha256": "82e2bc826d854d0764317b498db9a47cbe5aaaf3fcacf34e277db3dc3f90feba",
+      "actual_sha256": "01504855f0b893a12fe1aea74b298caf1bb39c5eba3305525dece9db86f512ec",
+      "note": "The native layout includes the closed Maintenance group. Auto-receive and desktop notifications are off in the isolated profile. The wallet catalog has a closed unavailable opener with no local wallet count."
+    },
+    "36-set-about-dark": {
+      "verdict": "mismatch",
+      "reviewer": "edgepillar",
+      "reviewed_at": "2026-11-22T13:31:02Z",
+      "expected_sha256": "ad7fba54bc95a111744164a264efef237e7c3ebea8fca8cb087cebc04f0d831b",
+      "actual_sha256": "888025b173e8f977ea8dc4e40766ccfdc747f0adfeeb1935979cbfb496bbebfa",
+      "note": "The header actions and three closed groups align. The embedded-node and build facts start farther to the right. The native build version, release badge and link count reflect the available sources."
+    },
+    "36-set-about-light": {
+      "verdict": "mismatch",
+      "reviewer": "edgepillar",
+      "reviewed_at": "2026-11-22T13:31:02Z",
+      "expected_sha256": "a8a8cf66e49fa88a25522dc8e759538b321f2f53c1f83d5d0d31edd3f8dd2072",
+      "actual_sha256": "f2367c520bbf2161cfab9ac5086e959fdc44188512721e9e0fafafeb08162d89",
+      "note": "The header actions and three closed groups align. The embedded-node and build facts start farther to the right. The native build version, release badge and link count reflect the available sources."
+    }
+  }
+}

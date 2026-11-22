@@ -4706,6 +4706,14 @@ Both original Apps images were viewed alongside their exact references.
 The [two visual verdicts](docs/review/source-773ab9b8-apps-verdicts.json)
 record the aligned action and the empty connection table. The comparison
 tool binds both verdicts to the verified original and reference digests.
+The other twelve Settings images were viewed from the same archive.
+The [visual verdicts](docs/review/source-773ab9b8-settings-verdicts.json)
+cover the Security, Display, Wallet and About differences in both themes.
+The Node images show the unchecked release state. The Addresses images
+show the ordinary list with four members and two sample contacts. These
+four remain diagnostic for their prepared reference cases. The comparison
+reports ten reviewed differences and four diagnostic captures for this
+source. The review reads the PNGs directly from the retained archive.
 
 On the two About images, the seven Settings labels' ink bounds are within
 one pixel of their references at the 32-level RGB contrast threshold.
