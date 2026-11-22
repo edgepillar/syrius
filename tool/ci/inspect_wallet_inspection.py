@@ -879,7 +879,7 @@ def _map_gray_deviation(png):
     return round(1000 * weighted_error / (3 * sum(levels.values())))
 
 
-SWAP_AMOUNT_PANE_SCAN = (558, 155, 450)
+SWAP_AMOUNT_PANE_SCAN = (558, 90, 520)
 
 
 def _swap_amount_pane_rows(data, theme):
@@ -887,10 +887,12 @@ def _swap_amount_pane_rows(data, theme):
     column, top, bottom = SWAP_AMOUNT_PANE_SCAN
     fill = (46, 48, 46) if theme == 'dark' else (255, 255, 255)
     bands = _image_vertical_bands(data, column, top, bottom)
-    # Short or clipped bands do not identify a complete reference pane.
-    spans = [[start, end] for (start, color), (end, _) in zip(bands, bands[1:])
-             if tuple(color[:3]) == fill and start > top and end - start >= 60]
-    return spans if len(spans) == 2 else None
+    # Short or clipped bands do not identify a complete pane.
+    solid = [dict(rows=[start, end], rgb=list(color[:3]))
+             for (start, color), (end, _) in zip(bands, bands[1:])
+             if start > top and end - start >= 60]
+    spans = [band['rows'] for band in solid if tuple(band['rgb']) == fill]
+    return dict(fill_rows=spans if len(spans) == 2 else None, solid_bands=solid)
 
 
 def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points=None):
