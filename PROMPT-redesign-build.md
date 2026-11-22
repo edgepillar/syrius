@@ -953,8 +953,14 @@ recorded at its original source. Running motion under V02 remains open.
 The [grouped Windows producer](https://github.com/edgepillar/syrius/actions/runs/44978295415/job/137072999511)
 uses one Release build. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44979584180/job/137076937877)
 verifies twelve PNGs across Launch, handoff, Lock and the synthetic quiz.
-The handoff captures both report the authored 0.4 checkpoint. The pixel
-measurements for Launch, handoff and quiz remain evidence for visual review.
+The handoff captures both report the authored 0.4 checkpoint. The
+[Launch, handoff and quiz index](docs/review/source-75cad6bb-launch-and-quiz-captures.json)
+records the verified image and archive digests for those six pairs. Their
+reference digests match the historical review, and all six captured image
+digests differ. The reader counts 2,187 pixels with an RGB channel difference
+of at least 16 in each Launch image, 5,253 and 6,213 in the dark and light
+handoff images, and 12,163 and 12,067 in the quiz images. Visual verdicts for
+these six new images remain open.
 
 The [new Lock index](docs/review/source-75cad6bb-lock-captures.json)
 and [verdicts](docs/review/source-75cad6bb-lock-verdicts.json) record

@@ -1,0 +1,52 @@
+{
+  "actual": {
+    "39-launch-dark": {
+      "archive_member": "39-launch-dark.png",
+      "archive_sha256": "e781d206ea06221f93137cc2d59224746a38eb6d25062988f554cb2faf676daa",
+      "catalog_family": "launch",
+      "path": "e781d206ea06221f93137cc2d59224746a38eb6d25062988f554cb2faf676daa",
+      "sha256": "122624a74e7cb7c63a452d9c8c33e89b9d9bbfa7a13e4cfe2516b07fb541bdd2",
+      "source_sha": "75cad6bbadcb1d1f50f0f626ad3d49e9307de92f"
+    },
+    "39-launch-light": {
+      "archive_member": "39-launch-light.png",
+      "archive_sha256": "e781d206ea06221f93137cc2d59224746a38eb6d25062988f554cb2faf676daa",
+      "catalog_family": "launch",
+      "path": "e781d206ea06221f93137cc2d59224746a38eb6d25062988f554cb2faf676daa",
+      "sha256": "122624a74e7cb7c63a452d9c8c33e89b9d9bbfa7a13e4cfe2516b07fb541bdd2",
+      "source_sha": "75cad6bbadcb1d1f50f0f626ad3d49e9307de92f"
+    },
+    "40-launch-settle-dark": {
+      "archive_member": "40-launch-settle-dark.png",
+      "archive_sha256": "05d965e38b065ebe63a72fb0b40cc90076adae7660ca65cf65f3e37383c09c08",
+      "catalog_family": "launch-settle",
+      "path": "05d965e38b065ebe63a72fb0b40cc90076adae7660ca65cf65f3e37383c09c08",
+      "sha256": "1b49789510a0060848a1c31437d2498bc09a0bee3bda663b4bb476ff743afafe",
+      "source_sha": "75cad6bbadcb1d1f50f0f626ad3d49e9307de92f"
+    },
+    "40-launch-settle-light": {
+      "archive_member": "40-launch-settle-light.png",
+      "archive_sha256": "05d965e38b065ebe63a72fb0b40cc90076adae7660ca65cf65f3e37383c09c08",
+      "catalog_family": "launch-settle",
+      "path": "05d965e38b065ebe63a72fb0b40cc90076adae7660ca65cf65f3e37383c09c08",
+      "sha256": "a9ca96d1a1bf90b4d35f662089d106b052248d7055bdb7874df2bc2fcc90fdba",
+      "source_sha": "75cad6bbadcb1d1f50f0f626ad3d49e9307de92f"
+    },
+    "46-seed-quiz-dark": {
+      "archive_member": "46-seed-quiz-dark.png",
+      "archive_sha256": "842154798abe9cea1e7e7a93ced0d76dcc7101d4a3e4416363215c5e94d73f4f",
+      "catalog_family": "quiz-catalog",
+      "path": "842154798abe9cea1e7e7a93ced0d76dcc7101d4a3e4416363215c5e94d73f4f",
+      "sha256": "cdb09bf6ab66227fa32eec03f7a49c30bb693f7370574be525d8d3286825412e",
+      "source_sha": "75cad6bbadcb1d1f50f0f626ad3d49e9307de92f"
+    },
+    "46-seed-quiz-light": {
+      "archive_member": "46-seed-quiz-light.png",
+      "archive_sha256": "842154798abe9cea1e7e7a93ced0d76dcc7101d4a3e4416363215c5e94d73f4f",
+      "catalog_family": "quiz-catalog",
+      "path": "842154798abe9cea1e7e7a93ced0d76dcc7101d4a3e4416363215c5e94d73f4f",
+      "sha256": "a51b7197d9c2777ec509a1fd4bd5b7e71d4d485dbe0f3a96e55175723045f941",
+      "source_sha": "75cad6bbadcb1d1f50f0f626ad3d49e9307de92f"
+    }
+  }
+}
