@@ -4715,6 +4715,16 @@ four remain diagnostic for their prepared reference cases. The comparison
 reports ten reviewed differences and four diagnostic captures for this
 source. The review reads the PNGs directly from the retained archive.
 
+The [prepared Node and Addresses producer at `1f129611`](https://github.com/edgepillar/syrius/actions/runs/45028067781/job/137225337085)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45029874824/job/137230889118)
+verify all [four original PNGs](docs/review/source-1f129611-node-addresses-captures.json)
+and normal parent closure. At column 980, the Node notice and enclosing
+panel fill spans agree with both references. At column 700, the three
+Addresses card spans also agree in both themes. The reader records
+whole-frame differences at the 16-level RGB threshold of 54,315 dark
+and 54,660 light for Node, and 38,082 dark and 41,639 light for Addresses.
+The atomic-frame flag and whole-image acceptance remain open.
+
 On the two About images, the seven Settings labels' ink bounds are within
 one pixel of their references at the 32-level RGB contrast threshold.
 All 28 bounding coordinates per theme were checked. Twenty-one agree exactly in dark
@@ -6294,6 +6304,15 @@ verified the two PNG digests and stopped while emitting the combined
 pixel and geometry notice. The reader now emits the geometry separately
 under the same source, archive and reference pins. The 3,800-byte limit
 still applies to each notice.
+
+The [second reader](https://github.com/edgepillar/syrius/actions/runs/45029846779/job/137230799200)
+verifies both [original Swap images at `5ce7f74b`](docs/review/source-5ce7f74b-swap-start-captures.json)
+and normal parent closure. Both panes fill columns [422, 858) at the
+sampled rows in each theme, matching the reference widths and horizontal
+positions. The vertical spans stay [182, 295) and [318, 429). Amount-pane
+differences fall from 7,886 to 7,112 pixels in dark and from 10,821 to
+9,744 in light at the 16-level RGB threshold. The atomic-frame flag and
+both whole-image verdicts remain open.
 
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
