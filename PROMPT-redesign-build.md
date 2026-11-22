@@ -6097,6 +6097,17 @@ passes the client-area centering test with the Windows caption fixture.
 Full and strict analysis pass, 5,133 non-chain tests pass with one skip,
 and generated files remain unchanged.
 
+The [Windows producer at `e329a4e6`](https://github.com/edgepillar/syrius/actions/runs/45019370515/job/137198638628)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45020758130/job/137202906926)
+verify both [Swap captures](docs/review/source-e329a4e6-swap-start-captures.json)
+and normal parent closure.
+At column 558, the two measured fill spans move up 16 px in both themes.
+The first span is [180, 293) against [186, 295) in the reference. The
+second is [316, 427) against [317, 427). The amount-pane difference at
+the 16-level RGB threshold drops from 10,414 to 8,398 pixels in dark
+and from 28,211 to 12,305 in light. Both caption counts remain zero.
+The two whole-image verdicts remain open.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since
