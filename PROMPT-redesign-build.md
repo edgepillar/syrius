@@ -5673,6 +5673,13 @@ visual verdicts in the same file. All eight pairs remain mismatches. The
 Go To backdrop again shows a settled Activity row. The original review
 stays at `1cfd62d0`.
 
+Home's Activity header now omits its scope chip during the original
+initial load, matching the title-only header in the Go To reference.
+The chip appears when the initial load resolves and reports the real
+selected address. The existing loading, failure and empty-state case
+checks the header transition beside the three skeleton bars. Native
+capture of the loading state under Go To remains open.
+
 ### End-state audit at `28b39fab` (2026-11-22)
 
 | End-state item | Verified evidence and remaining check |

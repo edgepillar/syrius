@@ -50,6 +50,7 @@ class LatestTransactionsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String? owner = address ?? kSelectedAddress;
+    final bool isHome = type == CardType.latestTransactionsDashboard;
     final AppTokens tokens = AppTokens.of(context);
     return BlocBuilder<LatestTransactionsBloc, InfiniteListState<AccountBlock>>(
       builder: (BuildContext context, InfiniteListState<AccountBlock> state) {
@@ -80,12 +81,14 @@ class LatestTransactionsCard extends StatelessWidget {
                 key: const Key('home_activity'),
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  _Header(address: owner),
+                  _Header(
+                    address: owner,
+                    showScope:
+                        !isHome || state.status != InfiniteListStatus.initial,
+                  ),
                   Expanded(
                     child: switch (state.status) {
-                      InfiniteListStatus.initial => _Loading(
-                        home: type == CardType.latestTransactionsDashboard,
-                      ),
+                      InfiniteListStatus.initial => _Loading(home: isHome),
                       InfiniteListStatus.failure => Center(
                         child: Text(
                           context.l10n.activityUnavailable,
@@ -116,9 +119,10 @@ class LatestTransactionsCard extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.address});
+  const _Header({required this.address, required this.showScope});
 
   final String? address;
+  final bool showScope;
 
   @override
   Widget build(BuildContext context) {
@@ -135,66 +139,68 @@ class _Header extends StatelessWidget {
           child: Row(
             children: <Widget>[
               Text(context.l10n.activityTitle, style: tokens.headingText),
-              SizedBox(width: tokens.activityColumnGap),
-              Expanded(
-                child: Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: Container(
-                    key: const Key('activity_scope'),
-                    padding: tokens.activityScopePadding,
-                    constraints: BoxConstraints(
-                      minHeight: tokens.activityScopeHeight,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: tokens.line),
-                      borderRadius: BorderRadius.circular(tokens.pillRadius),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Flexible(
-                          child: Tooltip(
-                            message: address ??
-                                context.l10n.activitySelectedAddress,
-                            child: Text(
-                              label ?? context.l10n.activitySelectedAddress,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: tokens.captionText.copyWith(
+              if (showScope) ...[
+                SizedBox(width: tokens.activityColumnGap),
+                Expanded(
+                  child: Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: Container(
+                      key: const Key('activity_scope'),
+                      padding: tokens.activityScopePadding,
+                      constraints: BoxConstraints(
+                        minHeight: tokens.activityScopeHeight,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: tokens.line),
+                        borderRadius: BorderRadius.circular(tokens.pillRadius),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Flexible(
+                            child: Tooltip(
+                              message: address ??
+                                  context.l10n.activitySelectedAddress,
+                              child: Text(
+                                label ?? context.l10n.activitySelectedAddress,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: tokens.captionText.copyWith(
+                                  color: tokens.dim,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: tokens.activityScopeGap),
+                          SeamGate(
+                            seam: Seam.activityAddressScope,
+                            child: IconButton(
+                              key: const Key('activity_scope_filter'),
+                              padding: EdgeInsets.zero,
+                              style: IconButton.styleFrom(
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              constraints: BoxConstraints.tightFor(
+                                width: tokens.activityScopeIconSize,
+                                height: tokens.activityScopeIconSize,
+                              ),
+                              onPressed: () => throw const SeamNotBuilt(
+                                Seam.activityAddressScope,
+                              ),
+                              icon: ShellSymbol(
+                                'chev',
+                                size: tokens.activityScopeIconSize,
                                 color: tokens.dim,
                               ),
                             ),
                           ),
-                        ),
-                        SizedBox(width: tokens.activityScopeGap),
-                        SeamGate(
-                          seam: Seam.activityAddressScope,
-                          child: IconButton(
-                            key: const Key('activity_scope_filter'),
-                            padding: EdgeInsets.zero,
-                            style: IconButton.styleFrom(
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            constraints: BoxConstraints.tightFor(
-                              width: tokens.activityScopeIconSize,
-                              height: tokens.activityScopeIconSize,
-                            ),
-                            onPressed: () => throw const SeamNotBuilt(
-                              Seam.activityAddressScope,
-                            ),
-                            icon: ShellSymbol(
-                              'chev',
-                              size: tokens.activityScopeIconSize,
-                              color: tokens.dim,
-                            ),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
         ),

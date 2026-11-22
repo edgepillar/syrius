@@ -273,6 +273,9 @@ void main() {
     (WidgetTester tester) async {
       await mount(tester, const InfiniteListState<AccountBlock>.initial());
       expect(find.byType(ActivityRow), findsNothing);
+      final Finder scope = find.byKey(const Key('activity_scope'));
+      expect(find.text('Activity'), findsOneWidget);
+      expect(scope, findsNothing);
       final Finder bars = find.byType(Skeleton);
       expect(bars, findsNWidgets(3));
       final double activityWidth = tester.getSize(
@@ -297,6 +300,7 @@ void main() {
       );
       await tester.pump();
       expect(find.byType(ActivityRow), findsNothing);
+      expect(scope, findsOneWidget);
       states.add(_loaded(<AccountBlock>[]));
       await tester.pump();
       expect(find.text('None yet'), findsOneWidget);
