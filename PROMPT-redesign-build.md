@@ -5194,6 +5194,16 @@ held token. The [Linux validation at `30112ab6`](https://github.com/edgepillar/s
 passes analysis, unit and widget tests, and generated-file verification.
 Fresh native captures are needed to verify that label visually.
 
+The [producer at `b32b9f09`](https://github.com/edgepillar/syrius/actions/runs/44979566831/job/137076882461)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44980905042/job/137080979175)
+verify the copied profile's confirmed Stake receipt and preserve its Token
+issuance failure. Of 18 confirmation polls, four reported the issued block
+absent and fourteen observed the original confirmed block with the effect
+pending. The last observation records matching token metadata and a pending
+holding in the original account. The copied profile stopped before entering
+holder preparation and retained no holder PNGs. The ownership effect and the
+cause of the pending issued holding remain unverified.
+
 The [natural launch producer at `f3a07338`](https://github.com/edgepillar/syrius/actions/runs/44964183241/job/137029373106)
 passes the handoff widget, ownership and diagnostics checks and builds
 the Release harness. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44965586588/job/137033752479)
