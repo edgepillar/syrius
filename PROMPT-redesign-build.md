@@ -6175,8 +6175,8 @@ within the measured peak intervals.
 [Windows presentation](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/platform/windows/flutter_windows_engine.cc#L1169-L1182)
 [OpenGL compositor](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/platform/windows/compositor_opengl.cc#L233-L253)
 
-The paired Windows probe asks the current Flutter engine for its DXGI
-rendering adapter after the first timing window closes. It retains one
+The Windows probe at `f421d5d1` asked the current Flutter engine for its
+DXGI rendering adapter after the first timing window closed. It retained one
 result for the owned process: software flag set, flag clear, or
 unavailable. The reader reports that result in the interaction and idle
 receipts. The record contains only the flag classification. A clear flag
@@ -6186,6 +6186,23 @@ The adapter observation adds
 rendering context and leaves draw and presentation durations unresolved.
 [Pinned Flutter API](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/platform/windows/client_wrapper/include/flutter/flutter_engine.h#L94-L100)
 [DXGI software flag](https://learn.microsoft.com/en-us/windows/win32/api/dxgi/ne-dxgi-dxgi_adapter_flag)
+
+The [original Windows run](https://github.com/edgepillar/syrius/actions/runs/45059951377/job/137323427454)
+builds the instrumented Release wallet and records both current interaction
+windows. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/45061671827/job/137328750352)
+verifies nine frames per window, one normal wallet exit, one normal entry
+exit and five normal node exits. The adapter flag is clear in both
+interaction windows and both idle windows. Peak raster reaches 198.375 ms
+on page change and 73.861 ms on disclosure. Both peaks start after their
+respective recorded settlement. Idle raster reaches 73.976 ms on Node
+Settings and 65.871 ms on About with Licences closed.
+
+The pair stops at `current_inputs` with `SOURCE_REFUSED`. The adapter probe
+changed `windows/runner/flutter_window.cpp`, the only differing path among
+the seven equal-input pins. P06 produces zero frames. The follow-up
+restores the original runner and harness code so all seven Git input
+objects match P06 again. The reader retains support for the four adapter
+observations in the original archive. The 16 ms gate remains open.
 
 #### Paired Windows cold launch timing at `f0b1a110`
 
@@ -6716,6 +6733,18 @@ amount pane corners and token selector are covered by the
 and the [Windows Release capture and inspection](https://github.com/edgepillar/syrius/actions/runs/45015954119/job/137188204210).
 The clean Windows Debug and Release baseline stays pinned to
 `33b58506`. Visual matches, running motion and final acceptance remain open.
+
+### End-state audit at `f421d5d1` (2026-11-22)
+
+| End-state item | Verified evidence and remaining check |
+| --- | --- |
+| Clean Windows Debug and Release | The [environment guide](docs/environment.md) and the [independent baseline](#verified-windows-baseline-at-33b58506-2026-11-22) cover both builds at `33b58506`. Seventeen files under `lib/` and `windows/` have changed since that baseline. Assets, shaders and the package lock match it. Both clean builds and the DLL checks still need candidate evidence. |
+| Analysis and tests | [Linux CI at this source](https://github.com/edgepillar/syrius/actions/runs/45060012637/job/137323613094) passes application and strict analysis, 5,135 non-chain unit and widget tests with one skip, and generated-file verification. The new adapter test verifies that the original native owner dispatches one request for concurrent callers and refuses reuse after revocation. |
+| All 47 screens in both themes | The [historical gallery review](docs/review/source-28f9c121-independent-visual-review.md) retains 14 matches from 94 pairs at its original source. The [latest Home review](docs/review/source-3d23a6c4-home-verdicts.json) records eight whole-image mismatches at `3d23a6c4`. The candidate gallery and its full verdict table remain open. |
+| Running motion, shaders and P06 timing | The [paired reader](https://github.com/edgepillar/syrius/actions/runs/45018320204/job/137195394994) verifies failed 16 ms comparisons for both interactions at `75b0f9a1`. The [adapter reader](https://github.com/edgepillar/syrius/actions/runs/45061671827/job/137328750352) verifies the four current-only observations and the original P06 input refusal at this audit source. Runtime review of all motion and shader rows and the three passing comparisons are outstanding. |
+| Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) retains native observations for all fifteen registered values. The registry, shared gate, shortcuts, Go To and focused seam test files match `564d01ab`. The native receipts retain their own source and control coverage. |
+
+The acceptance checklist records 77 of 80 rows. V01, V02 and V06 remain open.
 
 ### Rows
 

@@ -190,7 +190,6 @@ final class NativeWindowOwner {
       <NativeWindowCall<NativeWindowFrameReceipt>>[];
   NativeWindowCall<NativeWindowStartupReceipt>? _startup;
   NativeWindowCall<NativeWindowFrameReceipt>? _pendingFrame;
-  Future<String>? _graphicsAdapterKind;
   bool _held = false;
   int _lastCallbackSerial = 1;
 
@@ -245,36 +244,6 @@ final class NativeWindowOwner {
       identical(_startup?.receipt, original) &&
       original.processId == pid &&
       original.firstFrameCallback == 1;
-
-  /// Reads only the rendering adapter's DXGI software flag, once per owner.
-  Future<String> graphicsAdapterKind() async {
-    final NativeWindowStartupReceipt? original = _startup?.receipt;
-    if (original == null || !isCurrent(original)) return 'unavailable';
-    final String kind = await (_graphicsAdapterKind ??=
-        Future<String>.microtask(
-          () => _readGraphicsKind(original),
-        ));
-    return isCurrent(original) ? kind : 'unavailable';
-  }
-
-  Future<String> _readGraphicsKind(NativeWindowStartupReceipt original) async {
-    if (!isCurrent(original)) return 'unavailable';
-    try {
-      final Object? result = await _channel
-          .invokeMethod<Object?>('graphicsAdapter', <String, Object>{
-            'protocol': 1,
-            'owner': original.owner,
-          })
-          .timeout(const Duration(milliseconds: 500));
-      return switch (result) {
-        'dxgi-software' => 'dxgi-software',
-        'dxgi-non-software' => 'dxgi-non-software',
-        _ => 'unavailable',
-      };
-    } on Exception {
-      return 'unavailable';
-    }
-  }
 
   /// Keeps one pending native frame request and its original Future.
   /// Busy or unproved startup refusals dispatch nothing and do not retry.

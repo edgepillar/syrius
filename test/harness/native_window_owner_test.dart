@@ -91,36 +91,6 @@ void main() {
     },
   );
 
-  test('graphics classification uses the existing owner once', () async {
-    final NativeWindowOwner owner = NativeWindowOwner(channel: channel);
-    final Completer<Object?> native = Completer<Object?>();
-    int adapterReads = 0;
-    binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (
-      MethodCall method,
-    ) {
-      if (method.method == 'startup') {
-        return Future<Object?>.value(_reply());
-      }
-      adapterReads++;
-      expect(method.method, 'graphicsAdapter');
-      expect(method.arguments, <String, Object>{
-        'protocol': 1,
-        'owner': _owner,
-      });
-      return native.future;
-    });
-    await owner.startup().completion;
-    final Future<String> first = owner.graphicsAdapterKind();
-    final Future<String> second = owner.graphicsAdapterKind();
-    native.complete('dxgi-software');
-    expect(await first, 'dxgi-software');
-    expect(await second, 'dxgi-software');
-    expect(adapterReads, 1);
-    owner.revoke();
-    expect(await owner.graphicsAdapterKind(), 'unavailable');
-    expect(adapterReads, 1);
-  });
-
   test(
     'pending startup has no synthetic first frame or frame dispatch',
     () async {
@@ -144,8 +114,6 @@ void main() {
       expect(startup.isSettled, isFalse);
       expect(startup.receipt, isNull);
       expect(owner.heldUnknown, isFalse);
-      expect(await owner.graphicsAdapterKind(), 'unavailable');
-      expect(calls, 1);
       native.complete(_reply());
       await startup.completion;
     },
