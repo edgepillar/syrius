@@ -6057,6 +6057,16 @@ passes the effective decoration assertions in both themes, full and
 strict analysis, and generated-file verification. The non-chain suite
 passes 5,132 tests with one skip.
 
+The [Windows producer at `5bec34e6`](https://github.com/edgepillar/syrius/actions/runs/45017469325/job/137192794172)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45019051002/job/137197667855)
+verify [both captures](docs/review/source-5bec34e6-swap-start-captures.json)
+and normal parent closure. The amount-pane difference at the 16-level
+threshold moves from 10,408 to 10,414 in dark and from 30,375 to 28,211 in
+light. At column 558, both themes now have two measurable fill spans.
+The original spans are [196, 309) and [332, 443), against the reference
+[186, 295) and [317, 427). The pane fill samples match both reference
+colors. The remaining displacement is vertical at this column.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since
