@@ -137,6 +137,7 @@ class Skeleton extends StatefulWidget {
 
 class _SkeletonState extends State<Skeleton> {
   bool _holding = false;
+  double _heldTravel = 0;
 
   @override
   void didChangeDependencies() {
@@ -152,6 +153,7 @@ class _SkeletonState extends State<Skeleton> {
     if (wanted) {
       _SweepClock.instance.hold();
     } else {
+      _heldTravel = _SweepClock.instance.travel;
       _SweepClock.instance.release();
     }
   }
@@ -176,7 +178,8 @@ class _SkeletonState extends State<Skeleton> {
       child: CustomPaint(
         painter: _BarPainter(
           context: context,
-          clock: _SweepClock.instance,
+          clock: _holding ? _SweepClock.instance : null,
+          heldTravel: _heldTravel,
           color: _inked(ink, _kInk),
           highlight: _inked(ink, lightInk ? _kInk + _kLift : _kInk - _kLift),
           radius: widget.radius,
@@ -204,13 +207,13 @@ Color _inked(Color ink, double share) => ink.withValues(alpha: ink.a * share);
 
 /// Paints one bar, and on it whatever part of the band is over it.
 ///
-/// It listens to the clock itself, so a tick repaints the bar without
-/// rebuilding a widget. The fill is a gradient on the bar's own paint: no
-/// mask and no offscreen layer.
+/// The active painter listens to the shared clock. A muted painter keeps
+/// its last sweep position while other pages continue to load.
 class _BarPainter extends CustomPainter {
   _BarPainter({
     required this.context,
     required this.clock,
+    required this.heldTravel,
     required this.color,
     required this.highlight,
     required this.radius,
@@ -221,7 +224,8 @@ class _BarPainter extends CustomPainter {
   /// render object at paint time: a painter is handed a size, not a place.
   final BuildContext context;
 
-  final _SweepClock clock;
+  final _SweepClock? clock;
+  final double heldTravel;
   final Color color;
   final Color highlight;
   final double radius;
@@ -263,7 +267,8 @@ class _BarPainter extends CustomPainter {
     if (box is! RenderBox || !box.attached) return null;
     final double x = box.localToGlobal(Offset.zero).dx;
     // Against the direction of reading the wave runs the other way.
-    final double travel = rightToLeft ? -clock.travel : clock.travel;
+    final double distance = clock?.travel ?? heldTravel;
+    final double travel = rightToLeft ? -distance : distance;
     // The one band whose far edge is at or past the bar's left side.
     final double start = (travel - x) % _kWavelength - _kBand;
     return start < width ? start : null;
@@ -276,6 +281,7 @@ class _BarPainter extends CustomPainter {
       old.radius != radius ||
       old.rightToLeft != rightToLeft ||
       old.clock != clock ||
+      old.heldTravel != heldTravel ||
       old.context != context;
 }
 

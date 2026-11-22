@@ -337,6 +337,56 @@ void main() {
       expect(tester.widget(bar), same(built));
       expect(around.paints, 1);
     });
+
+    testWidgets('a muted bar keeps its paint while another bar sweeps', (
+      WidgetTester tester,
+    ) async {
+      const Rect upper = Rect.fromLTWH(0, 100, 800, 12);
+      const Rect lower = Rect.fromLTWH(0, 140, 800, 12);
+      Widget view({required bool enabled}) => _host(
+        Stack(
+          children: <Widget>[
+            Positioned.fromRect(rect: upper, child: const Skeleton()),
+            Positioned.fromRect(
+              rect: lower,
+              child: TickerMode(enabled: enabled, child: const Skeleton()),
+            ),
+          ],
+        ),
+      );
+      final Finder lowerBoundary = find.descendant(
+        of: find.byType(Skeleton).last,
+        matching: find.byType(RepaintBoundary),
+      );
+      Layer? lowerPicture() {
+        final RenderRepaintBoundary boundary = tester.renderObject(
+          lowerBoundary,
+        );
+        return (boundary.debugLayer! as OffsetLayer).firstChild;
+      }
+
+      await tester.pumpWidget(view(enabled: true));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpWidget(view(enabled: false));
+      final Layer? held = lowerPicture();
+      expect(held, isNotNull);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(lowerPicture(), same(held));
+      expect(tester.binding.transientCallbackCount, 1);
+      final ByteData frozen = await _frame(tester);
+      expect(
+        _read(frozen, upper).centre,
+        moreOrLessEquals(_centreAt(700), epsilon: 2),
+      );
+      expect(
+        _read(frozen, lower).centre,
+        moreOrLessEquals(_centreAt(400), epsilon: 2),
+      );
+
+      await tester.pumpWidget(view(enabled: true));
+      final ByteData resumed = await _frame(tester);
+      expect(_read(resumed, lower).centre, _read(resumed, upper).centre);
+    });
   });
 
   group('Skeleton sweep', () {
