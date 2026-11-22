@@ -25,7 +25,10 @@ BACKDROP_SAMPLE_POINTS = dict(upper_left=(80, 90), upper_right=(1200, 90),
     bottom_left=(60, 744), bottom_right=(1220, 744))
 # One listing, fifteen source reads and two requests per archive.
 BATCH_REQUESTS = 24
-PRE_SHAKE_LOCK_PRODUCER_SHA = 'd34a92abacc3cc54537a05d9954e9cb432321021a037ee64037aeefb05d8'
+PRIOR_LOCK_PRODUCER_SHAS = (
+    '7e46f77e3d2c395fc771c9240051d8b701f86f9cb40ab3da485c011b59b551b0',  # Pointer submit.
+    'd34a92abacc3cc54537a05d9954e9cb432321021a037ee64037aeefb05d8',  # Before shake samples.
+)
 PRE_FIRST_PROGRESS_LAUNCH_PRODUCER_SHA = 'e494d6a5fffc539a9a0c63ccf13c813c3e58a50af507432976c1af109352166c'
 PRE_P06_FILM_FLAGS_LAUNCH_PRODUCER_SHA = '2953d8dc15680d8e2fc5d0eb49fb719be23b32f5c91027f1d0a314b3c72806f5'
 PRE_P06_WARMUP_LAUNCH_PRODUCER_SHA = 'a75408a79109738ba997eef4b09692db7ff3f1354833a1bd022a7160c04b5fc5'
@@ -640,11 +643,11 @@ def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=F
             legacy = (before_lock_settle or before_p06_diagnostics or before_first_progress
                       or before_light_motion or not motion and (before_phase_capture
                           or shared_binaries is None and archive.sha(body) in prior))
-            before_shake = ((lock or lock_seams)
-                            and name == 'tool/ci/windows_lock_catalog.py'
-                            and archive.sha(body) == PRE_SHAKE_LOCK_PRODUCER_SHA)
+            prior_lock = ((lock or lock_seams)
+                          and name == 'tool/ci/windows_lock_catalog.py'
+                          and archive.sha(body) in PRIOR_LOCK_PRODUCER_SHAS)
             archive.need(body == current or before_auth_phase or before_raster_starts
-                         or before_shake or motion_theme == launch.TIMING_THEME and legacy)
+                         or prior_lock or motion_theme == launch.TIMING_THEME and legacy)
         else:
             pins[key] = archive.sha(body)
     if item is None:
