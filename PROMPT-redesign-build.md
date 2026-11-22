@@ -5776,6 +5776,16 @@ limit remain unchanged. The maximum-size manifest and notice tests cover
 the additional counters. The measurements describe cache occupancy at
 those frames. They cannot attribute raster time to a widget or a cache hit.
 
+The [Windows producer at `75b0f9a1`](https://github.com/edgepillar/syrius/actions/runs/45016755613/job/137190617228)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45018320204/job/137195394994)
+verify zero cached layers, pictures and bytes on both interactive peak
+frames. The redesign and P06 peak rasters are 214.376 and 112.647 ms on
+page change, and 68.265 and 34.955 ms on disclosure. The redesigned page
+change has 32 missing frame numbers and the disclosure has 26. Page
+change still fails the 16 ms comparison for raster and distinct frames.
+Disclosure fails for build, raster and distinct frames. The counters
+record occupancy at the peak only. Raster cost attribution remains open.
+
 #### Paired Windows cold launch timing at `f0b1a110`
 
 The [native producer](https://github.com/edgepillar/syrius/actions/runs/44979865019/job/137077797577)
@@ -6042,6 +6052,10 @@ been supplying a second outline in the enabled, focused and disabled
 states. The two-theme widget case checks the effective field decoration.
 The amount controller and token parsing paths are unchanged. A new
 Windows capture still needs to establish the visual result.
+The [Linux run at `5bec34e6`](https://github.com/edgepillar/syrius/actions/runs/45017469050/job/137192792055)
+passes the effective decoration assertions in both themes, full and
+strict analysis, and generated-file verification. The non-chain suite
+passes 5,132 tests with one skip.
 
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
