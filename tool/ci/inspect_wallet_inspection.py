@@ -931,11 +931,17 @@ def details_pixel_comparisons(raw, reference_dir, *, files=producer.details.FILE
                     steps_and_fee=(60, 85, 360, 342), preview=(60, 342, 360, 724),
                     form=(360, 85, 1280, 724))
             elif screen == '27-swap-start':
+                # Use the same reference bounds in both themes so differences
+                # include layout shifts as well as paint and fixture changes.
                 crop = dict(
                     caption=regions['caption'],
                     backdrop_top=(0, 32, 1280, 119),
                     dialog_header=(400, 119, 880, 169),
-                    dialog_body=(400, 169, 880, 661),
+                    amount_panes=(400, 169, 880, 428),
+                    counterparty=(400, 428, 880, 507),
+                    rate_and_timing=(400, 507, 880, 536),
+                    notice=(400, 536, 880, 590),
+                    footer=(400, 590, 880, 661),
                     backdrop_left=(0, 119, 400, 661),
                     backdrop_right=(880, 119, 1280, 661),
                     backdrop_bottom=(0, 661, 1280, 780),
