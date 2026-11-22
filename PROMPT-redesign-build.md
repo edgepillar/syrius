@@ -6324,8 +6324,11 @@ both whole-image verdicts remain open.
 
 The address label and available balance in the amount-pane header now
 use the reference's 11 px monospaced ledger style. The existing
-two-theme test checks the face, size, tracking and balance style. Native
-vertical fill spans still need measurement after this change.
+two-theme test checks the face, size, tracking and balance style. The
+[Linux run at `f6034467`](https://github.com/edgepillar/syrius/actions/runs/45030269423/job/137232121143)
+passes both theme cases, strict selected Dart analysis, generated-file
+verification and the non-chain suite with 5,133 passes and one skip.
+Native vertical fill spans still need measurement after this change.
 
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
