@@ -6522,8 +6522,34 @@ row 186, but its fill ends at 299 instead of 295. The second pane and
 the field are both four pixels lower. The field colors are consistent
 with a Material hover overlay. Start Swap now keeps the reference's
 solid field fill through pointer hover. The address-book button retains
-its own hover feedback. The next Windows capture must establish the
-resulting colors and trailing-mark bounds.
+its own hover feedback. The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/45044482512/job/137275971372)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45046369616/job/137281766094)
+verify [both captures](docs/review/source-cd7420bd-swap-start-captures.json)
+and normal parent closure at `cd7420bd`. The stable fill now matches
+the reference RGB in both themes. Its rows are [465, 505), and the
+trailing ink is [834, 480, 844, 492), four pixels below the reference
+at the same columns. The counterparty crop differs in 6,130 dark pixels
+and 9,825 light pixels at the 16-level RGB threshold. Whole-image
+differences are 44,533 and 53,878. The [Linux suite](https://github.com/edgepillar/syrius/actions/runs/45044482497/job/137275970340)
+passes analysis, generation and 5,134 non-chain tests with one skip.
+
+The available-balance symbol in the Swap amount header now shares the
+11 px ledger text size with its digits and address label. The amount
+component retains its existing default for other uses. Both theme cases
+verify the symbol's text size. The [Linux suite at `86bdd278`](https://github.com/edgepillar/syrius/actions/runs/45044728368/job/137276720093)
+passes analysis, generation and 5,134 non-chain tests with one skip.
+The [native producer](https://github.com/edgepillar/syrius/actions/runs/45044875113/job/137277169164)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45046725719/job/137282862131)
+verify [both native images](docs/review/source-86bdd278-swap-start-captures.json)
+and normal parent closure. In both themes the first pane span is
+[188, 297), giving the reference's 109 px fill height. The second span
+is [320, 429), against [317, 427). The trailing mark remains at the
+reference columns and its vertical offset drops from four to two
+pixels. The field fill at [464, 503) retains the reference color. The
+counterparty crop differences are 6,765 dark and 7,480 light, and
+whole-image differences fall to 43,375 and 49,626 pixels at the same
+threshold. Atomic-frame qualification and both visual verdicts remain
+open.
 
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
