@@ -5472,6 +5472,16 @@ archive places the label 46 px farther left in both themes. All 76 reader
 tests pass, including separation of the label from its value. The
 new typography still needs its own measurement on the retained PNGs.
 
+The [new reader](https://github.com/edgepillar/syrius/actions/runs/45028908652/job/137227915463)
+measures the label at column 332 in both retained `f2cdc88d` images.
+The reference starts at column 375 in dark and 374 in light, leaving
+43 px and 42 px of displacement. The holder grid expands its equal value
+tracks from the longest entry. The isolated catalog now uses
+`bridge.mockup.invalid`. In the bundled 13.5 px face this fixture
+value spans approximately 143 px, close to the reference value's 143 px.
+The earlier `example.invalid` value spans approximately 101 px. New
+original captures are needed to verify the resulting column placement.
+
 In the retained [Mint views at `a2efda99`](docs/review/source-a2efda99-seeded-captures.json),
 the amount and beneficiary field interiors read RGB (57, 59, 57) in dark
 and (245, 245, 245) in light. At the same coordinates the reference field

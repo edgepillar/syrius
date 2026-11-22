@@ -141,7 +141,7 @@ final class SeedConfirmationObservation {
 enum SeedPendingResult { absent, unconfirmed, effectPending }
 
 /// Reserved domain used only by the isolated token catalog.
-const String catalogTokenDomain = 'example.invalid';
+const String catalogTokenDomain = 'bridge.mockup.invalid';
 
 enum SeedTokenEffect {
   metadataAbsent('metadata_absent'),

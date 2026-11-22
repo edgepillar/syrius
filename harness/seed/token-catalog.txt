@@ -7,7 +7,7 @@ tap --key tokens_create
 wait --key token_name_field --timeout 30
 type --key token_name_field LabToken
 type --key token_symbol_field LAB
-type --key token_domain_field example.invalid
+type --key token_domain_field bridge.mockup.invalid
 tap --key token_create_continue
 wait --key token_total_supply_field --timeout 30
 type --key token_total_supply_field 1000
