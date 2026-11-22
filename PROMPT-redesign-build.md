@@ -6005,6 +6005,10 @@ uses the same sans-serif label and 12 px chevron as the reference. Exact
 amounts, token choices and admission behavior retain their existing paths.
 The two-theme widget tests check the corners, label and symbol. Fresh
 Windows pixel evidence remains open.
+The [Linux run at `1389664f`](https://github.com/edgepillar/syrius/actions/runs/45014739046/job/137184528885)
+passes those four theme cases, including both shadow assertions. Full and
+strict analysis pass, 5,132 non-chain tests pass with one skip, and
+generated files remain unchanged.
 
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
