@@ -12,6 +12,7 @@ from unittest import mock
 
 from tool.ci import hosted_chain321 as lab
 from tool.ci import inspect_chain321 as inspect
+from tool.ci import inspect_windows_qualification as windows
 from tool.ci import producer_shutdown_patch as producer_patch
 from tool.ci import read_first_client_fixture as client_fixture
 
@@ -209,6 +210,24 @@ class MomentumLogTests(unittest.TestCase):
             inspect.restored_wallet_run.notice_frames(original_parent)
         with self.assertRaises(inspect.closed_lab_checkpoint.Refused):
             inspect.observation_frames(oversized)
+
+
+class HolderLabelTests(unittest.TestCase):
+    def test_measures_the_label_and_refuses_an_unseparated_value(self):
+        rows = []
+        for y in range(14):
+            row = bytearray([30] * 80 * 3)
+            if 3 <= y < 11:
+                for x in (*range(8, 20), *range(24, 39), *range(51, 70)):
+                    row[3 * x:3 * x + 3] = bytes([102] * 3)
+            rows.append(row)
+        with mock.patch.object(windows, '_png_crop', return_value=(rows, 3)):
+            self.assertEqual(inspect.holder_domain_label_bounds(
+                b'fixture', (318, 398), (267, 281)), [326, 270, 357, 278])
+            for row in rows[3:11]:
+                row[3 * 51:3 * 70] = bytes([30] * (19 * 3))
+            self.assertIsNone(inspect.holder_domain_label_bounds(
+                b'fixture', (318, 398), (267, 281)))
 
 
 class InspectionTests(unittest.TestCase):

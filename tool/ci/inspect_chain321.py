@@ -781,6 +781,36 @@ def seeded_script_pins(client, head, schema=catalog.SEEDED_SCHEMA):
     return pins
 
 
+def holder_domain_label_bounds(png, columns, lines):
+    """Measure the label's ink before the following value in the prepared holder row."""
+    from .inspect_windows_qualification import _opaque, _png_crop
+
+    left, right = columns
+    top, bottom = lines
+    encoded = base64.b64encode(png).decode('ascii')
+    rows, channels = _png_crop(encoded, columns, lines)
+    if not _opaque(rows, channels):
+        return None
+    ink = [(left + offset // channels, y)
+           for y, row in enumerate(rows, top)
+           for offset in range(0, len(row), channels)
+           if any(abs(value - base) >= 32
+                  for value, base in zip(row[offset:offset + 3], row[:3]))]
+    occupied = sorted({x for x, _ in ink})
+    # The tracked layout separates the label and value by more than one glyph's gap.
+    value_start = next((following for previous, following in zip(occupied, occupied[1:])
+                        if following - previous > 6), None)
+    if value_start is None:
+        return None
+    xs, ys = zip(*((x, y) for x, y in ink if x < value_start))
+    bounds = [min(xs), min(ys), max(xs) + 1, max(ys) + 1]
+    x0, y0, x1, y1 = bounds
+    if not (left + 1 < x0 < x1 < right and top < y0 < y1 < bottom
+            and 24 <= x1 - x0 <= 54 and 5 <= y1 - y0 <= 12):
+        return None
+    return bounds
+
+
 def seeded_catalog_pixel_comparisons(raw, schema, references):
     """Measure verified state captures against the tracked PNGs."""
     from .inspect_windows_qualification import pixel_comparison
@@ -816,9 +846,19 @@ def seeded_catalog_pixel_comparisons(raw, schema, references):
             with (references / name).open('rb') as stream:
                 reference = stream.read(catalog.debug.entry.MAX_PNG + 1)
             need(0 < len(reference) <= catalog.debug.entry.MAX_PNG)
-            comparison = pixel_comparison(zipped.read(name), reference, regions,
+            actual = zipped.read(name)
+            comparison = pixel_comparison(actual, reference, regions,
                                           sample_points=samples.get(screen))
             need(comparison is not None)
+            if schema == catalog.TOKEN_HOLDER_SCHEMA:
+                columns = (318, 510)
+                actual_rows, reference_rows = (267, 290), (322, 345)
+                comparison['domain_label_ink'] = dict(
+                    columns=columns, contrast=32, actual_rows=actual_rows,
+                    reference_rows=reference_rows,
+                    actual=holder_domain_label_bounds(actual, columns, actual_rows),
+                    reference=holder_domain_label_bounds(reference, columns, reference_rows),
+                )
             result = screens.setdefault(
                 screen, dict(screen=screen, region_bounds=regions, pairs={}))
             result['pairs'][theme_file.removesuffix('.png')] = comparison

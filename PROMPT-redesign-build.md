@@ -5465,6 +5465,13 @@ are 28,585 and 32,110. The regional counts include the fixture contents.
 The position of the Domain fact and the two whole-image verdicts still
 need review.
 
+The independent reader now measures the Domain label's ink separately
+from its value. It uses bounded crops for the prepared one-row holding
+and the reference's second row. A read of the older verified `fe882823`
+archive places the label 46 px farther left in both themes. All 76 reader
+tests pass, including separation of the label from its value. The
+new typography still needs its own measurement on the retained PNGs.
+
 In the retained [Mint views at `a2efda99`](docs/review/source-a2efda99-seeded-captures.json),
 the amount and beneficiary field interiors read RGB (57, 59, 57) in dark
 and (245, 245, 245) in light. At the same coordinates the reference field
