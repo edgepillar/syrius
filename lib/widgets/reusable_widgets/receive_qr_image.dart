@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
@@ -284,12 +285,18 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
     PrettyQrDecoration decoration,
     int size,
   ) async {
-    final ByteData? data = await image.toImageAsBytes(
+    final ui.Image raster = await image.toImage(
       size: size,
       decoration: decoration,
     );
-    if (data == null) return null;
-    return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+    try {
+      final ByteData? data = await raster.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
+      return data?.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+    } finally {
+      raster.dispose();
+    }
   }
 
   static Future<void> _saveImage(

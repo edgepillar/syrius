@@ -7180,7 +7180,9 @@ that foreground on a transparent background. Copy image and Save now
 send the same request and token mark to the encoder with light-surface
 ink, an opaque light background and a four-module quiet zone. The
 existing clipboard and Save case checks the export decoration on both
-actions. The platform export ownership checks remain in force.
+actions. A dark-theme case decodes the actual clipboard PNG and checks
+opaque margins and finder ink. The encoder releases its raster after
+encoding. The platform export ownership checks remain in force.
 
 #### Navigation captures at `2c8fd31c`
 

@@ -168,6 +168,38 @@ void main() {
     }),
   );
 
+  testWidgets('a dark-theme QR exports opaque PNG pixels', (
+    WidgetTester tester,
+  ) async {
+    final Completer<Uint8List> copied = Completer<Uint8List>();
+    await tester.pumpWidget(
+      receiveTestHost(
+        ReceiveQrImage(
+          data: 'request-one',
+          size: 150,
+          tokenStandard: kZnnCoin.tokenStandard,
+          onCopyImage: (Uint8List bytes) async => copied.complete(bytes),
+        ),
+      ),
+    );
+    final Uint8List? bytes = await tester.runAsync(() async {
+      await precacheImage(
+        const AssetImage('assets/images/qr_code_child_image_znn_cut.png'),
+        tester.element(find.byType(ReceiveQrImage)),
+      );
+      await tester.tap(find.byKey(const Key('receive_share_image')));
+      return copied.future.timeout(const Duration(seconds: 10));
+    });
+    expect(bytes, isNotNull);
+    final image.Image decoded = image.decodePng(bytes!)!;
+    expect((decoded.width, decoded.height), (150, 150));
+    final image.Pixel margin = decoded.getPixel(0, 0);
+    expect((margin.r, margin.g, margin.b, margin.a), (255, 255, 255, 255));
+    final image.Pixel finder = decoded.getPixel(31, 31);
+    expect((finder.r, finder.g, finder.b, finder.a), (20, 22, 20, 255));
+    await receiveTestDispose(tester);
+  });
+
   testWidgets('Save writes only a current confirmed destination', (
     WidgetTester tester,
   ) async {
