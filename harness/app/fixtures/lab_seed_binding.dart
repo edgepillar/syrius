@@ -699,7 +699,7 @@ final class LabSeedBinding
         environment.members.length != 3 ||
         environment.selectedIndex != 1 ||
         !seedHash(issuedHash)) {
-      throw const SeedRefused('seeded-token-holder-held');
+      throw const SeedRefused('token-holder-admission');
     }
     _holderPreparationAttempted = true;
     void current() {
@@ -707,91 +707,100 @@ final class LabSeedBinding
       requireOriginal();
     }
 
-    current();
-    final SeedConfirmed? issued = await confirmed('token', issuedHash)
-        .timeout(const Duration(seconds: 3));
-    current();
-    if (issued == null ||
-        issued.hash != issuedHash ||
-        issued.owner != environment.owner ||
-        issued.chain != 321 ||
-        !issued.positiveConfirmation ||
-        !issued.matchesRecipe ||
-        !await effect('token', issued).timeout(const Duration(seconds: 3))) {
-      throw const SeedRefused('seeded-token-holder-held');
-    }
-    current();
-    final TokenStandard standard = seedIssuedTokenStandard(issuedHash);
-    final String nextOwner = environment.members[2];
-    final TokenActionPublisher? publisher = TokenActionPublisher.capture(
-      sender: sender, address: environment.owner,
-    );
-    if (publisher == null || publisher.session.chainId != 321 ||
-        publisher.heldFor(standard) != null) {
-      throw const SeedRefused('seeded-token-holder-held');
-    }
-    final TokenActionProof proof =
-        await publisher.read(standard).timeout(const Duration(seconds: 3));
-    current();
-    if (!proof.permits(TokenActionMode.transfer) ||
-        proof.balance != _initialSeedTokenUnits ||
-        proof.token.owner.toString() != environment.owner ||
-        nextOwner == environment.owner ||
-        Address.parse(nextOwner).toString() != nextOwner) {
-      throw const SeedRefused('seeded-token-holder-held');
-    }
-    final TokenActionOutcome outcome = await publisher.publish(
-      TokenActionIntent(
-        proof: proof, mode: TokenActionMode.transfer, amount: BigInt.zero,
-        receiver: nextOwner,
-        isCurrent: () {
-          current();
-          return true;
-        },
-      ),
-    );
-    current();
-    final String? hash = outcome.publicationHash;
-    final AccountBlockTemplate? original = outcome.block;
-    if (outcome.status != TokenActionStatus.submitted ||
-        original == null || hash == null || !seedHash(hash) ||
-        outcome.intent.receiver != nextOwner ||
-        outcome.intent.standard != standard ||
-        original.chainIdentifier != 321) {
-      throw const SeedRefused('seeded-token-holder-held');
-    }
-    for (int round = 0; round < 18; round++) {
+    String stage = 'token-holder-issued-proof';
+    try {
       current();
-      final AccountBlock? block = await _ledger.getAccountBlockByHash(
-        Hash.parse(hash),
-      ).timeout(const Duration(seconds: 3));
+      final SeedConfirmed? issued = await confirmed('token', issuedHash)
+          .timeout(const Duration(seconds: 3));
       current();
-      if (block != null && (block.hash != original.hash ||
-          block.address.toString() != environment.owner ||
-          block.chainIdentifier != 321 ||
-          block.blockType != original.blockType ||
-          block.toAddress != original.toAddress ||
-          block.tokenStandard != original.tokenStandard ||
-          block.amount != original.amount ||
-          !listEquals(block.data, original.data))) {
-        throw const SeedRefused('seeded-token-holder-held');
+      if (issued == null ||
+          issued.hash != issuedHash ||
+          issued.owner != environment.owner ||
+          issued.chain != 321 ||
+          !issued.positiveConfirmation ||
+          !issued.matchesRecipe ||
+          !await effect('token', issued).timeout(const Duration(seconds: 3))) {
+        throw SeedRefused(stage);
       }
-      if (block != null && _positivelyConfirmed(block)) {
-        final TokenActionProof held = await publisher.read(standard)
-            .timeout(const Duration(seconds: 3));
+      current();
+      final TokenStandard standard = seedIssuedTokenStandard(issuedHash);
+      final String nextOwner = environment.members[2];
+      stage = 'token-holder-sender';
+      final TokenActionPublisher? publisher = TokenActionPublisher.capture(
+        sender: sender, address: environment.owner,
+      );
+      if (publisher == null || publisher.session.chainId != 321 ||
+          publisher.heldFor(standard) != null) {
+        throw SeedRefused(stage);
+      }
+      stage = 'token-holder-owner-proof';
+      final TokenActionProof proof =
+          await publisher.read(standard).timeout(const Duration(seconds: 3));
+      current();
+      if (!proof.permits(TokenActionMode.transfer) ||
+          proof.balance != _initialSeedTokenUnits ||
+          proof.token.owner.toString() != environment.owner ||
+          nextOwner == environment.owner ||
+          Address.parse(nextOwner).toString() != nextOwner) {
+        throw SeedRefused(stage);
+      }
+      stage = 'token-holder-transfer';
+      final TokenActionOutcome outcome = await publisher.publish(
+        TokenActionIntent(
+          proof: proof, mode: TokenActionMode.transfer, amount: BigInt.zero,
+          receiver: nextOwner,
+          isCurrent: () {
+            current();
+            return true;
+          },
+        ),
+      );
+      current();
+      final String? hash = outcome.publicationHash;
+      final AccountBlockTemplate? original = outcome.block;
+      if (outcome.status != TokenActionStatus.submitted ||
+          original == null || hash == null || !seedHash(hash) ||
+          outcome.intent.receiver != nextOwner ||
+          outcome.intent.standard != standard ||
+          original.chainIdentifier != 321) {
+        throw SeedRefused(stage);
+      }
+      stage = 'token-holder-confirmation';
+      for (int round = 0; round < 18; round++) {
         current();
-        if (held.token.owner.toString() == nextOwner &&
-            held.balance == proof.balance &&
-            held.token.totalSupply == proof.token.totalSupply &&
-            held.token.maxSupply == proof.token.maxSupply) {
-          return;
+        final AccountBlock? block = await _ledger.getAccountBlockByHash(
+          Hash.parse(hash),
+        ).timeout(const Duration(seconds: 3));
+        current();
+        if (block != null && (block.hash != original.hash ||
+            block.address.toString() != environment.owner ||
+            block.chainIdentifier != 321 ||
+            block.blockType != original.blockType ||
+            block.toAddress != original.toAddress ||
+            block.tokenStandard != original.tokenStandard ||
+            block.amount != original.amount ||
+            !listEquals(block.data, original.data))) {
+          throw SeedRefused(stage);
+        }
+        if (block != null && _positivelyConfirmed(block)) {
+          final TokenActionProof held = await publisher.read(standard)
+              .timeout(const Duration(seconds: 3));
+          current();
+          if (held.token.owner.toString() == nextOwner &&
+              held.balance == proof.balance &&
+              held.token.totalSupply == proof.token.totalSupply &&
+              held.token.maxSupply == proof.token.maxSupply) {
+            return;
+          }
+        }
+        if (round < 17) {
+          await Future<void>.delayed(const Duration(seconds: 2));
         }
       }
-      if (round < 17) {
-        await Future<void>.delayed(const Duration(seconds: 2));
-      }
+      throw SeedRefused(stage);
+    } on Object {
+      throw SeedRefused(stage);
     }
-    throw const SeedRefused('seeded-token-holder-held');
   }
 
   /// Rechecks the sponsor receipt and live terms for the selected lab actor.

@@ -665,6 +665,7 @@ class ReopenDiagnosticTests(unittest.TestCase):
                 ('restoredWindowFailureCodes', restored.WINDOW_FAILURE_CODES),
                 ('restoredUnlockFailureCodes', restored.UNLOCK_FAILURE_CODES),
                 ('restoredObserveFailureCodes', restored.OBSERVE_FAILURE_CODES),
+                ('restoredTokenHolderFailureCodes', restored.TOKEN_HOLDER_FAILURE_CODES),
                 ('restoredRecipeExtraCodes', restored.CHILD_RECIPE_EXTRA_CODES)):
             match = re.search(r'const Set<String> ' + name
                 + r' = <String>\{(.*?)\};', source, re.S)
@@ -1727,6 +1728,14 @@ class SeedFailureProjectionTests(unittest.TestCase):
         legacy = self.child(self.seed())
         del legacy['seed']
         self.assertEqual(restored.child_failure_projection(legacy), legacy)
+        for code in restored.TOKEN_HOLDER_FAILURE_CODES:
+            holder = dict(legacy, phase='seeded_capture', code=code)
+            self.assertEqual(restored.child_failure_projection(holder), holder)
+            for invalid in (dict(holder, phase='seed_token'),
+                            dict(holder, code='token-holder-private'),
+                            dict(holder, recipe={'private': 'text'})):
+                with self.assertRaises(restored.checkpoint.Refused):
+                    restored.child_failure_projection(invalid)
 
 
 class ObserveFailureProjectionTests(unittest.TestCase):

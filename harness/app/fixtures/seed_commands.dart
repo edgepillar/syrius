@@ -196,9 +196,14 @@ final class SeedCommands {
         if (prepare) {
           _nonOwnerPreparationEntered = true;
           if (readHolderSender == null) {
-            throw const SeedRefused('seeded-token-holder-held');
+            throw const SeedRefused('token-holder-sender');
           }
-          final SendTransactionBloc sender = readHolderSender();
+          final SendTransactionBloc sender;
+          try {
+            sender = readHolderSender();
+          } on Object {
+            throw const SeedRefused('token-holder-sender');
+          }
           void requireSender() {
             current();
             if (sender.isClosed || !identical(readHolderSender(), sender)) {

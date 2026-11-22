@@ -47,6 +47,12 @@ UNLOCK_FAILURE_CODES = frozenset(('UNLOCK_STATE_REFUSED', 'UNLOCK_LOCK_REQUIRED'
     'UNLOCK_FIELD_READY_REFUSED',
     'UNLOCK_TYPE_REFUSED', 'UNLOCK_TAP_REFUSED', 'UNLOCK_WAIT_REFUSED',
     'UNLOCK_FAILURE_TREE_REFUSED'))
+TOKEN_HOLDER_FAILURE_CODES = frozenset((
+    'token-holder-home', 'token-holder-navigation', 'token-holder-filter',
+    'token-holder-request', 'token-holder-owner', 'token-holder-admission',
+    'token-holder-issued-proof', 'token-holder-sender', 'token-holder-owner-proof',
+    'token-holder-transfer', 'token-holder-confirmation',
+))
 OBSERVE_FAILURE_CODES = frozenset((
     'OBSERVE_READINESS_FORMAT', 'OBSERVE_STATE_FORMAT',
     'OBSERVE_POLICY_REFUSED', 'OBSERVE_CONTEXT_STATE_FORMAT',
@@ -464,8 +470,10 @@ def child_failure_projection(value):
         checkpoint.need(code is None or type(code) is str
             and code in tour.RECIPE_FAILURE_CODES | CHILD_RECIPE_EXTRA_CODES)
     elif kind == 'HARNESS_REFUSED':
-        checkpoint.need(code is None or value['phase'] == 'unlock'
-            and type(code) is str and code in UNLOCK_FAILURE_CODES)
+        checkpoint.need(code is None or type(code) is str and (
+            value['phase'] == 'unlock' and code in UNLOCK_FAILURE_CODES
+            or value['phase'] == 'seeded_capture' and set(value) == fields
+                and recipe is None and code in TOKEN_HOLDER_FAILURE_CODES))
     elif kind == 'FORMAT_ERROR':
         checkpoint.need(code is None or value['phase'] == 'observe'
             and type(code) is str and code in OBSERVE_FAILURE_CODES)

@@ -5144,10 +5144,20 @@ exits for all five nodes. The [next producer at `03bb7b14`](https://github.com/e
 completes the original twelve-page tour and stops in the copied profile
 at the Stake submit assertion. The [independent read](https://github.com/edgepillar/syrius/actions/runs/44975544372/job/137064511237)
 verifies the original entry exit and the copied refusal before any Stake
-publication call. The holder preparation remains unreached. The Stake
-recipe now waits up to 30 seconds for the exact submit button after
-entering the amount, then runs the existing assertion before publication.
-The earlier refusal does not identify the inner UI cause. The Token summary uses its existing singular label for one
+publication call. The Stake recipe now waits up to 30 seconds for the
+exact submit button after entering the amount, then runs the existing
+assertion before publication. The earlier refusal did not identify the
+inner UI cause.
+
+The [`d20a51e1` producer](https://github.com/edgepillar/syrius/actions/runs/44975731622/job/137065096386)
+and [independent read](https://github.com/edgepillar/syrius/actions/runs/44977459880/job/137070443892)
+verify the original twelve-page tour and the copied profile's two confirmed
+Stake and Token receipts. The child entered seeded capture, reported a
+generic refusal before a screen capture step and retained no holder PNGs.
+The source now uses the original Home preparation before opening Tokens.
+A subsequent refusal can retain the last entered preparation stage from
+navigation through owner confirmation. The original attempt remains held
+and its holder outcome is unestablished. The Token summary uses its existing singular label for one
 held token. The [Linux validation at `30112ab6`](https://github.com/edgepillar/syrius/actions/runs/44968418733/job/137042577611)
 passes analysis, unit and widget tests, and generated-file verification.
 Fresh native captures are needed to verify that label visually.
@@ -5274,6 +5284,14 @@ The original Home panels, eye and palette are present. The prepared profile
 has sparse selected-address Activity, no rewards or token rows, and no
 pending send. The Go To backdrop shows live Activity where its reference
 shows a loading skeleton. The eight whole-image verdicts remain mismatches.
+
+A summary-only comparison reads the verified Home archive with the historic
+94-pair index. With `28b39fab` selected, the report counts eight reviewed
+mismatches from that source and 86 pairs from another source. The strict
+current-capture and visual acceptance gates return an incomplete result.
+A separate check of `28f9c121` still reports 14 matches, 70 mismatches and
+10 diagnostic captures. Both checks read the original archives in place.
+
 The real Home Activity loading state now uses the reference's 60, 40 and
 70 percent bars, with 10 px height and spacing and 5 px corner radii.
 The existing shared sweep remains in use. A native capture of the live
@@ -5296,6 +5314,11 @@ remain open under V02.
 | All 94 visual pairs | The [Lock review](#lock-at-rest-at-f935a887) records six matches at its original source. The Held Tokens recapture remains open after a copied Stake pre-publication refusal. The Home catalog has eight reviewed differences at this source. The current-source gallery still needs all 94 native sides and matching verdicts. |
 | Motion, shaders and frame times | The [paired interaction read](https://github.com/edgepillar/syrius/actions/runs/44953288126/job/136995755269) retains both failed 16 ms comparisons. The [native Home reader](https://github.com/edgepillar/syrius/actions/runs/44975968264/job/137065859893) verifies movement in the sampled Home field paints. The full running motion review and all three timing comparisons remain open. |
 | Seam refusals | The [V03 coverage](docs/review/source695-seam-coverage.md) records the original native refusals for all fifteen entries and the original Go To path. The seam registry and Go To implementation match the audited `564d01ab` source. The original native trials retain their own source pins. |
+
+The [full Linux run at `5f6e049a`](https://github.com/edgepillar/syrius/actions/runs/44976742705/job/137068225026)
+passes analysis, 5,132 Dart tests with one skip, and generated-file
+verification. The run includes the Home Activity loading-bar regression
+and retains 1,531 passing Windows-tour cases within the Linux suite.
 
 The original checklist still has 77 accepted rows out of 80. V01, V02 and
 V06 remain open.

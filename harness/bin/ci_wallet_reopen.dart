@@ -48,6 +48,21 @@ const Set<String> restoredUnlockFailureCodes = <String>{
 };
 
 /// Only fixed locations of the original observe operation may leave the child.
+/// Fixed stages retained when the original holder preparation stops.
+const Set<String> restoredTokenHolderFailureCodes = <String>{
+  'token-holder-home',
+  'token-holder-navigation',
+  'token-holder-filter',
+  'token-holder-request',
+  'token-holder-owner',
+  'token-holder-admission',
+  'token-holder-issued-proof',
+  'token-holder-sender',
+  'token-holder-owner-proof',
+  'token-holder-transfer',
+  'token-holder-confirmation',
+};
+
 const Set<String> restoredObserveFailureCodes = <String>{
   'OBSERVE_READINESS_FORMAT', 'OBSERVE_STATE_FORMAT',
   'OBSERVE_POLICY_REFUSED', 'OBSERVE_CONTEXT_STATE_FORMAT',
@@ -87,6 +102,12 @@ enum RestoredObserveOperation {
   const RestoredObserveOperation(this.code);
 
   /// A closed label, never an exception message or native response.
+  final String code;
+}
+
+class _RestoredTokenHolderRefused implements Exception {
+  const _RestoredTokenHolderRefused(this.code);
+
   final String code;
 }
 
@@ -561,6 +582,13 @@ Map<String, Object?>? restoredChildFailure(
     if (phase != 'seed_${value['recipe']}') return null;
     kind = 'HARNESS_REFUSED';
     seed = value;
+  } else if (error is _RestoredTokenHolderRefused) {
+    if (phase != 'seeded_capture' || !includeNonOwnerHolding ||
+        !restoredTokenHolderFailureCodes.contains(error.code)) {
+      return null;
+    }
+    kind = 'HARNESS_REFUSED';
+    code = error.code;
   } else if (error is cli.Fail || error is ScreenCaptureError) {
     kind = 'HARNESS_REFUSED';
   } else if (error.runtimeType == _RestoredObserveRefused) {
@@ -1340,21 +1368,38 @@ Future<Map<String, Object>> _captureSeededCatalog(
   }
 
   if (includeNonOwnerHolding) {
-    await requireCurrent();
-    await cli.goto(instance, 'tokens');
-    await cli.waitForTarget(instance, cli.Args(<String>[
-      '--key', 'tokens_filter_held', '--exact', '--timeout', '30',
-    ]));
-    await requireCurrent();
-    final Map<String, dynamic> receipt = await cli.call(
-      instance, <String, Object?>{
-        'cmd': 'seed', 'action': 'prepare-non-owner-holding',
-        'hash': confirmed('token'),
-      },
-    );
-    await requireCurrent();
-    if (receipt['nonOwnerHoldingPrepared'] != true) {
-      throw const FormatException('non-owner holding preparation refused');
+    String stage = 'token-holder-home';
+    try {
+      await requireCurrent();
+      await cli.prepareScreenHome(instance);
+      stage = 'token-holder-navigation';
+      await requireCurrent();
+      await cli.goto(instance, 'tokens');
+      stage = 'token-holder-filter';
+      await cli.waitForTarget(instance, cli.Args(<String>[
+        '--key', 'tokens_filter_held', '--exact', '--timeout', '30',
+      ]));
+      stage = 'token-holder-owner';
+      await requireCurrent();
+      stage = 'token-holder-request';
+      final Map<String, dynamic> receipt = await instance.send(
+        <String, Object?>{
+          'cmd': 'seed', 'action': 'prepare-non-owner-holding',
+          'hash': confirmed('token'),
+        },
+      );
+      if (receipt['ok'] != true || receipt['nonOwnerHoldingPrepared'] != true) {
+        final Object? original = receipt['error'];
+        if (original is String &&
+            restoredTokenHolderFailureCodes.contains(original)) {
+          stage = original;
+        }
+        throw const FormatException('token holder preparation refused');
+      }
+      stage = 'token-holder-owner';
+      await requireCurrent();
+    } on Object {
+      throw _RestoredTokenHolderRefused(stage);
     }
   }
 
