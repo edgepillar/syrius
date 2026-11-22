@@ -485,6 +485,9 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
                                   !holderView &&
                                   _mode == TokenActionMode.flags,
                               includeUtility: !holderView,
+                              onOpenDomain: holderView
+                                  ? _domainAction(token)
+                                  : null,
                             );
                             final Widget modes = holderView
                                 ? _buildHolderActions(token)
@@ -579,7 +582,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
                       child: _buildOutcome(_outcome!),
                     ),
                   if (widget.showFacts)
-                    _buildLinks(token, includeSend: !holderView),
+                    _buildLinks(token, includeTokenLinks: !holderView),
                 ],
               ),
             ),
@@ -1280,7 +1283,17 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
     );
   }
 
-  Widget _buildLinks(Token token, {bool includeSend = true}) {
+  VoidCallback? _domainAction(Token token) {
+    final int epoch = _epoch;
+    final bool Function() originalCurrent = widget.isCurrent;
+    bool current() => _current && originalCurrent() && epoch == _epoch;
+    if (!current() || token.domain.isEmpty) return null;
+    return () {
+      if (current()) unawaited(NavigationUtils.openUrl(token.domain));
+    };
+  }
+
+  Widget _buildLinks(Token token, {required bool includeTokenLinks}) {
     final AppTokens tokens = AppTokens.of(context);
     final int epoch = _epoch;
     final bool Function() originalCurrent = widget.isCurrent;
@@ -1292,25 +1305,22 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
             chainId: outcome.intent.proof.session.chainId,
           )
         : null;
+    if (!includeTokenLinks && explorer == null) return const SizedBox.shrink();
     return Padding(
       padding: EdgeInsetsDirectional.only(top: tokens.tokenDetailBodyGap),
       child: Wrap(
         spacing: tokens.tokenActionGap,
         runSpacing: tokens.tokenActionGap,
         children: <Widget>[
-          if (includeSend) _buildSend(token),
-          TextButton.icon(
-            key: const Key('token_domain'),
-            onPressed: current() && token.domain.isNotEmpty
-                ? () {
-                    if (current()) {
-                      unawaited(NavigationUtils.openUrl(token.domain));
-                    }
-                  }
-                : null,
-            icon: const Icon(Icons.open_in_new),
-            label: Text(context.l10n.tokensDomain),
-          ),
+          if (includeTokenLinks) ...<Widget>[
+            _buildSend(token),
+            TextButton.icon(
+              key: const Key('token_domain'),
+              onPressed: _domainAction(token),
+              icon: const Icon(Icons.open_in_new),
+              label: Text(context.l10n.tokensDomain),
+            ),
+          ],
           if (explorer != null)
             IconButton(
               key: const Key('token_publication_explorer'),
@@ -1410,12 +1420,14 @@ class _TokenFacts extends StatelessWidget {
     this.flagsOnly = false,
     this.metadataOnly = false,
     this._includeUtility = true,
+    this.onOpenDomain,
   });
 
   final Token token;
   final bool flagsOnly;
   final bool metadataOnly;
   final bool _includeUtility;
+  final VoidCallback? onOpenDomain;
 
   @override
   Widget build(BuildContext context) {
@@ -1451,6 +1463,34 @@ class _TokenFacts extends StatelessWidget {
           ? tokens.monoFontFamily
           : null,
     );
+    Widget valueCell((String, String) fact) {
+      final (String label, String value) = fact;
+      final TextStyle style = valueStyle(label);
+      if (label != context.l10n.tokensDomain || onOpenDomain == null) {
+        return Text(value, style: style);
+      }
+      return TextButton(
+        key: const Key('token_domain'),
+        onPressed: onOpenDomain,
+        style: TextButton.styleFrom(
+          alignment: AlignmentDirectional.centerStart,
+          foregroundColor: style.color,
+          minimumSize: Size.zero,
+          padding: EdgeInsets.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          textStyle: style,
+        ),
+        child: Text.rich(TextSpan(children: <InlineSpan>[
+          TextSpan(text: '$value '),
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: ShellSymbol(
+              'ext', size: tokens.inlineGlyphSize, color: tokens.dim,
+            ),
+          ),
+        ])),
+      );
+    }
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final int pairs =
@@ -1487,14 +1527,12 @@ class _TokenFacts extends StatelessWidget {
                                   ? tokens.tokenDetailLabelGap
                                   : 0,
                             ),
-                            child: Text(
-                              column.isEven
-                                  ? facts[start + column ~/ 2].$1.toUpperCase()
-                                  : facts[start + column ~/ 2].$2,
-                              style: column.isEven
-                                  ? tokens.ledgerText
-                                  : valueStyle(facts[start + column ~/ 2].$1),
-                            ),
+                            child: column.isEven
+                                ? Text(
+                                    facts[start + column ~/ 2].$1.toUpperCase(),
+                                    style: tokens.ledgerText,
+                                  )
+                                : valueCell(facts[start + column ~/ 2]),
                           ),
                     ],
                   ),

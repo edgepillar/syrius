@@ -5275,6 +5275,12 @@ A failure at this step retains the fixed holder presentation label.
 The fixture contents and the visual differences reported above still
 require review on a fresh run.
 
+A holder's Domain action now occupies the Domain value cell with the
+original external-link symbol when a domain exists. An empty value has no
+standalone button. The original owner controls and publication explorer
+keep their existing routes. The two-theme, two-direction holder tests cover
+the inline link, an empty domain and a callback from the replaced publisher.
+
 [Fork Linux validation at `562597a7`](https://github.com/edgepillar/syrius/actions/runs/44982169688/job/137084834033)
 passes application and strict analysis, 5,132 tests with one skip, and
 generated-file verification. The producer also verifies 1,531 focused

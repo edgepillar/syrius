@@ -18,10 +18,11 @@ Token actionToken({
   int decimals = 8,
   BigInt? supply,
   int id = 1,
+  String domain = 'example.invalid',
 }) => Token(
   'Action token $id',
   'ACT',
-  'example.invalid',
+  domain,
   supply ?? BigInt.parse('1000000000000000000000000000000'),
   decimals,
   owner ?? emptyAddress,

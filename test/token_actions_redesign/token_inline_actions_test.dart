@@ -688,7 +688,7 @@ void main() {
             expect(_holderObservation(tester, fixture), isNull);
             await _withFixture(tester, (ActionFixture empty) async {
               empty
-                ..token = actionToken(owner: tokenAddress)
+                ..token = actionToken(owner: tokenAddress, domain: '')
                 ..balance = BigInt.zero;
               await tester.pumpWidget(_host(
                 TokenInlineActions(
@@ -705,6 +705,7 @@ void main() {
               expect(_holderObservation(tester, empty,
                 requirePositiveBalance: true,
               ), isNull);
+              expect(find.byKey(const Key('token_domain')), findsNothing);
               expect(empty.transport.calls, isEmpty);
             });
             expect(fixture.transport.calls, isEmpty);
@@ -849,6 +850,14 @@ void main() {
               final VoidCallback oldSend = tester
                   .widget<OutlinedButton>(send)
                   .onPressed!;
+              final Finder domain = find.byKey(const Key('token_domain'));
+              expect(find.descendant(
+                of: domain,
+                matching: find.textContaining('example.invalid',
+                    findRichText: true),
+              ), findsOneWidget);
+              final VoidCallback oldDomain =
+                  tester.widget<TextButton>(domain).onPressed!;
               update(() => active = replacement);
               await tester.pump();
               await pumpActionUntil(
@@ -864,6 +873,7 @@ void main() {
               oldBurn();
               oldSend();
               oldExplorer();
+              oldDomain();
               await tester.pump();
               expect(find.byKey(const Key('burn_amount_field')), findsNothing);
               expect(sends, isEmpty);
