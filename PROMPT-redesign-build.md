@@ -5503,6 +5503,16 @@ with one skip. The pinned
 accepts the fixture's domain format at the source level. The prepared
 Windows route supplies the runtime evidence for the new catalog.
 
+The [Windows run at `5b2af542`](https://github.com/edgepillar/syrius/actions/runs/45030573824/job/137233042426)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/45032163896/job/137237923718)
+verify [two original atomic captures](docs/review/source-5b2af542-holder-captures.json)
+and normal parent closure. With the revised isolated domain fixture, the
+Domain label starts at column 376 in dark and 375 in light, one pixel to
+the right of the reference in each theme. The earlier fixture placed
+it 43 and 42 px to the left. Whole-image counts at the 16-level RGB
+threshold are 28,738 dark and 32,236 light. The capture shows one
+holding and the reference shows three. Whole-image verdicts remain open.
+
 In the retained [Mint views at `a2efda99`](docs/review/source-a2efda99-seeded-captures.json),
 the amount and beneficiary field interiors read RGB (57, 59, 57) in dark
 and (245, 245, 245) in light. At the same coordinates the reference field
