@@ -6009,6 +6009,14 @@ The [Linux run at `1389664f`](https://github.com/edgepillar/syrius/actions/runs/
 passes those four theme cases, including both shadow assertions. Full and
 strict analysis pass, 5,132 non-chain tests pass with one skip, and
 generated files remain unchanged.
+The [Windows producer at `1389664f`](https://github.com/edgepillar/syrius/actions/runs/45014738835/job/137184528880)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45015954119/job/137188204210)
+verify [both captures](docs/review/source-1389664f-swap-start-captures.json)
+and normal parent closure. At the same threshold of 16 RGB levels in any
+channel, the amount-pane count moves from 10,452 to 10,408 in dark and
+from 30,364 to 30,375 in light. Both caption counts remain zero and the
+shadow samples are unchanged. The changes align individual parts of the
+form with the reference. Both whole-image verdicts remain open.
 
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
