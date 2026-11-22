@@ -1,0 +1,52 @@
+{
+  "reviews": {
+    "41-lock-screen-dark": {
+      "actual_sha256": "18d587f76b298dacb15893ca585401bca6454d10567f3041a04e40fad9ce4fae",
+      "expected_sha256": "0423e793f7fc3a7dde6cef6cae3e34570aadbad6ddffeb74628ebf1cd8094d27",
+      "note": "The centered card, film wordmark, masked password and strip composition agree. The selected wallet details, node status and approved accent colors differ with the isolated fixture and design palette.",
+      "reviewed_at": "2026-11-22T01:25:26Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "41-lock-screen-light": {
+      "actual_sha256": "9c4b08e0c3fb46bde9e7c4cecf0b9ec0f00b37426f0fe194030bc1fa99910470",
+      "expected_sha256": "7ade4369fb44fd27dd79cde415d4c2616778a5015936dd032b10224a61d0e4fd",
+      "note": "The centered card, film wordmark, masked password and strip composition agree. The selected wallet details, node status and approved accent colors differ with the isolated fixture and design palette.",
+      "reviewed_at": "2026-11-22T01:25:26Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "42-lock-wrong-dark": {
+      "actual_sha256": "a80265cab96feee4efad974e195a0ccf9ffe75632942255f3deaab5c33409729",
+      "expected_sha256": "4ab7a113c2ddbfae98cf37b044fb7ae1eb95d1c303f9b55b5a2c7086473761d1",
+      "note": "The frame-23 art, two-attempt warning and field outline agree. The captured dark frame shows a bright password caret absent from its reference.",
+      "reviewed_at": "2026-11-22T01:25:26Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "42-lock-wrong-light": {
+      "actual_sha256": "704fbe19525e73fa410f92b0e77d0cb333ac70e703fad8855fbe62f2085fc331",
+      "expected_sha256": "08227212a1640dc33ef7b6d5de8385cf6637a6ceb2e7302728d05ffc40ac239e",
+      "note": "The warning, settled field geometry and retained replay frame agree. The selected wallet details and approved accent colors account for the visible differences.",
+      "reviewed_at": "2026-11-22T01:25:26Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "43-lock-pick-dark": {
+      "actual_sha256": "7fb3e03cedc5b7080bce56f3805648792f11fe328c09884834e031bc1b02119d",
+      "expected_sha256": "c151673f42b879a452d17e929f8f3c562108986752233f528c759ff24fef5b6a",
+      "note": "The picker card, row spacing, divider and disabled Unlock placement agree. The addresses and approved accent colors reflect the isolated fixture and design palette.",
+      "reviewed_at": "2026-11-22T01:25:26Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "43-lock-pick-light": {
+      "actual_sha256": "cdeb5cfc71d98127ba739f90d1b459ac1751e6f7c1009e91634e1d3be92e9af3",
+      "expected_sha256": "74f5e23c6c1262e8e28d2409bb538b9751b6b81c12b60ca68b2090e3be1f505b",
+      "note": "The picker card, row spacing, divider and disabled Unlock placement agree. The addresses and approved accent colors reflect the isolated fixture and design palette.",
+      "reviewed_at": "2026-11-22T01:25:26Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    }
+  }
+}

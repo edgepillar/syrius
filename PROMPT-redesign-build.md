@@ -919,6 +919,19 @@ The [current reader](https://github.com/edgepillar/syrius/actions/runs/449674838
 revalidates this archive and the exact older Lock producer without a new
 native launch. The original images carry no sampled password shake offsets.
 
+#### Lock at rest at `93888cd9`
+
+The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/44969212141/job/137045062921)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/44970979502/job/137050483592)
+verify both themes of normal Lock, Wrong Password and the wallet picker.
+All six were viewed from the retained archive beside their references.
+Both normal pairs, the light warning and both picker pairs match under
+the same visual criteria as the earlier review. The dark warning shows
+a bright caret absent from the reference. The [image index](docs/review/source-93888cd9-lock-captures.json)
+and [verdicts](docs/review/source-93888cd9-lock-verdicts.json) bind these
+observations to the exact PNGs. The stills record the original film frame
+and warning state. V02 running motion remains open.
+
 The retained Addresses captures at `06eda3f7` show the selected glyph in
 columns 299 through 312 and rows 165 through 178 in both themes. The authored
 selector specifies a 16 px circle with a 2 px ring and a filled centre for the
@@ -4897,7 +4910,7 @@ and generated-file verification. Native observation remains open under V02.
 | Object assembles | `test/lottie/app_lottie_test.dart` covers original asset timing and endpoints. | Observe the confirmed states and permitted hover replays. |
 | The eye | `test/hidden_balances/hidden_balances_test.dart` checks both original eye segments. The [Windows Home reader at `d8ffb93d`](https://github.com/edgepillar/syrius/actions/runs/44963360005/job/137026831994) verifies 12 hide and 13 show observations, including intermediate frames in both directions and restoration of visible balances. The first observed endpoint arrives 535.741 ms and 551.840 ms after the respective tap replies. | Visually review the running eye and masked values. The sample offsets include observation delay. |
 | The bolt | `test/shell/strip/plasma_lifecycle_test.dart` checks repeat during generation and exit to idle. | Watch a complete loop while generation is in progress. |
-| Wrong password | The [Windows run at `e948ac40`](https://github.com/edgepillar/syrius/actions/runs/44966515178/job/137036664972) and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44967944061/job/137041111456) verify six Lock PNGs and the original frame-23 replay state in both themes. The observed field offsets alternate positive and negative twice in light, reaching +4.000 px and −2.828 px. Dark retains only a −2.828 px excursion. Both return to zero in the retained sequence. The field now starts its 200 ms clock after the warning frame has painted. The [focused Linux stage](https://github.com/edgepillar/syrius/actions/runs/44969212215/job/137045061879) passes its delayed-first-frame widget case at `93888cd9`. | Verify both dark cycles and visually review the shake and original well replay in the running wallet. The sampled offsets establish direction and displacement without measuring the authored 200 ms duration. |
+| Wrong password | The [Windows run at `e948ac40`](https://github.com/edgepillar/syrius/actions/runs/44966515178/job/137036664972) and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44967944061/job/137041111456) verify six Lock PNGs and the original frame-23 replay state in both themes. The observed field offsets alternate positive and negative twice in light, reaching +4.000 px and −2.828 px. Dark retains only a −2.828 px excursion. Both return to zero in the retained sequence. The field now starts its 200 ms clock after the warning frame has painted. [Full Linux validation](https://github.com/edgepillar/syrius/actions/runs/44969212215/job/137045061879) passes the delayed-first-frame widget case, analysis, all required suites and generated-file checks at `93888cd9`. The [fresh Windows reader](https://github.com/edgepillar/syrius/actions/runs/44970979502/job/137050483592) verifies six PNGs. Dark retains one positive and one negative excursion, up to +3.696 px and −2.828 px. Light retains negative, positive and negative excursions, up to +4.000 px and −3.923 px. Both end at zero. | The latest dark record lacks a second cycle. Visually review the shake and original replay in the running wallet. The offsets measure displacement without establishing the authored duration or the cause of the missed samples. |
 | Sync dot | `test/shell/strip/sync_pulse_test.dart` checks the 2.4 s pulse and the halo phase read from the original widget. The [Windows reader at `f1364c6a`](https://github.com/edgepillar/syrius/actions/runs/44934750545/job/136938840976) verifies intermediate phases, seven transparent observations and a 2.067810–2.492401 s interval between observed resumes. [Linux at the same source](https://github.com/edgepillar/syrius/actions/runs/44932698713/job/136932579266) passes both pulse cases, the full non-chain suite with 5,131 passes and one skip, and generated-file verification. | Visually review a full pulse in the running wallet. |
 | Skeleton sweep | `test/motion/skeleton_test.dart` checks one shared clock and the 1.4 s sweep. | Watch loading rows sweep in step. |
 
@@ -5485,7 +5498,7 @@ the difference and its write paths in the note.
 X821 through X872 refer to the exact 28f9c121 pairs reviewed independently.
 Other X rows retain their original capture sources. Welcome binds to
 Source901 in X775, Launch to 28f9c121 in X877 and Ready to 28f9c121 in X883.
-The Lock rows link to the review at 47e606a1. The V01 row tracks strict
+The Lock rows link to the review at 93888cd9. The V01 row tracks strict
 whole-image acceptance.
 
 | # | Screen | Dark | Light |
@@ -5530,9 +5543,9 @@ whole-image acceptance.
 | 38 | `set-originals` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
 | 39 | `launch` | match | match |
 | 40 | `launch-settle` | X871 | X872 |
-| 41 | `lock-screen` | [match](#lock-at-rest-at-47e606a1) | [match](#lock-at-rest-at-47e606a1) |
-| 42 | `lock-wrong` | [match](#lock-at-rest-at-47e606a1) | [match](#lock-at-rest-at-47e606a1) |
-| 43 | `lock-pick` | [match](#lock-at-rest-at-47e606a1) | [match](#lock-at-rest-at-47e606a1) |
+| 41 | `lock-screen` | [match](#lock-at-rest-at-93888cd9) | [match](#lock-at-rest-at-93888cd9) |
+| 42 | `lock-wrong` | X1291 | [match](#lock-at-rest-at-93888cd9) |
+| 43 | `lock-pick` | [match](#lock-at-rest-at-93888cd9) | [match](#lock-at-rest-at-93888cd9) |
 | 44 | `welcome` | match | match |
 | 45 | `import` | X776 | X777 |
 | 46 | `seed-quiz` | match | match |
@@ -9090,3 +9103,4 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1288 | review | 2026-11-22T00:47Z | 24-token-mine-light at a2efda99. The owned row is expanded and the Mint form is visible. The search field, copy and owner controls, extra footer actions and single issued-token row differ from the reference. The summary shows a plural unit with a count of one. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |
 | X1289 | review | 2026-11-22T00:50Z | 23-tokens-dark at a2efda99. The Held filter, search field and table headings are visible. The original capture expands the issuing account's token and reveals an empty Mint form. The reference expands a token held by an account other than its issuer and presents holder actions. The reference branch remains unobserved. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |
 | X1290 | review | 2026-11-22T00:50Z | 23-tokens-light at a2efda99. The Held filter, search field and table headings are visible. The original capture expands the issuing account's token and reveals an empty Mint form. The reference expands a token held by an account other than its issuer and presents holder actions. The reference branch remains unobserved. [Review](docs/review/source-a2efda99-seeded-verdicts.json). |
+| X1291 | review | 2026-11-22T01:25Z | Dark Wrong Password at `93888cd9` shows the active caret. The frame-23 art, warning and field outline agree. [Review](docs/review/source-93888cd9-lock-verdicts.json). |
