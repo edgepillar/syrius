@@ -284,6 +284,17 @@ class InteractiveFramePairTests(unittest.TestCase):
             damaged['samples']['current']['observation'][field]['window']['windowUs'] = 1_000_000
             with self.subTest(field=field), self.assertRaises(archive.Refused):
                 self.project(damaged)
+        current['idle_on_node_settings'] = current['idle_before_disclosure']
+        p06['idle_on_node_settings'] = p06['idle_after_disclosure']
+        with self.assertRaises(archive.Refused):
+            self.project(offered)
+        del current['idle_after_disclosure'], p06['idle_after_disclosure']
+        with_node = self.project(offered)
+        self.assertEqual(with_node['verified_idle_on_node_settings'], closed)
+        self.assertEqual(with_node['verified_comparisons'], result['verified_comparisons'])
+        current['idle_on_node_settings']['window']['windowUs'] = 1_000_000
+        with self.assertRaises(archive.Refused):
+            self.project(offered)
 
     def test_peak_total_reports_the_two_observed_waits(self):
         window = dict(schema=1, scope='harness_frame_window', windowUs=100000,
@@ -847,7 +858,8 @@ class InteractiveFramePairTests(unittest.TestCase):
                 self.assertEqual(kind, 'wait')
                 self.assertFalse(collecting)
                 if 'key' in command:
-                    self.assertIn(command['key'], ('settings_node', 'about_licences_toggle'))
+                    self.assertIn(command['key'],
+                        ('settings_node', 'node_settings_add', 'about_licences_toggle'))
                     return dict(ok=True, target=dict(key=command['key']))
                 self.assertEqual(command['type'], 'Licences')
                 self.assertEqual(command['timeoutMs'], 5000)
@@ -859,7 +871,7 @@ class InteractiveFramePairTests(unittest.TestCase):
                                                        else ['AboutCard', 'Licences', 'Text']))
 
             windows, tap_releases, disclosure_phases, page_phases = {}, {}, {}, {}
-            pointer_phases, idle_sample, closed_idle_sample = {}, {}, {}
+            pointer_phases, closed_idle_sample, node_idle_sample = {}, {}, {}
 
             def validate(value):
                 pair.shared.launch.frame_timing_window(value)
@@ -871,21 +883,28 @@ class InteractiveFramePairTests(unittest.TestCase):
                         size=[1280, 780], windows=windows,
                         tap_releases=tap_releases,
                         disclosure_phases=disclosure_phases, page_phases=page_phases,
-                        pointer_phases=pointer_phases, idle_sample=idle_sample,
-                        closed_idle_sample=closed_idle_sample, sleep=pauses.append)
+                        pointer_phases=pointer_phases, closed_idle_sample=closed_idle_sample,
+                        node_idle_sample=node_idle_sample,
+                        sleep=pauses.append)
                     self.assertIs(result, windows)
                     self.assertEqual(set(windows), set(pair.WINDOWS))
-                    self.assertEqual(len(calls), 24)
-                    self.assertEqual(pauses, [0.6, 1.0, 1.1, 0.6, 1.0, 1.1])
+                    self.assertEqual(len(calls), 25)
+                    self.assertLessEqual(len(calls), pair.profile.MAX_MEASUREMENT_COMMANDS)
+                    self.assertEqual(pauses, [0.6, 1.0, 1.1, 1.0, 1.1, 0.6])
                     idle = dict(window, windowUs=1_200_000)
                     if fault == 'idle_unavailable':
-                        self.assertEqual(idle_sample, {'status': 'unavailable'})
                         self.assertEqual(closed_idle_sample, {'status': 'unavailable'})
+                        self.assertEqual(node_idle_sample, {'status': 'unavailable'})
                         self.assertEqual(validated, [window, window])
                     else:
-                        self.assertEqual(idle_sample, dict(status='measured', window=idle))
                         self.assertEqual(closed_idle_sample, dict(status='measured', window=idle))
-                        self.assertEqual(validated, [window, idle, window, idle])
+                        self.assertEqual(node_idle_sample, dict(status='measured', window=idle))
+                        self.assertEqual(validated, [window, idle, idle, window])
+                    node_checks = [index for index, call in enumerate(calls)
+                                   if call.get('key') == 'node_settings_add']
+                    about = calls.index(dict(cmd='tap', key='settings_about'))
+                    self.assertEqual(len(node_checks), 2)
+                    self.assertLess(node_checks[1], about)
                     closed_checks = [index for index, call in enumerate(calls)
                                      if call.get('gone') is True]
                     opens = [index for index, call in enumerate(calls)
@@ -1271,8 +1290,8 @@ class InteractiveFramePairTests(unittest.TestCase):
                     output_complete=True, output_bytes=len(output), seconds=1, output=output)
 
             def measure(request, validate, *, size, windows, tap_releases,
-                        disclosure_phases, page_phases, pointer_phases, idle_sample,
-                        closed_idle_sample):
+                        disclosure_phases, page_phases, pointer_phases,
+                        closed_idle_sample, node_idle_sample):
                 request(dict(cmd='wait', key='about_page'))
                 windows.update(dict.fromkeys(pair.WINDOWS, window))
                 tap_releases.update(page_change=50_000, disclosure=60_000)
@@ -1441,8 +1460,8 @@ class InteractiveFramePairTests(unittest.TestCase):
         idle = dict(full, frames=full['frames'][:pair.actions.MAX_IDLE_FRAMES])
         for sample in offered['samples'].values():
             sample['observation']['windows'] = dict.fromkeys(pair.WINDOWS, full)
+            sample['observation']['idle_on_node_settings'] = dict(status='measured', window=idle)
             sample['observation']['idle_before_disclosure'] = dict(status='measured', window=idle)
-            sample['observation']['idle_after_disclosure'] = dict(status='measured', window=idle)
             sample['shutdown_trace'] = dict(status='observed', phase='exitRequested',
                 failed=False, event_count=20, output_complete=True,
                 elapsed_ms=120_000, max_gap_ms=110_000, max_gap_after='windowPositionRead')
@@ -1463,7 +1482,8 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(result['frame_counts']['p06'], {'page_change': 512, 'disclosure': 512})
         self.assertEqual(result.pop('verified_comparisons'), offered['comparisons'])
         diagnostics = result.pop('verified_window_diagnostics')
-        idle_summary = result.pop('verified_idle_after_disclosure')
+        self.assertEqual(result.pop('verified_idle_after_disclosure'), {})
+        idle_summary = result.pop('verified_idle_on_node_settings')
         self.assertEqual(result.pop('verified_idle_before_disclosure'), idle_summary)
         for window in idle_summary.values():
             self.assertEqual(window['frames'], pair.actions.MAX_IDLE_FRAMES)

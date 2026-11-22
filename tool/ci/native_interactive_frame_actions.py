@@ -133,8 +133,8 @@ def _observe_idle(send, validate_window, sleep):
 
 def observe_interactive(send, validate_window, *, size, windows=None,
                         tap_releases=None, disclosure_phases=None,
-                        page_phases=None, pointer_phases=None, idle_sample=None,
-                        closed_idle_sample=None, sleep=time.sleep):
+                        page_phases=None, pointer_phases=None, closed_idle_sample=None,
+                        node_idle_sample=None, sleep=time.sleep):
     """Observe Home to Settings and the closed About licences disclosure.
 
     The caller binds the owned release process and profile. A confirmed page
@@ -158,6 +158,13 @@ def observe_interactive(send, validate_window, *, size, windows=None,
         pointer_phases['page_change'] = page_pointer
     if page_phases is not None and valid_page_settlement(page_settlement, page_release, page['windowUs']):
         page_phases['settled'] = page_settlement
+
+    if node_idle_sample is not None:
+        _require(type(node_idle_sample) is dict and not node_idle_sample)
+        _wait(send, 'node_settings_add')
+        node_idle_sample.update(_observe_idle(send, validate_window, sleep))
+        _wallet(send, 'settings', size, address)
+        _wait(send, 'node_settings_add')
 
     _target(_original(send, cmd='tap', key='settings_about'), key='settings_about')
     _wait(send, 'about_licences_toggle')
@@ -187,9 +194,4 @@ def observe_interactive(send, validate_window, *, size, windows=None,
     if (disclosure_phases is not None and valid_disclosure_phases(
             phases, disclosure_release, disclosure['windowUs'])):
         disclosure_phases.update(phases)
-    if idle_sample is not None:
-        _require(type(idle_sample) is dict and not idle_sample)
-        idle_sample.update(_observe_idle(send, validate_window, sleep))
-        _wallet(send, 'settings', size, address)
-        _licences(send)
     return windows

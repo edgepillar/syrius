@@ -5691,6 +5691,16 @@ redesign and 23 P06 frames. The disclosure retains 17 redesign and
 29 P06 frames. Raster and distinct comparisons fail for both actions,
 and both builds retain missing frame numbers.
 
+The next paired probe compares idle Node Settings with idle About while
+Licences is closed. It verifies the visible Node Settings Add control
+and the same wallet and viewport before leaving that page. Both idle
+windows are 1.1 seconds after one second of settling. The existing
+page-change and disclosure comparisons keep their original frame
+criteria. The Node Settings window replaces the optional open-About
+idle sample in new runs so the manifest still fits its existing cap.
+Retained open-About evidence is still readable. The 162 local reader,
+controller and hosted lab policy tests pass. Native results are pending.
+
 #### Paired Windows cold launch timing at `f0b1a110`
 
 The [native producer](https://github.com/edgepillar/syrius/actions/runs/44979865019/job/137077797577)

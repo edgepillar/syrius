@@ -531,14 +531,14 @@ def owned_profile(send, run_entry, revalidate, measure, confirm_address, *,
     disclosure_phases = {}
     page_phases = {}
     pointer_phases = {}
-    idle_sample = {}
     closed_idle_sample = {}
+    node_idle_sample = {}
     try:
         measure(observed_send, launch.frame_timing_window, size=list(launch.TIMING_SIZE),
                 windows=report['windows'], tap_releases=tap_releases,
                 disclosure_phases=disclosure_phases, page_phases=page_phases,
-                pointer_phases=pointer_phases, idle_sample=idle_sample,
-                closed_idle_sample=closed_idle_sample)
+                pointer_phases=pointer_phases, closed_idle_sample=closed_idle_sample,
+                node_idle_sample=node_idle_sample)
     finally:
         if tap_releases:
             report['tap_release_us'] = tap_releases
@@ -548,10 +548,10 @@ def owned_profile(send, run_entry, revalidate, measure, confirm_address, *,
             report['page_settled_us'] = page_phases['settled']
         if pointer_phases:
             report['pointer_phases_us'] = pointer_phases
+        if node_idle_sample:
+            report['idle_on_node_settings'] = node_idle_sample
         if closed_idle_sample:
             report['idle_before_disclosure'] = closed_idle_sample
-        if idle_sample:
-            report['idle_after_disclosure'] = idle_sample
     need(set(report['windows']) == {'page_change', 'disclosure'}, 'FRAME_REFUSED')
     for window in report['windows'].values():
         launch.frame_timing_window(window)
