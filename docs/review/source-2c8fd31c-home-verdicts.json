@@ -1,0 +1,68 @@
+{
+  "reviews": {
+    "01-home-rest-dark": {
+      "actual_sha256": "d873e4603f3e4cd0faad86dc89d88fb6463b2e2c0b876df231a6c9fb233933e6",
+      "expected_sha256": "70617942960638e9ad855344dcc7aa1433058bb4d060155f1cfb36592ca332a6",
+      "note": "The closed Tokens count and Notifications tooltip are visible. Activity is scoped to Address 2 and has one receipt with unavailable units. The reference shows all addresses, a populated reward summary and a pending Send.",
+      "reviewed_at": "2026-11-22T22:43:47Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "01-home-rest-light": {
+      "actual_sha256": "e5ac81b41f88ae2f8c2436d105dd4f37a74f87654ba0681eb251cd99322ef826",
+      "expected_sha256": "280f31f618a20af2f275bd516afc3280849180f4788f38ae7c3fdebaedd36b7c",
+      "note": "The Notifications tooltip and closed three-holding Tokens card are visible. The light hero shows different Plasma fill, and the isolated ledger omits the reference reward and pending blocks.",
+      "reviewed_at": "2026-11-22T22:43:47Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-dark": {
+      "actual_sha256": "d7e769d59766475552fe2f10fffa40103829915608b22bfaa544714e664d356c",
+      "expected_sha256": "ef3e3dfc4e9e4a6438516fe8803c55202d744b57c964104d6212c4eb2d3ebd97",
+      "note": "The rail and Tokens card are open. Three holding balances share the trailing edge. Token order differs, and the single selected-address receipt and empty reward summary leave a different card silhouette.",
+      "reviewed_at": "2026-11-22T22:43:47Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-light": {
+      "actual_sha256": "f6ce238e34f1af25299ef5aa041a679058aa48c8072c6c812ff0cc05a21f751f",
+      "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
+      "note": "Three holdings and the expanded rail are visible. The reference has a multi-row Activity list and a populated reward summary. The actual reward card is shorter and the Tokens header sits higher.",
+      "reviewed_at": "2026-11-22T22:43:47Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-dark": {
+      "actual_sha256": "7e3675348f5194e2140820e4e52b5ba3c8bba453bc3c94e70723efd86cf8e94d",
+      "expected_sha256": "29421519af83d80baf69fcfe24beb37fc754d8da1c08b3a175e7224a27fedf16",
+      "note": "The hero and receipt amounts are masked. Activity has one selected-address row, and there are no reward amounts to mask. The reference has a populated masked Activity and rewards state.",
+      "reviewed_at": "2026-11-22T22:43:47Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-light": {
+      "actual_sha256": "5138438e9f6e58bd48c1a525e059a939979647c411f1a6cbef457e6b9e2a38bb",
+      "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
+      "note": "The hero and Activity values are masked and Tokens stays closed. Activity and rewards differ in coverage, and the reference has a shorter Plasma meter fill.",
+      "reviewed_at": "2026-11-22T22:43:47Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-dark": {
+      "actual_sha256": "d452fe287e8855d17bf63af100c3e682a2ddf5c1b8ffdaf0cfed44f97e08d6f0",
+      "expected_sha256": "52ccc26f93bcad1c79ac91228648bb8c369a6cec14041f77f51d210afec0a1f9",
+      "note": "The palette, selected Delegation row and action list are visible. The Addresses group shows the isolated contact and the backdrop shows settled Activity instead of the reference loading placeholders.",
+      "reviewed_at": "2026-11-22T22:43:47Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-light": {
+      "actual_sha256": "259fdba5e94d8fa2a013c2f34380cfbab3e8a1263fdc481df2a9c8202ccf123f",
+      "expected_sha256": "f700f7b185b5064b45b1acc561abcee0fce392badb4dc2d58319914780b060bb",
+      "note": "The palette and keyboard hint strip are visible in the reference positions. The isolated contact differs, and the blurred backdrop contains settled Activity rather than the reference loading state.",
+      "reviewed_at": "2026-11-22T22:43:47Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
