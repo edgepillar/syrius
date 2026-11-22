@@ -144,7 +144,10 @@ void main() {
       (WidgetTester tester) async {
         await _prepare(tester, source, source.bind(), light: light);
         _expectLedgerLabels(tester, <String>[
-          'SITE', 'ADDRESS', 'LAST USED', 'VIA',
+          'SITE',
+          'ADDRESS',
+          'LAST USED',
+          'VIA',
         ], tracking: 0.66);
         expect(find.byType(SettingsSwitch), findsOneWidget);
         expect(find.text('sample.example'), findsOneWidget);
@@ -177,9 +180,11 @@ void main() {
         expect(
           tester.getBottomLeft(find.byType(Disclosure)).dy,
           closeTo(
-            tester.getBottomLeft(
-              find.byKey(const Key('apps_settings_page')),
-            ).dy,
+            tester
+                .getBottomLeft(
+                  find.byKey(const Key('apps_settings_page')),
+                )
+                .dy,
             .001,
           ),
         );
@@ -190,6 +195,13 @@ void main() {
         expect(
           tester.getTopLeft(find.text('Connected')).dx -
               tester.getTopLeft(connected).dx,
+          16,
+        );
+        expect(
+          tester.getTopRight(connected).dx -
+              tester
+                  .getTopRight(find.byKey(const Key('apps_settings_connect')))
+                  .dx,
           16,
         );
         final Finder tableHeader = find.ancestor(

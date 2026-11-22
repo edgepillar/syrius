@@ -4629,6 +4629,13 @@ images contain the four members and sample contacts, with no named third
 member. Those four images remain diagnostic under the prepared-state
 rule. [Settings verdicts](docs/review/source-e3047adc-settings-verdicts.json)
 
+The retained dark Apps image places Connect by link 8 px inside the
+Connected card. The reference uses a 16 px inset on that edge, matching
+the title inset. The Apps header now applies the standard card inset to
+its action as well. The existing populated widget case checks the
+button edge. The original empty session capture remains a reviewed
+state and full visual acceptance remains open.
+
 On the two About images, the seven Settings labels' ink bounds are within
 one pixel of their references at the 32-level RGB contrast threshold.
 All 28 bounding coordinates per theme were checked. Twenty-one agree exactly in dark

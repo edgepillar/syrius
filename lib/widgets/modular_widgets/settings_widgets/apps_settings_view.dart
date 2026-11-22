@@ -262,20 +262,27 @@ class _AppsSettingsViewState extends State<AppsSettingsView>
                   ),
                 ),
                 actions: <Widget>[
-                  _AppsButton(
-                    key: const Key('apps_settings_connect'),
-                    label: context.l10n.appsSettingsConnectByLink,
-                    icon: 'plus',
-                    onPressed:
-                        current &&
-                            snapshot.walletConnectAvailable &&
-                            !state.busy
-                        ? () {
-                            if (sourceCurrent()) {
-                              unawaited(_connectByLink());
+                  Padding(
+                    padding: EdgeInsetsDirectional.only(
+                      end:
+                          tokens.panelHeaderPadding.end -
+                          tokens.tabHeaderPadding.end,
+                    ),
+                    child: _AppsButton(
+                      key: const Key('apps_settings_connect'),
+                      label: context.l10n.appsSettingsConnectByLink,
+                      icon: 'plus',
+                      onPressed:
+                          current &&
+                              snapshot.walletConnectAvailable &&
+                              !state.busy
+                          ? () {
+                              if (sourceCurrent()) {
+                                unawaited(_connectByLink());
+                              }
                             }
-                          }
-                        : null,
+                          : null,
+                    ),
                   ),
                 ],
                 child: ConstrainedBox(
