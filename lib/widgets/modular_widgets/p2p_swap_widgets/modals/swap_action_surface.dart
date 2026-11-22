@@ -478,8 +478,12 @@ class SwapAmountPane extends StatelessWidget {
               hintText: '0',
               counterText: '',
               isDense: true,
+              isCollapsed: true,
               filled: false,
               border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
               contentPadding: EdgeInsets.zero,
             ),
           );

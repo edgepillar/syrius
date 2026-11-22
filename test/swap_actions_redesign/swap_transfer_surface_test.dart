@@ -191,6 +191,18 @@ void main() {
         expect(find.text('1 ZNN = 10 QSR'), findsOneWidget);
         expect(find.byKey(const Key('fixture_dollars')), findsNWidgets(2));
         final Finder editor = find.byKey(const Key('swap_amount_input'));
+        final InputDecoration decoration = tester
+            .widget<InputDecorator>(
+              find.descendant(
+                of: editor,
+                matching: find.byType(InputDecorator),
+              ),
+            )
+            .decoration;
+        expect(decoration.enabledBorder, InputBorder.none);
+        expect(decoration.disabledBorder, InputBorder.none);
+        expect(decoration.focusedBorder, InputBorder.none);
+        expect(decoration.isCollapsed, isTrue);
         final Rect editorRect = tester.getRect(editor);
         final Finder send = find.ancestor(
           of: editor,

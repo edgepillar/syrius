@@ -6036,6 +6036,13 @@ establish the actual pane edges, including with a two-level tolerance
 per channel. The samples preserve the difference without attributing it
 to a specific control or changing the whole-image verdicts.
 
+The editable amount fields now use borderless, collapsed decoration
+inside the amount panes, as in the reference. The wallet input theme had
+been supplying a second outline in the enabled, focused and disabled
+states. The two-theme widget case checks the effective field decoration.
+The amount controller and token parsing paths are unchanged. A new
+Windows capture still needs to establish the visual result.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since
