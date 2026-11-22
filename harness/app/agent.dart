@@ -5152,11 +5152,13 @@ class HarnessAgent {
     final bool zapPreview = _readonlyHomeZapPreview &&
         key == 'zap_received_card';
     final bool homeContact = _readonlyHomeCatalog && key == homeGotoContactKey;
+    final bool homeTokenBody =
+        _readonlyHomeCatalog && key == 'home_tokens_body';
     final bool homeHolding = _readonlyHomeCatalog &&
         catalog == 'home-catalog' && key.startsWith('home_token_') &&
         readonlyHomeFixtureStandards.contains(key.substring(11));
     if (!pillarDone && !sentinelRegion && !readyRegion && !warningRegion &&
-        !zapPreview && !homeContact && !homeHolding &&
+        !zapPreview && !homeContact && !homeTokenBody && !homeHolding &&
         !const <String>{
           'home_hero', 'home_znn', 'rail_label_dashboard',
           'bell_panel',
@@ -5217,7 +5219,9 @@ class HarnessAgent {
     const Set<String> fields = <String>{
       'cmd', 'key', 'exact', 'timeoutMs', 'ready',
     };
-    if (command.keys.any((String name) => !fields.contains(name))) {
+    if (command.keys.any((String name) =>
+        !fields.contains(name) &&
+        !(homeTokenBody && name == 'gone' && command[name] == true))) {
       throw HarnessError('readonly region needs a positive key selector');
     }
     final List<_Node> nodes = _visibleKeyNodes(

@@ -5868,6 +5868,15 @@ existing balances. The new capture covers populated Tokens, while
 the reference's populated Activity, rewards and pending-transfer
 states keep their own acceptance requirements.
 
+The [first populated Home run](https://github.com/edgepillar/syrius/actions/runs/45052077902)
+starts the isolated chain with the three allocations and records normal
+node exits. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/45053628103/job/137303964149)
+retains the original `ENTRY_FAILED` at line 11 of the dark Home-open
+script before its first populated capture. The Home catalog now admits
+the Tokens body as an exact passive region for the wait, assertion and
+after-capture disappearance checks, including when the body contains
+multiple rows. The three row checks still apply before each open shot.
+
 All eight originals were viewed alongside their tracked references. The
 [reviewed pairs](docs/review/source-7fc58054-home-verdicts.json) show the
 expected rail, hero and palette placement. The isolated profile has sparse
