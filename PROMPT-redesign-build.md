@@ -5694,6 +5694,9 @@ The chip appears when the initial load resolves and reports the real
 selected address. The existing loading, failure and empty-state case
 checks the header transition beside the three skeleton bars. Native
 capture of the loading state under Go To remains open.
+The [Linux run at `3d3ced7e`](https://github.com/edgepillar/syrius/actions/runs/45026209876/job/137219695178)
+passes that case, full and strict Dart analysis, and generated-file
+verification. The unit and widget suite passes 5,133 tests with one skip.
 
 ### End-state audit at `28b39fab` (2026-11-22)
 
