@@ -4962,7 +4962,7 @@ different painted drift positions.
 | List entrance | `test/row_detail/list_entrance_test.dart` and `test/row_detail/table_entrance_test.dart` cover the stagger and first-paint behavior. | Watch the Welcome rows and a freshly populated list. |
 | Primary pill sheen | `test/sheen/primary_pill_test.dart` and `test/sheen/sheen_test.dart` cover hover and completion feedback. | Observe the 600 ms hover and completion passes on their original controls. |
 | Stepper steps | `test/motion/step_switcher_test.dart` checks direction, height and preserved duration. | Observe steps in the Spawn, Token and onboarding flows. |
-| Row opens into a page | `test/accelerator_project_redesign/accelerator_project_view_test.dart` covers the project view. | Observe the original project row transforming into the detail page and returning. |
+| Row opens into a page | The existing Accelerator list test samples the original container halfway through both 300 ms transitions and checks the expanded and contracted geometry against the forward and reverse curves. Project Detail has a separate view test. | Observe both directions in the running Windows wallet. |
 | Panel and dialogs | `test/shell/bell/bell_panel_test.dart` and `test/frost/dialog_motion_test.dart` cover motion and interaction. | Open Bell, Go To and a confirmation, and view each motion. |
 | Toast | `test/toast/event_toast_test.dart` checks the 300 ms rise, 5 s drain and hover pause. | View the rise, pause and resumed drain. |
 | Zap arrived | `test/home/zap_sparks_test.dart` covers the 28 sparks and once-per-event behavior. | Observe the original animation using an explicitly identified preview or admitted isolated event. |

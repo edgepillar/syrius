@@ -349,14 +349,48 @@ void main() {
       );
       expect(transform.transitionDuration, const Duration(milliseconds: 300));
       expect(transform.useRootNavigator, isFalse);
-      await tester.tap(
-        find.byKey(ValueKey<String>('accelerator_project_${listHash(1)}')),
+      final Finder row = find.byKey(
+        ValueKey<String>('accelerator_project_${listHash(1)}'),
       );
+      final Rect rowBounds = tester.getRect(row);
+      await tester.tap(row);
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 301));
-      expect(root.pushed, hasLength(1));
+      await tester.pump(const Duration(milliseconds: 150));
       final Finder detail = find.text('Exact ${listHash(1)}');
+      final Animation<double> progress = ModalRoute.of(
+        tester.element(detail),
+      )!.animation!;
+      final Finder movingSurface = find.ancestor(
+        of: detail,
+        matching: find.byWidgetPredicate(
+          (Widget widget) =>
+              widget is Material &&
+              widget.clipBehavior == Clip.antiAlias &&
+              widget.animationDuration == Duration.zero,
+        ),
+      ).first;
+      final Rect opening = tester.getRect(movingSurface);
+      expect(progress.status, AnimationStatus.forward);
+      expect(progress.value, closeTo(0.5, 0.01));
+      expect(opening.top, lessThan(rowBounds.top));
+      expect(opening.height, greaterThan(rowBounds.height));
+
+      await tester.pump(const Duration(milliseconds: 151));
+      expect(progress.status, AnimationStatus.completed);
+      expect(root.pushed, hasLength(1));
       expect(detail, findsOneWidget);
+      final Rect openBounds = tester.getRect(
+        find.ancestor(of: detail, matching: find.byType(Scaffold)).first,
+      );
+      expect(
+        opening.height,
+        closeTo(
+          rowBounds.height +
+              (openBounds.height - rowBounds.height) *
+                  Curves.fastOutSlowIn.transform(0.5),
+          1,
+        ),
+      );
       expect(find.text('Shell rail').hitTestable(), findsOneWidget);
       expect(find.text('Shell status').hitTestable(), findsOneWidget);
       final BuildContext detailContext = tester.element(detail);
@@ -368,7 +402,22 @@ void main() {
       expect(pane.canPop(), isTrue);
       expect(await shell.maybePop<void>(), isTrue);
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 301));
+      await tester.pump(const Duration(milliseconds: 150));
+      final Rect closing = tester.getRect(movingSurface);
+      expect(progress.status, AnimationStatus.reverse);
+      expect(progress.value, closeTo(0.5, 0.01));
+      expect(closing.top, lessThan(rowBounds.top));
+      expect(
+        closing.height,
+        closeTo(
+          rowBounds.height +
+              (openBounds.height - rowBounds.height) *
+                  Curves.fastOutSlowIn.flipped.transform(0.5),
+          1,
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 151));
       expect(detail, findsNothing);
       expect(find.byKey(const Key('accelerator_list')), findsOneWidget);
       expect(all.hitTestable(), findsOneWidget);
