@@ -4702,6 +4702,10 @@ themes, Connect by link paints from columns 1115 through 1247 and rows
 115 through 140. These bounds agree with both references. The catalog
 retains the original empty connection state and zero accepted whole-image
 matches. The populated Disconnect actions still need native visual review.
+Both original Apps images were viewed alongside their exact references.
+The [two visual verdicts](docs/review/source-773ab9b8-apps-verdicts.json)
+record the aligned action and the empty connection table. The comparison
+tool binds both verdicts to the verified original and reference digests.
 
 On the two About images, the seven Settings labels' ink bounds are within
 one pixel of their references at the 32-level RGB contrast threshold.
@@ -6237,6 +6241,10 @@ the reference's border-box layout. The existing two-theme test checks
 that the scroll area is 478 px wide and centered. The authored glass
 RGBA values already agree with the app tokens. The measured interior
 tint difference remains open for backdrop composition review.
+The [Linux run at `a5b2b179`](https://github.com/edgepillar/syrius/actions/runs/45026632245/job/137220986498)
+passes the outline assertion in both themes, full and strict Dart
+analysis, and generated-file verification. The unit and widget suite
+passes 5,133 tests with one skip.
 
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)

@@ -1,0 +1,20 @@
+{
+  "reviews": {
+    "34-set-apps-dark": {
+      "verdict": "mismatch",
+      "reviewer": "edgepillar",
+      "reviewed_at": "2026-11-22T13:27:59Z",
+      "expected_sha256": "76efab8f738858389426bbff88f3935efc5610d64052b9f3946fda9af5086e48",
+      "actual_sha256": "7f6d5138a99b0efe2a5e4114933c5f8c0a9be4c93344346633059f6af6e6caf6",
+      "note": "The Connect by link action aligns with the reference. The original Connected table has an empty state and the WalletConnect footer has no sessions or pairings. The reference shows a web app, a WalletConnect session and both Disconnect actions."
+    },
+    "34-set-apps-light": {
+      "verdict": "mismatch",
+      "reviewer": "edgepillar",
+      "reviewed_at": "2026-11-22T13:27:59Z",
+      "expected_sha256": "21b9bdac58c975afa405e0ed1bceb6491b42743e30015f786240bdd562e1ad22",
+      "actual_sha256": "e6ad1dd654c9bd14534ea70f20e1a642cb398f502ba4e07b7394e00fbdc182bd",
+      "note": "The Connect by link action aligns with the reference. The original Connected table has an empty state and the WalletConnect footer has no sessions or pairings. The reference shows a web app, a WalletConnect session and both Disconnect actions."
+    }
+  }
+}
