@@ -915,10 +915,13 @@ final class SeedGuard {
       final bool pendingPillarReceive = recipe == pillarDepositRecipeId &&
           last == SeedPendingResult.effectPending &&
           block?.pillarDepositReceivePending == true;
+      final bool unseenIssuedTokenReceive =
+          tokenEffect == SeedTokenEffect.holdingReceiveUnseen;
       if (hasNextRound &&
           !waitedForContractReceive &&
-          (stakeEffect?.isEmpty == true || pendingPillarReceive)) {
-        // The lab's ten-second momentum cadence can delay the contract receive.
+          (stakeEffect?.isEmpty == true || pendingPillarReceive ||
+              unseenIssuedTokenReceive)) {
+        // Let the original contract or wallet receive cross one lab momentum.
         waitedForContractReceive = true;
         delay = const Duration(seconds: 12);
       }

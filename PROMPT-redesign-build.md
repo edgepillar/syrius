@@ -5272,6 +5272,16 @@ changed owner and the unchanged balance and supply. The wallet's own
 confirmation gate must admit that operation. It reads a fresh proof,
 keeps the original publication record and makes no new publication.
 A failure at this step retains the fixed holder presentation label.
+
+The [producer at `9bbe0b0a`](https://github.com/edgepillar/syrius/actions/runs/44993631441/job/137119885329)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44995194029/job/137124607363)
+stopped during the earlier Token issuance step. Four original polls found
+no issuance block and fourteen observed a confirmed issuance with its effect
+pending. The last observation verifies the paired contract send. The current
+wallet worker had no matching receive record. This run never reached the
+holder presentation and retained no holder PNGs. The Token guard now allows
+one existing 12-second settlement interval for this exact unseen receive.
+It still reads at most eighteen times and makes no replacement publication.
 The fixture contents and the visual differences reported above still
 require review on a fresh run.
 
@@ -5280,6 +5290,12 @@ original external-link symbol when a domain exists. An empty value has no
 standalone button. The original owner controls and publication explorer
 keep their existing routes. The two-theme, two-direction holder tests cover
 the inline link, an empty domain and a callback from the replaced publisher.
+
+The [Linux validation at `b08b054a`](https://github.com/edgepillar/syrius/actions/runs/44993921982/job/137120777068)
+passes application and strict analysis, 5,132 non-chain tests with one skip,
+and generated-file verification. The focused Windows-tour cases run 1,531
+checks within the Linux suite. Windows visual verification of the domain
+placement remains open.
 
 [Fork Linux validation at `562597a7`](https://github.com/edgepillar/syrius/actions/runs/44982169688/job/137084834033)
 passes application and strict analysis, 5,132 tests with one skip, and

@@ -312,7 +312,13 @@ class _ObservedStakeSource extends _Source implements SeedStakeEffectSource {
 }
 
 class _ObservedFundingSource extends _Source
-    implements SeedFundingEffectSource {
+    implements SeedFundingEffectSource, SeedTokenEffectSource {
+  SeedTokenEffect? tokenEffect;
+
+  @override
+  SeedTokenEffect? observeTokenEffect(String hash) =>
+      hash == _hash(9) ? tokenEffect : null;
+
   int observations = 0;
   Future<Object?>? receiveResult;
   final Completer<void> pendingObserved = Completer<void>();
@@ -1028,6 +1034,30 @@ void main() {
       expect(taps, 1);
       expect(ledger.confirmedHashes, <String, String>{recipe: _hash(9)});
     }
+    final _ObservedFundingSource unseen = _ObservedFundingSource()
+      ..tokenEffect = SeedTokenEffect.holdingReceiveUnseen;
+    unseen.onEffect = () async => unseen.effectReads == 3;
+    final List<Duration> delays = <Duration>[];
+    final _Journal ledger = _Journal();
+    final SeedGuard guard = SeedGuard(
+      source: unseen,
+      journal: ledger,
+      delay: (Duration duration) async {
+        if (unseen.confirmationReads > 0) delays.add(duration);
+      },
+    );
+    int taps = 0;
+    expect(await guard.publish('token', () async {
+      taps++;
+      unseen.operations.add(_Original());
+    }), _hash(9));
+    expect(delays, <Duration>[
+      const Duration(seconds: 12),
+      const Duration(seconds: 2),
+    ]);
+    expect(unseen.confirmationReads, 3);
+    expect(taps, 1);
+    expect(ledger.confirmedHashes, <String, String>{'token': _hash(9)});
   });
 
   testWidgets('Fund Address waits once for a still pending original receive',
