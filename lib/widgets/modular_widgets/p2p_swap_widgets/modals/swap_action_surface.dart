@@ -984,6 +984,7 @@ class SwapTextEntry extends StatelessWidget {
             ? outline.copyWith(borderSide: BorderSide(color: tokens.faint))
             : null,
         isDense: _isCounterparty ? true : null,
+        hoverColor: _isCounterparty ? Colors.transparent : null,
         suffixIconConstraints: _isCounterparty
             ? BoxConstraints(minHeight: tokens.fieldHeight)
             : null,

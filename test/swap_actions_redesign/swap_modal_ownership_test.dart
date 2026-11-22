@@ -194,6 +194,7 @@ void main() {
     expect(tester.getRect(caption).bottom + 6, fieldBounds.top);
     expect(fieldBounds.height, 42);
     expect(tester.getCenter(book).dx, fieldBounds.right - 20);
+    expect(addressField.decoration!.hoverColor, Colors.transparent);
     expect(
       (addressField.decoration!.enabledBorder as OutlineInputBorder)
           .borderRadius,

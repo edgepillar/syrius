@@ -6513,6 +6513,18 @@ dark and from 7,441 to 9,678 in light. The bounded native field and
 icon scan remains unavailable in both themes. Atomic-frame
 qualification and the whole-image visual verdicts remain open.
 
+The [wider retained scan](https://github.com/edgepillar/syrius/actions/runs/45044293581/job/137275382570)
+finds a stable fill band at [465, 505) in both `e0898901` captures,
+against [461, 501) in both references. The observed fills are
+RGB (57, 59, 57) in dark and (245, 245, 245) in light, against
+(46, 48, 46) and (255, 255, 255). The first pane begins at the reference
+row 186, but its fill ends at 299 instead of 295. The second pane and
+the field are both four pixels lower. The field colors are consistent
+with a Material hover overlay. Start Swap now keeps the reference's
+solid field fill through pointer hover. The address-book button retains
+its own hover feedback. The next Windows capture must establish the
+resulting colors and trailing-mark bounds.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since
