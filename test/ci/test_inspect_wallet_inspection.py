@@ -160,7 +160,7 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(sum((right - left) * (bottom - top)
                              for left, top, right, bottom in swap.values()), 1280 * 780)
         self.assertEqual(comparisons[-2]['amount_pane_fill_rows']['themes'], {
-            theme: {label: {'fill_rows': None, 'solid_bands': []}
+            theme: {label: {'fill_rows': None, 'solid_bands': [], 'near_fill_rows': []}
                     for label in ('actual', 'reference')} for theme in ('dark', 'light')
         })
         dark_fill = bytes((46, 48, 46))
@@ -172,9 +172,14 @@ class ReaderTests(unittest.TestCase):
             light = reader._swap_amount_pane_rows(b'fixture', 'light')
             self.assertEqual(dark['fill_rows'],
                              [[186, 295], [317, 427]])
+            self.assertEqual(dark['near_fill_rows'], dark['fill_rows'])
             self.assertIsNone(light['fill_rows'])
+            self.assertEqual(light['near_fill_rows'], [])
             self.assertEqual(light['solid_bands'], dark['solid_bands'])
             scan.assert_called_with(b'fixture', 558, 90, 520)
+            bands.insert(2, (240, bytes((47, 47, 46))))
+            self.assertEqual(reader._swap_amount_pane_rows(b'fixture', 'dark')['near_fill_rows'],
+                             [[186, 295], [317, 427]])
         originals = comparisons[-1]['region_bounds']
         self.assertNotIn('content', originals)
         self.assertEqual(originals['launch_tile'], (260, 315, 444, 427))

@@ -880,6 +880,7 @@ def _map_gray_deviation(png):
 
 
 SWAP_AMOUNT_PANE_SCAN = (558, 90, 520)
+SWAP_AMOUNT_FILL_TOLERANCE = 2
 
 
 def _swap_amount_pane_rows(data, theme):
@@ -892,7 +893,20 @@ def _swap_amount_pane_rows(data, theme):
              for (start, color), (end, _) in zip(bands, bands[1:])
              if start > top and end - start >= 60]
     spans = [band['rows'] for band in solid if tuple(band['rgb']) == fill]
-    return dict(fill_rows=spans if len(spans) == 2 else None, solid_bands=solid)
+    # Small channel variations can split a painted fill into short exact bands.
+    near_fill = []
+    for (start, color), (end, _) in zip(bands, bands[1:]):
+        if any(abs(channel - target) > SWAP_AMOUNT_FILL_TOLERANCE
+               for channel, target in zip(color[:3], fill)):
+            continue
+        if near_fill and near_fill[-1][1] == start:
+            near_fill[-1][1] = end
+        else:
+            near_fill.append([start, end])
+    near_fill = [[start, end] for start, end in near_fill
+                 if start > top and end - start >= 60]
+    return dict(fill_rows=spans if len(spans) == 2 else None, solid_bands=solid,
+                near_fill_rows=near_fill)
 
 
 def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points=None):
@@ -918,6 +932,7 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
     if pane_rows:
         column, top, bottom = SWAP_AMOUNT_PANE_SCAN
         result['amount_pane_fill_rows'] = dict(column=column, scan_rows=[top, bottom],
+                                               channel_tolerance=SWAP_AMOUNT_FILL_TOLERANCE,
                                                themes=pane_rows)
     return result
 
