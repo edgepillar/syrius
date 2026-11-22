@@ -1,0 +1,52 @@
+{
+  "actual": {
+    "41-lock-screen-dark": {
+      "archive_member": "41-lock-screen-dark.png",
+      "archive_sha256": "f029913d67a936c2238e37bcf25e47c82b967a128a6a6ed035af0a22e0239cb5",
+      "catalog_family": "lock-catalog",
+      "path": "f029913d67a936c2238e37bcf25e47c82b967a128a6a6ed035af0a22e0239cb5",
+      "sha256": "116e46fff2a1ee6d46b80490f3c1eeb2f3a4fe43772e04fe18f8979f0f1f3f04",
+      "source_sha": "75cad6bbadcb1d1f50f0f626ad3d49e9307de92f"
+    },
+    "41-lock-screen-light": {
+      "archive_member": "41-lock-screen-light.png",
+      "archive_sha256": "f029913d67a936c2238e37bcf25e47c82b967a128a6a6ed035af0a22e0239cb5",
+      "catalog_family": "lock-catalog",
+      "path": "f029913d67a936c2238e37bcf25e47c82b967a128a6a6ed035af0a22e0239cb5",
+      "sha256": "82d8fee552ac33501fde39897f306f67362a289f32491022602297ecfaf99215",
+      "source_sha": "75cad6bbadcb1d1f50f0f626ad3d49e9307de92f"
+    },
+    "42-lock-wrong-dark": {
+      "archive_member": "42-lock-wrong-dark.png",
+      "archive_sha256": "f029913d67a936c2238e37bcf25e47c82b967a128a6a6ed035af0a22e0239cb5",
+      "catalog_family": "lock-catalog",
+      "path": "f029913d67a936c2238e37bcf25e47c82b967a128a6a6ed035af0a22e0239cb5",
+      "sha256": "793deeb05cfff39593f3a476bb17acd9905640c0addfca60e6eb647954c754bb",
+      "source_sha": "75cad6bbadcb1d1f50f0f626ad3d49e9307de92f"
+    },
+    "42-lock-wrong-light": {
+      "archive_member": "42-lock-wrong-light.png",
+      "archive_sha256": "f029913d67a936c2238e37bcf25e47c82b967a128a6a6ed035af0a22e0239cb5",
+      "catalog_family": "lock-catalog",
+      "path": "f029913d67a936c2238e37bcf25e47c82b967a128a6a6ed035af0a22e0239cb5",
+      "sha256": "704fbe19525e73fa410f92b0e77d0cb333ac70e703fad8855fbe62f2085fc331",
+      "source_sha": "75cad6bbadcb1d1f50f0f626ad3d49e9307de92f"
+    },
+    "43-lock-pick-dark": {
+      "archive_member": "43-lock-pick-dark.png",
+      "archive_sha256": "f029913d67a936c2238e37bcf25e47c82b967a128a6a6ed035af0a22e0239cb5",
+      "catalog_family": "lock-catalog",
+      "path": "f029913d67a936c2238e37bcf25e47c82b967a128a6a6ed035af0a22e0239cb5",
+      "sha256": "a9d9544b7e1b7415e1ef5c95f59a3f36a20f0b6731165e48933730d3aea4e4aa",
+      "source_sha": "75cad6bbadcb1d1f50f0f626ad3d49e9307de92f"
+    },
+    "43-lock-pick-light": {
+      "archive_member": "43-lock-pick-light.png",
+      "archive_sha256": "f029913d67a936c2238e37bcf25e47c82b967a128a6a6ed035af0a22e0239cb5",
+      "catalog_family": "lock-catalog",
+      "path": "f029913d67a936c2238e37bcf25e47c82b967a128a6a6ed035af0a22e0239cb5",
+      "sha256": "c9c2e7075c28dd6bcd64ccf4751abe2041e59c7b632abd6833f314e71ab45f62",
+      "source_sha": "75cad6bbadcb1d1f50f0f626ad3d49e9307de92f"
+    }
+  }
+}

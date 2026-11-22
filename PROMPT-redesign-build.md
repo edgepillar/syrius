@@ -948,6 +948,22 @@ The [image index](docs/review/source-f935a887-lock-captures.json) and
 matches to the original PNGs. The earlier bright-caret finding remains
 recorded at its original source. Running motion under V02 remains open.
 
+#### Startup catalog at `75cad6bb`
+
+The [grouped Windows producer](https://github.com/edgepillar/syrius/actions/runs/44978295415/job/137072999511)
+uses one Release build. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44979584180/job/137076937877)
+verifies twelve PNGs across Launch, handoff, Lock and the synthetic quiz.
+The handoff captures both report the authored 0.4 checkpoint. The pixel
+measurements for Launch, handoff and quiz remain evidence for visual review.
+
+The [new Lock index](docs/review/source-75cad6bb-lock-captures.json)
+and [verdicts](docs/review/source-75cad6bb-lock-verdicts.json) record
+six matches. The wrong-password and picker PNGs in both themes have the
+same bytes and reference digests as the accepted `f935a887` pairs. Both
+new normal Lock PNGs were viewed beside their tracked references. The
+card and status strip composition agree. The new observations identify
+the original run and archive. The running timing requirement remains open.
+
 The retained Addresses captures at `06eda3f7` show the selected glyph in
 columns 299 through 312 and rows 165 through 178 in both themes. The authored
 selector specifies a 16 px circle with a 2 px ring and a filled centre for the
@@ -5656,7 +5672,7 @@ the difference and its write paths in the note.
 X821 through X872 refer to the exact 28f9c121 pairs reviewed independently.
 Other X rows retain their original capture sources. Welcome binds to
 Source901 in X775, Launch to 28f9c121 in X877 and Ready to 28f9c121 in X883.
-The Lock rows link to the review at f935a887. The V01 row tracks strict
+The Lock rows link to the review at 75cad6bb. The V01 row tracks strict
 whole-image acceptance.
 
 | # | Screen | Dark | Light |
@@ -5701,9 +5717,9 @@ whole-image acceptance.
 | 38 | `set-originals` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
 | 39 | `launch` | match | match |
 | 40 | `launch-settle` | X871 | X872 |
-| 41 | `lock-screen` | [match](#lock-at-rest-at-f935a887) | [match](#lock-at-rest-at-f935a887) |
-| 42 | `lock-wrong` | [match](#lock-at-rest-at-f935a887) | [match](#lock-at-rest-at-f935a887) |
-| 43 | `lock-pick` | [match](#lock-at-rest-at-f935a887) | [match](#lock-at-rest-at-f935a887) |
+| 41 | `lock-screen` | [match](#startup-catalog-at-75cad6bb) | [match](#startup-catalog-at-75cad6bb) |
+| 42 | `lock-wrong` | [match](#startup-catalog-at-75cad6bb) | [match](#startup-catalog-at-75cad6bb) |
+| 43 | `lock-pick` | [match](#startup-catalog-at-75cad6bb) | [match](#startup-catalog-at-75cad6bb) |
 | 44 | `welcome` | match | match |
 | 45 | `import` | X776 | X777 |
 | 46 | `seed-quiz` | match | match |
