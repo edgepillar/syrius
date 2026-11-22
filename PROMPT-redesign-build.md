@@ -4689,9 +4689,14 @@ and recent review files can be read together without copying verdicts.
 Each verdict still requires both original image digests. A disagreement
 between verdicts for the exact same pair remains visible and unreviewed.
 The overall visual review requires all 94 matches at an explicit target
-commit. Reports without a target still display individual verdicts. Ten
-in-memory tests pass, covering the target requirement, catalog selection,
-and retained archive handling.
+commit. Reports without a target still display individual verdicts. All 34
+comparison tests pass at `09b66ed2`, including the in-memory target,
+catalog and archive checks and the file-based report tests. The owned
+test task closes with complete output and exit zero. A separate read-only
+control uses the 94 reference PNGs as fixture inputs and synthetic verdicts.
+It reports complete with one explicit target, incomplete without a target,
+and incomplete with one fixture pair from a different source. These
+results qualify the comparison tool and leave native visual acceptance open.
 
 The private comparison gallery keeps recently used, verified ZIP bytes
 in a 4 MiB cache. A larger archive within the existing input limit can
@@ -6154,6 +6159,9 @@ Start and Join now use the reference dialog's 16 px vertical body inset
 above their separate action footer. The body-only review and recovery
 dialogs keep their existing spacing. The two-theme Start case checks
 the scroll padding. Windows pane positions still need a new capture.
+The [Linux run at `f8372e19`](https://github.com/edgepillar/syrius/actions/runs/45023841257/job/137212420364)
+passes the two Start cases, full and strict Dart analysis, and generated
+file verification. The unit and widget suite passes 5,133 tests with one skip.
 
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
