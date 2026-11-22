@@ -156,10 +156,13 @@ class HarnessAdmissionTests(unittest.TestCase):
         code, report, _, _ = self.run_case(passed=ASSET_CASES, asset_fidelity=True)
         self.assertEqual(code, 0)
         self.assertTrue(report['launch_asset_fidelity'])
-        self.assertEqual(report['worker_count'], 1)
-        self.assertEqual(self.command_argv.count('--concurrency=1'), 2)
-        self.assertEqual(self.command_argv.count(
-            'test/launch_film/launch_asset_test.dart'), 1)
+        self.assertEqual(report['worker_count'], 2)
+        self.assertEqual([row['worker_count'] for row in report['commands']], [2, 1])
+        self.assertEqual(self.command_argv.count('--concurrency=1'), 1)
+        self.assertEqual(self.command_argv.count('--concurrency=2'), 1)
+        self.assertNotIn(harness.LAUNCH_ASSET_TEST, self.command_groups[0].args[0])
+        self.assertIn(harness.LAUNCH_ASSET_TEST, self.command_groups[1].args[0])
+        self.assertEqual(self.command_argv.count(harness.LAUNCH_ASSET_TEST), 1)
         for passed in (1340, 1350, 1351, 1353, 1354, 1352, 1358, 1359, 1360,
                        1361, 1362, 1363, 1364, 1365, 1366, 1367, 1368, 1369,
                        1370, 1371, 1372, 1373, 1374, 1375, 1376, 1377, 1378,

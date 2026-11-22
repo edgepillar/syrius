@@ -5348,6 +5348,14 @@ starting after settlement exceed 16 ms, with a maximum of 83.566 ms.
 The measurements establish where the slow frames occur in the sampled
 windows. The responsible render work remains unqualified.
 
+The [cold paired run at `bb05162d`](https://github.com/edgepillar/syrius/actions/runs/44978883998/job/137074797927)
+stopped before the Release build. The first startup test group elapsed
+300.032 seconds and produced no terminal test event. The original
+preflight outcome remains a timeout. The controller now runs the
+ordinary group with two workers and keeps the group that decodes the
+full launch master on one worker. Both groups keep the same test
+selection, output limits and shared ten-minute budget.
+
 #### Verified Windows baseline at `5f6e049a` (2026-11-22)
 
 The [clean Windows producer](https://github.com/edgepillar/syrius/actions/runs/44976799171/job/137068393742)

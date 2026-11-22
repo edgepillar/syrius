@@ -39,6 +39,7 @@ except ImportError:
 # Includes the offscreen Settings panel paint case.
 EXPECTED_DART_CASES = 1531
 LAUNCH_ASSET_DART_CASES = 2
+LAUNCH_ASSET_TEST = 'test/launch_film/launch_asset_test.dart'
 TOUR_TEST_PATHS = (
     'test/zap/zap_form_test.dart',
     'test/harness/wallet_tour_test.dart', 'test/harness/build_output_test.dart',
@@ -326,10 +327,7 @@ def main():
         asset_fidelity = parent.get('SYRIUS_STARTUP_ASSET_FIDELITY') == 'true'
         debug.need(not asset_fidelity or
             parent.get('SYRIUS_WINDOWS_STARTUP_PROBE') == 'true', 'ENVIRONMENT_REFUSED')
-        # Ordinary suites use independent fixtures. Keep the profile that
-        # decodes the full launch master on a single worker.
-        workers = 1 if asset_fidelity else 2
-        report['worker_count'] = workers
+        report['worker_count'] = 2
         repo = Path(parent['GITHUB_WORKSPACE'])
         debug.need(repo.resolve() == Path.cwd().resolve(), 'ENVIRONMENT_REFUSED')
         debug.bounded.verify_source(repo, source, parent)
@@ -366,12 +364,16 @@ def main():
         packages = Path(parent['FLUTTER_ROOT']) / 'packages/flutter_tools/.dart_tool/package_config.json'
         selected_tests = list(TOUR_TEST_PATHS)
         if asset_fidelity:
-            selected_tests.append('test/launch_film/launch_asset_test.dart')
+            selected_tests.append(LAUNCH_ASSET_TEST)
         first = 1
         command_started = time.monotonic()
         for index, group in enumerate(selected_groups(selected_tests), 1):
+            # Only the group that decodes the full launch master needs
+            # a single worker. Ordinary suites retain their concurrency.
+            workers = 1 if LAUNCH_ASSET_TEST in group else 2
             row = dict(index=index, first_suite_index=first,
-                       selected_suites=len(group), status='UNKNOWN', command=None, counts=None)
+                       selected_suites=len(group), worker_count=workers,
+                       status='UNKNOWN', command=None, counts=None)
             report['commands'].append(row)
             timeout = group_command_timeout(command_started, time.monotonic())
             outcome = run_bounded([str(dart), '--packages=' + str(packages), str(snapshot),
