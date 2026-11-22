@@ -6354,6 +6354,25 @@ selected Dart analysis and generated-file verification. The non-chain
 suite passes 5,133 tests with one skip. The [Windows Swap capture](https://github.com/edgepillar/syrius/actions/runs/45031397803)
 targets the same source with both the header and chevron changes.
 
+The [independent Windows reader](https://github.com/edgepillar/syrius/actions/runs/45032704813/job/137239585875)
+verifies [both retained Swap images](docs/review/source-9c96e94d-swap-start-captures.json)
+and normal parent closure. The amount-pane horizontal bounds remain
+[422, 858) in both themes. The right captions end at column 843 in the
+captures and reference. Within each pane, their first ink begins at row
+18 against the reference's row 17. The send caption begins seven pixels
+farther right and reaches three pixels lower within its pane. The receive
+caption starts one pixel farther right in dark and at the reference column
+in light. The filled pane spans are [182, 296) and [318, 429), against
+[186, 295) and [317, 427). At the 16-level RGB threshold, the panes
+differ at 7,647 pixels in dark and 10,788 in light. Whole-image counts are
+53,567 and 58,907. Atomic-frame qualification and visual acceptance remain
+open.
+
+The [first retrospective reader](https://github.com/edgepillar/syrius/actions/runs/45032827582/job/137239968422)
+refuses the earlier `5ce7f74b` capture at producer-source admission. The
+earlier Start modal now uses the existing versioned-blob verification.
+It must match the exact Git blob named by the original producer tree.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since
