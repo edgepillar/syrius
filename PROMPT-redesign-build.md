@@ -2900,6 +2900,16 @@ are at 0.558, 15.625 ms later, and both settled samples are 390.625 ms
 after their first observations. This verifies the six natural samples.
 The other motions, shaders and paired timing acceptance remain open.
 
+The [natural motion producer at `affad2e9`](https://github.com/edgepillar/syrius/actions/runs/44983034366/job/137087521794)
+and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44984180673/job/137091033836)
+verify five images and two normal actor exits in each theme. The light
+run captures early, late and settled frames. Its first observed progress
+is 0.391, and the settled sample follows the first by 406.250 ms. The dark
+run first observes progress 0.558, already past its early sample boundary.
+It retains late and settled frames and its original
+`LAUNCH_HANDOFF_FRAME_MISSED` failure. The two-theme natural motion
+observation and uninterrupted handoff timing remain open under V02.
+
 The [Windows startup catalog at `0404243e`](https://github.com/edgepillar/syrius/actions/runs/44845157102/job/136662941987)
 and its [independent reader](https://github.com/edgepillar/syrius/actions/runs/44847199243/job/136669735118)
 verify all twelve original Launch, Launch Settle, Lock and Seed Quiz images.
