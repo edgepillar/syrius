@@ -274,6 +274,8 @@ class InteractiveFramePairTests(unittest.TestCase):
         peak = dict(frame=peak_frame, layer_count=2, layer_bytes=262144,
                     picture_count=3, picture_bytes=1048576)
         idle_window['rasterCacheAtPeak'] = peak
+        idle_window['graphicsAdapterKind'] = 'dxgi-software'
+        current['windows']['page_change']['graphicsAdapterKind'] = 'dxgi-software'
         with_idle = self.project(offered)
         self.assertEqual(with_idle['verified_comparisons'], result['verified_comparisons'])
         self.assertEqual(with_idle['timing_criterion_passed'], result['timing_criterion_passed'])
@@ -284,7 +286,14 @@ class InteractiveFramePairTests(unittest.TestCase):
         closed = with_idle['verified_idle_before_disclosure']
         self.assertEqual(closed['current']['window_us'], 1_100_000)
         self.assertEqual(closed['current']['raster_cache_at_peak'], peak)
+        self.assertEqual(closed['current']['graphics_adapter_kind'], 'dxgi-software')
         self.assertEqual(closed['p06'], {'status': 'unavailable'})
+        self.assertEqual(with_idle['verified_window_diagnostics']['current']['page_change'][
+            'graphics_adapter_kind'], 'dxgi-software')
+        for invalid in (None, True, 0, 'adapter model', {'id': 7}):
+            with self.subTest(adapter=invalid), self.assertRaises(archive.Refused):
+                inspect._idle_summary(dict(status='measured',
+                    window=dict(idle_window, graphicsAdapterKind=invalid)))
         for edit in (dict(frame=peak_frame + 512), dict(layer_count=True),
                      dict(picture_bytes=-1), dict(extra=0)):
             with self.subTest(edit=edit), self.assertRaises(archive.Refused):
@@ -804,7 +813,7 @@ class InteractiveFramePairTests(unittest.TestCase):
 
     def test_normal_about_content_uses_visible_licences_and_keeps_scroll_outside_timing(self):
         window = dict(fixture()['samples']['current']['observation']['windows']['page_change'],
-                      peakBuildWaitUs=0)
+                      peakBuildWaitUs=0, graphicsAdapterKind='dxgi-non-software')
         window['rasterStartsUs'] = [row[1] + row[2] for row in window['frames']]
         window['rasterCacheAtPeak'] = dict(frame=max(window['frames'], key=lambda row: row[3])[0],
             layer_count=1, layer_bytes=4096, picture_count=0, picture_bytes=0)
@@ -1482,7 +1491,8 @@ class InteractiveFramePairTests(unittest.TestCase):
                 elapsed_ms=120_000, max_gap_ms=110_000, max_gap_after='windowPositionRead')
         cache = idle['rasterCacheAtPeak']
         offered['samples']['current']['observation']['windows'] = dict.fromkeys(
-            pair.WINDOWS, dict(full, rasterCacheAtPeak=cache))
+            pair.WINDOWS, dict(full, rasterCacheAtPeak=cache,
+                               graphicsAdapterKind='dxgi-non-software'))
         offered['samples']['current']['observation']['tap_release_us'] = dict.fromkeys(
             pair.WINDOWS, pair.actions.MAX_WINDOW_US - 1)
         offered['samples']['current']['observation']['pointer_phases_us'] = dict.fromkeys(
@@ -1502,7 +1512,10 @@ class InteractiveFramePairTests(unittest.TestCase):
         diagnostics = result.pop('verified_window_diagnostics')
         for name in pair.WINDOWS:
             self.assertEqual(diagnostics['current'][name]['raster_cache_at_peak'], cache)
+            self.assertEqual(diagnostics['current'][name]['graphics_adapter_kind'],
+                             'dxgi-non-software')
             self.assertNotIn('raster_cache_at_peak', diagnostics['p06'][name])
+            self.assertNotIn('graphics_adapter_kind', diagnostics['p06'][name])
         self.assertEqual(result.pop('verified_idle_after_disclosure'), {})
         idle_summary = result.pop('verified_idle_on_node_settings')
         self.assertEqual(result.pop('verified_idle_before_disclosure'), idle_summary)

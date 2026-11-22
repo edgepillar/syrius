@@ -47,6 +47,9 @@ TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frames')
 PEAK_BUILD_WAIT_FIELD = 'peakBuildWaitUs'
 RASTER_STARTS_FIELD = 'rasterStartsUs'
 RASTER_CACHE_FIELD = 'rasterCacheAtPeak'
+GRAPHICS_ADAPTER_FIELD = 'graphicsAdapterKind'
+OPTIONAL_TIMING_FIELDS = (PEAK_BUILD_WAIT_FIELD, RASTER_STARTS_FIELD,
+                          RASTER_CACHE_FIELD, GRAPHICS_ADAPTER_FIELD)
 PACKED_TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frameCount', 'packedFrames')
 STARTUP_PHASE_FIELD = 'startupPhaseUs'
 STARTUP_AUTH_FIELD = 'startupAuthInShellUs'
@@ -222,8 +225,7 @@ def frame_timing_rows(value, *, allow_packed=False):
         and startup.integer(value.get('windowUs'), 1, window_limit))
     duration = value['windowUs']
     fields = set(TIMING_FIELDS)
-    if (value['schema'] == 1
-            and fields <= set(value) <= fields | {PEAK_BUILD_WAIT_FIELD, RASTER_STARTS_FIELD, RASTER_CACHE_FIELD}):
+    if value['schema'] == 1 and fields <= set(value) <= fields | set(OPTIONAL_TIMING_FIELDS):
         rows = value['frames']
         need(type(rows) is list and 0 < len(rows) <= MAX_TIMING_FRAMES)
     elif allow_packed and value['schema'] == 2:
@@ -269,6 +271,9 @@ def frame_timing_rows(value, *, allow_packed=False):
                      for field in ('layer_count', 'picture_count'))
              and all(startup.integer(cache[field], 0, 2**40)
                      for field in ('layer_bytes', 'picture_bytes')))
+    if GRAPHICS_ADAPTER_FIELD in value:
+        need(value[GRAPHICS_ADAPTER_FIELD] in (
+            'dxgi-software', 'dxgi-non-software', 'unavailable'))
     return rows
 
 

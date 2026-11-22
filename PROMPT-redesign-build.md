@@ -6175,6 +6175,18 @@ within the measured peak intervals.
 [Windows presentation](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/platform/windows/flutter_windows_engine.cc#L1169-L1182)
 [OpenGL compositor](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/platform/windows/compositor_opengl.cc#L233-L253)
 
+The paired Windows probe asks the current Flutter engine for its DXGI
+rendering adapter after the first timing window closes. It retains one
+result for the owned process: software flag set, flag clear, or
+unavailable. The reader reports that result in the interaction and idle
+receipts. The record contains only the flag classification. A clear flag
+can describe a virtual adapter or a physical GPU. The P06 collector,
+timing window boundaries and 16 ms comparison continue to govern V02.
+The adapter observation adds
+rendering context and leaves draw and presentation durations unresolved.
+[Pinned Flutter API](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/platform/windows/client_wrapper/include/flutter/flutter_engine.h#L94-L100)
+[DXGI software flag](https://learn.microsoft.com/en-us/windows/win32/api/dxgi/ne-dxgi-dxgi_adapter_flag)
+
 #### Paired Windows cold launch timing at `f0b1a110`
 
 The [native producer](https://github.com/edgepillar/syrius/actions/runs/44979865019/job/137077797577)

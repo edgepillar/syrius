@@ -6605,6 +6605,10 @@ class HarnessAgent {
           if (pageSettled != null) {
             result['interactivePageSettledUs'] = pageSettled;
           }
+          final NativeWindowOwner? owner = _nativeWindow;
+          if (_frameTimingMode == 'interactive' && owner != null) {
+            result['graphicsAdapterKind'] = await owner.graphicsAdapterKind();
+          }
           return result;
         } on TimeoutException {
           throw refused('deliveryTimeout');

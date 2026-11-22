@@ -3,8 +3,7 @@
 import time
 
 from . import windows_startup_probe as startup
-from .windows_launch_catalog import (PEAK_BUILD_WAIT_FIELD, RASTER_CACHE_FIELD,
-                                     RASTER_STARTS_FIELD, TIMING_FIELDS)
+from .windows_launch_catalog import OPTIONAL_TIMING_FIELDS, TIMING_FIELDS
 
 
 MIN_WINDOW_US = 600_000
@@ -68,7 +67,7 @@ def _end(send, validate_window, phase_field):
     reply = _original(send, cmd='stalls', frameWindow='end')
     _require(all(field in reply for field in TIMING_FIELDS))
     window = {field: reply[field] for field in TIMING_FIELDS}
-    for field in (PEAK_BUILD_WAIT_FIELD, RASTER_STARTS_FIELD, RASTER_CACHE_FIELD):
+    for field in OPTIONAL_TIMING_FIELDS:
         if field in reply:
             window[field] = reply[field]
     validate_window(window)

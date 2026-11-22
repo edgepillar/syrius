@@ -74,8 +74,15 @@ def _idle_summary(sample):
         frame_number_gaps=frames[-1][0] + 1 - len(frames),
         longest_raster_us=max(frame[3] for frame in frames),
         slow_rasters=sum(frame[3] > pair.shared.FRAME_BUDGET_US for frame in frames),
-        **({'raster_cache_at_peak': window[pair.shared.launch.RASTER_CACHE_FIELD]}
-           if pair.shared.launch.RASTER_CACHE_FIELD in window else {}))
+        **_retained_raster_details(window))
+
+
+def _retained_raster_details(window):
+    fields = {
+        pair.shared.launch.RASTER_CACHE_FIELD: 'raster_cache_at_peak',
+        pair.shared.launch.GRAPHICS_ADAPTER_FIELD: 'graphics_adapter_kind',
+    }
+    return {name: window[field] for field, name in fields.items() if field in window}
 
 
 def sample_receipts(value, *, allow_tap_release=False):
@@ -253,9 +260,7 @@ def _frame_gaps_by_previous_raster(window):
 def _window_diagnostics(window, tap_release_us, motion_us, observed_phases=None,
                         pointer_phases=None):
     result = cold.window_diagnostics(window, peak_starts=True)
-    cache_field = pair.shared.launch.RASTER_CACHE_FIELD
-    if cache_field in window:
-        result['raster_cache_at_peak'] = window[cache_field]
+    result.update(_retained_raster_details(window))
     if tap_release_us is not None:
         rows = pair.shared.launch.frame_timing_rows(window, allow_packed=True)
         raster_starts = cold.recorded_raster_starts(rows, window)

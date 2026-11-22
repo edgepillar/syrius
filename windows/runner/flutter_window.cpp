@@ -2,7 +2,9 @@
 
 #include <flutter/method_channel.h>
 #include <flutter/standard_method_codec.h>
+#include <dxgi.h>
 #include <objbase.h>
+#include <wrl/client.h>
 
 #include <cstdint>
 #include <iomanip>
@@ -58,6 +60,20 @@ std::string StringAt(const Map& map, const char* key) {
     }
   }
   return {};
+}
+
+const char* GraphicsAdapterKind(flutter::FlutterEngine* engine) {
+  Microsoft::WRL::ComPtr<IDXGIAdapter> adapter;
+  Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter1;
+  DXGI_ADAPTER_DESC1 description{};
+  if (!engine->GetGraphicsAdapter(adapter.GetAddressOf()) || !adapter ||
+      FAILED(adapter.As(&adapter1)) ||
+      FAILED(adapter1->GetDesc1(&description))) {
+    return "unavailable";
+  }
+  return (description.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) != 0
+             ? "dxgi-software"
+             : "dxgi-non-software";
 }
 
 std::string ProcessInstance() {
@@ -301,6 +317,17 @@ struct FlutterWindow::NativeWindowOwner
       startup_result = std::move(result);
       // Before FirstFrame this stays pending without replacing the Show slot.
       DeliverStartup();
+      return;
+    }
+    if (call.method_name() == "graphicsAdapter") {
+      if (arguments == nullptr || arguments->size() != 2 ||
+          IntegerAt(*arguments, "protocol") != 1 ||
+          StringAt(*arguments, "owner") != owner_generation ||
+          !startup_delivered) {
+        result->Error("native-graphics-adapter-refused");
+        return;
+      }
+      result->Success(Value(std::string(GraphicsAdapterKind(engine))));
       return;
     }
     if (call.method_name() != "frame") {
