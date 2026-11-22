@@ -5481,6 +5481,9 @@ tracks from the longest entry. The isolated catalog now uses
 value spans approximately 143 px, close to the reference value's 143 px.
 The earlier `example.invalid` value spans approximately 101 px. New
 original captures are needed to verify the resulting column placement.
+The first [Linux dispatch](https://github.com/edgepillar/syrius/actions/runs/45029049477/job/137228349413)
+stopped at test discovery because the shared reader suite still expected
+134 cases. Its count now includes the new Domain measurement case.
 
 In the retained [Mint views at `a2efda99`](docs/review/source-a2efda99-seeded-captures.json),
 the amount and beneficiary field interiors read RGB (57, 59, 57) in dark
