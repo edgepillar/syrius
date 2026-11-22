@@ -293,6 +293,12 @@ void main() {
   testWidgets('dispose releases scheduled frames and late focus answers', (
     WidgetTester tester,
   ) async {
+    await tester.pumpWidget(_host((ShaderClock value) {}));
+    await tester.pump();
+    expect(tester.binding.transientCallbackCount, 1);
+    await tester.pumpWidget(const SizedBox.shrink());
+    expect(tester.binding.transientCallbackCount, 0);
+
     final Completer<bool> answer = Completer<bool>();
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
       _window,
@@ -300,7 +306,7 @@ void main() {
     );
     await tester.pumpWidget(_host((ShaderClock value) {}));
     await tester.pump();
-    expect(tester.binding.transientCallbackCount, 1);
+    expect(tester.binding.transientCallbackCount, 0);
     await tester.pumpWidget(const SizedBox.shrink());
     expect(tester.binding.transientCallbackCount, 0);
     answer.complete(true);

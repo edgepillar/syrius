@@ -171,25 +171,35 @@ void main() {
   testWidgets('a dark-theme QR exports opaque PNG pixels', (
     WidgetTester tester,
   ) async {
-    final Completer<Uint8List> copied = Completer<Uint8List>();
+    late QrImage request;
+    late PrettyQrDecoration exportDecoration;
+    late int exportSize;
     await tester.pumpWidget(
       receiveTestHost(
-        ReceiveQrImage(
-          data: 'request-one',
-          size: 150,
-          tokenStandard: kZnnCoin.tokenStandard,
-          onCopyImage: (Uint8List bytes) async => copied.complete(bytes),
+        _qr(
+          encode: (QrImage image, PrettyQrDecoration decoration, int size) {
+            request = image;
+            exportDecoration = decoration;
+            exportSize = size;
+            return receiveTestEncode(image, decoration, size);
+          },
         ),
       ),
     );
-    final Uint8List? bytes = await tester.runAsync(() async {
+    await tester.tap(find.byKey(const Key('receive_share_image')));
+    await tester.pump();
+    final BuildContext context = tester.element(find.byType(ReceiveQrImage));
+    final Uint8List? bytes = await tester.runAsync<Uint8List?>(() async {
       await precacheImage(
         const AssetImage('assets/images/qr_code_child_image_znn_cut.png'),
-        tester.element(find.byType(ReceiveQrImage)),
+        context,
       );
-      final Finder copy = find.byKey(const Key('receive_share_image'));
-      tester.widget<TextButton>(copy).onPressed!();
-      return copied.future.timeout(const Duration(seconds: 10));
+      return encodeReceiveQrPng(
+        request,
+        exportDecoration,
+        exportSize,
+        createLocalImageConfiguration(context),
+      ).timeout(const Duration(seconds: 10));
     });
     expect(bytes, isNotNull);
     final image.Image decoded = image.decodePng(bytes!)!;

@@ -4,7 +4,8 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, visibleForTesting;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:material_ui/material_ui.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
@@ -28,6 +29,29 @@ typedef ReceiveQrEncoder =
       PrettyQrDecoration decoration,
       int size,
     );
+
+/// Renders the native PNG with the same asset configuration as the preview.
+@visibleForTesting
+Future<Uint8List?> encodeReceiveQrPng(
+  QrImage image,
+  PrettyQrDecoration decoration,
+  int size,
+  ImageConfiguration configuration,
+) async {
+  final ui.Image raster = await image.toImage(
+    size: size,
+    decoration: decoration,
+    configuration: configuration,
+  );
+  try {
+    final ByteData? data = await raster.toByteData(
+      format: ui.ImageByteFormat.png,
+    );
+    return data?.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+  } finally {
+    raster.dispose();
+  }
+}
 
 /// A request QR with Copy image and Save operations.
 class ReceiveQrImage extends StatefulWidget {
@@ -258,11 +282,16 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
         ),
         quietZone: PrettyQrQuietZone.standard,
       );
-      final Uint8List? bytes = await (widget.encodeImage ?? _encodeImage)(
-        image,
-        exportDecoration,
-        widget.size.toInt(),
-      );
+      final int size = widget.size.toInt();
+      final Future<Uint8List?> pending =
+          widget.encodeImage?.call(image, exportDecoration, size) ??
+          encodeReceiveQrPng(
+            image,
+            exportDecoration,
+            size,
+            createLocalImageConfiguration(context),
+          );
+      final Uint8List? bytes = await pending;
       if (!current()) return;
       if (bytes == null || bytes.isEmpty) {
         setState(() => _exportFailed = true);
@@ -277,26 +306,6 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
       if (mounted && attempt == _attempt) {
         setState(() => _exporting = false);
       }
-    }
-  }
-
-  Future<Uint8List?> _encodeImage(
-    QrImage image,
-    PrettyQrDecoration decoration,
-    int size,
-  ) async {
-    final ui.Image raster = await image.toImage(
-      size: size,
-      decoration: decoration,
-      configuration: createLocalImageConfiguration(context),
-    );
-    try {
-      final ByteData? data = await raster.toByteData(
-        format: ui.ImageByteFormat.png,
-      );
-      return data?.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-    } finally {
-      raster.dispose();
     }
   }
 

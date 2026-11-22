@@ -7203,8 +7203,11 @@ dark-theme clipboard case receives no PNG before the ten-second test
 deadline. The follow-up supplies the preview's local image configuration
 to rasterization and calls the Copy control's action directly inside the
 test's real async block. The existing gesture case continues to exercise
-pointer input. The reason for the original timeout remains unconfirmed
-pending fresh execution.
+pointer input. The [follow-up Linux run at `2dc269d0`](https://github.com/edgepillar/syrius/actions/runs/45083792479/job/137397664727)
+retains a second timeout. The next test passes the actual request,
+decoration and size from the Copy boundary directly to the production
+rasterizer in the real async zone, where it can verify the PNG rather
+than waiting for a clipboard callback. Runtime verification remains open.
 
 #### Navigation captures at `2c8fd31c`
 
@@ -7288,7 +7291,11 @@ A newly mounted shader clock now holds its first tick until the native
 focus query resolves or a newer focus event arrives. The startup focus
 race case exercises a pending answer across 120 ms and checks that the
 clock schedules no frame and accumulates no time. The same case retains
-the newer-blur check. Fresh running motion observations still need to
+the newer-blur check. The first Linux validation of this change reports
+two focus-related fixture failures. The disposal case now verifies both
+disposal of an active clock and disposal before the pending focus answer.
+The Ready fixture supplies a positive window focus answer for its
+admitted renderer. Fresh running motion observations still need to
 qualify the lifecycle change.
 
 #### Paired launch and handoff at `2c8fd31c`

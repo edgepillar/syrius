@@ -123,12 +123,19 @@ Future<void> _ready(WidgetTester tester, WalletReadyBinding binding,
 
 void main() {
   void prepare(WidgetTester tester) {
+    const MethodChannel window = MethodChannel('window_manager');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      window,
+      (MethodCall call) async => call.method == 'isFocused' ? true : null,
+    );
     tester.view
       ..physicalSize = const Size(1200, 600)
       ..devicePixelRatio = 1;
     addTearDown(() async {
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        window, null);
       AppLottie.debugClear();
       tester.view.reset();
     });
