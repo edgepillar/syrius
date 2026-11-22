@@ -6937,6 +6937,19 @@ The [Details](https://github.com/edgepillar/syrius/actions/runs/45072437740),
 and [verified Node and Addresses](https://github.com/edgepillar/syrius/actions/runs/45072492696)
 routes target twenty distinct acceptance pairs at the same revision.
 
+The [Settings producer](https://github.com/edgepillar/syrius/actions/runs/45071349540/job/137358788137)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45073276793/job/137364817617)
+verify [fourteen original Settings PNGs](docs/review/source-2c8fd31c-settings-captures.json)
+and normal parent closure. Ten of the fourteen have the required
+comparison family. With the four entry PNGs, the revision now has
+fourteen indexed eligible pairs. The light Display and Wallet captures
+and the dark Apps capture share both image digests with their existing
+[Settings reviews](docs/review/source-e3047adc-settings-verdicts.json)
+and [Apps review](docs/review/source-773ab9b8-apps-verdicts.json).
+Their exact mismatch verdicts still apply. They retain the selected
+Light theme, the Maintenance group and disabled preferences, and the
+empty Connected table respectively.
+
 #### Welcome backdrop at `2c8fd31c`
 
 The verified Welcome PNG digests match the already retained
