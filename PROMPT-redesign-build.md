@@ -6483,6 +6483,36 @@ fall from 50,943 to 50,783 in dark and from 55,004 to 54,888 in light.
 The measured amount-pane spans stay [183, 296) and [318, 428) in both
 themes. Atomic-frame qualification and the visual verdicts remain open.
 
+The counterparty input keeps the form's shared label and uses the
+reference's 42 px field, 8 px radius and trailing address-book mark. The [retrospective reader](https://github.com/edgepillar/syrius/actions/runs/45041018993/job/137265264468)
+runs all 136 reader cases and measures reference fill rows [461, 501)
+and trailing ink [834, 476, 844, 488) in both themes. The field scan is unavailable on the previous `0ef6672c` images.
+The first [Linux attempt](https://github.com/edgepillar/syrius/actions/runs/45040650763)
+stopped at analysis on a missing constructor. The next
+[analysis and test attempt](https://github.com/edgepillar/syrius/actions/runs/45040921820)
+stopped at the controller test count. After those fixes, the
+[`779f4605` Linux run](https://github.com/edgepillar/syrius/actions/runs/45041019149)
+identified a duplicate caption that came from labelling the field twice.
+The [independent Windows read](https://github.com/edgepillar/syrius/actions/runs/45042208937/job/137268941820)
+verifies both PNGs and normal parent closure at that intermediate source.
+Whole-image differences are 63,934 in dark and 101,115 in light, and
+the field scan remains unavailable. These results retain the duplicate
+caption's original candidate and its open visual verdicts.
+The [Linux run at `e0898901`](https://github.com/edgepillar/syrius/actions/runs/45042070779/job/137268502484)
+passes strict and full analysis, generation, and 5,134 non-chain tests
+with one skip. The existing Start ownership case checks one visible
+caption, its six-pixel gap, the field height, the book's trailing
+placement, the outline radius and the original contact ownership. The
+[Windows producer](https://github.com/edgepillar/syrius/actions/runs/45042582943/job/137270099023)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45044008981/job/137274497164)
+verify [both new original PNGs](docs/review/source-e0898901-swap-start-captures.json)
+and normal parent closure at the same source. Whole-image differences
+are 45,793 in dark and 53,737 in light, down from 50,783 and 54,888
+at `0ef6672c`. The counterparty crop changes from 7,664 to 7,390 in
+dark and from 7,441 to 9,678 in light. The bounded native field and
+icon scan remains unavailable in both themes. Atomic-frame
+qualification and the whole-image visual verdicts remain open.
+
 The [startup catalog batch](https://github.com/edgepillar/syrius/actions/runs/45011961368)
 completed at `6404de06` and uploaded four archives. Its [first reader](https://github.com/edgepillar/syrius/actions/runs/45013360867/job/137180308447)
 refused before reporting any catalog verdict. The launch producer has since
