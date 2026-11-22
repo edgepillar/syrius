@@ -5331,7 +5331,15 @@ stopped at the stale reader test count. The [next attempt](https://github.com/ed
 passed all 134 controls and stopped at source binding. The reader now
 verifies three more historical inputs against their exact producer blobs.
 All 91 required source files resolve locally, using 35 distinct historical
-blobs. The hosted comparison still needs to verify the original archives.
+blobs. The [successful comparison](https://github.com/edgepillar/syrius/actions/runs/45000949186/job/137142126013)
+verifies those sources, the two original draft PNGs and required parent
+closure. The [capture index](docs/review/source-726306d2-token-draft-captures.json)
+binds both images to the original 95,745-byte archive. At a difference of
+at least 16 levels in any RGB channel the dark and light pairs have 24,584
+and 25,255 differing pixels. The form accounts for 11,496 and 11,865,
+the stages and fee for 4,878 and 5,169, and the preview for 2,600 and 2,561.
+The comparison reads retained images in CI memory. This result covers the
+original draft source and leaves both visual verdicts open.
 
 A holder's Domain action now occupies the Domain value cell with the
 original external-link symbol when a domain exists. An empty value has no
