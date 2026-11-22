@@ -53,6 +53,7 @@ VERSIONED_INPUTS = frozenset((
     'harness/bin/screen_capture.dart',
     'harness/bin/wallet_recipe.dart',
     'harness/app/ready_reference_artwork.dart',
+    'harness/app/fixtures/home_zap_preview.dart',
     'harness/app/readonly_native_commands.dart',
     'lib/rearchitecture/utils/widgets/entry_field.dart',
     'lib/rearchitecture/features/latest_transactions/view/latest_transactions_card.dart',

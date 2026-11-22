@@ -123,6 +123,24 @@ class DetailsCatalogTests(unittest.TestCase):
                 self.assertEqual(result['visual_matches'], 0)
                 self.assertEqual(result.get('presentation_fixture'),
                     'sample_zap_message' if schema == 12 else None)
+                if schema == 12:
+                    self.assertNotIn('zap_spark_preview', result)
+                    paint = dict(first_permille=0, peak_active_permille=944,
+                                 active_frames=31, terminal_permille=1000, destinations=28)
+                    measured = dict(capture, spark_paint=dict(
+                        dark=paint, light=dict(paint, active_frames=25)))
+                    updated = dict(report, capture=measured)
+                    raw_paint, reference_paint = bundle(updated, images)
+                    observed = details.unpack(raw_paint, details.sha(raw_paint),
+                        len(raw_paint), HEAD, TREE, RUN, reference_paint, pins)
+                    self.assertEqual(observed['zap_spark_preview'], measured['spark_paint'])
+                    for invalid in (dict(paint, active_frames=1),
+                                    dict(paint, destinations=True),
+                                    dict(paint, terminal_permille=999),
+                                    dict(paint, peak_active_permille=1000)):
+                        with self.assertRaises(details.Refused):
+                            details.capture_receipt(dict(capture, spark_paint=dict(
+                                dark=invalid, light=paint)))
                 if schema == 19:
                     self.assertEqual(details.catalog_script_name(schema, screen),
                                      'prepared/set-node.txt')

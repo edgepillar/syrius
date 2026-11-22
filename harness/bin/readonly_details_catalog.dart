@@ -182,6 +182,31 @@ Map<String, Object?> _sendSyncReceipt(Object? value) {
   };
 }
 
+Map<String, int> _sparkPaintReceipt(Object? value) {
+  const ReadonlyInspectionRefused refused =
+      ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
+  const Set<String> keys = <String>{
+    'first_permille', 'peak_active_permille', 'active_frames',
+    'terminal_permille', 'destinations',
+  };
+  if (value is! Map<String, dynamic> || value.length != keys.length ||
+      keys.any((String key) => value[key] is! int)) {
+    throw refused;
+  }
+  final Map<String, int> paint = <String, int>{
+    for (final String key in keys) key: value[key] as int,
+  };
+  final int first = paint['first_permille']!;
+  final int peak = paint['peak_active_permille']!;
+  final int frames = paint['active_frames']!;
+  if (first < 0 || first >= peak || peak >= 1000 ||
+      frames < 2 || frames > peak - first + 1 ||
+      paint['terminal_permille'] != 1000 || paint['destinations'] != 28) {
+    throw refused;
+  }
+  return paint;
+}
+
 /// Runs the selected details scripts through their original UI owner.
 /// Wallet Ready is captured before that owner opens the dashboard.
 Future<Map<String, Object>> captureReadonlyDetailsDefaults({
@@ -217,6 +242,8 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.binding);
   }
   final _DetailsInstance instance = _DetailsInstance(session);
+  final Map<String, Map<String, int>> sparkPaint = <String, Map<String, int>>{};
+  Map<String, int>? pendingSparkPaint;
   bool warningContactSaved = false;
   bool warningWindowOpened = false;
   bool swapWarningAcknowledged = false;
@@ -230,6 +257,18 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
     repository: repository,
     readonlyNodeVerified: settingsReview,
     call: (Map<String, Object?> command) async {
+      if (zapPreview && command['cmd'] == 'shot') {
+        final Object? theme = command['theme'];
+        final Map<String, int>? observation = pendingSparkPaint;
+        if (theme is! String ||
+            !const <String>{'dark', 'light'}.contains(theme) ||
+            observation == null ||
+            sparkPaint.containsKey(theme)) {
+          throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
+        }
+        sparkPaint[theme] = observation;
+        pendingSparkPaint = null;
+      }
       if (sendWarning && command['cmd'] == 'shot') {
         final String event = switch (command['theme']) {
           'dark' => 'DARK',
@@ -256,11 +295,13 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
             final Map<String, dynamic> opened = await cli.call(
               instance, <String, Object?>{'cmd': readonlyHomeZapPreviewCommand},
             );
-            if (opened['fixture'] != 'home-zap-preview') {
+            if (opened['fixture'] != 'home-zap-preview' ||
+                pendingSparkPaint != null) {
               throw const ReadonlyInspectionRefused(
                 ReadonlyInspectionReason.reply,
               );
             }
+            pendingSparkPaint = _sparkPaintReceipt(opened['sparks']);
           case ['wait', '--key', final String key] when
               key == 'zap_received_nice' || key == 'home_hero':
             await cli.waitForTarget(instance, cli.Args(<String>[
@@ -502,7 +543,8 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
     selection.screens, directory: readonlyDetailsCatalogDirectory,
   );
   final List<String> files = selection.files;
-  if (captured.length != files.length) {
+  if (captured.length != files.length ||
+      (zapPreview && (sparkPaint.length != 2 || pendingSparkPaint != null))) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
   }
   for (int index = 0; index < files.length; index++) {
@@ -518,5 +560,6 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
     'screens': selection.screens, 'themes': const <String>['dark', 'light'],
     'files': files, 'width': 1280, 'height': 780, 'scale': 1,
     'capture_returned': true,
+    if (zapPreview) 'spark_paint': sparkPaint,
   };
 }

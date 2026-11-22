@@ -5085,6 +5085,19 @@ different painted drift positions.
 | 3. Plasma meter | `test/shaders/plasma_meter_test.dart` covers the idle level and ticker. | Observe the flow during generation and its still idle state in the page and hero meters. |
 | 4. Frost | `test/frost/frosted_surface_test.dart` and `test/frost/frosted_route_test.dart` cover glass placement and clipping. Retained captures show several settled surfaces. | Observe the blur during opening and closing of the requested surfaces. |
 
+#### Isolated Home Zap spark preview
+
+The Windows Home Zap recipe now runs the original spark painter with
+the 900 ms preview clock before taking the unchanged sample-message
+screenshots. Its receipt records the first and last active paint
+progress, the number of distinct active paint phases, the terminal
+paint and the 28 destinations for each theme. The archived receipt
+travels with the two source-pinned PNGs in the original catalog.
+Earlier message-only archives retain their original scope. The new
+observation covers preview rendering. Live receipt admission, durable
+once-per-hash behavior and the paired P06 timing comparison keep their
+own acceptance requirements.
+
 ### End-state audit at `ae94c35a` (2026-11-21)
 
 The runtime sources, assets, shaders, desktop runners and locked dependencies

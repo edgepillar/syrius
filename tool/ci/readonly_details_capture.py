@@ -353,6 +353,22 @@ def capture_receipt(value):
     expected.update(screens=list(catalog_screens(schema)))
     if schema == TOKEN_HOLDER_SCHEMA:
         expected['positive_non_owner_holding'] = True
+    if schema == FAMILY_SCHEMAS['home-zap-preview'] and 'spark_paint' in value:
+        paint = value['spark_paint']
+        need(type(paint) is dict and set(paint) == set(THEMES), 'CAPTURE_REFUSED')
+        for sample in paint.values():
+            need(type(sample) is dict and set(sample) == {
+                'first_permille', 'peak_active_permille', 'active_frames',
+                'terminal_permille', 'destinations'}
+                and all(type(number) is int for number in sample.values()),
+                'CAPTURE_REFUSED')
+            first = sample['first_permille']
+            peak = sample['peak_active_permille']
+            need(0 <= first < peak < 1000
+                 and 2 <= sample['active_frames'] <= peak - first + 1
+                 and sample['terminal_permille'] == 1000
+                 and sample['destinations'] == 28, 'CAPTURE_REFUSED')
+        expected['spark_paint'] = paint
     need(set(value) == set(expected)
          and all(type(value[k]) is type(v) and value[k] == v
                  for k, v in expected.items()), 'CAPTURE_REFUSED')
@@ -588,4 +604,6 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id,
         result['images'] = {row['file']: row['sha256'] for row in captures}
     if schema == FAMILY_SCHEMAS['home-zap-preview']:
         result['presentation_fixture'] = 'sample_zap_message'
+        if 'spark_paint' in value['capture']:
+            result['zap_spark_preview'] = value['capture']['spark_paint']
     return result

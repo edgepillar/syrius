@@ -958,8 +958,9 @@ class HarnessAgent {
     }
     if (command['cmd'] == readonlyHomeZapPreviewCommand) {
       _requireCaptureFrameIdle();
-      if (!_readonlyHomeZapPreview || kCurrentPage != Tabs.dashboard ||
-          command.length != 1) {
+      final ReadonlyNativeCommands? native = _readonlyNative;
+      if (native == null || !_readonlyHomeZapPreview ||
+          kCurrentPage != Tabs.dashboard || command.length != 1) {
         throw const ReadonlyNativeCommandRefused();
       }
       final List<_Node> heroes = _readonlyPositiveKeyNodes(
@@ -970,9 +971,16 @@ class HarnessAgent {
           ModalRoute.of(heroes.single.element)?.isCurrent != true) {
         throw const ReadonlyNativeCommandRefused();
       }
-      unawaited(showHomeZapPreview(heroes.single.element));
+      native.requireCurrentWallet();
+      final Element home = heroes.single.element;
+      final Map<String, int> sparks = await observeHomeZapSparks(home);
+      native.requireCurrentWallet();
+      if (!home.mounted || ModalRoute.of(home)?.isCurrent != true) {
+        throw const ReadonlyNativeCommandRefused();
+      }
+      unawaited(showHomeZapPreview(home));
       await _settle();
-      return const <String, Object?>{'fixture': 'home-zap-preview'};
+      return <String, Object?>{'fixture': 'home-zap-preview', 'sparks': sparks};
     }
     final Map<String, Object?> result = await _runWalletCommand(command);
     if (command['cmd'] == 'state') {
