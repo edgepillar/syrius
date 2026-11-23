@@ -1216,6 +1216,10 @@ def details_pixel_comparisons(raw, reference_dir, *, files=producer.details.FILE
                     owner_facts=(60, 118, 1075, 294),
                     owner_actions=(1075, 118, 1280, 294),
                     pillar_table=(60, 294, 1280, 724))
+                # The hover fill can differ by fewer than 16 RGB levels.
+                samples = dict(first_row_background=(300, 410),
+                               second_row_background=(300, 454),
+                               table_background=(300, 550))
             elif screen == '25-token-new':
                 crop = dict(
                     caption=regions['caption'], rail=regions['rail'], status=regions['status'],

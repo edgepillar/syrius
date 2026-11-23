@@ -154,6 +154,10 @@ class ReaderTests(unittest.TestCase):
         owner = comparisons[-3]['region_bounds']
         self.assertEqual(owner['owner_strip'], (60, 32, 1280, 118))
         self.assertEqual(owner['owner_actions'], (1075, 118, 1280, 294))
+        owner_samples = [call.kwargs['sample_points'] for call in compare.call_args_list
+                         if call.args[0].startswith(b'17-pillar-mine-')]
+        self.assertEqual(owner_samples, [dict(first_row_background=(300, 410),
+            second_row_background=(300, 454), table_background=(300, 550))] * 2)
         swap = comparisons[-2]['region_bounds']
         self.assertEqual(swap['amount_panes'], (400, 169, 880, 428))
         self.assertEqual(swap['footer'], (400, 590, 880, 661))
