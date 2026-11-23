@@ -36,6 +36,32 @@ non-chain tests, one skip and zero analyzer errors or warnings. The bundled,
 Debug and Release DLL digests agree and their map and export checks pass.
 Generated localization is unchanged. [Independent reader](https://github.com/edgepillar/syrius/actions/runs/45074427967/job/137368372546)
 
+## Compare the retained Windows captures
+
+The comparison can render the original PNGs and their diffs directly from
+verified archives. Use a Python environment with Pillow. Set
+`SYRIUS_CAPTURE_ARCHIVES` to the approved directory containing the archives
+named by their SHA-256 digests. Run this from the repository root in Bash.
+
+```bash
+args=()
+for index in docs/review/source-2c8fd31c-*-captures.json; do
+  args+=(--actual-manifest "$index")
+done
+for review in docs/review/*verdicts.json; do
+  args+=(--reviews "$review")
+done
+python3 -B tool/redesign_compare.py "${args[@]}" \
+  --archive-dir "${SYRIUS_CAPTURE_ARCHIVES:?}" \
+  --target-source 2c8fd31c02a2afee33669f6afa0cd6506372d5d4 \
+  --require-current-captures --serve
+```
+
+Open the private loopback address printed by the process. The gallery
+serves original images and diffs on demand without extracting archives or
+writing a report. Its verdicts remain bound to `2c8fd31c` and the actual
+and reference PNG digests.
+
 ## Current qualification status (2026-11-22)
 
 The [publication candidate](https://github.com/sol-znn/syrius/pull/6) is
