@@ -2856,7 +2856,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sendLookAlikeDetail =>
-      'The ends match a known address. Check the full address.';
+      'The beginning and ending match a saved address. Check the full address before sending.';
 
   @override
   String get sendKnownAddress => 'Known address';
@@ -2882,11 +2882,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sendNodeBehind(int count) {
-    return 'Node is $count momentums behind';
+    return 'Node is $count momentums behind.';
   }
 
   @override
-  String get sendWaitForSync => 'Wait for sync';
+  String get sendWaitForSync => 'You can send once the node catches up.';
 
   @override
   String get sendContactsUnavailable =>

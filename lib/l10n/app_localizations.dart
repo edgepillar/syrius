@@ -4705,7 +4705,7 @@ abstract class AppLocalizations {
   /// No description provided for @sendLookAlikeDetail.
   ///
   /// In en, this message translates to:
-  /// **'The ends match a known address. Check the full address.'**
+  /// **'The beginning and ending match a saved address. Check the full address before sending.'**
   String get sendLookAlikeDetail;
 
   /// No description provided for @sendKnownAddress.
@@ -4747,13 +4747,13 @@ abstract class AppLocalizations {
   /// No description provided for @sendNodeBehind.
   ///
   /// In en, this message translates to:
-  /// **'Node is {count} momentums behind'**
+  /// **'Node is {count} momentums behind.'**
   String sendNodeBehind(int count);
 
   /// No description provided for @sendWaitForSync.
   ///
   /// In en, this message translates to:
-  /// **'Wait for sync'**
+  /// **'You can send once the node catches up.'**
   String get sendWaitForSync;
 
   /// No description provided for @sendContactsUnavailable.

@@ -720,6 +720,13 @@ void main() {
       expect(draft.state.amount, '12.5');
       expect(find.byKey(const Key('send_recipient_warning')), findsOneWidget);
       expect(find.text('Looks like Alice'), findsOneWidget);
+      expect(
+        find.text(
+          'The beginning and ending match a saved address. '
+          'Check the full address before sending.',
+        ),
+        findsOneWidget,
+      );
       expect(action(tester).onPressed, isNull);
       expect(find.byKey(const Key('send_known_address')), findsOneWidget);
       expect(find.byKey(const Key('send_typed_address')), findsOneWidget);
@@ -871,6 +878,10 @@ void main() {
       expect(lagSpans.first.toPlainText(), l10n.sendNodeBehind(3));
       expect((lagSpans.first as TextSpan).style!.fontWeight, FontWeight.w700);
       expect(lagSpans.last.toPlainText().trim(), l10n.sendWaitForSync);
+      expect(
+        lagText.textSpan!.toPlainText(),
+        'Node is 3 momentums behind. You can send once the node catches up.',
+      );
       for (final (String key, String expected, String label)
           in <(String, String, String)>[
             (
