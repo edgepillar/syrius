@@ -904,6 +904,8 @@ def seeded_catalog_pixel_comparisons(raw, schema, references, *, companion_holdi
                               voting_panel=(960, 86, 1280, 724)),
     }
     samples = {
+        '14-staking-new': dict(amount_center=(700, 188), amount_trailing=(980, 188),
+                               form_background=(1000, 188), action_leading=(1120, 188)),
         '20-pillar-done': dict(header_mark=(84, 48), header_above=(84, 35),
                                header_below=(84, 60), header_left=(83, 48),
                                header_right=(86, 48)),

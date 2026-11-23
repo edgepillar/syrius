@@ -255,7 +255,9 @@ class SeededPixelComparisonTests(unittest.TestCase):
 
         for schema, screen, region, bounds, samples in (
             (inspect.catalog.STAKE_DRAFT_SCHEMA, '14-staking-new',
-             'amount_and_duration', (60, 118, 1280, 210), None),
+             'amount_and_duration', (60, 118, 1280, 210),
+             dict(amount_center=(700, 188), amount_trailing=(980, 188),
+                  form_background=(1000, 188), action_leading=(1120, 188))),
             (inspect.catalog.PILLAR_SPAWN_SCHEMA, '19-spawn',
              'name_and_addresses', (360, 85, 970, 460), None),
             (inspect.catalog.PILLAR_DONE_SCHEMA, '20-pillar-done',
