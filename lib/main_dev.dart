@@ -416,10 +416,10 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                                 lockBloc.addEvent(LockEvent.resetTimer),
                             onExit: (_) =>
                                 lockBloc.addEvent(LockEvent.resetTimer),
-                            child: KeyboardListener(
-                              focusNode: FocusNode(),
-                              onKeyEvent: (KeyEvent event) {
+                            child: Focus(
+                              onKeyEvent: (FocusNode node, KeyEvent event) {
                                 lockBloc.addEvent(LockEvent.resetTimer);
+                                return KeyEventResult.ignored;
                               },
                               child: Layout(
                                 child: MaterialApp(
