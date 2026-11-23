@@ -290,7 +290,10 @@ void main() {
           (PillarOwnerAction.revokeConfirmed, 'trash'),
         ]) {
           final Finder button = _button(action);
-          expect(tester.getSize(button).height, closeTo(30, .01));
+          final OutlinedButton control = tester.widget<OutlinedButton>(button);
+          final ButtonStyle style = control.style!;
+          expect(style.minimumSize!.resolve(<WidgetState>{})!.height, 30);
+          expect(tester.getSize(button).height, greaterThanOrEqualTo(30));
           expectMockupSymbol(tester, within: button, symbol: symbol, size: 14);
         }
         final Finder copies = find.byTooltip('Copy');

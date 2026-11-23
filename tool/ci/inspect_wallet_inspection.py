@@ -42,6 +42,7 @@ VERSIONED_INPUTS = frozenset((
     'tool/ci/readonly_details_capture.py',
     'tool/ci/run_harness_tour_tests.py',
     'tool/ci/windows_wallet_inspection.py',
+    'tool/ci/windows_wallet_tour.py',
     'harness/bin/ci_wallet_inspection.dart',
     'harness/bin/harness.dart',
     'harness/bin/ci_wallet_reopen.dart',
