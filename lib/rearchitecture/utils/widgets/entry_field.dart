@@ -271,12 +271,12 @@ class _EntryFieldState extends State<EntryField>
     super.initState();
     _clock = ShaderClock(vsync: this);
     _captionRepaint = Listenable.merge(<Listenable>[_clock, _captionChanges]);
-    widget.captionProgress?.addListener(_updateCaptionOpacity);
+    widget.captionProgress?.addListener(_updateReveal);
     widget.launchFilm?.addListener(_prepareCoveredRaster);
-    _updateCaptionOpacity();
+    _updateReveal();
   }
 
-  void _updateCaptionOpacity() {
+  void _updateReveal() {
     final double reveal = _EntryFieldPainter.lightOpacity(
       widget.captionProgress?.value,
     );
@@ -312,19 +312,19 @@ class _EntryFieldState extends State<EntryField>
   void didUpdateWidget(EntryField oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.captionProgress != widget.captionProgress) {
-      oldWidget.captionProgress?.removeListener(_updateCaptionOpacity);
-      widget.captionProgress?.addListener(_updateCaptionOpacity);
+      oldWidget.captionProgress?.removeListener(_updateReveal);
+      widget.captionProgress?.addListener(_updateReveal);
     }
     if (oldWidget.launchFilm != widget.launchFilm) {
       oldWidget.launchFilm?.removeListener(_prepareCoveredRaster);
       widget.launchFilm?.addListener(_prepareCoveredRaster);
     }
-    _updateCaptionOpacity();
+    _updateReveal();
   }
 
   @override
   void dispose() {
-    widget.captionProgress?.removeListener(_updateCaptionOpacity);
+    widget.captionProgress?.removeListener(_updateReveal);
     widget.launchFilm?.removeListener(_prepareCoveredRaster);
     _captionLease?.dispose();
     _captionLease = null;
