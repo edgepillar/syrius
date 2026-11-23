@@ -1,0 +1,20 @@
+{
+  "actual": {
+    "07-send-rest-dark": {
+      "archive_member": "07-send-rest-dark.png",
+      "archive_sha256": "e862be9090fb39bdac90097b717a0391be513c769262440e2c930983afee5fc3",
+      "catalog_family": "send-restored",
+      "path": "e862be9090fb39bdac90097b717a0391be513c769262440e2c930983afee5fc3",
+      "sha256": "e462001d20165b4b11636eda335290d0c8e7c1ba03a7173d51f5b03de8fe3290",
+      "source_sha": "084368d986a00d17f5fcee2e6d3cf9be778082ed"
+    },
+    "07-send-rest-light": {
+      "archive_member": "07-send-rest-light.png",
+      "archive_sha256": "e862be9090fb39bdac90097b717a0391be513c769262440e2c930983afee5fc3",
+      "catalog_family": "send-restored",
+      "path": "e862be9090fb39bdac90097b717a0391be513c769262440e2c930983afee5fc3",
+      "sha256": "38145add4a0cd4bad1a351e9593d99cfc24f59dac86156acc7a004df4e6bb5a8",
+      "source_sha": "084368d986a00d17f5fcee2e6d3cf9be778082ed"
+    }
+  }
+}
