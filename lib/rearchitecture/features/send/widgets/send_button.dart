@@ -102,6 +102,8 @@ class SendButtonState extends State<SendButton> {
                   color: tokens.primaryButtonForeground,
                 ),
               )
+            : widget.onPressed == null
+            ? null
             : const ShellSymbol('up'),
         child: Text(widget.text),
       ),

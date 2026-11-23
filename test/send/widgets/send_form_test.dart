@@ -21,6 +21,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/balance_visibility.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/pair.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart' show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../../harness/app/fixtures/send_warning_draft.dart';
@@ -815,11 +816,17 @@ void main() {
       await show(tester, book: book);
       await fill(tester);
       final VoidCallback retained = action(tester).onPressed!;
+      final Finder sendArrow = find.descendant(
+        of: find.byKey(const Key('send_submit_button')),
+        matching: find.byType(ShellSymbol),
+      );
+      expect(sendArrow, findsOneWidget);
       syncStates.add(_syncState(behind: 42));
       await tester.pump();
       expect(find.byKey(const Key('send_node_behind')), findsOneWidget);
       expect(find.text('Waiting for the node'), findsOneWidget);
       expect(action(tester).onPressed, isNull);
+      expect(sendArrow, findsNothing);
       retained();
       tester
           .widget<TextField>(find.byKey(const Key('send_amount_field')))
@@ -830,6 +837,7 @@ void main() {
       syncStates.add(_syncState(behind: 2));
       await tester.pump();
       expect(action(tester).onPressed, isNotNull);
+      expect(sendArrow, findsOneWidget);
       syncStates.add(_syncState(behind: 3));
       await tester.pump();
       expect(action(tester).onPressed, isNull);
