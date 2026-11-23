@@ -409,10 +409,6 @@ class ReaderTests(unittest.TestCase):
                 light=[[20, [35, 35, 35]]]))))
 
     def test_navigation_and_sentinel_measure_strip_edges(self):
-        shots = Path(__file__).resolve().parents[2] / 'mockups' / 'redesign' / 'shots'
-        for theme in ('dark', 'light'):
-            png = (shots / f'21-plasma-{theme}.png').read_bytes()
-            self.assertEqual(reader._plasma_meter_fill(png), [76, 257, 298, 263])
         files = []
         background, card, ink = (100, 100, 100, 255), (120, 120, 120, 255), (80, 130, 90, 255)
         empty = b'\0' + bytes(background) * 1280
@@ -424,7 +420,7 @@ class ReaderTests(unittest.TestCase):
         detail_ink[1 + 4 * 677:1 + 4 * 740] = detail_color * 63
         detail_ink[1 + 4 * 768:1 + 4 * 940] = detail_color * 172
         for theme in ('dark', 'light'):
-            for name in ('16-pillars', '18-sentinels', '23-tokens', '28-az'):
+            for name in ('16-pillars', '18-sentinels', '21-plasma', '23-tokens', '28-az'):
                 rows = [empty] * 780
                 if name in ('16-pillars', '18-sentinels'):
                     rows[36:106] = [surface] * 70
@@ -436,6 +432,10 @@ class ReaderTests(unittest.TestCase):
                         rows[248:258] = [detail_ink] * 10
                     elif theme == 'light':
                         rows[164] = empty
+                elif name == '21-plasma':
+                    blue = bytes((74, 148, 255, 255))
+                    meter = b'\0' + bytes(background) * 76 + blue * 222 + bytes(background) * 982
+                    rows[257:263] = [meter] * 6
                 else:
                     rows[36:106] = [surface] * 70
                     rows[118:150] = [surface] * 32
@@ -454,6 +454,9 @@ class ReaderTests(unittest.TestCase):
         nodes = dict(strip_end=106, list_start=118, tab_divider=164, column_headings_start=165)
         self.assertEqual(geometry['pillar_table_edges']['themes'], dict(dark=nodes, light=nodes))
         with zipfile.ZipFile(io.BytesIO(archive)) as zipped:
+            for theme in ('dark', 'light'):
+                self.assertEqual(reader._plasma_meter_fill(zipped.read(f'21-plasma-{theme}.png')),
+                                 [76, 257, 298, 263])
             self.assertEqual(reader._nodes_table_edges(zipped, '18-sentinels'),
                              dict(column=900, scan_rows=[100, 181], themes=dict(dark=nodes, light=None)))
         self.assertEqual(geometry['pillar_owned_badge_bounds'], dict.fromkeys(
