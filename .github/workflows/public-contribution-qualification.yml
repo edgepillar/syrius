@@ -80,6 +80,7 @@ on:
           - token-holder
           - swap-seeded
           - stake-draft
+          - send-restored
           - project-detail
           - pillar-spawn
           - pillar-done
@@ -1039,6 +1040,19 @@ jobs:
             .harness/ci-seeded-catalog/14-staking-new-dark.png
             .harness/ci-seeded-catalog/14-staking-new-light.png
 
+      - name: Retain the two verified restored Send captures
+        if: success() && inputs.windows_wallet_tour && inputs.readonly_catalog_family == 'send-restored'
+        uses: actions/upload-artifact@v7
+        with:
+          name: seeded-catalog-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: |
+            .harness/ci-seeded-catalog/manifest.json
+            .harness/ci-seeded-catalog/07-send-rest-dark.png
+            .harness/ci-seeded-catalog/07-send-rest-light.png
+
       - name: Retain the four verified Accelerator list and Project detail captures
         if: success() && inputs.windows_wallet_tour && inputs.readonly_catalog_family == 'project-detail'
         uses: actions/upload-artifact@v7
@@ -1282,6 +1296,7 @@ jobs:
             /harness/bin/
             /mockups/redesign/shots/13-staking-*.png
             /mockups/redesign/shots/19-spawn-*.png
+            /mockups/redesign/shots/07-send-rest-*.png
             /mockups/redesign/shots/20-pillar-done-*.png
             /mockups/redesign/shots/23-tokens-*.png
             /mockups/redesign/shots/24-token-mine-*.png

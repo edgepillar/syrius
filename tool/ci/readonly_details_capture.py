@@ -50,6 +50,8 @@ PILLAR_DONE_FAMILY = 'pillar-done'
 PILLAR_DONE_SCHEMA = 14
 SWAP_SEEDED_FAMILY = 'swap-seeded'
 SWAP_SEEDED_SCHEMA = 15
+SEND_RESTORED_FAMILY = 'send-restored'
+SEND_RESTORED_SCHEMA = 22
 RESTORED_FAMILIES = {SEEDED_FAMILY: SEEDED_SCHEMA,
                      SEEDED_VISUAL_FAMILY: SEEDED_VISUAL_SCHEMA,
                      TOKEN_HOLDER_FAMILY: TOKEN_HOLDER_SCHEMA,
@@ -57,7 +59,8 @@ RESTORED_FAMILIES = {SEEDED_FAMILY: SEEDED_SCHEMA,
                      PROJECT_DETAIL_FAMILY: PROJECT_CATALOG_SCHEMA,
                      PILLAR_SPAWN_FAMILY: PILLAR_SPAWN_SCHEMA,
                      PILLAR_DONE_FAMILY: PILLAR_DONE_SCHEMA,
-                     SWAP_SEEDED_FAMILY: SWAP_SEEDED_SCHEMA}
+                     SWAP_SEEDED_FAMILY: SWAP_SEEDED_SCHEMA,
+                     SEND_RESTORED_FAMILY: SEND_RESTORED_SCHEMA}
 RESTORED_SCHEMAS = frozenset((*RESTORED_FAMILIES.values(), PROJECT_DETAIL_SCHEMA))
 RESTORED_FAILURE_KINDS = {
     SEEDED_SCHEMA: 'restored_seeded_capture_failure',
@@ -69,6 +72,7 @@ RESTORED_FAILURE_KINDS = {
     PILLAR_SPAWN_SCHEMA: 'restored_pillar_spawn_capture_failure',
     PILLAR_DONE_SCHEMA: 'restored_pillar_done_capture_failure',
     SWAP_SEEDED_SCHEMA: 'restored_swap_seeded_capture_failure',
+    SEND_RESTORED_SCHEMA: 'restored_send_capture_failure',
 }
 NODE_VERIFIED_SCHEMA = 19
 SETTINGS_REVIEW_SCHEMA = 20
@@ -118,6 +122,8 @@ CATALOGS = {
                         ('20-pillar-done-dark.png', '20-pillar-done-light.png')),
     SWAP_SEEDED_SCHEMA: (('swap-list',),
                         ('26-swap-list-dark.png', '26-swap-list-light.png')),
+    SEND_RESTORED_SCHEMA: (('send-rest',),
+                           ('07-send-rest-dark.png', '07-send-rest-light.png')),
 }
 OUTPUT = Path('.harness/ci-details-catalog')
 SEEDED_OUTPUT = Path('.harness/ci-seeded-catalog')
@@ -305,6 +311,9 @@ def _output(schema):
 
 
 def _seed_pin(value, schema):
+    if schema == SEND_RESTORED_SCHEMA:
+        need(digest(value.get('original_send_receipt_sha256')), 'CAPTURE_REFUSED')
+        return {'original_send_receipt_sha256': value['original_send_receipt_sha256']}
     if schema in RESTORED_SCHEMAS:
         need(digest(value.get('seed_receipts_sha256')), 'CAPTURE_REFUSED')
         return {'seed_receipts_sha256': value['seed_receipts_sha256']}
@@ -317,6 +326,8 @@ def _script_field(schema):
 
 
 def catalog_script_name(schema, screen):
+    if (schema, screen) == (SEND_RESTORED_SCHEMA, 'send-rest'):
+        return 'prepared/send-restored.txt'
     if (schema, screen) == (TOKEN_HOLDER_SCHEMA, 'tokens'):
         return 'prepared/token-holder.txt'
     if (schema, screen) in {(PROJECT_CATALOG_SCHEMA, 'az'),
@@ -488,12 +499,15 @@ def output_bytes(output, *, schema=1):
 
 
 def collect(repo, receipt, source, tree, parent, *, read_original,
-            seed_receipts_sha256=None):
+            seed_receipts_sha256=None, original_send_receipt_sha256=None):
     """Retain original PNG references without another archive copy."""
     capture_receipt(receipt)
     schema = receipt['schema']
-    need((schema in RESTORED_SCHEMAS) == (seed_receipts_sha256 is not None))
-    seed_pin = _seed_pin({'seed_receipts_sha256': seed_receipts_sha256}, schema)
+    need((schema in RESTORED_SCHEMAS and schema != SEND_RESTORED_SCHEMA)
+         == (seed_receipts_sha256 is not None)
+         and (schema == SEND_RESTORED_SCHEMA) == (original_send_receipt_sha256 is not None))
+    seed_pin = _seed_pin(dict(seed_receipts_sha256=seed_receipts_sha256,
+        original_send_receipt_sha256=original_send_receipt_sha256), schema)
     output = repo / _output(schema)
     output_bytes(output, schema=schema)
     records = []

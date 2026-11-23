@@ -263,6 +263,23 @@ class PolicyTests(unittest.TestCase):
             with self.subTest(invalid_history=value), self.assertRaises(restored.checkpoint.Refused):
                 restored.wallet_observation(dict(wallet_observation(), recent_recipient_history=value))
 
+    def test_send_capture_requires_observed_history_and_original_receipt(self):
+        catalog = restored.catalog
+        reference = dict(schema=catalog.SEND_RESTORED_SCHEMA,
+            scope='restored_native_seeded_catalog_reference', screens=['send-rest'],
+            captured=2, manifest_sha256='c' * 64, original_send_receipt_sha256='d' * 64)
+        value = dict(completed(), seeded_catalog=reference,
+            wallet=dict(wallet_observation(), recent_recipient_history='observed'))
+        self.assertEqual(restored.project(value), value)
+        wrong_pin = {key: pin for key, pin in reference.items()
+                     if key != 'original_send_receipt_sha256'}
+        wrong_pin['seed_receipts_sha256'] = 'd' * 64
+        for change in (dict(seeded_catalog=wrong_pin), dict(wallet=wallet_observation()),
+                       dict(catalog_prerequisites={}), dict(seed_workflow={}),
+                       dict(aged_fuse_fixture={}), dict(seeded_surface_seams={})):
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.project(dict(value, **change))
+
     def test_failed_forced_or_unclosed_actors_cannot_be_healed(self):
         for change in (dict(application_exit=None), dict(application_exit=False),
                 dict(entry_exit=1), dict(forced=True), dict(job_empty=False),

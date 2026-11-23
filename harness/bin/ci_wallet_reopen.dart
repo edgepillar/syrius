@@ -539,6 +539,7 @@ Map<String, Object?>? restoredChildFailure(
   bool pillarSpawn = false,
   bool pillarDone = false,
   bool swapList = false,
+  bool restoredSend = false,
   bool includeTokenList = false,
   bool includeNonOwnerHolding = false,
 }) {
@@ -549,8 +550,8 @@ Map<String, Object?>? restoredChildFailure(
        captureStep?.screen != null || captureStep?.theme != null ||
        captureStep?.line != null ||
        selection != RestoredSeedSelection.seededCatalog ||
-       pillarSpawn || pillarDone || swapList || includeTokenList ||
-       includeNonOwnerHolding)) {
+       pillarSpawn || pillarDone || swapList || restoredSend ||
+       includeTokenList || includeNonOwnerHolding)) {
     return null;
   }
   String kind = 'OTHER_ERROR';
@@ -613,7 +614,8 @@ Map<String, Object?>? restoredChildFailure(
     final String? reply = screenCaptureReplyOf(error)?.name;
     capture = <String, Object>{
       'schema': reply == null ? 1 : 2,
-      'kind': swapList ? 'restored_swap_seeded_capture_failure'
+      'kind': restoredSend ? 'restored_send_capture_failure'
+          : swapList ? 'restored_swap_seeded_capture_failure'
           : pillarDone ? 'restored_pillar_done_capture_failure'
           : pillarSpawn ? 'restored_pillar_spawn_capture_failure'
           : switch (selection) {
@@ -920,6 +922,22 @@ const Set<String> _swapListLines = <String>{
   'assert --key swap_filter',
   'assert --key p2p_start_swap',
   'assert --key p2p_join_swap',
+  'goto dashboard',
+  'wait --key home_hero --timeout 5',
+};
+
+const Set<String> _restoredSendLines = <String>{
+  'goto transfer',
+  'tap --key transfer_mode_send',
+  'wait --key @recent-recipient --kind button --ready --timeout 20',
+  'tap --key @recent-recipient',
+  'type --key send_amount_field 12.5',
+  'tap @0,779',
+  'assert --key send_amount_field --kind field --exact',
+  'wait --key send_submit_button --kind button --ready --timeout 20',
+  'assert --key send_submit_button --kind button',
+  'type --key send_recipient_field',
+  'type --key send_amount_field',
   'goto dashboard',
   'wait --key home_hero --timeout 5',
 };
@@ -1250,14 +1268,21 @@ Future<Map<String, Object>> _captureSeededCatalog(
   String? pillarSpawnProducer,
   bool pillarDone = false,
   bool swapList = false,
+  String? sendHistoryRecipient,
 }) async {
+  final bool restoredSend = sendHistoryRecipient != null;
   final bool pillarSpawn = pillarSpawnProducer != null;
   final ({
     int schema,
     List<String> screens,
     List<String> files,
     Set<String> lines,
-  }) catalog = swapList
+  }) catalog = restoredSend
+      ? (schema: 22, screens: const <String>['send-rest'],
+          files: const <String>['07-send-rest-dark.png',
+                               '07-send-rest-light.png'],
+          lines: _restoredSendLines)
+      : swapList
       ? (schema: 15, screens: const <String>['swap-list'],
           files: const <String>['26-swap-list-dark.png',
                                '26-swap-list-light.png'],
@@ -1303,7 +1328,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
     },
   };
   final String? stake =
-      projectDetail || pillarSpawn || pillarDone || swapList
+      projectDetail || pillarSpawn || pillarDone || swapList || restoredSend
           ? null : confirmed('stake');
   final String? rowKey = switch (selection) {
     RestoredSeedSelection.seededCatalog =>
@@ -1416,6 +1441,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
     restoredProject: projectDetail,
     restoredPillarSpawn: pillarSpawn,
     restoredPillarDone: pillarDone,
+    restoredSend: restoredSend,
     onStep: onStep,
     call: (Map<String, Object?> command) async {
       await requireCurrent();
@@ -1453,6 +1479,8 @@ Future<Map<String, Object>> _captureSeededCatalog(
         for (final String word in words.skip(1))
           if (word == '@issued-token-row' || word == '@confirmed-project-row')
             rowKey!
+          else if (restoredSend && word == '@recent-recipient')
+            'send_recent_$sendHistoryRecipient'
           else if (stakeDraft && word == 'staking_stakes_count')
             stake!
           else
@@ -1471,13 +1499,16 @@ Future<Map<String, Object>> _captureSeededCatalog(
         case 'wait':
           await cli.waitForTarget(instance, cli.Args(<String>[
             ...args,
-            if (stakeDraft || projectDetail || pillarSpawn || pillarDone)
+            if (stakeDraft || projectDetail || pillarSpawn || pillarDone ||
+                restoredSend)
               '--exact',
           ]));
         case 'tap':
           await cli.call(instance, <String, Object?>{
             'cmd': 'tap',
-            if (pillarSpawn || pillarDone)
+            if (restoredSend && authored == 'tap @0,779') ...<String, Object?>{
+              'at': <int>[0, 779], 'settleMs': 0,
+            } else if (pillarSpawn || pillarDone)
               ...assertion(args)
             else ...<String, Object?>{
               'key': args.last, 'exact': true,
@@ -1497,6 +1528,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
           }
         case 'type':
           final (String key, String value) = switch (selection) {
+            _ when restoredSend => (args[1], args.length == 3 ? args.last : ''),
             _ when pillarSpawn => (args.last, pillarDraftValues[args.last]!),
             RestoredSeedSelection.stakeDraft =>
               ('create_stake_amount_field', '300'),
@@ -1505,7 +1537,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
           final Map<String, dynamic> typed = await cli.call(
             instance, <String, Object?>{
               'cmd': 'type', 'exact': true, 'value': value, 'key': key,
-              if (stakeDraft || pillarSpawn) 'kind': 'field',
+              if (stakeDraft || pillarSpawn || restoredSend) 'kind': 'field',
             },
           );
           if (typed['value'] != value) {
@@ -1595,6 +1627,7 @@ Future<void> main() async {
   bool pillarSpawn = false;
   bool pillarDone = false;
   bool swapList = false;
+  bool restoredSend = false;
   bool includeTokenList = false;
   bool includeNonOwnerHolding = false;
   try {
@@ -1610,7 +1643,8 @@ Future<void> main() async {
     }
     final String? captureMode = env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'];
     selection = switch (captureMode) {
-      null || 'false' || 'pillar-spawn' || 'pillar-done' || 'swap-seeded' =>
+      null || 'false' || 'pillar-spawn' || 'pillar-done' || 'swap-seeded' ||
+      'send-restored' =>
         RestoredSeedSelection.all,
       'true' || 'seeded-states-visual' || 'token-holder' =>
         RestoredSeedSelection.seededCatalog,
@@ -1621,11 +1655,12 @@ Future<void> main() async {
     pillarSpawn = captureMode == 'pillar-spawn';
     pillarDone = captureMode == 'pillar-done';
     swapList = captureMode == 'swap-seeded';
+    restoredSend = captureMode == 'send-restored';
     includeTokenList = captureMode == 'seeded-states-visual';
     includeNonOwnerHolding = captureMode == 'token-holder';
     final bool observeSeededSeams = captureMode == 'true';
     final bool seededCapture =
-        pillarSpawn || pillarDone || swapList ||
+        pillarSpawn || pillarDone || swapList || restoredSend ||
         selection != RestoredSeedSelection.all;
     final CopiedPointerInput originalInput = CopiedPointerInput(
       stdin, allowSeededCapture: seededCapture,
@@ -1709,6 +1744,38 @@ Future<void> main() async {
     requireRestoredObserve(condition: originalInput.alive,
       operation: RestoredObserveOperation.parent);
     await marker('CI_REOPEN_DONE:${jsonEncode(result['receipt'])}');
+    if (restoredSend) {
+      phase = 'seeded_capture';
+      final Map<Object?, Object?> receipt =
+          result['receipt'] as Map<Object?, Object?>;
+      if (receipt['recent_recipient_history'] != 'observed' ||
+          originalContext.members.length != 2 ||
+          await originalInput.read() != 'CAPTURE_SEEDED') {
+        throw const FormatException('restored Send capture refused');
+      }
+      Future<void> requireCurrent() async {
+        if (!originalInput.alive || !originalContext.same(await context())) {
+          throw const FormatException('restored Send context changed');
+        }
+      }
+      final String recipient = originalContext.members.first;
+      final Map<String, Object> captured = await _captureSeededCatalog(
+        instance, const <Map<String, String>>[], recipient, requireCurrent,
+        (ScreenCaptureObservation step) => captureStep = step,
+        selection: RestoredSeedSelection.all,
+        observeSeededSeams: false,
+        emitMarker: marker,
+        onPreparedOperation: (PreparedSurfaceOperation operation) =>
+            surfaceOperation = operation,
+        sendHistoryRecipient: recipient,
+      );
+      await marker('CI_SEEDED_CAPTURE_DONE:${jsonEncode(captured)}');
+      phase = 'finish';
+      if (await originalInput.read() != 'FINISH') {
+        throw const FormatException('closure unconfirmed');
+      }
+      return;
+    }
     phase = 'seed_admission';
     final Object? seedInput = jsonDecode(await originalInput.read());
     if (pillarSpawn || pillarDone) {
@@ -1962,7 +2029,8 @@ Future<void> main() async {
       phase, error, captureStep: captureStep,
       surfaceOperation: surfaceOperation,
       selection: selection, pillarSpawn: pillarSpawn, pillarDone: pillarDone,
-      swapList: swapList, includeTokenList: includeTokenList,
+      swapList: swapList, restoredSend: restoredSend,
+      includeTokenList: includeTokenList,
       includeNonOwnerHolding: includeNonOwnerHolding,
     );
     if (failure != null) {

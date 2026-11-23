@@ -1,0 +1,14 @@
+# prerequisite: restored-lab-send-history
+goto transfer
+tap --key transfer_mode_send
+wait --key @recent-recipient --kind button --ready --timeout 20
+tap --key @recent-recipient
+type --key send_amount_field 12.5
+tap @0,779
+assert --key send_amount_field --kind field --exact
+wait --key send_submit_button --kind button --ready --timeout 20
+assert --key send_submit_button --kind button
+# after-capture: type --key send_recipient_field
+# after-capture: type --key send_amount_field
+# after-capture: goto dashboard
+# after-capture: wait --key home_hero --timeout 5

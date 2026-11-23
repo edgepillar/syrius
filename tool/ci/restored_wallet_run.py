@@ -796,19 +796,23 @@ def project(value):
     reference = None
     catalog_capture = catalog_seed
     if capture_fields:
-        checkpoint.need(seed_fields)
         try:
             reference = catalog.catalog_reference(value['seeded_catalog'])
         except catalog.Refused:
             raise checkpoint.Refused() from None
         checkpoint.need(reference['schema'] in catalog.RESTORED_SCHEMAS)
-        if reference['schema'] != catalog.SEEDED_SCHEMA:
-            checkpoint.need(catalog_seed)
-            catalog_capture = seeds.CATALOG_SELECTIONS[reference['schema']]
+        if reference['schema'] == catalog.SEND_RESTORED_SCHEMA:
+            checkpoint.need(not seed_fields and not fixture_fields and not seam_fields
+                and value['wallet'].get('recent_recipient_history') == 'observed')
+        else:
+            checkpoint.need(seed_fields)
+            if reference['schema'] != catalog.SEEDED_SCHEMA:
+                checkpoint.need(catalog_seed)
+                catalog_capture = seeds.CATALOG_SELECTIONS[reference['schema']]
     seed_value = seeds.project(value.get(seed_key), catalog_capture=catalog_capture)
     if seed_fields:
         checkpoint.need(type(seed_value) is dict and seed_value['complete'] is True)
-    if reference is not None:
+    if reference is not None and seed_fields:
         checkpoint.need(reference['seed_receipts_sha256'] == seed_value['receipts_sha256'])
     if fixture_fields:
         checkpoint.need(seed_fields and
@@ -971,6 +975,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
     family = parent.get('SYRIUS_READONLY_CATALOG_FAMILY')
     capture_schema = catalog.RESTORED_FAMILIES.get(family)
     seeded_capture = capture_schema is not None
+    send_capture = capture_schema == catalog.SEND_RESTORED_SCHEMA
     observe_seeded_seams = family == catalog.SEEDED_FAMILY
     catalog_capture = seeds.CATALOG_SELECTIONS.get(capture_schema, False)
     pillar_done = capture_schema == catalog.PILLAR_DONE_SCHEMA
@@ -1242,45 +1247,51 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         trace.at('post_observe')
         unchanged()
         chain_read(runtime, anchor)
-        trace.at('seed_workflow')
-        record['phase'] = 'seed_workflow'
-        genesis = json.loads(bounded_read(Path(restored['rpc']) / 'genesis.json', 1024**2))
-        if pillar_catalog:
-            fixture = seeds.pillar_fixture(genesis, origin.members, pillar_fixture_document)
-            if pillar_done:
-                seed_input = dict(action='SEED_PILLAR_DONE', actor=fixture.actor,
-                                  producer=fixture.producer, reward=fixture.reward)
-            else:
-                seed_input = dict(
-                    action='SEED_PILLAR_SPAWN', actor=fixture.actor,
-                    producer=fixture.producer)
+        if send_capture:
+            checkpoint.need(record['wallet'].get('recent_recipient_history') == 'observed')
+            capture_pin = dict(original_send_receipt_sha256=
+                snapshot[wallet.home / 'seed-lab-send-confirmed.json'][1])
         else:
-            chosen = seeds.counterparty(genesis, origin.members)
-            seed_input = dict(action='SEED', counterparty=chosen)
-        unchanged()
-        write(checkpoint.encode(seed_input))
-        seed_receipts = wait(b'CI_SEED_DONE')
-        unchanged()
-        trace.at('seed_journals')
-        for row in seed_receipts['receipts']:
-            for state in ('attempt', 'accepted', 'confirmed'):
-                path = copied_home / ('seed-' + row['recipe'] + '-' + state + '.json')
-                identity = checkpoint.file_identity(path.lstat())
-                raw = bounded_read(path, 2048)
-                seeds.journal_record(row['recipe'], state, raw, row['hash'])
-                checkpoint.need(checkpoint.file_identity(path.lstat()) == identity)
-                pin = identity, hashlib.sha256(raw).hexdigest()
-                checkpoint.need(snapshot.get(path) == pin)
-        record['seed_private_receipts'] = seed_receipts
-        record[seed_key] = seeds.completed(seed_receipts, catalog_capture=catalog_capture)
-        unchanged()
-        chain_read(runtime, anchor)
-        if catalog_capture is False or catalog_capture == 'swap-seeded':
-            trace.at('aged_fuse_fixture')
-            record['phase'] = 'aged_fuse_fixture'
-            record['aged_fuse_fixture'] = wait(b'CI_AGED_FUSE_DONE')
+            trace.at('seed_workflow')
+            record['phase'] = 'seed_workflow'
+            genesis = json.loads(bounded_read(Path(restored['rpc']) / 'genesis.json', 1024**2))
+            if pillar_catalog:
+                fixture = seeds.pillar_fixture(genesis, origin.members, pillar_fixture_document)
+                if pillar_done:
+                    seed_input = dict(action='SEED_PILLAR_DONE', actor=fixture.actor,
+                                      producer=fixture.producer, reward=fixture.reward)
+                else:
+                    seed_input = dict(
+                        action='SEED_PILLAR_SPAWN', actor=fixture.actor,
+                        producer=fixture.producer)
+            else:
+                chosen = seeds.counterparty(genesis, origin.members)
+                seed_input = dict(action='SEED', counterparty=chosen)
+            unchanged()
+            write(checkpoint.encode(seed_input))
+            seed_receipts = wait(b'CI_SEED_DONE')
+            unchanged()
+            trace.at('seed_journals')
+            for row in seed_receipts['receipts']:
+                for state in ('attempt', 'accepted', 'confirmed'):
+                    path = copied_home / ('seed-' + row['recipe'] + '-' + state + '.json')
+                    identity = checkpoint.file_identity(path.lstat())
+                    raw = bounded_read(path, 2048)
+                    seeds.journal_record(row['recipe'], state, raw, row['hash'])
+                    checkpoint.need(checkpoint.file_identity(path.lstat()) == identity)
+                    pin = identity, hashlib.sha256(raw).hexdigest()
+                    checkpoint.need(snapshot.get(path) == pin)
+            record['seed_private_receipts'] = seed_receipts
+            record[seed_key] = seeds.completed(seed_receipts, catalog_capture=catalog_capture)
             unchanged()
             chain_read(runtime, anchor)
+            if catalog_capture is False or catalog_capture == 'swap-seeded':
+                trace.at('aged_fuse_fixture')
+                record['phase'] = 'aged_fuse_fixture'
+                record['aged_fuse_fixture'] = wait(b'CI_AGED_FUSE_DONE')
+                unchanged()
+                chain_read(runtime, anchor)
+            capture_pin = dict(seed_receipts_sha256=record[seed_key]['receipts_sha256'])
         if seeded_capture:
             trace.at('seeded_capture')
             record['phase'] = 'seeded_capture'
@@ -1290,8 +1301,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
             unchanged()
             chain_read(runtime, anchor)
             record['seeded_catalog'] = catalog.collect(repo, receipt, source,
-                tree, parent, read_original=bounded_read,
-                seed_receipts_sha256=record[seed_key]['receipts_sha256'])
+                tree, parent, read_original=bounded_read, **capture_pin)
         trace.at('ordinary_close')
         record['phase'] = 'ordinary_close'
         close_attempted = True
@@ -1410,7 +1420,8 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         application_exit=record['application_exit'], entry_exit=record['entry_exit'],
         output=record['output'], job_empty=True, forced=False, nodes=record['nodes'],
         private_manifest_sha256=hashlib.sha256(raw).hexdigest(), seed_admitted=False)
-    result[seed_key] = record[seed_key]
+    if not send_capture:
+        result[seed_key] = record[seed_key]
     if 'aged_fuse_fixture' in record:
         result['aged_fuse_fixture'] = record['aged_fuse_fixture']
     if seeded_capture:

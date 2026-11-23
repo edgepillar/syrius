@@ -846,6 +846,7 @@ def seeded_catalog_pixel_comparisons(raw, schema, references, *, companion_holdi
     chrome = dict(caption=(0, 0, 1280, 32), rail=(0, 32, 60, 780),
                   status=(60, 724, 1280, 780))
     panels = {
+        '07-send-rest': dict(transfer_content=(60, 32, 1280, 724)),
         '13-staking': dict(balance_and_controls=(60, 32, 1280, 120),
                            stake_table=(60, 120, 1280, 724)),
         '19-spawn': dict(pane_header=(60, 32, 1280, 85),
@@ -1039,7 +1040,7 @@ def main():
                           atomic_frame_qualified=True)
             if (family in (catalog.PROJECT_DETAIL_FAMILY, catalog.SEEDED_VISUAL_FAMILY,
                            catalog.TOKEN_HOLDER_FAMILY, catalog.PILLAR_SPAWN_FAMILY,
-                           catalog.PILLAR_DONE_FAMILY)
+                           catalog.PILLAR_DONE_FAMILY, catalog.SEND_RESTORED_FAMILY)
                     and reference_head is not None):
                 PHASE = 'seeded_catalog_pixel_comparison'
                 need(re.fullmatch(r'[a-f0-9]{40}', reference_head) is not None)

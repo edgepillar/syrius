@@ -381,6 +381,7 @@ class ScreenCapture {
     this.restoredProject = false,
     this.restoredPillarSpawn = false,
     this.restoredPillarDone = false,
+    this.restoredSend = false,
   });
 
   final Directory repository;
@@ -404,6 +405,7 @@ class ScreenCapture {
   final bool restoredProject;
   final bool restoredPillarSpawn;
   final bool restoredPillarDone;
+  final bool restoredSend;
 
   static const String _afterCapturePrefix = '# after-capture:';
 
@@ -472,7 +474,8 @@ class ScreenCapture {
       'az' => restoredSeeded && restoredProject,
       'tokens' => restoredSeeded &&
           (restoredTokenList || restoredTokenHolder) && !restoredProject,
-      'send-rest' => readonlySendConfirmation,
+      'send-rest' =>
+        readonlySendConfirmation || (restoredSeeded && restoredSend),
       'set-node' => readonlyNodeVerified,
       _ => false,
     };
@@ -480,10 +483,11 @@ class ScreenCapture {
       'harness', 'screens', if (prepared) 'prepared',
     ];
     _checkParents(parts);
-    final String scriptName = prepared && screen.id == 'tokens' &&
-        restoredTokenHolder
-        ? 'token-holder'
-        : screen.id;
+    final String scriptName = switch (screen.id) {
+      'send-rest' when prepared && restoredSend => 'send-restored',
+      'tokens' when prepared && restoredTokenHolder => 'token-holder',
+      _ => screen.id,
+    };
     final List<String> fileParts = <String>[...parts, '$scriptName.txt'];
     if (_type(fileParts) != FileSystemEntityType.file) {
       throw ScreenCaptureError(
@@ -501,6 +505,9 @@ class ScreenCapture {
         final bool sendPrepared = readonlySendConfirmation &&
             (screen.id == 'send-rest' || screen.id == 'send-confirm') &&
             text == '# prerequisite: readonly-lab-send-confirmation';
+        final bool sendRestored = restoredSeeded && restoredSend &&
+            screen.id == 'send-rest' &&
+            text == '# prerequisite: restored-lab-send-history';
         final bool warningPrepared = readonlySendWarning &&
             screen.id == 'send-warn' &&
             text == '# prerequisite: readonly-lab-send-warning';
@@ -534,7 +541,7 @@ class ScreenCapture {
             text == '# prerequisite: original-new-wallet-ready';
         if (text.startsWith('# prerequisite:') &&
             text != '# prerequisite: unlocked-home' &&
-            !sendPrepared && !warningPrepared && !zapPreview &&
+            !sendPrepared && !sendRestored && !warningPrepared && !zapPreview &&
             !swapPrepared &&
             !tokenPrepared && !holderPrepared &&
             !projectPrepared && !spawnPrepared && !donePrepared &&
