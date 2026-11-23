@@ -286,18 +286,7 @@ class _LockCardState extends State<LockCard>
     return Stack(
       fit: StackFit.expand,
       children: <Widget>[
-        if (widget.startup case final StartupStageSession startup)
-          ValueListenableBuilder<double>(
-            valueListenable: startup.motion,
-            child: _startupBackdrop,
-            builder: (_, double progress, Widget? child) => TickerMode(
-              // The shader starts with the first visible backdrop frame.
-              enabled: progress > 0,
-              child: child!,
-            ),
-          )
-        else
-          const EntryField(),
+        if (widget.startup != null) _startupBackdrop else const EntryField(),
         LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) =>
               SingleChildScrollView(

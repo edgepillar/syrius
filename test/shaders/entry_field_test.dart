@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/drift_raster_region.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/shader_clock.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/entry_field.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/entry_card_surface.dart';
@@ -398,22 +399,19 @@ void main() {
         key: _clipFrame,
         child: ColoredBox(
           color: tokens.background,
-          child: ValueListenableBuilder<double>(
-            valueListenable: progress,
-            child: EntryField(
-              captionProgress: progress,
-              launchFilm: film,
-              fadeLightsOnOpaqueBase: true,
-            ),
-            builder: (_, double value, Widget? child) => TickerMode(
-              enabled: value > 0,
-              child: child!,
-            ),
+          child: EntryField(
+            captionProgress: progress,
+            launchFilm: film,
+            fadeLightsOnOpaqueBase: true,
           ),
         ),
       ),
     ));
+    final ReferenceArtworkSource source =
+        tester.state(find.byType(EntryField)) as ReferenceArtworkSource;
+    final ShaderClock clock = source.referenceArtworkGeneration as ShaderClock;
     expect(rasters, isEmpty);
+    expect(clock.isRunning, isFalse);
     // The real film reports each displayed frame from its ticker.
     tester.binding.scheduleFrameCallback((_) => film.show(0));
     await tester.pump();
@@ -425,8 +423,11 @@ void main() {
     await tester.pump();
     expect(rasters, hasLength(1));
     expect(rasters.single.debugDisposed, isFalse);
+    expect(clock.isRunning, isFalse);
+    expect(clock.value, 0);
     progress.value = tokens.launchSettleReference.progress;
     await tester.pump();
+    expect(clock.isRunning, isTrue);
     final Finder surface = find.byKey(_clipFrame);
     _expectEntryWash(await _pixels(tester, surface: surface), false);
     expect(rasters, hasLength(1));
@@ -437,6 +438,13 @@ void main() {
     _expectEntryWash(pixels, false);
     expect(rasters, hasLength(1));
     expect(rasters.single.debugDisposed, isFalse);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(clock.value, greaterThan(0));
+    progress.value = 0;
+    final double heldTime = clock.value;
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(clock.isRunning, isFalse);
+    expect(clock.value, heldTime);
   });
 
   testWidgets(

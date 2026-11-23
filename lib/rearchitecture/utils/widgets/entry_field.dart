@@ -269,7 +269,7 @@ class _EntryFieldState extends State<EntryField>
   @override
   void initState() {
     super.initState();
-    _clock = ShaderClock(vsync: this)..active = true;
+    _clock = ShaderClock(vsync: this);
     _captionRepaint = Listenable.merge(<Listenable>[_clock, _captionChanges]);
     widget.captionProgress?.addListener(_updateCaptionOpacity);
     widget.launchFilm?.addListener(_prepareCoveredRaster);
@@ -277,9 +277,12 @@ class _EntryFieldState extends State<EntryField>
   }
 
   void _updateCaptionOpacity() {
-    final double opacity = widget.paintCaption
-        ? _EntryFieldPainter.lightOpacity(widget.captionProgress?.value)
-        : 0;
+    final double reveal = _EntryFieldPainter.lightOpacity(
+      widget.captionProgress?.value,
+    );
+    // The covering film leaves the field with no visible paint at zero.
+    _clock.active = !widget.fadeLightsOnOpaqueBase || reveal > 0;
+    final double opacity = widget.paintCaption ? reveal : 0;
     if (_captionOpacity == opacity) return;
     _captionOpacity = opacity;
     if (opacity > 0) _bindCaption();
