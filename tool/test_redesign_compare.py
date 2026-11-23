@@ -346,6 +346,8 @@ class CaptureCatalogTests(unittest.TestCase):
         unclassified = repo / "unclassified.json"
         prepared = repo / "prepared.json"
         older = repo / "older.json"
+        restored = repo / "restored.json"
+        restored_old = repo / "restored_old.json"
         conflicting = repo / "conflicting.json"
 
         def manifest(family: str | None, directory: str, source: str) -> bytes:
@@ -361,6 +363,8 @@ class CaptureCatalogTests(unittest.TestCase):
             unclassified: manifest(None, "unknown", target),
             prepared: manifest("send-confirm", "filled", target),
             older: manifest("send-confirm", "prior", previous),
+            restored: manifest("send-restored", "restored", target),
+            restored_old: manifest("send-restored", "restored_old", previous),
             conflicting: manifest("send-confirm", "conflict", target),
         }
         review = {stem: {"verdict": "match", "reviewer": "Fixture",
@@ -392,6 +396,11 @@ class CaptureCatalogTests(unittest.TestCase):
             self.assertEqual(selected["pairs"][0]["actual"]["catalog_family"], "send-confirm")
             self.assertEqual(selected["pairs"][0]["state"], "reviewed-match")
             self.assertEqual(selected["summary"]["target_pairs"]["available"], 1)
+            self.assertEqual(report(prepared, restored_old)["pairs"][0]["actual"][
+                "catalog_family"], "send-confirm")
+            self.assertEqual(report(navigation, prepared, restored)["pairs"][0]["actual"][
+                "catalog_family"], "send-restored")
+            self.assertEqual(report(restored)["summary"]["target_pairs"]["available"], 1)
             with self.assertRaisesRegex(ValueError, stem):
                 report(navigation, prepared, conflicting)
 

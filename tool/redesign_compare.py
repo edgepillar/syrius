@@ -121,13 +121,13 @@ SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 GIT_SHA = re.compile(r"[0-9a-f]{40}\Z")
 CATALOG_FAMILY = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\Z")
 PREPARED_CATALOGS = {
-    "07-send-rest": "send-confirm",
-    "23-tokens": "token-holder",
-    "26-swap-list": "swap-seeded",
-    "28-az": "project-detail",
-    "29-az-project": "project-detail",
-    "30-set-node": "node-verified",
-    "35-set-addresses": "node-verified",
+    "07-send-rest": ("send-restored", "send-confirm"),
+    "23-tokens": ("token-holder",),
+    "26-swap-list": ("swap-seeded",),
+    "28-az": ("project-detail",),
+    "29-az-project": ("project-detail",),
+    "30-set-node": ("node-verified",),
+    "35-set-addresses": ("node-verified",),
 }
 DIFF_PALETTE = bytes(
     intensity * channel // 255
@@ -162,7 +162,7 @@ class Capture:
 
     def is_diagnostic(self, stem: str, *, require_catalog_family: bool = False) -> bool:
         prepared = PREPARED_CATALOGS.get(stem.rsplit("-", 1)[0])
-        return (prepared is not None and self.catalog_family != prepared
+        return (prepared is not None and self.catalog_family not in prepared
                 and (require_catalog_family or self.catalog_family is not None))
 
 
@@ -335,6 +335,11 @@ def select_actual_captures(
             choice for choice in choices
             if not choice.is_diagnostic(stem, require_catalog_family=target_source is not None)
         } or choices
+        prepared = PREPARED_CATALOGS.get(stem.rsplit("-", 1)[0], ())
+        if len(prepared) > 1:
+            choices = {
+                choice for choice in choices if choice.catalog_family == prepared[0]
+            } or choices
         if len(choices) != 1:
             # Ambiguous history cannot qualify the requested revision. Keep
             # this pair in the target coverage backlog without choosing one.
@@ -719,8 +724,8 @@ def compare_pair(
         elif capture is not None and capture.is_diagnostic(
             stem, require_catalog_family=target_source is not None,
         ):
-            family = PREPARED_CATALOGS[stem.rsplit("-", 1)[0]]
-            pair.update(state="diagnostic-capture", reason=f"Prepared {family} capture required")
+            families = " or ".join(PREPARED_CATALOGS[stem.rsplit("-", 1)[0]])
+            pair.update(state="diagnostic-capture", reason=f"Prepared {families} capture required")
         else:
             review = select_review(reviews.get(stem, ()), expected["sha256"], actual["sha256"])
             pair["review"] = review
