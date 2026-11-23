@@ -254,7 +254,11 @@ def _frame_gaps_by_previous_raster(window):
             state = 'indeterminate'
         groups[state]['gaps'] += 1
         groups[state]['missing_frame_numbers'] += missing
-    return dict(raster_starts_observed=bool(starts), by_previous_raster=groups)
+    result = dict(raster_starts_observed=bool(starts), by_previous_raster=groups)
+    largest = cold.largest_frame_gap(rows, starts)
+    if largest is not None:
+        result['largest_internal_gap'] = largest
+    return result
 
 
 def _window_diagnostics(window, tap_release_us, motion_us, observed_phases=None,

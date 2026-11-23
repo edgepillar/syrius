@@ -373,6 +373,9 @@ class InteractiveFramePairTests(unittest.TestCase):
         ], rasterStartsUs=[20000, 21000, 40000, 51000])
         self.assertEqual(inspect._frame_gaps_by_previous_raster(gap_window), dict(
             raster_starts_observed=True,
+            largest_internal_gap=dict(previous_frame=5, following_frame=9,
+                previous_build_start_us=35000, following_build_start_us=50000,
+                previous_raster_end_us=[41000, 41000]),
             by_previous_raster=dict(
                 pending=dict(gaps=1, missing_frame_numbers=2),
                 in_progress=dict(gaps=1, missing_frame_numbers=1),
@@ -383,6 +386,9 @@ class InteractiveFramePairTests(unittest.TestCase):
         del gap_window['rasterStartsUs']
         self.assertEqual(inspect._frame_gaps_by_previous_raster(gap_window), dict(
             raster_starts_observed=False,
+            largest_internal_gap=dict(previous_frame=5, following_frame=9,
+                previous_build_start_us=35000, following_build_start_us=50000,
+                previous_raster_end_us=[36100, 41000]),
             by_previous_raster=dict(
                 pending=dict(gaps=0, missing_frame_numbers=0),
                 in_progress=dict(gaps=0, missing_frame_numbers=0),
@@ -1548,6 +1554,7 @@ class InteractiveFramePairTests(unittest.TestCase):
         phases = inspect.split_phase_diagnostics(diagnostics)
         self.assertEqual(set(phases), set(pair.WINDOWS))
         self.assertEqual(inspect.split_phase_diagnostics(diagnostics), {})
+        gap_context = result.pop('verified_gap_raster_states')
         self.assertLessEqual(len(cold.canonical(result)), 3800)
         identity = {key: result[key] for key in (
             'schema', 'source_head', 'source_tree', 'source_run_id', 'source_attempt',
@@ -1561,6 +1568,9 @@ class InteractiveFramePairTests(unittest.TestCase):
         phase_summary = dict(identity, scope='retained_interactive_observed_motion_phases',
                              paired_timing_gate_passed=False, windows=phases)
         self.assertLessEqual(len(cold.canonical(phase_summary)), 3800)
+        gap_summary = dict(identity, scope='retained_interactive_frame_gap_raster_context',
+                           paired_timing_gate_passed=False, windows=gap_context)
+        self.assertLessEqual(len(cold.canonical(gap_summary)), 3800)
         self.assertFalse(any(result['no_frame_number_gaps'].values()))
         self.assertFalse(result['timing_criterion_passed'])
 

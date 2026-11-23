@@ -186,6 +186,21 @@ def raster_rank_overruns(baseline_window, current_window, *, phase_boundaries=No
     return dict(count=count, unpaired=unpaired, by_phase=phases, worst=worst)
 
 
+def largest_frame_gap(rows, raster_starts):
+    """Locate the largest frame-number jump using its reported neighbours."""
+    neighbours = max(zip(rows, rows[1:]),
+                     key=lambda item: item[1][0] - item[0][0], default=None)
+    if neighbours is None:
+        return None
+    previous, following = neighbours
+    if following[0] == previous[0] + 1:
+        return None
+    earliest, latest = raster_start_bounds(previous, observed_us=raster_starts.get(previous[0]))
+    return dict(previous_frame=previous[0], following_frame=following[0],
+                previous_build_start_us=previous[1], following_build_start_us=following[1],
+                previous_raster_end_us=[earliest + previous[3], latest + previous[3]])
+
+
 def frame_gap_context(window):
     """Place the following build relative to the preceding raster finish."""
     rows = pair.launch.frame_timing_rows(window, allow_packed=True)
@@ -204,6 +219,9 @@ def frame_gap_context(window):
             counts['at_or_after_latest_end'] += missing_keys
         else:
             counts['within_end_bounds'] += missing_keys
+    largest = largest_frame_gap(rows, raster_starts)
+    if largest is not None:
+        counts['largest_internal_gap'] = largest
     return counts
 
 

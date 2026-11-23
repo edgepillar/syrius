@@ -167,7 +167,10 @@ class PairInspectionTests(unittest.TestCase):
         self.assertEqual(derived['maximum_frame_key_gap'], 2)
         self.assertEqual(derived['maximum_build_start_gap_us'], 1000000)
         self.assertEqual(reader.frame_gap_context(observed), dict(
-            before_earliest_end=0, within_end_bounds=0, at_or_after_latest_end=3))
+            before_earliest_end=0, within_end_bounds=0, at_or_after_latest_end=3,
+            largest_internal_gap=dict(previous_frame=1, following_frame=4,
+                previous_build_start_us=1000000, following_build_start_us=2000000,
+                previous_raster_end_us=[1016003, 1016003])))
         single = reader.window_diagnostics(frame((0, 0, 0, 0, 0)))
         self.assertEqual(single['quarter_frames'], [1, 0, 0, 0])
         self.assertEqual(single['build_us'], [0, 0, 0, 0])
@@ -181,7 +184,10 @@ class PairInspectionTests(unittest.TestCase):
         derived = reader.window_diagnostics(observed)
         self.assertEqual(derived['frame_key_gaps'], 6)
         self.assertEqual(reader.frame_gap_context(observed), dict(
-            before_earliest_end=1, within_end_bounds=2, at_or_after_latest_end=3))
+            before_earliest_end=1, within_end_bounds=2, at_or_after_latest_end=3,
+            largest_internal_gap=dict(previous_frame=5, following_frame=9,
+                previous_build_start_us=60, following_build_start_us=120,
+                previous_raster_end_us=[90, 120])))
 
     def test_p06_warmup_and_measurement_use_the_selected_baseline_binary(self):
         _, sample = report(self.pins)['samples']
