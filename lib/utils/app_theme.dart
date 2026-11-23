@@ -1882,9 +1882,6 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Gutter between each comparison label and its address.
   double get transferAddressComparisonGap => 18;
 
-  /// A caution outline with the same meaning in both themes.
-  Color get transferWarningLine => warn.withValues(alpha: 0.35);
-
   /// Receive keeps room for the full address and optional request.
   EdgeInsetsDirectional get receiveFormPadding =>
       const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 20);

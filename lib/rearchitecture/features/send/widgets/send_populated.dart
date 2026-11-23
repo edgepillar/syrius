@@ -599,11 +599,9 @@ class _SendPopulatedState extends State<SendPopulated>
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: VisualDensity.standard,
     );
-    final Color? outline = finding != null
-        ? tokens.transferWarningLine
-        : _recipient.isNotEmpty
-        ? tokens.faint
-        : null;
+    final OutlineInputBorder? warningOutline = finding == null
+        ? null
+        : _fieldOutline(tokens, tokens.warn);
     return TextField(
       key: const Key('send_recipient_field'),
       controller: _recipientController,
@@ -614,7 +612,12 @@ class _SendPopulatedState extends State<SendPopulated>
       decoration: InputDecoration(
         errorText: _recipientErrorText,
         hintText: context.l10n.recipientAddress,
-        enabledBorder: outline == null ? null : _fieldOutline(tokens, outline),
+        enabledBorder:
+            warningOutline ??
+            (_recipient.isEmpty ? null : _fieldOutline(tokens, tokens.faint)),
+        focusedBorder: warningOutline?.copyWith(
+          borderSide: BorderSide(color: tokens.warn, width: tokens.focusWidth),
+        ),
         suffixIconConstraints: BoxConstraints(minHeight: tokens.fieldHeight),
         suffixIcon: Padding(
           padding: const EdgeInsetsDirectional.only(end: 10),

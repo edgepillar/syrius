@@ -728,15 +728,24 @@ void main() {
       expect(typedAddress.textSpan!.toPlainText(), _typed);
       final List<int> differing = differingPositions(_typed, _alice);
       final List<InlineSpan> spans = typedAddress.textSpan!.children!;
+      final Finder recipientField = find.byKey(
+        const Key('send_recipient_field'),
+      );
       final Finder recipientEditor = find.descendant(
-        of: find.byKey(const Key('send_recipient_field')),
+        of: recipientField,
         matching: find.byType(EditableText),
       );
       final EditableTextState editor = tester.state(recipientEditor);
       final TextSpan editableAddress = editor.buildTextSpan();
-      final Color warningColor = AppTokens.of(
-        tester.element(recipientEditor),
-      ).warn;
+      final AppTokens tokens = AppTokens.of(tester.element(recipientField));
+      final Color warningColor = tokens.warn;
+      final InputDecoration warningDecoration =
+          tester.widget<TextField>(recipientField).decoration!;
+      expect(warningDecoration.enabledBorder?.borderSide.color, warningColor);
+      expect(
+        warningDecoration.focusedBorder?.borderSide,
+        BorderSide(color: warningColor, width: tokens.focusWidth),
+      );
       expect(editableAddress.toPlainText(), _typed);
       expect(editableAddress.children, hasLength(_typed.length));
       for (int index = 0; index < spans.length; index++) {
@@ -787,6 +796,10 @@ void main() {
       expect(find.byKey(const Key('send_recipient_warning')), findsNothing);
       expect(editor.buildTextSpan().toPlainText(), _bob);
       expect(editor.buildTextSpan().children, isNull);
+      expect(
+        tester.widget<TextField>(recipientField).decoration!.focusedBorder,
+        isNull,
+      );
       verifyNever(() => sender.add(any()));
     },
   );
