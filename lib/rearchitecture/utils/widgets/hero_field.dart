@@ -241,9 +241,9 @@ class _HomeFieldRaster {
     );
     if (_key == key) return _cached;
     dispose();
-    // Sample the blurred lights at half scale while retaining their logical
-    // blur, viewport and drift. The foreground is painted separately.
-    final double rasterScale = pixelRatio / 2;
+    // Sample the blurred lights at 40% of device scale. The logical blur,
+    // viewport, drift and separately painted foreground keep their sizes.
+    final double rasterScale = pixelRatio * 0.4;
     final DriftRasterRegion? region = driftRasterRegion(
       viewport: viewport, field: field, blurBleed: _homeBlurBleed,
       pixelRatio: rasterScale,

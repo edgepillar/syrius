@@ -675,11 +675,9 @@ void main() {
         expect(homePaint.willChange, isTrue);
         final Uint8List start = await _pixels(tester, surface: surface());
         expect(rasters, hasLength(1));
-        expect(rasters.single.width * 2, greaterThan(_size.width));
-        expect(rasters.single.height * 2, greaterThan(_size.height));
         expect(
-          rasters.single.width * rasters.single.height,
-          lessThan(1746 * 1226 * 0.26),
+          (rasters.single.width, rasters.single.height),
+          (699, 491),
         );
         await tester.pump(const Duration(seconds: 18));
         final Uint8List turned = await _pixels(tester, surface: surface());
