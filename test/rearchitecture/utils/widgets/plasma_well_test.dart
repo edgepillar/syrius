@@ -89,8 +89,17 @@ void main() {
 
     const int size = 120;
     const int center = (size ~/ 2 * size + size ~/ 2) * 4;
-    Widget host({required bool active}) => MaterialApp(
-      home: Center(child: PlasmaGlow(size: size.toDouble(), active: active)),
+    const AppTokens tokens = AppTokens.dark;
+    Widget host({required bool active, bool generating = false}) => MaterialApp(
+      home: Center(
+        child: PlasmaGlow(
+          size: size.toDouble(),
+          active: active,
+          innerGlow: generating ? tokens.plasmaGeneratingInnerGlow : .5,
+          outerGlow: generating ? tokens.plasmaGeneratingOuterGlow : .3,
+          contour: generating ? tokens.plasmaGeneratingContour : .5,
+        ),
+      ),
     );
     await tester.pumpWidget(host(active: false));
     final Finder mark = find.descendant(
@@ -132,6 +141,24 @@ void main() {
       later.buffer.asUint8List(),
       isNot(orderedEquals(initial.buffer.asUint8List())),
     );
+
+    int alphaSum(ByteData pixels) {
+      int sum = 0;
+      for (int i = 3; i < pixels.lengthInBytes; i += 4) {
+        sum += pixels.getUint8(i);
+      }
+      return sum;
+    }
+
+    // Compare both settings at the same retained paint time.
+    await tester.pumpWidget(host(active: false));
+    final ByteData still = await _markPixels(tester, mark);
+    await tester.pumpWidget(host(active: false, generating: true));
+    final ByteData boosted = await _markPixels(tester, mark);
+    expect(boosted.getUint32(center), 0xffffffff);
+    expect(still.getUint32(0), 0);
+    expect(boosted.getUint32(0), 0);
+    expect(alphaSum(boosted), greaterThan(alphaSum(still)));
     await tester.pumpWidget(const SizedBox.shrink());
   });
 }

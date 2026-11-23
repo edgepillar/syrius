@@ -151,9 +151,19 @@ void main() {
   colors[6] = vec4(0.9765, 0.0863, 0.5647, 1.0); // #f91690, plasma pink
 
   vec2 uv = FlutterFragCoord().xy / u_size;
-  float imgSoftFrame = getImgFrame(uv, .03);
-  
   vec4 img = texture(u_image, uv);
+  float shape = img[0];
+  // The opaque bolt is white at every phase of the heatmap.
+  if (shape == 0.) {
+    fragColor = vec4(1.);
+    return;
+  }
+  // The flat background has neither silhouette coverage nor a wide blur.
+  if (shape == 1. && img[1] == 1.) {
+    fragColor = vec4(0.);
+    return;
+  }
+  float imgSoftFrame = getImgFrame(uv, .03);
 
   float t = .0003 * u_time;
   t -= .3;
@@ -174,27 +184,28 @@ void main() {
   animationUV.x * sinA + animationUV.y * cosA
   ) + vec2(.5);
 
-  float shape = img[0];
   float outerBlur = 1. - mix(1., img[1], shape);
-  float innerBlur = mix(img[1], 0., shape);
-  float contour = mix(img[2], 0., shape);
-
   outerBlur *= imgSoftFrame;
 
-  float shadow = shadowShape(animationUV, t, innerBlur);
-  float shadowCopy = shadowShape(animationUV, tCopy, innerBlur);
-  float shadowCopy2 = shadowShape(animationUV, tCopy2, innerBlur);
+  float inner = 0.;
+  // A halo-only sample has zero inner coverage. The three moving inner
+  // shadows affect only the partly covered edge of the bolt.
+  if (shape < 1.) {
+    float innerBlur = mix(img[1], 0., shape);
+    float contour = mix(img[2], 0., shape);
+    float shadow = shadowShape(animationUV, t, innerBlur);
+    float shadowCopy = shadowShape(animationUV, tCopy, innerBlur);
+    float shadowCopy2 = shadowShape(animationUV, tCopy2, innerBlur);
 
-  float inner = .8 + .8 * innerBlur;
-  inner = mix(inner, 0., shadow);
-  inner = mix(inner, 0., shadowCopy);
-  inner = mix(inner, 0., shadowCopy2);
-
-  inner *= mix(0., 2., u_innerGlow);
-
-  inner += (u_contour * 2.) * contour;
-  inner = min(1., inner);
-  inner *= (1. - shape);
+    inner = .8 + .8 * innerBlur;
+    inner = mix(inner, 0., shadow);
+    inner = mix(inner, 0., shadowCopy);
+    inner = mix(inner, 0., shadowCopy2);
+    inner *= mix(0., 2., u_innerGlow);
+    inner += (u_contour * 2.) * contour;
+    inner = min(1., inner);
+    inner *= (1. - shape);
+  }
 
   float outer = 0.;
   {
