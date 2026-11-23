@@ -273,6 +273,15 @@ void main() {
               );
               expect(field.style!.fontFamily, tokens.monoFontFamily);
               expect(field.decoration!.suffixStyle!.color, tokens.pinkInk);
+              final Text remainingSupply = tester.widget<Text>(
+                find.textContaining('left under the max supply.'),
+              );
+              expect(
+                remainingSupply.style!.fontFamily,
+                tokens.bodyText.fontFamily,
+              );
+              expect(remainingSupply.style!.fontSize, 12.5);
+              expect(remainingSupply.style!.color, tokens.faint);
               final Finder max = find.descendant(
                 of: find.byKey(const Key('mint_amount_field')),
                 matching: find.widgetWithText(TextButton, 'Max'),

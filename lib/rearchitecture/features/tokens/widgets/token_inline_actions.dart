@@ -565,8 +565,9 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
                             token.symbol,
                           ),
                         ),
-                        style: tokens.captionText.copyWith(
-                          fontFamily: tokens.monoFontFamily,
+                        style: tokens.bodyText.copyWith(
+                          fontSize: 12.5,
+                          color: tokens.faint,
                         ),
                       ),
                     ),
