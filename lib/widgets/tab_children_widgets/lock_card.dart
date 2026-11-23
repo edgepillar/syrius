@@ -146,7 +146,7 @@ class _LockCardState extends State<LockCard>
     if (widget.startup != null) {
       // The startup film is already playing in its single overlay host.
       // Skipping here would cut that original movie before it finishes.
-      widget.startup!.addListener(_prepareCoveredShadow);
+      widget.startup!.film.addListener(_prepareCoveredShadow);
       _prepareCoveredShadow();
       return;
     }
@@ -161,12 +161,12 @@ class _LockCardState extends State<LockCard>
     final StartupStageSession? startup = widget.startup;
     if (startup == null ||
         startup.isClosed ||
-        !startup.film.isDone ||
+        !(startup.film.holdingLastFrame || startup.film.isDone) ||
         startup.motion.value != 0 ||
         identical(_shadowPreparation, startup)) {
       return;
     }
-    // Mount the invisible shadow only after the film reaches its held frame.
+    // Prepare the hidden shadow during the last frame, before the handoff.
     setState(() => _shadowPreparation = startup);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted ||
@@ -223,10 +223,10 @@ class _LockCardState extends State<LockCard>
   void didUpdateWidget(LockCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.startup, widget.startup)) {
-      oldWidget.startup?.removeListener(_prepareCoveredShadow);
+      oldWidget.startup?.film.removeListener(_prepareCoveredShadow);
       _shadowPreparation = null;
       _startupBackdrop = _buildStartupBackdrop();
-      widget.startup?.addListener(_prepareCoveredShadow);
+      widget.startup?.film.addListener(_prepareCoveredShadow);
       _prepareCoveredShadow();
     }
     if (!oldWidget.busy && widget.busy) _obscure = true;
@@ -272,7 +272,7 @@ class _LockCardState extends State<LockCard>
 
   @override
   void dispose() {
-    widget.startup?.removeListener(_prepareCoveredShadow);
+    widget.startup?.film.removeListener(_prepareCoveredShadow);
     widget.replay?.removeListener(_replay);
     _shake.dispose();
     _film.dispose();
@@ -348,7 +348,9 @@ class _LockCardState extends State<LockCard>
               child: _buildCardForeground(context, tokens, radius),
             ),
           ),
-          if (settled || startup!.film.isDone)
+          if (settled ||
+              startup!.film.isDone ||
+              identical(_shadowPreparation, startup))
             _buildCardShadow(
               radius,
               tokens.lockCardShadow,

@@ -617,7 +617,20 @@ void main() {
         await _until(tester, () => session.film.frame >= 0);
         expect(session.film.isDone, isFalse);
         expect(filmBoundary, findsNothing);
+        await _until(tester, () => session.film.holdingLastFrame);
+        expect(session.film.isDone, isFalse);
+        final CustomPaint coveredShadow = tester.widget(
+          find.descendant(
+            of: find.byKey(const ValueKey<String>('lock_card_shadow')),
+            matching: find.byType(CustomPaint),
+          ),
+        );
+        final OuterShadowRaster? raster =
+            (coveredShadow.painter! as OuterShadowPainter).raster;
+        final ui.Image? coveredRaster = raster?.debugRetainedImage;
+        expect(coveredRaster, isNotNull);
         await _until(tester, () => session.film.isDone);
+        expect(raster?.debugRetainedImage, same(coveredRaster));
         expect(filmBoundary, findsOneWidget);
         expect(originalBackdrop.value, 0);
         final Finder frame = find.descendant(
