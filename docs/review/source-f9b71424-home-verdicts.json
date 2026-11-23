@@ -1,0 +1,68 @@
+{
+  "reviews": {
+    "01-home-rest-dark": {
+      "actual_sha256": "03cc6d2ac4c6f87b65f8eb5af5fa289aee926b34ad683a6b5c332e22d933bb2c",
+      "expected_sha256": "70617942960638e9ad855344dcc7aa1433058bb4d060155f1cfb36592ca332a6",
+      "note": "The collapsed rail, Notifications tooltip and closed Tokens card are visible. The capture has one selected-address receipt, no token holdings, no rewards to collect and no pending card. The reference shows a populated activity list, rewards and a pending card.",
+      "reviewed_at": "2026-11-23T03:02:06Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "01-home-rest-light": {
+      "actual_sha256": "3af2ce7714c33c780a0780510191f4156d449f2fc10bba57921b05fcdae800e2",
+      "expected_sha256": "280f31f618a20af2f275bd516afc3280849180f4788f38ae7c3fdebaedd36b7c",
+      "note": "The hero and Notifications tooltip are visible. The Plasma bar fills farther than the reference. Activity contains one selected-address receipt and the pending card is absent. The reference has additional activity rows and a populated reward summary.",
+      "reviewed_at": "2026-11-23T03:02:06Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-dark": {
+      "actual_sha256": "5a9f9c6b6d4a55fdf362fef866513b5ffe87fd2e28b618f10c6a2adff1b2f6fa",
+      "expected_sha256": "ef3e3dfc4e9e4a6438516fe8803c55202d744b57c964104d6212c4eb2d3ebd97",
+      "note": "The expanded rail and open Tokens panel are visible. The panel shows its empty state instead of the reference's three holdings. Activity has one row and the reward summary is empty.",
+      "reviewed_at": "2026-11-23T03:02:06Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-light": {
+      "actual_sha256": "9e1a40e86d256bf21200d80ef4ead99f168162dcfd42d3e962b78165ebeafcca",
+      "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
+      "note": "The expanded rail and open Tokens panel are visible. The empty token panel and reward summary differ from the reference's populated cards, and the activity list has only one row.",
+      "reviewed_at": "2026-11-23T03:02:06Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-dark": {
+      "actual_sha256": "0a7df11b05f98f3aa26e697709ac057b1f6fa275a3a8d371ce30765fc5d4a038",
+      "expected_sha256": "29421519af83d80baf69fcfe24beb37fc754d8da1c08b3a175e7224a27fedf16",
+      "note": "The masked balances and single masked activity row are visible. The reference has several masked activity rows and a populated masked reward summary. The closed Tokens panel lacks the reference holding count.",
+      "reviewed_at": "2026-11-23T03:02:06Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-light": {
+      "actual_sha256": "0784eb7e6db98f04ef21ced17c3dcc9b0dc92b447603747c5fbc5ed4949effdc",
+      "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
+      "note": "The hero and activity amount are masked and the Tokens panel stays closed. The reference has additional masked activity rows and rewards, and its Plasma fill is shorter.",
+      "reviewed_at": "2026-11-23T03:02:06Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-dark": {
+      "actual_sha256": "a5c16dd2ec2a9255f9366b15730c9f047197de6b8d04d8e30aeb2c0469c37220",
+      "expected_sha256": "52ccc26f93bcad1c79ac91228648bb8c369a6cec14041f77f51d210afec0a1f9",
+      "note": "The centered palette, selected Delegation result and keyboard hints are visible. The isolated address suggestion differs and settled activity replaces the reference's loading placeholders behind the panel.",
+      "reviewed_at": "2026-11-23T03:02:06Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-light": {
+      "actual_sha256": "be80aa75611ba044d714e4ceb4a989b1cda810c3a7cf7a55ab925302efad8305",
+      "expected_sha256": "f700f7b185b5064b45b1acc561abcee0fce392badb4dc2d58319914780b060bb",
+      "note": "The centered palette, search and hint strip are visible. The isolated address suggestion differs and the frosted background shows a settled activity row where the reference shows loading placeholders.",
+      "reviewed_at": "2026-11-23T03:02:06Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
