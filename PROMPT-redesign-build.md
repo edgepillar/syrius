@@ -7432,6 +7432,19 @@ The visual, running motion and final acceptance rows remain open.
 
 The acceptance checklist records 77 of 80 rows. V01, V02 and V06 remain open.
 
+### End-state audit at `21538e5a` (2026-11-23)
+
+| End-state item | Verified evidence and remaining check |
+| --- | --- |
+| Clean Windows Debug and Release | The [environment guide](docs/environment.md) records the hosted Windows toolchain and the owner-approved native CI route. The [Windows baseline at `2c8fd31c`](#verified-windows-baseline-at-2c8fd31c-2026-11-22) verifies both builds and the three DLL checks. Windows, asset, shader and dependency inputs match that revision. Eight application source files differ. The complete native baseline needs fresh candidate evidence. |
+| Analysis and tests | [Linux at `d0686e5c`](https://github.com/edgepillar/syrius/actions/runs/45086439591/job/137406035249) verifies application and strict analysis, 5,136 non-chain cases with one skip, and generated files. The [Swap](https://github.com/edgepillar/syrius/actions/runs/45086655398) and [Create token](https://github.com/edgepillar/syrius/actions/runs/45087468447) runs cover the later changes. |
+| All 47 screens in both themes | The archive-backed comparison at `2c8fd31c` renders all 282 image links in memory. All 94 reference and actual PNG pairs resolve to the recorded digests, and all 94 diff PNGs agree with their recorded difference counts. The [verdict inventory](#complete-windows-capture-inventory-at-2c8fd31c) reports 18 matches and 76 differences. Later screenshots require their own source pins and verdicts. |
+| Running motion, shaders and P06 timing | [The previous paired measurements](#paired-launch-and-handoff-at-2c8fd31c) retain 16 ms failures for launch, page change and disclosure. The [new page-change and disclosure run](https://github.com/edgepillar/syrius/actions/runs/45086925328) measures the revised first-focus behavior. The [motion inventory](#running-motion-and-shader-review-at-06eda3f7-2026-11-19) and [newer observations](#motion-observations-at-2c8fd31c) identify the remaining visual observations. |
+| Seam refusals | The [V03 audit](docs/review/source695-seam-coverage.md) retains original native receipts for all fifteen registered seams. The seam registry and gate, shortcut declarations, palette and focused seam tests agree with their audited `564d01ab` source. The native receipts remain bound to the controls and source they exercised. |
+
+The acceptance checklist stays at 77 of 80 rows. Visual corrections,
+running motion and the final acceptance check remain open.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |
