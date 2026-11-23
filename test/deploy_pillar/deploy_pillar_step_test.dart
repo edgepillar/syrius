@@ -147,6 +147,9 @@ void main() {
     final Finder producer = find.byKey(
       const Key('pillar_producer_address_field'),
     );
+    final AppLocalizations l10n = AppLocalizations.of(tester.element(name))!;
+    final Finder nameHelp = find.text(l10n.createPillarNameHelp);
+    final Finder producerHelp = find.text(l10n.createPillarProducerHelp);
     final Finder producerPaste = find.descendant(
       of: producer,
       matching: find.byType(PasteContentButton),
@@ -184,6 +187,18 @@ void main() {
     expect(requests, isEmpty);
     expect(nameValid, findsNothing);
     expect(tester.widget<TextField>(name).decoration!.enabledBorder, isNull);
+    for (final (Finder field, Finder caption) in <(Finder, Finder)>[
+      (name, nameHelp),
+      (producer, producerHelp),
+    ]) {
+      final Rect fieldRect = tester.getRect(field);
+      final Rect captionRect = tester.getRect(caption);
+      final TextStyle style = tester.widget<Text>(caption).style!;
+      expect(captionRect.left, closeTo(fieldRect.left, .01));
+      expect(captionRect.top - fieldRect.bottom, closeTo(6, .01));
+      expect(style.fontSize, 12.5);
+      expect(style.color, tokens.faint);
+    }
     expect(
       tester.widget<TextField>(producer).decoration!.enabledBorder,
       isNull,
@@ -209,12 +224,15 @@ void main() {
     expect(rewardTools, findsNothing);
     expect(nameValid, findsNothing);
     expect(tester.widget<TextField>(name).decoration!.errorText, isNotNull);
+    expect(nameHelp, findsNothing);
     expect(tester.widget<TextField>(name).decoration!.enabledBorder, isNull);
     await tester.enterText(name, 'pillar');
     await tester.enterText(producer, owner);
     await tester.pump();
     expect(producerClear.hitTestable(), findsOneWidget);
     expect(nameValid, findsOneWidget);
+    expect(nameHelp, findsOneWidget);
+    expect(producerHelp, findsNothing);
     expect(
       InputDecorator.containerOf(tester.element(nameEditor))?.size.height,
       closeTo(tokens.fieldHeight, .01),

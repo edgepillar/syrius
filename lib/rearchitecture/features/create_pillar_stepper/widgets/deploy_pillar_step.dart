@@ -481,14 +481,13 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
       children: <Widget>[
         AccField(
           label: context.l10n.pillarName,
+          caption: nameError == null ? context.l10n.createPillarNameHelp : null,
           child: TextField(
             key: const Key('pillar_name_field'),
             controller: _pillarNameController,
             readOnly: _isSending,
             style: text,
             decoration: InputDecoration(
-              helperText: context.l10n.createPillarNameHelp,
-              helperMaxLines: 3,
               errorText: nameError,
               enabledBorder: hasName && nameError == null
                   ? populatedBorder
@@ -512,6 +511,9 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
         ),
         AccField(
           label: context.l10n.createPillarProducerField,
+          caption: producerError == null
+              ? context.l10n.createPillarProducerHelp
+              : null,
           child: Focus.withExternalFocusNode(
             focusNode: _producerAddressFocus,
             child: TextField(
@@ -522,8 +524,6 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
               textDirection: TextDirection.ltr,
               textAlign: addressAlign,
               decoration: InputDecoration(
-                helperText: context.l10n.createPillarProducerHelp,
-                helperMaxLines: 3,
                 errorText: producerError,
                 enabledBorder: hasProducer && producerError == null
                     ? populatedBorder

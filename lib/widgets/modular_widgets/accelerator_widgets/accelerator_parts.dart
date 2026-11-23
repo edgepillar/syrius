@@ -294,6 +294,7 @@ class AccField extends StatelessWidget {
     required this.label,
     required this.child,
     this.help,
+    this.caption,
     super.key,
   });
 
@@ -303,11 +304,15 @@ class AccField extends StatelessWidget {
   /// Shown on hover of a help mark beside the label; no mark when null.
   final String? help;
 
+  /// Visible guidance aligned with the field below its border.
+  final String? caption;
+
   /// The field.
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
+    final AppTokens tokens = AppTokens.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -330,6 +335,16 @@ class AccField extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         child,
+        if (caption case final String text) ...<Widget>[
+          const SizedBox(height: 6),
+          Text(
+            text,
+            style: tokens.bodyText.copyWith(
+              fontSize: 12.5,
+              color: tokens.faint,
+            ),
+          ),
+        ],
       ],
     );
   }
