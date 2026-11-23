@@ -1069,7 +1069,9 @@ def _token_draft_actions(data):
     for y, row in enumerate(rows, top):
         for i in range(0, len(row), channels):
             red, green, blue = row[i:i + 3]
-            if green - red >= 35 and green - blue >= 30:
+            strongest = max(green, blue)
+            saturation = strongest - min(red, green, blue)
+            if red <= 110 and strongest >= 120 and saturation >= 65:
                 ink.append((left + i // channels, y))
     if not ink:
         return None

@@ -273,7 +273,7 @@ class ReaderTests(unittest.TestCase):
                 png = (shots / name).read_bytes()
                 fields = reader._token_draft_fields(png, theme)
                 self.assertEqual(reader._token_draft_actions(png), dict(
-                    continue_ink_bounds=[463, 297, 539, 335], back_probe=[396, 315],
+                    continue_ink_bounds=[463, 297, 557, 335], back_probe=[396, 315],
                     back_rgb=[41, 43, 41] if theme == 'dark' else [250, 250, 250]))
                 ink = [113, 118, 113] if theme == 'dark' else [133, 138, 133]
                 self.assertEqual(fields, {
