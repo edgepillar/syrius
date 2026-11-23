@@ -87,8 +87,15 @@ Widget _host(
   Widget child, {
   ThemeData? theme,
   TextDirection direction = TextDirection.ltr,
+  TextScaler? textScaler,
 }) => MaterialApp(
   theme: theme ?? AppTheme.darkTheme,
+  builder: textScaler == null
+      ? null
+      : (BuildContext context, Widget? content) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaler: textScaler),
+          child: content!,
+        ),
   localizationsDelegates: appLocalizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
   home: Directionality(
@@ -161,20 +168,17 @@ void main() {
           final ThemeData theme = brightness == Brightness.dark
               ? AppTheme.darkTheme
               : AppTheme.lightTheme;
-          await tester.pumpWidget(
-            _host(
-              TokensCard(
-                controller: controller,
-                catalog: AllTokensPopulated(
-                  data: <Token>[held, unheld],
-                  context: scope,
-                ),
-                balances: balances(),
-                favoriteRepository: favorites,
-              ),
-              theme: theme,
-              direction: direction,
+          final TokensCard card = TokensCard(
+            controller: controller,
+            catalog: AllTokensPopulated(
+              data: <Token>[held, unheld],
+              context: scope,
             ),
+            balances: balances(),
+            favoriteRepository: favorites,
+          );
+          await tester.pumpWidget(
+            _host(card, theme: theme, direction: direction),
           );
           await tester.pump();
           await tester.pump(const Duration(milliseconds: 500));
@@ -260,6 +264,32 @@ void main() {
           await tester.pump();
           expect(find.text('Held token'), findsNothing);
           expect(find.text('Unheld favorite'), findsOneWidget);
+          expect(tester.takeException(), isNull);
+
+          controller.setQuery('No matching token');
+          tester.view.physicalSize = const Size(600, 780);
+          await tester.pumpWidget(
+            _host(
+              card,
+              theme: theme,
+              direction: direction,
+              textScaler: const TextScaler.linear(3),
+            ),
+          );
+          await tester.pump();
+          final Rect filterBounds = tester
+              .getRect(find.byKey(const Key('tokens_filter_held')))
+              .expandToInclude(
+                tester.getRect(find.byKey(const Key('tokens_filter_all'))),
+              );
+          final Rect searchBounds = tester.getRect(search);
+          expect(searchBounds.height, greaterThan(30));
+          expect(
+            direction == TextDirection.ltr
+                ? filterBounds.right <= searchBounds.left
+                : filterBounds.left >= searchBounds.right,
+            isTrue,
+          );
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox.shrink());
           controller.dispose();

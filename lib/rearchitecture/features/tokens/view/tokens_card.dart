@@ -222,7 +222,6 @@ class _TokensCardState extends State<TokensCard> {
                 );
                 final Widget search = SizedBox(
                   width: tokens.tokenSearchWidth,
-                  height: tokens.tokenSearchHeight,
                   child: _SearchField(
                     controller: _search,
                     onChanged: _controller.setQuery,
@@ -238,7 +237,13 @@ class _TokensCardState extends State<TokensCard> {
                     ],
                   );
                 }
-                return Row(children: <Widget>[segment, const Spacer(), search]);
+                return Row(
+                  children: <Widget>[
+                    Expanded(child: segment),
+                    SizedBox(width: tokens.inlineGap),
+                    search,
+                  ],
+                );
               },
             ),
           ),
