@@ -80,13 +80,21 @@ and 27 frame-number gaps. The paired P06 raster peaks are 141.868 ms and
 40.674 ms. V02 running motion and V06 final acceptance remain open.
 [Cold startup reader](https://github.com/edgepillar/syrius/actions/runs/45096790126/job/137438257901) · [Interaction reader](https://github.com/edgepillar/syrius/actions/runs/45165651879/job/137661808365)
 
-The hosted Windows baseline at `efcca038` passes all twelve checks,
-including Debug and Release, DLL correspondence, analysis, and 5,137
-non-chain tests with one skip. The same workflow runs the Plasma meter on
-a Windows desktop fixture, observing moving pixels and the held frame
-in both themes. Its generation state is synthetic. The actual wallet
-generation observation remains open under V02.
-[Baseline reader](https://github.com/edgepillar/syrius/actions/runs/45179906648/job/137710722222) · [Desktop fixture](https://github.com/edgepillar/syrius/actions/runs/45175597488/job/137695906535)
+The hosted Windows baseline at `27baf371` passes all twelve checks,
+including Debug and Release, DLL correspondence, generated-file
+verification, both analyses, and 5,138 non-chain tests with one skip.
+The root analyzer reports zero errors and warnings and 1,303 informational
+findings. [Baseline reader](https://github.com/edgepillar/syrius/actions/runs/45196485679/job/137768202990)
+
+At the same source, the isolated Windows wallet tour verifies the original
+Send and the restored wallet confirms all six seed recipes, including Fuse.
+The restored wallet, entry process and five nodes exit normally.
+[Lab reader](https://github.com/edgepillar/syrius/actions/runs/45196972108/job/137769928054)
+
+The Windows desktop fixture at `efcca038` observes moving Plasma meter
+pixels and the held frame in both themes. Its generation state is
+synthetic. Actual wallet generation remains open under V02.
+[Desktop fixture](https://github.com/edgepillar/syrius/actions/runs/45175597488/job/137695906535)
 
 ## Qualification snapshot (2026-11-22)
 
