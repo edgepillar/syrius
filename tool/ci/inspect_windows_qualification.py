@@ -1088,8 +1088,10 @@ def main():
                         client, head=head, tree=tree, run_id=run_id, job=job,
                         item=timing_item, current_binaries=shared_binaries)
                     gap_context = summary.pop('frame_gap_context', None)
+                    common_interval = summary.pop('common_startup_interval', None)
                 else:
                     gap_context = None
+                    common_interval = None
                     motion = name == startup.launch.MOTION_JOB_STEP
                     if motion:
                         archive.need(run['head_branch'] == 'redesign')
@@ -1120,6 +1122,12 @@ def main():
                         source_run_id=run_id, source_attempt=summary['source_attempt'],
                         archive_sha256=summary['archive_sha256'],
                         manifest_sha256=summary['manifest_sha256'], windows=gap_context))
+                if common_interval is not None:
+                    emit('Hosted cold lock common elapsed interval', dict(
+                        scope='reported_build_starts_only', source_head=head, source_tree=tree,
+                        source_run_id=run_id, source_attempt=summary['source_attempt'],
+                        archive_sha256=summary['archive_sha256'],
+                        manifest_sha256=summary['manifest_sha256'], **common_interval))
                 if combined:
                     handoff = startup.inspect_launch_run(client, head=head, tree=tree,
                         run_id=run_id, job=job, settle=True, item=items[settle_name],

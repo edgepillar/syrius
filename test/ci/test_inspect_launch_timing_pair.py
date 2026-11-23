@@ -340,6 +340,9 @@ class PairInspectionTests(unittest.TestCase):
         value = report(self.pins)
         value['samples'][0]['frame_window'] = frame((0, 2, 17000, 17000, 35000),
                                                     (2, 30000, 600, 400, 2000))
+        baseline = value['samples'][1]['frame_window']
+        baseline['windowUs'] = 4000000
+        baseline['frames'].append([2, 3000000, 16001, 19000, 36000])
         value['comparison'] = pair.compare_windows(value['samples'][1]['frame_window'],
                                                    value['samples'][0]['frame_window'])
         result = self.project(value, diagnostics=True)
@@ -357,6 +360,16 @@ class PairInspectionTests(unittest.TestCase):
         self.assertEqual(current['quarter_frames'], [2, 0, 0, 0])
         self.assertEqual(current['quarter_slow_raster'], [1, 0, 0, 0])
         self.assertEqual(current['build_us'], [600, 17000, 17000, 17000])
+        self.assertEqual(result['frame_counts']['p06'], 3)
+        self.assertEqual(result['common_startup_interval'], dict(
+            duration_us=3000000, budget_us=16000, windows={
+                'p06': dict(original_window_us=4000000, frames=2, frame_number_gaps=0,
+                    slow_build=0, slow_raster=1, slow_distinct=1,
+                    peak_raster_us=17000, peak_total_us=28000),
+                'current': dict(original_window_us=3000000, frames=2, frame_number_gaps=1,
+                    slow_build=1, slow_raster=1, slow_distinct=1,
+                    peak_raster_us=17000, peak_total_us=35000),
+            }))
 
     def test_pair_retains_the_full_frame_limit_within_one_manifest(self):
         value = report(self.pins)

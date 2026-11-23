@@ -207,6 +207,25 @@ def frame_gap_context(window):
     return counts
 
 
+def common_startup_interval(windows):
+    """Summarize reported builds in the same elapsed prefix of each launch."""
+    duration_us = min(window['windowUs'] for window in windows.values())
+    summaries = {}
+    budget = pair.FRAME_BUDGET_US
+    for name, window in windows.items():
+        rows = [row for row in pair.launch.frame_timing_rows(window, allow_packed=True)
+                if row[1] < duration_us]
+        summaries[name] = dict(
+            original_window_us=window['windowUs'], frames=len(rows),
+            frame_number_gaps=rows[-1][0] + 1 - len(rows) if rows else None,
+            slow_build=sum(row[2] > budget for row in rows),
+            slow_raster=sum(row[3] > budget for row in rows),
+            slow_distinct=sum(max(row[2], row[3]) > budget for row in rows),
+            peak_raster_us=max((row[3] for row in rows), default=None),
+            peak_total_us=max((row[4] for row in rows), default=None))
+    return dict(duration_us=duration_us, windows=summaries, budget_us=budget)
+
+
 def window_diagnostics(window, *, peak_starts=False):
     """Describe every reported sample without changing the acceptance test."""
     rows = pair.launch.frame_timing_rows(window, allow_packed=True)
@@ -371,6 +390,8 @@ def project(raw, expected_sha, expected_size, *, head, tree, run_id, pins,
         if windows:
             result['frame_gap_context'] = {
                 name: frame_gap_context(window) for name, window in windows.items()}
+        if comparison is not None and windows['current']['windowUs'] != windows['p06']['windowUs']:
+            result['common_startup_interval'] = common_startup_interval(windows)
         if comparison is not None and 'raster' in comparison['exceeded']:
             result['window_diagnostics']['raster_rank_overruns'] = raster_rank_overruns(
                 windows['p06'], windows['current'])
