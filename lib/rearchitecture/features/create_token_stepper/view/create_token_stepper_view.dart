@@ -220,57 +220,75 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: tokens.registrationActionGap,
         children: <Widget>[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Expanded(
-                flex: 8,
-                child: AccField(
-                  label: context.l10n.name,
-                  child: TextField(
-                    key: const Key('token_name_field'),
-                    controller: _name,
-                    style: tokens.bodyText,
-                    decoration: detailsInput.copyWith(
-                      enabledBorder: _name.text.isEmpty ? null : filledBorder,
-                      errorText: _name.text.isEmpty
-                          ? null
-                          : Validations.tokenName(_name.text),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: tokens.pageGap),
-              Expanded(
-                flex: 5,
-                child: AccField(
-                  label: context.l10n.tokenCreateSymbol,
-                  child: TextField(
-                    key: const Key('token_symbol_field'),
-                    controller: _symbol,
-                    textDirection: TextDirection.ltr,
-                    style: tokens.dataText,
-                    decoration: detailsInput.copyWith(
-                      enabledBorder: hasSymbol ? filledBorder : null,
-                      errorText: symbolError,
-                      suffixIconConstraints: const BoxConstraints.tightFor(
-                        width: 36,
-                        height: 32,
+          LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              final bool stacked =
+                  constraints.maxWidth <
+                  MediaQuery.textScalerOf(context).scale(
+                    tokens.tokenCreateDetailsRowMinWidth,
+                  );
+              // Keep each field mounted when the available width changes.
+              return Flex(
+                direction: stacked ? Axis.vertical : Axis.horizontal,
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: stacked
+                    ? CrossAxisAlignment.stretch
+                    : CrossAxisAlignment.start,
+                spacing: tokens.pageGap,
+                children: <Widget>[
+                  Flexible(
+                    flex: stacked ? 0 : 8,
+                    fit: FlexFit.tight,
+                    child: AccField(
+                      label: context.l10n.name,
+                      child: TextField(
+                        key: const Key('token_name_field'),
+                        controller: _name,
+                        style: tokens.bodyText,
+                        decoration: detailsInput.copyWith(
+                          enabledBorder: _name.text.isEmpty
+                              ? null
+                              : filledBorder,
+                          errorText: _name.text.isEmpty
+                              ? null
+                              : Validations.tokenName(_name.text),
+                        ),
                       ),
-                      suffixIcon: hasSymbol && symbolError == null
-                          ? Center(
-                              child: ShellSymbol(
-                                'check',
-                                size: tokens.smallActionGlyphSize,
-                                color: tokens.znnInk,
-                              ),
-                            )
-                          : null,
                     ),
                   ),
-                ),
-              ),
-            ],
+                  Flexible(
+                    flex: stacked ? 0 : 5,
+                    fit: FlexFit.tight,
+                    child: AccField(
+                      label: context.l10n.tokenCreateSymbol,
+                      child: TextField(
+                        key: const Key('token_symbol_field'),
+                        controller: _symbol,
+                        textDirection: TextDirection.ltr,
+                        style: tokens.dataText,
+                        decoration: detailsInput.copyWith(
+                          enabledBorder: hasSymbol ? filledBorder : null,
+                          errorText: symbolError,
+                          suffixIconConstraints: const BoxConstraints.tightFor(
+                            width: 36,
+                            height: 32,
+                          ),
+                          suffixIcon: hasSymbol && symbolError == null
+                              ? Center(
+                                  child: ShellSymbol(
+                                    'check',
+                                    size: tokens.smallActionGlyphSize,
+                                    color: tokens.znnInk,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
           Column(
             mainAxisSize: MainAxisSize.min,

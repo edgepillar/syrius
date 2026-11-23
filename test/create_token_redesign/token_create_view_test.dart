@@ -261,6 +261,35 @@ void main() {
                 direction == TextDirection.ltr ? balance.left : balance.right,
               );
               expect(fee.bottom, lessThan(balance.top));
+              final Finder name = _field('token_name_field');
+              final Finder symbol = _field('token_symbol_field');
+              final Finder symbolEditor = find.descendant(
+                of: symbol,
+                matching: find.byType(EditableText),
+              );
+              expect(tester.getRect(name).top, tester.getRect(symbol).top);
+              await tester.enterText(symbol, 'MOON');
+              await tester.pump();
+              final FocusNode focus = tester.widget<EditableText>(
+                symbolEditor,
+              ).focusNode;
+              expect(focus.hasFocus, isTrue);
+              tester.view.physicalSize = const Size(640, 380);
+              await tester.pump();
+              final Rect compactName = tester.getRect(name);
+              final Rect compactSymbol = tester.getRect(symbol);
+              expect(compactName.bottom, lessThan(compactSymbol.top));
+              expect(compactName.left, compactSymbol.left);
+              expect(compactName.width, compactSymbol.width);
+              expect(
+                tester.widget<EditableText>(symbolEditor).focusNode,
+                same(focus),
+              );
+              expect(focus.hasFocus, isTrue);
+              expect(tester.widget<TextField>(symbol).controller!.text, 'MOON');
+              tester.view.physicalSize = const Size(1100, 380);
+              await tester.pump();
+              expect(tester.getRect(name).top, tester.getRect(symbol).top);
               expect(tester.takeException(), isNull);
               await _options(tester);
               expect(_active(tester, 'options'), isTrue);
