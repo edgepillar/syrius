@@ -13,6 +13,7 @@ class TokenCreateFrame extends StatefulWidget {
     required this.body,
     required this.label,
     this.onSubmit,
+    this.actionGap,
     this.onBack,
     this.busy = false,
     super.key,
@@ -26,6 +27,9 @@ class TokenCreateFrame extends StatefulWidget {
 
   /// The primary action's concise current meaning.
   final String label;
+
+  /// Optional spacing between the step body and its action row.
+  final double? actionGap;
 
   /// Null until this step has enough valid facts.
   final VoidCallback? onSubmit;
@@ -133,7 +137,9 @@ class _TokenCreateFrameState extends State<TokenCreateFrame> {
                     ),
                   ),
                 ),
-                SizedBox(height: tokens.registrationActionGap),
+                SizedBox(
+                  height: widget.actionGap ?? tokens.registrationActionGap,
+                ),
                 Wrap(
                   spacing: tokens.inlineGap,
                   runSpacing: tokens.inlineGap,

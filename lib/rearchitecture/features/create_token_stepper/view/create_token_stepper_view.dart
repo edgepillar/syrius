@@ -199,12 +199,16 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
       constraints: BoxConstraints(minHeight: tokens.fieldHeight),
       contentPadding: tokens.transferFieldPadding,
     );
+    final OutlineInputBorder filledBorder = kOutlineInputBorder.copyWith(
+      borderSide: BorderSide(color: tokens.faint),
+    );
     final bool hasSymbol = _symbol.text.isNotEmpty;
     final String? symbolError = hasSymbol
         ? Validations.tokenSymbol(_symbol.text)
         : null;
     return TokenCreateFrame(
       key: const Key('token_create_details'),
+      actionGap: tokens.registrationActionGap + tokens.inlineGap,
       active: _step == 0 && _current,
       busy: _busy,
       label: context.l10n.continueText,
@@ -228,6 +232,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
                     controller: _name,
                     style: tokens.bodyText,
                     decoration: detailsInput.copyWith(
+                      enabledBorder: _name.text.isEmpty ? null : filledBorder,
                       errorText: _name.text.isEmpty
                           ? null
                           : Validations.tokenName(_name.text),
@@ -246,6 +251,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
                     textDirection: TextDirection.ltr,
                     style: tokens.dataText,
                     decoration: detailsInput.copyWith(
+                      enabledBorder: hasSymbol ? filledBorder : null,
                       errorText: symbolError,
                       suffixIconConstraints: const BoxConstraints.tightFor(
                         width: 36,

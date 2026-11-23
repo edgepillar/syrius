@@ -343,12 +343,31 @@ void main() {
         InputDecoration symbolDecoration() =>
             tester.widget<TextField>(symbol).decoration!;
         expect(symbolDecoration().suffixIcon, isNull);
+        expect(symbolDecoration().enabledBorder, isNull);
+        final AppTokens tokens = AppTokens.of(tester.element(symbol));
+        final Finder note = find.text(
+          AppLocalizations.of(tester.element(symbol))!.tokenCreateDomainNote,
+        );
+        expect(
+          tester.getTopLeft(_action('details')).dy -
+              tester.getBottomLeft(note).dy,
+          closeTo(tokens.registrationActionGap + tokens.inlineGap, 0.01),
+        );
         await tester.enterText(symbol, '!');
         await tester.pump();
         expect(symbolDecoration().errorText, isNotNull);
         expect(symbolDecoration().suffixIcon, isNull);
         await _details(tester);
         expect(symbolDecoration().errorText, isNull);
+        for (final String key in <String>[
+          'token_name_field', 'token_symbol_field',
+        ]) {
+          final InputDecoration decoration =
+              tester.widget<TextField>(_field(key)).decoration!;
+          expect(decoration.enabledBorder?.borderSide.color, tokens.faint);
+        }
+        expect(tester.widget<TextField>(_field('token_domain_field'))
+            .decoration?.enabledBorder, isNull);
         expectMockupSymbol(
           tester,
           within: symbol,
