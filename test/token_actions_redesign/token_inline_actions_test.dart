@@ -272,6 +272,17 @@ void main() {
                 tester.element(find.byType(TokenInlineActions)),
               );
               expect(field.style!.fontFamily, tokens.monoFontFamily);
+              expect(field.decoration!.suffixStyle!.color, tokens.pinkInk);
+              final Finder max = find.descendant(
+                of: find.byKey(const Key('mint_amount_field')),
+                matching: find.widgetWithText(TextButton, 'Max'),
+              );
+              final TextButton maxButton = tester.widget<TextButton>(max);
+              expect(maxButton.onPressed, isNotNull);
+              expect(
+                maxButton.style!.foregroundColor!.resolve(<WidgetState>{}),
+                tokens.znnInk,
+              );
               final InputBorder occupied = kOutlineInputBorder.copyWith(
                 borderSide: BorderSide(color: tokens.faint),
               );

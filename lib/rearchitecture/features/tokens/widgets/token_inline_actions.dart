@@ -749,6 +749,13 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
         !_rearming &&
         !held;
     final bool isMint = mode == TokenActionMode.mint;
+    void useMax() {
+      if (current()) amount.text = max.addDecimals(token.decimals);
+    }
+
+    final VoidCallback? onMax = current() && max > BigInt.zero && !_submitting
+        ? useMax
+        : null;
     final OutlineInputBorder filledMintBorder = kOutlineInputBorder.copyWith(
       borderSide: BorderSide(color: tokens.faint),
     );
@@ -776,16 +783,11 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
         hintText: context.l10n.amount,
         suffixText: token.symbol,
         suffixStyle: tokens.dataText.copyWith(
-          color: tokens.faint,
+          color: isMint ? tokens.pinkInk : tokens.faint,
         ),
-        suffixIcon: TextButton(
-          onPressed: current() && max > BigInt.zero && !_submitting
-              ? () {
-                  if (current()) amount.text = max.addDecimals(token.decimals);
-                }
-              : null,
-          child: Text(context.l10n.max),
-        ),
+        suffixIcon: isMint
+            ? CardFieldAction(label: context.l10n.max, onPressed: onMax)
+            : TextButton(onPressed: onMax, child: Text(context.l10n.max)),
       ),
       onSubmitted: (_) {
         if (current()) unawaited(_submit(mode, epoch, modeEpoch, current));
