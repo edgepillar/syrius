@@ -288,6 +288,15 @@ void main() {
         final Finder sharedRow = find.byKey(
           const ValueKey<String>('about_licence_zzz-shared'),
         );
+        final Finder listScrollable = find.descendant(
+          of: find.byKey(const Key('about_licences_list')),
+          matching: find.byType(Scrollable),
+        );
+        await tester.scrollUntilVisible(
+          find.byKey(const Key('about_licence_mixed_toggle')),
+          -160,
+          scrollable: listScrollable,
+        );
         expect(sharedRow, findsNothing);
         await _open(tester, 'mixed');
         expect(laterParagraphReads, 1);
@@ -295,14 +304,10 @@ void main() {
           find.text('A later genuine notice is still readable.'),
           findsOneWidget,
         );
-        await _open(tester, 'mixed');
         await tester.scrollUntilVisible(
           sharedRow,
           250,
-          scrollable: find.descendant(
-            of: find.byKey(const Key('about_licences_list')),
-            matching: find.byType(Scrollable),
-          ),
+          scrollable: listScrollable,
           maxScrolls: 12,
         );
         expect(find.descendant(of: sharedRow, matching: known), findsOneWidget);
