@@ -1,0 +1,20 @@
+{
+  "actual": {
+    "25-token-new-dark": {
+      "archive_member": "25-token-new-dark.png",
+      "archive_sha256": "d6f06a9df4ff356bc7d57c6bee9a7baf30f796888c567e0efaf90b0349582a5a",
+      "catalog_family": "details",
+      "path": "d6f06a9df4ff356bc7d57c6bee9a7baf30f796888c567e0efaf90b0349582a5a",
+      "sha256": "3490c3aff2c31fa36b18f1db202e8a82fba4c36f4b8372287376be37ffde8a3a",
+      "source_sha": "1e189c74724aba6c5c201463c4424a0dc6fa7b87"
+    },
+    "25-token-new-light": {
+      "archive_member": "25-token-new-light.png",
+      "archive_sha256": "d6f06a9df4ff356bc7d57c6bee9a7baf30f796888c567e0efaf90b0349582a5a",
+      "catalog_family": "details",
+      "path": "d6f06a9df4ff356bc7d57c6bee9a7baf30f796888c567e0efaf90b0349582a5a",
+      "sha256": "fe0b8f061efec55ff13e4ebdb56188c364c1e87643aa54e92dbbf520f07d22b8",
+      "source_sha": "1e189c74724aba6c5c201463c4424a0dc6fa7b87"
+    }
+  }
+}
