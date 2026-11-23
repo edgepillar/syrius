@@ -698,6 +698,10 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
     final Duration remaining = boundary.difference(_now);
     final bool open = _revocable(snapshot);
     final bool waiting = !snapshot.isRevocable && remaining > Duration.zero;
+    final String clock = FormatUtils.formatCountdownClock(
+      context.l10n,
+      remaining,
+    );
     final Widget countdown = Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -715,21 +719,22 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
           ),
         SizedBox(width: tokens.fieldLabelGap),
         Flexible(
-          child: Ltr(
-            child: Text(
-              FormatUtils.formatCountdownClock(context.l10n, remaining),
-              style: waiting
-                  ? tokens.dataText.copyWith(fontSize: 12, color: tokens.qsrInk)
-                  : tokens.dataText,
-            ),
-          ),
+          child: waiting
+              ? Text(
+                  context.l10n.nodesInDuration(
+                    FormatUtils.formatDuration(context.l10n, remaining),
+                  ),
+                  style: tokens.captionText.copyWith(color: tokens.qsrInk),
+                )
+              : Ltr(child: Text(clock, style: tokens.dataText)),
         ),
       ],
     );
+    final String hint = snapshot.isRevocable
+        ? context.l10n.revocationWindowOpen
+        : context.l10n.untilRevocationWindowOpens;
     return Tooltip(
-      message: snapshot.isRevocable
-          ? context.l10n.revocationWindowOpen
-          : context.l10n.untilRevocationWindowOpens,
+      message: waiting ? '$hint ($clock)' : hint,
       child: waiting
           ? Align(
               alignment: AlignmentDirectional.centerStart,

@@ -807,7 +807,13 @@ void main() {
   testWidgets('a closed revocation window cannot ask either question', (
     WidgetTester tester,
   ) async {
-    await _mount(tester, snapshot: _snapshot(revocable: false));
+    await _mount(
+      tester,
+      snapshot: _snapshot(
+        revocable: false,
+        boundary: _time.add(const Duration(days: 12, hours: 4, minutes: 20)),
+      ),
+    );
     final Finder countdown = find.byKey(
       const Key('pillar_owner_revocation_waiting'),
     );
@@ -818,8 +824,17 @@ void main() {
       AppTokens.dark.qsr.withValues(alpha: 0.14),
     );
     expect(tester.getSize(countdown).height, 26);
+    final Finder caption = find.descendant(
+      of: countdown,
+      matching: find.text('in 12 d 4 h'),
+    );
+    expect(caption, findsOneWidget);
+    final TextStyle captionStyle = tester.widget<Text>(caption).style!;
+    expect(captionStyle.fontFamily, AppTokens.dark.sansFontFamily);
+    expect(captionStyle.fontSize, 12);
+    expect(captionStyle.color, AppTokens.dark.qsrInk);
     expect(
-      find.descendant(of: countdown, matching: find.text('01:00:00')),
+      find.byTooltip('Until revocation window opens (12 d 04:20:00)'),
       findsOneWidget,
     );
     final OutlinedButton disassemble = tester.widget<OutlinedButton>(
