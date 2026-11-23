@@ -248,12 +248,14 @@ class HolderLabelTests(unittest.TestCase):
 
 
 class SeededPixelComparisonTests(unittest.TestCase):
-    def test_pillar_comparison_pairs_both_themes_for_each_state(self):
+    def test_restored_comparison_pairs_both_themes_for_each_state(self):
         def reference(path, mode):
             self.assertEqual(mode, 'rb')
             return io.BytesIO(path.name.encode())
 
         for schema, screen, region, bounds, samples in (
+            (inspect.catalog.STAKE_DRAFT_SCHEMA, '14-staking-new',
+             'amount_and_duration', (60, 118, 1280, 210), None),
             (inspect.catalog.PILLAR_SPAWN_SCHEMA, '19-spawn',
              'name_and_addresses', (360, 85, 970, 460), None),
             (inspect.catalog.PILLAR_DONE_SCHEMA, '20-pillar-done',

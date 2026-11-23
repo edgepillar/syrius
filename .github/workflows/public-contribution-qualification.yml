@@ -1296,6 +1296,7 @@ jobs:
             /tools/devnet/lab/
             /harness/bin/
             /mockups/redesign/shots/13-staking-*.png
+            /mockups/redesign/shots/14-staking-new-*.png
             /mockups/redesign/shots/19-spawn-*.png
             /mockups/redesign/shots/07-send-rest-*.png
             /mockups/redesign/shots/20-pillar-done-*.png
