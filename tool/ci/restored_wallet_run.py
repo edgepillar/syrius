@@ -705,7 +705,8 @@ def _record_copied_failure_probe(trace, runtime, guard, error, *, stack_debug):
 
 
 def wallet_observation(value):
-    checkpoint.need(type(value) is dict and set(value) == OBSERVATION
+    checkpoint.need(type(value) is dict
+        and set(value) in (OBSERVATION, OBSERVATION | {'recent_recipient_history'})
         and type(value['schema']) is int and value['schema'] == 1
         and value['scope'] == 'restored_lab_wallet_observation'
         and type(value['chain']) is int and value['chain'] == 321
@@ -713,6 +714,9 @@ def wallet_observation(value):
         and type(value['selected_index']) is int and value['selected_index'] == 1
         and all(value[key] is True for key in OBSERVATION -
             {'schema', 'scope', 'chain', 'members', 'selected_index'}))
+    if 'recent_recipient_history' in value:
+        checkpoint.need(type(value['recent_recipient_history']) is str
+            and value['recent_recipient_history'] in ('observed', 'absent', 'unavailable'))
     return dict(value)
 
 

@@ -253,6 +253,15 @@ class PolicyTests(unittest.TestCase):
                 ('journal_consistent', False), ('observation_stable', False)):
             with self.subTest(field=field), self.assertRaises(restored.checkpoint.Refused):
                 restored.wallet_observation(dict(wallet_observation(), **{field: value}))
+        for status in ('observed', 'absent', 'unavailable'):
+            with self.subTest(recipient_history=status):
+                observation = dict(wallet_observation(), recent_recipient_history=status)
+                self.assertEqual(restored.wallet_observation(observation), observation)
+                self.assertEqual(restored.project(dict(completed(), wallet=observation))['wallet'],
+                                 observation)
+        for value in (True, None, 'editor text', {'address': 'private'}):
+            with self.subTest(invalid_history=value), self.assertRaises(restored.checkpoint.Refused):
+                restored.wallet_observation(dict(wallet_observation(), recent_recipient_history=value))
 
     def test_failed_forced_or_unclosed_actors_cannot_be_healed(self):
         for change in (dict(application_exit=None), dict(application_exit=False),

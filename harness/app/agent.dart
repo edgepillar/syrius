@@ -61,6 +61,7 @@ import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_success_sc
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/welcome_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/splash_screen.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
+import 'package:zenon_syrius_wallet_flutter/services/contacts_store.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
@@ -2022,12 +2023,30 @@ class HarnessAgent {
         throw const SeedRefused('restored-original-send-unconfirmed');
       }
       if (before.members.length == 2) _labRestoredAddresses = before;
+      String recipientHistory = 'unavailable';
+      try {
+        final ContactsStore contacts = ContactsStore.instance;
+        if (contacts.isPersistent && !contacts.hasPendingWrite) {
+          final String sender = before.members[1];
+          final String recipient = before.members[0];
+          final bool hasRecent = contacts.recent(sender).any(
+            (RecentRecipient entry) => entry.address == recipient,
+          );
+          recipientHistory = hasRecent &&
+                  contacts.lastSent(recipient, from: sender) != null
+              ? 'observed'
+              : 'absent';
+        }
+      } on Object {
+        // The address book is optional. Retain only the fixed status.
+      }
       return <String, Object?>{'receipt': <String, Object>{
         'schema': 1, 'scope': 'restored_lab_wallet_observation', 'chain': 321,
         'members': before.members.length, 'selected_index': 1,
         'membership_same': true, 'selection_saved': true,
         'wallet_path_mapped': true, 'original_send_confirmed': true,
         'journal_consistent': true, 'observation_stable': true,
+        'recent_recipient_history': recipientHistory,
       }};
     } on Object {
       throw HarnessError('restored-lab-observation-refused');
