@@ -496,10 +496,23 @@ void main() {
     );
     expect(tester.takeException(), isNull);
     expect(find.byKey(const Key('swap_action_scroll')), findsOneWidget);
-    final TextField field = tester.widget<TextField>(
-      find.byKey(const Key('swap_amount_input')),
-    );
+    final Finder editor = find.byKey(const Key('swap_amount_input'));
+    final TextField field = tester.widget<TextField>(editor);
+    final Finder grouped = find.text('9,007,199,254,740,993.12345678');
     expect(field.textDirection, TextDirection.ltr);
+    expect(grouped, findsOneWidget);
+    expect(tester.widget<Text>(grouped).textDirection, TextDirection.ltr);
+    expect(field.controller, same(amount));
+    await tester.ensureVisible(editor);
+    await tester.tap(editor);
+    await tester.pump();
+    expect(field.focusNode!.hasFocus, isTrue);
+    expect(grouped, findsNothing);
+    expect(amount.text, '9007199254740993.12345678');
+    field.focusNode!.unfocus();
+    await tester.pump();
+    expect(grouped, findsOneWidget);
+    expect(amount.text, '9007199254740993.12345678');
     await tester.drag(
       find.byKey(const Key('swap_action_scroll')),
       const Offset(0, -400),

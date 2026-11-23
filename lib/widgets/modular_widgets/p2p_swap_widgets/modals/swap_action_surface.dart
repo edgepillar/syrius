@@ -396,6 +396,105 @@ class SwapChoice extends StatelessWidget {
   }
 }
 
+class _SwapAmountEditor extends StatefulWidget {
+  const _SwapAmountEditor({
+    required this.controller,
+    required this.decimals,
+    required this.style,
+    required this.showGrouping,
+    this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final int decimals;
+  final TextStyle style;
+  final bool showGrouping;
+  final ValueChanged<String>? onChanged;
+
+  @override
+  State<_SwapAmountEditor> createState() => _SwapAmountEditorState();
+}
+
+class _SwapAmountEditorState extends State<_SwapAmountEditor> {
+  final FocusNode _focus = FocusNode();
+
+  String? _groupedText() {
+    if (_focus.hasFocus || !widget.showGrouping) return null;
+    final BigInt? amount = swapAmount(widget.controller.text, widget.decimals);
+    if (amount == null) return null;
+    final String text = splitAmount(amount, widget.decimals).$1;
+    return text.contains(',') ? text : null;
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: Listenable.merge(<Listenable>[_focus, widget.controller]),
+    builder: (BuildContext context, _) {
+      final String? grouped = _groupedText();
+      return Stack(
+        alignment: AlignmentDirectional.centerStart,
+        children: <Widget>[
+          // Retain the exact editable value, selection and accessibility node.
+          Opacity(
+            opacity: grouped == null ? 1 : 0,
+            alwaysIncludeSemantics: true,
+            child: TextField(
+              key: const Key('swap_amount_input'),
+              focusNode: _focus,
+              controller: widget.controller,
+              enabled: widget.onChanged != null,
+              onChanged: widget.onChanged,
+              style: widget.style,
+              textDirection: TextDirection.ltr,
+              textAlign: ltrTextAlign(context),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              maxLength: 1024,
+              decoration: const InputDecoration(
+                hintText: '0',
+                counterText: '',
+                isDense: true,
+                isCollapsed: true,
+                filled: false,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ),
+          if (grouped != null)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: ExcludeSemantics(
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      grouped,
+                      style: widget.style,
+                      textDirection: TextDirection.ltr,
+                      maxLines: 1,
+                      overflow: TextOverflow.fade,
+                      softWrap: false,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
+    },
+  );
+}
+
 /// Exact amounts and dollar estimates share the two panes of Start and Join.
 class SwapAmountPane extends StatelessWidget {
   /// Displays exact entered or proven amounts without inventing unavailable
@@ -479,28 +578,12 @@ class SwapAmountPane extends StatelessWidget {
                   decimals: token.decimals,
                   style: tokens.swapActionAmountText,
                 )
-        : TextField(
-            key: const Key('swap_amount_input'),
-            controller: controller,
-            enabled: onChanged != null,
-            onChanged: onChanged,
+        : _SwapAmountEditor(
+            controller: controller!,
+            decimals: token.decimals,
             style: tokens.swapActionAmountText,
-            textDirection: TextDirection.ltr,
-            textAlign: ltrTextAlign(context),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            maxLength: 1024,
-            decoration: const InputDecoration(
-              hintText: '0',
-              counterText: '',
-              isDense: true,
-              isCollapsed: true,
-              filled: false,
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              disabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              contentPadding: EdgeInsets.zero,
-            ),
+            showGrouping: visible && !hideBalances,
+            onChanged: onChanged,
           );
     final Widget? available = balance == null
         ? null
