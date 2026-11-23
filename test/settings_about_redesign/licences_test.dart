@@ -304,12 +304,12 @@ void main() {
           find.text('A later genuine notice is still readable.'),
           findsOneWidget,
         );
-        await tester.scrollUntilVisible(
-          sharedRow,
-          250,
-          scrollable: listScrollable,
-          maxScrolls: 12,
-        );
+        final ScrollPosition position = list.controller!.position;
+        for (int attempt = 0; attempt < 4 && sharedRow.evaluate().isEmpty;
+            attempt++) {
+          position.jumpTo(position.maxScrollExtent);
+          await tester.pump();
+        }
         expect(find.descendant(of: sharedRow, matching: known), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
