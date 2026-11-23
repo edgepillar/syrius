@@ -62,6 +62,11 @@ Finder _action(String step) => find.descendant(
   matching: find.byType(OutlinedButton),
 );
 
+Finder _back(String step) => find.descendant(
+  of: _frame(step),
+  matching: find.byKey(const Key('token_create_back')),
+);
+
 bool _active(WidgetTester tester, String name) => tester
     .widget<TokenCreateFrame>(
       _frame(name, offstage: true),
@@ -358,10 +363,7 @@ void main() {
         final TextStyle noteStyle = tester.widget<Text>(note).style!;
         expect(noteStyle.fontSize, 12.5);
         expect(noteStyle.color, tokens.faint);
-        final Finder back = find.descendant(
-          of: _frame('details'),
-          matching: find.byKey(const Key('token_create_back')),
-        );
+        final Finder back = _back('details');
         final OutlinedButton backButton = tester.widget<OutlinedButton>(back);
         expect(backButton.onPressed, isNull);
         expect(
@@ -744,12 +746,7 @@ void main() {
           find.byType(CreateTokenStepperView),
         );
         await _issue(tester);
-        await tester.tap(
-          find.descendant(
-            of: _frame('issue'),
-            matching: find.byType(TextButton),
-          ),
-        );
+        await tester.tap(_back('issue'));
         await _clock(tester);
         expect(_active(tester, 'options'), isTrue);
         await fixture.preflight.refresh();
