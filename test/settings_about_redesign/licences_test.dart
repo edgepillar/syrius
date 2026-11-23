@@ -44,6 +44,21 @@ Future<void> _open(WidgetTester tester, String package) async {
   await tester.pump(const Duration(milliseconds: 240));
 }
 
+String _packageLicence(String name) {
+  final File packageConfig = File('.dart_tool/package_config.json');
+  final Map<String, Object?> config =
+      jsonDecode(packageConfig.readAsStringSync()) as Map<String, Object?>;
+  final List<Object?> packages = config['packages']! as List<Object?>;
+  final Map<String, Object?> package = packages
+      .whereType<Map<String, Object?>>()
+      .singleWhere((Map<String, Object?> entry) => entry['name'] == name);
+  final String root = package['rootUri']! as String;
+  final Uri packageRoot = packageConfig.absolute.uri.resolve(
+    root.endsWith('/') ? root : '$root/',
+  );
+  return File.fromUri(packageRoot.resolve('LICENSE')).readAsStringSync();
+}
+
 void main() {
   for (final (bool, bool, double) variant in <(bool, bool, double)>[
     (false, false, 1),
@@ -316,28 +331,63 @@ void main() {
     );
   }
 
+  aboutTestWidgets('pinned late packages show their licence identifiers', (
+    WidgetTester tester,
+  ) async {
+    prepareAboutViewport(tester);
+    const Map<String, String> identifiers = <String, String>{
+      'wakelock_plus': 'BSD-3-Clause',
+      'wakelock_plus_platform_interface': 'BSD-3-Clause',
+      'wallet': 'MIT',
+      'watcher': 'BSD-3-Clause',
+      'web': 'BSD-3-Clause',
+      'web3dart': 'MIT',
+      'web_socket': 'BSD-3-Clause',
+      'web_socket_channel': 'BSD-3-Clause',
+      'webkit_inspection_protocol': 'BSD-3-Clause',
+    };
+    await tester.pumpWidget(
+      aboutHost(
+        Licences(
+          loadLicences: () => Stream<LicenseEntry>.fromIterable(
+            <LicenseEntry>[
+              for (final String name in identifiers.keys)
+                LicenseEntryWithLineBreaks(
+                  <String>[name],
+                  _packageLicence(name),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    final Finder list = find.byKey(const Key('about_licences_list'));
+    final Finder scroll = find.descendant(
+      of: list,
+      matching: find.byType(Scrollable),
+    );
+    final List<String> names = identifiers.keys.toList()..sort();
+    for (final String name in names) {
+      final Finder row = find.byKey(ValueKey<String>('about_licence_$name'));
+      await tester.scrollUntilVisible(
+        row,
+        100,
+        scrollable: scroll,
+      );
+      expect(
+        find.descendant(of: row, matching: find.text(identifiers[name]!)),
+        findsOneWidget,
+      );
+    }
+    expect(tester.takeException(), isNull);
+  });
+
   aboutTestWidgets('bundled yapf notices share one licence identifier', (
     WidgetTester tester,
   ) async {
     prepareAboutViewport(tester);
-    // Use the SDK source from pub's package configuration. The test embedder
-    // can load an already compiled kernel without resolving package URIs.
-    final File packageConfig = File('.dart_tool/package_config.json');
-    final Map<String, Object?> config =
-        jsonDecode(packageConfig.readAsStringSync()) as Map<String, Object?>;
-    final List<Object?> packages = config['packages']! as List<Object?>;
-    final Map<String, Object?> skyEngine = packages
-        .whereType<Map<String, Object?>>()
-        .singleWhere(
-          (Map<String, Object?> package) => package['name'] == 'sky_engine',
-        );
-    final String root = skyEngine['rootUri']! as String;
-    final Uri engineRoot = packageConfig.absolute.uri.resolve(
-      root.endsWith('/') ? root : '$root/',
-    );
-    final String bundle = File.fromUri(
-      engineRoot.resolve('LICENSE'),
-    ).readAsStringSync();
+    final String bundle = _packageLicence('sky_engine');
     final List<LicenseEntry> notices = <LicenseEntry>[];
     for (final String section in bundle.split('\n${'-' * 80}\n')) {
       final int split = section.indexOf('\n\n');

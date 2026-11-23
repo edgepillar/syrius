@@ -23,6 +23,12 @@ _reviewedNoticeTypes = <int, Map<String, String>>{
     '42ebf0d3ee784ee63ffc6baa96301fb701a23db21591bdedc5d836a30cf4fc33':
         'Apache-2.0',
   },
+  1048: <String, String>{
+    '9edc85f7d679391dfb374bfd2398f4852e791e5c82aed54f246918e52aa8ec81': 'MIT',
+  },
+  1070: <String, String>{
+    'f22a776c557978b491d583a7483a24314e4fa51a19c386c4b5617a8ef5946d24': 'MIT',
+  },
   1082: <String, String>{
     '7a1c6b350f199a0774b3244ec6616af832569ad25d7e8eeb12a944b33d31899f': 'MIT',
     '441207d57c5ad42783aa1a1d0e4d59f7af08d332e3a03ddd2ebbcdf1495f3e53': 'MIT',
@@ -37,8 +43,22 @@ _reviewedNoticeTypes = <int, Map<String, String>>{
   1102: <String, String>{
     '3de266935886bc204b4dc4b12e511bcecd7fd7aff3b6b44ed08b87d7a5d8f9e9': 'MIT',
   },
+  1451: <String, String>{
+    '055e8d59d98eec50f62953071daa1ae44ddfa80d43eb76e11d43b0b285656031':
+        'BSD-3-Clause',
+    '38dd2067d2d31ecdcaa3cf262bbadc70edb397fbef64206ac7d5f3f2b53b4952':
+        'BSD-3-Clause',
+    '5f14aa861adda1518a6309d8daae54147b26b4616002953934a90738d54b08c5':
+        'BSD-3-Clause',
+    '78c350049541fea91b2870c234af89477cf9eaac8f65ab987236bd7c4f6d0238':
+        'BSD-3-Clause',
+  },
   1453: <String, String>{
     '1f478d50351c883e515dc1ba2df28b34b6559345e989f7ceb5a4da2ff42fd33e':
+        'BSD-3-Clause',
+  },
+  1459: <String, String>{
+    'd5e68254e53a627d1e872853a1861d68c5d9048ae9e962759eca2443d61906fb':
         'BSD-3-Clause',
   },
   1467: <String, String>{
@@ -53,6 +73,10 @@ _reviewedNoticeTypes = <int, Map<String, String>>{
     '4b526277a9e26ebb309f6f2ca366c02cc339508a0a5da0b4e7b118d63575ac5f':
         'BSD-3-Clause',
     'ee5cbcfafc145501b2164419c09881dd6855fb26a946e607846adb86355e8128':
+        'BSD-3-Clause',
+  },
+  1516: <String, String>{
+    '5e2bed4724def8fe337aaddd1902e67f31fce73e201c702722c79c4c4d216bda':
         'BSD-3-Clause',
   },
   4379: <String, String>{
