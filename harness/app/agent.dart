@@ -6047,7 +6047,13 @@ class HarnessAgent {
     try {
       return await artwork.capture<Map<String, Object?>>(
         frames: _captureFrames,
-        readback: () => _readShot(command),
+        readback: () async {
+          final String caret = _observePillarHeaderCaret();
+          return <String, Object?>{
+            ...await _readShot(command),
+            'pillarHeaderCaret': caret,
+          };
+        },
       );
     } on PillarReferenceArtworkRefused catch (error) {
       _pillarArtworkRefused = true;
@@ -6058,6 +6064,31 @@ class HarnessAgent {
       throw refusal(ReferenceArtworkFailureStage.owner);
     } finally {
       _pillarArtwork = null;
+    }
+  }
+
+  // Observe the focused editor's regular caret at the original readback
+  // boundary. The result contains no editor identity, text or selection.
+  String _observePillarHeaderCaret() {
+    try {
+      final EditableTextState? editor = _focusedEditable();
+      if (editor == null) return 'no_focused_editor';
+      final RenderEditable render = editor.renderEditable;
+      if (!render.attached || !render.hasSize) return 'unavailable';
+      final TextSelection? selection = render.selection;
+      if (!render.showCursor.value || (render.cursorColor?.a ?? 0) == 0 ||
+          selection == null || !selection.isValid || !selection.isCollapsed) {
+        return 'caret_inactive';
+      }
+      final Rect caret = MatrixUtils.transformRect(
+        render.getTransformTo(null),
+        render.getLocalRectForCaret(selection.extent),
+      );
+      if (!caret.isFinite || caret.isEmpty) return 'unavailable';
+      const Rect mark = Rect.fromLTWH(84, 36, 2, 24);
+      return caret.overlaps(mark) ? 'caret_overlaps' : 'caret_elsewhere';
+    } on Object {
+      return 'unavailable';
     }
   }
 

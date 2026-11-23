@@ -353,6 +353,14 @@ def capture_receipt(value):
     expected.update(screens=list(catalog_screens(schema)))
     if schema == TOKEN_HOLDER_SCHEMA:
         expected['positive_non_owner_holding'] = True
+    if schema == PILLAR_DONE_SCHEMA and 'pillar_header_caret' in value:
+        carets = value['pillar_header_caret']
+        need(type(carets) is dict and set(carets) == set(THEMES)
+             and all(type(status) is str and status in (
+                 'no_focused_editor', 'caret_inactive', 'caret_overlaps',
+                 'caret_elsewhere', 'unavailable') for status in carets.values()),
+             'CAPTURE_REFUSED')
+        expected['pillar_header_caret'] = carets
     if schema == FAMILY_SCHEMAS['home-zap-preview'] and 'spark_paint' in value:
         paint = value['spark_paint']
         need(type(paint) is dict and set(paint) == set(THEMES), 'CAPTURE_REFUSED')
@@ -616,6 +624,8 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id,
     result[script_field] = script_sha
     if include_image_pins:
         result['images'] = {row['file']: row['sha256'] for row in captures}
+    if schema == PILLAR_DONE_SCHEMA and 'pillar_header_caret' in value['capture']:
+        result['pillar_header_caret'] = value['capture']['pillar_header_caret']
     if schema == FAMILY_SCHEMAS['home-zap-preview']:
         result['presentation_fixture'] = 'sample_zap_message'
         if 'spark_paint' in value['capture']:

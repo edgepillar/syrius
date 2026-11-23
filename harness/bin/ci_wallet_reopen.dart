@@ -1407,6 +1407,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
     }
   }
 
+  final Map<String, String> pillarHeaderCarets = <String, String>{};
   final ScreenCapture capture = ScreenCapture(
     repository: Directory(cli.repo),
     restoredSeeded: true,
@@ -1424,6 +1425,17 @@ Future<Map<String, Object>> _captureSeededCatalog(
       final Map<String, dynamic> result = await cli.call(instance, command);
       await requireCurrent();
       if (holderShot) await observeNonOwnerHolding(command['theme']);
+      final Object? theme = command['theme'];
+      if (pillarDone && command['cmd'] == 'shot' && theme is String) {
+        final Object? status = result['pillarHeaderCaret'];
+        pillarHeaderCarets[theme] = switch (status) {
+          final String value when const <String>{
+            'no_focused_editor', 'caret_inactive', 'caret_overlaps',
+            'caret_elsewhere',
+          }.contains(value) => value,
+          _ => 'unavailable',
+        };
+      }
       return result;
     },
     prepareHome: pillarDone
@@ -1570,6 +1582,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
     'files': catalog.files, 'width': 1280, 'height': 780, 'scale': 1,
     'capture_returned': true,
     if (includeNonOwnerHolding) 'positive_non_owner_holding': true,
+    if (pillarDone) 'pillar_header_caret': pillarHeaderCarets,
   };
 }
 

@@ -73,6 +73,36 @@ def bundle(value, images, *, link=None):
 
 
 class DetailsCatalogTests(unittest.TestCase):
+    def test_pillar_header_caret_retains_only_two_fixed_observations(self):
+        value, original_images = fixture()
+        schema = details.PILLAR_DONE_SCHEMA
+        files = list(details.catalog_files(schema))
+        screens = list(details.catalog_screens(schema))
+        pins = {screens[0]: '9' * 64}
+        capture = dict(receipt(), schema=schema,
+            scope='restored_native_seeded_catalog_capture', screens=screens,
+            files=files)
+        self.assertEqual(details.capture_receipt(capture), capture)
+        carets = dict(dark='no_focused_editor', light='caret_elsewhere')
+        measured = dict(capture, pillar_header_caret=carets)
+        for invalid in (
+            {'dark': 'caret_inactive'},
+            {'dark': 'caret_overlaps', 'light': 'arbitrary editor value'},
+            {'dark': 'unavailable', 'light': True},
+        ):
+            with self.subTest(observation=invalid), self.assertRaises(details.Refused):
+                details.capture_receipt(dict(capture, pillar_header_caret=invalid))
+        with self.assertRaises(details.Refused):
+            details.capture_receipt(dict(receipt(), pillar_header_caret=carets))
+        value.update(schema=schema, capture=measured, script_sha256_by_screen=pins,
+            seed_receipts_sha256='6' * 64, scope='restored_native_seeded_catalog_capture_bundle',
+            captures=[dict(row, file=name)
+                      for row, name in zip(value['captures'][:2], files)])
+        raw, reference = bundle(value, dict(zip(files, original_images.values())))
+        inspected = details.unpack(raw, details.sha(raw), len(raw),
+            HEAD, TREE, RUN, reference, pins)
+        self.assertEqual(inspected['pillar_header_caret'], carets)
+
     def test_holder_receipt_requires_positive_non_owner_state(self):
         schema = details.RESTORED_FAMILIES['token-holder']
         value = dict(receipt(), schema=schema,
