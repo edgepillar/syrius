@@ -986,6 +986,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The compact switch's thumb diameter.
   double get settingsSwitchThumb => 16;
 
+  /// The dark ink of the thumb on the active switch track.
+  Color get settingsSwitchOnThumb => primaryButtonForeground;
+
   /// The thumb inset at either end of its track.
   double get settingsSwitchInset => 3;
 

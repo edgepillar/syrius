@@ -65,6 +65,9 @@ void main() {
         );
         final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
         final Finder thumb = find.byKey(const Key('settings_switch_thumb'));
+        Color? thumbColour() =>
+            (tester.widget<DecoratedBox>(thumb).decoration as BoxDecoration)
+                .color;
         final Finder track = find.byKey(const Key('settings_switch_track'));
         final Rect off = tester.getRect(thumb);
         final Rect input = tester.getRect(find.byType(SettingsSwitch));
@@ -76,6 +79,7 @@ void main() {
         expect(tester.getSize(track), const Size(38, 22));
         expect(off.size, const Size(16, 16));
         expect(_trackColour(tester), tokens.line);
+        expect(thumbColour(), tokens.foreground);
         await tester.tapAt(Offset(input.left + 1, input.center.dy));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 75));
@@ -89,6 +93,7 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 75));
         expect(_trackColour(tester), tokens.znn);
+        expect(thumbColour(), const Color(0xFF04140A));
         expect(tester.getTopLeft(thumb).dx - off.left, lessThan(16));
         await tester.pump(const Duration(milliseconds: 30, microseconds: 1));
         expect(tester.getTopLeft(thumb).dx - off.left, 16);

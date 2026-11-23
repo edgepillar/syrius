@@ -149,7 +149,7 @@ class _SettingsSwitchState extends State<SettingsSwitch>
                                       shape: BoxShape.circle,
                                       color: Color.lerp(
                                         tokens.foreground,
-                                        tokens.onZnn,
+                                        tokens.settingsSwitchOnThumb,
                                         _colour.value,
                                       ),
                                     ),
