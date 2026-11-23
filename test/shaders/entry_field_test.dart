@@ -309,7 +309,7 @@ void main() {
         expect(rasters, hasLength(1));
         expect(
           rasters.single.width * rasters.single.height,
-          lessThan(2152 * 1452 * 0.25),
+          lessThan(2152 * 1452 * 0.16),
         );
         expect(rasters.single.debugDisposed, isFalse);
         await tester.pump(const Duration(seconds: 20));

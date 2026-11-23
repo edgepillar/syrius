@@ -447,9 +447,9 @@ class _EntryFieldRaster {
   _EntryRasterImage? imageFor(_EntryRasterKey key) {
     if (_key == key) return _cached;
     dispose();
-    // The 60 px blur removes detail below this sampling scale. Keep the
-    // authored blur and drift in logical pixels and allocate fewer texels.
-    final double rasterScale = key.pixelRatio / 2;
+    // The blurred field has no sharp edges. Keep the logical blur and drift
+    // and sample the cached image at 40% of device resolution.
+    final double rasterScale = key.pixelRatio * 0.4;
     final DriftRasterRegion? region = driftRasterRegion(
       viewport: key.viewport, field: key.field, blurBleed: _entryBlurBleed,
       pixelRatio: rasterScale,
