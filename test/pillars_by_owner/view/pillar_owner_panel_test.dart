@@ -16,6 +16,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/balance_visibility.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 
+import '../../helpers/mockup_symbol.dart';
+
 final DateTime _time = DateTime.utc(2030);
 
 PillarOwnerSnapshot _snapshot({
@@ -278,6 +280,27 @@ void main() {
           expect(
             leading.dx,
             rtl ? greaterThan(trailing.dx) : lessThan(trailing.dx),
+          );
+        }
+        for (final (PillarOwnerAction action, String symbol)
+            in <(PillarOwnerAction, String)>[
+          (PillarOwnerAction.update, 'edit'),
+          (PillarOwnerAction.depositQsr, 'down'),
+          (PillarOwnerAction.withdrawQsr, 'up'),
+          (PillarOwnerAction.revokeConfirmed, 'trash'),
+        ]) {
+          final Finder button = _button(action);
+          expect(tester.getSize(button).height, closeTo(30, .01));
+          expectMockupSymbol(tester, within: button, symbol: symbol, size: 14);
+        }
+        final Finder copies = find.byTooltip('Copy');
+        expect(copies, findsNWidgets(2));
+        for (int index = 0; index < 2; index++) {
+          expectMockupSymbol(
+            tester,
+            within: copies.at(index),
+            symbol: 'copy',
+            size: 12,
           );
         }
         expect(tester.takeException(), isNull);

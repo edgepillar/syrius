@@ -2155,6 +2155,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Owner actions keep their column separate from values.
   double get pillarOwnerActionsWidth => 170;
 
+  /// The owner strip places Collect 8 px inside its standard 28 px gap.
+  double get pillarOwnerCollectGap => 20;
+
   /// The inline owner panel follows the Nodes card inset.
   EdgeInsetsDirectional get pillarOwnerPanelPadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 18, vertical: 16);

@@ -132,7 +132,7 @@ class ReaderTests(unittest.TestCase):
 
     def test_details_comparison_pairs_each_numbered_capture_with_its_reference(self):
         screens = ('08-send-warn', '10-receive-qr', '11-zap-form', '22-plasma-fuse',
-                   '37-set-licences', '27-swap-start', '38-set-originals')
+                   '37-set-licences', '17-pillar-mine', '27-swap-start', '38-set-originals')
         names = [f'{screen}-{theme}.png' for screen in screens for theme in ('dark', 'light')]
         raw = packed([(name, name.encode(), stat.S_IFREG) for name in names])
         reference_dir = Path('references')
@@ -149,8 +149,11 @@ class ReaderTests(unittest.TestCase):
         send = comparisons[0]['region_bounds']
         self.assertEqual(send['recipient_and_warning'], (320, 80, 1000, 374))
         self.assertEqual(send['amount_and_action'], (320, 374, 1000, 550))
-        for row in comparisons[1:-2]:
+        for row in comparisons[1:-3]:
             self.assertEqual(row['region_bounds']['content'], (60, 32, 1280, 724))
+        owner = comparisons[-3]['region_bounds']
+        self.assertEqual(owner['owner_strip'], (60, 32, 1280, 118))
+        self.assertEqual(owner['owner_actions'], (1075, 118, 1280, 294))
         swap = comparisons[-2]['region_bounds']
         self.assertEqual(swap['amount_panes'], (400, 169, 880, 428))
         self.assertEqual(swap['footer'], (400, 590, 880, 661))

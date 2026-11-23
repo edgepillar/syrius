@@ -283,7 +283,9 @@ class _PillarOwnerStrip extends StatelessWidget {
         nodesRewardsFigure(context, state: rewards),
       ],
       figureAction: Padding(
-        padding: EdgeInsetsDirectional.only(start: tokens.pageGap),
+        padding: EdgeInsetsDirectional.only(
+          start: tokens.pillarOwnerCollectGap,
+        ),
         child: PillarCollectAction(enabled: hasNodesRewards(rewards)),
       ),
       actions: <Widget>[

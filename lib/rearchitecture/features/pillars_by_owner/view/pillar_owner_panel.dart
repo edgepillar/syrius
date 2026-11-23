@@ -679,7 +679,11 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
                     unawaited(Clipboard.setData(ClipboardData(text: address)));
                   }
                 : null,
-            icon: Icon(Icons.copy_outlined, color: tokens.faint),
+            icon: ShellSymbol(
+              'copy',
+              size: tokens.inlineGlyphSize,
+              color: tokens.faint,
+            ),
           ),
         ),
       ],
@@ -753,22 +757,22 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
     int epoch,
   ) {
     final AppTokens tokens = AppTokens.of(context);
-    final List<(PillarOwnerAction, IconData, String)> actions =
-        <(PillarOwnerAction, IconData, String)>[
-          (PillarOwnerAction.update, Icons.edit_outlined, context.l10n.update),
+    final List<(PillarOwnerAction, String, String)> actions =
+        <(PillarOwnerAction, String, String)>[
+          (PillarOwnerAction.update, 'edit', context.l10n.update),
           (
             PillarOwnerAction.depositQsr,
-            Icons.south,
+            'down',
             context.l10n.pillarOwnerDepositQsr,
           ),
           (
             PillarOwnerAction.withdrawQsr,
-            Icons.north,
+            'up',
             context.l10n.pillarOwnerWithdrawQsr,
           ),
           (
             PillarOwnerAction.revokeConfirmed,
-            Icons.delete_outline,
+            'trash',
             context.l10n.pillarOwnerDisassemble,
           ),
         ];
@@ -786,11 +790,11 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
 
   Widget _actionButton(
     BuildContext context,
-    (PillarOwnerAction, IconData, String) item,
+    (PillarOwnerAction, String, String) item,
     PillarOwnerSnapshot snapshot,
     int epoch,
   ) {
-    final (PillarOwnerAction action, IconData icon, String label) = item;
+    final (PillarOwnerAction action, String icon, String label) = item;
     final AppTokens tokens = AppTokens.of(context);
     final bool enabled = _canStart(action, snapshot, epoch);
     final bool destructive = action == PillarOwnerAction.revokeConfirmed;
@@ -810,9 +814,11 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
       minimumSize: WidgetStatePropertyAll<Size>(
         Size(0, tokens.compactButtonHeight),
       ),
-      padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
-        EdgeInsetsDirectional.symmetric(horizontal: tokens.inlineGap),
+      padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+        // Include the one-pixel outline in the reference 12 px inset.
+        EdgeInsetsDirectional.symmetric(horizontal: 13),
       ),
+      visualDensity: VisualDensity.standard,
       textStyle: WidgetStatePropertyAll<TextStyle>(tokens.compactText),
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
     );
@@ -826,7 +832,7 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
           onPressed: enabled
               ? () => unawaited(_runAction(action, snapshot, epoch))
               : null,
-          icon: Icon(icon, size: tokens.settingsIconSize),
+          icon: ShellSymbol(icon, size: tokens.smallActionGlyphSize),
           label: Text(label),
         ),
       ),
