@@ -68,6 +68,10 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
   );
   final TextEditingController _pillarMomentumController =
       TextEditingController();
+  final FocusNode _producerAddressFocus = FocusNode(
+    canRequestFocus: false,
+    skipTraversal: true,
+  );
 
   String? get _pillarNameError =>
       Validations.pillarName(_pillarNameController.text);
@@ -119,6 +123,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
     _pillarRewardAddressController.dispose();
     _rewardAddressFocus.dispose();
     _pillarMomentumController.dispose();
+    _producerAddressFocus.dispose();
     _momentumRewardPercentage.dispose();
     _delegateRewardPercentage.dispose();
     super.dispose();
@@ -132,6 +137,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
         listenable: Listenable.merge(<Listenable>[
           _pillarNameController,
           _pillarMomentumController,
+          _producerAddressFocus,
           _pillarRewardAddressController,
           _rewardAddressFocus,
           _momentumRewardPercentage,
@@ -506,25 +512,33 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
         ),
         AccField(
           label: context.l10n.createPillarProducerField,
-          child: TextField(
-            key: const Key('pillar_producer_address_field'),
-            controller: _pillarMomentumController,
-            readOnly: _isSending,
-            style: address,
-            textDirection: TextDirection.ltr,
-            textAlign: addressAlign,
-            decoration: InputDecoration(
-              helperText: context.l10n.createPillarProducerHelp,
-              helperMaxLines: 3,
-              errorText: producerError,
-              enabledBorder: hasProducer && producerError == null
-                  ? populatedBorder
-                  : null,
-              suffixIconConstraints: BoxConstraints(
-                minHeight: tokens.fieldHeight,
-              ),
-              suffixIcon: FieldSuffixButtons(
-                controller: _pillarMomentumController,
+          child: Focus.withExternalFocusNode(
+            focusNode: _producerAddressFocus,
+            child: TextField(
+              key: const Key('pillar_producer_address_field'),
+              controller: _pillarMomentumController,
+              readOnly: _isSending,
+              style: address,
+              textDirection: TextDirection.ltr,
+              textAlign: addressAlign,
+              decoration: InputDecoration(
+                helperText: context.l10n.createPillarProducerHelp,
+                helperMaxLines: 3,
+                errorText: producerError,
+                enabledBorder: hasProducer && producerError == null
+                    ? populatedBorder
+                    : null,
+                suffixIconConstraints: BoxConstraints(
+                  minHeight: tokens.fieldHeight,
+                ),
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    PasteContentButton(controller: _pillarMomentumController),
+                    if (_producerAddressFocus.hasFocus && hasProducer)
+                      ClearContentButton(controller: _pillarMomentumController),
+                  ],
+                ),
               ),
             ),
           ),

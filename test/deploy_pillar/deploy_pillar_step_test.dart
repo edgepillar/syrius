@@ -147,6 +147,14 @@ void main() {
     final Finder producer = find.byKey(
       const Key('pillar_producer_address_field'),
     );
+    final Finder producerPaste = find.descendant(
+      of: producer,
+      matching: find.byType(PasteContentButton),
+    );
+    final Finder producerClear = find.descendant(
+      of: producer,
+      matching: find.byType(ClearContentButton),
+    );
     final Finder reward = find.byKey(const Key('pillar_reward_address_field'));
     final Finder ownerChip = find.byKey(const Key('pillar_use_owner_address'));
     final Finder rewardTools = find.descendant(
@@ -190,6 +198,9 @@ void main() {
     expect(tester.widget(ownerChip), isA<OutlinedButton>());
     expect(tester.getSize(ownerChip).height, closeTo(22, .01));
     expect(rewardTools, findsNothing);
+    expect(producerClear, findsNothing);
+    expect(producerPaste.hitTestable(), findsOneWidget);
+    final Element originalProducerPaste = tester.element(producerPaste);
     await tester.tap(reward);
     await tester.pump();
     expect(rewardTools.hitTestable(), findsOneWidget);
@@ -202,6 +213,7 @@ void main() {
     await tester.enterText(name, 'pillar');
     await tester.enterText(producer, owner);
     await tester.pump();
+    expect(producerClear.hitTestable(), findsOneWidget);
     expect(nameValid, findsOneWidget);
     expect(
       InputDecorator.containerOf(tester.element(nameEditor))?.size.height,
@@ -209,9 +221,15 @@ void main() {
     );
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     expect(sharingNext.hitTestable(), findsNothing);
+    await tester.tap(producerClear);
+    await tester.pump();
+    expect(tester.widget<TextField>(producer).controller!.text, isEmpty);
+    expect(producerClear, findsNothing);
     await tester.enterText(producer, pillarAddress.toString());
     await tester.enterText(reward, plasmaAddress.toString());
     await tester.pump();
+    expect(producerClear, findsNothing);
+    expect(tester.element(producerPaste), same(originalProducerPaste));
     await tester.tap(ownerChip);
     await tester.pump();
     expect(tester.widget<TextField>(reward).controller!.text, owner);
