@@ -1864,6 +1864,13 @@ class HarnessAgent {
         binding.requireForm);
       phase = 'amount';
       await _labInput('send_amount_field', '1', binding.requireForm);
+      final Element? action = _findTimingChild(binding.form,
+        (Widget widget) => widget.key == const Key('send_submit_button'));
+      final Element? sheen = action == null ? null : _findTimingChild(
+        action, (Widget widget) => widget is Sheen,
+      );
+      final SheenCompletionObservation? paint =
+          sheen == null ? null : Sheen.observeCompletionOf(sheen);
       phase = 'review_open';
       await _labTapKey('send_submit_button', binding.requireForm);
       final _Node accept = await _labControl(
@@ -1907,10 +1914,18 @@ class HarnessAgent {
         },
         requireJournal: () => journal.requireLabSendConfirmed(confirmedHash),
       );
+      if (paint != null) {
+        await paint.finished.timeout(
+          const Duration(seconds: 1), onTimeout: () {},
+        );
+        sourceCurrent();
+      }
+      final Map<String, int>? completionSheen = paint?.receipt;
       return <String, Object?>{'receipt': <String, Object>{
         'schema': 1, 'scope': 'original_lab_ui_send', 'chain': 321,
         'from_index': 1, 'to_index': 0, 'amount': '100000000', 'token': 'ZNN',
         'original_request': true, 'confirmed': true,
+        'completion_sheen': ?completionSheen,
       }};
     } on SeedRefused catch (error) {
       throw HarnessError(error.code, detail(error.code,

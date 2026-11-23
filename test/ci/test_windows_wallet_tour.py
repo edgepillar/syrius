@@ -477,6 +477,18 @@ class OriginalSendTests(unittest.TestCase):
             with self.subTest(field=field), self.assertRaises(tour.Refused):
                 tour.lab_send_receipt(dict(value, **{field:'private'}))
 
+        motion = dict(intermediate_paints=28, first_phase_millionths=24_000,
+            last_phase_millionths=975_000, terminal_after_start_us=612_314)
+        accepted = dict(value, completion_sheen=motion)
+        self.assertIs(tour.lab_send_receipt(accepted), accepted)
+        for invalid in (None, {}, dict(motion, private='address'),
+                dict(motion, intermediate_paints=1),
+                dict(motion, last_phase_millionths=1_000_000),
+                dict(motion, first_phase_millionths=975_000),
+                dict(motion, terminal_after_start_us=True)):
+            with self.subTest(motion=invalid), self.assertRaises(tour.Refused):
+                tour.lab_send_receipt(dict(value, completion_sheen=invalid))
+
     def test_unknown_or_unconfirmed_send_never_becomes_positive(self):
         for field, wrong in (('schema', True), ('chain', 321.0),
                 ('from_index', True), ('to_index', False), ('amount', 100000000),

@@ -143,7 +143,8 @@ Future<void> main() async {
     };
     final Object? receipt = sent['receipt'];
     if (receipt is! Map<String, dynamic> ||
-        receipt.length != expectedSend.length ||
+        receipt.length != expectedSend.length +
+            (receipt.containsKey('completion_sheen') ? 1 : 0) ||
         !expectedSend.entries.every((MapEntry<String, Object> entry) =>
             receipt[entry.key] == entry.value &&
             receipt[entry.key].runtimeType == entry.value.runtimeType)) {
@@ -151,7 +152,19 @@ Future<void> main() async {
         'phase': 'receipt', 'reason': 'receipt-shape-refused',
       });
     }
-    await marker('SYRIUS_LAB_SEND:${jsonEncode(expectedSend)}');
+    final Object? sheen = receipt['completion_sheen'];
+    const Set<String> fields = <String>{
+      'intermediate_paints', 'first_phase_millionths', 'last_phase_millionths',
+      'terminal_after_start_us',
+    };
+    if (receipt.containsKey('completion_sheen') &&
+        (sheen is! Map<String, dynamic> || sheen.length != fields.length ||
+            fields.any((String key) => sheen[key] is! int))) {
+      throw LabSendDiagnosticFailure(<String, String>{
+        'phase': 'receipt', 'reason': 'receipt-shape-refused',
+      });
+    }
+    await marker('SYRIUS_LAB_SEND:${jsonEncode(receipt)}');
     stage = 'tour';
     await cli.tour(instance, cli.Args(<String>[]));
     stdout.writeln('CI_WALLET_DONE');

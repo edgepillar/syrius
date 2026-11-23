@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
@@ -33,6 +34,56 @@ class SheenController extends ChangeNotifier {
       _request = previous;
       _current = previousCurrent;
     }
+  }
+}
+
+/// Samples at most one accepted-result pass from the original painter.
+class SheenCompletionObservation {
+  final Stopwatch _clock = Stopwatch();
+  final Completer<void> _finished = Completer<void>();
+  int _first = 0;
+  int _last = 0;
+  int _count = 0;
+  int _terminalMicros = 0;
+
+  /// Waits for the terminal paint or cancellation of the observed pass.
+  Future<void> get finished => _finished.future;
+
+  /// Returns only bounded, distinct painted phases of a completed pass.
+  Map<String, int>? get receipt {
+    if (_terminalMicros <= 0 || _terminalMicros > 5000000 || _count < 2) {
+      return null;
+    }
+    return <String, int>{
+      'intermediate_paints': _count,
+      'first_phase_millionths': _first,
+      'last_phase_millionths': _last,
+      'terminal_after_start_us': _terminalMicros,
+    };
+  }
+
+  void _begin() {
+    if (!_finished.isCompleted && !_clock.isRunning) _clock.start();
+  }
+
+  void _cancel() {
+    if (!_clock.isRunning) return;
+    _clock.stop();
+    _finished.complete();
+  }
+
+  void _record(double phase) {
+    if (!_clock.isRunning) return;
+    if (phase == 1) {
+      _terminalMicros = _clock.elapsedMicroseconds;
+      _cancel();
+      return;
+    }
+    final int progress = (phase * 1000000).floor();
+    if (progress <= _last) return;
+    if (_count == 0) _first = progress;
+    _last = progress;
+    if (_count < 128) _count++;
   }
 }
 
@@ -93,6 +144,16 @@ class Sheen extends StatefulWidget {
     return state is _SheenState ? state._paintObservation.progress : null;
   }
 
+  /// Arms the original widget's next accepted-result paint observation.
+  static SheenCompletionObservation? observeCompletionOf(
+    BuildContext context,
+  ) {
+    final State<StatefulWidget>? state =
+        context is StatefulElement ? context.state : null;
+    if (state is! _SheenState) return null;
+    return state._paintObservation.completion ??= SheenCompletionObservation();
+  }
+
   @override
   State<Sheen> createState() => _SheenState();
 }
@@ -137,6 +198,7 @@ class _SheenState extends State<Sheen> with SingleTickerProviderStateMixin {
   @override
   void dispose() {
     widget.controller?.removeListener(_requested);
+    _paintObservation.completion?._cancel();
     _pass.dispose();
     super.dispose();
   }
@@ -198,6 +260,7 @@ class _SheenState extends State<Sheen> with SingleTickerProviderStateMixin {
   }
 
   void _stopPass() {
+    _paintObservation.completion?._cancel();
     if (_pass.isAnimating || _pass.value != 0) {
       _pass
         ..stop()
@@ -222,6 +285,11 @@ class _SheenState extends State<Sheen> with SingleTickerProviderStateMixin {
     // A result waits for an existing hover pass; it never shortens that pass.
     _completion = completion != null;
     _completionCurrent = completion;
+    if (completion == null) {
+      _paintObservation.completion?._cancel();
+    } else {
+      _paintObservation.completion?._begin();
+    }
     _pass.forward(from: 0);
   }
 
@@ -247,6 +315,7 @@ class _SheenState extends State<Sheen> with SingleTickerProviderStateMixin {
 
 class _SheenPaintObservation {
   double? progress;
+  SheenCompletionObservation? completion;
 }
 
 class _SheenPainter extends CustomPainter {
@@ -267,6 +336,7 @@ class _SheenPainter extends CustomPainter {
     if (size.isEmpty) return;
     final double t = pass.value;
     observation.progress = t;
+    observation.completion?._record(t);
     if (t <= 0 || t >= 1) {
       return;
     }

@@ -238,9 +238,19 @@ def lab_send_receipt(value):
     expected = dict(schema=1, scope='original_lab_ui_send', chain=321,
         from_index=1, to_index=0, amount='100000000', token='ZNN',
         original_request=True, confirmed=True)
-    need(type(value) is dict and set(value) == set(expected)
+    need(type(value) is dict and set(value) in
+         (set(expected), set(expected) | {'completion_sheen'})
          and all(type(value[key]) is type(item) and value[key] == item
                  for key, item in expected.items()), 'ENTRY_REFUSED')
+    if 'completion_sheen' in value:
+        sheen = value['completion_sheen']
+        need(type(sheen) is dict and set(sheen) == {'intermediate_paints',
+             'first_phase_millionths', 'last_phase_millionths', 'terminal_after_start_us'}
+             and all(type(number) is int for number in sheen.values())
+             and 2 <= sheen['intermediate_paints'] <= 128
+             and 0 < sheen['first_phase_millionths'] < sheen['last_phase_millionths'] < 1_000_000
+             and 0 < sheen['terminal_after_start_us'] <= 5_000_000,
+             'ENTRY_REFUSED')
     return value
 
 

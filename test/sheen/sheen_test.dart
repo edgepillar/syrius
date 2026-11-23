@@ -338,14 +338,23 @@ void main() {
       reduceMotion: true,
     ));
     await tester.pumpAndSettle();
+    final SheenCompletionObservation observation =
+        Sheen.observeCompletionOf(tester.element(find.byType(Sheen)))!;
     controller.landed(isCurrent: () => true);
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 590));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 290));
+    expect(observation.receipt, isNull);
     expect(_paint, paints..clipRRect()..rect());
     expect(tester.widget<OutlinedButton>(find.byType(OutlinedButton)).onPressed,
       isNull);
     await tester.pump(const Duration(milliseconds: 10));
     expect(_paint, isNot(paints..clipRRect()));
+    final Map<String, int> receipt = observation.receipt!;
+    expect(receipt['intermediate_paints'], 2);
+    expect(receipt['first_phase_millionths'], closeTo(500000, 1));
+    expect(receipt['last_phase_millionths'], closeTo(983333, 1));
+    expect(receipt['terminal_after_start_us'], greaterThan(0));
     await tester.pump(const Duration(milliseconds: 1));
     expect(tester.binding.hasScheduledFrame, isFalse);
     expect(tester.takeException(), isNull);
