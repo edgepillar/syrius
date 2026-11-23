@@ -225,6 +225,15 @@ void main() {
     expect(find.textContaining('Confirm'), findsNothing);
     expect(control(tester, 'display_dollar_values').value, isTrue);
     expect(control(tester, 'display_hide_balances').value, isFalse);
+    final Finder privacy = find.byKey(const Key('display_hide_balances'));
+    final Rect privacyRow = tester.getRect(
+      find.ancestor(of: privacy, matching: find.byType(SettingRow)),
+    );
+    final double privacyCenter = tester.getCenter(privacy).dy;
+    expect(
+      privacyRow.bottom - privacyCenter,
+      closeTo(privacyCenter - privacyRow.top + 1, 0.001),
+    );
     _expectSelectedLabelFits(tester, 'display_language_menu');
     _expectSelectedLabelFits(tester, 'display_explorer');
     expect(requests, 0);

@@ -202,6 +202,11 @@ class _DisplayWidget extends State<DisplayWidget> {
                 SettingRow(
                   label: context.l10n.displayHideBalances,
                   hint: context.l10n.displayHideBalancesHint,
+                  // The next rule sits one pixel lower in the reference,
+                  // while the privacy switch keeps its existing center.
+                  padding: tokens.settingsRowPadding.copyWith(
+                    bottom: tokens.settingsRowPadding.bottom + 1,
+                  ),
                   trailing: SettingsSwitch(
                     key: const Key('display_hide_balances'),
                     label: context.l10n.displayHideBalances,
