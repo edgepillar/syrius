@@ -487,15 +487,21 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
     padding: tokens.goToFooterPadding,
     child: LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
+        // The reference aligns the action captions one pixel above the
+        // centers of their keycaps, with the shortcut summary centered.
+        Widget actionCaption(String label) => Transform.translate(
+          offset: const Offset(0, -1),
+          child: Text(label, style: tokens.captionText),
+        );
         final List<Widget> move = <Widget>[
           const AppKeyHint('↑↓'),
           SizedBox(width: tokens.goToKeyLabelGap),
-          Text(context.l10n.goToPaletteMove, style: tokens.captionText),
+          actionCaption(context.l10n.goToPaletteMove),
         ];
         final List<Widget> open = <Widget>[
           const AppKeyHint('↵'),
           SizedBox(width: tokens.goToKeyLabelGap),
-          Text(context.l10n.goToPaletteOpen, style: tokens.captionText),
+          actionCaption(context.l10n.goToPaletteOpen),
         ];
         final double fontSize = tokens.captionText.fontSize!;
         final double scaledWidth =

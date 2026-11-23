@@ -138,6 +138,7 @@ void main() {
                 ? caption.left - keycap.right
                 : keycap.left - caption.right;
             expect(gap, closeTo(3, 0.001));
+            expect(caption.center.dy, closeTo(keycap.center.dy - 1, 0.001));
           }
           expect(find.byType(BackdropFilter), findsNWidgets(2));
           final Finder surface = find.byType(FrostedSurface);
