@@ -298,12 +298,14 @@ void main() {
         }
         final Finder copies = find.byTooltip('Copy');
         expect(copies, findsNWidgets(2));
+        final AppTokens tokens = AppTokens.of(tester.element(copies.first));
         for (int index = 0; index < 2; index++) {
           expectMockupSymbol(
             tester,
             within: copies.at(index),
             symbol: 'copy',
             size: 12,
+            color: tokens.faint,
           );
         }
         expect(tester.takeException(), isNull);
