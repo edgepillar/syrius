@@ -7,6 +7,8 @@ const String _depositReadyWait =
     'wait --key swap_amount_input --kind field --nth 0 --ready --timeout 30';
 const String _depositAmountType =
     'type --key swap_amount_input --nth 0 1';
+const String _fuseReadyWait =
+    'wait --key plasma_open_fuse --ready --timeout 30';
 
 /// These are UI scripts, not shell scripts. There is no shell expansion.
 final class SeedRecipe {
@@ -40,8 +42,13 @@ final class SeedRecipe {
     }
     final List<List<String>> lines = <List<String>>[];
     final Set<String> projectScrolls = <String>{};
+    final String? readyWait = switch (id) {
+      'deposit' => _depositReadyWait,
+      'fuse' => _fuseReadyWait,
+      _ => null,
+    };
     int publications = 0;
-    bool depositReady = false;
+    int? readyIndex;
     for (final String raw in text.split('\n')) {
       final String line = raw.trim();
       if (line.isEmpty || line.startsWith('#')) continue;
@@ -90,13 +97,12 @@ final class SeedRecipe {
         throw const SeedRefused('seed-script-command-refused');
       }
       if (words.contains('--ready')) {
-        if (id != 'deposit' ||
-            publications != 0 ||
-            depositReady ||
-            words.join(' ') != _depositReadyWait) {
+        if (publications != 0 ||
+            readyIndex != null ||
+            words.join(' ') != readyWait) {
           throw const SeedRefused('seed-script-command-refused');
         }
-        depositReady = true;
+        readyIndex = lines.length;
       }
       if (words.first == 'goto' &&
           (words.length != 2 ||
@@ -162,16 +168,21 @@ final class SeedRecipe {
       throw const SeedRefused('one-seed-publication-required');
     }
     if (id == 'deposit') {
-      final int ready = lines.indexWhere(
-        (List<String> words) => words.contains('--ready'),
-      );
-      if (!depositReady ||
+      final int? ready = readyIndex;
+      if (ready == null ||
           ready < 1 ||
           ready + 1 >= lines.length ||
           lines[ready - 1].join(' ') != _depositMarkerWait ||
           lines[ready + 1].join(' ') != _depositAmountType) {
         throw const SeedRefused('deposit-input-readiness-required');
       }
+    }
+    if (id == 'fuse' &&
+        (readyIndex != 1 ||
+            lines.length < 3 ||
+            lines[0].join(' ') != 'goto plasma' ||
+            lines[2].join(' ') != 'tap --key plasma_open_fuse')) {
+      throw const SeedRefused('fuse-control-readiness-required');
     }
     if (pillarSponsor) {
       final Iterable<List<String>> inputs =

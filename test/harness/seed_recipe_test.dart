@@ -49,6 +49,30 @@ void main() {
       const String beneficiary = 'fuse_plasma_beneficiary_option_2';
       final SeedRecipe copied = SeedRecipe.parse('fuse', fuse,
           restoredFunding: true);
+      const String fuseReady =
+          'wait --key plasma_open_fuse --ready --timeout 30';
+      const String fuseTap = 'tap --key plasma_open_fuse';
+      expect(
+        copied.lines.take(3).map((List<String> line) => line.join(' ')),
+        <String>['goto plasma', fuseReady, fuseTap],
+      );
+      for (final String invalid in <String>[
+        fuse.replaceFirst(fuseReady, fuseReady.replaceFirst(' --ready', '')),
+        fuse.replaceFirst(fuseReady, '$fuseReady\n$fuseReady'),
+        fuse.replaceFirst(
+          fuseReady,
+          '$fuseReady\nassert --key plasma_open_fuse',
+        ),
+        fuse.replaceFirst(
+          fuseReady,
+          'wait --key fuse_plasma_submit_button --ready --timeout 30',
+        ),
+      ]) {
+        expect(
+          () => SeedRecipe.parse('fuse', invalid, restoredFunding: true),
+          throwsA(isA<SeedRefused>()),
+        );
+      }
       expect(
         copied.lines.where((List<String> line) => line.first == 'publish'),
         <List<String>>[<String>['publish', ...seedPublishSelector('fuse')]],

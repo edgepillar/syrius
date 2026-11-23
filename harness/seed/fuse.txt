@@ -1,7 +1,7 @@
 # seed: fuse
 # prerequisite: isolated-chain-321-checkpoint
 goto plasma
-wait --key plasma_open_fuse --timeout 30
+wait --key plasma_open_fuse --ready --timeout 30
 tap --key plasma_open_fuse
 wait --key fuse_plasma_amount_field --timeout 30
 type --key fuse_plasma_amount_field 100

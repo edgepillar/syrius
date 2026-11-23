@@ -2,7 +2,7 @@
 # prerequisite: isolated-chain-321-checkpoint
 # The restored session already derived index 2 through Settings.
 goto plasma
-wait --key plasma_open_fuse --timeout 30
+wait --key plasma_open_fuse --ready --timeout 30
 tap --key plasma_open_fuse
 wait --key fuse_plasma_amount_field --timeout 30
 tap --key fuse_plasma_beneficiary_selector
