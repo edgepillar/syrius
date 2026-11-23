@@ -1,0 +1,20 @@
+{
+  "reviews": {
+    "32-set-display-dark": {
+      "actual_sha256": "5855ddb1f6f7a798cd59f893627886a0d9b508a6a04a31ab76fe64636d32747c",
+      "expected_sha256": "f68b82b91f04df6c535c512da740e980026e8d980b0f68f8593fe4a070897c45",
+      "note": "All six dividers line up, and Dark and English are selected in both images. The Explorer selector is disabled in the isolated chain 321 capture and its field is visibly subdued. The notification indicator and connection strip also differ.",
+      "reviewed_at": "2026-11-23T04:30:58Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "32-set-display-light": {
+      "actual_sha256": "1bac7737dc1f20ee0f0189b54afa96044012dfa2f4786b1b9b4fcaad67279971",
+      "expected_sha256": "64977a34163f03e4ef2f5d9f59027d124e6e02788b08970f2c2d5c635a4e723e",
+      "note": "All six dividers line up. The Windows capture selects Light while the light reference selects Dark. The Explorer selector is disabled in the isolated chain 321 capture and its field is visibly subdued. The notification indicator and connection strip also differ.",
+      "reviewed_at": "2026-11-23T04:30:58Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
