@@ -325,11 +325,7 @@ class _LockCardState extends State<LockCard>
     if (startup == null) return card;
     return ValueListenableBuilder<double>(
       valueListenable: startup.motion,
-      // Keep the glass clip and tint in the same layer while the card moves.
-      child: RepaintBoundary(
-        key: const ValueKey<String>('lock_card_handoff_paint'),
-        child: card,
-      ),
+      child: card,
       builder: (_, double progress, Widget? child) => Opacity(
         opacity: progress,
         child: Transform.translate(
