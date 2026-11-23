@@ -197,7 +197,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     final InputDecoration detailsInput = InputDecoration(
       isDense: true,
       constraints: BoxConstraints(minHeight: tokens.fieldHeight),
-      contentPadding: tokens.transferFieldPadding,
+      contentPadding: tokens.tokenCreateFieldPadding,
     );
     final OutlineInputBorder filledBorder = kOutlineInputBorder.copyWith(
       borderSide: BorderSide(color: tokens.faint),

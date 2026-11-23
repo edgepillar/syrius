@@ -852,6 +852,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Four-step token creation uses one readable form column.
   double get tokenCreateBodyMaxWidth => 620;
 
+  /// Keeps the painted token-details fields at the reference height.
+  EdgeInsetsDirectional get tokenCreateFieldPadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 15);
+
   /// The creation body retains room above and below each step.
   double get tokenCreateVerticalInset => 24;
 

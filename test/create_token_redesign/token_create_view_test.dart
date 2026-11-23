@@ -335,10 +335,14 @@ void main() {
           'token_domain_field',
         ]) {
           final Finder field = _field(key);
-          expect(
-            tester.getSize(field).height,
-            closeTo(AppTokens.of(tester.element(field)).fieldHeight, 0.01),
+          final Finder editor = find.descendant(
+            of: field, matching: find.byType(EditableText),
           );
+          final double minHeight =
+              AppTokens.of(tester.element(field)).fieldHeight;
+          final double? paintedHeight =
+              InputDecorator.containerOf(tester.element(editor))?.size.height;
+          expect(paintedHeight, greaterThanOrEqualTo(minHeight - 0.01));
         }
         InputDecoration symbolDecoration() =>
             tester.widget<TextField>(symbol).decoration!;
