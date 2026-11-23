@@ -839,6 +839,38 @@ def holder_domain_ink(actual, reference, *, companion_holdings):
     return evidence
 
 
+def pillar_header_rectangles(png):
+    """Find exact two-by-24 green marks in a bounded pane-header crop."""
+    from .inspect_windows_qualification import _opaque, _png_crop
+
+    left, right = 60, 322
+    top, bottom = 32, 85
+    colors = {bytes((0, 213, 87)), bytes((22, 138, 53))}
+    rows, channels = _png_crop(
+        base64.b64encode(png).decode('ascii'), (left, right), (top, bottom))
+    if not _opaque(rows, channels):
+        return None
+
+    pairs = []
+    for row in rows:
+        pixels = [bytes(row[i:i + 3]) for i in range(0, len(row), channels)]
+        pairs.append({(x, color) for x, color in enumerate(pixels[1:-2], 1)
+                      if color in colors and pixels[x + 1] == color
+                      and pixels[x - 1] != color and pixels[x + 2] != color})
+    matches = []
+    height = 24
+    for y in range(len(pairs) - height + 1):
+        before = pairs[y - 1] if y else set()
+        after = pairs[y + height] if y + height < len(pairs) else set()
+        for mark in pairs[y] - before - after:
+            if all(mark in row for row in pairs[y + 1:y + height]):
+                x, color = mark
+                matches.append(dict(bounds=[left + x, top + y,
+                                            left + x + 2, top + y + height],
+                                    rgb=list(color)))
+    return dict(count=len(matches), unique=matches[0] if len(matches) == 1 else None)
+
+
 def seeded_catalog_pixel_comparisons(raw, schema, references, *, companion_holdings=False):
     """Measure verified state captures against the tracked PNGs."""
     from .inspect_windows_qualification import pixel_comparison
@@ -891,6 +923,10 @@ def seeded_catalog_pixel_comparisons(raw, schema, references, *, companion_holdi
             comparison = pixel_comparison(actual, reference, regions,
                                           sample_points=samples.get(screen))
             need(comparison is not None)
+            if screen == '20-pillar-done':
+                comparison['header_rectangles'] = dict(
+                    actual=pillar_header_rectangles(actual),
+                    reference=pillar_header_rectangles(reference))
             if schema == catalog.TOKEN_HOLDER_SCHEMA:
                 comparison['domain_label_ink'] = holder_domain_ink(
                     actual, reference, companion_holdings=companion_holdings)

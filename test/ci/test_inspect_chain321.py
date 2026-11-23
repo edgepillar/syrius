@@ -270,6 +270,8 @@ class SeededPixelComparisonTests(unittest.TestCase):
                         name = f'{screen}-{theme}.png'
                         zipped.writestr(name, name.encode())
                 with (mock.patch.object(Path, 'open', reference),
+                      mock.patch.object(inspect, 'pillar_header_rectangles',
+                                        return_value={'count': 0, 'unique': None}) as rectangles,
                       mock.patch.object(windows, 'pixel_comparison',
                                         side_effect=lambda actual, expected, _, **options:
                                             {'matched': actual == expected}) as compare):
@@ -277,10 +279,37 @@ class SeededPixelComparisonTests(unittest.TestCase):
                         buffer.getvalue(), schema, Path('references'))
                 self.assertEqual(comparison['screen'], screen)
                 self.assertEqual(comparison['region_bounds'][region], bounds)
-                self.assertEqual(comparison['pairs'], {
-                    'dark': {'matched': True}, 'light': {'matched': True}})
+                pair = {'matched': True}
+                if screen == '20-pillar-done':
+                    self.assertEqual(rectangles.call_count, 4)
+                    empty = {'count': 0, 'unique': None}
+                    pair['header_rectangles'] = {'actual': empty, 'reference': empty}
+                else:
+                    rectangles.assert_not_called()
+                self.assertEqual(comparison['pairs'], {'dark': pair, 'light': pair})
                 self.assertEqual([call.kwargs['sample_points']
                                   for call in compare.call_args_list], [samples, samples])
+
+        rows = [bytearray([32] * 262 * 3) for _ in range(53)]
+        green = bytes((0, 213, 87))
+        ink = bytes((22, 138, 53))
+        with mock.patch.object(windows, '_png_crop', return_value=(rows, 3)):
+            self.assertEqual(inspect.pillar_header_rectangles(b'fixture'),
+                             {'count': 0, 'unique': None})
+            for row in rows[4:28]:
+                row[72:78] = green * 2
+            self.assertEqual(inspect.pillar_header_rectangles(b'fixture'),
+                             {'count': 1, 'unique': {'bounds': [84, 36, 86, 60],
+                                                    'rgb': [0, 213, 87]}})
+            for row in rows[12:36]:
+                row[150:156] = ink * 2
+            self.assertEqual(inspect.pillar_header_rectangles(b'fixture'),
+                             {'count': 2, 'unique': None})
+            rows[28][72:78] = green * 2
+            for row in rows[12:36]:
+                row[156:159] = ink
+            self.assertEqual(inspect.pillar_header_rectangles(b'fixture'),
+                             {'count': 0, 'unique': None})
 
 
 class InspectionTests(unittest.TestCase):
