@@ -1,0 +1,20 @@
+{
+  "actual": {
+    "19-spawn-dark": {
+      "archive_member": "19-spawn-dark.png",
+      "archive_sha256": "d580bc30eec134f70b286033588addc2877e3c0f0b4e829a2ddd25bd6e684742",
+      "catalog_family": "pillar-spawn",
+      "path": "d580bc30eec134f70b286033588addc2877e3c0f0b4e829a2ddd25bd6e684742",
+      "sha256": "a80e823dbdbb6272f0e2989182537dfed2a7d5181f0e5e9fa8d0e154fad644d8",
+      "source_sha": "c82d7bcc6aac59a581ded316ef5665a03e0d1f2f"
+    },
+    "19-spawn-light": {
+      "archive_member": "19-spawn-light.png",
+      "archive_sha256": "d580bc30eec134f70b286033588addc2877e3c0f0b4e829a2ddd25bd6e684742",
+      "catalog_family": "pillar-spawn",
+      "path": "d580bc30eec134f70b286033588addc2877e3c0f0b4e829a2ddd25bd6e684742",
+      "sha256": "192fcf20cb0c8680366186661c8ea3ffb9ed2c9b9152fbf62b3143297b424cdd",
+      "source_sha": "c82d7bcc6aac59a581ded316ef5665a03e0d1f2f"
+    }
+  }
+}
