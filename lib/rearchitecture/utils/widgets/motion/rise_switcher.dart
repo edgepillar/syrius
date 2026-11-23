@@ -3,7 +3,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 
 /// Shows one [child] at a time and, when it is replaced, fades the new one
-/// in while it rises [rise] pixels into place.
+/// in while it rises [rise] pixels into place. The rise starts with the
+/// visible fade-in, after the outgoing fade.
 ///
 /// For destinations with no order between them, such as the pages behind
 /// the side rail: a sideways slide would claim one. The old child fades out
@@ -59,7 +60,7 @@ class RiseSwitcher extends StatefulWidget {
 
   /// Whether the switcher at [context] has finished both fades for [childKey].
   static bool isSettled(BuildContext context, Key childKey) {
-    if (context case StatefulElement(state: final _RiseSwitcherState state)) {
+    if (context case StatefulElement(:final _RiseSwitcherState state)) {
       return state._current.child.key == childKey && state._settled;
     }
     return false;
@@ -250,6 +251,7 @@ class _RiseSwitcherState extends State<RiseSwitcher>
 
   @override
   Widget build(BuildContext context) {
+    final Curve spring = AppTokens.of(context).spring;
     final Widget pages = Stack(
       fit: StackFit.expand,
       children: <Widget>[
@@ -286,18 +288,20 @@ class _RiseSwitcherState extends State<RiseSwitcher>
                             child: child!,
                           ),
                         ),
-                        builder: (BuildContext context, Widget? child) =>
-                            Transform.translate(
-                              offset: Offset(
-                                0,
-                                entry.rise *
-                                    (1 -
-                                        AppTokens.of(context).spring.transform(
-                                          entry.primary.value,
-                                        )),
-                              ),
-                              child: child,
+                        builder: (BuildContext context, Widget? child) {
+                          // The first phase belongs to the outgoing page.
+                          // Keep the invisible arrival at its starting offset.
+                          final double fadeIn = entry.primary.value - _exitEnd;
+                          final double progress = (fadeIn / (1 - _exitEnd))
+                              .clamp(0.0, 1.0);
+                          return Transform.translate(
+                            offset: Offset(
+                              0,
+                              entry.rise * (1 - spring.transform(progress)),
                             ),
+                            child: child,
+                          );
+                        },
                       ),
                     ),
                   ),

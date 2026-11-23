@@ -136,14 +136,24 @@ void main() {
       expect(tester.getTopLeft(_page(0)).dy, 0);
 
       await tester.pump(const Duration(milliseconds: 50));
+      expect(_opacity(tester, _page(1)), 0);
+      expect(_rise(tester, _page(1)), 6);
+      expect(tester.getTopLeft(_page(0)).dy, 0);
+
+      await tester.pump(const Duration(milliseconds: 46));
+      expect(_opacity(tester, _page(1)), closeTo(0, 1e-9));
+      expect(_rise(tester, _page(1)), closeTo(6, 1e-9));
+
+      await tester.pump(const Duration(milliseconds: 24));
+      expect(_opacity(tester, _page(1)), greaterThan(0));
       final double rising = _rise(tester, _page(1));
       expect(rising, greaterThan(0));
       expect(rising, lessThan(6));
       expect(
         rising,
-        closeTo(6 * (1 - AppTokens.light.spring.transform(50 / 320)), 1e-6),
+        closeTo(6 * (1 - AppTokens.light.spring.transform(24 / 224)), 1e-6),
       );
-      expect(tester.getTopLeft(_page(0)).dy, 0);
+      expect(_page(0), findsNothing);
 
       await tester.pumpAndSettle();
       expect(tester.getTopLeft(_page(1)), Offset.zero);
