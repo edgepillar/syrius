@@ -109,6 +109,7 @@ class _TokenCreateFrameState extends State<TokenCreateFrame> {
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    final bool canGoBack = !widget.busy && widget.onBack != null;
     return FocusTraversalGroup(
       policy: ReadingOrderTraversalPolicy(),
       child: Focus(
@@ -144,15 +145,22 @@ class _TokenCreateFrameState extends State<TokenCreateFrame> {
                   spacing: tokens.inlineGap,
                   runSpacing: tokens.inlineGap,
                   children: <Widget>[
-                    TextButton(
-                      key: const Key('token_create_back'),
-                      style: quietButtonStyle(context),
-                      onPressed: widget.busy || widget.onBack == null
-                          ? null
-                          : () {
-                              if (_interactive) widget.onBack!();
-                            },
-                      child: Text(context.l10n.tokenCreateBack),
+                    Opacity(
+                      opacity: canGoBack ? 1 : tokens.disabledOpacity,
+                      child: OutlinedButton(
+                        key: const Key('token_create_back'),
+                        style: secondaryButtonStyle(context).copyWith(
+                          foregroundColor: WidgetStatePropertyAll<Color>(
+                            tokens.foreground,
+                          ),
+                        ),
+                        onPressed: canGoBack
+                            ? () {
+                                if (_interactive) widget.onBack!();
+                              }
+                            : null,
+                        child: Text(context.l10n.tokenCreateBack),
+                      ),
                     ),
                     Focus(
                       focusNode: _primary,

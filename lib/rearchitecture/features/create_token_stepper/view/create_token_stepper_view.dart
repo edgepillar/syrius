@@ -292,7 +292,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
               ),
               Text(
                 context.l10n.tokenCreateDomainNote,
-                style: tokens.registrationCaptionText,
+                style: tokens.tokenCreateDomainNoteText,
               ),
             ],
           ),

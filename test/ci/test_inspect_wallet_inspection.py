@@ -253,6 +253,7 @@ class ReaderTests(unittest.TestCase):
         with mock.patch.object(reader.producer, 'read_original',
                 side_effect=lambda path, _: path.name.encode()) as read, \
                 mock.patch.object(reader, '_token_draft_fields', return_value=None), \
+                mock.patch.object(reader, '_token_draft_actions', return_value=None), \
                 mock.patch.object(reader.windows, 'pixel_comparison',
                     side_effect=lambda actual, reference, _, **options: actual == reference):
             [comparison] = reader.details_pixel_comparisons(raw, reference_dir, files=names)
@@ -269,7 +270,11 @@ class ReaderTests(unittest.TestCase):
         shots = Path(__file__).resolve().parents[2] / 'mockups' / 'redesign' / 'shots'
         for theme, name in zip(('dark', 'light'), names):
             with self.subTest(theme=theme):
-                fields = reader._token_draft_fields((shots / name).read_bytes(), theme)
+                png = (shots / name).read_bytes()
+                fields = reader._token_draft_fields(png, theme)
+                self.assertEqual(reader._token_draft_actions(png), dict(
+                    continue_ink_bounds=[463, 297, 539, 335], back_probe=[396, 315],
+                    back_rgb=[41, 43, 41] if theme == 'dark' else [250, 250, 250]))
                 ink = [113, 118, 113] if theme == 'dark' else [133, 138, 133]
                 self.assertEqual(fields, {
                     'name': dict(fill_bounds=[389, 132, 727, 172], top_border_rgb=ink),

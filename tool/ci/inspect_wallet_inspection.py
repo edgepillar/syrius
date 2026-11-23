@@ -1057,6 +1057,32 @@ def _token_draft_fields(data, theme):
     return fields
 
 
+def _token_draft_actions(data):
+    """Measure the painted Continue pill and sample Back beside it."""
+    left, right = 360, 670
+    top, bottom = 252, 395
+    rows, channels = windows._png_crop(
+        base64.b64encode(data).decode('ascii'), (left, right), (top, bottom))
+    if not windows._opaque(rows, channels):
+        return None
+    ink = []
+    for y, row in enumerate(rows, top):
+        for i in range(0, len(row), channels):
+            red, green, blue = row[i:i + 3]
+            if green - red >= 35 and green - blue >= 30:
+                ink.append((left + i // channels, y))
+    if not ink:
+        return None
+    xs, ys = zip(*ink)
+    bounds = [min(xs), min(ys), max(xs) + 1, max(ys) + 1]
+    if bounds[2] - bounds[0] < 40 or bounds[3] - bounds[1] < 18:
+        return None
+    centre = (bounds[1] + bounds[3] - 1) // 2
+    row = rows[centre - top]
+    return dict(continue_ink_bounds=bounds, back_probe=[396, centre],
+                back_rgb=list(row[(396 - left) * channels:(396 - left) * channels + 3]))
+
+
 def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points=None):
     pairs = {}
     display_dividers = {}
@@ -1064,6 +1090,7 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
     pane_rows = {}
     counterparty = {}
     token_fields = {}
+    token_actions = {}
     for theme in producer.THEMES:
         name = f'{screen}-{theme}.png'
         actual = zipped.read(name)
@@ -1073,6 +1100,8 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
         if screen == '25-token-new':
             token_fields[theme] = dict(actual=_token_draft_fields(actual, theme),
                                        reference=_token_draft_fields(reference, theme))
+            token_actions[theme] = dict(actual=_token_draft_actions(actual),
+                                        reference=_token_draft_actions(reference))
         if screen == '32-set-display':
             display_dividers[theme] = dict(actual=_display_divider_rows(actual),
                                            reference=_display_divider_rows(reference))
@@ -1087,6 +1116,7 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
     result = dict(screen=screen, region_bounds=regions, pairs=pairs)
     if token_fields:
         result['token_fields'] = token_fields
+        result['token_actions'] = token_actions
     if display_dividers:
         column, top, bottom = DISPLAY_DIVIDER_SCAN
         result['display_dividers'] = dict(column=column, scan_rows=[top, bottom],

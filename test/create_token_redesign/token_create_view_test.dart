@@ -55,7 +55,10 @@ Finder _frame(String key, {bool offstage = false}) =>
     find.byKey(Key('token_create_$key'), skipOffstage: !offstage);
 
 Finder _action(String step) => find.descendant(
-  of: _frame(step),
+  of: find.descendant(
+    of: _frame(step),
+    matching: find.byKey(const Key('token_create_continue')),
+  ),
   matching: find.byType(OutlinedButton),
 );
 
@@ -351,6 +354,33 @@ void main() {
         final AppTokens tokens = AppTokens.of(tester.element(symbol));
         final Finder note = find.text(
           AppLocalizations.of(tester.element(symbol))!.tokenCreateDomainNote,
+        );
+        final TextStyle noteStyle = tester.widget<Text>(note).style!;
+        expect(noteStyle.fontSize, 12.5);
+        expect(noteStyle.color, tokens.faint);
+        final Finder back = find.descendant(
+          of: _frame('details'),
+          matching: find.byKey(const Key('token_create_back')),
+        );
+        final OutlinedButton backButton = tester.widget<OutlinedButton>(back);
+        expect(backButton.onPressed, isNull);
+        expect(
+          backButton.style?.backgroundColor?.resolve(<WidgetState>{}),
+          tokens.card2,
+        );
+        expect(
+          backButton.style?.side?.resolve(<WidgetState>{})?.color,
+          tokens.line,
+        );
+        expect(
+          find.ancestor(
+            of: back,
+            matching: find.byWidgetPredicate(
+              (Widget widget) =>
+                  widget is Opacity && widget.opacity == tokens.disabledOpacity,
+            ),
+          ),
+          findsOneWidget,
         );
         expect(
           tester.getTopLeft(_action('details')).dy -

@@ -856,6 +856,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   EdgeInsetsDirectional get tokenCreateFieldPadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 15);
 
+  /// The optional Domain note uses the form's quiet helper style.
+  TextStyle get tokenCreateDomainNoteText =>
+      bodyText.copyWith(fontSize: 12.5, color: faint);
+
   /// The creation body retains room above and below each step.
   double get tokenCreateVerticalInset => 24;
 
