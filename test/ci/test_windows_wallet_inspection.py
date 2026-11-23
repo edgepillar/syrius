@@ -362,8 +362,8 @@ class InspectionTests(unittest.TestCase):
                       'launch-timing', 'launch-timing-pair', 'launch-timing-and-settle',
                       'interactive-timing-pair',
                       'lock-catalog', 'lock-seams', 'quiz-catalog', 'seeded-states',
-                      'seeded-states-visual', 'token-holder', 'stake-draft', 'project-detail', 'pillar-spawn',
-                      'pillar-done', 'swap-seeded'):
+                      'seeded-states-visual', 'token-holder', 'stake-draft', 'send-restored',
+                      'project-detail', 'pillar-spawn', 'pillar-done', 'swap-seeded'):
             with self.subTest(value=value), self.assertRaises(lab.Failure):
                 lab.wallet_inspection_requested('native',
                     dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=value))
@@ -381,8 +381,8 @@ class InspectionTests(unittest.TestCase):
              'launch-timing', 'launch-timing-pair', 'launch-timing-and-settle',
              'interactive-timing-pair',
              'lock-catalog', 'lock-seams', 'quiz-catalog', 'seeded-states',
-             'seeded-states-visual', 'token-holder', 'swap-seeded', 'stake-draft', 'project-detail', 'pillar-spawn',
-             'pillar-done'])
+             'seeded-states-visual', 'token-holder', 'swap-seeded', 'stake-draft', 'send-restored',
+             'project-detail', 'pillar-spawn', 'pillar-done'])
         self.assertIn('SYRIUS_READONLY_CATALOG_FAMILY: ${{ inputs.readonly_catalog_family }}', workflow)
         motion = workflow.split('      - name: Retain bounded launch motion samples\n', 1)[1]
         upload = motion.split('\n      - name:', 1)[0]
@@ -411,6 +411,7 @@ class InspectionTests(unittest.TestCase):
                         lab.require_environment('native', dict(scoped, **change))
         for family, title, stems in (
             ('stake-draft', 'two verified New stake draft', ('14-staking-new',)),
+            ('send-restored', 'two verified restored Send', ('07-send-rest',)),
             ('project-detail', 'four verified Accelerator list and Project detail',
              ('28-az', '29-az-project')),
             ('pillar-spawn', 'two verified Pillar Spawn', ('19-spawn',)),
