@@ -7353,10 +7353,24 @@ all 34 missing page-change numbers and all 25 missing disclosure numbers
 belong to gaps where the next observed build starts while the preceding
 raster is in progress. The P06 rows have coarser raster-start evidence.
 
+Of the redesign raster durations above the corresponding P06 rank and
+the 16 ms threshold, three page-change frames and six disclosure frames
+start raster after the observed settlement. The largest disclosure
+overrun is 43.291 ms in that phase. Settled Node Settings records 10
+slow rasters out of 13 observed frames. About with Licences closed
+records 24 out of 24. Both idle peaks report zero cached layers and
+pictures. The original timings leave drawing and presentation costs
+unresolved even on the settled views.
+
 The current sample therefore records raster overruns before the Licences
 interaction and during settled page paint. Its frame records include
 submission within raster time and leave the individual draw and present
 costs unresolved. V02 remains open.
+
+A [new native pair at `40df99a2`](https://github.com/edgepillar/syrius/actions/runs/45086925328)
+repeats the page-change and disclosure measurements on the candidate
+with the initial shader focus change. The prior timing results retain
+their source and run scope.
 
 #### Welcome backdrop at `2c8fd31c`
 
@@ -11415,4 +11429,4 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1399 | review | 2026-11-22 | `30-set-node-light` at `2c8fd31c`. The verified download callout with checksum and signature checks is present. The node rows and installed state differ, and the Install and Cancel actions replace the reference's restart, bundled-node and install-from-file choices. [Review](docs/review/source-2c8fd31c-remaining-screen-verdicts.json). |
 | X1400 | review | 2026-11-23 | The Spawn producer field keeps Paste visible and exposes Clear only while the populated field or its controls have focus. The existing draft test checks the resting and focused controls, the cleared value and retention of the Paste element. Fresh Windows captures are required for X1384 and X1385. |
 | X1401 | review | 2026-11-23 | The Send recipient editor highlights the exact differing characters in the current look-alike address. The editor and comparison card use the same spans. The original text and editing behavior retain the standard input path, including active text composition. Fresh Windows captures are required for X1378 and X1379. |
-| X1402 | review | 2026-11-23 | Start and Join present their experimental warning and exchange disclosure in one compact note aligned under the original warning glyph. Both messages remain visible, including when How it works is closed. The existing two-theme surface case checks the shared text column and consecutive rows. Fresh Windows evidence is required for X1392 and X1393. |
+| X1402 | review | 2026-11-23 | Start and Join present their experimental warning and exchange disclosure in one compact note beside the original warning glyph. Both messages remain visible, including when How it works is closed. The existing two-theme surface case checks the shared text column and consecutive rows. Fresh Windows evidence is required for X1392 and X1393. |
