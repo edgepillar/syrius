@@ -162,7 +162,8 @@ def home_capture_receipt(value):
     expected.update(dict(screen='home-rest', number=1) if schema == 1
                     else dict(screens=list(home_catalog_screens(schema))))
     optional = {'rail_motion', 'sync_pulse', 'segment_motion', 'eye_motion',
-        'home_field_occlusion', 'home_field_minimize', 'fixture_holdings'} if schema == 4 else set()
+        'home_field_occlusion', 'home_field_minimize', 'fixture_holdings',
+        'sheen_hover'} if schema == 4 else set()
     need(set(expected) <= set(value) <= set(expected) | optional
          and all(type(value[k]) is type(v) and value[k] == v
                  for k, v in expected.items()), 'CAPTURE_REFUSED')
@@ -178,10 +179,26 @@ def home_capture_receipt(value):
         segment_motion_receipt(value['segment_motion'])
     if 'eye_motion' in value:
         eye_motion_receipt(value['eye_motion'])
+    if 'sheen_hover' in value:
+        sheen_hover_receipt(value['sheen_hover'])
     if 'fixture_holdings' in value:
         need(value['fixture_holdings'] == {
             theme: list(HOME_FIXTURE_TOKEN_STANDARDS) for theme in THEMES},
             'CAPTURE_REFUSED')
+    return value
+
+
+def sheen_hover_receipt(value):
+    """Validate bounded post-hover observations of the original painter."""
+    end = 1_000_000
+    need(type(value) is list and 1 <= len(value) <= 32
+         and all(type(row) is list and len(row) == 2
+                 and all(type(item) is int for item in row)
+                 and 0 <= row[0] <= 2_000_000 and 0 < row[1] <= end
+                 for row in value)
+         and all(a[0] < b[0] and a[1] <= b[1] for a, b in zip(value, value[1:]))
+         and value[-1][1] == end and all(row[1] < end for row in value[:-1])
+         and (len(value) > 1 or value[0][0] >= 700_000), 'CAPTURE_REFUSED')
     return value
 
 

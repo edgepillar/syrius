@@ -13,6 +13,9 @@ const String readonlySyncPulseCommand = 'readonly-sync-pulse';
 /// Reads only the current Transfer or Tokens segment's thumb geometry.
 const String readonlySegmentMotionCommand = 'readonly-segment-motion';
 
+/// Reads only the original Home Send control's painted sheen progress.
+const String readonlySheenHoverCommand = 'readonly-sheen-hover';
+
 /// Reads only the original Home eye's frame and balance visibility.
 const String readonlyEyeMotionCommand = 'readonly-eye-motion';
 
@@ -79,6 +82,7 @@ class ReadonlyNativeCommands {
     readonlySyncPulseCommand,
     readonlySegmentMotionCommand,
     readonlyEyeMotionCommand,
+    readonlySheenHoverCommand,
     readonlySeamPointerCommand,
     readonlyActivityMessageSeamCommand,
     readonlyAgedFuseFixtureCommand,
@@ -168,7 +172,8 @@ class ReadonlyNativeCommands {
             name == readonlySendWarningSyncCommand ||
             name == readonlySyncPulseCommand ||
             name == readonlySegmentMotionCommand ||
-            name == readonlyEyeMotionCommand) &&
+            name == readonlyEyeMotionCommand ||
+            name == readonlySheenHoverCommand) &&
             (_wallet == null || retained.length != 1)) {
       throw const ReadonlyNativeCommandRefused();
     }

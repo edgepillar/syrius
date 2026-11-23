@@ -689,6 +689,14 @@ class ReaderTests(unittest.TestCase):
         self.assertFalse(segment['tokens']['intermediate_observed'])
         self.assertEqual(segment['transfer']['first_settled_after_reply_us'], 320_000)
         eye = dict(hide=[[40_000, 8_000], [470_000, 30_000]], show=[[450_000, 226_000]])
+        for samples, intermediate in (
+                ([[700_000, 1_000_000]], False),
+                ([[40_000, 70_000], [90_000, 170_000], [600_000, 1_000_000]], True)):
+            states['capture']['sheen_hover'] = samples
+            with_sheen = [('manifest.json', encode(states), stat.S_IFREG), *state_files[1:]]
+            self.assertEqual(inspect_states(with_sheen)['sheen_hover'],
+                             dict(samples=samples, intermediate_observed=intermediate))
+        del states['capture']['sheen_hover']
         states['capture']['eye_motion'] = eye
         with_eye = [('manifest.json', encode(states), stat.S_IFREG), *state_files[1:]]
         self.assertEqual(inspect_states(with_eye)['eye_motion'], dict(

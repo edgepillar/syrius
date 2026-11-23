@@ -698,6 +698,16 @@ class InspectionTests(unittest.TestCase):
             with self.subTest(segment_motion=invalid), self.assertRaises(inspection.Refused):
                 inspection.home_capture_receipt(
                     dict(catalog, segment_motion=dict(segments, transfer=invalid)))
+        sheen = [[20_000, 30_000], [380_000, 700_000], [610_000, 1_000_000]]
+        self.assertIs(inspection.home_capture_receipt(
+            dict(catalog, sheen_hover=sheen))['sheen_hover'], sheen)
+        endpoint = [[701_000, 1_000_000]]
+        self.assertIs(inspection.sheen_hover_receipt(endpoint), endpoint)
+        for invalid in ([], [[20_000, 1_000_000]], [[20_000, 200_000]],
+                        [[20_000, True], [620_000, 1_000_000]],
+                        [[20_000, 800_000], [40_000, 60_000], [70_000, 1_000_000]]):
+            with self.subTest(sheen_hover=invalid), self.assertRaises(inspection.Refused):
+                inspection.home_capture_receipt(dict(catalog, sheen_hover=invalid))
         eye = dict(hide=[[5_000, 3_250], [470_000, 30_000]], show=[[450_000, 226_000]])
         self.assertIs(inspection.eye_motion_receipt(eye), eye)
         for invalid in ([[30_000, 226_000], [40_000, 226_000]],

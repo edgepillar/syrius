@@ -556,6 +556,10 @@ def unpack_home_catalog(raw, expected_sha, expected_size, head, tree, run_id,
                 and not end[0] and after is not None and after[0]
                 and after[1] > end[1]),
         )
+    if 'sheen_hover' in value['capture']:
+        samples = producer.sheen_hover_receipt(value['capture']['sheen_hover'])
+        result['sheen_hover'] = dict(samples=samples,
+            intermediate_observed=len({phase for _, phase in samples[:-1]}) >= 2)
     if 'eye_motion' in value['capture']:
         samples = producer.eye_motion_receipt(value['capture']['eye_motion'])
         result['eye_motion'] = {
@@ -1845,6 +1849,12 @@ def main(parent=None):
                 source_digests.update(source_files(repo, producer_tree, tree,
                     read_versioned_blob=read_blob,
                     files=('lib/rearchitecture/utils/widgets/segment.dart',)))
+            if 'sheen_hover' in catalog:
+                source_digests.update(source_files(repo, producer_tree, tree,
+                    read_versioned_blob=read_blob,
+                    files=('lib/widgets/reusable_widgets/buttons/sheen.dart',
+                           'lib/widgets/reusable_widgets/buttons/primary_pill.dart',
+                           'lib/rearchitecture/features/home/view/home_hero_controls.dart')))
             if 'eye_motion' in catalog:
                 source_digests.update(source_files(repo, producer_tree, tree,
                     read_versioned_blob=read_blob,
@@ -1947,6 +1957,7 @@ def main(parent=None):
         rail_motion = catalog.pop('rail_motion', None)
         sync_pulse = catalog.pop('sync_pulse', None)
         segment_motion = catalog.pop('segment_motion', None)
+        sheen_hover = catalog.pop('sheen_hover', None)
         eye_motion = catalog.pop('eye_motion', None)
         home_field_drift = catalog.pop('home_field_drift', None)
         home_field_occlusion = catalog.pop('home_field_occlusion', None)
@@ -1986,6 +1997,10 @@ def main(parent=None):
             emit('Retained readonly segment motion', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
                 manifest_sha256=catalog['manifest_sha256'], pages=segment_motion))
+        if sheen_hover is not None:
+            emit('Retained readonly Home Send hover sheen', dict(source_head=head,
+                source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
+                manifest_sha256=catalog['manifest_sha256'], **sheen_hover))
         if eye_motion is not None:
             emit('Retained readonly Home eye motion', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],

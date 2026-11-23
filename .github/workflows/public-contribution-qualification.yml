@@ -1232,6 +1232,7 @@ jobs:
             /lib/screens/onboarding/
             /lib/widgets/reusable_widgets/
             /lib/seams/
+            /lib/rearchitecture/features/home/view/home_hero_controls.dart
             /lib/rearchitecture/features/pillars/view/
             /lib/rearchitecture/features/tokens/
             /lib/rearchitecture/features/latest_transactions/

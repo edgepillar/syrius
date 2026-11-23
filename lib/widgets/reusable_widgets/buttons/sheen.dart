@@ -86,6 +86,13 @@ class Sheen extends StatefulWidget {
       ? const Color(0x38FFFFFF)
       : const Color(0x47FFFFFF);
 
+  /// The phase last processed by this original foreground painter.
+  static double? paintedProgressOf(Widget widget) {
+    final CustomPainter? painter =
+        widget is CustomPaint ? widget.foregroundPainter : null;
+    return painter is _SheenPainter ? painter.paintedProgress : null;
+  }
+
   @override
   State<Sheen> createState() => _SheenState();
 }
@@ -245,11 +252,14 @@ class _SheenPainter extends CustomPainter {
   final Animation<double> pass;
   final Color color;
   final BorderRadius? borderRadius;
+  double? paintedProgress;
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
     final double t = pass.value;
-    if (t <= 0 || t >= 1 || size.isEmpty) {
+    paintedProgress = t;
+    if (t <= 0 || t >= 1) {
       return;
     }
     final Rect rect = Offset.zero & size;

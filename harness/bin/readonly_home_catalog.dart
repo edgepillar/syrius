@@ -300,6 +300,7 @@ Future<Map<String, Object>> captureReadonlyHomeGotoStates({
     if (minimize != null) receipt['home_field_minimize'] = minimize;
     receipt['segment_motion'] = await session.observeSegmentMotion();
     receipt['eye_motion'] = await session.observeEyeMotion();
+    receipt['sheen_hover'] = await session.observeSheenHover();
   }
   return receipt;
 }

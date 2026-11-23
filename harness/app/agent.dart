@@ -79,6 +79,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_wid
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart'
     show SettingsSection;
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/sheen.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
@@ -878,6 +879,9 @@ class HarnessAgent {
     }
     if (command['cmd'] == readonlySegmentMotionCommand) {
       return _observeReadonlySegment();
+    }
+    if (command['cmd'] == readonlySheenHoverCommand) {
+      return _observeReadonlySheen();
     }
     if (command['cmd'] == readonlyEyeMotionCommand) {
       return _observeReadonlyEye();
@@ -6360,6 +6364,28 @@ class HarnessAgent {
 
     root.debugVisitOnstageChildren(visit);
     return match;
+  }
+
+  Map<String, Object?> _observeReadonlySheen() {
+    final ReadonlyNativeCommands? native = _readonlyNative;
+    final Element? root = WidgetsBinding.instance.rootElement;
+    if (native == null || root == null || kCurrentPage != Tabs.dashboard) {
+      throw const ReadonlyNativeCommandRefused();
+    }
+    _requireCaptureFrameIdle();
+    native.requireCurrentWallet();
+    final Element? owner = _findTimingChild(
+      root, (Widget widget) => widget.key == const Key('home_send'),
+    );
+    final Widget? paint = owner == null ? null : _findTimingChild(
+      owner, (Widget widget) => Sheen.paintedProgressOf(widget) != null,
+    )?.widget;
+    final double? phase = paint == null ? null : Sheen.paintedProgressOf(paint);
+    if (phase == null || !phase.isFinite || phase < 0 || phase > 1) {
+      throw const ReadonlyNativeCommandRefused();
+    }
+    final int progress = phase == 1 ? 1000000 : (phase * 1000000).floor();
+    return <String, Object?>{'paintedProgress': progress};
   }
 
   Map<String, Object?> _observeReadonlyEye() {

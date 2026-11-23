@@ -6,7 +6,8 @@ import '../app/readonly_native_commands.dart'
         readonlyHomeZapPreviewCommand,
         readonlySeamPointerCommand,
         readonlySegmentMotionCommand,
-        readonlySendWarningSyncCommand, readonlySyncPulseCommand;
+        readonlySendWarningSyncCommand, readonlySheenHoverCommand,
+        readonlySyncPulseCommand;
 import '../app/readonly_native_mode.dart';
 import 'screen_capture.dart';
 import 'wallet_recipe.dart' show WalletRecipeSend;
@@ -374,6 +375,64 @@ class ReadonlyInspectionSession {
       'minimized_end': minimizedEnd,
       'after': after,
     };
+  }
+
+  /// Reads the original Home Send paint after an ordinary pointer hover.
+  Future<List<List<int>>> observeSheenHover() async {
+    await _requireScreenHome();
+    const Duration budget = Duration(seconds: 2);
+    const Duration spacing = Duration(milliseconds: 25);
+    const int end = 1000000;
+
+    Future<void> hover(Map<String, Object?> target, int settleMs) async {
+      final Map<String, dynamic> reply = await send(
+        <String, Object?>{'cmd': 'hover', ...target, 'settleMs': settleMs},
+        budget,
+      );
+      if (reply['ok'] != true) _refuse(ReadonlyInspectionReason.reply);
+    }
+
+    Future<int> phaseAfterPaint(Duration timeout) async {
+      final Map<String, dynamic> reply = await send(
+        <String, Object?>{'cmd': readonlySheenHoverCommand}, timeout,
+      );
+      final Object? phase = reply['paintedProgress'];
+      if (reply['ok'] != true || phase is! int || phase < 0 || phase > end) {
+        _refuse(ReadonlyInspectionReason.reply);
+      }
+      return phase;
+    }
+
+    final Map<String, Object?> away = <String, Object?>{'at': <int>[0, 0]};
+    await hover(away, 650);
+    final int before = await phaseAfterPaint(budget);
+    if (before != 0 && before != end) _refuse(ReadonlyInspectionReason.reply);
+    await hover(<String, Object?>{'key': 'home_send', 'exact': true}, 0);
+    final Stopwatch clock = Stopwatch()..start();
+    final List<List<int>> samples = <List<int>>[];
+    try {
+      for (int index = 0; index < 32 && clock.elapsed < budget; index++) {
+        final int phase = await phaseAfterPaint(budget - clock.elapsed);
+        if (clock.elapsed > budget) break;
+        if (phase > 0 &&
+            (phase < end || samples.isNotEmpty ||
+                clock.elapsedMilliseconds >= 700)) {
+          if (samples.isNotEmpty && phase < samples.last[1]) {
+            _refuse(ReadonlyInspectionReason.reply);
+          }
+          samples.add(<int>[clock.elapsedMicroseconds, phase]);
+          if (phase == end) break;
+        }
+        if (clock.elapsed + spacing >= budget) break;
+        await Future<void>.delayed(spacing);
+      }
+      if (samples.isEmpty || samples.last[1] != end) {
+        _refuse(ReadonlyInspectionReason.reply);
+      }
+      return samples;
+    } finally {
+      await hover(away, 0);
+    }
   }
 
   /// Samples both directions of the original Home balance eye and restores it.
