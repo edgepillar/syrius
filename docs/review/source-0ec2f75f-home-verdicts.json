@@ -1,0 +1,68 @@
+{
+  "reviews": {
+    "01-home-rest-dark": {
+      "actual_sha256": "d75952de6d8d748f00af2348ca236fdc081cac9b2bfd45da0825b811205fd802",
+      "expected_sha256": "70617942960638e9ad855344dcc7aa1433058bb4d060155f1cfb36592ca332a6",
+      "note": "The closed three-holding Tokens card and Notifications tooltip are visible. Activity shows one selected-address receipt with unavailable units. The reference shows populated activity and rewards, as well as a pending card.",
+      "reviewed_at": "2026-11-23T03:29:03Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "01-home-rest-light": {
+      "actual_sha256": "c29a9030fcd500a21c30dc980acfbbf28e8b3b0032d586ae64036156418d3b04",
+      "expected_sha256": "280f31f618a20af2f275bd516afc3280849180f4788f38ae7c3fdebaedd36b7c",
+      "note": "The collapsed rail, Notifications tooltip and closed Tokens card are visible. The hero shows a longer Plasma fill. The reference's activity, reward and pending states are still absent from the prepared capture.",
+      "reviewed_at": "2026-11-23T03:29:03Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-dark": {
+      "actual_sha256": "ad720f7f5bc72e483ab6fa3240c211c1e8b168984c7523862404fa422e48676f",
+      "expected_sha256": "ef3e3dfc4e9e4a6438516fe8803c55202d744b57c964104d6212c4eb2d3ebd97",
+      "note": "The expanded rail and all three token rows are visible, with balances at the trailing edge. Activity contains one selected-address receipt. The reference has multiple activity rows and a populated reward summary.",
+      "reviewed_at": "2026-11-23T03:29:03Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-light": {
+      "actual_sha256": "b20c8aa9de917748569bf1a17c17231292c632139c35efcdc4c6ffa01169f1c5",
+      "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
+      "note": "The expanded rail and three-holding Tokens card are visible. The reward summary remains empty and the activity list has one row. The reference's taller reward area places the Tokens heading lower.",
+      "reviewed_at": "2026-11-23T03:29:03Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-dark": {
+      "actual_sha256": "eea5b2d4542eee26a4e2206f65247971e2a993f5fc502ad8bbd49bd2c4fe60b0",
+      "expected_sha256": "29421519af83d80baf69fcfe24beb37fc754d8da1c08b3a175e7224a27fedf16",
+      "note": "The balance and single activity amount are masked. Tokens stays closed with its three-holding count. The reference shows multiple masked activity rows and a populated masked reward summary.",
+      "reviewed_at": "2026-11-23T03:29:03Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-light": {
+      "actual_sha256": "e8676ce6b280e4c4dd478361bddb344945d222a40105bc963b940cf5fa4c5040",
+      "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
+      "note": "The hero and activity amounts are masked, and the token card stays closed. The reference shows a shorter Plasma fill and additional masked activity and reward entries.",
+      "reviewed_at": "2026-11-23T03:29:03Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-dark": {
+      "actual_sha256": "ec6b5a77decc8293871434c61ec1162f63d5842091d7571317a54cdaa60ba25c",
+      "expected_sha256": "52ccc26f93bcad1c79ac91228648bb8c369a6cec14041f77f51d210afec0a1f9",
+      "note": "The centered palette and selected Delegation row are visible. The address suggestion uses the isolated contact. The frosted background shows settled activity instead of the reference loading placeholders.",
+      "reviewed_at": "2026-11-23T03:29:03Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-light": {
+      "actual_sha256": "f7ddf754535d561cfbf030657d863a753138fdfa4472f01e09ea758896f6c4a4",
+      "expected_sha256": "f700f7b185b5064b45b1acc561abcee0fce392badb4dc2d58319914780b060bb",
+      "note": "The centered palette shows the search, results and keyboard hints. The contact and the content behind the frosted panel differ. The reference has loading placeholders where the capture has settled activity.",
+      "reviewed_at": "2026-11-23T03:29:03Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
