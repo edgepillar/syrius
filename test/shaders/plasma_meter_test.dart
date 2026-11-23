@@ -10,43 +10,53 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 const Key _surface = Key('meter_surface');
 const MethodChannel _window = MethodChannel('window_manager');
 
-Widget _host(double value, {TextDirection direction = TextDirection.ltr}) =>
-    MaterialApp(
-      theme: AppTheme.darkTheme,
-      home: Directionality(
-        textDirection: direction,
-        child: Center(
-          child: RepaintBoundary(
-            key: _surface,
-            child: SizedBox(
-              width: 200,
-              height: 6,
-              child: PlasmaMeter(
-                value: value,
-                trackColor: AppTokens.dark.line,
-              ),
-            ),
+Widget _host(
+  double value, {
+  TextDirection direction = TextDirection.ltr,
+  bool active = false,
+}) => MaterialApp(
+  theme: AppTheme.darkTheme,
+  home: Directionality(
+    textDirection: direction,
+    child: Center(
+      child: RepaintBoundary(
+        key: _surface,
+        child: SizedBox(
+          width: 200,
+          height: 6,
+          child: PlasmaMeter(
+            value: value,
+            active: active,
+            trackColor: AppTokens.dark.line,
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
 
-/// The drawn fill boundary, independent of whether the test engine loaded
-/// the shader or used its flat fallback. This checks level geometry rather
-/// than claiming a match for an OpenGL shader frame.
-Future<int> _filledPixels(WidgetTester tester) async {
+Future<ByteData> _barPixels(
+  WidgetTester tester, {
+  double pixelRatio = 1,
+}) async {
   final RenderRepaintBoundary boundary = tester
       .renderObject<RenderRepaintBoundary>(find.byKey(_surface));
   final ByteData? bytes = await tester.runAsync<ByteData?>(() async {
-    final ui.Image image = await boundary.toImage();
+    final ui.Image image = await boundary.toImage(pixelRatio: pixelRatio);
     try {
       return await image.toByteData();
     } finally {
       image.dispose();
     }
   });
+  return bytes!;
+}
+
+/// The drawn fill boundary, independent of whether the test engine uses
+/// its shader or the flat fallback.
+Future<int> _filledPixels(WidgetTester tester) async {
+  final ByteData data = await _barPixels(tester);
   final Color track = AppTokens.dark.line;
-  final ByteData data = bytes!;
   final List<int> rgb = <int>[
     (track.r * 255).round(),
     (track.g * 255).round(),
@@ -81,7 +91,23 @@ void main() {
     WidgetTester tester,
   ) async {
     for (final TextDirection direction in TextDirection.values) {
+      await tester.pumpWidget(_host(0, direction: direction));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 501));
+      final ByteData empty = await _barPixels(tester, pixelRatio: 2);
+      final Color track = AppTokens.dark.line;
+      // Check the leading AA pixel at 2x, where the fill shader's soft edge
+      // used to be visible even with a zero level.
+      final int offset =
+          (6 * 400 + (direction == TextDirection.ltr ? 0 : 399)) * 4;
+      expect(empty.getUint8(offset), closeTo(track.r * 255, 1));
+      expect(empty.getUint8(offset + 1), closeTo(track.g * 255, 1));
+      expect(empty.getUint8(offset + 2), closeTo(track.b * 255, 1));
+      expect(tester.binding.transientCallbackCount, 0);
+
       await tester.pumpWidget(_host(0.25, direction: direction));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 501));
       await tester.pump();
       expect(await _filledPixels(tester), closeTo(50, 1));
       expect(tester.binding.transientCallbackCount, 0);
@@ -113,6 +139,36 @@ void main() {
     await tester.pump(const Duration(milliseconds: 1));
     expect(await _filledPixels(tester), closeTo(150, 1));
     expect(tester.binding.transientCallbackCount, 0);
+
+    await tester.pumpWidget(_host(0.75, active: true));
+    for (
+      int attempt = 0;
+      attempt < 50 && tester.binding.transientCallbackCount == 0;
+      attempt++
+    ) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 40)),
+      );
+      await tester.pump();
+    }
+    expect(tester.binding.transientCallbackCount, 1);
+    final ByteData initial = await _barPixels(tester);
+    await tester.pump(const Duration(milliseconds: 350));
+    final ByteData flowing = await _barPixels(tester);
+    expect(
+      flowing.buffer.asUint8List(),
+      isNot(orderedEquals(initial.buffer.asUint8List())),
+    );
+    expect(await _filledPixels(tester), closeTo(150, 1));
+
+    await tester.pumpWidget(_host(0.75));
+    await tester.pump(const Duration(seconds: 1));
+    expect(tester.binding.transientCallbackCount, 0);
+    final ByteData idle = await _barPixels(tester);
+    expect(
+      idle.buffer.asUint8List(),
+      orderedEquals(flowing.buffer.asUint8List()),
+    );
     expect(tester.takeException(), isNull);
   });
 }

@@ -177,11 +177,17 @@ class _PlasmaMeterPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
     final RRect bar = RRect.fromRectAndRadius(
       Offset.zero & size,
       Radius.circular(size.height / 2),
     );
-    final double value = frame.value.level;
+    final _MeterFrame current = frame.value;
+    final double value = current.level;
+    if (value == 0) {
+      canvas.drawRRect(bar, Paint()..color = trackColor);
+      return;
+    }
     final ui.FragmentShader? shader = this.shader;
     if (shader == null) {
       final double width = size.width * value;
@@ -201,7 +207,7 @@ class _PlasmaMeterPainter extends CustomPainter {
     shader
       ..setFloat(i++, size.width) // u_size
       ..setFloat(i++, size.height)
-      ..setFloat(i++, frame.value.seconds) // u_time
+      ..setFloat(i++, current.seconds) // u_time
       ..setFloat(i++, value) // u_fill
       ..setFloat(i++, direction == TextDirection.ltr ? 1 : -1) // u_dir
       ..setFloat(i++, AppColors.qsrColor.r) // u_base

@@ -36,6 +36,15 @@ void main() {
   float x = along / u_size.y;
   float level = u_fill * u_size.x / u_size.y;
 
+  // The track needs no lighting, including while the fill edge is moving.
+  // Keep the one-pixel softening on samples that overlap the fill.
+  float inside = clamp(level * u_size.y - along + 0.5, 0.0, 1.0);
+  vec4 track = vec4(u_track.rgb * u_track.a, u_track.a);
+  if (inside == 0.0) {
+    fragColor = track;
+    return;
+  }
+
   // Two bands at different speeds; each wraps a little past the level so it
   // leaves the fill before it comes back in.
   float span = level + 12.0;
@@ -48,8 +57,5 @@ void main() {
   // The light gathers at the level's edge, where the plasma ends.
   fill = mix(fill, lit, 0.5 * band(x, level, 1.2));
 
-  // One pixel of softening between the fill and the track.
-  float inside = clamp(level * u_size.y - along + 0.5, 0.0, 1.0);
-  vec4 track = vec4(u_track.rgb * u_track.a, u_track.a);
   fragColor = mix(track, vec4(fill, 1.0), inside);
 }
