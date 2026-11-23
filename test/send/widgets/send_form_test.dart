@@ -722,7 +722,7 @@ void main() {
       expect(find.text('Looks like Alice'), findsOneWidget);
       expect(
         find.text(
-          'The beginning and ending match a saved address. '
+          'The beginning and ending match a known address. '
           'Check the full address before sending.',
         ),
         findsOneWidget,

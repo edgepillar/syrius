@@ -4705,7 +4705,7 @@ abstract class AppLocalizations {
   /// No description provided for @sendLookAlikeDetail.
   ///
   /// In en, this message translates to:
-  /// **'The beginning and ending match a saved address. Check the full address before sending.'**
+  /// **'The beginning and ending match a known address. Check the full address before sending.'**
   String get sendLookAlikeDetail;
 
   /// No description provided for @sendKnownAddress.

@@ -2856,7 +2856,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sendLookAlikeDetail =>
-      'The beginning and ending match a saved address. Check the full address before sending.';
+      'The beginning and ending match a known address. Check the full address before sending.';
 
   @override
   String get sendKnownAddress => 'Known address';

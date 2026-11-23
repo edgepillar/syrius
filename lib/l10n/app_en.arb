@@ -2030,7 +2030,7 @@
   "sendCheckAddress": "Check the full address",
   "sendLooksLike": "Looks like {name}",
   "@sendLooksLike": {"placeholders": {"name": {"type": "String"}}},
-  "sendLookAlikeDetail": "The beginning and ending match a saved address. Check the full address before sending.",
+  "sendLookAlikeDetail": "The beginning and ending match a known address. Check the full address before sending.",
   "sendKnownAddress": "Known address",
   "sendTypedAddress": "Typed address",
   "sendUseKnown": "Use {name}",
