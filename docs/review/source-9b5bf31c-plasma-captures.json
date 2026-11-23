@@ -1,0 +1,20 @@
+{
+  "actual": {
+    "21-plasma-dark": {
+      "archive_member": "21-plasma-dark.png",
+      "archive_sha256": "06e65e5552f7e833d52a78f2b5b10d019897e24e78b61cd66ff35e281f7be582",
+      "catalog_family": "navigation",
+      "path": "06e65e5552f7e833d52a78f2b5b10d019897e24e78b61cd66ff35e281f7be582",
+      "sha256": "4e4f2af2e5dd7182886b681199830d981d83211504c15d5ff0b3863869e7508f",
+      "source_sha": "9b5bf31c449a40d5f9c546c42028f7e6a2b25fc3"
+    },
+    "21-plasma-light": {
+      "archive_member": "21-plasma-light.png",
+      "archive_sha256": "06e65e5552f7e833d52a78f2b5b10d019897e24e78b61cd66ff35e281f7be582",
+      "catalog_family": "navigation",
+      "path": "06e65e5552f7e833d52a78f2b5b10d019897e24e78b61cd66ff35e281f7be582",
+      "sha256": "d5e0a4a7ec0b2f9e982314a80309e64b15ceeb980387e49b1a104256c635bdd4",
+      "source_sha": "9b5bf31c449a40d5f9c546c42028f7e6a2b25fc3"
+    }
+  }
+}
