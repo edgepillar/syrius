@@ -244,6 +244,7 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
 }) async {
   final bool sendConfirmation =
       selection == ReadonlyDetailsSelection.sendConfirmation;
+  final bool tokenDraft = selection == ReadonlyDetailsSelection.tokenDraft;
   final bool sendWarning = selection == ReadonlyDetailsSelection.sendWarning;
   final bool zapPreview =
       selection == ReadonlyDetailsSelection.homeZapPreview;
@@ -456,20 +457,29 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
         }
         return;
       }
-      if (words case ['assert', '--key', 'send_amount_field',
-          '--kind', 'field', '--exact'] when sendConfirmation) {
-        final Map<String, dynamic> checked = await cli.call(instance,
-          const <String, Object?>{
-            'cmd': 'assert', 'key': 'send_amount_field',
-            'kind': 'field', 'exact': true,
-          },
-        );
-        final Object? target = checked['target'];
-        if (checked['asserted'] != true || target is! Map<String, dynamic> ||
-            target['value'] != '12.5' || target['focused'] == true) {
-          throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
+      if (words case ['assert', '--key', final String key,
+          '--kind', 'field', '--exact']) {
+        final String? expected = switch (key) {
+          'send_amount_field' when sendConfirmation => '12.5',
+          'token_name_field' when tokenDraft => 'MoonTokens',
+          'token_symbol_field' when tokenDraft => 'MOON',
+          _ => null,
+        };
+        if (expected != null) {
+          final Map<String, dynamic> checked = await cli.call(
+            instance, <String, Object?>{
+              'cmd': 'assert', 'key': key, 'kind': 'field', 'exact': true,
+            },
+          );
+          final Object? target = checked['target'];
+          if (checked['asserted'] != true || target is! Map<String, dynamic> ||
+              target['value'] != expected || target['focused'] == true) {
+            throw const ReadonlyInspectionRefused(
+              ReadonlyInspectionReason.reply,
+            );
+          }
+          return;
         }
-        return;
       }
       if (swapStart && words.first == 'assert') {
         final Map<String, Object?> selector =

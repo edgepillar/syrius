@@ -992,6 +992,8 @@ const Set<String> _stakeDraftLines = <String>{
   'tap --key create_stake_months_6',
   'type --key create_stake_amount_field --kind field 300',
   'wait --key create_stake_submit_button --ready --timeout 30',
+  'tap @0,779',
+  'assert --key create_stake_amount_field --kind field --exact',
   'assert --key create_stake_submit_button',
   'wait --key create_stake_amount_field --kind field --gone --timeout 10',
   'goto dashboard',
@@ -1506,7 +1508,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
         case 'tap':
           await cli.call(instance, <String, Object?>{
             'cmd': 'tap',
-            if (restoredSend && authored == 'tap @0,779') ...<String, Object?>{
+            if (authored == 'tap @0,779') ...<String, Object?>{
               'at': <int>[0, 779], 'settleMs': 0,
             } else if (pillarSpawn || pillarDone)
               ...assertion(args)
@@ -1560,6 +1562,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
           final String? expectedValue = switch (key) {
             'mint_beneficiary_field' => beneficiary,
             'mint_amount_field' => '5000',
+            'create_stake_amount_field' when stakeDraft => '300',
             final String field => pillarDraftValues[field],
             _ => null,
           };
@@ -1568,8 +1571,8 @@ Future<Map<String, Object>> _captureSeededCatalog(
             if (target is! Map || target['value'] != expectedValue) {
               throw const FormatException('seeded draft field refused');
             }
-            if (pillarSpawn && target['focused'] == true) {
-              throw const FormatException('Pillar draft field still focused');
+            if ((pillarSpawn || stakeDraft) && target['focused'] == true) {
+              throw const FormatException('prepared draft field still focused');
             }
           }
           if (pillarSpawn && key == 'pillar_details_next_button') {

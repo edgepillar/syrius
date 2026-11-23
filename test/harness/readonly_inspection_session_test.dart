@@ -1991,6 +1991,8 @@ void main() {
       int canceledSend = 0;
       bool restingSendAmountChecked = false;
       bool restingSendTapped = false;
+      bool tokenDraftBlurred = false;
+      final Set<String> restingTokenFields = <String>{};
       int swapWarnings = 0;
       int closedSwaps = 0;
       int closedPillar = 0;
@@ -2014,6 +2016,18 @@ void main() {
           final Object? name = command['cmd'];
           final Object? targetKey = command['key'];
           final Object? targetTab = command['tab'];
+          if (tokenDraft && name == 'tap' && command['at'] != null) {
+            expect(command['at'], <int>[0, 779]);
+            expect(draftOpen && draftReady && !tokenDraftBlurred, isTrue);
+            tokenDraftBlurred = true;
+          }
+          if (tokenDraft && name == 'assert' && targetKey is String &&
+              draft.containsKey(targetKey)) {
+            expect(tokenDraftBlurred, isTrue);
+            expect(command['kind'], 'field');
+            expect(command['exact'], isTrue);
+            restingTokenFields.add(targetKey);
+          }
           if (sendConfirmation && name == 'tap' && command['at'] != null) {
             expect(command['at'], <int>[0, 779]);
             expect(selected, 'send-rest');
@@ -2207,7 +2221,12 @@ void main() {
               });
             }
             if (tokenDraft) {
-              expect(draftOpen && draftReady, isTrue);
+              expect(draftOpen && draftReady && tokenDraftBlurred, isTrue);
+              expect(restingTokenFields, <String>{
+                'token_name_field', 'token_symbol_field',
+              });
+              restingTokenFields.clear();
+              tokenDraftBlurred = false;
               expect(command['expect'], <String, Object?>{
                 'key': 'token_create_continue', 'kind': 'button', 'exact': true,
               });
@@ -2390,6 +2409,11 @@ void main() {
                   'value': draft['recipient'],
                 if (sendConfirmation && targetKey == 'send_amount_field')
                   'value': draft['send_amount_field'],
+                if (tokenDraft && draft.containsKey(targetKey))
+                  ...<String, Object?>{
+                    'value': draft[targetKey],
+                    'focused': !tokenDraftBlurred,
+                  },
               },
             },
             if (name == 'type') ...<String, dynamic>{

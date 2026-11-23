@@ -7,6 +7,8 @@ wait --key create_stake_amount_field --kind field --ready --timeout 30
 tap --key create_stake_months_6
 type --key create_stake_amount_field --kind field 300
 wait --key create_stake_submit_button --ready --timeout 30
+tap @0,779
+assert --key create_stake_amount_field --kind field --exact
 assert --key create_stake_submit_button
 # after-capture: tap --key staking_stake_button
 # after-capture: wait --key create_stake_amount_field --kind field --gone --timeout 10
