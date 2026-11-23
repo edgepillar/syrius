@@ -410,6 +410,7 @@ class _PopulatedState extends State<_Populated> {
         height: tokens.fieldHeight,
         child: Align(
           alignment: AlignmentDirectional.centerStart,
+          widthFactor: 1,
           child: Ltr(
             child: Text(
               selected == null ? '' : _unlockDate(context, selected),
@@ -432,9 +433,6 @@ class _PopulatedState extends State<_Populated> {
           busy: busy,
           style: OutlinedButton.styleFrom(
             minimumSize: Size(_kButtonMinWidth, tokens.fieldHeight),
-            padding: EdgeInsetsDirectional.symmetric(
-              horizontal: tokens.pageGap,
-            ),
           ),
           onPressed: canEdit && _isInputValid ? _onStakePressed : null,
           child: busy
@@ -482,7 +480,10 @@ class _PopulatedState extends State<_Populated> {
                   SizedBox(width: tokens.panelGap),
                   Expanded(child: amount),
                   SizedBox(width: tokens.panelGap),
-                  SizedBox(width: _kUnlockWidth, child: unlocks),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: _kUnlockWidth),
+                    child: unlocks,
+                  ),
                   SizedBox(width: tokens.panelGap),
                   submit,
                 ],

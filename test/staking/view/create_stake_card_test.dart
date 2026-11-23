@@ -264,18 +264,26 @@ void main() {
       tester.widget<PrimaryPill>(find.byKey(_submitKey)).onPressed,
       isNull,
     );
+    final Finder date = find.byKey(const Key('create_stake_unlock_date'));
+    final Finder submit = find.byKey(_submitKey);
+    expect(tester.widget<Text>(date).data, isEmpty);
+    final double emptyFieldWidth = tester.getSize(amount).width;
+    final OutlinedButton submitButton = tester.widget<OutlinedButton>(
+      find.descendant(of: submit, matching: find.byType(OutlinedButton)),
+    );
     expect(
-      tester
-          .widget<Text>(find.byKey(const Key('create_stake_unlock_date')))
-          .data,
-      isEmpty,
+      submitButton.style!.padding!.resolve(<WidgetState>{}),
+      const EdgeInsets.symmetric(horizontal: 16),
     );
 
     await chooseSixMonths(tester);
+    expect(tester.getSize(amount).width, lessThan(emptyFieldWidth));
     expect(
-      tester
-          .widget<Text>(find.byKey(const Key('create_stake_unlock_date')))
-          .data,
+      tester.getTopLeft(submit).dx - tester.getTopRight(date).dx,
+      closeTo(tokens.panelGap, 0.01),
+    );
+    expect(
+      tester.widget<Text>(date).data,
       DateFormat(
         'd MMM yyyy',
         'en',
