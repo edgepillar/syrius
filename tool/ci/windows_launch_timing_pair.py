@@ -231,8 +231,12 @@ def attempt_outcomes(samples):
 
 
 def closed_p06_deadline(report):
-    """Recognize a timed-out baseline whose original actors all closed."""
-    if (report['success'] or report['phase'] != 'p06_measure'
+    """Recognize a baseline readiness deadline after all actors closed."""
+    p06_roles = {
+        'p06_warm_ordinary_profile': ['prepare', 'prepare'],
+        'p06_measure': ['prepare', 'prepare', 'timing'],
+    }.get(report['phase'])
+    if (report['success'] or p06_roles is None
             or report['error_codes'] != ['STARTUP_OBSERVATION_REFUSED']
             or report['comparison'] is not None
             or [row['name'] for row in report['samples']] != ['current', 'p06']):
@@ -241,7 +245,7 @@ def closed_p06_deadline(report):
     current_attempts, p06_attempts = current['attempts'], baseline['attempts']
     if (current['frame_window'] is None or baseline['frame_window'] is not None
             or [row['role'] for row in current_attempts] != ['prepare', 'timing']
-            or [row['role'] for row in p06_attempts] != ['prepare', 'prepare', 'timing']
+            or [row['role'] for row in p06_attempts] != p06_roles
             or not all(launch.attempt_passed(row)
                        for row in current_attempts + p06_attempts[:-1])):
         return False

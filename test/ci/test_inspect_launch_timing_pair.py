@@ -264,6 +264,7 @@ class PairInspectionTests(unittest.TestCase):
         self.assertEqual(warmup.deadline, 125)
         result = self.project(value)
         self.assertEqual(result['normal_actor_exits'], 4)
+        self.assertTrue(result['closed_after_p06_deadline'])
         self.assertEqual(result['attempt_outcomes']['p06'][-1]['lock_diagnostic'], diagnostic)
         self.assertIsNone(result['comparison'])
 
@@ -626,7 +627,7 @@ class PairInspectionTests(unittest.TestCase):
                         name=f'windows-launch-settle-catalog-{HEAD}-{RUN}-1'))
                 return reply
 
-        for outcome in ('success', 'deadline', 'forced'):
+        for outcome in ('success', 'deadline', 'forced', 'warmup', 'forced_warmup'):
             offered = CombinedClient()
             offered.job['steps'].extend(dict(name=name, status='completed', conclusion='success')
                 for name in ('Build the ordinary Release harness target', pair.launch.SETTLE_JOB_STEP,
@@ -637,8 +638,11 @@ class PairInspectionTests(unittest.TestCase):
                              error_codes=['STARTUP_OBSERVATION_REFUSED'])
                 baseline = value['samples'][1]
                 baseline['frame_window'] = None
+                if outcome in ('warmup', 'forced_warmup'):
+                    value['phase'] = 'p06_warm_ordinary_profile'
+                    baseline['attempts'].pop()
                 baseline['attempts'][-1].update(action_complete=False,
-                    error_codes=['STARTUP_DEADLINE'], forced_kill=outcome == 'forced')
+                    error_codes=['STARTUP_DEADLINE'], forced_kill=outcome in ('forced', 'forced_warmup'))
                 offered.raw = package(value)
                 offered.job.update(conclusion='failure')
                 offered.job['steps'][0].update(conclusion='failure')
@@ -647,7 +651,7 @@ class PairInspectionTests(unittest.TestCase):
                   mock.patch.object(windows.startup, '_inspect_launch_artifact',
                                     return_value=capture) as inspect_capture):
                 status, rows = self.read_original_run(offered)
-                if outcome == 'forced':
+                if outcome in ('forced', 'forced_warmup'):
                     self.assertEqual(status, 1, rows)
                     inspect_capture.assert_not_called()
                     continue
@@ -659,7 +663,7 @@ class PairInspectionTests(unittest.TestCase):
                 self.assertEqual(inspect_capture.call_args.kwargs['item']['id'], 8)
                 self.assertIs(rows[0]['artifact_reported_success'], outcome == 'success')
                 self.assertIs(rows[0].get('closed_after_p06_deadline', False),
-                              outcome == 'deadline')
+                              outcome in ('deadline', 'warmup'))
                 self.assertEqual(rows[-1]['scope'], 'retained_launch_settle')
                 self.assertEqual(rows[-1]['original_capture_conclusion'], 'success')
                 self.assertEqual(rows[-1]['original_job_conclusion'], offered.job['conclusion'])
