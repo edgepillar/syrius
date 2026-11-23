@@ -39,7 +39,7 @@ void main() {
         ),
       );
       final Finder generation = find.byType(GenerationStatus);
-      expect(tester.getSize(generation), Size.zero);
+      expect(tester.getSize(generation).isEmpty, isTrue);
       expect(
         tester.renderObject(generation),
         isNot(isA<RenderRepaintBoundary>()),
@@ -58,7 +58,7 @@ void main() {
       status.add(PowGenerationState.completed(work));
       await tester.pump();
       expect(find.byKey(const Key('strip_plasma')), findsNothing);
-      expect(tester.getSize(generation), Size.zero);
+      expect(tester.getSize(generation).isEmpty, isTrue);
       expect(
         tester.renderObject(generation),
         isNot(isA<RenderRepaintBoundary>()),
