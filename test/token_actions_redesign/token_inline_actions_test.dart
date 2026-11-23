@@ -799,6 +799,11 @@ void main() {
                 tester.getBottomLeft(details).dy,
                 closeTo(tester.getBottomLeft(find.text('By any holder')).dy, 1),
               );
+              expect(
+                tester.getRect(find.byType(RowDetail)).bottom -
+                    tester.getRect(details).bottom,
+                closeTo(18, 0.01),
+              );
               for (final String mode in <String>[
                 'mint',
                 'burn',

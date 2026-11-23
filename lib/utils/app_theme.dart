@@ -810,7 +810,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
   double get tokenDetailIndent => 66;
 
   /// The expanded token leaves room below its retained action form.
-  double get tokenDetailBottomInset => 21;
+  double get tokenDetailBottomInset => 18;
 
   /// Separates independent token facts.
   double get tokenDetailFactGap => 28;
