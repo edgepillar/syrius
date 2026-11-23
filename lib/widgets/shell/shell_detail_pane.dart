@@ -60,18 +60,20 @@ class ShellDetailPane extends StatelessWidget {
                           Size(0, tokens.smallButtonHeight),
                         ),
                         padding: const WidgetStatePropertyAll<EdgeInsets>(
-                          EdgeInsets.symmetric(horizontal: 10),
+                          // Includes the reference ghost button's border.
+                          EdgeInsets.symmetric(horizontal: 11),
                         ),
                         textStyle: WidgetStatePropertyAll<TextStyle>(
-                          tokens.compactText.copyWith(fontSize: 12),
+                          tokens.captionText.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                       onPressed: onClose,
-                      icon: Icon(
-                        Directionality.of(context) == TextDirection.rtl
-                            ? Icons.chevron_right
-                            : Icons.chevron_left,
-                        size: 16,
+                      icon: ShellSymbol(
+                        'chevl',
+                        size: tokens.smallActionGlyphSize,
+                        directional: true,
                       ),
                       label: Text(breadcrumb),
                     ),

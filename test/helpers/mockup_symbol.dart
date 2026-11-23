@@ -19,6 +19,7 @@ void expectMockupSymbol(
   required String symbol,
   required double size,
   Color? color,
+  bool directional = false,
 }) {
   final String? content = _referenceSymbols[symbol];
   expect(content, isNotNull);
@@ -45,5 +46,5 @@ void expectMockupSymbol(
     ),
   );
   expect(svg.excludeFromSemantics, isTrue);
-  expect(svg.matchTextDirection, isFalse);
+  expect(svg.matchTextDirection, directional);
 }

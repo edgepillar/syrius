@@ -14,6 +14,8 @@ import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_detail_pane.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_pane_navigation.dart';
 
+import '../helpers/mockup_symbol.dart';
+
 Widget _app(
   Widget child, {
   PageRefreshController? refresh,
@@ -133,6 +135,21 @@ void main() {
       expect(target.invoke('delegate'), isFalse);
       final Finder detail = find.byKey(const Key('detail_pane'));
       final Finder close = find.byKey(const Key('detail_close'));
+      final Finder breadcrumb = find.byKey(const Key('detail_breadcrumb'));
+      expectMockupSymbol(
+        tester,
+        within: breadcrumb,
+        symbol: 'chevl',
+        size: 14,
+        directional: true,
+      );
+      final ButtonStyle breadcrumbStyle =
+          tester.widget<TextButton>(breadcrumb).style!;
+      final TextStyle label =
+          breadcrumbStyle.textStyle!.resolve(<WidgetState>{})!;
+      expect(label.fontSize, 12);
+      expect(label.fontWeight, FontWeight.w500);
+      expect(breadcrumbStyle.padding!.resolve(<WidgetState>{})!.horizontal, 22);
       final Finder body = find.descendant(
         of: detail,
         matching: find.byType(ClipRect),
