@@ -181,10 +181,9 @@ class _SectionItemState extends State<_SectionItem>
           position: DecorationPosition.foreground,
           decoration: BoxDecoration(
             borderRadius: radius,
-            border: Border.all(
-              color: _focused ? tokens.focusRing : Colors.transparent,
-              width: tokens.focusWidth,
-            ),
+            border: _focused
+                ? Border.all(color: tokens.focusRing, width: tokens.focusWidth)
+                : null,
           ),
           child: InkWell(
             key: ValueKey<String>('settings_${widget.section.name}'),
@@ -227,15 +226,16 @@ class _SectionItemState extends State<_SectionItem>
         ),
         builder: (BuildContext context, Widget? child) {
           final double t = tokens.ease.transform(_selection.value);
-          return Material(
-            // The preserving controller owns this colour transition.
-            animationDuration: Duration.zero,
-            color: Color.lerp(
-              tokens.card2.withValues(alpha: 0),
-              tokens.card2,
-              t,
+          // The menu's panel supplies the Material for all these rows.
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              color: Color.lerp(
+                tokens.card2.withValues(alpha: 0),
+                tokens.card2,
+                t,
+              ),
+              borderRadius: radius,
             ),
-            borderRadius: radius,
             child: IconTheme.merge(
               data: IconThemeData(
                 color: Color.lerp(tokens.dim, tokens.znnInk, t),

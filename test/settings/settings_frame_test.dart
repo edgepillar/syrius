@@ -77,12 +77,17 @@ FocusNode _sectionFocus(WidgetTester tester, SettingsSectionId section) =>
       ),
     );
 
-Material _surface(WidgetTester tester, SettingsSectionId section) =>
-    tester.widget<Material>(
-      find
-          .ancestor(of: _section(section), matching: find.byType(Material))
-          .first,
-    );
+BoxDecoration _surface(WidgetTester tester, SettingsSectionId section) =>
+    tester.widget<DecoratedBox>(
+      find.ancestor(
+        of: _section(section),
+        matching: find.byWidgetPredicate(
+          (Widget widget) =>
+              widget is DecoratedBox &&
+              widget.position == DecorationPosition.background,
+        ),
+      ).first,
+    ).decoration as BoxDecoration;
 
 void _window(WidgetTester tester) {
   tester.view.physicalSize = const Size(1200, 600);
@@ -101,8 +106,13 @@ void main() {
           _window(tester);
           await tester.pumpWidget(_app(light: light, rtl: rtl));
           await tester.pumpAndSettle();
-          final Rect menu = tester.getRect(
-            find.byKey(const Key('settings_section_menu')),
+          final Finder menuView = find.byKey(
+            const Key('settings_section_menu'),
+          );
+          final Rect menu = tester.getRect(menuView);
+          expect(
+            find.descendant(of: menuView, matching: find.byType(Material)),
+            findsOneWidget,
           );
           final Rect page = tester.getRect(
             find.byKey(const Key('settings_page')),
