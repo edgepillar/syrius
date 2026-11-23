@@ -6,6 +6,7 @@ import base64
 from collections import Counter
 import hashlib
 import io
+from itertools import groupby
 import json
 import os
 from pathlib import Path
@@ -1017,18 +1018,61 @@ def _swap_counterparty_geometry(data, theme):
     return result
 
 
+def _token_draft_fields(data, theme):
+    """Measure the solid interiors and top borders of the two draft fields."""
+    left, right = 365, 980
+    top, bottom = 106, 192
+    fill = b'\x2e\x30\x2e' if theme == 'dark' else b'\xff\xff\xff'
+    rows, channels = windows._png_crop(
+        base64.b64encode(data).decode('ascii'), (left, right), (top, bottom))
+    if not windows._opaque(rows, channels):
+        return None
+
+    def rgb(row, x):
+        offset = (x - left) * channels
+        return row[offset:offset + 3]
+
+    fields = {}
+    for name, column in (('name', 600), ('symbol', 870)):
+        fields[name] = None
+        spans = []
+        y = top
+        for matches, group in groupby(rgb(row, column) == fill for row in rows):
+            end = y + sum(1 for _ in group)
+            if matches and top < y < end < bottom and 28 <= end - y <= 56:
+                spans.append((y, end))
+            y = end
+        if len(spans) != 1:
+            continue
+        start, end = spans[0]
+        interior = rows[end - top - 9]
+        x0, x1 = column, column + 1
+        while x0 > left and rgb(interior, x0 - 1) == fill:
+            x0 -= 1
+        while x1 < right and rgb(interior, x1) == fill:
+            x1 += 1
+        if x0 > left and x1 < right and x1 - x0 >= 80:
+            fields[name] = dict(fill_bounds=[x0, start, x1, end],
+                                top_border_rgb=list(rgb(rows[start - top - 1], column)))
+    return fields
+
+
 def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points=None):
     pairs = {}
     display_dividers = {}
     map_gray = {}
     pane_rows = {}
     counterparty = {}
+    token_fields = {}
     for theme in producer.THEMES:
         name = f'{screen}-{theme}.png'
         actual = zipped.read(name)
         reference = producer.read_original(reference_dir / name, producer.debug.entry.MAX_PNG)
         pairs[theme] = windows.pixel_comparison(actual, reference, regions,
                                                 sample_points=sample_points)
+        if screen == '25-token-new':
+            token_fields[theme] = dict(actual=_token_draft_fields(actual, theme),
+                                       reference=_token_draft_fields(reference, theme))
         if screen == '32-set-display':
             display_dividers[theme] = dict(actual=_display_divider_rows(actual),
                                            reference=_display_divider_rows(reference))
@@ -1041,6 +1085,8 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
             counterparty[theme] = dict(actual=_swap_counterparty_geometry(actual, theme),
                                        reference=_swap_counterparty_geometry(reference, theme))
     result = dict(screen=screen, region_bounds=regions, pairs=pairs)
+    if token_fields:
+        result['token_fields'] = token_fields
     if display_dividers:
         column, top, bottom = DISPLAY_DIVIDER_SCAN
         result['display_dividers'] = dict(column=column, scan_rows=[top, bottom],

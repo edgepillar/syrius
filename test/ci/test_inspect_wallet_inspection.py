@@ -252,6 +252,7 @@ class ReaderTests(unittest.TestCase):
         reference_dir = Path('references')
         with mock.patch.object(reader.producer, 'read_original',
                 side_effect=lambda path, _: path.name.encode()) as read, \
+                mock.patch.object(reader, '_token_draft_fields', return_value=None), \
                 mock.patch.object(reader.windows, 'pixel_comparison',
                     side_effect=lambda actual, reference, _, **options: actual == reference):
             [comparison] = reader.details_pixel_comparisons(raw, reference_dir, files=names)
@@ -265,6 +266,15 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(bounds['form'], (360, 85, 1280, 724))
         self.assertEqual(sum((right - left) * (bottom - top)
                              for left, top, right, bottom in bounds.values()), 1280 * 780)
+        shots = Path(__file__).resolve().parents[2] / 'mockups' / 'redesign' / 'shots'
+        for theme, name in zip(('dark', 'light'), names):
+            with self.subTest(theme=theme):
+                fields = reader._token_draft_fields((shots / name).read_bytes(), theme)
+                ink = [113, 118, 113] if theme == 'dark' else [133, 138, 133]
+                self.assertEqual(fields, {
+                    'name': dict(fill_bounds=[389, 132, 727, 172], top_border_rgb=ink),
+                    'symbol': dict(fill_bounds=[741, 132, 951, 172], top_border_rgb=ink),
+                })
 
     def test_settings_comparison_covers_each_section_and_both_themes(self):
         screens = ('30-set-node', '31-set-security', '32-set-display',
