@@ -27,6 +27,7 @@ import 'package:lottie/lottie.dart' show Lottie;
 import 'package:material_ui/material_ui.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/pow_generating_status_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_pillar_stepper/widgets/pillar_step_parts.dart';
@@ -108,6 +109,7 @@ import 'client_window.dart';
 import 'entry_caption_observer.dart';
 import 'fixtures/home_goto_contact.dart';
 import 'fixtures/home_zap_preview.dart';
+import 'fixtures/lab_pow_observation.dart';
 import 'fixtures/lab_quiescence.dart';
 import 'fixtures/lab_seed_binding.dart';
 import 'fixtures/lab_send_policy.dart';
@@ -1734,7 +1736,22 @@ class HarnessAgent {
     return binding.captureReview(accept.element, center: accept.center);
   }
 
+  double? _labPowBoltPhase() {
+    final Element? root = WidgetsBinding.instance.rootElement;
+    if (root == null || kCurrentPage != Tabs.transfer) return null;
+    final Element? bolt = _findTimingChild(
+      root,
+      (Widget widget) => widget is AppLottie &&
+          widget.key == const Key('strip_plasma'),
+    );
+    if (bolt == null) return null;
+    final Widget? animation =
+        _findTimingChild(bolt, (Widget widget) => widget is Lottie)?.widget;
+    return animation is Lottie ? animation.controller?.value : null;
+  }
+
   Future<Map<String, Object?>> _labSend(Map<String, dynamic> command) async {
+    LabPowObservation? pow;
     String phase = 'admission';
     Map<String, Object?>? detail(String reason, {
       SeedAdvanceObservation? frontier,
@@ -1893,6 +1910,13 @@ class HarnessAgent {
         requireOriginalReady: () => _requireLabReview(review),
         tapOnce: (void Function() admission) async {
           phase = 'accept';
+          if (app.sl.isRegistered<PowGeneratingStatusBloc>()) {
+            pow = LabPowObservation(
+              source: app.sl<PowGeneratingStatusBloc>(),
+              current: () => source.isCurrent && kCurrentPage == Tabs.transfer,
+              boltPhase: _labPowBoltPhase,
+            );
+          }
           await _acceptLabReview(review, admission);
           phase = 'confirmation';
         });
@@ -1921,11 +1945,13 @@ class HarnessAgent {
         sourceCurrent();
       }
       final Map<String, int>? completionSheen = paint?.receipt;
+      final Map<String, Object>? powObservation = pow?.receipt;
       return <String, Object?>{'receipt': <String, Object>{
         'schema': 1, 'scope': 'original_lab_ui_send', 'chain': 321,
         'from_index': 1, 'to_index': 0, 'amount': '100000000', 'token': 'ZNN',
         'original_request': true, 'confirmed': true,
         'completion_sheen': ?completionSheen,
+        'pow_observation': ?powObservation,
       }};
     } on SeedRefused catch (error) {
       throw HarnessError(error.code, detail(error.code,
@@ -1934,6 +1960,8 @@ class HarnessAgent {
       // Neither a raw widget reply nor a private transport error is exported.
       throw HarnessError('original-lab-send-ui-or-read-failed',
         detail('original-lab-send-ui-or-read-failed'));
+    } finally {
+      pow?.close();
     }
   }
 

@@ -143,8 +143,8 @@ Future<void> main() async {
     };
     final Object? receipt = sent['receipt'];
     if (receipt is! Map<String, dynamic> ||
-        receipt.length != expectedSend.length +
-            (receipt.containsKey('completion_sheen') ? 1 : 0) ||
+        receipt.keys.any((String key) => !expectedSend.containsKey(key) &&
+            key != 'completion_sheen' && key != 'pow_observation') ||
         !expectedSend.entries.every((MapEntry<String, Object> entry) =>
             receipt[entry.key] == entry.value &&
             receipt[entry.key].runtimeType == entry.value.runtimeType)) {
@@ -160,6 +160,21 @@ Future<void> main() async {
     if (receipt.containsKey('completion_sheen') &&
         (sheen is! Map<String, dynamic> || sheen.length != fields.length ||
             fields.any((String key) => sheen[key] is! int))) {
+      throw LabSendDiagnosticFailure(<String, String>{
+        'phase': 'receipt', 'reason': 'receipt-shape-refused',
+      });
+    }
+    final Object? pow = receipt['pow_observation'];
+    if (receipt.containsKey('pow_observation') &&
+        (pow is! Map<String, dynamic> || pow.length != 3 ||
+            pow['generation_started'] is! bool ||
+            pow['completion_observed'] is! bool ||
+            pow['bolt_phase_samples'] is! int ||
+            (pow['bolt_phase_samples'] as int) < 0 ||
+            (pow['bolt_phase_samples'] as int) > 128 ||
+            pow['generation_started'] == false &&
+                (pow['completion_observed'] != false ||
+                    pow['bolt_phase_samples'] != 0))) {
       throw LabSendDiagnosticFailure(<String, String>{
         'phase': 'receipt', 'reason': 'receipt-shape-refused',
       });

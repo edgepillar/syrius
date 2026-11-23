@@ -238,8 +238,8 @@ def lab_send_receipt(value):
     expected = dict(schema=1, scope='original_lab_ui_send', chain=321,
         from_index=1, to_index=0, amount='100000000', token='ZNN',
         original_request=True, confirmed=True)
-    need(type(value) is dict and set(value) in
-         (set(expected), set(expected) | {'completion_sheen'})
+    need(type(value) is dict and
+         set(expected) <= set(value) <= set(expected) | {'completion_sheen', 'pow_observation'}
          and all(type(value[key]) is type(item) and value[key] == item
                  for key, item in expected.items()), 'ENTRY_REFUSED')
     if 'completion_sheen' in value:
@@ -251,6 +251,17 @@ def lab_send_receipt(value):
              and 0 < sheen['first_phase_millionths'] < sheen['last_phase_millionths'] < 1_000_000
              and 0 < sheen['terminal_after_start_us'] <= 5_000_000,
              'ENTRY_REFUSED')
+    if 'pow_observation' in value:
+        pow_observation = value['pow_observation']
+        need(type(pow_observation) is dict and set(pow_observation) ==
+             {'generation_started', 'completion_observed', 'bolt_phase_samples'}
+             and type(pow_observation['generation_started']) is bool
+             and type(pow_observation['completion_observed']) is bool
+             and type(pow_observation['bolt_phase_samples']) is int
+             and 0 <= pow_observation['bolt_phase_samples'] <= 128
+             and (pow_observation['generation_started'] or
+                  (not pow_observation['completion_observed'] and
+                   pow_observation['bolt_phase_samples'] == 0)), 'ENTRY_REFUSED')
     return value
 
 

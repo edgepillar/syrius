@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/pow_generating_status_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/receive_origin.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
@@ -27,6 +28,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../harness/app/agent.dart';
+import '../../harness/app/fixtures/lab_pow_observation.dart';
 import '../../harness/app/fixtures/lab_send_ui_binding.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
 import '../../harness/seed/seed_recipe.dart';
@@ -456,6 +458,43 @@ void main() {
     expect(review.witness.acceptedHash, fixtureHash(9));
   });
   }
+
+  testWidgets('the read-only PoW observer counts only original active phases', (
+    WidgetTester tester,
+  ) async {
+    final PowGeneratingStatusBloc source = PowGeneratingStatusBloc();
+    bool current = true;
+    double phase = .1;
+    final LabPowObservation observation = LabPowObservation(
+      source: source,
+      current: () => current,
+      boltPhase: () => phase,
+    );
+    addTearDown(source.dispose);
+    addTearDown(observation.close);
+    expect(observation.receipt, <String, Object>{
+      'generation_started': false,
+      'completion_observed': false,
+      'bolt_phase_samples': 0,
+    });
+
+    final PowWorkToken work = source.claimWork();
+    expect(source.update(work, PowStatus.generating), isTrue);
+    await tester.pump();
+    await tester.pump();
+    phase = .3;
+    await tester.pump();
+    expect(source.update(work, PowStatus.done), isTrue);
+    await tester.pump();
+    expect(observation.receipt, <String, Object>{
+      'generation_started': true,
+      'completion_observed': true,
+      'bolt_phase_samples': 2,
+    });
+
+    current = false;
+    expect(observation.receipt, isNull);
+  });
 
   testWidgets('provider replacement cannot rename the original form sender', (
     WidgetTester tester,
