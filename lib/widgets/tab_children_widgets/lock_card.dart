@@ -319,7 +319,7 @@ class _LockCardState extends State<LockCard>
       builder: (_, double progress, Widget? child) => Opacity(
         opacity: progress,
         child: Transform.translate(
-          offset: Offset(0, tokens.launchLockRise * (1 - progress)),
+          offset: Offset(0, tokens.launchLockOffset(progress)),
           child: child,
         ),
       ),

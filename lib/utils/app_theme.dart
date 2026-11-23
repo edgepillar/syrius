@@ -10,6 +10,7 @@ typedef LaunchSettleReference = ({
   Size body,
   Size stage,
   double verticalAnchor,
+  double lockOffset,
   Size artwork,
   double radius,
   BoxShadow shadow,
@@ -588,6 +589,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     body: Size(1280, 780 - windowCaptionHeight),
     stage: const Size(780, 330),
     verticalAnchor: 0.78,
+    lockOffset: 8,
     artwork: const Size(1040, 585),
     radius: 14,
     shadow: const BoxShadow(
@@ -597,8 +599,16 @@ class AppTokens extends ThemeExtension<AppTokens> {
     ),
   );
 
-  /// The genuine lock card rises as the black movie stage shrinks.
-  double get launchLockRise => 12;
+  /// Follow the authored handoff offset with a smooth rise to the resting card.
+  double launchLockOffset(double progress) {
+    const double startingOffset = 12;
+    final LaunchSettleReference reference = launchSettleReference;
+    final double checkpoint = reference.progress;
+    final double correction =
+        (reference.lockOffset - startingOffset * (1 - checkpoint)) /
+        (checkpoint * (1 - checkpoint));
+    return (startingOffset + correction * progress) * (1 - progress);
+  }
 
   /// Waiting for startup keeps the last frame on screen above this line.
   double get launchWaitingWidth => 120;

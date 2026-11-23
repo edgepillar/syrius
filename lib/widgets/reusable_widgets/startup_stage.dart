@@ -402,7 +402,7 @@ class _StartupStageState extends State<_StartupStage>
     // The real card rises while the stage settles. Its final well is the
     // measured well with only that owned paint translation removed.
     return (offset & target.size).shift(
-      Offset(0, -tokens.launchLockRise * (1 - widget.session.motion.value)),
+      Offset(0, -tokens.launchLockOffset(widget.session.motion.value)),
     );
   }
 

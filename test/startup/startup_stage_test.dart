@@ -439,15 +439,21 @@ void main() {
       );
       expect(artwork.maxWidth, closeTo(1040, 3));
       expect(artwork.maxHeight, closeTo(585, 3));
+      final Finder lock = find.byKey(
+        const ValueKey<String>('lock_card_surface'),
+      );
       expect(
         tester.widget<Opacity>(
-          find.ancestor(
-            of: find.byKey(const ValueKey<String>('lock_card_surface')),
-            matching: find.byType(Opacity),
-          ).first,
+          find.ancestor(of: lock, matching: find.byType(Opacity)).first,
         ).opacity,
         session.motion.value,
       );
+      final Transform lockTranslation = tester.widget<Transform>(
+        find.ancestor(of: lock, matching: find.byType(Transform)).first,
+      );
+      expect(lockTranslation.transform.getTranslation().y, closeTo(8, 0.06));
+      expect(tokens.launchLockOffset(0), 12);
+      expect(tokens.launchLockOffset(1), 0);
       expect(tester.widget<EntryField>(find.byType(EntryField))
           .fadeLightsOnOpaqueBase, isTrue);
       expect(find.ancestor(of: find.byType(EntryField),
