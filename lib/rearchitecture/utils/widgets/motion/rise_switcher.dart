@@ -106,7 +106,8 @@ class _SwitchEntry {
       animationBehavior: AnimationBehavior.preserve,
     );
     visible = ValueNotifier<bool>(initial);
-    entrance.addListener(_updateVisibility);
+    riseProgress = ValueNotifier<double>(initial ? 1 : 0);
+    entrance.addListener(_updateEntrance);
   }
 
   final Key key = UniqueKey();
@@ -120,12 +121,16 @@ class _SwitchEntry {
   late final Animation<double> primary;
   late final AnimationController exit;
   late final ValueNotifier<bool> visible;
+  late final ValueNotifier<double> riseProgress;
   bool outgoing = false;
 
   bool get interactive => !outgoing && visible.value;
 
-  void _updateVisibility() {
-    visible.value = primary.value > _exitEnd;
+  void _updateEntrance() {
+    final double progress = primary.value - _exitEnd;
+    visible.value = progress > 0;
+    // Keep the transform unchanged throughout the invisible part of the fade.
+    riseProgress.value = (progress / (1 - _exitEnd)).clamp(0.0, 1.0);
   }
 
   int get remainingExitMicroseconds {
@@ -145,6 +150,7 @@ class _SwitchEntry {
     entrance.dispose();
     exit.dispose();
     visible.dispose();
+    riseProgress.dispose();
     focus.dispose();
   }
 }
@@ -276,8 +282,8 @@ class _RiseSwitcherState extends State<RiseSwitcher>
                       descendantsAreFocusable: interactive,
                       includeSemantics: false,
                       onFocusChange: (_) => entry.clearBlockedFocus(),
-                      child: AnimatedBuilder(
-                        animation: entry.entrance,
+                      child: ValueListenableBuilder<double>(
+                        valueListenable: entry.riseProgress,
                         child: FadeThroughTransition(
                           animation: entry.primary,
                           secondaryAnimation: entry.exit,
@@ -288,12 +294,7 @@ class _RiseSwitcherState extends State<RiseSwitcher>
                             child: child!,
                           ),
                         ),
-                        builder: (BuildContext context, Widget? child) {
-                          // The first phase belongs to the outgoing page.
-                          // Keep the invisible arrival at its starting offset.
-                          final double fadeIn = entry.primary.value - _exitEnd;
-                          final double progress = (fadeIn / (1 - _exitEnd))
-                              .clamp(0.0, 1.0);
+                        builder: (_, double progress, Widget? child) {
                           return Transform.translate(
                             offset: Offset(
                               0,

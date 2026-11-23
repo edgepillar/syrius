@@ -89,12 +89,13 @@ Widget _host(
 
 Finder _page(Object index) => find.byKey(ValueKey<String>('page_$index'));
 
-double _rise(WidgetTester tester, Finder page) => tester
-    .widget<Transform>(
+Transform _riseTransform(WidgetTester tester, Finder page) =>
+    tester.widget<Transform>(
       find.ancestor(of: page, matching: find.byType(Transform)).last,
-    )
-    .transform
-    .storage[13];
+    );
+
+double _rise(WidgetTester tester, Finder page) =>
+    _riseTransform(tester, page).transform.storage[13];
 
 double _opacity(WidgetTester tester, Finder page) => tester
     .widgetList<FadeTransition>(
@@ -132,12 +133,14 @@ void main() {
       await tester.pumpWidget(_host(1));
       expect(RiseSwitcher.isSettled(switcher, destination), isFalse);
       // Native fade-through includes its scale; this is the added translation.
+      final Transform firstRise = _riseTransform(tester, _page(1));
       expect(_rise(tester, _page(1)), 6);
       expect(tester.getTopLeft(_page(0)).dy, 0);
 
       await tester.pump(const Duration(milliseconds: 50));
       expect(_opacity(tester, _page(1)), 0);
       expect(_rise(tester, _page(1)), 6);
+      expect(_riseTransform(tester, _page(1)), same(firstRise));
       expect(tester.getTopLeft(_page(0)).dy, 0);
 
       await tester.pump(const Duration(milliseconds: 46));
