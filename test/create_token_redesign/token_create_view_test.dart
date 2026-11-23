@@ -364,7 +364,7 @@ void main() {
         expect(noteStyle.fontSize, 12.5);
         expect(noteStyle.color, tokens.faint);
         final Finder back = _back('details');
-        final OutlinedButton backButton = tester.widget<OutlinedButton>(back);
+        final TextButton backButton = tester.widget<TextButton>(back);
         expect(backButton.onPressed, isNull);
         expect(
           backButton.style?.backgroundColor?.resolve(<WidgetState>{}),

@@ -147,7 +147,7 @@ class _TokenCreateFrameState extends State<TokenCreateFrame> {
                   children: <Widget>[
                     Opacity(
                       opacity: canGoBack ? 1 : tokens.disabledOpacity,
-                      child: OutlinedButton(
+                      child: TextButton(
                         key: const Key('token_create_back'),
                         style: secondaryButtonStyle(context).copyWith(
                           foregroundColor: WidgetStatePropertyAll<Color>(
