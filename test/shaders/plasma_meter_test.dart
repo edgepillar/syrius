@@ -100,9 +100,12 @@ void main() {
       // used to be visible even with a zero level.
       final int offset =
           (6 * 400 + (direction == TextDirection.ltr ? 0 : 399)) * 4;
-      expect(empty.getUint8(offset), closeTo(track.r * 255, 1));
-      expect(empty.getUint8(offset + 1), closeTo(track.g * 255, 1));
-      expect(empty.getUint8(offset + 2), closeTo(track.b * 255, 1));
+      // Raw RGBA stores premultiplied color at the rounded edge.
+      final int alpha = empty.getUint8(offset + 3);
+      expect(alpha, greaterThan(200));
+      expect(empty.getUint8(offset), closeTo(track.r * alpha, 1));
+      expect(empty.getUint8(offset + 1), closeTo(track.g * alpha, 1));
+      expect(empty.getUint8(offset + 2), closeTo(track.b * alpha, 1));
       expect(tester.binding.transientCallbackCount, 0);
 
       await tester.pumpWidget(_host(0.25, direction: direction));
