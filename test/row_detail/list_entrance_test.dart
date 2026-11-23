@@ -90,16 +90,26 @@ void main() {
     _expectProgress(tester, 'a', 20);
     _expectProgress(tester, 'b', 0);
     _expectProgress(tester, 'c', 0);
+    final Focus visibleFocus = tester.widget<Focus>(_within('a', Focus));
+    final Focus hiddenFocus = tester.widget<Focus>(_within('b', Focus));
+    expect(visibleFocus.descendantsAreFocusable, isTrue);
+    expect(hiddenFocus.descendantsAreFocusable, isFalse);
 
     await tester.pump(const Duration(milliseconds: 40));
     _expectProgress(tester, 'a', 60);
     _expectProgress(tester, 'b', 20);
     _expectProgress(tester, 'c', 0);
+    expect(tester.widget<Focus>(_within('a', Focus)), same(visibleFocus));
+    final Focus nextFocus = tester.widget<Focus>(_within('b', Focus));
+    expect(nextFocus, isNot(same(hiddenFocus)));
+    expect(nextFocus.descendantsAreFocusable, isTrue);
 
     await tester.pump(const Duration(milliseconds: 260));
     _expectProgress(tester, 'a', 320);
     _expectProgress(tester, 'b', 280);
     _expectProgress(tester, 'c', 240);
+    expect(tester.widget<Focus>(_within('a', Focus)), same(visibleFocus));
+    expect(tester.widget<Focus>(_within('b', Focus)), same(nextFocus));
     await tester.pump(const Duration(milliseconds: 40));
     _expectProgress(tester, 'b', 320);
     _expectProgress(tester, 'c', 280);

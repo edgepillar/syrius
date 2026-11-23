@@ -172,8 +172,10 @@ class ListEntranceItem extends StatefulWidget {
 class _ListEntranceItemState extends State<ListEntranceItem>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  final ValueNotifier<bool> _visible = ValueNotifier<bool>(true);
   _ListEntranceState? _scope;
   Curve _curve = _kSpring;
+  double _progress = 1;
 
   @override
   void initState() {
@@ -185,7 +187,7 @@ class _ListEntranceItemState extends State<ListEntranceItem>
       // The wallet's motion always runs at its declared duration. The
       // default controller behavior shortens it when the OS asks for less.
       animationBehavior: AnimationBehavior.preserve,
-    );
+    )..addListener(_updateProgress);
   }
 
   @override
@@ -212,32 +214,39 @@ class _ListEntranceItemState extends State<ListEntranceItem>
   @override
   void dispose() {
     _controller.dispose();
+    _visible.dispose();
     super.dispose();
+  }
+
+  void _updateProgress() {
+    _progress = _curve.transform(_controller.value);
+    _visible.value = _progress > 0;
   }
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: _controller,
-    child: widget.child,
-    builder: (BuildContext context, Widget? child) {
-      final double progress = _curve.transform(_controller.value);
-      final bool hidden = progress == 0;
-      return Focus(
+    // Interaction only changes when the first visible frame arrives.
+    child: ValueListenableBuilder<bool>(
+      valueListenable: _visible,
+      child: widget.child,
+      builder: (BuildContext context, bool visible, Widget? child) => Focus(
         canRequestFocus: false,
         // An inherited traversal barrier can stay latched in EditableText
         // after the first visible frame. Focusability is enough while hidden.
-        descendantsAreFocusable: !hidden,
+        descendantsAreFocusable: visible,
         child: ExcludeSemantics(
-          excluding: hidden,
+          excluding: !visible,
           child: IgnorePointer(
-            ignoring: hidden,
-            child: Transform.translate(
-              offset: Offset(0, _kRise * (1 - progress)),
-              child: Opacity(opacity: progress, child: child),
-            ),
+            ignoring: !visible,
+            child: child,
           ),
         ),
-      );
-    },
+      ),
+    ),
+    builder: (BuildContext context, Widget? child) => Transform.translate(
+      offset: Offset(0, _kRise * (1 - _progress)),
+      child: Opacity(opacity: _progress, child: child),
+    ),
   );
 }
