@@ -380,7 +380,7 @@ class ReadonlyInspectionSession {
   }
 
   /// Reads the original Home Send paint after an ordinary pointer hover.
-  Future<List<List<int>>> observeSheenHover() async {
+  Future<List<List<int>>?> observeSheenHover() async {
     await _requireScreenHome();
     const Duration budget = Duration(seconds: 2);
     const Duration spacing = Duration(milliseconds: 25);
@@ -394,29 +394,30 @@ class ReadonlyInspectionSession {
       if (reply['ok'] != true) _refuse(ReadonlyInspectionReason.reply);
     }
 
-    Future<int> phaseAfterPaint(Duration timeout) async {
+    Future<int?> phaseAfterPaint(Duration timeout) async {
       final Map<String, dynamic> reply = await send(
         <String, Object?>{'cmd': readonlySheenHoverCommand}, timeout,
       );
       final Object? phase = reply['paintedProgress'];
-      if (reply['ok'] != true || phase is! int || phase < 0 || phase > end) {
+      if (reply['ok'] != true || !reply.containsKey('paintedProgress') ||
+          phase != null && (phase is! int || phase < 0 || phase > end)) {
         _refuse(ReadonlyInspectionReason.reply);
       }
-      return phase;
+      return phase as int?;
     }
 
     final Map<String, Object?> away = <String, Object?>{'at': <int>[0, 0]};
     await hover(away, 650);
-    final int before = await phaseAfterPaint(budget);
-    if (before != 0 && before != end) _refuse(ReadonlyInspectionReason.reply);
+    final int? before = await phaseAfterPaint(budget);
+    if (before != 0 && before != end) return null;
     await hover(<String, Object?>{'key': 'home_send', 'exact': true}, 0);
     final Stopwatch clock = Stopwatch()..start();
     final List<List<int>> samples = <List<int>>[];
     try {
       for (int index = 0; index < 32 && clock.elapsed < budget; index++) {
-        final int phase = await phaseAfterPaint(budget - clock.elapsed);
+        final int? phase = await phaseAfterPaint(budget - clock.elapsed);
         if (clock.elapsed > budget) break;
-        if (phase > 0 &&
+        if (phase != null && phase > 0 &&
             (phase < end || samples.isNotEmpty ||
                 clock.elapsedMilliseconds >= 700)) {
           if (samples.isNotEmpty && phase < samples.last[1]) {
@@ -428,10 +429,7 @@ class ReadonlyInspectionSession {
         if (clock.elapsed + spacing >= budget) break;
         await Future<void>.delayed(spacing);
       }
-      if (samples.isEmpty || samples.last[1] != end) {
-        _refuse(ReadonlyInspectionReason.reply);
-      }
-      return samples;
+      return samples.isEmpty || samples.last[1] != end ? null : samples;
     } finally {
       if (!_held) await hover(away, 0);
     }

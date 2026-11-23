@@ -87,10 +87,10 @@ class Sheen extends StatefulWidget {
       : const Color(0x47FFFFFF);
 
   /// The phase last processed by this original foreground painter.
-  static double? paintedProgressOf(Widget widget) {
-    final CustomPainter? painter =
-        widget is CustomPaint ? widget.foregroundPainter : null;
-    return painter is _SheenPainter ? painter.paintedProgress : null;
+  static double? paintedProgressOf(BuildContext context) {
+    final State<StatefulWidget>? state =
+        context is StatefulElement ? context.state : null;
+    return state is _SheenState ? state._paintObservation.progress : null;
   }
 
   @override
@@ -103,6 +103,8 @@ class _SheenState extends State<Sheen> with SingleTickerProviderStateMixin {
     duration: kSheenDuration,
     animationBehavior: AnimationBehavior.preserve,
   );
+  late final _SheenPaintObservation _paintObservation =
+      _SheenPaintObservation();
   bool _completion = false;
   bool Function()? _completionCurrent;
   bool Function()? _queuedCompletion;
@@ -232,6 +234,7 @@ class _SheenState extends State<Sheen> with SingleTickerProviderStateMixin {
         child: CustomPaint(
           foregroundPainter: _SheenPainter(
             pass: _pass,
+            observation: _paintObservation,
             color: widget.color ?? Sheen.bandOf(Theme.of(context).brightness),
             borderRadius: widget.borderRadius,
           ),
@@ -242,9 +245,14 @@ class _SheenState extends State<Sheen> with SingleTickerProviderStateMixin {
   }
 }
 
+class _SheenPaintObservation {
+  double? progress;
+}
+
 class _SheenPainter extends CustomPainter {
   _SheenPainter({
     required this.pass,
+    required this.observation,
     required this.color,
     required this.borderRadius,
   }) : super(repaint: pass);
@@ -252,13 +260,13 @@ class _SheenPainter extends CustomPainter {
   final Animation<double> pass;
   final Color color;
   final BorderRadius? borderRadius;
-  double? paintedProgress;
+  final _SheenPaintObservation observation;
 
   @override
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty) return;
     final double t = pass.value;
-    paintedProgress = t;
+    observation.progress = t;
     if (t <= 0 || t >= 1) {
       return;
     }

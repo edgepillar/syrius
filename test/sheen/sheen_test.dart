@@ -51,23 +51,29 @@ void main() {
     testWidgets('hover runs one 600 ms pass and leaves no band', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(
-        _app(
-          Sheen(
-            child: OutlinedButton(onPressed: () {}, child: const Text('go')),
-          ),
+      Widget button() => _app(
+        Sheen(
+          child: OutlinedButton(onPressed: () {}, child: const Text('go')),
         ),
       );
+      await tester.pumpWidget(button());
       await _hover(tester, find.byType(OutlinedButton));
 
       await tester.pump(const Duration(milliseconds: 300));
       expect(_paint, paints..clipRRect()..rect());
+      double? phase() => Sheen.paintedProgressOf(
+        tester.element(find.byType(Sheen)),
+      );
+      expect(phase(), closeTo(0.5, 0.001));
+      await tester.pumpWidget(button());
+      expect(phase(), closeTo(0.5, 0.001));
       await tester.pump(const Duration(milliseconds: 290));
       expect(_paint, paints..clipRRect()..rect());
 
       await tester.pump(const Duration(milliseconds: 10));
       await tester.pump();
       expect(_paint, isNot(paints..clipRRect()));
+      expect(phase(), 1);
       // The button's own hover fade may still be running; the sheen is not.
       await tester.pumpAndSettle();
       expect(_paint, isNot(paints..clipRRect()));

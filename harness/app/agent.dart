@@ -6377,11 +6377,14 @@ class HarnessAgent {
     final Element? owner = _findTimingChild(
       root, (Widget widget) => widget.key == const Key('home_send'),
     );
-    final Widget? paint = owner == null ? null : _findTimingChild(
-      owner, (Widget widget) => Sheen.paintedProgressOf(widget) != null,
-    )?.widget;
-    final double? phase = paint == null ? null : Sheen.paintedProgressOf(paint);
-    if (phase == null || !phase.isFinite || phase < 0 || phase > 1) {
+    final Element? sheen = owner == null ? null : _findTimingChild(
+      owner, (Widget widget) => widget is Sheen,
+    );
+    final double? phase = sheen == null ? null : Sheen.paintedProgressOf(sheen);
+    if (phase == null) {
+      return <String, Object?>{'paintedProgress': null};
+    }
+    if (!phase.isFinite || phase < 0 || phase > 1) {
       throw const ReadonlyNativeCommandRefused();
     }
     final int progress = phase == 1 ? 1000000 : (phase * 1000000).floor();
