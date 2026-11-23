@@ -429,21 +429,7 @@ class _LockCardState extends State<LockCard>
                           tokens.lockActionText,
                         ),
                       ),
-                      icon: _pickerExpanded
-                          ? null
-                          : widget.busy
-                          ? SizedBox.square(
-                              dimension: tokens.lockGlyphSize,
-                              child: CircularProgressIndicator(
-                                strokeWidth: tokens.focusWidth,
-                                color: tokens.primaryButtonForeground,
-                              ),
-                            )
-                          : ShellSymbol(
-                              'lock',
-                              size: tokens.railIconSize,
-                            ),
-                      child: Text(context.l10n.lockUnlock),
+                      child: _buildUnlockLabel(context, tokens),
                     ),
                   ),
                   if (!_pickerExpanded) ...<Widget>[
@@ -458,6 +444,28 @@ class _LockCardState extends State<LockCard>
       ),
     ),
   );
+
+  Widget _buildUnlockLabel(BuildContext context, AppTokens tokens) {
+    final Text label = Text(context.l10n.lockUnlock);
+    if (_pickerExpanded) return label;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: tokens.inlineGap,
+      children: <Widget>[
+        if (widget.busy)
+          SizedBox.square(
+            dimension: tokens.lockGlyphSize,
+            child: CircularProgressIndicator(
+              strokeWidth: tokens.focusWidth,
+              color: tokens.primaryButtonForeground,
+            ),
+          )
+        else
+          ShellSymbol('lock', size: tokens.railIconSize),
+        Flexible(child: label),
+      ],
+    );
+  }
 
   Widget _buildCardShadow(
     BorderRadius radius,

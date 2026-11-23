@@ -198,6 +198,18 @@ void main() {
         tester.getSize(find.byKey(_unlock)).height,
         tokens.lockActionHeight,
       );
+      final Finder unlockContent = find.descendant(
+        of: find.byKey(_unlock),
+        matching: find.byType(Row),
+      );
+      expect(tester.widget<Row>(unlockContent).spacing, 8);
+      expectMockupSymbol(
+        tester,
+        within: unlockContent,
+        symbol: 'lock',
+        size: tokens.railIconSize,
+        color: tokens.primaryButtonForeground,
+      );
       expect(find.text('Qualification wallet'), findsOneWidget);
       expect(find.text('z1qq9n…g0mq'), findsOneWidget);
       expect(find.byType(Ltr), findsOneWidget);
