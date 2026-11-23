@@ -482,7 +482,7 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
                   ),
               ],
             ),
-            style: tokens.dataText,
+            style: tokens.pillarOwnerFactText,
           ),
         ),
       ),
@@ -501,7 +501,7 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
               snapshot.momentumRewardPercent,
               snapshot.delegateRewardPercent,
             ),
-            style: tokens.dataText,
+            style: tokens.pillarOwnerFactText,
           ),
         ),
       ),
@@ -628,7 +628,7 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
           decimals: qsr ? kQsrCoin.decimals : kZnnCoin.decimals,
           symbol: qsr ? kQsrCoin.symbol : kZnnCoin.symbol,
           symbolColor: qsr ? tokens.qsrInk : tokens.znnInk,
-          style: tokens.dataText,
+          style: tokens.pillarOwnerFactText,
         ),
       ),
     );
@@ -647,6 +647,7 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
     final bool enabled = _current(snapshot, epoch) && _onPage;
     return Row(
       mainAxisSize: MainAxisSize.min,
+      spacing: tokens.inlineGap,
       children: <Widget>[
         Flexible(
           child: Tooltip(
@@ -654,7 +655,7 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
             child: Ltr(
               child: Text(
                 short,
-                style: tokens.dataText,
+                style: tokens.pillarOwnerFactText.copyWith(color: tokens.dim),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -682,7 +683,7 @@ class _PillarOwnerPanelState extends State<PillarOwnerPanel> {
             icon: ShellSymbol(
               'copy',
               size: tokens.inlineGlyphSize,
-              color: tokens.faint,
+              color: tokens.dim,
             ),
           ),
         ),

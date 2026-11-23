@@ -299,13 +299,33 @@ void main() {
         final Finder copies = find.byTooltip('Copy');
         expect(copies, findsNWidgets(2));
         final AppTokens tokens = AppTokens.of(tester.element(copies.first));
+        final Finder producer = find.descendant(
+          of: find.byTooltip('z1producer00000000000000000000000000000'),
+          matching: find.byType(Text),
+        );
+        final TextStyle addressStyle = tester.widget<Text>(producer).style!;
+        expect(addressStyle.fontSize, 13.5);
+        expect(addressStyle.color, tokens.dim);
+        expect(
+          tester
+              .widget<Text>(find.text('0% block · 100% delegate'))
+              .style!
+              .fontSize,
+          13.5,
+        );
+        final Rect address = tester.getRect(producer);
+        final Rect copy = tester.getRect(copies.first);
+        expect(
+          rtl ? address.left - copy.right : copy.left - address.right,
+          closeTo(8, 0.01),
+        );
         for (int index = 0; index < 2; index++) {
           expectMockupSymbol(
             tester,
             within: copies.at(index),
             symbol: 'copy',
             size: 12,
-            color: tokens.faint,
+            color: tokens.dim,
           );
         }
         expect(tester.takeException(), isNull);

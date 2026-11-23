@@ -2171,6 +2171,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The gap between rows of aligned owner facts.
   double get pillarOwnerFactRowGap => 10;
 
+  /// The value type in the Pillar ownership grid.
+  TextStyle get pillarOwnerFactText => dataText.copyWith(fontSize: 13.5);
+
   /// An owner name is a heading rather than an amount.
   TextStyle get pillarOwnerNameText => bodyText.copyWith(fontSize: 17);
 
