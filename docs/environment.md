@@ -7,8 +7,8 @@ uses a clean checkout on `windows-latest`. The runner image supplies Git Bash,
 Python, Visual Studio's desktop C++ workload, the Windows SDK and CMake.
 The workflow provisions Flutter 3.47.7 on the stable channel and uses its
 bundled Dart SDK. The [original inventory](#complete-hosted-windows-inventory)
-describes the earlier hosted image. The current successful build used the
-following toolchain at `2c8fd31c`. [Windows baseline log](https://github.com/edgepillar/syrius/actions/runs/45071349706/job/137358788180)
+describes the earlier hosted image. The successful baseline at `e7916753`
+used the following toolchain. [Windows baseline log](https://github.com/edgepillar/syrius/actions/runs/45089230155/job/137414749804)
 
 | Provisioning | Observed tools |
 | --- | --- |
@@ -30,11 +30,11 @@ flutter build windows --debug --no-pub --dart-define-from-file=.dart_tool/git_me
 flutter build windows --release --no-pub --dart-define-from-file=.dart_tool/git_metadata.json
 ```
 
-The independently verified baseline at `2c8fd31c` covers both builds and
-all twelve baseline checks. The original Windows run reports 5,135 passing
+The independently verified baseline at `e7916753` covers both builds and
+all twelve baseline checks. The original Windows run reports 5,136 passing
 non-chain tests, one skip and zero analyzer errors or warnings. The bundled,
 Debug and Release DLL digests agree and their map and export checks pass.
-Generated localization is unchanged. [Independent reader](https://github.com/edgepillar/syrius/actions/runs/45074427967/job/137368372546)
+Generated localization is unchanged. [Independent reader](https://github.com/edgepillar/syrius/actions/runs/45092216194/job/137424098571)
 
 ## Compare the retained Windows captures
 
@@ -62,10 +62,26 @@ serves original images and diffs on demand without extracting archives or
 writing a report. Its verdicts remain bound to `2c8fd31c` and the actual
 and reference PNG digests.
 
-## Current qualification status (2026-11-22)
+## Current qualification status (2026-11-23)
 
-The [publication candidate](https://github.com/sol-znn/syrius/pull/6) is
-`2c8fd31c`. Its clean Windows baseline and Linux validation pass. The
+[PR #6](https://github.com/sol-znn/syrius/pull/6) is ready for review. The
+owner-approved isolated Windows native route covers P03 and P09. The
+Docker Desktop and WSL route remains unqualified.
+
+The checklist records 77 completed rows out of 80. The `2c8fd31c` gallery
+contains 94 independently verified pairs, with 20 matches and 74 recorded
+differences. V01 whole-image acceptance remains open. [Capture inventory](../PROMPT-redesign-build.md#complete-windows-capture-inventory-at-2c8fd31c)
+
+The cold startup run at `74a7b844` satisfies the paired 16 ms comparison
+for reported frames. Fourteen candidate frame-number gaps remain. The
+page-change and Licences disclosure comparisons still exceed the budget
+at `40df99a2`. V02 running motion and V06 final acceptance remain open.
+[Cold startup reader](https://github.com/edgepillar/syrius/actions/runs/45096790126/job/137438257901) · [Interaction reader](https://github.com/edgepillar/syrius/actions/runs/45089275355/job/137414892098)
+
+## Qualification snapshot (2026-11-22)
+
+The [publication candidate](https://github.com/sol-znn/syrius/pull/6) was
+`2c8fd31c`. Its clean Windows baseline and Linux validation passed. The
 owner-approved isolated Windows native route covers P03 and P09. The
 original Docker Desktop and WSL route remains unqualified.
 
