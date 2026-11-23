@@ -17,6 +17,8 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/copy_to_clipboard_button.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 
 /// Installed wallet facts and the closed About groups, independent of RPC.
 class AboutCard extends StatefulWidget {
@@ -303,7 +305,7 @@ class _AboutCardState extends State<AboutCard> {
           PrimaryPill(
             key: const Key('about_download_verify'),
             onPressed: () => throw const SeamNotBuilt(Seam.walletUpdateNotice),
-            icon: Icon(Icons.download_outlined, size: tokens.railIconSize),
+            icon: ShellSymbol('dl', size: tokens.railIconSize),
             child: Text(context.l10n.aboutDownloadVerify),
           ),
         ],

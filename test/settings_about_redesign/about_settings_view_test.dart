@@ -15,6 +15,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/licences.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 
+import '../helpers/mockup_symbol.dart';
 import 'support.dart';
 
 Future<AboutInformation> _information() async => AboutInformation(
@@ -210,6 +211,13 @@ void main() {
           expect(
             actionStyle.textStyle!.resolve(<WidgetState>{})!.fontWeight,
             FontWeight.w500,
+          );
+          expectMockupSymbol(
+            tester,
+            within: find.byKey(const Key('about_download_verify')),
+            symbol: 'dl',
+            size: tokens.railIconSize,
+            color: tokens.primaryButtonForeground,
           );
           expect(find.text('Confirm'), findsNothing);
           expect(find.text('0.3.0 is out'), findsNothing);
