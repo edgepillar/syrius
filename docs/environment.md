@@ -7,8 +7,8 @@ uses a clean checkout on `windows-latest`. The runner image supplies Git Bash,
 Python, Visual Studio's desktop C++ workload, the Windows SDK and CMake.
 The workflow provisions Flutter 3.47.7 on the stable channel and uses its
 bundled Dart SDK. The [original inventory](#complete-hosted-windows-inventory)
-describes the earlier hosted image. The successful baseline at `e7916753`
-used the following toolchain. [Windows baseline log](https://github.com/edgepillar/syrius/actions/runs/45089230155/job/137414749804)
+describes the earlier hosted image. The successful baseline at `0ec2f75f`
+used the following toolchain. [Windows baseline log](https://github.com/edgepillar/syrius/actions/runs/45103725986/job/137460161575)
 
 | Provisioning | Observed tools |
 | --- | --- |
@@ -30,11 +30,11 @@ flutter build windows --debug --no-pub --dart-define-from-file=.dart_tool/git_me
 flutter build windows --release --no-pub --dart-define-from-file=.dart_tool/git_metadata.json
 ```
 
-The independently verified baseline at `e7916753` covers both builds and
+The independently verified baseline at `0ec2f75f` covers both builds and
 all twelve baseline checks. The original Windows run reports 5,136 passing
 non-chain tests, one skip and zero analyzer errors or warnings. The bundled,
 Debug and Release DLL digests agree and their map and export checks pass.
-Generated localization is unchanged. [Independent reader](https://github.com/edgepillar/syrius/actions/runs/45092216194/job/137424098571)
+Generated localization is unchanged. [Independent reader](https://github.com/edgepillar/syrius/actions/runs/45106307020/job/137468300744)
 
 ## Compare the retained Windows captures
 
