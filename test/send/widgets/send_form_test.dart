@@ -728,10 +728,25 @@ void main() {
       expect(typedAddress.textSpan!.toPlainText(), _typed);
       final List<int> differing = differingPositions(_typed, _alice);
       final List<InlineSpan> spans = typedAddress.textSpan!.children!;
+      final Finder recipientEditor = find.descendant(
+        of: find.byKey(const Key('send_recipient_field')),
+        matching: find.byType(EditableText),
+      );
+      final EditableTextState editor = tester.state(recipientEditor);
+      final TextSpan editableAddress = editor.buildTextSpan();
+      final Color warningColor = AppTokens.of(
+        tester.element(recipientEditor),
+      ).warn;
+      expect(editableAddress.toPlainText(), _typed);
+      expect(editableAddress.children, hasLength(_typed.length));
       for (int index = 0; index < spans.length; index++) {
         expect(
           (spans[index] as TextSpan).style?.color != null,
           differing.contains(index),
+        );
+        expect(
+          (editableAddress.children![index] as TextSpan).style?.color,
+          differing.contains(index) ? warningColor : null,
         );
       }
       final VoidCallback stale = tester
@@ -770,6 +785,8 @@ void main() {
       expect(recipient(tester), _bob);
       expect(amount(tester), '12.5');
       expect(find.byKey(const Key('send_recipient_warning')), findsNothing);
+      expect(editor.buildTextSpan().toPlainText(), _bob);
+      expect(editor.buildTextSpan().children, isNull);
       verifyNever(() => sender.add(any()));
     },
   );

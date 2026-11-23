@@ -139,7 +139,8 @@ class SendPopulated extends StatefulWidget {
 
 class _SendPopulatedState extends State<SendPopulated>
     implements SendFormOrigin {
-  final TextEditingController _recipientController = TextEditingController();
+  final _SendRecipientController _recipientController =
+      _SendRecipientController();
   final TextEditingController _amountController = TextEditingController();
 
   final FocusNode _recipientFocusNode = FocusNode();
@@ -585,6 +586,13 @@ class _SendPopulatedState extends State<SendPopulated>
 
   Widget _buildRecipientField(LookAlike? finding) {
     final AppTokens tokens = AppTokens.of(context);
+    _recipientController.warning = finding == null
+        ? null
+        : (
+            address: _recipient,
+            differing: finding.differing,
+            color: tokens.warn,
+          );
     final ButtonStyle actionStyle = IconButton.styleFrom(
       minimumSize: Size(22, tokens.fieldHeight),
       padding: EdgeInsets.zero,

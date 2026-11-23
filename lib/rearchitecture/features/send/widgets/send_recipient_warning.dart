@@ -1,5 +1,46 @@
 part of 'send_populated.dart';
 
+class _SendRecipientController extends TextEditingController {
+  ({String address, List<int> differing, Color color})? warning;
+
+  @override
+  TextSpan buildTextSpan({
+    required BuildContext context,
+    required bool withComposing,
+    TextStyle? style,
+  }) {
+    final ({String address, List<int> differing, Color color})? current =
+        warning;
+    if (current == null ||
+        current.address != text ||
+        (withComposing &&
+            value.isComposingRangeValid &&
+            !value.composing.isCollapsed)) {
+      return super.buildTextSpan(
+        context: context,
+        style: style,
+        withComposing: withComposing,
+      );
+    }
+    return TextSpan(
+      style: style,
+      children: _recipientAddressSpans(text, current.differing, current.color),
+    );
+  }
+}
+
+List<InlineSpan> _recipientAddressSpans(
+  String address,
+  List<int> differing,
+  Color color,
+) => <InlineSpan>[
+  for (int index = 0; index < address.length; index++)
+    TextSpan(
+      text: address[index],
+      style: differing.contains(index) ? TextStyle(color: color) : null,
+    ),
+];
+
 class _SendRecipientWarning extends StatelessWidget {
   const _SendRecipientWarning({
     required this.finding,
@@ -27,19 +68,11 @@ class _SendRecipientWarning extends StatelessWidget {
             fontSize: tokens.transferAddressComparisonTextSize,
             color: tokens.dim,
           ),
-          children: <InlineSpan>[
-            for (int index = 0; index < address.length; index++)
-              TextSpan(
-                text: address[index],
-                style: finding.differing.contains(index)
-                    ? TextStyle(
-                        color: key == 'send_typed_address'
-                            ? tokens.warn
-                            : tokens.foreground,
-                      )
-                    : null,
-              ),
-          ],
+          children: _recipientAddressSpans(
+            address,
+            finding.differing,
+            key == 'send_typed_address' ? tokens.warn : tokens.foreground,
+          ),
         ),
         key: Key(key),
         textDirection: TextDirection.ltr,
