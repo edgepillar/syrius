@@ -157,7 +157,9 @@ class ReaderTests(unittest.TestCase):
         owner_samples = [call.kwargs['sample_points'] for call in compare.call_args_list
                          if call.args[0].startswith(b'17-pillar-mine-')]
         self.assertEqual(owner_samples, [dict(first_row_background=(300, 410),
-            second_row_background=(300, 454), table_background=(300, 550))] * 2)
+            second_row_background=(300, 454), table_background=(300, 550),
+            revocation_badge=(735, 178), revocation_trailing=(837, 178),
+            owner_panel_background=(880, 178))] * 2)
         swap = comparisons[-2]['region_bounds']
         self.assertEqual(swap['amount_panes'], (400, 169, 880, 428))
         self.assertEqual(swap['footer'], (400, 590, 880, 661))
