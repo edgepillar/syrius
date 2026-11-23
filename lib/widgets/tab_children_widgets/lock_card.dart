@@ -133,6 +133,7 @@ class _LockCardState extends State<LockCard>
   StartupStageSession? _shadowPreparation;
 
   EntryField _buildStartupBackdrop() => EntryField(
+    key: const ValueKey<String>('lock_startup_backdrop'),
     captionProgress: widget.startup?.motion,
     launchFilm: widget.startup?.film,
     fadeLightsOnOpaqueBase: widget.startup != null,
