@@ -133,7 +133,10 @@ class SwapDialogSurface extends StatelessWidget {
                               builder: (_, BoxConstraints constraints) => Row(
                                 children: <Widget>[
                                   Expanded(
-                                    child: Text(title, style: tokens.headingText),
+                                    child: Text(
+                                      title,
+                                      style: tokens.headingText,
+                                    ),
                                   ),
                                   if (headerAction != null)
                                     ConstrainedBox(
@@ -903,9 +906,10 @@ class SwapTransferSurface extends StatelessWidget {
             ],
           ),
           SizedBox(height: tokens.swapActionGap),
-          SwapNotice._experimental(context.l10n.swapActionExperimental),
-          SizedBox(height: tokens.transferRecentGap),
-          Text(detailsSummary, style: tokens.captionText),
+          SwapNotice._experimental(
+            context.l10n.swapActionExperimental,
+            detailsSummary,
+          ),
           disclosure,
         ],
       ),
@@ -1033,17 +1037,15 @@ class SwapNotice extends StatelessWidget {
     this.error = false,
     this.waiting = false,
     super.key,
-  }) : _warning = false;
+  }) : _detail = null;
 
-  const SwapNotice._experimental(this.text)
+  const SwapNotice._experimental(this.text, String this._detail)
     : error = false,
-      waiting = false,
-      _warning = true;
-
-  final bool _warning;
+      waiting = false;
 
   /// Short localized fact or remedy.
   final String text;
+  final String? _detail;
 
   /// Whether the state is a known refusal or unavailable source.
   final bool error;
@@ -1053,10 +1055,14 @@ class SwapNotice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    final String? detail = _detail;
+    final TextStyle textStyle = tokens.transferCaptionText.copyWith(
+      color: error ? tokens.error : tokens.dim,
+    );
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        if (_warning)
+        if (detail != null)
           ShellSymbol(
             'warn',
             size: tokens.smallActionGlyphSize,
@@ -1078,12 +1084,16 @@ class SwapNotice extends StatelessWidget {
           ),
         SizedBox(width: tokens.inlineGap),
         Expanded(
-          child: Text(
-            text,
-            style: tokens.transferCaptionText.copyWith(
-              color: error ? tokens.error : tokens.dim,
-            ),
-          ),
+          child: detail == null
+              ? Text(text, style: textStyle)
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(text, style: textStyle),
+                    Text(detail, style: textStyle),
+                  ],
+                ),
         ),
       ],
     );

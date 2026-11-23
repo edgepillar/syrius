@@ -197,6 +197,20 @@ void main() {
           size: 14,
           color: tokens.warn,
         );
+        final Finder warningCopy = find.descendant(
+          of: warning,
+          matching: find.byType(Text),
+        );
+        expect(warningCopy, findsNWidgets(2));
+        expect(tester.widget<Text>(warningCopy.last).data, 'Fixture summary');
+        final Rect warningText = tester.getRect(warningCopy.first);
+        final Rect warningDetail = tester.getRect(warningCopy.last);
+        expect(warningDetail.left, warningText.left);
+        expect(warningDetail.top, warningText.bottom);
+        expect(
+          tester.widget<Text>(warningCopy.last).style,
+          tester.widget<Text>(warningCopy.first).style,
+        );
         expect(
           tester.widget<Text>(find.text('8 h initial · 1 h counter')).style,
           tokens.transferCaptionText,
