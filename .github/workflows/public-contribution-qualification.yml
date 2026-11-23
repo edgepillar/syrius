@@ -694,6 +694,11 @@ jobs:
       - name: Qualify the hosted Windows baseline
         run: python -B tool/ci/windows_baseline.py ${{ inputs.windows_inventory_only && '--inventory-only' || '' }}
 
+      - name: Observe the Plasma meter in an isolated Windows fixture
+        if: inputs.windows_baseline && inputs.presentation_smoke && !inputs.windows_inventory_only
+        timeout-minutes: 10
+        run: flutter test integration_test/plasma_meter_motion_test.dart -d windows --no-pub
+
       - name: Retain the finite inventory manifest
         if: always() && inputs.windows_inventory_only && hashFiles('.harness/ci-windows-inventory/manifest.json') != ''
         uses: actions/upload-artifact@v7
