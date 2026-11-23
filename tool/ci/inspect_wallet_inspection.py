@@ -1057,12 +1057,7 @@ def _token_draft_fields(data, theme):
     return fields
 
 
-def _token_draft_actions(data):
-    """Measure the painted Continue pill and sample Back beside it."""
-    left, right = 360, 670
-    top, bottom = 252, 395
-    rows, channels = windows._png_crop(
-        base64.b64encode(data).decode('ascii'), (left, right), (top, bottom))
+def _primary_ink_bounds(rows, channels, left, top):
     if not windows._opaque(rows, channels):
         return None
     ink = []
@@ -1079,10 +1074,43 @@ def _token_draft_actions(data):
     bounds = [min(xs), min(ys), max(xs) + 1, max(ys) + 1]
     if bounds[2] - bounds[0] < 40 or bounds[3] - bounds[1] < 18:
         return None
+    return bounds
+
+
+def _token_draft_actions(data):
+    """Measure the painted Continue pill and sample Back beside it."""
+    left, right = 360, 670
+    top, bottom = 252, 395
+    rows, channels = windows._png_crop(
+        base64.b64encode(data).decode('ascii'), (left, right), (top, bottom))
+    bounds = _primary_ink_bounds(rows, channels, left, top)
+    if bounds is None:
+        return None
     centre = (bounds[1] + bounds[3] - 1) // 2
     row = rows[centre - top]
     return dict(continue_ink_bounds=bounds, back_probe=[396, centre],
                 back_rgb=list(row[(396 - left) * channels:(396 - left) * channels + 3]))
+
+
+def _about_download_action(data):
+    """Measure the painted pill and sample its gradient above the label."""
+    left, top, right, bottom = 1028, 44, 1264, 100
+    rows, channels = windows._png_crop(
+        base64.b64encode(data).decode('ascii'), (left, right), (top, bottom))
+    bounds = _primary_ink_bounds(rows, channels, left, top)
+    if bounds is None:
+        return None
+    x0, y0, x1, y1 = bounds
+    if not (left < x0 < x1 < right and top < y0 < y1 < bottom):
+        return None
+    sample_row = y0 + 6
+    row = rows[sample_row - top]
+    samples = []
+    for part in (1, 2, 3):
+        column = x0 + (x1 - x0) * part // 4
+        offset = (column - left) * channels
+        samples.append(dict(column=column, rgb=list(row[offset:offset + 3])))
+    return dict(ink_bounds=bounds, sample_row=sample_row, gradient_samples=samples)
 
 
 def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points=None):
@@ -1093,6 +1121,7 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
     counterparty = {}
     token_fields = {}
     token_actions = {}
+    about_download = {}
     for theme in producer.THEMES:
         name = f'{screen}-{theme}.png'
         actual = zipped.read(name)
@@ -1107,6 +1136,9 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
         if screen == '32-set-display':
             display_dividers[theme] = dict(actual=_display_divider_rows(actual),
                                            reference=_display_divider_rows(reference))
+        if screen == '36-set-about':
+            about_download[theme] = dict(actual=_about_download_action(actual),
+                                        reference=_about_download_action(reference))
         if screen == '38-set-originals':
             map_gray[theme] = dict(actual=_map_gray_deviation(actual),
                                   reference=_map_gray_deviation(reference))
@@ -1123,6 +1155,8 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
         column, top, bottom = DISPLAY_DIVIDER_SCAN
         result['display_dividers'] = dict(column=column, scan_rows=[top, bottom],
                                           themes=display_dividers)
+    if about_download:
+        result['about_download'] = about_download
     if map_gray:
         result['map_gray_deviation_milli'] = dict(bounds=ORIGINALS_MAP_CROP,
                                                  themes=map_gray)

@@ -281,6 +281,17 @@ class ReaderTests(unittest.TestCase):
                     'symbol': dict(fill_bounds=[741, 132, 951, 172], top_border_rgb=ink),
                 })
 
+    def test_about_download_action_measures_both_reference_themes(self):
+        shots = Path(__file__).resolve().parents[2] / 'mockups' / 'redesign' / 'shots'
+        expected = dict(ink_bounds=[1049, 52, 1246, 90], sample_row=58,
+                        gradient_samples=[dict(column=1098, rgb=[67, 197, 128]),
+                                          dict(column=1147, rgb=[56, 186, 154]),
+                                          dict(column=1196, rgb=[32, 152, 198])])
+        for theme in ('dark', 'light'):
+            with self.subTest(theme=theme):
+                png = (shots / f'36-set-about-{theme}.png').read_bytes()
+                self.assertEqual(reader._about_download_action(png), expected)
+
     def test_settings_comparison_covers_each_section_and_both_themes(self):
         screens = ('30-set-node', '31-set-security', '32-set-display',
                    '33-set-wallet', '34-set-apps', '35-set-addresses', '36-set-about')
@@ -296,7 +307,8 @@ class ReaderTests(unittest.TestCase):
                 side_effect=lambda path, _: path.name.encode()) as read, \
                 mock.patch.object(reader.windows, 'pixel_comparison',
                     side_effect=lambda actual, reference, _, **options: actual == reference) as compare, \
-                mock.patch.object(reader, '_image_vertical_bands', return_value=bands):
+                mock.patch.object(reader, '_image_vertical_bands', return_value=bands), \
+                mock.patch.object(reader, '_about_download_action', side_effect=len):
             comparisons = list(reader.settings_pixel_comparisons(raw, reference_dir))
         self.assertEqual([row['screen'] for row in comparisons], list(screens))
         self.assertEqual([call.args[0] for call in read.call_args_list],
@@ -322,6 +334,11 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(about['version_and_updates'], (260, 32, 1048, 106))
         self.assertEqual(about['links_card'], (260, 106, 1280, 174))
         self.assertEqual(about['licences_card'], (260, 230, 1280, 274))
+        self.assertEqual(comparisons[6]['about_download'], {
+            theme: dict(actual=len(f'36-set-about-{theme}.png'),
+                        reference=len(f'36-set-about-{theme}.png'))
+            for theme in ('dark', 'light')
+        })
         self.assertEqual(compare.call_args_list[0].kwargs['sample_points']['update_notice'],
                          (700, 450))
         self.assertEqual(compare.call_args_list[4].kwargs['sample_points'], dict(
