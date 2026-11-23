@@ -445,28 +445,30 @@ class _LicenceText {
   bool _identifierRead = false;
 
   String? get identifier {
-    if (!_identifierRead) {
-      _identifierRead = true;
-      final String? text = _original?.text;
-      if (text != null && text.length <= 16 * 1024) {
-        final String normalized = text.trim().replaceAll(
-          _noticeWhitespace,
-          ' ',
-        );
-        final Map<String, String>? matches =
-            _reviewedNoticeTypes[normalized.length];
-        if (matches != null) {
-          final String digest = HEX.encode(
-            const DartSha256().hashSync(utf8.encode(normalized)).bytes,
-          );
-          _identifier = matches[digest];
-        }
-      }
-    }
+    _readIdentifier();
     return _identifier;
   }
 
+  void _readIdentifier() {
+    if (_identifierRead) return;
+    _identifierRead = true;
+    final String? text = _original?.text;
+    if (text == null || text.length > 16 * 1024) return;
+    final String normalized = text.trim().replaceAll(_noticeWhitespace, ' ');
+    final Map<String, String>? matches =
+        _reviewedNoticeTypes[normalized.length];
+    if (matches != null) {
+      final String digest = HEX.encode(
+        const DartSha256().hashSync(utf8.encode(normalized)).bytes,
+      );
+      _identifier = matches[digest];
+    }
+  }
+
   List<LicenseParagraph> get paragraphs {
+    // A later package can still need this shared notice's identifier after
+    // the first package reads its text and releases the original entry.
+    _readIdentifier();
     final List<LicenseParagraph> result = _paragraphs ??=
         List<LicenseParagraph>.unmodifiable(_original!.paragraphs);
     _original = null;

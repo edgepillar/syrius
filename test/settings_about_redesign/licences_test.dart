@@ -117,6 +117,15 @@ void main() {
                     () => laterParagraphReads++,
                     onTextRead: () => laterTextReads++,
                   ),
+                  LicenseEntryWithLineBreaks(
+                    const <String>['mixed', 'zzz-shared'],
+                    verifiedNotice,
+                  ),
+                  for (int index = 0; index < 20; index++)
+                    LicenseEntryWithLineBreaks(
+                      <String>['zz-filler-$index'],
+                      'A finite list fixture.',
+                    ),
                 ],
               ),
             ),
@@ -276,12 +285,27 @@ void main() {
           find.text('Complete raw notice text continues.'),
           findsOneWidget,
         );
+        final Finder sharedRow = find.byKey(
+          const ValueKey<String>('about_licence_zzz-shared'),
+        );
+        expect(sharedRow, findsNothing);
         await _open(tester, 'mixed');
         expect(laterParagraphReads, 1);
         expect(
           find.text('A later genuine notice is still readable.'),
           findsOneWidget,
         );
+        await _open(tester, 'mixed');
+        await tester.scrollUntilVisible(
+          sharedRow,
+          250,
+          scrollable: find.descendant(
+            of: find.byKey(const Key('about_licences_list')),
+            matching: find.byType(Scrollable),
+          ),
+          maxScrolls: 12,
+        );
+        expect(find.descendant(of: sharedRow, matching: known), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
     );
