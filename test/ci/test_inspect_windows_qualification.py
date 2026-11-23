@@ -318,6 +318,16 @@ class WindowsQualificationTests(unittest.TestCase):
                          comparison['sample_rgb']['left_of_stage'])
         self.assertNotIn('film', settled['sample_rgb'])
 
+    def test_handoff_fill_edges_match_the_two_reference_images(self):
+        references = Path(inspect.__file__).resolve().parents[2] / 'mockups/redesign/shots'
+        for theme in ('dark', 'light'):
+            with self.subTest(theme=theme):
+                data = (references / f'40-launch-settle-{theme}.png').read_bytes()
+                self.assertEqual(inspect.handoff_unlock_fill_rows(data),
+                                 dict(green=[511, 557], blue=[511, 557]))
+        self.assertEqual(inspect.handoff_unlock_fill_rows(pixels(opaque=True)),
+                         dict(green=None, blue=None))
+
     def test_welcome_action_alignment_finds_the_shift_to_the_reference(self):
         actual = pixels(opaque=True, welcome_rows=(340, 341), welcome_x=763)
         reference = pixels(opaque=True, welcome_rows=(338, 339), welcome_x=764)

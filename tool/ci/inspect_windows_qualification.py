@@ -454,6 +454,31 @@ def handoff_unlock_palette_band(data, reference):
                 max_residual_milli=max_residual)
 
 
+def handoff_unlock_fill_rows(data):
+    """Measure the vertical fill edges at two solid parts of the pill."""
+    top, bottom = 501, 567
+    encoded = base64.b64encode(data).decode('ascii')
+    edges = {}
+    for name, left, right, channel in (
+        ('green', 502, 550, 1),
+        ('blue', 742, 782, 2),
+    ):
+        rows, channels = _png_crop(encoded, (left, right), (top, bottom))
+        filled = []
+        if _opaque(rows, channels):
+            for y, row in enumerate(rows, top):
+                count = sum(row[offset + channel] - row[offset] >= 28
+                            for offset in range(0, len(row), channels))
+                if count * 10 >= (right - left) * 9:
+                    filled.append(y)
+        if (filled and top < filled[0] <= filled[-1] < bottom - 1
+                and len(filled) == filled[-1] - filled[0] + 1):
+            edges[name] = [filled[0], filled[-1] + 1]
+        else:
+            edges[name] = None
+    return edges
+
+
 def _connector_coverage(rows, channels):
     width = IMPORT_CONNECTOR_X[1] - IMPORT_CONNECTOR_X[0]
     y0, y1 = IMPORT_CONNECTOR_Y
@@ -763,6 +788,8 @@ def startup_pixel_comparison(name, data):
             palette[key] = dict(model_delta_milli=change, residual_delta_milli=residual)
         result['unlock_palette_samples'] = palette
         result['unlock_palette_band'] = handoff_unlock_palette_band(data, reference)
+        result['unlock_fill_rows'] = dict(actual=handoff_unlock_fill_rows(data),
+                                          reference=handoff_unlock_fill_rows(reference))
     return result
 
 
