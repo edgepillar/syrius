@@ -713,6 +713,25 @@ def _image_vertical_bands(data, column, top, bottom):
     return bands
 
 
+DISPLAY_DIVIDER_SCAN = (1000, 45, 400)
+
+
+def _display_divider_rows(data):
+    """Locate the six single-pixel rules in the original Display card."""
+    bands = _image_vertical_bands(data, *DISPLAY_DIVIDER_SCAN)
+    if len(bands) != 13:
+        return None
+    fill = bands[0][1]
+    rule = bands[1][1]
+    dividers = bands[1::2]
+    if all(
+        color == rule and after == fill and end == start + 1
+        for (start, color), (end, after) in zip(dividers, bands[2::2])
+    ):
+        return [start for start, _ in dividers]
+    return None
+
+
 def node_update_notice_geometry(raw, reference_dir):
     """Measure the notice fill at the original column and clear of reference text."""
     column, clear_column, top, bottom = 700, 980, 327, 620
@@ -996,6 +1015,7 @@ def _swap_counterparty_geometry(data, theme):
 
 def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points=None):
     pairs = {}
+    display_dividers = {}
     map_gray = {}
     pane_rows = {}
     counterparty = {}
@@ -1005,6 +1025,9 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
         reference = producer.read_original(reference_dir / name, producer.debug.entry.MAX_PNG)
         pairs[theme] = windows.pixel_comparison(actual, reference, regions,
                                                 sample_points=sample_points)
+        if screen == '32-set-display':
+            display_dividers[theme] = dict(actual=_display_divider_rows(actual),
+                                           reference=_display_divider_rows(reference))
         if screen == '38-set-originals':
             map_gray[theme] = dict(actual=_map_gray_deviation(actual),
                                   reference=_map_gray_deviation(reference))
@@ -1014,6 +1037,10 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
             counterparty[theme] = dict(actual=_swap_counterparty_geometry(actual, theme),
                                        reference=_swap_counterparty_geometry(reference, theme))
     result = dict(screen=screen, region_bounds=regions, pairs=pairs)
+    if display_dividers:
+        column, top, bottom = DISPLAY_DIVIDER_SCAN
+        result['display_dividers'] = dict(column=column, scan_rows=[top, bottom],
+                                          themes=display_dividers)
     if map_gray:
         result['map_gray_deviation_milli'] = dict(bounds=ORIGINALS_MAP_CROP,
                                                  themes=map_gray)

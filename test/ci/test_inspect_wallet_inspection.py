@@ -272,10 +272,16 @@ class ReaderTests(unittest.TestCase):
         names = [f'{screen}-{theme}.png' for screen in screens for theme in ('dark', 'light')]
         raw = packed([(name, name.encode(), stat.S_IFREG) for name in names])
         reference_dir = Path('references')
+        divider_rows = [91, 147, 196, 253, 311, 368]
+        fill, rule = b'\xf6\xf7\xf6', b'\xd5\xd8\xd5'
+        bands = [(45, fill)]
+        for row in divider_rows:
+            bands.extend(((row, rule), (row + 1, fill)))
         with mock.patch.object(reader.producer, 'read_original',
                 side_effect=lambda path, _: path.name.encode()) as read, \
                 mock.patch.object(reader.windows, 'pixel_comparison',
-                    side_effect=lambda actual, reference, _, **options: actual == reference) as compare:
+                    side_effect=lambda actual, reference, _, **options: actual == reference) as compare, \
+                mock.patch.object(reader, '_image_vertical_bands', return_value=bands):
             comparisons = list(reader.settings_pixel_comparisons(raw, reference_dir))
         self.assertEqual([row['screen'] for row in comparisons], list(screens))
         self.assertEqual([call.args[0] for call in read.call_args_list],
@@ -288,6 +294,12 @@ class ReaderTests(unittest.TestCase):
             self.assertEqual(row['pairs'], {'dark': True, 'light': True})
         self.assertEqual(comparisons[0]['region_bounds']['update'], (260, 267, 1280, 522))
         self.assertEqual(comparisons[0]['region_bounds']['chain_summary'], (1020, 522, 1236, 566))
+        self.assertEqual(comparisons[2]['display_dividers'], dict(
+            column=1000, scan_rows=[45, 400], themes={
+                theme: dict(actual=divider_rows, reference=divider_rows)
+                for theme in ('dark', 'light')
+            },
+        ))
         self.assertEqual(comparisons[5]['region_bounds']['contacts'], (260, 326, 1280, 489))
         self.assertEqual(comparisons[5]['region_bounds']['chain_summary'], (1080, 489, 1236, 533))
         self.assertEqual(comparisons[6]['region_bounds']['content'], (260, 32, 1280, 724))
