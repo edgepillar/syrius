@@ -75,6 +75,47 @@ const Set<String> restoredObserveFailureCodes = <String>{
   'OBSERVE_CONTEXT_CHANGED', 'OBSERVE_PARENT_REFUSED',
 };
 
+enum _PreparedRouteFailure implements Exception {
+  tab('PREPARED_TAB_REFUSED'),
+  route('PREPARED_ROUTE_UNAVAILABLE'),
+  changed('PREPARED_ROUTE_CHANGED'),
+  node('PREPARED_NODE_REFUSED'),
+  chain('PREPARED_CHAIN_REFUSED'),
+  wallet('PREPARED_WALLET_REFUSED'),
+  fixture('PREPARED_FIXTURE_REFUSED');
+
+  const _PreparedRouteFailure(this.code);
+
+  final String code;
+}
+
+/// Checks the original surface reply without retaining any of its values.
+String requirePreparedSurfaceRoute(
+  Map<String, dynamic> state,
+  String tab, {
+  String? expectedRoute,
+}) {
+  final Object? route = state['route'];
+  if (state['tab'] != tab) throw _PreparedRouteFailure.tab;
+  if (route is! String || route.isEmpty) throw _PreparedRouteFailure.route;
+  if (state['node'] != 'ws://127.0.0.1:45998' ||
+      state['embeddedNode'] != false) {
+    throw _PreparedRouteFailure.node;
+  }
+  if (state['chainId'] != 321 || state['signingChainId'] != 321 ||
+      state['savedSigningChainId'] != 321) {
+    throw _PreparedRouteFailure.chain;
+  }
+  if (state['walletUnlocked'] != true || state['walletInitCompleted'] != true) {
+    throw _PreparedRouteFailure.wallet;
+  }
+  if (state['harnessFixture'] != null) throw _PreparedRouteFailure.fixture;
+  if (expectedRoute != null && route != expectedRoute) {
+    throw _PreparedRouteFailure.changed;
+  }
+  return route;
+}
+
 /// Locations classify the original attempt; they grant no operation authority.
 enum RestoredObserveOperation {
   /// The existing bounded readiness predicate.
@@ -601,6 +642,14 @@ Map<String, Object?>? restoredChildFailure(
     if (phase == 'observe' && restoredObserveFailureCodes.contains(value)) {
       code = value;
     }
+  } else if (error is _PreparedRouteFailure) {
+    if (surfaceOperation?.action != 'state' ||
+        surfaceOperation?.boundary != 'reply' ||
+        surfaceOperation?.theme == null) {
+      return null;
+    }
+    kind = 'FORMAT_ERROR';
+    code = error.code;
   } else if (error is FormatException) {
     kind = 'FORMAT_ERROR';
   } else if (error is TypeError) {
@@ -1102,25 +1151,14 @@ Future<void> _observePreparedPageSeams(
       throw const FormatException('prepared surface target refused');
     }
   }
-  Future<String> route(String tab) async {
+  Future<String> route(String tab, {String? expected}) async {
     final Map<String, dynamic> state = await send(
       <String, Object?>{'cmd': 'state'},
     );
-    final Object? name = state['route'];
-    if (state['tab'] != tab || name is! String || name.isEmpty ||
-        state['node'] != 'ws://127.0.0.1:45998' || state['chainId'] != 321 ||
-        state['signingChainId'] != 321 || state['savedSigningChainId'] != 321 ||
-        state['walletUnlocked'] != true ||
-        state['walletInitCompleted'] != true ||
-        state['embeddedNode'] != false || state['harnessFixture'] != null) {
-      throw const FormatException('prepared surface route refused');
-    }
-    return name;
+    return requirePreparedSurfaceRoute(state, tab, expectedRoute: expected);
   }
   Future<void> sameRoute(String tab, String expected) async {
-    if (await route(tab) != expected) {
-      throw const FormatException('prepared surface route changed');
-    }
+    await route(tab, expected: expected);
   }
   final Map<String, dynamic> originalTheme = await send(
     <String, Object?>{'cmd': 'theme'},

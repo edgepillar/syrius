@@ -339,6 +339,17 @@ class ReopenDiagnosticTests(unittest.TestCase):
                 restored.child_failure_projection(dict(child, **change))
         operation['target'] = 'private'
         self.assertEqual(projected['prepared_surface_operation']['target'], 'home_hero')
+        reply = dict(operation, action='state', target=None, boundary='reply')
+        route_refused = dict(child, kind='FORMAT_ERROR', code='PREPARED_TAB_REFUSED',
+                             prepared_surface_operation=reply)
+        self.assertEqual(restored.child_failure_projection(route_refused), route_refused)
+        for change in (dict(code='private'),
+                       dict(prepared_surface_operation=dict(reply, boundary='request')),
+                       dict(prepared_surface_operation=dict(reply, theme=None)),
+                       dict(prepared_surface_operation=dict(reply, action='wait',
+                                                            target='home_hero'))):
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.child_failure_projection(dict(route_refused, **change))
 
     def test_prepared_operation_frames_keep_the_original_failure_unqualified(self):
         operation = dict(schema=1, scope='prepared_owner_surface_operation',

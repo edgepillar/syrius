@@ -220,6 +220,11 @@ SEED_REPLY_CODES = frozenset((
     'unknown-recipe',
     'unlocked-wallet-required',
 ))
+PREPARED_ROUTE_FAILURE_CODES = frozenset((
+    'PREPARED_TAB_REFUSED', 'PREPARED_ROUTE_UNAVAILABLE', 'PREPARED_ROUTE_CHANGED',
+    'PREPARED_NODE_REFUSED', 'PREPARED_CHAIN_REFUSED', 'PREPARED_WALLET_REFUSED',
+    'PREPARED_FIXTURE_REFUSED',
+))
 
 
 SEED_PREPARATION_REPLY_CODES = frozenset((
@@ -468,6 +473,9 @@ def child_failure_projection(value):
         and type(value['kind']) is str and value['kind'] in CHILD_FAILURE_KINDS)
     from . import windows_wallet_tour as tour
     kind, code, recipe = value['kind'], value['code'], value['recipe']
+    prepared_route_failure = (kind == 'FORMAT_ERROR' and type(code) is str
+        and code in PREPARED_ROUTE_FAILURE_CODES and value['phase'] == 'seeded_capture'
+        and 'prepared_surface_operation' in value)
     if kind == 'WINDOW_REFUSED':
         checkpoint.need(value['phase'] == 'startup_window'
             and type(code) is str and code in WINDOW_FAILURE_CODES)
@@ -480,7 +488,7 @@ def child_failure_projection(value):
             or value['phase'] == 'seeded_capture' and set(value) == fields
                 and recipe is None and code in TOKEN_HOLDER_FAILURE_CODES))
     elif kind == 'FORMAT_ERROR':
-        checkpoint.need(code is None or value['phase'] == 'observe'
+        checkpoint.need(code is None or prepared_route_failure or value['phase'] == 'observe'
             and type(code) is str and code in OBSERVE_FAILURE_CODES)
     else:
         checkpoint.need(code is None)
@@ -502,7 +510,7 @@ def child_failure_projection(value):
         result['lock_view'] = lock_view_projection(value['lock_view'])
     if 'capture' in value:
         checkpoint.need(value['phase'] == 'seeded_capture'
-            and code is None and recipe is None)
+            and (code is None or prepared_route_failure) and recipe is None)
         capture = value['capture']
         checkpoint.need(type(capture) is dict)
         schema = next((schema for schema, kind in catalog.RESTORED_FAILURE_KINDS.items()
@@ -517,8 +525,11 @@ def child_failure_projection(value):
         checkpoint.need(capture['kind'] == 'restored_seeded_capture_failure'
             and capture['last_entered_step'] == 'complete'
             and not {'screen', 'theme', 'line'} & set(capture))
-        result['prepared_surface_operation'] = seeded_surface_seams.operation(
-            value['prepared_surface_operation'])
+        operation = seeded_surface_seams.operation(value['prepared_surface_operation'])
+        if prepared_route_failure:
+            checkpoint.need(operation['action'] == 'state' and operation['boundary'] == 'reply'
+                and operation['theme'] in ('dark', 'light'))
+        result['prepared_surface_operation'] = operation
     return result
 
 

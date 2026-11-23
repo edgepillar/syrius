@@ -572,6 +572,49 @@ void main() {
     )!;
     expect(result['prepared_surface_operation'], operation.toJson());
     expect(result['kind'], 'OTHER_ERROR');
+    final Map<String, dynamic> state = <String, dynamic>{
+      'tab': 'tokens', 'route': 'fixture-route',
+      'node': 'ws://127.0.0.1:45998', 'embeddedNode': false,
+      'chainId': 321, 'signingChainId': 321, 'savedSigningChainId': 321,
+      'walletUnlocked': true, 'walletInitCompleted': true,
+    };
+    expect(entry.requirePreparedSurfaceRoute(state, 'tokens'), 'fixture-route');
+    final entry.PreparedSurfaceOperation reply =
+        entry.PreparedSurfaceOperation.fromCommand(
+          <String, Object?>{'cmd': 'state'}, theme: 'light', boundary: 'reply',
+        );
+    for (final (String, Object?, String) kind in <(String, Object?, String)>[
+      ('tab', 'not-a-public-label', 'PREPARED_TAB_REFUSED'),
+      ('route', null, 'PREPARED_ROUTE_UNAVAILABLE'),
+      ('route', 'not-a-public-label', 'PREPARED_ROUTE_CHANGED'),
+      ('node', 'not-a-public-label', 'PREPARED_NODE_REFUSED'),
+      ('savedSigningChainId', 1, 'PREPARED_CHAIN_REFUSED'),
+      ('walletUnlocked', false, 'PREPARED_WALLET_REFUSED'),
+      ('harnessFixture', 'not-a-public-label', 'PREPARED_FIXTURE_REFUSED'),
+    ]) {
+      Object? refusal;
+      try {
+        entry.requirePreparedSurfaceRoute(
+          <String, dynamic>{...state, kind.$1: kind.$2},
+          'tokens', expectedRoute: 'fixture-route',
+        );
+      } on Object catch (error) {
+        refusal = error;
+      }
+      final Map<String, Object?>? diagnostic = entry.restoredChildFailure(
+        'seeded_capture', refusal!, captureStep: complete,
+        selection: RestoredSeedSelection.seededCatalog,
+        surfaceOperation: reply,
+      );
+      expect(diagnostic?['kind'], 'FORMAT_ERROR');
+      expect(diagnostic?['code'], kind.$3);
+      expect(jsonEncode(diagnostic), isNot(contains('not-a-public-label')));
+      expect(entry.restoredChildFailure(
+        'seeded_capture', refusal, captureStep: complete,
+        selection: RestoredSeedSelection.seededCatalog,
+        surfaceOperation: operation,
+      ), isNull);
+    }
     for (final String phase in <String>['startup', 'seed_token', 'finish']) {
       expect(entry.restoredChildFailure(
         phase, _Unformattable(), captureStep: complete,
