@@ -7372,6 +7372,26 @@ repeats the page-change and disclosure measurements on the candidate
 with the initial shader focus change. The prior timing results retain
 their source and run scope.
 
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/45089275355/job/137414892098)
+verifies both original windows, two normal wallet exits, two normal
+entry exits and five normal node exits.
+
+| Interaction | Redesign / P06 frames | Redesign / P06 longest total | Missing frame numbers | 16 ms criteria exceeded |
+| --- | --- | --- | --- | --- |
+| Page change | 14 / 19 | 264.097 / 170.995 ms | 30 / 23 | Raster and distinct frames |
+| Licences disclosure | 15 / 24 | 126.197 / 71.344 ms | 24 / 17 | Build, raster and distinct frames |
+
+Five raster ranks exceed the matching P06 rank and the 16 ms threshold
+after the observed settlement of each interaction. The idle redesign
+peaks are 72.278 ms on Node Settings and 61.866 ms on closed About. Those
+two peak frames show zero cached layers and pictures. The results
+preserve the failed timing criteria and leave the rendering and
+presentation costs unresolved.
+
+The [cold launch pair at `e7916753`](https://github.com/edgepillar/syrius/actions/runs/45089336020)
+is running separately. The [clean Windows baseline](https://github.com/edgepillar/syrius/actions/runs/45089230155)
+is also running on that source with the Debug, Release and DLL checks.
+
 #### Welcome backdrop at `2c8fd31c`
 
 The verified Welcome PNG digests match the already retained
