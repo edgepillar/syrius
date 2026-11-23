@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:rxdart/rxdart.dart';
@@ -37,9 +38,16 @@ void main() {
           GenerationStatus(status: status.stream, uptime: now, times: times),
         ),
       );
+      final Finder generation = find.byType(GenerationStatus);
+      expect(tester.getSize(generation), Size.zero);
+      expect(
+        tester.renderObject(generation),
+        isNot(isA<RenderRepaintBoundary>()),
+      );
       expect(find.byKey(const Key('strip_plasma')), findsNothing);
       status.add(PowGenerationState.generating(work));
       await tester.pump();
+      expect(tester.renderObject(generation), isA<RenderRepaintBoundary>());
       final AppLottie bolt = tester.widget<AppLottie>(
         find.byKey(const Key('strip_plasma')),
       );
@@ -50,6 +58,11 @@ void main() {
       status.add(PowGenerationState.completed(work));
       await tester.pump();
       expect(find.byKey(const Key('strip_plasma')), findsNothing);
+      expect(tester.getSize(generation), Size.zero);
+      expect(
+        tester.renderObject(generation),
+        isNot(isA<RenderRepaintBoundary>()),
+      );
       expect(times.typical, const Duration(seconds: 3));
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());

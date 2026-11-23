@@ -94,6 +94,7 @@ class StatusStrip extends StatelessWidget {
     final TextStyle mono = monoStyle(dim);
     final InFlightBlocks flight = this.flight ?? InFlightBlocks.wallet;
     final ValueListenable<int?>? peers = this.peers;
+    final Widget? plasma = this.plasma;
     final Widget? trailing = this.trailing;
     final Widget node = _buildNode(dim, mono);
     final Widget height = RepaintBoundary(
@@ -250,9 +251,9 @@ class StatusStrip extends StatelessWidget {
                 // The mark alone.
                 minWidth: tokens.statusDotSize * 2.25,
                 end: true,
-                child: RepaintBoundary(
-                  child: plasma ?? const GenerationStatus(),
-                ),
+                child: plasma == null
+                    ? const GenerationStatus()
+                    : RepaintBoundary(child: plasma),
               ),
               if (trailing != null)
                 Prioritized(

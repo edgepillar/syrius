@@ -237,7 +237,7 @@ class _GenerationStatusState extends State<GenerationStatus> {
     final Duration? typical = _times.typical;
     // The label gives way before the seconds do, and the typical time
     // before either: on a narrow strip the bolt and its count are the news.
-    return PriorityRow(
+    final Widget generation = PriorityRow(
       gap: tokens.statusDotSize,
       fill: false,
       children: <Prioritized>[
@@ -288,6 +288,8 @@ class _GenerationStatusState extends State<GenerationStatus> {
           ),
       ],
     );
+    // Isolate live timer and bolt paint without compositing an empty idle slot.
+    return RepaintBoundary(child: generation);
   }
 
   static int _wholeSeconds(Duration duration) {
