@@ -11,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/model/new_token_data.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/create_token_stepper.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_create_frame.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/widgets/amount_text.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/registration_success/registration_success_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_favorite/token_favorite.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
@@ -237,12 +238,29 @@ void main() {
                 expect(find.byKey(Key('token_create_step_$i')), findsOneWidget);
               }
               expect(find.text('Plasma Check'), findsNothing);
-              expect(
-                tester
-                    .getSize(find.byKey(const Key('token_create_rail')))
-                    .width,
-                300,
+              final Finder rail = find.byKey(const Key('token_create_rail'));
+              final Rect railRect = tester.getRect(rail);
+              expect(railRect.width, 300);
+              final AppTokens tokens = AppTokens.of(tester.element(rail));
+              final Rect firstStep = tester.getRect(
+                find.byKey(const Key('token_create_step_0')),
               );
+              expect(
+                firstStep.top - railRect.top,
+                tokens.registrationInset + tokens.tokenCreateStepInset,
+              );
+              final Finder amounts = find.descendant(
+                of: rail,
+                matching: find.byType(AmountText),
+              );
+              expect(amounts, findsNWidgets(2));
+              final Rect fee = tester.getRect(amounts.first);
+              final Rect balance = tester.getRect(amounts.last);
+              expect(
+                direction == TextDirection.ltr ? fee.left : fee.right,
+                direction == TextDirection.ltr ? balance.left : balance.right,
+              );
+              expect(fee.bottom, lessThan(balance.top));
               expect(tester.takeException(), isNull);
               await _options(tester);
               expect(_active(tester, 'options'), isTrue);

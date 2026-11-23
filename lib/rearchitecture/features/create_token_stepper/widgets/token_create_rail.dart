@@ -72,48 +72,20 @@ class TokenCreateRail extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: tokens.tokenCreateRailGap,
           children: <Widget>[
-            Column(
-              spacing: tokens.registrationActionGap,
-              children: <Widget>[
-                for (int i = 0; i < labels.length; i++)
-                  _buildStep(tokens, i, labels[i]),
-              ],
+            Padding(
+              padding: EdgeInsets.symmetric(
+                vertical: tokens.tokenCreateStepInset,
+              ),
+              child: Column(
+                spacing: tokens.registrationActionGap,
+                children: <Widget>[
+                  for (int i = 0; i < labels.length; i++)
+                    _buildStep(tokens, i, labels[i]),
+                ],
+              ),
             ),
             Divider(height: 1, thickness: 1, color: tokens.line),
-            Column(
-              spacing: tokens.registrationGap,
-              children: <Widget>[
-                _Fact(
-                  label: context.l10n.tokenCreateFee,
-                  value: Wrap(
-                    spacing: tokens.inlineGap,
-                    children: <Widget>[
-                      AmountText(
-                        tokenZtsIssueFeeInZnn,
-                        decimals: coinDecimals,
-                        symbol: kZnnCoin.symbol,
-                        style: tokens.dataText,
-                      ),
-                      Text(
-                        context.l10n.tokenCreateBurned,
-                        style: tokens.registrationCaptionText,
-                      ),
-                    ],
-                  ),
-                ),
-                _Fact(
-                  label: context.l10n.tokenCreateHave,
-                  value: balance == null
-                      ? Text('-', style: tokens.dataText)
-                      : AmountText(
-                          balance,
-                          decimals: coinDecimals,
-                          symbol: kZnnCoin.symbol,
-                          style: tokens.dataText,
-                        ),
-                ),
-              ],
-            ),
+            _buildFacts(context, tokens, balance),
             Container(
               padding: EdgeInsets.all(tokens.pageGap),
               decoration: BoxDecoration(
@@ -125,8 +97,9 @@ class TokenCreateRail extends StatelessWidget {
                 spacing: tokens.inlineGap,
                 children: <Widget>[
                   Text(
-                    context.l10n.tokenCreatePreview,
-                    style: tokens.compactText,
+                    context.l10n.tokenCreatePreview.toUpperCase(),
+                    semanticsLabel: context.l10n.tokenCreatePreview,
+                    style: tokens.ledgerText,
                   ),
                   Row(
                     children: <Widget>[
@@ -172,6 +145,7 @@ class TokenCreateRail extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               textDirection: TextDirection.ltr,
                               style: tokens.dataText.copyWith(
+                                fontSize: 12,
                                 color: tokens.dim,
                               ),
                             ),
@@ -226,6 +200,72 @@ class TokenCreateRail extends StatelessWidget {
     );
   }
 
+  Widget _buildFacts(BuildContext context, AppTokens tokens, BigInt? balance) {
+    final TextStyle valueStyle = tokens.dataText.copyWith(fontSize: 13);
+    final List<(String, Widget)> facts = <(String, Widget)>[
+      (
+        context.l10n.tokenCreateFee,
+        Wrap(
+          spacing: tokens.inlineGap,
+          children: <Widget>[
+            AmountText(
+              tokenZtsIssueFeeInZnn,
+              decimals: coinDecimals,
+              symbol: kZnnCoin.symbol,
+              style: valueStyle,
+            ),
+            Text(
+              context.l10n.tokenCreateBurned,
+              style: valueStyle.copyWith(color: tokens.dim),
+            ),
+          ],
+        ),
+      ),
+      (
+        context.l10n.tokenCreateHave,
+        balance == null
+            ? Text('-', style: valueStyle)
+            : AmountText(
+                balance,
+                decimals: coinDecimals,
+                symbol: kZnnCoin.symbol,
+                style: valueStyle,
+              ),
+      ),
+    ];
+    return Table(
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      columnWidths: const <int, TableColumnWidth>{
+        0: MinColumnWidth(IntrinsicColumnWidth(), FractionColumnWidth(.46)),
+        1: FlexColumnWidth(),
+      },
+      children: <TableRow>[
+        for (final (int index, (String label, Widget value)) in facts.indexed)
+          TableRow(
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsetsDirectional.only(
+                  end: tokens.tokenCreateFactColumnGap,
+                  top: index == 0 ? 0 : tokens.tokenCreateFactRowGap,
+                ),
+                child: Text(
+                  label.toUpperCase(),
+                  semanticsLabel: label,
+                  style: tokens.ledgerText,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(
+                  top: index == 0 ? 0 : tokens.tokenCreateFactRowGap,
+                ),
+                child: value,
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
   Widget _buildStep(AppTokens tokens, int index, String label) {
     final bool active = index == step;
     final bool complete = index < step;
@@ -269,24 +309,4 @@ class TokenCreateRail extends StatelessWidget {
       ],
     );
   }
-}
-
-class _Fact extends StatelessWidget {
-  const _Fact({required this.label, required this.value});
-  final String label;
-  final Widget value;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: <Widget>[
-      Expanded(
-        child: Text(
-          label,
-          style: AppTokens.of(context).registrationCaptionText,
-        ),
-      ),
-      Flexible(flex: 2, child: value),
-    ],
-  );
 }

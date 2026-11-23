@@ -866,6 +866,15 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The four-step rail separates progress from its facts.
   double get tokenCreateRailGap => 18;
 
+  /// Top and bottom insets of the numbered steps inside their rail.
+  double get tokenCreateStepInset => 4;
+
+  /// The label-to-value gap in the compact fee and balance grid.
+  double get tokenCreateFactColumnGap => 18;
+
+  /// The vertical gap between the fee and balance rows.
+  double get tokenCreateFactRowGap => 6;
+
   /// Numbered step marks share the mockup's compact geometry.
   double get tokenCreateStepMarkSize => 22;
 
