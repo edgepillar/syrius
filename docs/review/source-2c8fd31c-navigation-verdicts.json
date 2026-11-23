@@ -3,10 +3,10 @@
     "09-receive-dark": {
       "actual_sha256": "a14a211557a5eb4fd1903acfd345b9f39eb1f4feb5b57e0d65c0fd52c4e69c56",
       "expected_sha256": "29833553d03b3cb5a7906cfa755389b3b918feca4000684ae79cc2b0f0ab2353",
-      "note": "The address selector, collapsed request and empty To receive card follow the reference layout. The capture shows a local address and the connection strip omits the reference height, uses the pending connection colour and changes the update presentation.",
-      "reviewed_at": "2026-11-22T22:32:34Z",
+      "note": "The address panel, Copy and QR controls, collapsed request row and empty queue have the reference layout and component styling. The address and footer values reflect the live isolated wallet. The pending connection mark and generic update label reflect the reported connection and update state. The Copy gradient uses the approved brand colours.",
+      "reviewed_at": "2026-11-23T00:35:20Z",
       "reviewer": "Codex",
-      "verdict": "mismatch"
+      "verdict": "match"
     },
     "16-pillars-dark": {
       "actual_sha256": "b300b21a8b44d7a3714db257a936708fd26bce14da9504aa29ceeec34bd4f71c",

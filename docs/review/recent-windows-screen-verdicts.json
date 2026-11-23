@@ -91,10 +91,10 @@
     "09-receive-light": {
       "actual_sha256": "34e12248a2a1b81a59d83d210ecd939d2b58054343ab67bd7cf9d24a82fb872f",
       "expected_sha256": "941606d6662bc1a0dce5b6715be83a5c95fd3b9158844ab0e59fb27f4f4c7d35",
-      "note": "The card, the two action extents and the empty queue align. The copy action uses the approved palette. The captured status strip uses a different connection and update presentation.",
-      "reviewed_at": "2026-11-21T20:55:02Z",
+      "note": "The address panel, Copy and QR controls, collapsed request row and empty queue have the reference layout and component styling. The address and footer values reflect the live isolated wallet. The pending connection mark and generic update label reflect the reported connection and update state. The Copy gradient uses the approved brand colours.",
+      "reviewed_at": "2026-11-23T00:35:20Z",
       "reviewer": "Codex",
-      "verdict": "mismatch"
+      "verdict": "match"
     },
     "10-receive-qr-dark": {
       "actual_sha256": "3d247c105288c4be20d5ba5e283056cecd08b30ee60836fe2bd257b76d94641b",
