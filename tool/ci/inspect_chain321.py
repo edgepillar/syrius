@@ -851,6 +851,9 @@ def seeded_catalog_pixel_comparisons(raw, schema, references, *, companion_holdi
         '19-spawn': dict(pane_header=(60, 32, 1280, 85),
                          steps_and_balances=(60, 85, 360, 724),
                          name_and_addresses=(360, 85, 970, 460)),
+        '20-pillar-done': dict(pane_header=(60, 32, 1280, 85),
+                               steps_and_facts=(60, 85, 360, 724),
+                               registration_result=(360, 85, 1280, 724)),
         '23-tokens': dict(token_summary=(60, 32, 1280, 120),
                           token_controls=(60, 120, 1280, 190),
                           token_table=(60, 190, 1280, 724)),
@@ -865,6 +868,9 @@ def seeded_catalog_pixel_comparisons(raw, schema, references, *, companion_holdi
                               voting_panel=(960, 86, 1280, 724)),
     }
     samples = {
+        '20-pillar-done': dict(header_mark=(84, 48), header_above=(84, 35),
+                               header_below=(84, 60), header_left=(83, 48),
+                               header_right=(86, 48)),
         '24-token-mine': dict(amount_fill=(226, 365),
                               beneficiary_fill=(552, 365),
                               form_fill=(840, 393)),
@@ -1032,7 +1038,8 @@ def main():
             seeded.update(catalog_capture_qualified=True, parent_closure_qualified=True,
                           atomic_frame_qualified=True)
             if (family in (catalog.PROJECT_DETAIL_FAMILY, catalog.SEEDED_VISUAL_FAMILY,
-                           catalog.TOKEN_HOLDER_FAMILY, catalog.PILLAR_SPAWN_FAMILY)
+                           catalog.TOKEN_HOLDER_FAMILY, catalog.PILLAR_SPAWN_FAMILY,
+                           catalog.PILLAR_DONE_FAMILY)
                     and reference_head is not None):
                 PHASE = 'seeded_catalog_pixel_comparison'
                 need(re.fullmatch(r'[a-f0-9]{40}', reference_head) is not None)

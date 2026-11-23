@@ -248,28 +248,37 @@ class HolderLabelTests(unittest.TestCase):
 
 
 class SeededPixelComparisonTests(unittest.TestCase):
-    def test_pillar_spawn_pairs_both_themes_and_measures_the_form(self):
-        names = ('19-spawn-dark.png', '19-spawn-light.png')
-        buffer = io.BytesIO()
-        with zipfile.ZipFile(buffer, 'w') as zipped:
-            for name in names:
-                zipped.writestr(name, name.encode())
-
+    def test_pillar_comparison_pairs_both_themes_for_each_state(self):
         def reference(path, mode):
             self.assertEqual(mode, 'rb')
             return io.BytesIO(path.name.encode())
 
-        with (mock.patch.object(Path, 'open', reference),
-              mock.patch.object(windows, 'pixel_comparison',
-                                side_effect=lambda actual, expected, _, **options:
-                                    {'matched': actual == expected})):
-            [comparison] = inspect.seeded_catalog_pixel_comparisons(
-                buffer.getvalue(), inspect.catalog.PILLAR_SPAWN_SCHEMA, Path('references'))
-        self.assertEqual(comparison['screen'], '19-spawn')
-        self.assertEqual(comparison['region_bounds']['name_and_addresses'],
-                         (360, 85, 970, 460))
-        self.assertEqual(comparison['pairs'], {
-            'dark': {'matched': True}, 'light': {'matched': True}})
+        for schema, screen, region, bounds, samples in (
+            (inspect.catalog.PILLAR_SPAWN_SCHEMA, '19-spawn',
+             'name_and_addresses', (360, 85, 970, 460), None),
+            (inspect.catalog.PILLAR_DONE_SCHEMA, '20-pillar-done',
+             'registration_result', (360, 85, 1280, 724),
+             dict(header_mark=(84, 48), header_above=(84, 35),
+                  header_below=(84, 60), header_left=(83, 48), header_right=(86, 48))),
+        ):
+            with self.subTest(screen=screen):
+                buffer = io.BytesIO()
+                with zipfile.ZipFile(buffer, 'w') as zipped:
+                    for theme in ('dark', 'light'):
+                        name = f'{screen}-{theme}.png'
+                        zipped.writestr(name, name.encode())
+                with (mock.patch.object(Path, 'open', reference),
+                      mock.patch.object(windows, 'pixel_comparison',
+                                        side_effect=lambda actual, expected, _, **options:
+                                            {'matched': actual == expected}) as compare):
+                    [comparison] = inspect.seeded_catalog_pixel_comparisons(
+                        buffer.getvalue(), schema, Path('references'))
+                self.assertEqual(comparison['screen'], screen)
+                self.assertEqual(comparison['region_bounds'][region], bounds)
+                self.assertEqual(comparison['pairs'], {
+                    'dark': {'matched': True}, 'light': {'matched': True}})
+                self.assertEqual([call.kwargs['sample_points']
+                                  for call in compare.call_args_list], [samples, samples])
 
 
 class InspectionTests(unittest.TestCase):
