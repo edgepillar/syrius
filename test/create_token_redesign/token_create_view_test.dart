@@ -120,10 +120,7 @@ void main() {
         await _clock(tester);
         final AppTokens tokens = AppTokens.of(tester.element(_frame('rail')));
         final Finder badge = _frame('preview_badge');
-        expect(
-          tester.getBottomLeft(badge).dy,
-          lessThan(tester.getTopLeft(_frame('retry')).dy),
-        );
+        expect(_frame('retry'), findsNothing);
         final Finder firstMark = find.descendant(
           of: _frame('step_0'),
           matching: find.byType(Container),
@@ -282,8 +279,12 @@ void main() {
           isNull,
         );
         expect(fixture.preflight.znn, isNull);
-        final Finder refresh = find.byKey(const Key('token_create_retry'));
+        final Finder refresh = _frame('retry');
         expect(tester.widget<TextButton>(refresh).onPressed, isNull);
+        expect(
+          tester.getBottomLeft(_frame('preview_badge')).dy,
+          lessThan(tester.getTopLeft(refresh).dy),
+        );
         pending.complete(tokenCreateAccount());
         await _clock(tester);
         expect(refresh, findsNothing);
@@ -522,7 +523,7 @@ void main() {
         expect(submissions, 0);
         expect(_active(tester, 'issue'), isTrue);
         expect(fixture.plasmaReads, 3);
-        final Finder refresh = find.byKey(const Key('token_create_retry'));
+        final Finder refresh = _frame('retry');
         expect(tester.widget<TextButton>(refresh).onPressed, isNotNull);
         fixture.plasma = tokenCreatePlasma();
         await tester.tap(_action('issue'));
