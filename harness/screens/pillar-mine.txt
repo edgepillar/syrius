@@ -8,6 +8,7 @@ tap --key nodes_pillar_more
 wait --key nodes_pillar_owner --timeout 30
 tap --key nodes_pillar_owner
 wait --key pillar_owner_panel --timeout 30
+hover @0,0
 assert --key pillar_owner_panel
 # after-capture: tap --key nodes_pillar_owner_close
 # after-capture: wait --key nodes_pillar_more --timeout 10

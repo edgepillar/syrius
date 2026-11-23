@@ -2047,7 +2047,13 @@ void main() {
             expanded = !expanded;
           }
           if (name == 'hover') {
-            expect(selected, anyOf('set-licences', 'plasma-fuse'));
+            expect(
+              selected,
+              anyOf('set-licences', 'plasma-fuse', 'pillar-mine'),
+            );
+            if (selected == 'pillar-mine') {
+              expect(earn && draftOpen && !afterShot, isTrue);
+            }
             expect(command, <String, Object?>{
               'cmd': 'hover', 'at': <int>[0, 0],
             });
@@ -2213,6 +2219,9 @@ void main() {
             }
             if (earn) {
               expect(draftOpen, tab == 'pillars');
+              expect(hoveredScreens, <String>[
+                for (int i = 2; i <= shots; i++) 'pillar-mine',
+              ]);
               expect(command['expect'], <String, Object?>{
                 'key': tab == 'pillars'
                     ? 'pillar_owner_panel'
