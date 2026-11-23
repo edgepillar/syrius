@@ -280,7 +280,7 @@ class SeededPixelComparisonTests(unittest.TestCase):
                 self.assertEqual(comparison['screen'], screen)
                 self.assertEqual(comparison['region_bounds'][region], bounds)
                 pair = {'matched': True}
-                if screen == '20-pillar-done':
+                if screen in ('19-spawn', '20-pillar-done'):
                     self.assertEqual(rectangles.call_count, 4)
                     empty = {'count': 0, 'unique': None}
                     pair['header_rectangles'] = {'actual': empty, 'reference': empty}

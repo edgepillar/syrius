@@ -923,7 +923,7 @@ def seeded_catalog_pixel_comparisons(raw, schema, references, *, companion_holdi
             comparison = pixel_comparison(actual, reference, regions,
                                           sample_points=samples.get(screen))
             need(comparison is not None)
-            if screen == '20-pillar-done':
+            if screen in ('19-spawn', '20-pillar-done'):
                 comparison['header_rectangles'] = dict(
                     actual=pillar_header_rectangles(actual),
                     reference=pillar_header_rectangles(reference))
