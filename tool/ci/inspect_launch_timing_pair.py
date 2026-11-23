@@ -437,8 +437,12 @@ def inspect_run(client, *, head, tree, run_id, job, item=None, current_binaries=
                     startup_reader.PRE_PHASE_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_MOTION_LAUNCH_PRODUCER_SHA)
     pair_source = source(client, 'tool/ci/windows_launch_timing_pair.py', head)
+    prior_baseline_collector_pair = (
+        'cd93744442620cd1feeb2668f679f6cb9d9bc575b4381738281a77516f8cc55d',
+        '0a84d42843eac8125345f0eb28d94d4b17148f32a9c167d07607eb9ce5b8fffd',
+    )
     if (pair_source == Path(pair.__file__).read_bytes()
-            or archive.sha(pair_source) == 'cd93744442620cd1feeb2668f679f6cb9d9bc575b4381738281a77516f8cc55d'):
+            or archive.sha(pair_source) in prior_baseline_collector_pair):
         collector = pair.BASELINE_COLLECTOR
     else:
         archive.need(archive.sha(pair_source) in prior_pair)
