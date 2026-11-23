@@ -183,25 +183,27 @@ class StatusStrip extends StatelessWidget {
                 ),
               Prioritized(
                 priority: 7,
-                child: _onNodeChange((BuildContext context) {
-                  final int chainId = getChainIdentifier();
-                  return Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Text('${context.l10n.stripChain} ', style: dim),
-                      ValueFlash(
-                        value: chainId,
-                        child: Ltr(
-                          child: Text(
-                            '$chainId',
-                            key: const Key('strip_chain'),
-                            style: mono,
+                child: _onNodeChange<int>(
+                  getChainIdentifier,
+                  (BuildContext context, int chainId) {
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text('${context.l10n.stripChain} ', style: dim),
+                        ValueFlash(
+                          value: chainId,
+                          child: Ltr(
+                            child: Text(
+                              '$chainId',
+                              key: const Key('strip_chain'),
+                              style: mono,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  );
-                }),
+                      ],
+                    );
+                  },
+                ),
               ),
               if (peers != null)
                 Prioritized(
@@ -269,8 +271,10 @@ class StatusStrip extends StatelessWidget {
   }
 
   Widget _buildNode(TextStyle dim, TextStyle mono) =>
-      _onNodeChange((BuildContext context) {
-        final String? node = kCurrentNode;
+      _onNodeChange<String?>(() => kCurrentNode, (
+        BuildContext context,
+        String? node,
+      ) {
         final bool embedded = locked && node == kEmbeddedNode;
         return Row(
           mainAxisSize: MainAxisSize.min,
@@ -320,14 +324,18 @@ class StatusStrip extends StatelessWidget {
           ),
         );
 
-  /// Builds what reads the node's name or its chain: on a change of page
-  /// and on each answer of the node, as before.
-  Widget _onNodeChange(WidgetBuilder builder) => ListenableBuilder(
+  // Read the current connection on page changes and sync replies. Height
+  // updates only rebuild the node or chain label when that value has changed.
+  Widget _onNodeChange<T>(
+    T Function() read,
+    Widget Function(BuildContext, T) builder,
+  ) => ListenableBuilder(
     listenable: page,
     builder: (BuildContext context, _) =>
-        BlocBuilder<NodeSyncStatusCubit, NodeSyncStatusState>(
+        BlocSelector<NodeSyncStatusCubit, NodeSyncStatusState, T>(
           bloc: syncCubit,
-          builder: (BuildContext context, _) => builder(context),
+          selector: (_) => read(),
+          builder: builder,
         ),
   );
 }

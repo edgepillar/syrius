@@ -213,15 +213,22 @@ void main() {
       matching: find.byType(Tooltip),
     );
     final Tooltip synced = tester.widget(tooltip);
+    final Text node = tester.widget(find.byKey(_node));
+    final Text chain = tester.widget(find.byKey(_chain));
     rig.sync.answer(current: 3281905, target: 3281905);
     await tester.pump();
     expect(find.text('#3,281,905'), findsOneWidget);
     expect(tester.widget(tooltip), same(synced));
+    expect(tester.widget(find.byKey(_node)), same(node));
+    expect(tester.widget(find.byKey(_chain)), same(chain));
 
+    kCurrentNode = 'ws://127.0.0.1:35999';
     rig.sync.answer(current: 80, target: 100, done: false);
     await tester.pump();
     final Tooltip syncing = tester.widget(tooltip);
     expect(syncing.message, 'Syncing, momentum 80 of 100');
+    expect(tester.widget<Text>(find.byKey(_node)).data, kCurrentNode);
+    expect(tester.widget(find.byKey(_chain)), same(chain));
     rig.sync.answer(current: 81, target: 101, done: false);
     await tester.pump();
     expect(
