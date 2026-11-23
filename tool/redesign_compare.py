@@ -915,7 +915,8 @@ def generate_report(
                 else None
             )
             archive_groups[archive].append((screen, theme, capture))
-    archive_cache = _ArchiveReadCache()
+    # The loopback server can serve the archive bytes already verified here.
+    archive_cache = gallery._archive_cache if gallery is not None else _ArchiveReadCache()
     pairs = []
     for group in archive_groups.values():
         for screen, theme, capture in group:

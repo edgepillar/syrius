@@ -203,8 +203,7 @@ class ArchiveReadCacheTests(unittest.TestCase):
             with Image.open(io.BytesIO(delta)) as image:
                 self.assertEqual(image.getextrema(), (0, 0))
             path = captures[first_dark].path
-            self.assertEqual([call.args[0] for call in load.call_args_list
-                              if call.args[0] in archives], [path, captures[first_light].path])
+            self.assertFalse(any(call.args[0] in archives for call in load.call_args_list))
             stat_result.st_ctime_ns += 1
             original = archives[path]
             archives[path] = b"changed"
@@ -212,6 +211,8 @@ class ArchiveReadCacheTests(unittest.TestCase):
                 gallery.read_asset(f"capture/{first_dark}.png")
             archives[path] = original
             self.assertEqual(gallery.read_asset(f"capture/{first_dark}.png"), (png, "image/png"))
+            self.assertEqual([call.args[0] for call in load.call_args_list
+                              if call.args[0] in archives], [path, path])
 
 
 class CaptureCatalogTests(unittest.TestCase):
