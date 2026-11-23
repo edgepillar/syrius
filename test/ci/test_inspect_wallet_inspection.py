@@ -305,6 +305,11 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(comparisons[6]['region_bounds']['content'], (260, 32, 1280, 724))
         self.assertEqual(compare.call_args_list[0].kwargs['sample_points']['update_notice'],
                          (700, 450))
+        self.assertEqual(compare.call_args_list[4].kwargs['sample_points'], dict(
+            hide_balances_thumb=(1220, 282), hide_balances_track=(1240, 282),
+            dollar_values_thumb=(1237, 339), dollar_values_track=(1222, 339)))
+        self.assertEqual(compare.call_args_list[5].kwargs['sample_points'],
+                         compare.call_args_list[4].kwargs['sample_points'])
         self.assertEqual(compare.call_args_list[10].kwargs['sample_points']['contact_gap'],
                          (700, 482))
 
