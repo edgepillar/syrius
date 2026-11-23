@@ -150,6 +150,11 @@ class _TokenCreateFrameState extends State<TokenCreateFrame> {
                       child: TextButton(
                         key: const Key('token_create_back'),
                         style: secondaryButtonStyle(context).copyWith(
+                          // The reference adds its one-pixel outline outside
+                          // the 16 px label inset. Flutter paints it inside.
+                          padding: const WidgetStatePropertyAll<EdgeInsets>(
+                            EdgeInsets.symmetric(horizontal: 17),
+                          ),
                           foregroundColor: WidgetStatePropertyAll<Color>(
                             tokens.foreground,
                           ),

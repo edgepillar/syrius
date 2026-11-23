@@ -392,6 +392,18 @@ void main() {
           backButton.style?.side?.resolve(<WidgetState>{})?.color,
           tokens.line,
         );
+        final Finder backLabel = find.descendant(
+          of: back,
+          matching: find.byType(Text),
+        );
+        expect(
+          tester.getRect(back).width - tester.getRect(backLabel).width,
+          closeTo(34, 0.01),
+        );
+        expect(
+          tester.getRect(_action('details')).left - tester.getRect(back).right,
+          closeTo(8, 0.01),
+        );
         expect(
           find.ancestor(
             of: back,
