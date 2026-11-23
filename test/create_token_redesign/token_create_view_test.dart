@@ -325,6 +325,17 @@ void main() {
         );
         await _clock(tester);
         final Finder symbol = _field('token_symbol_field');
+        for (final String key in <String>[
+          'token_name_field',
+          'token_symbol_field',
+          'token_domain_field',
+        ]) {
+          final Finder field = _field(key);
+          expect(
+            tester.getSize(field).height,
+            closeTo(AppTokens.of(tester.element(field)).fieldHeight, 0.01),
+          );
+        }
         InputDecoration symbolDecoration() =>
             tester.widget<TextField>(symbol).decoration!;
         expect(symbolDecoration().suffixIcon, isNull);

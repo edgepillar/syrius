@@ -194,6 +194,11 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
 
   Widget _buildDetails(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    final InputDecoration detailsInput = InputDecoration(
+      isDense: true,
+      constraints: BoxConstraints(minHeight: tokens.fieldHeight),
+      contentPadding: tokens.transferFieldPadding,
+    );
     final bool hasSymbol = _symbol.text.isNotEmpty;
     final String? symbolError = hasSymbol
         ? Validations.tokenSymbol(_symbol.text)
@@ -222,7 +227,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
                     key: const Key('token_name_field'),
                     controller: _name,
                     style: tokens.bodyText,
-                    decoration: InputDecoration(
+                    decoration: detailsInput.copyWith(
                       errorText: _name.text.isEmpty
                           ? null
                           : Validations.tokenName(_name.text),
@@ -240,7 +245,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
                     controller: _symbol,
                     textDirection: TextDirection.ltr,
                     style: tokens.dataText,
-                    decoration: InputDecoration(
+                    decoration: detailsInput.copyWith(
                       errorText: symbolError,
                       suffixIconConstraints: const BoxConstraints.tightFor(
                         width: 36,
@@ -273,7 +278,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
                   controller: _domain,
                   textDirection: TextDirection.ltr,
                   style: tokens.bodyText,
-                  decoration: InputDecoration(
+                  decoration: detailsInput.copyWith(
                     hintText: context.l10n.createTokenDomainHint,
                     errorText: InputValidators.checkTokenDomain(_domain.text),
                   ),
