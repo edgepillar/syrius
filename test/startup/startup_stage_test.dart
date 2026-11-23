@@ -723,6 +723,14 @@ void main() {
         final Layer? foregroundPaint = foregroundLayer.firstChild;
         expect(foregroundPaint, isNotNull);
         await tester.pump(const Duration(milliseconds: 100));
+        final Finder cardPaint = find.byKey(
+          const ValueKey<String>('lock_card_handoff_paint'),
+        );
+        final RenderRepaintBoundary retainedCard =
+            tester.renderObject(cardPaint);
+        final OffsetLayer cardLayer = retainedCard.debugLayer! as OffsetLayer;
+        final Layer? cardContents = cardLayer.firstChild;
+        expect(cardContents, isNotNull);
         expect(originalBackdrop.value, greaterThan(0));
         expect(paintedFrame.size, decodedSize);
         expect(retainedForeground.debugLayer, same(foregroundLayer));
@@ -731,6 +739,8 @@ void main() {
         expect(tester.widget(find.byType(EntryField)), same(renderingField));
         await tester.pump(const Duration(milliseconds: 99));
         expect(session.interactive, isFalse);
+        expect(retainedCard.debugLayer, same(cardLayer));
+        expect(cardLayer.firstChild, same(cardContents));
         await tester.pump(const Duration(milliseconds: 1));
         expect(session.interactive, isTrue);
         expect(session.filmInWell, isTrue);
@@ -748,6 +758,7 @@ void main() {
         expect(tester.widget<Opacity>(shadowOpacity).opacity, 1);
         expect(shadowRaster(), same(originalShadowRaster));
         expect(tester.renderObject(foreground), same(retainedForeground));
+        expect(tester.renderObject(cardPaint), same(retainedCard));
         expect(tester.renderObject(backdrop), same(originalFilter));
         expect(tester.widget<BackdropFilter>(backdrop).enabled, isTrue);
         expect(
