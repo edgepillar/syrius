@@ -561,12 +561,16 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
             and steps['Build the ordinary Release harness target']['conclusion'] == 'success'
             and steps[launch.MOTION_JOB_STEP]['conclusion'] == job['conclusion']
             and steps[launch.MOTION_RETAIN_STEP]['conclusion'] == 'success')
+    capture_conclusion = job['conclusion']
     if settle:
         steps = {step['name']: step for step in job['steps']}
         archive.need(len(steps) == len(job['steps']) and job['labels'] == ['windows-latest'])
+        if shared_binaries is not None:
+            capture_conclusion = steps[launch.SETTLE_JOB_STEP]['conclusion']
+            archive.need(capture_conclusion in ('success', 'failure'))
         for name, conclusion in (
             ('Build the ordinary Release harness target', 'success'),
-            (launch.SETTLE_JOB_STEP, job['conclusion']),
+            (launch.SETTLE_JOB_STEP, capture_conclusion),
             ('Retain the original launch handoff manifest and PNGs', 'success'),
         ):
             step = steps.get(name, {})
@@ -575,8 +579,10 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
     summary = _inspect_launch_artifact(client, head, tree, run_id,
         settle=settle, lock=lock, quiz=quiz, timing=timing, lock_seams=lock_seams,
         motion=motion, item=item, compare_png=compare_png, shared_binaries=shared_binaries)
-    archive.need((job['conclusion'] == 'success') is summary['artifact_reported_success'])
+    archive.need((capture_conclusion == 'success') is summary['artifact_reported_success'])
     summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'])
+    if shared_binaries is not None:
+        summary['original_capture_conclusion'] = capture_conclusion
     return summary
 
 

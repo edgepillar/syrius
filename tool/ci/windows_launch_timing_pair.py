@@ -230,6 +230,29 @@ def attempt_outcomes(samples):
                             for attempt in sample['attempts']] for sample in samples}
 
 
+def closed_p06_deadline(report):
+    """Recognize a timed-out baseline whose original actors all closed."""
+    if (report['success'] or report['phase'] != 'p06_measure'
+            or report['error_codes'] != ['STARTUP_OBSERVATION_REFUSED']
+            or report['comparison'] is not None
+            or [row['name'] for row in report['samples']] != ['current', 'p06']):
+        return False
+    current, baseline = report['samples']
+    current_attempts, p06_attempts = current['attempts'], baseline['attempts']
+    if (current['frame_window'] is None or baseline['frame_window'] is not None
+            or [row['role'] for row in current_attempts] != ['prepare', 'timing']
+            or [row['role'] for row in p06_attempts] != ['prepare', 'prepare', 'timing']
+            or not all(launch.attempt_passed(row)
+                       for row in current_attempts + p06_attempts[:-1])):
+        return False
+    last = p06_attempts[-1]
+    return (last['action_complete'] is False and last['error_codes'] == ['STARTUP_DEADLINE']
+            and all(last['checks'][name] is True for name in launch.ATTEMPT_CHECKS)
+            and type(last['exit_code']) is int and last['exit_code'] == 0
+            and last['exit_observed'] is True and last['forced_kill'] is False
+            and last['output_complete'] is True and last['output_overflow'] is False)
+
+
 class _P06Warmup(launch.LaunchProcess):
     preparation_diagnostic = None
 
@@ -352,6 +375,21 @@ def main():
         except (Exception, KeyboardInterrupt):
             report['success'] = False
             report['error_codes'].append('ARTIFACT_FAILED')
+        if closed_p06_deadline(report):
+            try:
+                check_space(repo, report['storage'].copy())
+                launch.bounded.verify_source(repo, head, parent)
+                launch.need(launch.entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
+                launch.need(tuple(launch.bounded.binary_hash(repo, path)
+                                  for path in (launch.startup.BINARY, launch.startup.PAYLOAD)) == current,
+                            'BINARY_REFUSED')
+                launch.bounded.check_no_existing(repo, parent)
+                step_output = Path(parent['GITHUB_OUTPUT'])
+                launch.bounded.plain(step_output)
+                with step_output.open('a', encoding='ascii') as stream:
+                    stream.write('closed_after_p06_deadline=true\n')
+            except Exception:
+                print('::notice title=Launch capture held::Closure recheck unavailable')
     summary = {key: value for key, value in report.items()
                if key not in ('samples', 'comparison', 'commands')}
     summary['command_count'] = len(report['commands'])

@@ -269,6 +269,7 @@ jobs:
           path: .harness/ci-launch-timing/manifest.json
 
       - name: Measure paired cold lock frame windows
+        id: startup_timing_pair
         if: inputs.readonly_catalog_family == 'launch-timing-pair' || inputs.readonly_catalog_family == 'launch-timing-and-settle'
         timeout-minutes: 15
         env:
@@ -278,6 +279,7 @@ jobs:
         run: python -B -m tool.ci.windows_launch_timing_pair
 
       - name: Retain the paired cold lock timing manifest
+        id: retain_startup_timing_pair
         if: always() && (inputs.readonly_catalog_family == 'launch-timing-pair' || inputs.readonly_catalog_family == 'launch-timing-and-settle') && hashFiles('.harness/ci-launch-timing-pair/manifest.json') != ''
         uses: actions/upload-artifact@v7
         with:
@@ -365,6 +367,10 @@ jobs:
           ${{ !cancelled() &&
               ((success() && (inputs.readonly_catalog_family == 'launch-settle' ||
                              inputs.readonly_catalog_family == 'launch-timing-and-settle')) ||
+               (inputs.readonly_catalog_family == 'launch-timing-and-settle' &&
+                steps.startup_timing_pair.outcome == 'failure' &&
+                steps.retain_startup_timing_pair.outcome == 'success' &&
+                steps.startup_timing_pair.outputs.closed_after_p06_deadline == 'true') ||
                (inputs.readonly_catalog_family == 'startup-catalog' &&
                 steps.startup_quiz.outcome == 'success' &&
                 steps.retain_startup_quiz.outcome == 'success' &&

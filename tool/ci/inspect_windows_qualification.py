@@ -1071,8 +1071,11 @@ def main():
                 if name == paired_timing.pair.JOB_STEP:
                     timing_item = None
                     if combined:
+                        outcomes = [step['conclusion'] for step in launch_steps]
+                        expected_job = 'success' if outcomes == ['success', 'success'] else 'failure'
                         archive.need(run['head_branch'] == 'redesign'
-                                     and launch_steps[0]['conclusion'] == 'success')
+                                     and all(outcome in ('success', 'failure') for outcome in outcomes)
+                                     and job['conclusion'] == expected_job)
                         client = archive.Client(parent.get('GH_TOKEN'), max_calls=startup.BATCH_REQUESTS)
                         listing = client.json('/actions/runs/' + text + '/artifacts?per_page=20')
                         suffix = head + '-' + text + '-1'
@@ -1087,6 +1090,8 @@ def main():
                     summary = paired_timing.inspect_run(
                         client, head=head, tree=tree, run_id=run_id, job=job,
                         item=timing_item, current_binaries=shared_binaries)
+                    if combined and launch_steps[0]['conclusion'] == 'failure':
+                        archive.need(summary.get('closed_after_p06_deadline') is True)
                     gap_context = summary.pop('frame_gap_context', None)
                     common_interval = summary.pop('common_startup_interval', None)
                 else:

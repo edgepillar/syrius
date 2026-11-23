@@ -289,6 +289,7 @@ class PairInspectionTests(unittest.TestCase):
         self.assertFalse(result['artifact_reported_success'])
         self.assertIsNone(result['comparison'])
         self.assertEqual(result['normal_actor_exits'], 5)
+        self.assertTrue(result['closed_after_p06_deadline'])
         self.assertEqual(result['attempt_outcomes']['p06'][-1]['lock_diagnostic'], diagnostic)
         film = dict(frames=54, shown=31, done=False)
         attempt['lock_diagnostic'] = dict(diagnostic, film_frame=film)
@@ -625,21 +626,43 @@ class PairInspectionTests(unittest.TestCase):
                         name=f'windows-launch-settle-catalog-{HEAD}-{RUN}-1'))
                 return reply
 
-        offered = CombinedClient()
-        offered.job['steps'].extend(dict(name=name, status='completed', conclusion='success')
-            for name in ('Build the ordinary Release harness target', pair.launch.SETTLE_JOB_STEP,
-                         'Retain the original launch handoff manifest and PNGs'))
-        capture = dict(scope='retained_launch_settle', artifact_reported_success=True)
-        with mock.patch.object(windows.startup, '_inspect_launch_artifact',
-                               return_value=capture) as inspect_capture:
-            status, rows = self.read_original_run(offered)
-        self.assertEqual(status, 0, rows)
-        self.assertEqual(offered.calls.count(f'/actions/runs/{RUN}/artifacts?per_page=20'), 1)
-        self.assertEqual(inspect_capture.call_args.kwargs['shared_binaries'],
-                         report(offered.pins)['current'])
-        self.assertEqual(inspect_capture.call_args.kwargs['item']['id'], 8)
-        self.assertTrue(rows[0]['artifact_reported_success'])
-        self.assertEqual(rows[-1]['scope'], 'retained_launch_settle')
+        for outcome in ('success', 'deadline', 'forced'):
+            offered = CombinedClient()
+            offered.job['steps'].extend(dict(name=name, status='completed', conclusion='success')
+                for name in ('Build the ordinary Release harness target', pair.launch.SETTLE_JOB_STEP,
+                             'Retain the original launch handoff manifest and PNGs'))
+            if outcome != 'success':
+                value = report(offered.pins)
+                value.update(success=False, phase='p06_measure', comparison=None,
+                             error_codes=['STARTUP_OBSERVATION_REFUSED'])
+                baseline = value['samples'][1]
+                baseline['frame_window'] = None
+                baseline['attempts'][-1].update(action_complete=False,
+                    error_codes=['STARTUP_DEADLINE'], forced_kill=outcome == 'forced')
+                offered.raw = package(value)
+                offered.job.update(conclusion='failure')
+                offered.job['steps'][0].update(conclusion='failure')
+            capture = dict(scope='retained_launch_settle', artifact_reported_success=True)
+            with (self.subTest(outcome=outcome),
+                  mock.patch.object(windows.startup, '_inspect_launch_artifact',
+                                    return_value=capture) as inspect_capture):
+                status, rows = self.read_original_run(offered)
+                if outcome == 'forced':
+                    self.assertEqual(status, 1, rows)
+                    inspect_capture.assert_not_called()
+                    continue
+                self.assertEqual(status, 0, rows)
+                path = f'/actions/runs/{RUN}/artifacts?per_page=20'
+                self.assertEqual(offered.calls.count(path), 1)
+                self.assertEqual(inspect_capture.call_args.kwargs['shared_binaries'],
+                                 report(offered.pins)['current'])
+                self.assertEqual(inspect_capture.call_args.kwargs['item']['id'], 8)
+                self.assertIs(rows[0]['artifact_reported_success'], outcome == 'success')
+                self.assertIs(rows[0].get('closed_after_p06_deadline', False),
+                              outcome == 'deadline')
+                self.assertEqual(rows[-1]['scope'], 'retained_launch_settle')
+                self.assertEqual(rows[-1]['original_capture_conclusion'], 'success')
+                self.assertEqual(rows[-1]['original_job_conclusion'], offered.job['conclusion'])
 
     def test_other_executed_jobs_cannot_masquerade_as_the_two_older_readers(self):
         changes = (

@@ -383,6 +383,8 @@ def project(raw, expected_sha, expected_size, *, head, tree, run_id, pins,
             for name, key in (('p06', 'baseline'), ('current', 'current'))},
         no_added_reported_slow_frames=None if comparison is None else comparison['no_added_reported_slow_frames'],
         no_frame_number_gaps=None if comparison is None else comparison['no_frame_number_gaps'])
+    if space and pair.closed_p06_deadline(report):
+        result['closed_after_p06_deadline'] = True
     if diagnostics:
         result['window_diagnostics'] = dict(scope='reported_frames_only',
             percentiles=[50, 95, 99, 100],
@@ -435,7 +437,8 @@ def inspect_run(client, *, head, tree, run_id, job, item=None, current_binaries=
                     startup_reader.PRE_PHASE_LAUNCH_PRODUCER_SHA,
                     startup_reader.PRE_MOTION_LAUNCH_PRODUCER_SHA)
     pair_source = source(client, 'tool/ci/windows_launch_timing_pair.py', head)
-    if pair_source == Path(pair.__file__).read_bytes():
+    if (pair_source == Path(pair.__file__).read_bytes()
+            or archive.sha(pair_source) == 'cd93744442620cd1feeb2668f679f6cb9d9bc575b4381738281a77516f8cc55d'):
         collector = pair.BASELINE_COLLECTOR
     else:
         archive.need(archive.sha(pair_source) in prior_pair)
