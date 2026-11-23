@@ -247,6 +247,31 @@ class HolderLabelTests(unittest.TestCase):
             self.assertIsNone(ambiguous['actual'])
 
 
+class SeededPixelComparisonTests(unittest.TestCase):
+    def test_pillar_spawn_pairs_both_themes_and_measures_the_form(self):
+        names = ('19-spawn-dark.png', '19-spawn-light.png')
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, 'w') as zipped:
+            for name in names:
+                zipped.writestr(name, name.encode())
+
+        def reference(path, mode):
+            self.assertEqual(mode, 'rb')
+            return io.BytesIO(path.name.encode())
+
+        with (mock.patch.object(Path, 'open', reference),
+              mock.patch.object(windows, 'pixel_comparison',
+                                side_effect=lambda actual, expected, _, **options:
+                                    {'matched': actual == expected})):
+            [comparison] = inspect.seeded_catalog_pixel_comparisons(
+                buffer.getvalue(), inspect.catalog.PILLAR_SPAWN_SCHEMA, Path('references'))
+        self.assertEqual(comparison['screen'], '19-spawn')
+        self.assertEqual(comparison['region_bounds']['name_and_addresses'],
+                         (360, 85, 970, 460))
+        self.assertEqual(comparison['pairs'], {
+            'dark': {'matched': True}, 'light': {'matched': True}})
+
+
 class InspectionTests(unittest.TestCase):
     def test_missing_or_incomplete_reopen_does_not_grant_live_ownership(self):
         report = manifest()

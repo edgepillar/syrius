@@ -848,6 +848,9 @@ def seeded_catalog_pixel_comparisons(raw, schema, references, *, companion_holdi
     panels = {
         '13-staking': dict(balance_and_controls=(60, 32, 1280, 120),
                            stake_table=(60, 120, 1280, 724)),
+        '19-spawn': dict(pane_header=(60, 32, 1280, 85),
+                         steps_and_balances=(60, 85, 360, 724),
+                         name_and_addresses=(360, 85, 970, 460)),
         '23-tokens': dict(token_summary=(60, 32, 1280, 120),
                           token_controls=(60, 120, 1280, 190),
                           token_table=(60, 190, 1280, 724)),
@@ -1029,7 +1032,7 @@ def main():
             seeded.update(catalog_capture_qualified=True, parent_closure_qualified=True,
                           atomic_frame_qualified=True)
             if (family in (catalog.PROJECT_DETAIL_FAMILY, catalog.SEEDED_VISUAL_FAMILY,
-                           catalog.TOKEN_HOLDER_FAMILY)
+                           catalog.TOKEN_HOLDER_FAMILY, catalog.PILLAR_SPAWN_FAMILY)
                     and reference_head is not None):
                 PHASE = 'seeded_catalog_pixel_comparison'
                 need(re.fullmatch(r'[a-f0-9]{40}', reference_head) is not None)

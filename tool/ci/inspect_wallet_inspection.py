@@ -1059,6 +1059,11 @@ def details_pixel_comparisons(raw, reference_dir, *, files=producer.details.FILE
             samples = None
             if screen == '38-set-originals':
                 crop = _originals_pixel_regions(regions)
+            elif screen == '08-send-warn':
+                crop = dict(
+                    caption=regions['caption'], rail=regions['rail'], status=regions['status'],
+                    recipient_and_warning=(320, 80, 1000, 374),
+                    amount_and_action=(320, 374, 1000, 550))
             elif screen == '25-token-new':
                 crop = dict(
                     caption=regions['caption'], rail=regions['rail'], status=regions['status'],
@@ -1734,6 +1739,7 @@ def main(parent=None):
                     '37-set-licences-dark.png'} <= set(catalog['filenames']):
                 catalog['component_geometry'] = details_component_geometry(catalog_archive)
             if (schema in (producer.details.FAMILY_SCHEMAS['details'],
+                           producer.details.FAMILY_SCHEMAS['send-warn'],
                            producer.details.FAMILY_SCHEMAS['token-draft'],
                            producer.details.FAMILY_SCHEMAS['swap-start'])
                     and reference_head is not None):
