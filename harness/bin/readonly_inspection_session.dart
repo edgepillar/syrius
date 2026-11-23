@@ -61,6 +61,7 @@ class ReadonlyInspectionSession {
     readonlySyncPulseCommand,
     readonlySegmentMotionCommand,
     readonlyEyeMotionCommand,
+    readonlySheenHoverCommand,
     readonlySeamPointerCommand,
     readonlyActivityMessageSeamCommand,
     readonlyAgedFuseFixtureCommand,
@@ -103,7 +104,8 @@ class ReadonlyInspectionSession {
               name == readonlySendWarningSyncCommand ||
               name == readonlySyncPulseCommand ||
               name == readonlySegmentMotionCommand ||
-              name == readonlyEyeMotionCommand) &&
+              name == readonlyEyeMotionCommand ||
+              name == readonlySheenHoverCommand) &&
               (!_walletBound || command.length != 1)) {
         _refuse(ReadonlyInspectionReason.command);
       }
@@ -431,7 +433,7 @@ class ReadonlyInspectionSession {
       }
       return samples;
     } finally {
-      await hover(away, 0);
+      if (!_held) await hover(away, 0);
     }
   }
 

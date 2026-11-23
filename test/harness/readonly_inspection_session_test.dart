@@ -3162,6 +3162,9 @@ void main() {
     bool hidden = false;
     int eyeFrame = 226000;
     final List<String> taps = <String>[];
+    final List<Object> hoverTargets = <Object>[];
+    final Iterator<int> painted =
+        <int>[0, 110000, 500000, 1000000].iterator;
     final ReadonlyInspectionSession session = ReadonlyInspectionSession(
       processId: 44,
       original: (Map<String, Object?> command, Duration timeout) async {
@@ -3208,6 +3211,14 @@ void main() {
           reply['frameMilli'] = eyeFrame;
           eyeFrame = hidden ? 30000 : 226000;
         }
+        if (command['cmd'] == 'hover') {
+          hoverTargets.add((command['key'] ?? command['at'])!);
+        }
+        if (command['cmd'] == 'readonly-sheen-hover') {
+          expect(command.keys, <String>['cmd']);
+          expect(painted.moveNext(), isTrue);
+          reply['paintedProgress'] = painted.current;
+        }
         return reply;
       },
     );
@@ -3235,6 +3246,12 @@ void main() {
     expect(eye['hide']!.map((List<int> row) => row[1]), <int>[8000, 30000]);
     expect(eye['show']!.map((List<int> row) => row[1]), <int>[212000, 226000]);
     expect(hidden, isFalse);
+    final List<List<int>> sheen = await session.observeSheenHover();
+    expect(
+      sheen.map((List<int> row) => row[1]), <int>[110000, 500000, 1000000],
+    );
+    expect(hoverTargets, <Object>[<int>[0, 0], 'home_send', <int>[0, 0]]);
+    expect(tab, 'dashboard');
   });
 
   test('uncertain Home preparation holds before any UI input or restore',
