@@ -1230,6 +1230,12 @@ def settings_pixel_comparisons(raw, reference_dir, *, files=None):
                                  chain_summary=(1080, 489, 1236, 533),
                                  chain_chevron=(1236, 489, 1280, 533),
                                  below_cards=(260, 533, 1280, 724)),
+        '36-set-about': dict(version_and_updates=(260, 32, 1048, 106),
+                             download_action=(1048, 32, 1280, 106),
+                             links_card=(260, 106, 1280, 174),
+                             computer_card=(260, 174, 1280, 230),
+                             licences_card=(260, 230, 1280, 274),
+                             below_cards=(260, 274, 1280, 724)),
     }
     sample_points = {
         '30-set-node': dict(node_table=(700, 220), update_card=(700, 298),

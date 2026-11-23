@@ -317,7 +317,11 @@ class ReaderTests(unittest.TestCase):
         ))
         self.assertEqual(comparisons[5]['region_bounds']['contacts'], (260, 326, 1280, 489))
         self.assertEqual(comparisons[5]['region_bounds']['chain_summary'], (1080, 489, 1236, 533))
-        self.assertEqual(comparisons[6]['region_bounds']['content'], (260, 32, 1280, 724))
+        about = comparisons[6]['region_bounds']
+        self.assertEqual(about['download_action'], (1048, 32, 1280, 106))
+        self.assertEqual(about['version_and_updates'], (260, 32, 1048, 106))
+        self.assertEqual(about['links_card'], (260, 106, 1280, 174))
+        self.assertEqual(about['licences_card'], (260, 230, 1280, 274))
         self.assertEqual(compare.call_args_list[0].kwargs['sample_points']['update_notice'],
                          (700, 450))
         self.assertEqual(compare.call_args_list[4].kwargs['sample_points'], dict(
