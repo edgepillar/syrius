@@ -1398,6 +1398,31 @@ def plasma_bolt_bounds(raw, screen):
                            lambda red, green, blue: min(red, green, blue) >= 252)
 
 
+def _plasma_meter_fill(data):
+    """Measure the Plasma page's blue or pink fill in the original viewport."""
+    left, right, top, bottom = 72, 397, 227, 290
+    rows, channels = windows._png_crop(
+        base64.b64encode(data).decode('ascii'), (left, right), (top, bottom))
+    if not windows._opaque(rows, channels):
+        return None
+    extents = []
+    for y, row in enumerate(rows, top):
+        x = left
+        samples = (row[i:i + 3] for i in range(0, len(row), channels))
+        lit = (b >= 130 and max(r, b) - g >= 55 for r, g, b in samples)
+        for blue, run in groupby(lit):
+            end = x + sum(1 for _ in run)
+            if blue and end - x >= 24:
+                extents.append((x, y, end))
+            x = end
+    if not extents:
+        return None
+    width_start, ys, width_end = zip(*extents)
+    if not 4 <= len(ys) <= 8 or len(ys) != ys[-1] - ys[0] + 1:
+        return None
+    return [min(width_start), ys[0], max(width_end), ys[-1] + 1]
+
+
 def _nodes_table_edges(zipped, screen):
     column, top, bottom = 900, 100, 181
     themes = {}
@@ -1884,6 +1909,10 @@ def main(parent=None):
                 item['digest'][7:], item['size_in_bytes'], head, tree, run_id,
                 navigation_reference, pins)
             catalog['plasma_bolt_bounds'] = plasma_bolt_bounds(catalog_archive, '21-plasma')
+            with zipfile.ZipFile(io.BytesIO(catalog_archive)) as zipped:
+                catalog['plasma_meter_fill_bounds'] = {
+                    theme: _plasma_meter_fill(zipped.read(f'21-plasma-{theme}.png'))
+                    for theme in producer.navigation.THEMES}
             catalog['component_geometry'] = navigation_component_geometry(catalog_archive)
         elif settings_reference is not None:
             PHASE = 'settings_catalog_artifact'

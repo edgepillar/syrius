@@ -409,6 +409,10 @@ class ReaderTests(unittest.TestCase):
                 light=[[20, [35, 35, 35]]]))))
 
     def test_navigation_and_sentinel_measure_strip_edges(self):
+        shots = Path(__file__).resolve().parents[2] / 'mockups' / 'redesign' / 'shots'
+        for theme in ('dark', 'light'):
+            png = (shots / f'21-plasma-{theme}.png').read_bytes()
+            self.assertEqual(reader._plasma_meter_fill(png), [76, 257, 298, 263])
         files = []
         background, card, ink = (100, 100, 100, 255), (120, 120, 120, 255), (80, 130, 90, 255)
         empty = b'\0' + bytes(background) * 1280
