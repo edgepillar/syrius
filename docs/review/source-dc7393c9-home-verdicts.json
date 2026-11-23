@@ -1,0 +1,52 @@
+{
+  "reviews": {
+    "01-home-rest-dark": {
+      "actual_sha256": "cd36f402172fd607942370b384d0f2b5704464a09f9a1cad375941c56d53b4ee",
+      "expected_sha256": "70617942960638e9ad855344dcc7aa1433058bb4d060155f1cfb36592ca332a6",
+      "note": "The collapsed Tokens card and Notifications tooltip are visible. The reference has a populated activity list, rewards and a pending card. The capture has one selected-address receipt and an empty reward summary.",
+      "reviewed_at": "2026-11-23T04:08:13Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "01-home-rest-light": {
+      "actual_sha256": "35a85958a0c53cf985aa861676bea22e6e34bde0ac79591a043ee8fd940bf7ba",
+      "expected_sha256": "280f31f618a20af2f275bd516afc3280849180f4788f38ae7c3fdebaedd36b7c",
+      "note": "The hero and Notifications tooltip are visible. The Plasma fill is longer than in the reference. The prepared capture has one receipt and an empty reward summary. The reference has additional activity and a pending card.",
+      "reviewed_at": "2026-11-23T04:08:13Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-light": {
+      "actual_sha256": "8202f512fc99b04c6d64a130bf918cc5f7dfce809789683e0f7a26bd3e0fc622",
+      "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
+      "note": "The expanded rail and three-row Tokens card are visible. The prepared capture has one activity row and an empty reward summary. The reference shows more activity, rewards and a lower Tokens heading.",
+      "reviewed_at": "2026-11-23T04:08:13Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-light": {
+      "actual_sha256": "249b25f2dd7d94c9ef86ba327dee828422804875957846b655cf8536d8143dfe",
+      "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
+      "note": "The balance values and the single activity amount are masked. The reference has more masked activity rows, a populated reward card and a shorter Plasma fill.",
+      "reviewed_at": "2026-11-23T04:08:13Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-dark": {
+      "actual_sha256": "e033a20473f0562338103ecfd793f3c97025f91e6efb671e44c29813bba02eaf",
+      "expected_sha256": "52ccc26f93bcad1c79ac91228648bb8c369a6cec14041f77f51d210afec0a1f9",
+      "note": "The move and open labels align more closely with the reference. The address suggestion and settled background activity differ from the reference's contact and loading placeholders.",
+      "reviewed_at": "2026-11-23T04:08:13Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-light": {
+      "actual_sha256": "073759ac03d8b01ffd9c43f1aaf91f8d346c039ec0771c6ada4ea9f3975d2173",
+      "expected_sha256": "f700f7b185b5064b45b1acc561abcee0fce392badb4dc2d58319914780b060bb",
+      "note": "The move and open labels align more closely with the reference. The captured palette overlays a settled Home view and displays the isolated contact. The reference shows loading placeholders behind the palette.",
+      "reviewed_at": "2026-11-23T04:08:13Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
