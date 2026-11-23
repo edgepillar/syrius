@@ -50,17 +50,16 @@ class TokenCreateRail extends StatelessWidget {
     final BigInt? balance = preflight.znn;
     final bool current = preflight.isCurrent;
     final String previewName = name.trimLeft();
+    final bool needsAttention = !preflight.sufficient;
     final String status = !current
         ? context.l10n.publicationSessionChanged
         : preflight.failed
         ? context.l10n.commonSomethingWentWrong
-        : preflight.plasma == null
+        : preflight.plasma == null || balance == null
         ? context.l10n.homeAmountUnknown
         : preflight.plasma! < kIssueTokenPlasmaAmountNeeded
         ? context.l10n.sendNotEnough(context.l10n.plasma)
-        : balance != null && balance < tokenZtsIssueFeeInZnn
-        ? context.l10n.sendNotEnough(kZnnCoin.symbol)
-        : context.l10n.sufficientPlasma;
+        : context.l10n.sendNotEnough(kZnnCoin.symbol);
     return Container(
       key: const Key('token_create_rail'),
       width: tokens.registrationRailWidth,
@@ -184,44 +183,43 @@ class TokenCreateRail extends StatelessWidget {
                 ],
               ),
             ),
-            Column(
-              spacing: tokens.registrationGap,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Icon(
-                      preflight.loading
-                          ? Icons.hourglass_empty
-                          : preflight.sufficient
-                          ? Icons.check_circle_outline
-                          : Icons.info_outline,
-                      size: tokens.tokenCreateStepMarkSize,
-                      color: preflight.sufficient ? tokens.znnInk : tokens.dim,
-                    ),
-                    SizedBox(width: tokens.inlineGap),
-                    Expanded(
-                      child: Text(
-                        status,
-                        style: tokens.registrationCaptionText,
+            if (needsAttention)
+              Column(
+                spacing: tokens.registrationGap,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Icon(
+                        preflight.loading
+                            ? Icons.hourglass_empty
+                            : Icons.info_outline,
+                        size: tokens.tokenCreateStepMarkSize,
+                        color: tokens.dim,
                       ),
-                    ),
-                  ],
-                ),
-                if (current)
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: TextButton(
-                      key: const Key('token_create_retry'),
-                      onPressed: busy || preflight.loading ? null : onRetry,
-                      child: Text(
-                        preflight.failed
-                            ? context.l10n.commonRetry
-                            : context.l10n.commonRefresh,
+                      SizedBox(width: tokens.inlineGap),
+                      Expanded(
+                        child: Text(
+                          status,
+                          style: tokens.registrationCaptionText,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-              ],
-            ),
+                  if (current)
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton(
+                        key: const Key('token_create_retry'),
+                        onPressed: busy || preflight.loading ? null : onRetry,
+                        child: Text(
+                          preflight.failed
+                              ? context.l10n.commonRetry
+                              : context.l10n.commonRefresh,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
           ],
         ),
       ),

@@ -282,8 +282,11 @@ void main() {
           isNull,
         );
         expect(fixture.preflight.znn, isNull);
+        final Finder refresh = find.byKey(const Key('token_create_retry'));
+        expect(tester.widget<TextButton>(refresh).onPressed, isNull);
         pending.complete(tokenCreateAccount());
         await _clock(tester);
+        expect(refresh, findsNothing);
         expect(
           tester.widget<OutlinedButton>(_action('details')).onPressed,
           isNotNull,
@@ -519,6 +522,8 @@ void main() {
         expect(submissions, 0);
         expect(_active(tester, 'issue'), isTrue);
         expect(fixture.plasmaReads, 3);
+        final Finder refresh = find.byKey(const Key('token_create_retry'));
+        expect(tester.widget<TextButton>(refresh).onPressed, isNotNull);
         fixture.plasma = tokenCreatePlasma();
         await tester.tap(_action('issue'));
         await _clock(tester);
