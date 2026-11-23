@@ -301,6 +301,24 @@ class ReaderTests(unittest.TestCase):
                 png = (shots / f'36-set-about-{theme}.png').read_bytes()
                 self.assertEqual(reader._about_download_action(png), expected)
 
+    def test_settings_menu_selection_reads_all_reference_bands(self):
+        shots = Path(__file__).resolve().parents[2] / 'mockups' / 'redesign' / 'shots'
+        expected = {
+            '30-set-node': [82, 121], '31-set-security': [121, 159],
+            '32-set-display': [159, 197], '33-set-wallet': [197, 235],
+            '34-set-apps': [235, 274], '35-set-addresses': [44, 82],
+            '36-set-about': [274, 312],
+        }
+        for screen, rows in expected.items():
+            for theme in ('dark', 'light'):
+                with self.subTest(screen=screen, theme=theme):
+                    png = (shots / f'{screen}-{theme}.png').read_bytes()
+                    self.assertEqual(reader._settings_menu_selection_rows(png, theme), rows)
+        fill, background = bytes((255, 255, 255)), bytes((246, 247, 246))
+        with mock.patch.object(reader, '_image_vertical_bands',
+                               return_value=[(37, background), (82, fill)]):
+            self.assertIsNone(reader._settings_menu_selection_rows(b'', 'light'))
+
     def test_settings_comparison_covers_each_section_and_both_themes(self):
         screens = ('30-set-node', '31-set-security', '32-set-display',
                    '33-set-wallet', '34-set-apps', '35-set-addresses', '36-set-about')
@@ -328,6 +346,11 @@ class ReaderTests(unittest.TestCase):
                                  for left, top, right, bottom in row['region_bounds'].values()),
                              1280 * 780)
             self.assertEqual(row['pairs'], {'dark': True, 'light': True})
+            self.assertEqual(row['menu_selection_rows'], dict(
+                column=236, scan_rows=[37, 321], themes={
+                    theme: dict(actual=None, reference=None) for theme in ('dark', 'light')
+                },
+            ))
         self.assertEqual(comparisons[0]['region_bounds']['update'], (260, 267, 1280, 522))
         self.assertEqual(comparisons[0]['region_bounds']['chain_summary'], (1020, 522, 1236, 566))
         self.assertEqual(comparisons[2]['display_dividers'], dict(

@@ -720,6 +720,24 @@ def _image_vertical_bands(data, column, top, bottom):
     return bands
 
 
+SETTINGS_MENU_SELECTION_SCAN = (236, 37, 321)
+SETTINGS_MENU_SELECTION_FILL = {
+    'dark': bytes((46, 48, 46)),
+    'light': bytes((255, 255, 255)),
+}
+
+
+def _settings_menu_selection_rows(data, theme):
+    """Read the uninterrupted solid fill away from labels and rounded ends."""
+    bands = _image_vertical_bands(data, *SETTINGS_MENU_SELECTION_SCAN)
+    fill = SETTINGS_MENU_SELECTION_FILL[theme]
+    matches = [[start, end] for (start, rgb), (end, _) in zip(bands, bands[1:])
+               if rgb[:3] == fill and end - start >= 20]
+    if len(matches) == 1 and matches[0][0] > SETTINGS_MENU_SELECTION_SCAN[1]:
+        return matches[0]
+    return None
+
+
 DISPLAY_DIVIDER_SCAN = (1000, 45, 400)
 
 
@@ -1124,12 +1142,18 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
     token_fields = {}
     token_actions = {}
     about_download = {}
+    menu_selection = {}
+    has_settings_menu = ('settings_menu' in regions and
+                         screen in _catalog_pair_names(producer.settings.FILES))
     for theme in producer.THEMES:
         name = f'{screen}-{theme}.png'
         actual = zipped.read(name)
         reference = producer.read_original(reference_dir / name, producer.debug.entry.MAX_PNG)
         pairs[theme] = windows.pixel_comparison(actual, reference, regions,
                                                 sample_points=sample_points)
+        if has_settings_menu:
+            menu_selection[theme] = dict(actual=_settings_menu_selection_rows(actual, theme),
+                                         reference=_settings_menu_selection_rows(reference, theme))
         if screen == '25-token-new':
             token_fields[theme] = dict(actual=_token_draft_fields(actual, theme),
                                        reference=_token_draft_fields(reference, theme))
@@ -1159,6 +1183,10 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
                                           themes=display_dividers)
     if about_download:
         result['about_download'] = about_download
+    if menu_selection:
+        column, top, bottom = SETTINGS_MENU_SELECTION_SCAN
+        result['menu_selection_rows'] = dict(column=column, scan_rows=[top, bottom],
+                                             themes=menu_selection)
     if map_gray:
         result['map_gray_deviation_milli'] = dict(bounds=ORIGINALS_MAP_CROP,
                                                  themes=map_gray)
