@@ -478,12 +478,14 @@ void main() {
       'bolt_phase_samples': 0,
     });
 
+    await tester.pumpWidget(const SizedBox.shrink());
     final PowWorkToken work = source.claimWork();
     expect(source.update(work, PowStatus.generating), isTrue);
     await tester.pump();
-    await tester.pump();
+    expect(tester.binding.hasScheduledFrame, isFalse);
+    await tester.pumpWidget(const SizedBox(width: 1));
     phase = .3;
-    await tester.pump();
+    await tester.pumpWidget(const SizedBox(width: 2));
     expect(source.update(work, PowStatus.done), isTrue);
     await tester.pump();
     expect(observation.receipt, <String, Object>{
