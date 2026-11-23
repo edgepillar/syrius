@@ -74,11 +74,11 @@ differences. V01 whole-image acceptance remains open. [Capture inventory](../PRO
 
 The cold startup run at `74a7b844` satisfies the paired 16 ms comparison
 for reported frames. Fourteen candidate frame-number gaps remain. The
-page-change and Licences disclosure comparisons at `8fc583fd` exceed the
-budget, with candidate raster peaks of 277.289 ms and 99.214 ms and 34
-and 27 frame-number gaps. The paired P06 raster peaks are 141.868 ms and
-40.674 ms. V02 running motion and V06 final acceptance remain open.
-[Cold startup reader](https://github.com/edgepillar/syrius/actions/runs/45096790126/job/137438257901) · [Interaction reader](https://github.com/edgepillar/syrius/actions/runs/45165651879/job/137661808365)
+page-change and Licences disclosure comparisons at `0be7a075` exceed the
+budget, with candidate raster peaks of 126.905 ms and 74.963 ms and 26
+and 23 frame-number gaps. The paired P06 raster peaks are 80.628 ms and
+19.573 ms. V02 running motion and V06 final acceptance remain open.
+[Cold startup reader](https://github.com/edgepillar/syrius/actions/runs/45096790126/job/137438257901) · [Interaction reader](https://github.com/edgepillar/syrius/actions/runs/45207415958/job/137806775500)
 
 The hosted Windows baseline at `27baf371` passes all twelve checks,
 including Debug and Release, DLL correspondence, generated-file
