@@ -74,9 +74,10 @@ differences. V01 whole-image acceptance remains open. [Capture inventory](../PRO
 
 The cold startup run at `74a7b844` satisfies the paired 16 ms comparison
 for reported frames. Fourteen candidate frame-number gaps remain. The
-page-change and Licences disclosure comparisons still exceed the budget
-at `40df99a2`. V02 running motion and V06 final acceptance remain open.
-[Cold startup reader](https://github.com/edgepillar/syrius/actions/runs/45096790126/job/137438257901) · [Interaction reader](https://github.com/edgepillar/syrius/actions/runs/45089275355/job/137414892098)
+page-change and Licences disclosure comparisons at `f9b71424` exceed the
+budget, with candidate raster peaks of 130.267 ms and 54.830 ms.
+V02 running motion and V06 final acceptance remain open.
+[Cold startup reader](https://github.com/edgepillar/syrius/actions/runs/45096790126/job/137438257901) · [Interaction reader](https://github.com/edgepillar/syrius/actions/runs/45102514192/job/137456352845)
 
 ## Qualification snapshot (2026-11-22)
 

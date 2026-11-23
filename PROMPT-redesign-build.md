@@ -7095,10 +7095,12 @@ Token Mine and the creation step also show additional visible controls.
 X1364 through X1373 retain those ten findings.
 
 The [remaining screen verdicts](docs/review/source-2c8fd31c-remaining-screen-verdicts.json)
-complete the whole-image review at this revision. The Zap dialog,
+complete the initial whole-image review at this revision. The Zap dialog,
 launch, handoff and seed quiz match in both themes. X1374 through
-X1399 retain the other differences. All 94 pairs have current verdicts,
-with 18 matches and 76 recorded differences. V01 stays open for
+X1399 retain the other differences. The initial review recorded 18 matches
+and 76 differences. X1415 replaces the two Receive rest verdicts after
+rechecking the original images, bringing this revision's inventory to 20
+matches and 74 differences across all 94 pairs. V01 stays open for
 corrections and fresh evidence of the affected screens.
 
 #### Home, New Token, New Stake and Pillar Done at `2c8fd31c`
@@ -11538,3 +11540,4 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1473 | review | 2026-11-23 | The retained Pillar Done reader now samples the header mark and four surrounding points on the original PNGs. All 93 local reader tests pass. Independent replays at [`64bf758a`](https://github.com/edgepillar/syrius/actions/runs/45114958884/job/137495594283) and [`bd7b61ef`](https://github.com/edgepillar/syrius/actions/runs/45114958808/job/137495593844) verify the same reference digests and the same five-point result in each theme. At column 84, row 48, both revisions report `#00D557` in dark and `#168A35` in light. The four surrounding pixels match their references. The earlier capture hovered the receipt caption, and the later capture tapped it. The mark therefore predates the caption tap. The light mark at both revisions matches the theme ink and focus ring color, while the configured default cursor is `#00D557`. Identifying the paint owner remains open. The later `2c8fd31c` samples in X1455 retain `#00D557` in both themes. |
 | X1474 | review | 2026-11-23 | A direct scan of the [94 verified `2c8fd31c` capture and reference pairs](#complete-windows-capture-inventory-at-2c8fd31c) searched rectangle starts in columns 61–320 and scanned rows 32–84 for a solid two-by-24-pixel rectangle in either `#00D557` or `#168A35`. The scan required adjacent columns to differ and checked the same coordinates in each paired reference. The only unmatched rectangles begin at column 84, row 36 in both Pillar Done themes. The scan reused the original verified archives in memory. Further investigation can stay on the Pillar receipt and its capture path. |
 | X1475 | review | 2026-11-23 | `eab457ef` observes the focused editor's regular caret at the original Pillar Done readback. It records only a finite status for each theme. The [first Windows run](https://github.com/edgepillar/syrius/actions/runs/45115772024/job/137498157564) stops before SDK setup on the controller suite's stale 137-case reader count. It reports 1,273 controller cases, one failure, 18 skips and zero native wallet or node executions. The reader suite now expects all 138 cases and passes locally with zero failures or skips. Fresh native capture remains required. |
+| X1476 | review | 2026-11-23 | An end-to-end loopback pass of the [documented `2c8fd31c` gallery](docs/environment.md#compare-the-retained-windows-captures) loads all 282 linked images: 94 references, 94 captures and 94 generated differences. All decode as 1280-by-780 PNGs. The served originals agree with their SHA-256 digest inventories, the unscoped path returns 404 and the gallery exits normally. The pass reused the retained archives in memory. The source-bound verdicts remain 20 matches and 74 differences, so the strict reviewed-match command exits 1. |
