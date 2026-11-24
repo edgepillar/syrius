@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
-import 'package:flutter/rendering.dart' show MatrixUtils, RenderEditable;
+import 'package:flutter/rendering.dart'
+    show MatrixUtils, RenderEditable, RenderRepaintBoundary;
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surface.dart';
@@ -113,12 +116,82 @@ class PillarReferenceArtworkRefused implements Exception {
   final ReferenceArtworkFailureStage stage;
 }
 
+const Rect _pillarHeaderMark = Rect.fromLTWH(84, 36, 2, 24);
+
+/// Checks whether the observed mark is entirely painted by the pane header.
+Future<String> observePillarHeaderLayerMark(Element? root) async {
+  if (root == null) return 'unavailable';
+  ui.Image? image;
+  try {
+    RenderRepaintBoundary? header;
+    int visited = 0;
+    void visit(Element element) {
+      if (++visited > 16384) throw StateError('Header observation limit');
+      if (element.widget.key ==
+          const ValueKey<String>('pillar_create_header')) {
+        final RenderObject? render = element.findRenderObject();
+        if (header != null || render is! RenderRepaintBoundary) {
+          throw StateError('Unexpected Pillar header');
+        }
+        header = render;
+        return;
+      }
+      element.debugVisitOnstageChildren(visit);
+    }
+
+    visit(root);
+    final RenderRepaintBoundary? boundary = header;
+    if (boundary == null || !boundary.attached || !boundary.hasSize) {
+      return 'unavailable';
+    }
+    final Offset origin = boundary.localToGlobal(Offset.zero);
+    if (!origin.isFinite ||
+        origin !=
+            Offset(origin.dx.roundToDouble(), origin.dy.roundToDouble()) ||
+        boundary.localToGlobal(const Offset(1, 0)) !=
+            origin + const Offset(1, 0) ||
+        boundary.localToGlobal(const Offset(0, 1)) !=
+            origin + const Offset(0, 1)) {
+      return 'unavailable';
+    }
+    final Rect mark = _pillarHeaderMark.shift(-origin);
+    if (mark.left < 0 ||
+        mark.top < 0 ||
+        mark.right > boundary.size.width ||
+        mark.bottom > boundary.size.height) {
+      return 'unavailable';
+    }
+
+    image = await boundary.toImage();
+    final ByteData? rgba = await image.toByteData(
+      format: ui.ImageByteFormat.rawStraightRgba,
+    );
+    if (rgba == null || image.colorSpace != ui.ColorSpace.sRGB) {
+      return 'unavailable';
+    }
+    // Only export whether the original rectangle is present in this layer.
+    final int first = rgba.getUint32(
+      (mark.top.toInt() * image.width + mark.left.toInt()) * 4,
+    );
+    if (first != 0x00D557FF && first != 0x168A35FF) return 'absent';
+    for (int y = mark.top.toInt(); y < mark.bottom.toInt(); y++) {
+      for (int x = mark.left.toInt(); x < mark.right.toInt(); x++) {
+        if (rgba.getUint32((y * image.width + x) * 4) != first) return 'absent';
+      }
+    }
+    return 'present';
+  } on Object {
+    return 'unavailable';
+  } finally {
+    image?.dispose();
+  }
+}
+
 /// Observes caret geometry at the known Pillar receipt header mark.
 ///
 /// Returns a finite status without editor identity, text or selection.
 String observePillarHeaderCaret(Element? root, EditableTextState? focused) {
   if (root == null) return 'unavailable';
-  const Rect mark = Rect.fromLTWH(84, 36, 2, 24);
 
   String status(EditableTextState editor) {
     final RenderEditable render = editor.renderEditable;
@@ -136,7 +209,9 @@ String observePillarHeaderCaret(Element? root, EditableTextState? focused) {
       render.getLocalRectForCaret(selection.extent),
     );
     if (!caret.isFinite || caret.isEmpty) return 'unavailable';
-    return caret.overlaps(mark) ? 'caret_overlaps' : 'caret_elsewhere';
+    return caret.overlaps(_pillarHeaderMark)
+        ? 'caret_overlaps'
+        : 'caret_elsewhere';
   }
 
   try {

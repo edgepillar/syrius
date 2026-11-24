@@ -73,7 +73,7 @@ def bundle(value, images, *, link=None):
 
 
 class DetailsCatalogTests(unittest.TestCase):
-    def test_pillar_header_caret_retains_only_two_fixed_observations(self):
+    def test_pillar_header_retains_only_fixed_observations(self):
         value, original_images = fixture()
         schema = details.PILLAR_DONE_SCHEMA
         files = list(details.catalog_files(schema))
@@ -94,6 +94,13 @@ class DetailsCatalogTests(unittest.TestCase):
                 details.capture_receipt(dict(capture, pillar_header_caret=invalid))
         with self.assertRaises(details.Refused):
             details.capture_receipt(dict(receipt(), pillar_header_caret=carets))
+        marks = dict(dark='present', light='absent')
+        measured['pillar_header_layer_mark'] = marks
+        for invalid in ({'dark': 'present'}, {'dark': 'present', 'light': [0, 213, 87]}):
+            with self.subTest(observation=invalid), self.assertRaises(details.Refused):
+                details.capture_receipt(dict(measured, pillar_header_layer_mark=invalid))
+        with self.assertRaises(details.Refused):
+            details.capture_receipt(dict(receipt(), pillar_header_layer_mark=marks))
         value.update(schema=schema, capture=measured, script_sha256_by_screen=pins,
             seed_receipts_sha256='6' * 64, scope='restored_native_seeded_catalog_capture_bundle',
             captures=[dict(row, file=name)
@@ -102,6 +109,7 @@ class DetailsCatalogTests(unittest.TestCase):
         inspected = details.unpack(raw, details.sha(raw), len(raw),
             HEAD, TREE, RUN, reference, pins)
         self.assertEqual(inspected['pillar_header_caret'], carets)
+        self.assertEqual(inspected['pillar_header_layer_mark'], marks)
 
     def test_holder_receipt_requires_positive_non_owner_state(self):
         schema = details.RESTORED_FAMILIES['token-holder']

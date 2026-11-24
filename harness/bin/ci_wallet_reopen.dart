@@ -1473,6 +1473,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
   }
 
   final Map<String, String> pillarHeaderCarets = <String, String>{};
+  final Map<String, String> pillarHeaderLayerMarks = <String, String>{};
   final ScreenCapture capture = ScreenCapture(
     repository: Directory(cli.repo),
     restoredSeeded: true,
@@ -1499,6 +1500,12 @@ Future<Map<String, Object>> _captureSeededCatalog(
             'no_focused_editor', 'caret_inactive', 'caret_overlaps',
             'caret_elsewhere', 'unfocused_caret_overlaps',
           }.contains(value) => value,
+          _ => 'unavailable',
+        };
+        final Object? mark = result['pillarHeaderLayerMark'];
+        pillarHeaderLayerMarks[theme] = switch (mark) {
+          'present' => 'present',
+          'absent' => 'absent',
           _ => 'unavailable',
         };
       }
@@ -1655,7 +1662,10 @@ Future<Map<String, Object>> _captureSeededCatalog(
     'files': catalog.files, 'width': 1280, 'height': 780, 'scale': 1,
     'capture_returned': true,
     if (includeNonOwnerHolding) 'positive_non_owner_holding': true,
-    if (pillarDone) 'pillar_header_caret': pillarHeaderCarets,
+    if (pillarDone) ...<String, Object>{
+      'pillar_header_caret': pillarHeaderCarets,
+      'pillar_header_layer_mark': pillarHeaderLayerMarks,
+    },
   };
 }
 

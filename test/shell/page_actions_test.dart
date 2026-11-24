@@ -156,6 +156,10 @@ void main() {
       );
       final Rect bodyBounds = tester.getRect(body);
       final Rect paneBounds = tester.getRect(detail);
+      final Finder header = find.byKey(const Key('detail_header'));
+      expect(tester.widget(header), isA<RepaintBoundary>());
+      expect(tester.getRect(header).top, paneBounds.top);
+      expect(tester.getRect(header).bottom, bodyBounds.top - 1);
       expect(tester.widget<ClipRect>(body).clipBehavior, Clip.hardEdge);
       expect(bodyBounds.top, tester.getRect(close).bottom + 1);
       expect(bodyBounds.bottom, paneBounds.bottom);

@@ -47,65 +47,72 @@ class ShellDetailPane extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            ConstrainedBox(
-              constraints: BoxConstraints(minHeight: tokens.panelHeaderHeight),
-              child: Padding(
-                padding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
-                child: Row(
-                  children: <Widget>[
-                    TextButton.icon(
-                      key: ValueKey<String>('${keyPrefix}_breadcrumb'),
-                      style: quietButtonStyle(context).copyWith(
-                        minimumSize: WidgetStatePropertyAll<Size>(
-                          Size(0, tokens.smallButtonHeight),
+            RepaintBoundary(
+              key: ValueKey<String>('${keyPrefix}_header'),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: tokens.panelHeaderHeight,
+                ),
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.symmetric(
+                    horizontal: 16,
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      TextButton.icon(
+                        key: ValueKey<String>('${keyPrefix}_breadcrumb'),
+                        style: quietButtonStyle(context).copyWith(
+                          minimumSize: WidgetStatePropertyAll<Size>(
+                            Size(0, tokens.smallButtonHeight),
+                          ),
+                          padding: const WidgetStatePropertyAll<EdgeInsets>(
+                            // Includes the reference ghost button's border.
+                            EdgeInsets.symmetric(horizontal: 11),
+                          ),
+                          textStyle: WidgetStatePropertyAll<TextStyle>(
+                            tokens.captionText.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
-                        padding: const WidgetStatePropertyAll<EdgeInsets>(
-                          // Includes the reference ghost button's border.
-                          EdgeInsets.symmetric(horizontal: 11),
+                        onPressed: onClose,
+                        icon: ShellSymbol(
+                          'chevl',
+                          size: tokens.smallActionGlyphSize,
+                          directional: true,
                         ),
-                        textStyle: WidgetStatePropertyAll<TextStyle>(
-                          tokens.captionText.copyWith(
-                            fontWeight: FontWeight.w500,
+                        label: Text(breadcrumb),
+                      ),
+                      SizedBox(width: tokens.inlineGap),
+                      Expanded(
+                        child: Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Text(
+                            title,
+                            key: ValueKey<String>('${keyPrefix}_title'),
+                            style: tokens.headingText,
                           ),
                         ),
                       ),
-                      onPressed: onClose,
-                      icon: ShellSymbol(
-                        'chevl',
-                        size: tokens.smallActionGlyphSize,
-                        directional: true,
-                      ),
-                      label: Text(breadcrumb),
-                    ),
-                    SizedBox(width: tokens.inlineGap),
-                    Expanded(
-                      child: Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: Text(
-                          title,
-                          key: ValueKey<String>('${keyPrefix}_title'),
-                          style: tokens.headingText,
+                      IconButton(
+                        key: ValueKey<String>('${keyPrefix}_close'),
+                        tooltip: context.l10n.commonClose,
+                        color: tokens.faint,
+                        style: IconButton.styleFrom(
+                          minimumSize: Size.square(tokens.panelHeaderHeight),
+                          padding: EdgeInsets.zero,
+                          alignment: AlignmentDirectional.centerEnd,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.standard,
+                        ),
+                        onPressed: onClose,
+                        icon: ShellSymbol(
+                          'x',
+                          size: tokens.smallActionGlyphSize,
                         ),
                       ),
-                    ),
-                    IconButton(
-                      key: ValueKey<String>('${keyPrefix}_close'),
-                      tooltip: context.l10n.commonClose,
-                      color: tokens.faint,
-                      style: IconButton.styleFrom(
-                        minimumSize: Size.square(tokens.panelHeaderHeight),
-                        padding: EdgeInsets.zero,
-                        alignment: AlignmentDirectional.centerEnd,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.standard,
-                      ),
-                      onPressed: onClose,
-                      icon: ShellSymbol(
-                        'x',
-                        size: tokens.smallActionGlyphSize,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

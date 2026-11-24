@@ -6243,6 +6243,9 @@ class HarnessAgent {
             _focusedEditable(),
           )
         : null;
+    final Future<String>? pillarHeaderLayerMark = observePillarCaret
+        ? observePillarHeaderLayerMark(WidgetsBinding.instance.rootElement)
+        : null;
     _lockShotPhase('layer');
     final ui.Image image = await captureLogicalView(view, layer);
     _lockShotPhase('image');
@@ -6260,6 +6263,7 @@ class HarnessAgent {
         width: image.width,
         height: image.height,
       );
+      final String? headerMark = await pillarHeaderLayerMark;
       _lockShotPhase('png');
       if (guarded &&
           (image.width != c['width'] || image.height != c['height'])) {
@@ -6295,6 +6299,7 @@ class HarnessAgent {
         if (guarded) 'asserted': true,
         'artwork_seconds': ?artworkSeconds,
         'pillarHeaderCaret': ?pillarHeaderCaret,
+        'pillarHeaderLayerMark': ?headerMark,
         if (layoutBefore != null)
           'layoutObservation': pairReadonlyShotLayout(
             layoutBefore,
