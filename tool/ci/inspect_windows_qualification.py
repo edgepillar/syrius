@@ -682,6 +682,47 @@ def settings_label_alignment(actual, a_channels, expected, e_channels):
     return results
 
 
+def settings_status_alignment(actual, a_channels, expected, e_channels):
+    """Compare the Chain and Peers text after accounting for fixture widths."""
+    def ink(rows, channels):
+        result = set()
+        for y in range(735, 753):
+            row = rows[y]
+            background = row[900 * channels:900 * channels + 3]
+            for x in range(90, 850):
+                offset = x * channels
+                if max(abs(a - b) for a, b in zip(row[offset:offset + 3], background)) >= 25:
+                    result.add((x, y))
+        return result
+
+    def word(mask, left, width):
+        return {(x - left, y) for x, y in mask if left <= x < left + width}
+
+    current = ink(actual, a_channels)
+    reference = ink(expected, e_channels)
+    columns = {x for x, _ in current}
+    # Each connection fact follows a gap. Values can change the horizontal
+    # start of the following label without changing its vertical placement.
+    starts = sorted(x for x in columns if all(x - n not in columns for n in (1, 2, 3)))
+    result = {}
+    for name, left, width in (('chain', 408, 35), ('peers', 477, 34)):
+        expected_word = word(reference, left, width)
+        choices = []
+        for x in starts:
+            captured_word = word(current, x, width)
+            alignment = _ink_shift(captured_word, expected_word)
+            if alignment is not None and 2 * alignment['shifted_difference'] <= len(expected_word):
+                choices.append((x, alignment))
+        if choices:
+            best = min(alignment['shifted_difference'] for _, alignment in choices)
+            winners = [(x, alignment) for x, alignment in choices
+                       if alignment['shifted_difference'] == best]
+            if len(winners) == 1:
+                x, alignment = winners[0]
+                result[name] = dict(actual_left=x, reference_left=left, **alignment)
+    return result
+
+
 def import_backdrop_palette_model(actual, a_channels, reference, r_channels, theme):
     """Recolor the same modeled light contributions in an unobstructed crop."""
     base = {'dark': (27, 28, 27), 'light': (234, 234, 234)}[theme]
@@ -790,6 +831,8 @@ def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
             result['caption_wordmark_alignment'] = alignment
     if align_settings_labels:
         result['settings_label_alignment'] = settings_label_alignment(
+            actual, a_channels, expected, e_channels)
+        result['settings_status_alignment'] = settings_status_alignment(
             actual, a_channels, expected, e_channels)
     if import_background_theme is not None:
         result['backdrop_palette_model'] = import_backdrop_palette_model(

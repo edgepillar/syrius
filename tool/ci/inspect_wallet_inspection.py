@@ -1792,7 +1792,8 @@ def catalog_pixel_frames(family, comparison, pins):
                 label_alignment[theme] = dict(
                     actual_sha256=pair['actual_sha256'],
                     reference_sha256=pair['reference_sha256'],
-                    labels=overview['pairs'][theme].pop('settings_label_alignment'))
+                    labels=overview['pairs'][theme].pop('settings_label_alignment'),
+                    status_labels=overview['pairs'][theme].pop('settings_status_alignment'))
     frames = [(f'Retained {family} pixel comparison', dict(
         scope=f'retained_{family.lower()}_pixel_comparison', visual_matches=0,
         **pins, **overview))]

@@ -412,11 +412,17 @@ class ReaderTests(unittest.TestCase):
         comparison = dict(comparisons[2], pairs=pairs)
         overview, *labels = reader.catalog_pixel_frames('Settings', comparison, {})
         self.assertNotIn('settings_label_alignment', overview[1]['pairs']['dark'])
+        self.assertNotIn('settings_status_alignment', overview[1]['pairs']['dark'])
         self.assertEqual([notice['theme'] for _, notice in labels], ['dark', 'light'])
         for _, notice in labels:
             self.assertLessEqual(len(reader.encode_notice(notice)), reader.MAX_NOTICE_BYTES)
             self.assertEqual(notice['actual_sha256'], notice['reference_sha256'])
             self.assertEqual(len(notice['labels']), 7)
+            self.assertEqual(notice['status_labels'], {
+                name: dict(actual_left=left, reference_left=left, shift_to_reference=[0, 0],
+                           original_difference=0, shifted_difference=0)
+                for name, left in (('chain', 408), ('peers', 477))
+            })
             for row in notice['labels'].values():
                 self.assertGreater(row['reference_channel_spread_pixels'], 0)
                 self.assertEqual(row['alignment'], dict(
