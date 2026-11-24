@@ -7774,19 +7774,19 @@ tracks whole-image acceptance for the final source.
 | 06 | `home-zap` | X827 | X828 |
 | 07 | `send-rest` | X829 | X830 |
 | 08 | `send-warn` | X889 | X890 |
-| 09 | `receive` | [match](docs/review/source-2fc14228-navigation-verdicts.json) | [match](docs/review/source-2fc14228-navigation-verdicts.json) |
+| 09 | `receive` | [match](docs/review/source-a6e167c5-navigation-verdicts.json) | [match](docs/review/source-a6e167c5-navigation-verdicts.json) |
 | 10 | `receive-qr` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 11 | `zap-form` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 12 | `send-confirm` | X837 | X838 |
 | 13 | `staking` | X1285 | X1286 |
 | 14 | `staking-new` | X893 | X894 |
 | 15 | `staking-empty` | X895 | X896 |
-| 16 | `pillars` | X1735 | X1736 |
+| 16 | `pillars` | X1747 | X1748 |
 | 17 | `pillar-mine` | X839 | X840 |
 | 18 | `sentinels` | X897 | X898 |
 | 19 | `spawn` | X1150 | X1151 |
 | 20 | `pillar-done` | X1152 | X1153 |
-| 21 | `plasma` | X1737 | X1738 |
+| 21 | `plasma` | X1749 | X1750 |
 | 22 | `plasma-fuse` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 23 | `tokens` | X1324 | X1325 |
 | 24 | `token-mine` | X1287 | X1288 |
@@ -11821,3 +11821,8 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1743 | review | 2026-11-24 | [Linux at `a84537cc`](https://github.com/edgepillar/syrius/actions/runs/45477345389/job/138740972568) verifies analysis, the generated-file check, 5,143 passing non-chain cases with one skip, and all 1,534 selected tour cases across 113 files. The new Pillars shortcut regression passes. |
 | X1744 | review | 2026-11-24 | The [Windows Navigation run at `a84537cc`](https://github.com/edgepillar/syrius/actions/runs/45477345536/job/138740973540) passes its widget gate and stops at the original Go node build. The command exits one with complete output and no forced stop. Its compiler cause remains unclassified. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/45480195933/job/138750950775) verifies the retained failure before asset generation or wallet launch, with no Navigation PNGs. The separate mixed-expiry Navigation run remains active. |
 | X1745 | review | 2026-11-24 | The isolated Navigation catalog adds a real genesis delegation from the original wallet to the existing test Pillar. The final digest and a field comparison against the mixed-expiry genesis verify the single delegation change. The populated strip uses the reference secondary Change action. Strict analysis and 116 focused Python cases pass. The independent reader admits both earlier and combined fixture digests at their original sources. Native verification remains open. |
+| X1746 | review | 2026-11-24 | The [Windows Navigation producer at `a6e167c5`](https://github.com/edgepillar/syrius/actions/runs/45477989136/job/138743216693) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45480967982/job/138753691486) verify 14 original PNGs, 91 source files and normal parent closure. All six designated [pairs](docs/review/source-a6e167c5-navigation-verdicts.json) were viewed from one verified 633,492-byte archive without extracting PNGs. Receive matches in both themes. [Capture index](docs/review/source-a6e167c5-navigation-captures.json). |
+| X1747 | review | 2026-11-24 | Dark Pillars at `a6e167c5` shows the new chart and overflow symbols and the repositioned search and sort controls. Three rows, no delegation or collectible reward, and unavailable APR estimates remain visible. [Verdict](docs/review/source-a6e167c5-navigation-verdicts.json). |
+| X1748 | review | 2026-11-24 | Light Pillars at `a6e167c5` shows the same heading updates. The three available rows, empty delegation and reward strip and unavailable APR estimates still differ from the reference. [Verdict](docs/review/source-a6e167c5-navigation-verdicts.json). |
+| X1749 | review | 2026-11-24 | Dark Plasma at `a6e167c5` renders two green cancelable badges and two blue timed locks with disabled cancellation. The [independent pixel check](https://github.com/edgepillar/syrius/actions/runs/45480967982/job/138753691486) reports 2,293 green pixels in each of the first two bands and 1,988 blue in each of the last two. The reference interleaves the states and shows active generation with a partial meter. [Verdict](docs/review/source-a6e167c5-navigation-verdicts.json). |
+| X1750 | review | 2026-11-24 | Light Plasma at `a6e167c5` shows the same four rows, expiry colours and disabled cancellation, with the same counts from the independent check. The meter is full, and the reference generating strip and interleaved expiry order remain absent. [Verdict](docs/review/source-a6e167c5-navigation-verdicts.json). |
