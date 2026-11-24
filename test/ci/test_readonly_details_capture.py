@@ -98,11 +98,14 @@ class DetailsCatalogTests(unittest.TestCase):
         pane = dict(dark='absent', light='unavailable')
         enclosing = dict(dark='present', light='present')
         outer = dict(dark='unavailable', light='present')
+        recorded = dict(dark='outside', light='no_picture')
         measured.update(pillar_header_layer_mark=marks, pillar_pane_clip_mark=pane,
                         pillar_enclosing_paint_mark=enclosing,
-                        pillar_outer_paint_mark=outer)
+                        pillar_outer_paint_mark=outer,
+                        pillar_recorded_mark=recorded)
         for key in ('pillar_header_layer_mark', 'pillar_pane_clip_mark',
-                    'pillar_enclosing_paint_mark', 'pillar_outer_paint_mark'):
+                    'pillar_enclosing_paint_mark', 'pillar_outer_paint_mark',
+                    'pillar_recorded_mark'):
             for invalid in ({'dark': 'present'}, {'dark': 'present', 'light': [0, 213, 87]}):
                 with self.subTest(field=key, observation=invalid), self.assertRaises(details.Refused):
                     details.capture_receipt(dict(measured, **{key: invalid}))
@@ -120,6 +123,7 @@ class DetailsCatalogTests(unittest.TestCase):
         self.assertEqual(inspected['pillar_pane_clip_mark'], pane)
         self.assertEqual(inspected['pillar_enclosing_paint_mark'], enclosing)
         self.assertEqual(inspected['pillar_outer_paint_mark'], outer)
+        self.assertEqual(inspected['pillar_recorded_mark'], recorded)
 
     def test_holder_receipt_requires_positive_non_owner_state(self):
         schema = details.RESTORED_FAMILIES['token-holder']

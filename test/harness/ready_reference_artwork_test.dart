@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/rendering.dart'
-    show RenderBox, RenderPhysicalShape;
+    show ContainerLayer, RenderBox, RenderPhysicalShape,
+        RenderRepaintBoundary, RenderView;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lottie/lottie.dart';
@@ -404,6 +406,21 @@ void main() {
             outsideNearest: true,
           ),
           placement != 'nowhere' ? 'present' : 'absent',
+          reason: placement,
+        );
+        final RenderView view = tester.binding.renderViews.single;
+        final ContainerLayer layer = view.debugLayer!;
+        layer.buildScene(ui.SceneBuilder()).dispose();
+        expect(
+          await observePillarRecordedMark(
+            tester.binding.rootElement,
+            layer,
+            (RenderRepaintBoundary boundary) => boundary.debugLayer,
+            devicePixelRatio: view.configuration.devicePixelRatio,
+          ),
+          insideClip || besideClip
+              ? 'inside'
+              : outsideBoundary ? 'outside' : 'no_picture',
           reason: placement,
         );
       });

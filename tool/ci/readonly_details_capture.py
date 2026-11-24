@@ -383,6 +383,13 @@ def capture_receipt(value):
                          'present', 'absent', 'unavailable') for status in marks.values()),
                      'CAPTURE_REFUSED')
                 expected[key] = marks
+        if 'pillar_recorded_mark' in value:
+            marks = value['pillar_recorded_mark']
+            need(type(marks) is dict and set(marks) == set(THEMES)
+                 and all(type(status) is str and status in (
+                     'inside', 'outside', 'no_picture', 'multiple_pictures', 'unavailable')
+                         for status in marks.values()), 'CAPTURE_REFUSED')
+            expected['pillar_recorded_mark'] = marks
     if schema == FAMILY_SCHEMAS['home-zap-preview'] and 'spark_paint' in value:
         paint = value['spark_paint']
         need(type(paint) is dict and set(paint) == set(THEMES), 'CAPTURE_REFUSED')
@@ -652,7 +659,7 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id,
     if schema == PILLAR_DONE_SCHEMA:
         for key in ('pillar_header_caret', 'pillar_header_layer_mark',
                     'pillar_pane_clip_mark', 'pillar_enclosing_paint_mark',
-                    'pillar_outer_paint_mark'):
+                    'pillar_outer_paint_mark', 'pillar_recorded_mark'):
             if key in value['capture']:
                 result[key] = value['capture'][key]
     if schema == FAMILY_SCHEMAS['home-zap-preview']:

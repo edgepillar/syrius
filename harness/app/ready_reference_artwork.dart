@@ -3,9 +3,9 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart'
-    show ClipPathLayer, Layer, MatrixUtils, OffsetLayer, RenderBox,
-        RenderEditable, RenderObject, RenderPhysicalShape,
-        RenderRepaintBoundary;
+    show ClipPathLayer, ContainerLayer, Layer, MatrixUtils, OffsetLayer,
+        PictureLayer, RenderBox, RenderEditable, RenderObject,
+        RenderPhysicalShape, RenderRepaintBoundary;
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surface.dart';
@@ -237,13 +237,8 @@ Future<String> observePillarEnclosingPaintMark(
   bool outsideNearest = false,
 }) async {
   try {
-    final RenderPhysicalShape? pane =
-        _pillarPaintTarget<RenderPhysicalShape>(root, 'pillar_create_pane');
-    RenderObject? ancestor = pane?.parent;
-    while (ancestor != null && ancestor is! RenderRepaintBoundary) {
-      ancestor = ancestor.parent;
-    }
-    if (ancestor is! RenderRepaintBoundary) return 'unavailable';
+    final RenderRepaintBoundary? ancestor = _enclosingPillarBoundary(root);
+    if (ancestor == null) return 'unavailable';
     if (!outsideNearest) {
       return await _readPillarBoundary(ancestor, paintedLayer);
     }
@@ -266,6 +261,103 @@ Future<String> observePillarEnclosingPaintMark(
         : 'unavailable';
   } on Object {
     return 'unavailable';
+  }
+}
+
+RenderRepaintBoundary? _enclosingPillarBoundary(Element? root) {
+  final RenderPhysicalShape? pane =
+      _pillarPaintTarget<RenderPhysicalShape>(root, 'pillar_create_pane');
+  for (RenderObject? parent = pane?.parent;
+      parent != null;
+      parent = parent.parent) {
+    if (parent is RenderRepaintBoundary) return parent;
+  }
+  return null;
+}
+
+/// Searches translated pictures for the exact mark before clipping or opacity.
+/// Call immediately after building the original scene.
+Future<String> observePillarRecordedMark(
+  Element? elements,
+  ContainerLayer scene,
+  Layer? Function(RenderRepaintBoundary) paintedLayer, {
+  required double devicePixelRatio,
+}) async {
+  try {
+    final RenderRepaintBoundary? enclosing = _enclosingPillarBoundary(elements);
+    final Layer? pane = enclosing == null ? null : paintedLayer(enclosing);
+    if (pane == null || !devicePixelRatio.isFinite || devicePixelRatio <= 0) {
+      return 'unavailable';
+    }
+    final double pixelScale = 1 / devicePixelRatio;
+    final List<(Layer, Matrix4, bool)> pending = <(Layer, Matrix4, bool)>[
+      (scene, Matrix4.diagonal3Values(pixelScale, pixelScale, 1), false),
+    ];
+    final List<(ui.Picture, Rect, bool)> crops = <(ui.Picture, Rect, bool)>[];
+    int visited = 0;
+    while (pending.isNotEmpty) {
+      if (++visited > 1024) return 'unavailable';
+      final (Layer layer, Matrix4 transform, bool inside) =
+          pending.removeLast();
+      final bool inPane = inside || identical(layer, pane);
+      if (layer is ContainerLayer) {
+        for (Layer? child = layer.firstChild;
+            child != null;
+            child = child.nextSibling) {
+          final Matrix4 childTransform = Matrix4.copy(transform);
+          layer.applyTransform(child, childTransform);
+          pending.add((child, childTransform, inPane));
+          if (pending.length > 1024) return 'unavailable';
+        }
+      }
+      if (layer is! PictureLayer || layer.picture == null) continue;
+      final Offset? origin = MatrixUtils.getAsTranslation(transform);
+      if (origin == null ||
+          !origin.isFinite ||
+          origin.dx != origin.dx.roundToDouble() ||
+          origin.dy != origin.dy.roundToDouble()) {
+        continue;
+      }
+      final Rect mark = _pillarHeaderMark.shift(-origin);
+      if (layer.canvasBounds.overlaps(mark)) {
+        if (crops.length == 32) return 'unavailable';
+        crops.add((layer.picture!, mark, inPane));
+      }
+    }
+    if (crops.isEmpty) return 'unavailable';
+    final List<String> results = await Future.wait(<Future<String>>[
+      for (final (ui.Picture picture, Rect mark, _) in crops)
+        _readRecordedPillarMark(picture, mark),
+    ]);
+    if (results.contains('unavailable')) return 'unavailable';
+    final List<int> hits = <int>[
+      for (final (int index, String mark) in results.indexed)
+        if (mark == 'present') index,
+    ];
+    if (hits.length == 1) {
+      return crops[hits.single].$3 ? 'inside' : 'outside';
+    }
+    return hits.isEmpty ? 'no_picture' : 'multiple_pictures';
+  } on Object {
+    return 'unavailable';
+  }
+}
+
+Future<String> _readRecordedPillarMark(ui.Picture picture, Rect mark) async {
+  final ui.PictureRecorder recorder = ui.PictureRecorder();
+  ui.Canvas(recorder)
+    ..translate(-mark.left, -mark.top)
+    ..drawPicture(picture);
+  final ui.Picture crop = recorder.endRecording();
+  ui.Image? image;
+  try {
+    image = await crop.toImage(mark.width.toInt(), mark.height.toInt());
+    return await _readPillarMark(image, Offset.zero & mark.size);
+  } on Object {
+    return 'unavailable';
+  } finally {
+    image?.dispose();
+    crop.dispose();
   }
 }
 

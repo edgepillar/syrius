@@ -6267,7 +6267,16 @@ class HarnessAgent {
           )
         : null;
     _lockShotPhase('layer');
-    final ui.Image image = await captureLogicalView(view, layer);
+    final Future<ui.Image> originalFrame = captureLogicalView(view, layer);
+    final Future<String>? pillarRecordedMark = observePillarCaret
+        ? observePillarRecordedMark(
+            WidgetsBinding.instance.rootElement,
+            layer,
+            (RenderRepaintBoundary boundary) => boundary.layer,
+            devicePixelRatio: metrics.devicePixelRatio,
+          )
+        : null;
+    final ui.Image image = await originalFrame;
     _lockShotPhase('image');
     try {
       if (image.colorSpace != ui.ColorSpace.sRGB) {
@@ -6287,6 +6296,7 @@ class HarnessAgent {
       final String? paneMark = await pillarPaneClipMark;
       final String? enclosingMark = await pillarEnclosingPaintMark;
       final String? outerMark = await pillarOuterPaintMark;
+      final String? recordedMark = await pillarRecordedMark;
       _lockShotPhase('png');
       if (guarded &&
           (image.width != c['width'] || image.height != c['height'])) {
@@ -6325,6 +6335,7 @@ class HarnessAgent {
         'pillarHeaderLayerMark': ?headerMark,
         'pillarEnclosingPaintMark': ?enclosingMark,
         'pillarOuterPaintMark': ?outerMark,
+        'pillarRecordedMark': ?recordedMark,
         'pillarPaneClipMark': ?paneMark,
         if (layoutBefore != null)
           'layoutObservation': pairReadonlyShotLayout(
