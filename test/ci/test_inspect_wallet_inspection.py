@@ -351,6 +351,14 @@ class ReaderTests(unittest.TestCase):
                                return_value=[(37, background), (82, fill)]):
             self.assertIsNone(reader._settings_menu_selection_rows(b'', 'light'))
 
+    def test_security_divider_scan_measures_both_reference_themes(self):
+        shots = Path(__file__).resolve().parents[2] / 'mockups' / 'redesign' / 'shots'
+        for theme in ('dark', 'light'):
+            with self.subTest(theme=theme):
+                png = (shots / f'31-set-security-{theme}.png').read_bytes()
+                self.assertEqual(reader._security_divider_rows(png, theme),
+                                 [92, 150, 207, 311, 369])
+
     def test_settings_comparison_covers_each_section_and_both_themes(self):
         screens = ('30-set-node', '31-set-security', '32-set-display',
                    '33-set-wallet', '34-set-apps', '35-set-addresses', '36-set-about')
@@ -392,6 +400,12 @@ class ReaderTests(unittest.TestCase):
             ))
         self.assertEqual(comparisons[0]['region_bounds']['update'], (260, 267, 1280, 522))
         self.assertEqual(comparisons[0]['region_bounds']['chain_summary'], (1020, 522, 1236, 566))
+        self.assertEqual(comparisons[1]['security_dividers'], dict(
+            column=700, scan_rows=[32, 440], themes={
+                theme: dict(actual=None, reference=None)
+                for theme in ('dark', 'light')
+            },
+        ))
         self.assertEqual(comparisons[2]['display_dividers'], dict(
             column=1000, scan_rows=[45, 400], themes={
                 theme: dict(actual=divider_rows, reference=divider_rows)

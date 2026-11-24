@@ -1,0 +1,84 @@
+{
+  "reviews": {
+    "10-receive-qr-dark": {
+      "actual_sha256": "08c40660b99b1c84b411236c55efaa9906077d4f8ea440fe14771e0021a7b888",
+      "expected_sha256": "7d0f473f9e93235a7032dbb227ceff6e683c91e92446565dee1bf037df78fad6",
+      "note": "The form shows the live encoded QR and the prepared QSR request. The reference uses a stylized QR and different address and help text.",
+      "reviewed_at": "2026-11-24T23:26:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "10-receive-qr-light": {
+      "actual_sha256": "422e79ecebd17d86ff0e45d9ea9502120a497f1fe2a37f82cd13cdee89db0bf8",
+      "expected_sha256": "d3e867ff847f5c80f20afc1a8999441acfe57d9a6cbecad20d7633c8dcd62b17",
+      "note": "The form shows the live encoded QR and the prepared QSR request. The reference uses a stylized QR and different address and help text.",
+      "reviewed_at": "2026-11-24T23:26:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-dark": {
+      "actual_sha256": "b98e587d4166623eb6494884696edb9776d0668ccc022f3e90b9302d6b00ada0",
+      "expected_sha256": "b58f5d7ea3ac3da980689c744d8d8a37b6ad70a5eae6a7542f4992f7dbba089c",
+      "note": "The amounts, memo and action are present. The isolated fixture has no eligible recipient and a different estimate. The action uses the approved brand gradient.",
+      "reviewed_at": "2026-11-24T23:26:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-light": {
+      "actual_sha256": "0516ef3dbf53710f1b36f781c9d5406bb03a7a17a7fe60ea774a138a10c4deae",
+      "expected_sha256": "b3ab27949ed86fa2e78af721bd198fe7e258f9da5537ec914ae9ce3ccf753be8",
+      "note": "The amounts, memo and action are present. The isolated fixture has no eligible recipient and a different estimate. The action uses the approved brand gradient.",
+      "reviewed_at": "2026-11-24T23:26:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-dark": {
+      "actual_sha256": "a64603ea7892f367c1fc7d9efccd46678893bb5b6845a17308755f34bbe9c061",
+      "expected_sha256": "bce0133d1e1586247a874af23a72c340f73261174a296f4d690b7c6c3c334360",
+      "note": "The Fuse form and two-row selection are present. The fixture shows higher available amounts and three cancellable rows. The reference includes a timed expiry, different beneficiaries and different Plasma quantities.",
+      "reviewed_at": "2026-11-24T23:26:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-light": {
+      "actual_sha256": "275a2d9b055e4889b33cb940341791647f5dac06d90b5ca4dd361f5cb31489f1",
+      "expected_sha256": "01ba9333c42b94249580c6c67789f19527d113e7861b9fd19e3c1e900f8f6c7f",
+      "note": "The Fuse form and two-row selection are present. The fixture shows higher available amounts and three cancellable rows. The reference includes a timed expiry, different beneficiaries and different Plasma quantities.",
+      "reviewed_at": "2026-11-24T23:26:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-dark": {
+      "actual_sha256": "fe2fe1b724d439e4a5b4174d73d3aca995bdc6092204bdb517025cb6cf312936",
+      "expected_sha256": "057765aba7cc2e027010869bdfe14eff0beee921cbef85777efa3f7fa96ec991",
+      "note": "The disclosure is open and the list is scrolled to the final entries. The built package list, displayed licence names and row rules differ from the reference.",
+      "reviewed_at": "2026-11-24T23:26:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-light": {
+      "actual_sha256": "8c71c2ff5e0d0d2898e360bff1cf5409b79cc358e0040d7b7f433178e6f8959d",
+      "expected_sha256": "4faec94b7502216de2bceb52b1e8ded1254a74a150014f5399d1dc85a19ac1d4",
+      "note": "The disclosure is open and the list is scrolled to the final entries. The built package list, displayed licence names and row rules differ from the reference.",
+      "reviewed_at": "2026-11-24T23:26:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-dark": {
+      "actual_sha256": "c19fce235d4fab7923464cde517e66150c3a1438f98b74dffc882bb3ad74873d",
+      "expected_sha256": "b852ac9fcbdbea159856c6c3b30ac5ca2e25f55f1137655c4b689dc4a89a504f",
+      "note": "The six tiles, play action and bottom legend are present. The reference shows a populated field above the card. The live field is focused and empty, and the preview art and small footer marks retain differences.",
+      "reviewed_at": "2026-11-24T23:26:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-light": {
+      "actual_sha256": "25d829415d08ff125737c2b04b4035cb1bf037769a1e994fb438fb58a31623ca",
+      "expected_sha256": "b82600455634b306377ea7626f2e0ee80c7977c60c1ae1a7e23243dcace9d3ed",
+      "note": "The six tiles, play action and bottom legend are present. The reference shows a populated field above the card. The live field is focused and empty, and the preview art and small footer marks retain differences.",
+      "reviewed_at": "2026-11-24T23:26:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}

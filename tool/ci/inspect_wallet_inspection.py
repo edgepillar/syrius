@@ -814,6 +814,22 @@ def _display_divider_rows(data):
     return None
 
 
+SECURITY_DIVIDER_SCAN = (700, 32, 440)
+SECURITY_DIVIDER_RGB = {
+    'dark': bytes((56, 58, 56)),
+    'light': bytes((213, 216, 213)),
+}
+
+
+def _security_divider_rows(data, theme):
+    """Read single-pixel rules in the policy and backup cards."""
+    bands = _image_vertical_bands(data, *SECURITY_DIVIDER_SCAN)
+    rule = SECURITY_DIVIDER_RGB[theme]
+    rows = [start for (start, color), (end, _) in zip(bands, bands[1:])
+            if color[:3] == rule and end - start == 1]
+    return rows if len(rows) == 5 else None
+
+
 def node_update_notice_geometry(raw, reference_dir):
     """Measure the notice fill at the original column and clear of reference text."""
     column, clear_column, top, bottom = 700, 980, 327, 620
@@ -1215,6 +1231,7 @@ def _about_download_action(data):
 def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points=None):
     pairs = {}
     display_dividers = {}
+    security_dividers = {}
     map_gray = {}
     map_coverage = {}
     pane_rows = {}
@@ -1246,6 +1263,10 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
         if screen == '32-set-display':
             display_dividers[theme] = dict(actual=_display_divider_rows(actual),
                                            reference=_display_divider_rows(reference))
+        if screen == '31-set-security':
+            security_dividers[theme] = dict(
+                actual=_security_divider_rows(actual, theme),
+                reference=_security_divider_rows(reference, theme))
         if screen == '36-set-about':
             about_download[theme] = dict(actual=_about_download_action(actual),
                                         reference=_about_download_action(reference))
@@ -1266,6 +1287,10 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
         column, top, bottom = DISPLAY_DIVIDER_SCAN
         result['display_dividers'] = dict(column=column, scan_rows=[top, bottom],
                                           themes=display_dividers)
+    if security_dividers:
+        column, top, bottom = SECURITY_DIVIDER_SCAN
+        result['security_dividers'] = dict(column=column, scan_rows=[top, bottom],
+                                           themes=security_dividers)
     if about_download:
         result['about_download'] = about_download
     if menu_selection:

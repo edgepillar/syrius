@@ -1,0 +1,88 @@
+{
+  "actual": {
+    "39-launch-dark": {
+      "archive_member": "39-launch-dark.png",
+      "archive_sha256": "c357f792795c37168f23c5a2d8dfaf7601ee5eb838f456b00d8c76b47313574e",
+      "path": "c357f792795c37168f23c5a2d8dfaf7601ee5eb838f456b00d8c76b47313574e",
+      "sha256": "ba404e1f7f1bd58e5e64d0e65321444f58082fb8c93a6234169240bcad831b0a",
+      "source_sha": "de0aeec202fe5afa74de97148fdef749425bbe0c"
+    },
+    "39-launch-light": {
+      "archive_member": "39-launch-light.png",
+      "archive_sha256": "c357f792795c37168f23c5a2d8dfaf7601ee5eb838f456b00d8c76b47313574e",
+      "path": "c357f792795c37168f23c5a2d8dfaf7601ee5eb838f456b00d8c76b47313574e",
+      "sha256": "ba404e1f7f1bd58e5e64d0e65321444f58082fb8c93a6234169240bcad831b0a",
+      "source_sha": "de0aeec202fe5afa74de97148fdef749425bbe0c"
+    },
+    "40-launch-settle-dark": {
+      "archive_member": "40-launch-settle-dark.png",
+      "archive_sha256": "dae200bb82f6480e792b91935b3f0b9f55c5ef84223b22f26f6b93fcd744379a",
+      "path": "dae200bb82f6480e792b91935b3f0b9f55c5ef84223b22f26f6b93fcd744379a",
+      "sha256": "a1c2fa85a3d2e830cdd654dd06f1cf6eeff9fd9ed582d51ad5097ae3e89597aa",
+      "source_sha": "de0aeec202fe5afa74de97148fdef749425bbe0c"
+    },
+    "40-launch-settle-light": {
+      "archive_member": "40-launch-settle-light.png",
+      "archive_sha256": "dae200bb82f6480e792b91935b3f0b9f55c5ef84223b22f26f6b93fcd744379a",
+      "path": "dae200bb82f6480e792b91935b3f0b9f55c5ef84223b22f26f6b93fcd744379a",
+      "sha256": "e198c4bf3efc0381249095fcd3ff8583039c762e1f617271b04a0cdb1577b1d4",
+      "source_sha": "de0aeec202fe5afa74de97148fdef749425bbe0c"
+    },
+    "41-lock-screen-dark": {
+      "archive_member": "41-lock-screen-dark.png",
+      "archive_sha256": "3e077c10a348df0edccdb048827d1338bcb96c6c83b38e0861168e725457f018",
+      "path": "3e077c10a348df0edccdb048827d1338bcb96c6c83b38e0861168e725457f018",
+      "sha256": "061c54e4fe9f2883044a3cdedcfacaa80778680fa8ab25d88e4345798f0e3ce2",
+      "source_sha": "de0aeec202fe5afa74de97148fdef749425bbe0c"
+    },
+    "41-lock-screen-light": {
+      "archive_member": "41-lock-screen-light.png",
+      "archive_sha256": "3e077c10a348df0edccdb048827d1338bcb96c6c83b38e0861168e725457f018",
+      "path": "3e077c10a348df0edccdb048827d1338bcb96c6c83b38e0861168e725457f018",
+      "sha256": "87ddd4924608a8fd44de9855f7855d83ae67f6a8d19608eff1a0660d913b192d",
+      "source_sha": "de0aeec202fe5afa74de97148fdef749425bbe0c"
+    },
+    "42-lock-wrong-dark": {
+      "archive_member": "42-lock-wrong-dark.png",
+      "archive_sha256": "3e077c10a348df0edccdb048827d1338bcb96c6c83b38e0861168e725457f018",
+      "path": "3e077c10a348df0edccdb048827d1338bcb96c6c83b38e0861168e725457f018",
+      "sha256": "018dd64db92403f22592effac988bc476d5c342f9c97f9b36ba9fb0501abcbba",
+      "source_sha": "de0aeec202fe5afa74de97148fdef749425bbe0c"
+    },
+    "42-lock-wrong-light": {
+      "archive_member": "42-lock-wrong-light.png",
+      "archive_sha256": "3e077c10a348df0edccdb048827d1338bcb96c6c83b38e0861168e725457f018",
+      "path": "3e077c10a348df0edccdb048827d1338bcb96c6c83b38e0861168e725457f018",
+      "sha256": "a5ea0282ffc236b7c1bc5540c644f5916d6cb2deddafd234d289160723770502",
+      "source_sha": "de0aeec202fe5afa74de97148fdef749425bbe0c"
+    },
+    "43-lock-pick-dark": {
+      "archive_member": "43-lock-pick-dark.png",
+      "archive_sha256": "3e077c10a348df0edccdb048827d1338bcb96c6c83b38e0861168e725457f018",
+      "path": "3e077c10a348df0edccdb048827d1338bcb96c6c83b38e0861168e725457f018",
+      "sha256": "81efed7e42ab061baad9db572b041a8c30a6cfeb675b90a4051c0cd4683ae695",
+      "source_sha": "de0aeec202fe5afa74de97148fdef749425bbe0c"
+    },
+    "43-lock-pick-light": {
+      "archive_member": "43-lock-pick-light.png",
+      "archive_sha256": "3e077c10a348df0edccdb048827d1338bcb96c6c83b38e0861168e725457f018",
+      "path": "3e077c10a348df0edccdb048827d1338bcb96c6c83b38e0861168e725457f018",
+      "sha256": "4093f1d29234ccdb5a5ddedf9d3fe216b91cc1748b5107e180f1096b984f9d9a",
+      "source_sha": "de0aeec202fe5afa74de97148fdef749425bbe0c"
+    },
+    "46-seed-quiz-dark": {
+      "archive_member": "46-seed-quiz-dark.png",
+      "archive_sha256": "80572c3acd41eaaa357505e98798383b0692fcd6d4e551945421174e2a07d755",
+      "path": "80572c3acd41eaaa357505e98798383b0692fcd6d4e551945421174e2a07d755",
+      "sha256": "af9fdb882e72c22260cdaa07a86c9e57a8fcaaee8fc528e936127c97fe0d0942",
+      "source_sha": "de0aeec202fe5afa74de97148fdef749425bbe0c"
+    },
+    "46-seed-quiz-light": {
+      "archive_member": "46-seed-quiz-light.png",
+      "archive_sha256": "80572c3acd41eaaa357505e98798383b0692fcd6d4e551945421174e2a07d755",
+      "path": "80572c3acd41eaaa357505e98798383b0692fcd6d4e551945421174e2a07d755",
+      "sha256": "21da76e989ba2b8fa135030f6ea24faf7cb3ef00ec619776345ff7d3fb726c9f",
+      "source_sha": "de0aeec202fe5afa74de97148fdef749425bbe0c"
+    }
+  }
+}
