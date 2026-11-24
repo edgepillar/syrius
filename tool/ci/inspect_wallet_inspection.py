@@ -2163,7 +2163,9 @@ def main(parent=None):
             catalog['plasma_meter_fill_row_ends'] = {
                 theme: reading['row_ends'] if reading is not None else None
                 for theme, reading in meter.items()}
-            catalog['component_geometry'] = navigation_component_geometry(catalog_archive)
+            geometry = navigation_component_geometry(catalog_archive)
+            catalog['plasma_table_edges'] = geometry.pop('plasma_table_edges')
+            catalog['component_geometry'] = geometry
         elif settings_reference is not None:
             PHASE = 'settings_catalog_artifact'
             if has_catalog_contact:
@@ -2346,6 +2348,7 @@ def main(parent=None):
         home_field_occlusion = catalog.pop('home_field_occlusion', None)
         home_field_minimize = catalog.pop('home_field_minimize', None)
         expiry_badge_ink = catalog.pop('plasma_expiry_badge_ink', None)
+        plasma_table_edges = catalog.pop('plasma_table_edges', None)
         emit(f'Retained readonly {family} catalog', catalog)
         sampling_scope = summary.get('sampling_scope')
         capture_family = (sampling_scope.removesuffix('-only')
@@ -2357,6 +2360,12 @@ def main(parent=None):
             manifest_sha256=catalog['manifest_sha256'],
             catalog_family=capture_family, sampling_scope=sampling_scope,
             **catalog_index))
+        if plasma_table_edges is not None:
+            emit('Retained readonly Plasma table rules', dict(
+                source_head=head, source_run_id=run_id,
+                archive_sha256=catalog['archive_sha256'],
+                manifest_sha256=catalog['manifest_sha256'],
+                **plasma_table_edges))
         if expiry_badge_ink is not None:
             emit('Retained readonly Plasma expiry badge ink', dict(
                 source_head=head, source_run_id=run_id,
