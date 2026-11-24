@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/gestures.dart' show PointerDeviceKind;
+import 'package:flutter/rendering.dart' show RenderPhysicalShape;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lottie/lottie.dart';
@@ -323,6 +324,67 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
       focus.dispose();
       editor.dispose();
+    }
+
+    for (final (Color marker, String expected) in <(Color, String)>[
+      (const Color(0xFF00D557), 'present'),
+      (Colors.white, 'absent'),
+    ]) {
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: 20,
+              top: 12,
+              width: 180,
+              height: 100,
+              child: RepaintBoundary(
+                child: Stack(
+                  children: <Widget>[
+                    Positioned(
+                      left: 20,
+                      top: 20,
+                      width: 120,
+                      height: 60,
+                      child: PhysicalShape(
+                        key: const ValueKey<String>('pillar_create_pane'),
+                        clipper: const ShapeBorderClipper(
+                          shape: RoundedRectangleBorder(),
+                        ),
+                        color: Colors.black,
+                        clipBehavior: Clip.antiAlias,
+                        child: Stack(
+                          children: <Widget>[
+                            Positioned(
+                              left: 44,
+                              top: 4,
+                              width: 2,
+                              height: 24,
+                              child: RepaintBoundary(
+                                child: ColoredBox(color: marker),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ));
+      await tester.runAsync(() async {
+        expect(
+          await observePillarPaneClipMark(
+            tester.binding.rootElement,
+            (RenderPhysicalShape pane) => pane.debugLayer,
+          ),
+          expected,
+        );
+      });
     }
   });
 
