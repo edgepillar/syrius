@@ -1969,9 +1969,10 @@ class ReaderTests(unittest.TestCase):
             receive_qsr_mark=dict(dark=None, light=None),
             receive_qsr_label=dict(dark=None, light=None),
             plasma_footer_clear=dict(dark=True, light=True),
-            plasma_fuse=dict(halo_distances=[22, 38, 54, 66],
+            plasma_fuse=dict(halo_distances=[22, 38, 54, 66], secondary_meter_row=422,
+                secondary_meter_columns=[230, 260],
                 themes={theme: dict(halo_rgb=[[0, 0, 0]] * 4,
-                                    cancel_columns=[None] * 4)
+                                    cancel_columns=[None] * 4, secondary_meter_rgb=None)
                         for theme in ('dark', 'light')})))
         packed = io.BytesIO()
         background = bytes((100, 100, 100, 255))
@@ -2007,6 +2008,7 @@ class ReaderTests(unittest.TestCase):
         cancel = b'\0' + background * 1187 + mark_blue * 61 + background * 32
         rows[264:290] = [batch] * 26
         rows[343:369] = rows[388:414] = rows[433:459] = [cancel] * 26
+        rows[422] = b'\0' + background * 203 + mark_blue * 67 + background * 1010
         bolt = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                 + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
         with zipfile.ZipFile(packed, 'a') as zipped:
@@ -2057,8 +2059,10 @@ class ReaderTests(unittest.TestCase):
             receive_qsr_mark=dict(dark=mark, light=mark),
             receive_qsr_label=dict(dark=label, light=label),
             plasma_footer_clear=dict(dark=True, light=True),
-            plasma_fuse=dict(halo_distances=[22, 38, 54, 66],
+            plasma_fuse=dict(halo_distances=[22, 38, 54, 66], secondary_meter_row=422,
+                secondary_meter_columns=[230, 260],
                 themes={theme: dict(halo_rgb=[[135, 95, 190]] + [[100, 100, 100]] * 3,
+                                    secondary_meter_rgb=[[0, 97, 235]] * 2,
                                     cancel_columns=[[1141, 1248]] + [[1187, 1248]] * 3)
                         for theme in ('dark', 'light')})))
 

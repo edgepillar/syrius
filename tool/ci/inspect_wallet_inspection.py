@@ -1801,6 +1801,7 @@ def _details_plasma_fuse_geometry(zipped):
     halo_left, halo_right = center - distances[-1], center + distances[-1] + 1
     action_left, action_right = 1141, 1262
     action_bands = ((264, 290), (343, 369), (388, 414), (433, 459))
+    meter_columns, meter_row = (230, 260), 422
     themes = {}
     for theme in producer.details.THEMES:
         encoded = base64.b64encode(zipped.read(f'22-plasma-fuse-{theme}.png')).decode('ascii')
@@ -1829,8 +1830,17 @@ def _details_plasma_fuse_geometry(zipped):
                                for value, base in zip(row[offset:offset + 3], background)):
                             painted.append(x)
             bounds.append([min(painted), max(painted) + 1] if painted else None)
-        themes[theme] = dict(halo_rgb=samples, cancel_columns=bounds)
-    return dict(halo_distances=list(distances), themes=themes)
+        meter, channels = windows._png_crop(encoded,
+            (meter_columns[0], meter_columns[-1] + 1), (meter_row, meter_row + 1))
+        colors = [list(meter[0][i:i + 3])
+                  for i in (0, (meter_columns[-1] - meter_columns[0]) * channels)]
+        fill = colors if windows._opaque(meter, channels) and all(
+            blue - red > 90 and blue - green > 25 for red, green, blue in colors
+        ) else None
+        themes[theme] = dict(halo_rgb=samples, cancel_columns=bounds,
+                             secondary_meter_rgb=fill)
+    return dict(halo_distances=list(distances), secondary_meter_row=meter_row,
+                secondary_meter_columns=list(meter_columns), themes=themes)
 
 
 def details_component_geometry(raw):
