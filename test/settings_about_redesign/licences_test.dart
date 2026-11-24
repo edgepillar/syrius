@@ -336,6 +336,12 @@ void main() {
   ) async {
     prepareAboutViewport(tester);
     const Map<String, String> identifiers = <String, String>{
+      'uuid': 'MIT',
+      'validators': 'MIT',
+      'vector_graphics': 'BSD-3-Clause',
+      'vector_graphics_compiler': 'BSD-3-Clause',
+      'vector_math': 'BSD-3-Clause',
+      'vm_service': 'BSD-3-Clause',
       'wakelock_plus': 'BSD-3-Clause',
       'wakelock_plus_platform_interface': 'BSD-3-Clause',
       'wallet': 'MIT',

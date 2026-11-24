@@ -26,6 +26,9 @@ _reviewedNoticeTypes = <int, Map<String, String>>{
   1048: <String, String>{
     '9edc85f7d679391dfb374bfd2398f4852e791e5c82aed54f246918e52aa8ec81': 'MIT',
   },
+  1055: <String, String>{
+    '77c8bbf60d154acb249dfdd031dcb67c1fc1f5ce0c7f92e95b8b588caa04034f': 'MIT',
+  },
   1070: <String, String>{
     'f22a776c557978b491d583a7483a24314e4fa51a19c386c4b5617a8ef5946d24': 'MIT',
   },
@@ -33,6 +36,9 @@ _reviewedNoticeTypes = <int, Map<String, String>>{
     '7a1c6b350f199a0774b3244ec6616af832569ad25d7e8eeb12a944b33d31899f': 'MIT',
     '441207d57c5ad42783aa1a1d0e4d59f7af08d332e3a03ddd2ebbcdf1495f3e53': 'MIT',
     'ee351ea1c070a33d69c3c6e3354606aa765c73e3dbbdf5bbf2804d99d2b8bc2f': 'MIT',
+  },
+  1085: <String, String>{
+    '10a5b770d6050205b32bcc03cd6683c5570bea167b126e9280e00e5a45fb5f1b': 'MIT',
   },
   1091: <String, String>{
     'f6fd12b9fe4c2537d870eb62dd7838f2f30d190d362e13c982d1693c446a4602': 'MIT',
@@ -43,10 +49,16 @@ _reviewedNoticeTypes = <int, Map<String, String>>{
   1102: <String, String>{
     '3de266935886bc204b4dc4b12e511bcecd7fd7aff3b6b44ed08b87d7a5d8f9e9': 'MIT',
   },
+  1445: <String, String>{
+    '1c16df050b1d003b7ab39837586ea37d6e0dc864b2e8fe43c8ff7caceffa97e4':
+        'BSD-3-Clause',
+  },
   1451: <String, String>{
     '055e8d59d98eec50f62953071daa1ae44ddfa80d43eb76e11d43b0b285656031':
         'BSD-3-Clause',
     '38dd2067d2d31ecdcaa3cf262bbadc70edb397fbef64206ac7d5f3f2b53b4952':
+        'BSD-3-Clause',
+    '4f31d21986fa3cd04dcf6b832c80b0286138171813a685b8ab12d654612a5523':
         'BSD-3-Clause',
     '5f14aa861adda1518a6309d8daae54147b26b4616002953934a90738d54b08c5':
         'BSD-3-Clause',
