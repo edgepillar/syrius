@@ -64,14 +64,13 @@ and reference PNG digests.
 
 Use `--summary-only` instead of `--serve` to plan captures at a candidate
 revision. Include verified indexes from both the candidate and prior
-revisions. The summary lists the missing pairs under the eligible catalog
-families found in those indexes. A pair can appear under more than one
-family. Pairs with no eligible family in the indexes appear under
-`unassigned`. When the candidate has an eligible archive entry and the
-archive file is missing locally, the summary lists its digest and pairs
-under `indexed_archives_missing` so the existing archive can be retrieved.
-Only original images verified at the candidate revision count toward its
-coverage.
+revisions. Use `producer_capture_routes` to select Windows jobs. It lists
+the files the current producers are configured to capture, including the
+12-image startup batch and the ordinary entry job. A pair can appear under
+more than one producer. The historical indexes remain available under
+`remaining_capture_routes`, and `indexed_archives_missing` identifies
+candidate archives already produced but absent locally. Only original
+images verified at the candidate revision count toward its coverage.
 
 ## Current qualification status (2026-11-23)
 

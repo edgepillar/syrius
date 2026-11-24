@@ -109,6 +109,8 @@ from PIL import Image, ImageChops, ImageStat
 
 
 ROOT = Path(__file__).resolve().parent.parent
+if not __package__:
+    sys.path.insert(0, str(ROOT))
 THEMES = ("dark", "light")
 SCREEN_COUNT = 47
 IMAGE_SIZE = (1280, 780)
@@ -313,6 +315,40 @@ def load_actual_manifest(
             raise ReportError("Cannot resolve the capture path") from error
         captures[stem] = Capture(resolved, digest, source_sha, member, archive_digest, capture_family)
     return captures
+
+
+def producer_capture_routes(stems: Sequence[str]) -> dict[str, object]:
+    """Report what the current Windows producer families can capture."""
+    from tool.ci import inspect_windows_qualification as windows
+    from tool.ci import readonly_details_capture as details
+    from tool.ci import windows_launch_catalog as launch
+    from tool.ci import windows_lock_catalog as lock
+    from tool.ci import windows_quiz_catalog as quiz
+    from tool.ci import windows_wallet_inspection as wallet
+
+    catalog_files = {
+        "home-catalog": wallet.HOME_GOTO_FILES,
+        "home-bell": wallet.HOME_BELL_FILES,
+        "settings-catalog": wallet.settings.FILES,
+        "navigation": wallet.navigation.FILES,
+        "ordinary-entry": tuple(windows.ENTRY_REFERENCE_FILES.values()),
+        "startup-catalog": (*launch.FILES, *launch.SETTLE_FILES, *lock.FILES, *quiz.FILES),
+        **{family: details.CATALOGS[schema][1] for family, schema in
+           (details.FAMILY_SCHEMAS | details.RESTORED_FAMILIES).items()},
+    }
+    requested = set(stems)
+    by_family: dict[str, list[str]] = {}
+    covered: set[str] = set()
+    for family, names in sorted(catalog_files.items()):
+        eligible = [
+            stem for name in names
+            if (stem := name.removesuffix(".png")) in requested
+            and family in PREPARED_CATALOGS.get(stem.rsplit("-", 1)[0], (family,))
+        ]
+        if eligible:
+            by_family[family] = sorted(eligible)
+            covered.update(eligible)
+    return {"by_family": by_family, "unassigned": sorted(requested - covered)}
 
 
 def select_actual_captures(
@@ -979,6 +1015,7 @@ def generate_report(
             "unassigned": [stem for stem in to_capture if stem not in known_families],
             "indexed_archives_missing": dict(sorted(missing_archives.items())),
         }
+        summary["producer_capture_routes"] = producer_capture_routes(to_capture)
     manifest = {
         "schema_version": 1,
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),

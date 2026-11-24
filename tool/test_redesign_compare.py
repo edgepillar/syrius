@@ -35,6 +35,7 @@ from redesign_compare import (
     generate_report,
     load_actual_manifest,
     main,
+    producer_capture_routes,
     screen_inventory,
     screen_notes,
     select_actual_captures,
@@ -228,6 +229,24 @@ class ArchiveReadCacheTests(unittest.TestCase):
 
 
 class CaptureCatalogTests(unittest.TestCase):
+    def test_current_routes_use_the_producer_families(self) -> None:
+        repo = Path(__file__).resolve().parents[1]
+        screens = screen_inventory(repo / "mockups" / "redesign" / "src")
+        stems = {screen.stem(theme) for screen in screens for theme in ("dark", "light")}
+        summary = producer_capture_routes(sorted(stems))
+        routes = summary["by_family"]
+        self.assertEqual(summary["unassigned"], [])
+        self.assertEqual(set().union(*(set(pairs) for pairs in routes.values())), stems)
+        self.assertEqual(len(routes["startup-catalog"]), 12)
+        self.assertEqual(len(routes["ordinary-entry"]), 4)
+        self.assertIn("25-token-new-dark", routes["token-draft"])
+        self.assertNotIn("25-token-new-dark", routes["details"])
+        self.assertIn("04-home-bell-dark", routes["home-bell"])
+        self.assertNotIn("04-home-bell-dark", routes["home-catalog"])
+        self.assertIn("23-tokens-dark", routes["token-holder"])
+        self.assertNotIn("23-tokens-dark", routes["navigation"])
+        self.assertNotIn("23-tokens-dark", routes["seeded-states-visual"])
+
     def test_accelerator_requires_the_prepared_catalog_for_both_screens(self) -> None:
         target = "a" * 40
         ordinary = Path("navigation.json")
