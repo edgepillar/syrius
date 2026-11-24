@@ -7774,19 +7774,19 @@ tracks whole-image acceptance for the final source.
 | 06 | `home-zap` | X827 | X828 |
 | 07 | `send-rest` | X829 | X830 |
 | 08 | `send-warn` | X889 | X890 |
-| 09 | `receive` | [match](docs/review/source-a6e167c5-navigation-verdicts.json) | [match](docs/review/source-a6e167c5-navigation-verdicts.json) |
+| 09 | `receive` | [match](docs/review/source-3638a6d7-navigation-verdicts.json) | [match](docs/review/source-3638a6d7-navigation-verdicts.json) |
 | 10 | `receive-qr` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 11 | `zap-form` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 12 | `send-confirm` | X837 | X838 |
 | 13 | `staking` | X1285 | X1286 |
 | 14 | `staking-new` | X893 | X894 |
 | 15 | `staking-empty` | X895 | X896 |
-| 16 | `pillars` | X1747 | X1748 |
+| 16 | `pillars` | X1756 | X1757 |
 | 17 | `pillar-mine` | X839 | X840 |
 | 18 | `sentinels` | X897 | X898 |
 | 19 | `spawn` | X1150 | X1151 |
 | 20 | `pillar-done` | X1152 | X1153 |
-| 21 | `plasma` | X1749 | X1750 |
+| 21 | `plasma` | X1758 | X1759 |
 | 22 | `plasma-fuse` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 23 | `tokens` | X1324 | X1325 |
 | 24 | `token-mine` | X1287 | X1288 |
@@ -11830,3 +11830,8 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1752 | review | 2026-11-24 | The [pinned Plasma RPC](https://github.com/zenon-network/go-zenon/blob/2d1b929cc3fa5269cf133757d4a6963821137984/rpc/api/embedded/plasma.go#L274-L312) sorts fusions by increasing expiration height, then beneficiary, before it paginates. The wallet copies the returned pages in that order. This accounts for the two green bands followed by two blue bands in X1749 and X1750. The partial-meter and active-generation comparisons remain open. |
 | X1753 | review | 2026-11-24 | The native Navigation genesis now allocates 90 fused QSR to the selected test address, so the Plasma page can show a partially filled meter from the real node response. The byte comparison against the delegated fixture verifies unchanged fused QSR in aggregate, unchanged expiry heights, and unchanged remaining genesis data. All 117 focused Python cases pass. The final image, generation state and whole-screen acceptance remain open. |
 | X1754 | review | 2026-11-24 | [Linux at `35660108`](https://github.com/edgepillar/syrius/actions/runs/45482292568/job/138758370563) passes application and selected analysis, 5,143 non-chain tests with one skip, all 1,534 selected tour cases and generated-file verification. The Pillars case checks the eight-pixel gap and one refresh per shortcut while toggling header-button visibility. Both source-bound Windows captures remain in progress. |
+| X1755 | review | 2026-11-24 | The [Windows Navigation producer at `3638a6d7`](https://github.com/edgepillar/syrius/actions/runs/45480878773/job/138753376277) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45484823282/job/138767303001) verify 14 [original PNGs](docs/review/source-3638a6d7-navigation-captures.json), the pinned delegation fixture and normal parent closure. All six designated [pairs](docs/review/source-3638a6d7-navigation-verdicts.json) were viewed directly from one verified 638,294-byte archive without extracting PNGs. Receive matches in both themes. |
+| X1756 | review | 2026-11-24 | Dark Pillars at `3638a6d7` shows the selected delegation, secondary Change action, Yours badge and disabled Delegated action. Three rows, zero collectible rewards and unavailable APR and registration still differ from the reference. The search spacing change is a later revision. [Verdict](docs/review/source-3638a6d7-navigation-verdicts.json). |
+| X1757 | review | 2026-11-24 | Light Pillars at `3638a6d7` shows the same delegated strip and expanded selection. Its three rows and empty collectible reward also differ from the reference. [Verdict](docs/review/source-3638a6d7-navigation-verdicts.json). |
+| X1758 | review | 2026-11-24 | Dark Plasma at `3638a6d7` retains four rows with two cancelable fusions and two timed locks. The displayed meter is full, the generation strip is idle and the expiry states are grouped. [Verdict](docs/review/source-3638a6d7-navigation-verdicts.json). |
+| X1759 | review | 2026-11-24 | Light Plasma at `3638a6d7` retains the same four rows and disabled cancellation for the two locks. Its full meter and idle generation status differ from the reference. [Verdict](docs/review/source-3638a6d7-navigation-verdicts.json). |

@@ -1,0 +1,52 @@
+{
+  "reviews": {
+    "09-receive-dark": {
+      "actual_sha256": "ce40580101add8ed7128222884df301bd03da96a39ae1fa52a0fd8b32092408b",
+      "expected_sha256": "29833553d03b3cb5a7906cfa755389b3b918feca4000684ae79cc2b0f0ab2353",
+      "note": "The tab and address selector, copy and QR actions, request disclosure and empty queue align. The isolated address, live status and approved palette differ from the reference.",
+      "reviewed_at": "2026-11-24T20:56:39Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "09-receive-light": {
+      "actual_sha256": "97d89dcc92c2990de43b5fcc427ecf96656fc98bdca8eaf4bebb64af87190405",
+      "expected_sha256": "941606d6662bc1a0dce5b6715be83a5c95fd3b9158844ab0e59fb27f4f4c7d35",
+      "note": "The tab and address selector, copy and QR actions, request disclosure and empty queue align. The isolated address, live status and approved palette differ from the reference.",
+      "reviewed_at": "2026-11-24T20:56:39Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "16-pillars-dark": {
+      "actual_sha256": "ef49efdfdd60b0abb7a463bba8cd5dc2201722bd7efa214fb96942fc25e2799d",
+      "expected_sha256": "2cc96ba5d5e143ec6b96dce6bfdd5bf0dd2d1950f647871f2e950f30b3991869",
+      "note": "The delegation strip shows the selected Pillar and the secondary Change action. The expanded row shows Yours and a disabled Delegated action. The capture has three rows, zero collectible reward, and unavailable APR and registration values. The reference has a populated rewards balance and additional rows. The search field still meets the sort control at this revision.",
+      "reviewed_at": "2026-11-24T20:56:39Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "16-pillars-light": {
+      "actual_sha256": "cd86481efe9ee26ffe3827ba0c9f2507e1e81c9989e5b8884b0dfb465a4a0dbf",
+      "expected_sha256": "d8a635852cfe165f21d62ce1445484859f8f4ab529af53ade636a360db082c86",
+      "note": "The delegation strip shows the selected Pillar and the secondary Change action. The expanded row shows Yours and a disabled Delegated action. The capture has three rows, zero collectible reward, and unavailable APR and registration values. The reference has a populated rewards balance and additional rows. The search field still meets the sort control at this revision.",
+      "reviewed_at": "2026-11-24T20:56:39Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "21-plasma-dark": {
+      "actual_sha256": "e0744f30e30a99d449af5c219e9c0fb79d3ce36267d9e21ab19a886ad7d81815",
+      "expected_sha256": "00bf1d72858ad59603775e8a36a68b326446902e6c52f54756389729da6778bf",
+      "note": "All four rows are visible. The first two have green cancelable badges, and the last two have blue timed locks and disabled Cancel buttons. The reference interleaves those states and shows a partial meter and active generation. The capture shows a full meter and idle generation.",
+      "reviewed_at": "2026-11-24T20:56:39Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "21-plasma-light": {
+      "actual_sha256": "e4a92bff4d94418bbc0d70833ff78522245f2cdd1b43f434efad2f3aedbebb1c",
+      "expected_sha256": "45f4e4b332c3f332601ad355d8ff5438b97dcea4984c5cffdb2cb35853d27f97",
+      "note": "All four rows are visible. The first two have green cancelable badges, and the last two have blue timed locks and disabled Cancel buttons. The reference interleaves those states and shows a partial meter and active generation. The capture shows a full meter and idle generation.",
+      "reviewed_at": "2026-11-24T20:56:39Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
