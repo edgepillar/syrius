@@ -339,14 +339,23 @@ class WindowsQualificationTests(unittest.TestCase):
         comparison = inspect.entry_pixel_comparison(actual, reference, 'welcome')
         self.assertEqual(comparison['caption_wordmark_alignment'], dict(
             shift_to_reference=[0, 1], original_difference=16, shifted_difference=0))
-        actual = pixels(opaque=True, welcome_rows=(538, 539), welcome_x=702)
-        reference = pixels(opaque=True, welcome_rows=(537, 538), welcome_x=701)
+        actual = pixels(opaque=True, welcome_rows=(503, 504, 538, 539, 576), welcome_x=702)
+        reference = pixels(opaque=True, welcome_rows=(505, 506, 537, 538, 572, 576), welcome_x=701)
         comparison = inspect.pixel_comparison(
-            actual, reference, {}, align_pillar_caption=True)
+            actual, reference, {}, align_pillar_receipt=True)
         self.assertEqual(comparison['pillar_caption_alignment'], dict(
             shift_to_reference=[-1, -1], original_difference=18,
             shifted_difference=0, actual_bounds=[702, 538, 710, 540],
             reference_bounds=[701, 537, 709, 539]))
+        self.assertEqual(comparison['pillar_heading_alignment'], dict(
+            shift_to_reference=[-1, 2], original_difference=32,
+            shifted_difference=0, actual_bounds=[702, 503, 710, 505],
+            reference_bounds=[701, 505, 709, 507]))
+        self.assertEqual(comparison['pillar_view_action_alignment'], dict(
+            shift_to_reference=[-1, 0], original_difference=10,
+            shifted_difference=8, actual_bounds=[702, 576, 710, 577],
+            reference_bounds=[701, 572, 709, 577]))
+        self.assertNotIn('pillar_done_action_alignment', comparison)
         actual = pixels(opaque=True, welcome_rows=range(134, 174), welcome_x=817)
         reference = pixels(opaque=True, welcome_rows=range(132, 172), welcome_x=817)
         comparison = inspect.pixel_comparison(

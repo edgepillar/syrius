@@ -635,14 +635,15 @@ def caption_wordmark_alignment(actual, a_channels, expected, e_channels):
     return _ink_shift(ink(actual, a_channels), ink(expected, e_channels))
 
 
-def pillar_caption_alignment(actual, a_channels, expected, e_channels):
-    """Compare the receipt caption with the plain fill at the left of its row."""
+def pillar_receipt_ink_alignment(actual, a_channels, expected, e_channels, bounds):
+    """Compare a result region against the plain fill at the left of its row."""
+    left, top, right, bottom = bounds
     def ink(rows, channels):
         points = set()
-        for y in range(528, 560):
+        for y in range(top, bottom):
             row = rows[y]
             background = row[480 * channels:480 * channels + 3]
-            for x in range(500, 1140):
+            for x in range(left, right):
                 offset = x * channels
                 if max(abs(a - b) for a, b in zip(row[offset:offset + 3], background)) >= 16:
                     points.add((x, y))
@@ -851,7 +852,7 @@ def entry_pixel_comparison(data, reference, screen, *, theme=None):
 def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
                      sample_points=None, import_background_theme=None,
                      align_settings_labels=False, align_caption=False,
-                     align_pillar_caption=False, sample_spawn_fields=False):
+                     align_pillar_receipt=False, sample_spawn_fields=False):
     """Compare original opaque client images in the supplied fixed regions."""
     def decode(png):
         encoded = base64.b64encode(png).decode('ascii')
@@ -891,10 +892,17 @@ def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
         alignment = caption_wordmark_alignment(actual, a_channels, expected, e_channels)
         if alignment is not None:
             result['caption_wordmark_alignment'] = alignment
-    if align_pillar_caption:
-        alignment = pillar_caption_alignment(actual, a_channels, expected, e_channels)
-        if alignment is not None:
-            result['pillar_caption_alignment'] = alignment
+    if align_pillar_receipt:
+        for name, bounds in (
+            ('heading', (500, 490, 1140, 528)),
+            ('caption', (500, 528, 1140, 560)),
+            ('view_action', (690, 560, 829, 625)),
+            ('done_action', (829, 560, 930, 625)),
+        ):
+            alignment = pillar_receipt_ink_alignment(
+                actual, a_channels, expected, e_channels, bounds)
+            if alignment is not None:
+                result[f'pillar_{name}_alignment'] = alignment
     if sample_spawn_fields:
         result['spawn_field_fills'] = dict(
             column=820,
