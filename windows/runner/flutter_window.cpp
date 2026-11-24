@@ -2,16 +2,13 @@
 
 #include <flutter/method_channel.h>
 #include <flutter/standard_method_codec.h>
-#include <dxgi.h>
 #include <objbase.h>
-#include <wrl/client.h>
 
 #include <cstdint>
 #include <iomanip>
 #include <optional>
 #include <sstream>
 #include <string>
-#include <string_view>
 #include <utility>
 
 #include "flutter/generated_plugin_registrant.h"
@@ -37,19 +34,6 @@ bool HarnessRequested() {
   return GetEnvironmentVariableW(L"SYRIUS_HARNESS_HOME", nullptr, 0) > 1 &&
          GetEnvironmentVariableW(L"SYRIUS_HARNESS_PORT", nullptr, 0) > 1 &&
          GetEnvironmentVariableW(L"SYRIUS_HARNESS_TOKEN", nullptr, 0) > 1;
-}
-
-const char* GraphicsAdapterKind(flutter::FlutterEngine* engine) {
-  Microsoft::WRL::ComPtr<IDXGIAdapter> adapter;
-  Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter1;
-  DXGI_ADAPTER_DESC1 description{};
-  if (!engine->GetGraphicsAdapter(adapter.GetAddressOf()) || !adapter ||
-      FAILED(adapter.As(&adapter1)) || FAILED(adapter1->GetDesc1(&description))) {
-    return "unavailable";
-  }
-  return (description.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) != 0
-             ? "dxgi-software"
-             : "dxgi-non-software";
 }
 
 std::optional<int64_t> IntegerAt(const Map& map, const char* key) {
@@ -306,21 +290,6 @@ struct FlutterWindow::NativeWindowOwner
     const Map* arguments = call.arguments() == nullptr
                                ? nullptr
                                : std::get_if<Map>(call.arguments());
-    if (call.method_name() == "graphicsAdapterKind") {
-      wchar_t mode[16] = {};
-      const DWORD length =
-          GetEnvironmentVariableW(L"SYRIUS_HARNESS_FRAME_TIMING", mode, 16);
-      if (!first_frame || length >= 16 ||
-          std::wstring_view(mode, length) != L"interactive" ||
-          arguments == nullptr || arguments->size() != 1 ||
-          IntegerAt(*arguments, "protocol") != 1) {
-        result->NotImplemented();
-        return;
-      }
-      // Publish only the software flag. Do not export the adapter description.
-      result->Success(Value(GraphicsAdapterKind(engine)));
-      return;
-    }
     if (call.method_name() == "startup") {
       if (arguments == nullptr || arguments->size() != 1 ||
           IntegerAt(*arguments, "protocol") != 1 || startup_claimed) {

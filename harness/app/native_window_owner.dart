@@ -196,29 +196,6 @@ final class NativeWindowOwner {
   /// Malformed, foreign or failed platform replies permanently hold this scope.
   bool get heldUnknown => _held;
 
-  /// Reports only the renderer's software flag after an interactive sample.
-  Future<String> graphicsAdapterKind() async {
-    if (_held) return 'unavailable';
-    try {
-      final Object? kind = await _channel
-          .invokeMethod<Object?>('graphicsAdapterKind', <String, Object>{
-            'protocol': 1,
-          })
-          .timeout(const Duration(seconds: 1));
-      return switch (kind) {
-        'dxgi-software' => 'dxgi-software',
-        'dxgi-non-software' => 'dxgi-non-software',
-        _ => 'unavailable',
-      };
-    } on MissingPluginException {
-      return 'unavailable';
-    } on PlatformException {
-      return 'unavailable';
-    } on TimeoutException {
-      return 'unavailable';
-    }
-  }
-
   /// Every admitted original frame call, including pending and failed outcomes.
   List<NativeWindowCall<NativeWindowFrameReceipt>> get frames =>
       List<NativeWindowCall<NativeWindowFrameReceipt>>.unmodifiable(_frames);
