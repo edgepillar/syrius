@@ -62,6 +62,14 @@ serves original images and diffs on demand without extracting archives or
 writing a report. Its verdicts remain bound to `2c8fd31c` and the actual
 and reference PNG digests.
 
+Use `--summary-only` instead of `--serve` to plan captures at a candidate
+revision. Include verified indexes from both the candidate and prior
+revisions. The summary lists the missing pairs under the eligible catalog
+families found in those indexes. A pair can appear under more than one
+family. Pairs with no eligible family in the indexes appear under
+`unassigned`. Only original images verified at the candidate revision count
+toward its coverage.
+
 ## Current qualification status (2026-11-23)
 
 [PR #6](https://github.com/sol-znn/syrius/pull/6) is ready for review. The

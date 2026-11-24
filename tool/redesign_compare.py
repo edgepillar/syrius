@@ -318,11 +318,15 @@ def load_actual_manifest(
 def select_actual_captures(
     sources: Sequence[Path], stems: set[str], target_source: str | None,
     *, archive_dir: Path | None = None,
+    known_families: dict[str, set[str]] | None = None,
 ) -> dict[str, Capture]:
     candidates: dict[str, set[Capture]] = {}
     for source in sources:
         for stem, capture in load_actual_manifest(source, stems, archive_dir=archive_dir).items():
             candidates.setdefault(stem, set()).add(capture)
+            if (known_families is not None and capture.catalog_family is not None
+                    and not capture.is_diagnostic(stem, require_catalog_family=True)):
+                known_families.setdefault(stem, set()).add(capture.catalog_family)
 
     selected: dict[str, Capture] = {}
     for stem, choices in candidates.items():
@@ -890,11 +894,15 @@ def generate_report(
         for stem, review in load_reviews(source).items():
             reviews[stem].append(review)
     stems = {screen.stem(theme) for screen in screens for theme in THEMES}
+    known_families: dict[str, set[str]] = {}
     if actual_manifest is not None:
         if actual_dir is not None:
             raise ReportError("Choose either an actual directory or a capture manifest")
         sources = (actual_manifest,) if isinstance(actual_manifest, Path) else actual_manifest
-        actuals = select_actual_captures(sources, stems, target_source, archive_dir=archive_dir)
+        actuals = select_actual_captures(
+            sources, stems, target_source, archive_dir=archive_dir,
+            known_families=known_families if target_source is not None else None,
+        )
     else:
         directory = actual_dir if actual_dir is not None else repo / ".harness" / "shots"
         actuals = {stem: Capture(directory / f"{stem}.png") for stem in stems}
@@ -948,6 +956,14 @@ def generate_report(
             if pair["state"] not in ("unreviewed", "reviewed-match", "reviewed-mismatch")
         ]
         summary["target_pairs"] = {"available": len(pairs) - len(remaining), "remaining": remaining}
+        by_family: dict[str, list[str]] = defaultdict(list)
+        for stem in remaining:
+            for family in known_families.get(stem, ()):
+                by_family[family].append(stem)
+        summary["remaining_capture_routes"] = {
+            "by_family": dict(sorted(by_family.items())),
+            "unassigned": [stem for stem in remaining if stem not in known_families],
+        }
     manifest = {
         "schema_version": 1,
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),

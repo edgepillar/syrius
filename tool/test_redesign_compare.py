@@ -388,6 +388,10 @@ class CaptureCatalogTests(unittest.TestCase):
             diagnostic = report(navigation, older)
             self.assertEqual(diagnostic["pairs"][0]["state"], "diagnostic-capture")
             self.assertEqual(diagnostic["summary"]["target_pairs"]["available"], 0)
+            self.assertEqual(diagnostic["summary"]["remaining_capture_routes"], {
+                "by_family": {"send-confirm": [stem]},
+                "unassigned": [screen.stem("light")],
+            })
             unknown = report(unclassified, older)
             self.assertEqual(unknown["pairs"][0]["state"], "diagnostic-capture")
             self.assertEqual(unknown["summary"]["target_pairs"]["available"], 0)
@@ -397,6 +401,10 @@ class CaptureCatalogTests(unittest.TestCase):
             self.assertEqual(selected["pairs"][0]["actual"]["catalog_family"], "send-confirm")
             self.assertEqual(selected["pairs"][0]["state"], "reviewed-match")
             self.assertEqual(selected["summary"]["target_pairs"]["available"], 1)
+            self.assertEqual(selected["summary"]["remaining_capture_routes"], {
+                "by_family": {},
+                "unassigned": [screen.stem("light")],
+            })
             self.assertEqual(report(prepared, restored_old)["pairs"][0]["actual"][
                 "catalog_family"], "send-confirm")
             self.assertEqual(report(navigation, prepared, restored)["pairs"][0]["actual"][
