@@ -1642,8 +1642,31 @@ def plasma_expiry_badge_ink(data):
     return bands
 
 
+def _plasma_table_edges(zipped):
+    """Locate solid panel edges and single-pixel rules in the resting ledger."""
+    column, top, bottom = 1050, 32, 375
+    themes = {}
+    for theme in producer.navigation.THEMES:
+        bands = _vertical_bands(zipped, f'21-plasma-{theme}.png', column, top, bottom)
+        themes[theme] = None
+        if len(bands) < 8 or len(bands) % 2:
+            continue
+        rows, colors = zip(*bands)
+        base, card, rule = colors[0], colors[1], colors[4]
+        rule_rows = rows[4::2]
+        if (base == card or rule in (base, card) or colors[2] != base
+                or any(color != card for color in colors[3::2])
+                or any(color != rule for color in colors[4::2])
+                or any(after - start != 1 for start, after in zip(rule_rows, rows[5::2]))):
+            continue
+        themes[theme] = dict(strip_end=rows[2], list_start=rows[3],
+                             title_rule=rule_rows[0], column_rule=rule_rows[1],
+                             row_rules=list(rule_rows[2:]))
+    return dict(column=column, scan_rows=[top, bottom], themes=themes)
+
+
 def navigation_component_geometry(raw):
-    """Measure strip boundaries, the Pillars table and its expanded row."""
+    """Measure strip boundaries and the Pillars and Plasma tables."""
     column, top, bottom = 900, 100, 125
     detail_column, detail_top, detail_bottom = 1100, 186, 398
     strips = {}
@@ -1659,6 +1682,7 @@ def navigation_component_geometry(raw):
                     themes[theme] = dict(strip_end=bands[1][0], list_start=bands[2][0])
             strips[screen] = themes
         pillars = _nodes_table_edges(zipped, '16-pillars')
+        plasma = _plasma_table_edges(zipped)
         badge = _ink_bounds(zipped, '16-pillars', (130, 221), (201, 239),
                             lambda red, green, blue: green - red > 10 and green - blue > 7)
         detail_ink = {
@@ -1675,7 +1699,7 @@ def navigation_component_geometry(raw):
                                   if 2 <= len(bands) <= 10 else None)
     return dict(strip_boundaries=dict(column=column, scan_rows=[top, bottom], screens=strips),
                 pillar_table_edges=pillars, pillar_owned_badge_bounds=badge,
-                pillar_detail_ink=detail_ink,
+                pillar_detail_ink=detail_ink, plasma_table_edges=plasma,
                 pillar_row_bands=dict(column=detail_column,
                     scan_rows=[detail_top, detail_bottom], themes=pillar_rows))
 

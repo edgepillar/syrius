@@ -564,6 +564,16 @@ class ReaderTests(unittest.TestCase):
                         for y in range(start, start + 25):
                             if not 257 <= y < 263:
                                 rows[y] = patch
+                    table_rules = (161, 193, 238, 283, 328) if theme == 'dark' else (
+                        161, 194, 239, 284, 329)
+                    column = 1 + 1050 * 4
+                    for y in range(36, 375):
+                        row = bytearray(rows[y])
+                        if y in table_rules:
+                            row[column:column + 4] = divider[column:column + 4]
+                        elif y < 106 or y >= 118:
+                            row[column:column + 4] = surface[column:column + 4]
+                        rows[y] = bytes(row)
                 else:
                     rows[36:106] = [surface] * 70
                     rows[118:150] = [surface] * 32
@@ -581,6 +591,12 @@ class ReaderTests(unittest.TestCase):
         })
         nodes = dict(strip_end=106, list_start=118, tab_divider=164, column_headings_start=165)
         self.assertEqual(geometry['pillar_table_edges']['themes'], dict(dark=nodes, light=nodes))
+        self.assertEqual(geometry['plasma_table_edges'], dict(
+            column=1050, scan_rows=[32, 375], themes=dict(
+                dark=dict(strip_end=106, list_start=118, title_rule=161,
+                          column_rule=193, row_rules=[238, 283, 328]),
+                light=dict(strip_end=106, list_start=118, title_rule=161,
+                           column_rule=194, row_rules=[239, 284, 329]))))
         with zipfile.ZipFile(io.BytesIO(archive)) as zipped:
             for theme in ('dark', 'light'):
                 plasma = zipped.read(f'21-plasma-{theme}.png')
