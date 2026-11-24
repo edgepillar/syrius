@@ -269,7 +269,7 @@ void main() {
     expect(tester.widget<Lottie>(lottie).controller, same(original));
   });
 
-  testWidgets('Originals samples the film and its eight Lotties', (
+  testWidgets('Originals samples the film and its eight animation sources', (
     WidgetTester tester,
   ) async {
     prepare(tester);
@@ -333,6 +333,11 @@ void main() {
         tester.stateList(players).toList();
     final List<Animation<double>?> clocks = tester.widgetList<Lottie>(players)
         .map((Lottie player) => player.controller).toList();
+    final Finder mapPaint = find.descendant(
+      of: find.byKey(const ValueKey<String>('originals_tile_map')),
+      matching: find.byType(CustomPaint),
+    );
+    final Object originalMapRenderer = tester.renderObject(mapPaint);
     final OriginalsReferenceArtwork artwork = OriginalsReferenceArtwork(
       root: WidgetsBinding.instance.rootElement,
       admitted: () => true,
@@ -346,6 +351,7 @@ void main() {
         frames: frames.gate,
         readback: () async {
           capturedFilm = (pictureElement.widget as RawImage).image;
+          expect(tester.renderObject(mapPaint), same(originalMapRenderer));
           return <Lottie>[
             for (final State<StatefulWidget> original in originalStates)
               original.widget as Lottie,
@@ -353,11 +359,12 @@ void main() {
         },
       ),
     );
-    const List<int> expectedFrames = <int>[48, 60, 118, 118, 118, 54, 48, 24];
+    const List<int> expectedFrames = <int>[48, 118, 118, 118, 54, 48, 24];
     expect(capturedFilm, same(previewImage));
     expect(tester.widget<RawImage>(picture).image, isNot(same(previewImage)));
     expect(sampled, hasLength(expectedFrames.length));
     expect(tester.stateList(players), orderedEquals(originalStates));
+    expect(tester.renderObject(mapPaint), same(originalMapRenderer));
     for (int index = 0; index < sampled.length; index++) {
       final Lottie player = sampled[index];
       expect(player.controller, isA<AlwaysStoppedAnimation<double>>());
