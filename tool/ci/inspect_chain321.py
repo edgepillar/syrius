@@ -934,7 +934,8 @@ def seeded_catalog_pixel_comparisons(raw, schema, references, *, companion_holdi
             actual = zipped.read(name)
             comparison = pixel_comparison(
                 actual, reference, regions, sample_points=samples.get(screen),
-                align_pillar_caption=screen == '20-pillar-done')
+                align_pillar_caption=screen == '20-pillar-done',
+                sample_spawn_fields=screen == '19-spawn')
             need(comparison is not None)
             if screen in ('19-spawn', '20-pillar-done'):
                 comparison['header_rectangles'] = dict(

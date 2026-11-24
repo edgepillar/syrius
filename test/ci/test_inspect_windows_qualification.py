@@ -347,6 +347,13 @@ class WindowsQualificationTests(unittest.TestCase):
             shift_to_reference=[-1, -1], original_difference=18,
             shifted_difference=0, actual_bounds=[702, 538, 710, 540],
             reference_bounds=[701, 537, 709, 539]))
+        actual = pixels(opaque=True, welcome_rows=range(134, 174), welcome_x=817)
+        reference = pixels(opaque=True, welcome_rows=range(132, 172), welcome_x=817)
+        comparison = inspect.pixel_comparison(
+            actual, reference, {}, sample_spawn_fields=True)
+        self.assertEqual(comparison['spawn_field_fills'], dict(
+            column=820, actual=[dict(rows=[134, 174], rgb=[60, 60, 60])],
+            reference=[dict(rows=[132, 172], rgb=[60, 60, 60])]))
 
     def test_entry_digest_missing_extra_and_invalid_pixels_are_refused(self):
         data = pixels()

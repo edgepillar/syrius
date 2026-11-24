@@ -2,6 +2,7 @@
 
 import base64
 import io
+from itertools import groupby
 import json
 import math
 import os
@@ -657,6 +658,19 @@ def pillar_caption_alignment(actual, a_channels, expected, e_channels):
     return result
 
 
+def pillar_spawn_field_runs(rows, channels):
+    """Measure solid input fills at a column clear of the reference address ink."""
+    x = 820 * channels
+    background = rows[105][x:x + 3]
+    result = []
+    for rgb, run in groupby(range(105, 390), key=lambda y: rows[y][x:x + 3]):
+        if rgb != background:
+            positions = list(run)
+            if len(positions) >= 16:
+                result.append(dict(rows=[positions[0], positions[-1] + 1], rgb=list(rgb)))
+    return result
+
+
 def welcome_action_alignment(actual, a_channels, expected, e_channels):
     """Measure small text offsets inside the three reference action rows."""
     def ink(rows, channels, top, bottom):
@@ -813,7 +827,7 @@ def entry_pixel_comparison(data, reference, screen, *, theme=None):
 def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
                      sample_points=None, import_background_theme=None,
                      align_settings_labels=False, align_caption=False,
-                     align_pillar_caption=False):
+                     align_pillar_caption=False, sample_spawn_fields=False):
     """Compare original opaque client images in the supplied fixed regions."""
     def decode(png):
         encoded = base64.b64encode(png).decode('ascii')
@@ -857,6 +871,12 @@ def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
         alignment = pillar_caption_alignment(actual, a_channels, expected, e_channels)
         if alignment is not None:
             result['pillar_caption_alignment'] = alignment
+    if sample_spawn_fields:
+        result['spawn_field_fills'] = dict(
+            column=820,
+            actual=pillar_spawn_field_runs(actual, a_channels),
+            reference=pillar_spawn_field_runs(expected, e_channels),
+        )
     if align_settings_labels:
         result['settings_label_alignment'] = settings_label_alignment(
             actual, a_channels, expected, e_channels)
