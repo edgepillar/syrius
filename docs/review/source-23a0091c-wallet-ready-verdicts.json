@@ -1,0 +1,20 @@
+{
+  "reviews": {
+    "47-wallet-ready-dark": {
+      "actual_sha256": "88cc4ab70dbce080d782dcbe7fd484fd40b32ba285bdabca9828e699593b2cfb",
+      "expected_sha256": "98b05b9d7a88952f636021a5ecd7f96e0976f86801ed986bf1b995ad503d693d",
+      "note": "The dotted map, card, four completed steps, address row and Open wallet control align. The dark background has a stronger green wash at the left. The generated address, approved brand colours and native glyph rendering introduce visible variations.",
+      "reviewed_at": "2026-11-24T16:17:16Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "47-wallet-ready-light": {
+      "actual_sha256": "7c9dc7151606a73429b5aa2ab6ee50a0202bd91ef1456a70027d1959b620f75a",
+      "expected_sha256": "d3d74f8ab759686b11cff7ae6d6e3cd1fa10638302d1771fd93a769851492039",
+      "note": "The dotted map, card shadow, completed steps, address row and primary action align. The left background wash is slightly greener. The generated address and the approved green and blue remain visible.",
+      "reviewed_at": "2026-11-24T16:17:16Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    }
+  }
+}
