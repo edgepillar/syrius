@@ -1,0 +1,116 @@
+{
+  "reviews": {
+    "30-set-node-dark": {
+      "actual_sha256": "bf03ca78de9ddf7071351c958a6563aa554aeac2102775d4661d93b6819d8518",
+      "expected_sha256": "05d7211c092f7415b542294e254a86765fa57b7d7953fb2f9af5b1170ef7d003",
+      "note": "The live lab node is selected and the two other endpoints have no confirmed reachability. The embedded-node card shows the release check and source editor. The reference shows a verified update and different node states. Both image digests match the review at 8b35b3e3.",
+      "reviewed_at": "2026-11-24T23:56:11Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "30-set-node-light": {
+      "actual_sha256": "b2df49d333fbb8a0512e62e2c58431a88c65c309e0283b32dfbe5ae2d102cc2c",
+      "expected_sha256": "a11078a238b2ab2107174698b0c1c1409d7545a22eac994608e57ea113c6faeb",
+      "note": "The live lab node is selected and the two other endpoints have no confirmed reachability. The embedded-node card shows the release check and source editor. The reference shows a verified update and different node states. Both image digests match the review at 8b35b3e3.",
+      "reviewed_at": "2026-11-24T23:56:11Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "31-set-security-dark": {
+      "actual_sha256": "ea2a5f26bcf5ee2ec9119ef96fcb4a33df94bfece5edfb45cf5095f05bbe0e4b",
+      "expected_sha256": "1c3a735e770863e501cc898830ca699abb20ea01593643c263fad41f00a4f411",
+      "note": "All five policy and backup rules align at the measured column. The wrong-password hint describes shared application data. There are still differences in the segment label ink and live status.",
+      "reviewed_at": "2026-11-24T23:56:11Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "31-set-security-light": {
+      "actual_sha256": "9234c209633984720a781567eae9c2b7a38a11282456b4c398370e538d2a49c3",
+      "expected_sha256": "eb4cd651d0e487c080e8a0cc5c10289c14a35dff9dcdbe68a38cf12af58c26db",
+      "note": "All five policy and backup rules align at the measured column. The wrong-password hint describes shared application data. There are still differences in the segment label ink and live status.",
+      "reviewed_at": "2026-11-24T23:56:11Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "32-set-display-dark": {
+      "actual_sha256": "331dbb5619036384f996f4466fdff8712803aeebb1b140914353b70db00d34d0",
+      "expected_sha256": "f68b82b91f04df6c535c512da740e980026e8d980b0f68f8593fe4a070897c45",
+      "note": "The seven Settings rows align. The Explorer selector is disabled for the isolated chain and the status bar reflects the active session. Both image digests match the review at 8b35b3e3.",
+      "reviewed_at": "2026-11-24T23:56:11Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "32-set-display-light": {
+      "actual_sha256": "47fe46aa40fdbad3d39c45f0880d21d6ff3317177627033f0e8e7e92c7e2deff",
+      "expected_sha256": "64977a34163f03e4ef2f5d9f59027d124e6e02788b08970f2c2d5c635a4e723e",
+      "note": "The seven displayed rows align. The running theme selector highlights Light and the Explorer is disabled on the isolated chain. The reference highlights Dark and shows an enabled Explorer.",
+      "reviewed_at": "2026-11-24T23:56:11Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "33-set-wallet-dark": {
+      "actual_sha256": "3a60edc28f2446fc017e21c0ec52e581f1c7a6ef4a48abd1456eb2116e132f4e",
+      "expected_sha256": "938c775e7ef2b578c1d3a21698e13e5baff96bd01001bbb0d73aafd81d0030c8",
+      "note": "The wallet keeps both Auto-receive and desktop notifications off in the isolated fixture. The reference shows both on. The current Maintenance row and notification and cache copy also differ.",
+      "reviewed_at": "2026-11-24T23:56:11Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "33-set-wallet-light": {
+      "actual_sha256": "5b101612a0f828622e99f7fd0f6dde9e44604ba60ec6f5597875228b3bfebe77",
+      "expected_sha256": "82e2bc826d854d0764317b498db9a47cbe5aaaf3fcacf34e277db3dc3f90feba",
+      "note": "Auto-receive and desktop notifications are off in the isolated wallet. Their reference switches are on. The current screen includes Maintenance and different copy for notifications and cache deletion. Both image digests match the review at 8b35b3e3.",
+      "reviewed_at": "2026-11-24T23:56:11Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "34-set-apps-dark": {
+      "actual_sha256": "9f8d656ee2a0602516c0a15f1ade1745e730461c37b3a0c2edf28185b93dd036",
+      "expected_sha256": "76efab8f738858389426bbff88f3935efc5610d64052b9f3946fda9af5086e48",
+      "note": "The connected-app table shows its empty state. The WalletConnect disclosure reports no sessions or pairings. The reference shows two connected apps.",
+      "reviewed_at": "2026-11-24T23:56:11Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "34-set-apps-light": {
+      "actual_sha256": "bb8d71854533048b21425596f302f79d345a56f4bef59bb89ca9b1130cdc507b",
+      "expected_sha256": "21b9bdac58c975afa405e0ed1bceb6491b42743e30015f786240bdd562e1ad22",
+      "note": "The Connected table is empty and the WalletConnect summary reports no sessions or pairings. The reference shows two connections. Both image digests match the review at 8b35b3e3.",
+      "reviewed_at": "2026-11-24T23:56:11Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "35-set-addresses-dark": {
+      "actual_sha256": "49b0f4e651e2df98b5efbc2693a14ba57fe3b2c6a6b3c9fad44758acd7a8c026",
+      "expected_sha256": "500bab8c74c963bfee8d958d9fb06a647b04924da963a75db7caa98e7f241cad",
+      "note": "The wallet has four members and two contacts, with the second address selected. The reference uses different member markers, balances and contact activity.",
+      "reviewed_at": "2026-11-24T23:56:11Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "35-set-addresses-light": {
+      "actual_sha256": "d5a89c51679f7f29da8146220372021b0a820bd6d73698fa0195dfe9880eb168",
+      "expected_sha256": "b4705b0f43a7f5382e383dfce6f19574622719f620ef1190b6976f10932ee98c",
+      "note": "The selected address, four wallet members and two contact rows are present. The fixture balances, contact history and address markers differ from the reference. Both image digests match the review at 8b35b3e3.",
+      "reviewed_at": "2026-11-24T23:56:11Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "36-set-about-dark": {
+      "actual_sha256": "28b835d758c95453bccf4c0e2b4a43238f6ee07635c75c87dd1ff93022ef6c57",
+      "expected_sha256": "ad7fba54bc95a111744164a264efef237e7c3ebea8fca8cb087cebc04f0d831b",
+      "note": "The version and action card and three disclosure rows align. Build metadata, embedded node version and update notice text are different.",
+      "reviewed_at": "2026-11-24T23:56:11Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "36-set-about-light": {
+      "actual_sha256": "79fed119439b5125110f933f541e447aa8e4ae57f856c69f974b492dab6cc153",
+      "expected_sha256": "a8a8cf66e49fa88a25522dc8e759538b321f2f53c1f83d5d0d31edd3f8dd2072",
+      "note": "The version and action card and three disclosure rows align. Build metadata, embedded node version and update notice text are different.",
+      "reviewed_at": "2026-11-24T23:56:11Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
