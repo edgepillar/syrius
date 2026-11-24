@@ -309,6 +309,24 @@ class SeededPixelComparisonTests(unittest.TestCase):
                                     (screen == '20-pillar-done')
                                     for call in compare.call_args_list))
 
+        hashes = {'actual_sha256': 'a' * 64, 'reference_sha256': 'b' * 64}
+        heading = {'shift_to_reference': [0, -1]}
+        view_action = {'shift_to_reference': [1, 0]}
+        pairs = {
+            'dark': dict(hashes, pillar_heading_alignment=heading,
+                         pillar_view_action_alignment=view_action,
+                         pillar_caption_alignment={'shift_to_reference': [0, 0]}),
+            'light': hashes.copy(),
+        }
+        self.assertEqual(inspect.pillar_receipt_alignment_pairs(pairs), {
+            'dark': dict(hashes, pillar_heading_alignment=heading,
+                         pillar_view_action_alignment=view_action),
+        })
+        self.assertEqual(pairs, {
+            'dark': dict(hashes, pillar_caption_alignment={'shift_to_reference': [0, 0]}),
+            'light': hashes,
+        })
+
         rows = [bytearray([32] * 262 * 3) for _ in range(53)]
         green = bytes((0, 213, 87))
         ink = bytes((22, 138, 53))

@@ -950,6 +950,21 @@ def seeded_catalog_pixel_comparisons(raw, schema, references, *, companion_holdi
     return list(screens.values())
 
 
+def pillar_receipt_alignment_pairs(pairs):
+    """Move the added ink metrics to a separate image-bound notice."""
+    result = {}
+    for theme, pair in pairs.items():
+        measurements = {}
+        for key in ('pillar_heading_alignment', 'pillar_view_action_alignment',
+                    'pillar_done_action_alignment'):
+            if key in pair:
+                measurements[key] = pair.pop(key)
+        if measurements:
+            result[theme] = dict(measurements, actual_sha256=pair['actual_sha256'],
+                                 reference_sha256=pair['reference_sha256'])
+    return result
+
+
 def main():
     global PHASE
     parent = os.environ
@@ -1218,6 +1233,7 @@ def main():
         need(len(encoded.encode('ascii')) <= 3800)
         print('::notice title=' + inspect_interactive_frame_pair.TITLE + '::' + encoded, flush=True)
     if seeded is not None:
+        PHASE = 'seeded_catalog_notices'
         encoded = json.dumps(seeded, sort_keys=True, separators=(',', ':'))
         need(len(encoded.encode('ascii')) <= 3800)
         escaped = encoded.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
@@ -1227,7 +1243,10 @@ def main():
         print('::notice title=Retained restored catalog image index::' + encoded, flush=True)
         if catalog_comparisons:
             mint_samples = {}
+            receipt_alignment = {}
             for comparison in catalog_comparisons:
+                if comparison['screen'] == '20-pillar-done':
+                    receipt_alignment = pillar_receipt_alignment_pairs(comparison['pairs'])
                 if comparison['screen'] == '24-token-mine':
                     mint_samples = {
                         theme: pair.pop('sample_rgb')
@@ -1242,6 +1261,15 @@ def main():
             need(len(encoded.encode('ascii')) <= 3800)
             print('::notice title=Retained seeded catalog pixel comparison::' + encoded,
                   flush=True)
+            if receipt_alignment:
+                receipt_summary = dict(
+                    scope='retained_pillar_receipt_ink_alignment', source_head=head,
+                    source_run_id=run_id, archive_sha256=seeded['archive_sha256'],
+                    reference_head=reference_head, pairs=receipt_alignment)
+                encoded = json.dumps(receipt_summary, sort_keys=True, separators=(',', ':'))
+                need(len(encoded.encode('ascii')) <= 3800)
+                print('::notice title=Retained Pillar receipt ink alignment::' + encoded,
+                      flush=True)
             if mint_samples:
                 mint_summary = dict(
                     scope='retained_seeded_mint_field_samples', source_head=head,

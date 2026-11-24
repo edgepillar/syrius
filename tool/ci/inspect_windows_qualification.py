@@ -638,6 +638,7 @@ def caption_wordmark_alignment(actual, a_channels, expected, e_channels):
 def pillar_receipt_ink_alignment(actual, a_channels, expected, e_channels, bounds):
     """Compare a result region against the plain fill at the left of its row."""
     left, top, right, bottom = bounds
+
     def ink(rows, channels):
         points = set()
         for y in range(top, bottom):
