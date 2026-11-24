@@ -1,0 +1,68 @@
+{
+  "reviews": {
+    "01-home-rest-dark": {
+      "actual_sha256": "6a0ece74dd0b9a02277e6219203df68461987a750ce925b54639859a02e1be9b",
+      "expected_sha256": "70617942960638e9ad855344dcc7aa1433058bb4d060155f1cfb36592ca332a6",
+      "note": "The collapsed rail, Notifications tooltip, hero actions and card placement align. The isolated wallet shows one received Activity row with unavailable units, an empty collection state and no Pending card. The reference shows populated Activity and collection states and a pending transfer.",
+      "reviewed_at": "2026-11-24T15:46:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "01-home-rest-light": {
+      "actual_sha256": "7998a50256e6911179f56a69146099de323bb6f059e660bad4d169ed2a7c7246",
+      "expected_sha256": "280f31f618a20af2f275bd516afc3280849180f4788f38ae7c3fdebaedd36b7c",
+      "note": "The collapsed rail, Notifications tooltip, hero actions and card placement align. The isolated wallet shows one received Activity row with unavailable units, an empty collection state and no Pending card. The reference shows populated Activity and collection states and a pending transfer.",
+      "reviewed_at": "2026-11-24T15:46:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-dark": {
+      "actual_sha256": "864052c113f0cd212fc90e50f3a55e2cba87d958c8e86d2c11a52397d400c5f2",
+      "expected_sha256": "ef3e3dfc4e9e4a6438516fe8803c55202d744b57c964104d6212c4eb2d3ebd97",
+      "note": "The expanded rail and three-row Tokens disclosure are present. The isolated Activity scope and transaction history differ. The empty collection summary fits on one line, so the Tokens disclosure begins above its reference position. The token examples and ordering also differ.",
+      "reviewed_at": "2026-11-24T15:46:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "02-home-open-light": {
+      "actual_sha256": "f1c7a8e44b35c84d9d3ac19e178261264ddee14ab35d5819980d86f45b73e15a",
+      "expected_sha256": "52e8262f16ba52a3ebfa60c73347270e086c641db43a042418b4e55936737caa",
+      "note": "The expanded rail and three-row Tokens disclosure are present. The isolated Activity scope and transaction history differ. The empty collection summary fits on one line, so the Tokens disclosure begins above its reference position. The token examples and ordering also differ.",
+      "reviewed_at": "2026-11-24T15:46:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-dark": {
+      "actual_sha256": "a91ecbca421a3d8352101e2de5fdbd912a345561a42bf3098615354508279719",
+      "expected_sha256": "29421519af83d80baf69fcfe24beb37fc754d8da1c08b3a175e7224a27fedf16",
+      "note": "The hero, selected eye and Activity amount are masked. The isolated profile has one Activity row and an empty collection summary. The reference shows more Activity rows and populated reward amounts behind the mask.",
+      "reviewed_at": "2026-11-24T15:46:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "03-home-hidden-light": {
+      "actual_sha256": "49730843e103c535b5ae1a8a5234915417c8546210f3341e5c54a4c394f8e74b",
+      "expected_sha256": "d771c32eb9693e823bbc704b5d1fe7a36e5aaf9907b2155edcf63135ef400a98",
+      "note": "The hero, selected eye and Activity amount are masked. The isolated profile has one Activity row and an empty collection summary. The reference shows more Activity rows and populated reward amounts behind the mask.",
+      "reviewed_at": "2026-11-24T15:46:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-dark": {
+      "actual_sha256": "df42d561f8c858f50a11fa47ea77d2e3697d11ee015f1b4af8688248a0b95a33",
+      "expected_sha256": "52ccc26f93bcad1c79ac91228648bb8c369a6cec14041f77f51d210afec0a1f9",
+      "note": "The palette bounds, caret, selected result and keyboard footer align. The isolated result contains a different matching contact. The blurred Home backdrop shows a settled Activity pane, while the reference shows loading placeholders.",
+      "reviewed_at": "2026-11-24T15:46:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "05-home-goto-light": {
+      "actual_sha256": "4bbe5dfb20b829c65e7e34fef96597b8ae3027eb3ccec8815461044708f725d0",
+      "expected_sha256": "f700f7b185b5064b45b1acc561abcee0fce392badb4dc2d58319914780b060bb",
+      "note": "The palette bounds, caret, selected result and keyboard footer align. The isolated result contains a different matching contact. The blurred Home backdrop shows a settled Activity pane, while the reference shows loading placeholders.",
+      "reviewed_at": "2026-11-24T15:46:10Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
