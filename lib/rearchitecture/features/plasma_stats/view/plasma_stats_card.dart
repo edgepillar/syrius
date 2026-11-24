@@ -24,6 +24,10 @@ const double _kListHeadHeight = 36;
 const double _kRowMeterWidth = 72;
 const double _kRowLevelWidth = 60;
 
+/// The reference's 44-pixel header includes the rule above the disclosure.
+const double _kOtherHeaderHeight = 43;
+const double _kOtherHeaderRule = 1;
+
 /// The height of a row, which the loading bars are spaced by, and the
 /// height of one such bar (`Skeleton`'s default). On the Plasma page the
 /// rows are a section that opens under the mark, and are closer.
@@ -110,15 +114,17 @@ class _PageBody extends StatelessWidget {
             : tokens.plasmaMarkSize + tokens.plasmaFiguresHeight;
         final double scale = View.of(context).devicePixelRatio;
         // Align the settled disclosure rules to the card's pixel grid.
-        final double otherHeight =
-            (height * tokens.plasmaOtherShare * scale).roundToDouble() / scale;
+        final double listHeight =
+            ((height * tokens.plasmaOtherShare + _kOtherHeaderRule) * scale)
+                .roundToDouble() /
+            scale;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Expanded(child: _Mark(fuseForm: fuseForm)),
             const Divider(),
             _OtherAddresses(
-              maxHeight: otherHeight,
+              maxHeight: listHeight,
               onPicked: onAddressPicked,
             ),
           ],
@@ -386,6 +392,8 @@ class _OtherAddresses extends StatelessWidget {
               summary: low > 0 ? context.l10n.plasmaPageLowCount(low) : null,
               storeKey: 'plasma.other_addresses',
               keyPrefix: 'plasma_other_addresses',
+              headerMinHeight: _kOtherHeaderHeight,
+              showDividerWhenOpen: true,
               // Mounted while closed: the list is what asks for the next page
               // of addresses, and the selected one may be on it.
               keepAlive: true,
@@ -394,18 +402,13 @@ class _OtherAddresses extends StatelessWidget {
                 // list. The original reveal lends this height to the mark
                 // while closed, so its header rests at the card's foot.
                 height: maxHeight,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    border: Border(top: BorderSide(color: tokens.line)),
-                  ),
-                  child: Padding(
-                    padding: tokens.plasmaOtherListPadding,
-                    child: _LevelsView(
-                      state: listState,
-                      items: others,
-                      onPage: true,
-                      onPicked: onPicked,
-                    ),
+                child: Padding(
+                  padding: tokens.plasmaOtherListPadding,
+                  child: _LevelsView(
+                    state: listState,
+                    items: others,
+                    onPage: true,
+                    onPicked: onPicked,
                   ),
                 ),
               ),

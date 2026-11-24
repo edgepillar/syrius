@@ -171,6 +171,11 @@ void main() {
           }
           final Finder row = find.byKey(ValueKey<String>(other.address));
           final Rect rowBounds = tester.getRect(row);
+          expect(tester.getSize(toggle).height, 43);
+          expect(
+            tester.widget<Disclosure>(disclosure).showDividerWhenOpen,
+            isTrue,
+          );
           final Rect meter = tester.getRect(
             find.descendant(of: row, matching: find.byType(PlasmaLevelMeter)),
           );
