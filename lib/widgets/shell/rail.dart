@@ -212,7 +212,7 @@ class RailEntry {
   };
 
   /// Draws the original glyph without a second accessible name.
-  Widget buildIcon(BuildContext context, {Color? color}) {
+  Widget buildIcon(BuildContext context, {Color? color, Color? sourceInk}) {
     final AppTokens tokens = AppTokens.of(context);
     final String? symbol = switch (tab) {
       Tabs.dashboard => 'home',
@@ -231,7 +231,7 @@ class RailEntry {
     };
     return symbol == null
         ? Icon(icon, size: tokens.railIconSize, color: color ?? tokens.dim)
-        : buildShellSymbol(context, symbol, color: color);
+        : buildShellSymbol(context, symbol, color: color, sourceInk: sourceInk);
   }
 }
 
@@ -560,12 +560,16 @@ class _Rail extends StatelessWidget {
 
   Widget _buildItem(BuildContext context, RailEntry entry, String? shortcut) {
     final AppTokens tokens = AppTokens.of(context);
+    // Keep one source paint per theme while the foreground interpolates.
+    final Color sourceInk = Theme.of(context).brightness == Brightness.dark
+        ? AppTokens.dark.dim
+        : AppTokens.light.dim;
     return _RailButton(
       hitKey: ValueKey<String>('nav_${entry.tab.name}'),
       iconKey: ValueKey<String>('rail_icon_${entry.tab.name}'),
       labelKey: ValueKey<String>('rail_label_${entry.tab.name}'),
       buildIcon: (BuildContext context, Color color) =>
-          entry.buildIcon(context, color: color),
+          entry.buildIcon(context, color: color, sourceInk: sourceInk),
       name: entry.localizedLabel(context),
       shortcut: shortcut,
       height: tokens.railItemHeight,

@@ -720,6 +720,23 @@ void main() {
           addTearDown(tester.view.reset);
           final RailCollapse collapse = _choice();
           await tester.pumpWidget(_host(collapse: collapse, light: light));
+          final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
+          SvgPicture icon(Tabs tab) => tester.widget<SvgPicture>(
+            find.descendant(
+              of: find.byKey(_icon(tab)),
+              matching: find.byType(SvgPicture),
+            ),
+          );
+          expect(
+            (icon(Tabs.transfer).bytesLoader as SvgStringLoader)
+                .theme?.currentColor,
+            tokens.dim,
+          );
+          expect(icon(Tabs.transfer).colorFilter, isNull);
+          expect(
+            icon(Tabs.dashboard).colorFilter,
+            ColorFilter.mode(tokens.znnInk, BlendMode.srcIn),
+          );
           for (final double width in <double>[56, 200]) {
             final Rect rail = _rail(tester);
             expect(rail.width, width);
@@ -748,10 +765,7 @@ void main() {
           final BoxDecoration selected =
               tester.widget<DecoratedBox>(find.byKey(_pill)).decoration
                   as BoxDecoration;
-          expect(
-            selected.color,
-            light ? AppTokens.light.card : AppTokens.dark.card,
-          );
+          expect(selected.color, tokens.card);
         },
       );
     }
