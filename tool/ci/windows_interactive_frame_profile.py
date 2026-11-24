@@ -25,9 +25,6 @@ ENTRY_SHA256 = '3b85d511d24ce5f975075ede6f7ca0151c996fe31f07c1d9e495c1898c0b72e1
 MEASUREMENT_COMMANDS = frozenset(('theme', 'state', 'stalls', 'tap', 'wait', 'scroll'))
 MAX_MEASUREMENT_COMMANDS = 32
 SHUTDOWN_PREFIX = b'SYRIUS_SHUTDOWN '
-RUNNER_SHUTDOWN_PREFIX = b'SYRIUS_RUNNER_SHUTDOWN '
-RUNNER_SHUTDOWN_PHASES = ('messageLoopExited', 'comUninitialized',
-                          'runnerObjectsDestroyed')
 SHUTDOWN_ELAPSED_LIMIT_MS = 120_000
 SHUTDOWN_PHASES = frozenset((
     'idle', 'windowMaximizedRead', 'windowMaximizedSave', 'windowSizeRead',
@@ -165,20 +162,6 @@ def observe_shutdown_trace(raw, *, output_complete, output_overflow, cap=131072)
             key=lambda pair: pair[0], default=(0, None))
         summary.update(max_gap_ms=maximum, max_gap_after=after)
     return summary
-
-
-def observe_runner_shutdown(raw, *, output_overflow, cap):
-    """Return only the last complete marker in the fixed native sequence."""
-    if (output_overflow is not False or type(raw) is not bytes or type(cap) is not int
-            or not 0 < cap <= 131072 or len(raw) > cap):
-        return None
-    markers = [line.removesuffix(b'\r') for line in raw.split(b'\n')[:-1]
-               if line.startswith(RUNNER_SHUTDOWN_PREFIX)]
-    expected = [RUNNER_SHUTDOWN_PREFIX + phase.encode('ascii')
-                for phase in RUNNER_SHUTDOWN_PHASES[:len(markers)]]
-    if not markers or markers != expected:
-        return None
-    return RUNNER_SHUTDOWN_PHASES[len(markers) - 1]
 
 
 def valid_navigation_observation(value):
@@ -581,14 +564,12 @@ def owned_profile(send, run_entry, revalidate, measure, confirm_address, *,
 
 class InteractiveSession(launch.LaunchProcess):
     def __init__(self, *args, observe, shutdown_observation=None, shutdown_trace=None,
-                 runner_shutdown=None,
                  **kwargs):
         super().__init__(*args, **kwargs)
         self.observe = observe
         self.shutdown_observation = (
             {} if shutdown_observation is None else shutdown_observation)
         self.shutdown_trace = {} if shutdown_trace is None else shutdown_trace
-        self.runner_shutdown = {} if runner_shutdown is None else runner_shutdown
 
     def run_launch(self, *args, **kwargs):
         try:
@@ -598,14 +579,9 @@ class InteractiveSession(launch.LaunchProcess):
             try:
                 complete = self.report.output_complete is True
                 data = self.drain.data
-                raw = bytes(data) if type(data) in (bytes, bytearray) else None
-                phase = observe_runner_shutdown(raw, output_overflow=self.report.output_overflow,
-                                                cap=self.limits.output_bytes)
-                target = getattr(self, 'runner_shutdown', None)
-                if phase is not None and type(target) is dict:
-                    target['runner_shutdown_phase'] = phase
                 value = observe_shutdown_trace(
-                    raw, output_complete=complete,
+                    bytes(data) if type(data) in (bytes, bytearray) else None,
+                    output_complete=complete,
                     output_overflow=self.report.output_overflow, cap=self.limits.output_bytes)
             except (Exception, KeyboardInterrupt):
                 value = dict(status='unavailable', error_code='INTERNAL_ERROR',
@@ -663,7 +639,6 @@ def measure_process(repo, build_repo, parent, binaries, revalidate, measure,
     report.update(attempt=None, observation={}, profile_stable=False, success=False)
     shutdown = {}
     trace = {}
-    runner_shutdown = {}
     navigation = {}
     startup = {}
 
@@ -683,8 +658,7 @@ def measure_process(repo, build_repo, parent, binaries, revalidate, measure,
 
     def session(*args, **kwargs):
         return InteractiveSession(*args, observe=observe,
-                                  shutdown_observation=shutdown, shutdown_trace=trace,
-                                  runner_shutdown=runner_shutdown, **kwargs)
+                                  shutdown_observation=shutdown, shutdown_trace=trace, **kwargs)
 
     attempt, _ = launch.run_process(
         repo, parent, binaries, profile, launch.TIMING_THEME,
@@ -694,7 +668,6 @@ def measure_process(repo, build_repo, parent, binaries, revalidate, measure,
         report['shutdown_observation'] = shutdown
     if trace:
         report['shutdown_trace'] = trace
-    report.update(runner_shutdown)
     if navigation:
         report['navigation_observation'] = navigation
     if startup:
