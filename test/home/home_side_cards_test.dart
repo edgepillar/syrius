@@ -298,39 +298,53 @@ void main() {
     );
   }
 
-  testWidgets('adds exact rewards and shared dollars on one compact line', (
+  testWidgets('wraps the exact reward estimate only when space runs out', (
     WidgetTester tester,
   ) async {
-    await show(tester);
+    await show(tester, width: 760);
     expect(find.text('3.214', findRichText: true), findsOneWidget);
     expect(find.text('18.4', findRichText: true), findsOneWidget);
     expect(find.text(r'≈ $2.56'), findsOneWidget);
     expect(find.textContaining('3.2140', findRichText: true), findsNothing);
     expect(source.requests, 1);
-    final Rect title = tester.getRect(find.text('To collect'));
-    final Rect amount = tester.getRect(
-      find.byKey(const Key('home_collect_znn')),
+    final Finder collectCard = find.byKey(const Key('home_collect_card'));
+    final Finder title = find.text('To collect');
+    final Finder amount = find.byKey(const Key('home_collect_znn'));
+    final Finder action = find.byKey(_collect);
+    final Finder estimate = find.byKey(const Key('home_collect_dollars'));
+    final Finder coins = find.ancestor(
+      of: amount,
+      matching: find.byType(SingleChildScrollView),
     );
-    final Rect action = tester.getRect(find.byKey(_collect));
-    expect((title.center.dy - amount.center.dy).abs(), lessThan(2));
-    expect((action.center.dy - amount.center.dy).abs(), lessThan(2));
+    final Rect wideAmount = tester.getRect(amount);
+    expect((tester.getRect(title).center.dy - wideAmount.center.dy).abs(),
+        lessThan(2));
+    expect((tester.getRect(action).center.dy - wideAmount.center.dy).abs(),
+        lessThan(2));
+    expect((tester.getRect(estimate).center.dy - wideAmount.center.dy).abs(),
+        lessThan(2));
+    expect(tester.getSize(collectCard).height, lessThan(60));
+
+    final AppTokens tokens = AppTokens.of(tester.element(collectCard));
+    final double controlsWidth =
+        tokens.homeSideHeaderPadding.horizontal +
+        tester.getSize(title).width +
+        tester.getSize(action).width +
+        2 * tokens.inlineGap;
+    // Fit both coin values and half the estimate, even with test fonts.
+    final double narrowWidth = controlsWidth +
+        tester.getSize(coins).width +
+        tester.getSize(estimate).width / 2;
+    await show(tester, width: narrowWidth);
     expect(
-      tester.getSize(find.byKey(const Key('home_collect_card'))).height,
-      lessThan(60),
+      tester.getRect(estimate).top,
+      greaterThanOrEqualTo(tester.getRect(amount).bottom),
     );
-    await show(tester, width: 380);
-    final Rect narrowAmount = tester.getRect(
-      find.byKey(const Key('home_collect_znn')),
+    expect(
+      tester.getRect(title).center.dy,
+      closeTo(tester.getRect(action).center.dy, .01),
     );
-    final Rect estimate = tester.getRect(
-      find.byKey(const Key('home_collect_dollars')),
-    );
-    expect(estimate.top, greaterThanOrEqualTo(narrowAmount.bottom));
-    final Rect narrowTitle = tester.getRect(find.text('To collect'));
-    final Rect narrowAction = tester.getRect(find.byKey(_collect));
-    expect(narrowTitle.center.dy, closeTo(narrowAction.center.dy, .01));
-    expect(tester.widget<OutlinedButton>(find.byKey(_collect)).onPressed,
-        isNotNull);
+    expect(tester.widget<OutlinedButton>(action).onPressed, isNotNull);
     expect(find.text('3.214', findRichText: true), findsOneWidget);
     expect(find.text('18.4', findRichText: true), findsOneWidget);
     expect(find.text(r'≈ $2.56'), findsOneWidget);
