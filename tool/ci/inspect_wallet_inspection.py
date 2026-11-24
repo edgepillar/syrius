@@ -914,22 +914,41 @@ def home_send_bounds(raw):
 
 
 ORIGINALS_MAP_CROP = (616, 319, 758, 423)
+MAP_DOT_THRESHOLDS = (1, 16, 64)
 
 
-def _map_gray_deviation(png):
-    """Measure interior dot coverage and intensity against the tile background."""
+def _map_gray_plane(png):
     left, top, right, bottom = ORIGINALS_MAP_CROP
-    encoded = base64.b64encode(png).decode('ascii')
-    rows, channels = windows._png_crop(encoded, (left, right), (top, bottom))
+    rows, channels = windows._png_crop(
+        base64.b64encode(png).decode('ascii'), (left, right), (top, bottom))
     if not windows._opaque(rows, channels):
         return None
     # Sum RGB before dividing by three, to retain sub-level precision.
-    levels = Counter(sum(row[i:i + 3]) for row in rows
-                     for i in range(0, len(row), channels))
-    background, _ = levels.most_common(1)[0]
-    weighted_error = sum(abs(value - background) * count
-                         for value, count in levels.items())
-    return round(1000 * weighted_error / (3 * sum(levels.values())))
+    pixels = [sum(row[i:i + 3]) for row in rows for i in range(0, len(row), channels)]
+    background, _ = Counter(pixels).most_common(1)[0]
+    return [abs(value - background) for value in pixels]
+
+
+def _map_dot_comparison(actual, reference):
+    """Measure intensity and compare the locations of the painted dots."""
+    observed, expected = _map_gray_plane(actual), _map_gray_plane(reference)
+    deviation = {
+        name: None if pixels is None else round(1000 * sum(pixels) / (3 * len(pixels)))
+        for name, pixels in (('actual', observed), ('reference', expected))
+    }
+    if observed is None or expected is None:
+        return deviation, None
+    counts = []
+    for threshold in MAP_DOT_THRESHOLDS:
+        limit = 3 * threshold
+        observed_count = reference_count = common = 0
+        for a, b in zip(observed, expected):
+            observed_count += a >= limit
+            reference_count += b >= limit
+            common += a >= limit and b >= limit
+        counts.append(dict(actual=observed_count, reference=reference_count,
+                           overlap=common))
+    return deviation, counts
 
 
 SWAP_AMOUNT_PANE_SCAN = (558, 90, 520)
@@ -1137,6 +1156,7 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
     pairs = {}
     display_dividers = {}
     map_gray = {}
+    map_coverage = {}
     pane_rows = {}
     counterparty = {}
     token_fields = {}
@@ -1166,8 +1186,7 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
             about_download[theme] = dict(actual=_about_download_action(actual),
                                         reference=_about_download_action(reference))
         if screen == '38-set-originals':
-            map_gray[theme] = dict(actual=_map_gray_deviation(actual),
-                                  reference=_map_gray_deviation(reference))
+            map_gray[theme], map_coverage[theme] = _map_dot_comparison(actual, reference)
         if screen == '27-swap-start':
             pane_rows[theme] = dict(actual=_swap_amount_pane_rows(actual, theme),
                                     reference=_swap_amount_pane_rows(reference, theme))
@@ -1190,6 +1209,9 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
     if map_gray:
         result['map_gray_deviation_milli'] = dict(bounds=ORIGINALS_MAP_CROP,
                                                  themes=map_gray)
+        result['map_dot_coverage'] = dict(bounds=ORIGINALS_MAP_CROP,
+                                          thresholds=MAP_DOT_THRESHOLDS,
+                                          themes=map_coverage)
     if pane_rows:
         column, top, bottom = SWAP_AMOUNT_PANE_SCAN
         result['amount_pane_fill_rows'] = dict(column=column, scan_rows=[top, bottom],

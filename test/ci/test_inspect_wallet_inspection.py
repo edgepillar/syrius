@@ -242,6 +242,18 @@ class ReaderTests(unittest.TestCase):
             'themes': {theme: {'actual': 85000, 'reference': 85000}
                        for theme in ('dark', 'light')},
         })
+        self.assertEqual(comparisons[-1]['map_dot_coverage'], {
+            'bounds': (616, 319, 758, 423),
+            'thresholds': (1, 16, 64),
+            'themes': {theme: [dict(actual=1, reference=1, overlap=1)] * 3
+                       for theme in ('dark', 'light')},
+        })
+        with mock.patch.object(reader, '_map_gray_plane',
+                               side_effect=([0, 10, 0, 192], [10, 0, 192, 192])):
+            _, coverage = reader._map_dot_comparison(b'actual', b'reference')
+        self.assertEqual(coverage, [dict(actual=2, reference=3, overlap=1),
+                                    dict(actual=1, reference=2, overlap=1),
+                                    dict(actual=1, reference=2, overlap=1)])
 
     def test_swap_counterparty_geometry_reads_the_tracked_reference(self):
         shots = Path(__file__).resolve().parents[2] / 'mockups' / 'redesign' / 'shots'
