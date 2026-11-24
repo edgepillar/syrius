@@ -164,8 +164,10 @@ void main() {
           expect(openTop, lessThan(openingTop));
           expect(openTop, greaterThan(card.top + card.height * .35));
           expect(openTop, lessThan(card.top + card.height * .65));
+          final double localOpenTop = openTop - card.top;
+          expect(localOpenTop, localOpenTop.roundToDouble());
           if (height == 674) {
-            expect(openTop - card.top, closeTo(321, 1));
+            expect(localOpenTop, 321);
           }
           final Finder row = find.byKey(ValueKey<String>(other.address));
           final Rect rowBounds = tester.getRect(row);

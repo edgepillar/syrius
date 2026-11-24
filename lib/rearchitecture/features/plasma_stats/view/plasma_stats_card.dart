@@ -108,13 +108,17 @@ class _PageBody extends StatelessWidget {
         final double height = constraints.maxHeight.isFinite
             ? constraints.maxHeight
             : tokens.plasmaMarkSize + tokens.plasmaFiguresHeight;
+        final double scale = View.of(context).devicePixelRatio;
+        // Align the settled disclosure rules to the card's pixel grid.
+        final double otherHeight =
+            (height * tokens.plasmaOtherShare * scale).roundToDouble() / scale;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Expanded(child: _Mark(fuseForm: fuseForm)),
             const Divider(),
             _OtherAddresses(
-              maxHeight: height * tokens.plasmaOtherShare,
+              maxHeight: otherHeight,
               onPicked: onAddressPicked,
             ),
           ],
