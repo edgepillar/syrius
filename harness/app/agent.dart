@@ -86,6 +86,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/fros
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_frame.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/status_strip.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/strip/status_dot.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_tab_child.dart'
@@ -6378,6 +6379,7 @@ class HarnessAgent {
       _frameTimingMode == 'launch' || _frameTimingMode == _pairedLaunchTiming;
   HarnessFrameWindow? _frameWindow;
   Set<ui.Picture>? _frameWindowPictures;
+  Set<ui.Picture>? _frameWindowStatusPictures;
   int? _interactiveStartUs;
   int? _pageSettledUs;
   final List<int> _startupPhaseUs = <int>[];
@@ -6401,6 +6403,24 @@ class HarnessAgent {
 
     root.debugVisitOnstageChildren(visit);
     return match;
+  }
+
+  Set<ui.Picture>? _captureStatusFramePictures(Set<ui.Picture>? scene) {
+    final Element? root = WidgetsBinding.instance.rootElement;
+    if (root == null || scene == null || kCurrentPage != Tabs.settings) {
+      return null;
+    }
+    final Element? strip = _findTimingChild(
+      root,
+      (Widget widget) => widget is StatusStrip,
+    );
+    RenderObject? ancestor = strip?.findRenderObject()?.parent;
+    while (ancestor != null && ancestor is! RenderRepaintBoundary) {
+      ancestor = ancestor.parent;
+    }
+    if (ancestor is! RenderRepaintBoundary) return null;
+    final Set<ui.Picture>? pictures = captureFramePictures(ancestor.layer);
+    return pictures != null && scene.containsAll(pictures) ? pictures : null;
   }
 
   Map<String, Object?> _observeReadonlySheen() {
@@ -6664,6 +6684,9 @@ class HarnessAgent {
           throw HarnessError(refusal);
         }
         _frameWindowPictures = captureFramePictures(_view.layer);
+        _frameWindowStatusPictures = _captureStatusFramePictures(
+          _frameWindowPictures,
+        );
         final int started = dev.Timeline.now;
         _frameWindow = HarnessFrameWindow(
           started,
@@ -6697,11 +6720,19 @@ class HarnessAgent {
               : null;
           final int ended = dev.Timeline.now;
           final Set<ui.Picture>? before = _frameWindowPictures;
-          final Map<String, int>? retainedPictures = before == null
+          final Set<ui.Picture>? after = before == null
+              ? null
+              : captureFramePictures(_view.layer);
+          final Map<String, int>? retainedPictures = retainedFramePictures(
+            before,
+            after,
+          );
+          final Set<ui.Picture>? beforeStatus = _frameWindowStatusPictures;
+          final Map<String, int>? retainedStatusPictures = beforeStatus == null
               ? null
               : retainedFramePictures(
-                  before,
-                  captureFramePictures(_view.layer),
+                  beforeStatus,
+                  _captureStatusFramePictures(after),
                 );
           final Map<String, Object?> result = await window.finish(
             endUs: ended,
@@ -6709,6 +6740,9 @@ class HarnessAgent {
           );
           if (retainedPictures != null) {
             result['retainedPictures'] = retainedPictures;
+          }
+          if (retainedStatusPictures != null) {
+            result['retainedStatusPictures'] = retainedStatusPictures;
           }
           if (phases != null && !EntryCaptureRegistry.instance.held) {
             result['startupPhaseUs'] = phases;
@@ -6741,6 +6775,7 @@ class HarnessAgent {
         } finally {
           _frameWindow = null;
           _frameWindowPictures = null;
+          _frameWindowStatusPictures = null;
           _pageSettledUs = null;
           _disclosurePhasesUs.clear();
         }

@@ -49,9 +49,10 @@ RASTER_STARTS_FIELD = 'rasterStartsUs'
 RASTER_CACHE_FIELD = 'rasterCacheAtPeak'
 GRAPHICS_ADAPTER_FIELD = 'graphicsAdapterKind'
 RETAINED_PICTURES_FIELD = 'retainedPictures'
+RETAINED_STATUS_PICTURES_FIELD = 'retainedStatusPictures'
 OPTIONAL_TIMING_FIELDS = (PEAK_BUILD_WAIT_FIELD, RASTER_STARTS_FIELD,
                           RASTER_CACHE_FIELD, GRAPHICS_ADAPTER_FIELD,
-                          RETAINED_PICTURES_FIELD)
+                          RETAINED_PICTURES_FIELD, RETAINED_STATUS_PICTURES_FIELD)
 PACKED_TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frameCount', 'packedFrames')
 STARTUP_PHASE_FIELD = 'startupPhaseUs'
 STARTUP_AUTH_FIELD = 'startupAuthInShellUs'
@@ -280,6 +281,13 @@ def frame_timing_rows(value, *, allow_packed=False):
                      for field in ('before', 'after'))
              and startup.integer(pictures['shared'], 0,
                                  min(pictures['before'], pictures['after'])))
+    if RETAINED_STATUS_PICTURES_FIELD in value:
+        status = value[RETAINED_STATUS_PICTURES_FIELD]
+        need(RETAINED_PICTURES_FIELD in value and type(status) is dict
+             and set(status) == {'before', 'after', 'shared'}
+             and all(startup.integer(status[field], 0, value[RETAINED_PICTURES_FIELD][field])
+                     for field in ('before', 'after', 'shared'))
+             and status['shared'] <= min(status['before'], status['after']))
     if GRAPHICS_ADAPTER_FIELD in value:
         need(value[GRAPHICS_ADAPTER_FIELD] in (
             'dxgi-software', 'dxgi-non-software', 'unavailable'))

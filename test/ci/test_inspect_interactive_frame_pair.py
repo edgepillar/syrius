@@ -370,6 +370,18 @@ class InteractiveFramePairTests(unittest.TestCase):
                     retainedPictures=pictures)
         self.assertEqual(inspect._idle_summary(dict(status='measured', window=idle))
                          ['retained_pictures'], pictures)
+        status = dict(before=4, after=4, shared=3)
+        sample = dict(idle, retainedStatusPictures=status)
+        self.assertEqual(inspect._idle_summary(dict(status='measured', window=sample))
+                         ['retained_status_pictures'], status)
+        for invalid in (dict(before=15, after=15, shared=1),
+                        dict(before=14, after=14, shared=13),
+                        dict(before=4, after=3, shared=4),
+                        dict(before=4, after=True, shared=1)):
+            with self.assertRaises(pair.shared.launch.startup.Failure):
+                pair.shared.launch.frame_timing_rows(dict(idle, retainedStatusPictures=invalid))
+        with self.assertRaises(pair.shared.launch.startup.Failure):
+            pair.shared.launch.frame_timing_rows(dict(window, retainedStatusPictures=status))
         for invalid in (dict(before=14, after=15, shared=16),
                         dict(before=True, after=15, shared=1),
                         dict(before=4097, after=15, shared=10)):

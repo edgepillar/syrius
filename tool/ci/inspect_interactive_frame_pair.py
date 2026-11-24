@@ -78,6 +78,9 @@ def _idle_summary(sample):
     field = pair.shared.launch.RETAINED_PICTURES_FIELD
     if field in window:
         result['retained_pictures'] = window[field]
+    field = pair.shared.launch.RETAINED_STATUS_PICTURES_FIELD
+    if field in window:
+        result['retained_status_pictures'] = window[field]
     return result
 
 
