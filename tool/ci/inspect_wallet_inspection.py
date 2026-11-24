@@ -1143,8 +1143,7 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
     token_actions = {}
     about_download = {}
     menu_selection = {}
-    has_settings_menu = ('settings_menu' in regions and
-                         screen in _catalog_pair_names(producer.settings.FILES))
+    has_settings_menu = 'settings_menu_labels' in regions
     for theme in producer.THEMES:
         name = f'{screen}-{theme}.png'
         actual = zipped.read(name)
@@ -1289,8 +1288,15 @@ def details_pixel_comparisons(raw, reference_dir, *, files=producer.details.FILE
 
 def settings_pixel_comparisons(raw, reference_dir, *, files=None):
     """Compare the seven Settings sections with separate menu and body counts."""
+    # Fixed reference bands distinguish glyph and label differences from the
+    # rest of the menu. Counts across the bands cover the original menu crop.
     regions = dict(caption=(0, 0, 1280, 32), rail=(0, 32, 60, 780),
-                   settings_menu=(60, 32, 260, 724), content=(260, 32, 1280, 724),
+                   settings_menu_top=(60, 32, 260, 42),
+                   settings_menu_icons=(60, 42, 100, 314),
+                   settings_menu_labels=(100, 42, 200, 314),
+                   settings_menu_end=(200, 42, 260, 314),
+                   settings_menu_bottom=(60, 314, 260, 724),
+                   content=(260, 32, 1280, 724),
                    status=(60, 724, 1280, 780))
     # Split at the tracked reference card boundaries. These crops measure
     # different fixture states as well as visual differences.

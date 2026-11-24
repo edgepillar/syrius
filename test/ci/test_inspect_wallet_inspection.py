@@ -341,7 +341,14 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual([call.args[0] for call in read.call_args_list],
                          [reference_dir / name for name in names])
         for row in comparisons:
-            self.assertEqual(row['region_bounds']['settings_menu'], (60, 32, 260, 724))
+            self.assertEqual({name: bounds for name, bounds in row['region_bounds'].items()
+                              if name.startswith('settings_menu_')}, {
+                'settings_menu_top': (60, 32, 260, 42),
+                'settings_menu_icons': (60, 42, 100, 314),
+                'settings_menu_labels': (100, 42, 200, 314),
+                'settings_menu_end': (200, 42, 260, 314),
+                'settings_menu_bottom': (60, 314, 260, 724),
+            })
             self.assertEqual(sum((right - left) * (bottom - top)
                                  for left, top, right, bottom in row['region_bounds'].values()),
                              1280 * 780)
