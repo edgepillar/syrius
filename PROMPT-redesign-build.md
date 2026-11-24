@@ -7480,6 +7480,18 @@ running motion and the final acceptance check remain open.
 
 V01, V02 and V06 remain open at 77 of 80 accepted rows.
 
+### End-state audit at `79f80434` (2026-11-24)
+
+| End-state item | Verified evidence and remaining check |
+| --- | --- |
+| Clean checkout, Windows Debug and Release | The [toolchain record](docs/environment.md) and the [independent Windows reader](https://github.com/edgepillar/syrius/actions/runs/45435523208/job/138592168392) cover the approved hosted native environment and both builds at `81e4b44f`. Nine application files and the Plasma shader have changed since that build. The seven pinned P06 comparison inputs, including the Windows runner and locked dependencies, are unchanged. The candidate still needs clean Debug and Release results. |
+| Analysis, tests and generated files | [Linux at `ba0d697c`](https://github.com/edgepillar/syrius/actions/runs/45491536374/job/138790893574) passes analysis, all 5,143 non-chain tests with one skip, and generated-file verification. The later Plasma caption passes targeted strict analysis and is included in the [candidate Linux run](https://github.com/edgepillar/syrius/actions/runs/45493496953). No complete candidate test receipt is available at this audit. |
+| All 47 screens in both themes | The 47 nonempty capture scripts match the screen list and all 94 reference PNGs decode at 1280 × 780. The private summary finds 24 eligible catalog families and no exact-source originals at this audit. The [candidate Windows Navigation run](https://github.com/edgepillar/syrius/actions/runs/45493601538) passes admission and requests the caption, rounded meter and resting heading together. The [startup batch](https://github.com/edgepillar/syrius/actions/runs/45492217460) is from `ba0d697c` and remains bound to that revision. The final comparison gallery and all whole-screen verdicts remain open. |
+| Running motion, shaders and 16 ms comparisons | The [fresh paired Windows run at `72f0eb10`](https://github.com/edgepillar/syrius/actions/runs/45491095085) has reached the isolated measurement job. The [independent earlier replay](https://github.com/edgepillar/syrius/actions/runs/45490474801/job/138787145815) confirms settled raster activity and both failed comparisons at its original source. The three passing measurements and the complete running motion and shader review remain open. |
+| Seam refusals | All 15 registry values match [the documented seams](lib/seams/SEAMS.md) and the witnesses in the [original V03 audit](docs/review/source695-seam-coverage.md). The registry, shared gate, shortcut declarations, Go To catalog and seam tests are byte-identical to `376083f8`. The current Pillars heading still applies the existing APR seam. This audit links the original observations to the unchanged controls. Final candidate execution remains to be checked. |
+
+V01, V02 and V06 remain open at 77 of 80 accepted rows.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |
