@@ -285,10 +285,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The reference's .34em tracking at its 12 px caption size.
   double get windowTitleTracking => 4.08;
 
-  /// Native captures place the ink 2 px right and its center 2.5 px low.
-  /// Move its paint toward the reference without moving caption hit targets.
+  /// Aligns the native wordmark ink without moving caption hit targets.
   Offset get windowWordmarkPaintOffset =>
-      Offset(-windowTitleTracking / 2, -2.5);
+      Offset(-windowTitleTracking / 2, -1.5);
 
   /// The mockup's quiet tracked wordmark; the native window title stays intact.
   TextStyle get windowTitleText => bodyText.copyWith(

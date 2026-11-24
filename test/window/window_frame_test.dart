@@ -534,10 +534,16 @@ void main() {
               .color,
           tokens.windowCaptionBackground,
         );
-        final Text title = tester.widget<Text>(find.text('SYRIUS'));
+        final Finder wordmark = find.text('SYRIUS');
+        final Text title = tester.widget<Text>(wordmark);
         expect(title.style, tokens.windowTitleText);
         expect(tokens.windowTitleText.fontSize, 12);
         expect(tokens.windowTitleText.letterSpacing, 4.08);
+        final Transform placement = tester.widget<Transform>(
+          find.ancestor(of: wordmark, matching: find.byType(Transform)).first,
+        );
+        expect(placement.transform.getTranslation().y, -1.5);
+        expect(placement.transformHitTests, isFalse);
         expect(tokens.windowCloseHover, tokens.error.withValues(alpha: 0.12));
       }
     },
