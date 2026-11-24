@@ -84,6 +84,15 @@ def _idle_summary(sample):
     if starts:
         result['reported_raster_coverage_us'] = _reported_raster_coverage(
             frames, starts, window=(0, window['windowUs']))['window']
+        waits = {number: starts[number] - start - build
+                 for number, start, build, _, _ in frames}
+        peak_frame = max(frames, key=lambda frame: frame[3])[0]
+        result['build_to_raster_us'] = dict(
+            max=max(waits.values()),
+            samples_over_budget=sum(wait > pair.shared.FRAME_BUDGET_US
+                                    for wait in waits.values()),
+            at_peak_raster=waits[peak_frame],
+        )
     field = pair.shared.launch.RETAINED_PICTURES_FIELD
     if field in window:
         result['retained_pictures'] = window[field]

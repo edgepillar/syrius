@@ -361,9 +361,19 @@ class InteractiveFramePairTests(unittest.TestCase):
         older = inspect._window_diagnostics(window, 4000, 14000, {'settled': 11000})
         self.assertNotIn('reported_raster_coverage_us', older)
         idle = dict(status='measured', window=dict(observed, windowUs=1_100_000))
-        self.assertEqual(inspect._idle_summary(idle)['reported_raster_coverage_us'], 18500)
+        summary = inspect._idle_summary(idle)
+        self.assertEqual(summary['reported_raster_coverage_us'], 18500)
+        self.assertEqual(summary['build_to_raster_us'],
+                         dict(max=3000, samples_over_budget=0, at_peak_raster=3000))
+        delayed = deepcopy(idle)
+        delayed['window']['frames'][-1][-1] = 39000
+        delayed['window']['rasterStartsUs'][-1] = 34000
+        self.assertEqual(inspect._idle_summary(delayed)['build_to_raster_us'],
+                         dict(max=20000, samples_over_budget=1, at_peak_raster=20000))
         del idle['window']['rasterStartsUs']
-        self.assertNotIn('reported_raster_coverage_us', inspect._idle_summary(idle))
+        old_summary = inspect._idle_summary(idle)
+        self.assertNotIn('reported_raster_coverage_us', old_summary)
+        self.assertNotIn('build_to_raster_us', old_summary)
 
     def test_retained_raster_starts_resolve_interaction_boundaries(self):
         window = dict(schema=1, scope='harness_frame_window', windowUs=100000,
