@@ -659,12 +659,16 @@ class _DisclosureChevron extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool rtl = Directionality.of(context) == TextDirection.rtl;
+    final Color sourceInk = Theme.of(context).brightness == Brightness.dark
+        ? AppTokens.dark.faint
+        : AppTokens.light.faint;
     final Widget chevron = RotationTransition(
       turns: Tween<double>(begin: rtl ? 0.25 : -0.25, end: 0).animate(turned),
       child: ShellSymbol(
         'chev',
         size: AppTokens.disclosureChevronSize,
         color: AppTokens.of(context).faint,
+        sourceInk: sourceInk,
       ),
     );
     // Isolate a standalone header's turning glyph from its surrounding paint.

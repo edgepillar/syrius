@@ -123,12 +123,10 @@ void main() {
         expect(mark.width, 14);
         expect(mark.height, 14);
         expect(
-          mark.colorFilter,
-          ColorFilter.mode(
-            (light ? AppTokens.light : AppTokens.dark).faint,
-            BlendMode.srcIn,
-          ),
+          (mark.bytesLoader as SvgStringLoader).theme?.currentColor,
+          (light ? AppTokens.light : AppTokens.dark).faint,
         );
+        expect(mark.colorFilter, isNull);
         expect(mark.excludeFromSemantics, isTrue);
         // It starts where it is: nothing moves as the page is shown.
         expect(tester.binding.transientCallbackCount, 0);

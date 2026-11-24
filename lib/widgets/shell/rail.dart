@@ -132,17 +132,20 @@ String get _chordName =>
 class ShellSymbol extends StatelessWidget {
   /// Uses the control's icon theme unless a size or color is supplied.
   /// A directional symbol mirrors with the surrounding text direction.
+  /// An opaque `sourceInk` can draw directly when it matches the foreground.
   const ShellSymbol(
     this._symbol, {
     this._size,
     this._color,
     this._directional = false,
+    this._sourceInk,
     super.key,
   });
 
   final String _symbol;
   final double? _size;
   final Color? _color;
+  final Color? _sourceInk;
   final bool _directional;
 
   @override
@@ -152,6 +155,7 @@ class ShellSymbol extends StatelessWidget {
       context,
       _symbol,
       color: _color ?? inherited.color,
+      sourceInk: _sourceInk,
       size: _size ?? inherited.size,
       directional: _directional,
     );
