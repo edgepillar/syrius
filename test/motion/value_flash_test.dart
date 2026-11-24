@@ -7,11 +7,15 @@ Widget _host(
   String text = 'figure',
   Duration? duration,
   bool disableAnimations = false,
+  bool observePaint = false,
 }) {
   final Widget figure = Text(text);
-  final ValueFlash flash = duration == null
-      ? ValueFlash(value: value, child: figure)
-      : ValueFlash(value: value, duration: duration, child: figure);
+  final ValueFlash flash = ValueFlash(
+    value: value,
+    duration: duration ?? const Duration(milliseconds: 1200),
+    observePaint: observePaint,
+    child: figure,
+  );
   return Directionality(
     textDirection: TextDirection.ltr,
     child: MediaQuery(
@@ -47,12 +51,18 @@ void main() {
     testWidgets('flashes once when the value changes, then rests', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(_host(1));
-      await tester.pumpWidget(_host(2));
+      await tester.pumpWidget(_host(1, observePaint: true));
+      final Element flash = tester.element(find.byType(ValueFlash));
+      expect(ValueFlash.paintedPhaseOf(flash), (0, 1.0));
+      await tester.pumpWidget(_host(2, observePaint: true));
       await tester.pump(const Duration(milliseconds: 100));
+      final (int, double)? painted = ValueFlash.paintedPhaseOf(flash);
+      expect(painted?.$1, 1);
+      expect(painted?.$2, closeTo(100 / 1200, 0.0001));
       expect(_paint, paints..rrect());
 
       await tester.pumpAndSettle();
+      expect(ValueFlash.paintedPhaseOf(flash), (1, 1.0));
       expect(_paint, isNot(paints..rrect()));
       expect(tester.binding.hasScheduledFrame, isFalse);
     });

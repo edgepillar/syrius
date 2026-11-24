@@ -807,6 +807,16 @@ class ReaderTests(unittest.TestCase):
             resume_intervals_us=[(10, 200_010), (2_400_000, 2_600_010)],
             resume_separation_bounds_us=[[2_199_990, 2_600_000]]))
         self.assertNotIn('home_field_drift', inspect_states(with_pulse))
+        self.assertNotIn('height_flash', inspect_states(with_pulse))
+        states['capture']['height_flash'] = [
+            [10, 20, 0, 1000], [200_000, 200_010, 1, 200],
+            [2_400_000, 2_400_010, 1, 1000],
+        ]
+        with_flash = [('manifest.json', encode(states), stat.S_IFREG), *state_files[1:]]
+        self.assertEqual(inspect_states(with_flash)['height_flash'], dict(
+            scope='original_status_strip_height_flash', sample_count=3,
+            observed_changes=1, intermediate_observed=True,
+            intermediate_and_rest_observed=True))
         states['capture']['sync_pulse'][0].append(28)
         states['capture']['sync_pulse'][-1].append(110)
         with_drift = [('manifest.json', encode(states), stat.S_IFREG), *state_files[1:]]

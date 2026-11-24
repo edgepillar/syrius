@@ -51,6 +51,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_fi
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/list_entrance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/rise_switcher.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/state_switcher.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/value_flash.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_wallet_seed_choice_screen.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/new_wallet/new_wallet_confirm_seed_screen.dart';
@@ -576,6 +577,7 @@ class HarnessAgent {
   bool _readyArtworkRefused = false;
   bool _homeArtworkRefused = false;
   Element? _homeClockOwner;
+  Element? _heightFlashOwner;
   bool _stakingArtworkRefused = false;
   bool _originalsArtworkRefused = false;
   PillarReferenceArtwork? _pillarArtwork;
@@ -913,16 +915,33 @@ class HarnessAgent {
         throw const ReadonlyNativeCommandRefused();
       }
       (bool, int)? clock;
+      (int, double)? heightFlash;
       if (_readonlyHomeCatalog && field != null) {
         _homeClockOwner ??= field;
         if (identical(_homeClockOwner, field)) {
           clock = HeroField.homeClockOf(field);
         }
       }
+      if (_readonlyHomeCatalog) {
+        final Element? strip =
+            _findTimingChild(root, (Widget widget) => widget is StatusStrip);
+        if (strip != null) {
+          final Element? flash = _findTimingChild(strip, (Widget widget) =>
+              widget is ValueFlash && widget.observePaint);
+          if (flash != null) {
+            _heightFlashOwner ??= flash;
+            if (identical(_heightFlashOwner, flash)) {
+              heightFlash = ValueFlash.paintedPhaseOf(flash);
+            }
+          }
+        }
+      }
       return <String, Object?>{
         'phaseMilli': (phase * 1000).floor(),
         if (clock != null) 'homeFieldClock': <Object>[clock.$1, clock.$2],
         if (drift != null) 'paintedHomeDriftMillionths': (drift * 1e6).round(),
+        if (heightFlash != null)
+          'heightFlash': <int>[heightFlash.$1, (heightFlash.$2 * 1000).floor()],
       };
     }
     if (command['cmd'] == readonlyActivityMessageSeamCommand) {

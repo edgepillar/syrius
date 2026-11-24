@@ -35,6 +35,7 @@ class ValueFlash extends StatefulWidget {
     required this.child,
     this.color,
     this.duration = const Duration(milliseconds: 1200),
+    this.observePaint = false,
     super.key,
   });
 
@@ -53,12 +54,30 @@ class ValueFlash extends StatefulWidget {
   /// How long one flash lasts, start to gone.
   final Duration duration;
 
+  /// Retains the last painted phase and change counter for inspection.
+  final bool observePaint;
+
+  /// Reads the retained paint without advancing the animation.
+  static (int, double)? paintedPhaseOf(Element element) {
+    if (element is! StatefulElement) return null;
+    final State state = element.state;
+    return state is _ValueFlashState && state.widget.observePaint
+        ? state._lastPaint : null;
+  }
+
   @override
   State<ValueFlash> createState() => _ValueFlashState();
 }
 
 class _ValueFlashState extends State<ValueFlash>
     with SingleTickerProviderStateMixin {
+  int _change = 0;
+  (int, double)? _lastPaint;
+
+  void _observePaint(double phase) {
+    _lastPaint = (_change, phase);
+  }
+
   // At rest the controller sits at 1, where the painter draws nothing.
   late final AnimationController _controller = AnimationController(
     vsync: this,
@@ -73,7 +92,9 @@ class _ValueFlashState extends State<ValueFlash>
   void didUpdateWidget(ValueFlash oldWidget) {
     super.didUpdateWidget(oldWidget);
     _controller.duration = widget.duration;
+    if (!widget.observePaint) _lastPaint = null;
     if (widget.value != oldWidget.value) {
+      if (widget.observePaint) _change++;
       _controller.forward(from: 0);
     }
   }
@@ -90,6 +111,7 @@ class _ValueFlashState extends State<ValueFlash>
       painter: _FlashPainter(
         _controller,
         widget.color ?? AppTokens.of(context).znnInk,
+        widget.observePaint ? _observePaint : null,
       ),
       child: widget.child,
     );
@@ -97,14 +119,17 @@ class _ValueFlashState extends State<ValueFlash>
 }
 
 class _FlashPainter extends CustomPainter {
-  _FlashPainter(this.progress, this.color) : super(repaint: progress);
+  _FlashPainter(this.progress, this.color, this.observePaint)
+      : super(repaint: progress);
 
   final Animation<double> progress;
   final Color color;
+  final ValueChanged<double>? observePaint;
 
   @override
   void paint(Canvas canvas, Size size) {
     final double t = progress.value;
+    observePaint?.call(t);
     if (t <= 0 || t >= 1) return;
     final double strength = t < _kAttack
         ? t / _kAttack
@@ -123,5 +148,6 @@ class _FlashPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_FlashPainter old) =>
-      old.progress != progress || old.color != color;
+      old.progress != progress || old.color != color ||
+      old.observePaint != observePaint;
 }

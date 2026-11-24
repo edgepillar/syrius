@@ -542,6 +542,16 @@ def unpack_home_catalog(raw, expected_sha, expected_size, head, tree, run_id,
                 maximum_progress_millionths=max(drift),
                 observed_change=min(drift) < max(drift),
             )
+    if 'height_flash' in value['capture']:
+        flash = producer.height_flash_receipt(value['capture']['height_flash'], samples)
+        intermediate = {row[2] for row in flash if 0 < row[3] < 1000}
+        settled = {row[2] for row in flash if row[3] == 1000}
+        result['height_flash'] = dict(
+            scope='original_status_strip_height_flash', sample_count=len(flash),
+            observed_changes=flash[-1][2] - flash[0][2],
+            intermediate_observed=bool(intermediate),
+            intermediate_and_rest_observed=bool(intermediate & settled),
+        )
     for field, scope, prefix in (
             ('home_field_occlusion', 'original_home_field_go_to', 'covered'),
             ('home_field_minimize', 'original_home_field_minimize', 'minimized')):
@@ -2114,6 +2124,11 @@ def main(parent=None):
                 source_digests.update(source_files(repo, producer_tree, tree,
                     read_versioned_blob=read_blob,
                     files=('lib/widgets/shell/strip/status_dot.dart',)))
+            if 'height_flash' in catalog:
+                source_digests.update(source_files(repo, producer_tree, tree,
+                    read_versioned_blob=read_blob,
+                    files=('lib/widgets/shell/status_strip.dart',
+                           'lib/rearchitecture/utils/widgets/motion/value_flash.dart')))
             if 'segment_motion' in catalog:
                 source_digests.update(source_files(repo, producer_tree, tree,
                     read_versioned_blob=read_blob,
@@ -2225,6 +2240,7 @@ def main(parent=None):
                   'retained_readonly_details_catalog': 'Details'}[catalog['scope']]
         rail_motion = catalog.pop('rail_motion', None)
         sync_pulse = catalog.pop('sync_pulse', None)
+        height_flash = catalog.pop('height_flash', None)
         segment_motion = catalog.pop('segment_motion', None)
         sheen_hover = catalog.pop('sheen_hover', None)
         eye_motion = catalog.pop('eye_motion', None)
@@ -2250,6 +2266,10 @@ def main(parent=None):
             emit('Retained readonly status halo', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
                 manifest_sha256=catalog['manifest_sha256'], **sync_pulse))
+        if height_flash is not None:
+            emit('Retained readonly momentum height flash', dict(source_head=head,
+                source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
+                manifest_sha256=catalog['manifest_sha256'], **height_flash))
         if home_field_drift is not None:
             emit('Retained readonly Home field drift', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],

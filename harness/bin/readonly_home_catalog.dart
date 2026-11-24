@@ -292,7 +292,11 @@ Future<Map<String, Object>> captureReadonlyHomeGotoStates({
   }
   if (observeMotion) {
     receipt['rail_motion'] = await session.observeRailMotion();
-    receipt['sync_pulse'] = await session.observeSyncPulse();
+    final List<List<int>> heightFlash = <List<int>>[];
+    receipt['sync_pulse'] = await session.observeSyncPulse(
+      heightFlash: heightFlash,
+    );
+    if (heightFlash.isNotEmpty) receipt['height_flash'] = heightFlash;
     receipt['home_field_occlusion'] = await session.observeHomeFieldOcclusion();
     // The segment observations leave Home and retire this field owner.
     final Map<String, Object?>? minimize =

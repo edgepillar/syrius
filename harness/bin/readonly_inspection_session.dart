@@ -242,7 +242,9 @@ class ReadonlyInspectionSession {
   }
 
   /// Samples the status halo and the painted Home drift without new frames.
-  Future<List<List<int>>> observeSyncPulse() async {
+  Future<List<List<int>>> observeSyncPulse({
+    List<List<int>>? heightFlash,
+  }) async {
     await _requireScreenHome();
     final Stopwatch elapsed = Stopwatch()..start();
     const Duration limit = Duration(seconds: 6);
@@ -267,6 +269,16 @@ class ReadonlyInspectionSession {
         sent.inMicroseconds, observed.inMicroseconds, phase,
         if (drift is int) drift,
       ]);
+      final Object? flash = reply['heightFlash'];
+      if (flash case [final int change, final int progress]
+          when change >= 0 && change <= 1000000 &&
+              progress >= 0 && progress <= 1000) {
+        heightFlash?.add(<int>[
+          sent.inMicroseconds, observed.inMicroseconds, change, progress,
+        ]);
+      } else if (flash != null) {
+        _refuse(ReadonlyInspectionReason.reply);
+      }
       await Future<void>.delayed(interval);
     }
     await _requireScreenHome();

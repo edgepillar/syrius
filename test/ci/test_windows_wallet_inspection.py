@@ -663,6 +663,18 @@ class InspectionTests(unittest.TestCase):
         self.assertIs(inspection.rail_motion_receipt(extended), extended)
         sampled = [[10, 20, 950, 4], [30, 40, 1000], [50, 60, 1000, 40]]
         self.assertIs(inspection.sync_pulse_receipt(sampled), sampled)
+        flash = [[10, 20, 0, 1000], [30, 40, 1, 500], [50, 60, 1, 1000]]
+        self.assertIs(inspection.home_capture_receipt(
+            dict(catalog, sync_pulse=sampled, height_flash=flash))['height_flash'], flash)
+        for invalid in ([[1, 20, 1, 500]], [[10, 20, 0, 500]],
+                        [[10, 20, 2, 800], [30, 40, 2, 500]],
+                        [[10, 20, 2, 800], [30, 40, 1, 900]],
+                        [[10, 20, 1, 500], [10, 20, 1, 501]]):
+            with self.subTest(height_flash=invalid), self.assertRaises(inspection.Refused):
+                inspection.home_capture_receipt(dict(catalog, sync_pulse=sampled,
+                                                     height_flash=invalid))
+        with self.assertRaises(inspection.Refused):
+            inspection.home_capture_receipt(dict(catalog, height_flash=flash))
         for invalid in ([[10, 20, 1001]], [[10, 20, True]],
                         [[10, 30, 1000], [20, 40, 0]], [[0, 6_000_001, 0]],
                         [[10, 20, 950, True]], [[10, 20, 950, 1_000_001]]):

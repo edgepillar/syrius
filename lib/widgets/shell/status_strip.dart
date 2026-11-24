@@ -319,6 +319,7 @@ class StatusStrip extends StatelessWidget {
             message: context.l10n.stripMomentumHeight(height),
             child: ValueFlash(
               value: height,
+              observePaint: true,
               child: Ltr(
                 child: Text(
                   '#${splitAmount(BigInt.from(height), 0).$1}',
