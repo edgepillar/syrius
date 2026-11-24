@@ -1,0 +1,52 @@
+{
+  "reviews": {
+    "09-receive-dark": {
+      "actual_sha256": "c9ffff2d74ffb4a8da9455569a86dc074e73bd782e1eda20b38c8ebb2ca39f50",
+      "expected_sha256": "29833553d03b3cb5a7906cfa755389b3b918feca4000684ae79cc2b0f0ab2353",
+      "note": "The tab and address selector, copy and QR actions, request disclosure, and empty queue align. The isolated address, live status, and approved palette differ from the reference. The content pixels are identical to the preceding reviewed capture. Only the live momentum field and adjacent connection halo change.",
+      "reviewed_at": "2026-11-24T23:06:36Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "09-receive-light": {
+      "actual_sha256": "d8e035a6ee1cf5adbbe12680ca5fb56f4a95f4fa2d075d44d7ca48808c41342d",
+      "expected_sha256": "941606d6662bc1a0dce5b6715be83a5c95fd3b9158844ab0e59fb27f4f4c7d35",
+      "note": "The tab and address selector, copy and QR actions, request disclosure, and empty queue align. The isolated address, live status, and approved palette differ from the reference. The content pixels are identical to the preceding reviewed capture. Only the live momentum field and adjacent connection halo change.",
+      "reviewed_at": "2026-11-24T23:06:36Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "16-pillars-dark": {
+      "actual_sha256": "522ae05ef422f8f40a26d938a8be7d768c3422c843cf3875076c75cfbff8784b",
+      "expected_sha256": "2cc96ba5d5e143ec6b96dce6bfdd5bf0dd2d1950f647871f2e950f30b3991869",
+      "note": "The selected delegation, Change action, expanded row, and search and sort alignment are visible. The isolated lab shows three rows, no collectible reward, and unavailable APR and registration values.",
+      "reviewed_at": "2026-11-24T23:06:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "16-pillars-light": {
+      "actual_sha256": "071296f5a66404b5d79d0e5f36ab8503633f3deeb39ddca0905e9bc635f6f4f4",
+      "expected_sha256": "d8a635852cfe165f21d62ce1445484859f8f4ab529af53ade636a360db082c86",
+      "note": "The selected delegation, Change action, expanded row, and search and sort alignment are visible. The isolated lab shows three rows, no collectible reward, and unavailable APR and registration values.",
+      "reviewed_at": "2026-11-24T23:06:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "21-plasma-dark": {
+      "actual_sha256": "8274c1d1cae8707ccc520435e94bb1b60e4157702d735affb4dcf3f23276435c",
+      "expected_sha256": "00bf1d72858ad59603775e8a36a68b326446902e6c52f54756389729da6778bf",
+      "note": "The compact estimate, selected-beneficiary badge, and rounded meter are visible. The indicator and ledger separators align with their reference rows. The generation strip is idle, the two cancelable fusions precede the two locked fusions, and the low-address summary is absent.",
+      "reviewed_at": "2026-11-24T23:06:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "21-plasma-light": {
+      "actual_sha256": "204904752a4c6a6eda1e95a55f5e98d9c8fbcf9f7cc0897ef34a549be322cacc",
+      "expected_sha256": "45f4e4b332c3f332601ad355d8ff5438b97dcea4984c5cffdb2cb35853d27f97",
+      "note": "The compact estimate, selected-beneficiary badge, and rounded meter are visible. The indicator and ledger separators align with their reference rows. The generation strip is idle, the two cancelable fusions precede the two locked fusions, and the low-address summary is absent.",
+      "reviewed_at": "2026-11-24T23:06:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}

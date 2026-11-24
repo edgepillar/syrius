@@ -7786,19 +7786,19 @@ tracks whole-image acceptance for the final source.
 | 06 | `home-zap` | X827 | X828 |
 | 07 | `send-rest` | X829 | X830 |
 | 08 | `send-warn` | X889 | X890 |
-| 09 | `receive` | [match](docs/review/source-26a10b2b-navigation-verdicts.json) | [match](docs/review/source-26a10b2b-navigation-verdicts.json) |
+| 09 | `receive` | [match](docs/review/source-31323092-navigation-verdicts.json) | [match](docs/review/source-31323092-navigation-verdicts.json) |
 | 10 | `receive-qr` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 11 | `zap-form` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 12 | `send-confirm` | X837 | X838 |
 | 13 | `staking` | X1285 | X1286 |
 | 14 | `staking-new` | X893 | X894 |
 | 15 | `staking-empty` | X895 | X896 |
-| 16 | `pillars` | X1802 | X1802 |
+| 16 | `pillars` | X1806 | X1806 |
 | 17 | `pillar-mine` | X839 | X840 |
 | 18 | `sentinels` | X897 | X898 |
 | 19 | `spawn` | X1150 | X1151 |
 | 20 | `pillar-done` | X1152 | X1153 |
-| 21 | `plasma` | X1802 | X1802 |
+| 21 | `plasma` | X1806 | X1806 |
 | 22 | `plasma-fuse` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 23 | `tokens` | X1324 | X1325 |
 | 24 | `token-mine` | X1287 | X1288 |
@@ -11893,3 +11893,4 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1803 | review | 2026-11-25 | All four [Welcome and Import pairs at `31323092`](docs/review/source-31323092-entry-verdicts.json) match. Three originals have the same digest as their previously reviewed match and use the same reference digest. The light Welcome screen was viewed directly. Only 79 pixels near the window controls differ from the prior accepted original, by at most two channel levels. The archive was verified and the PNGs were read in memory. |
 | X1804 | review | 2026-11-25 | The selected Pillar name in both X1802 captures has a 32-pixel ink span at a 42-level threshold. The same name in both references spans 39 pixels and uses 17 px mono type. The delegation strip now uses that style and aligns the weight with the name's alphabetic baseline. Strict Dart analysis passes. The fixture's reward and registration differences remain open, and the new typography needs fresh Windows pixels. |
 | X1805 | review | 2026-11-25 | The [Windows Navigation producer at `31323092`](https://github.com/edgepillar/syrius/actions/runs/45502904344/job/138830553999) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45506227874/job/138842032307) verify all 14 [original PNGs](docs/review/source-31323092-navigation-captures.json) and normal required parent closure. In both themes the resting Plasma column rule is now on row 194, with row rules at 239, 284 and 329. The meter starts on row 257 and retains the rounded tip. These measured positions match the references. Whole-image acceptance remains open. The separate [Details run](https://github.com/edgepillar/syrius/actions/runs/45505662421) targets the open Fuse form and its four companion screens. |
+| X1806 | review | 2026-11-25 | The six [Navigation pairs at `31323092`](docs/review/source-31323092-navigation-verdicts.json) record two Receive matches and four differences. Both Receive content areas are pixel-identical to their previous matches, with changes confined to the live connection halo and momentum. Both Plasma images retain the corrected meter and rules, with differences in generation and fuse states. Both Pillars themes retain their fixture differences and precede the X1804 typography change. |
