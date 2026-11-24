@@ -101,8 +101,33 @@ class _StatusDotState extends State<StatusDot> {
           right: -halo,
           bottom: -halo,
           child: IgnorePointer(
-            child: RepaintBoundary(
-              child: CustomPaint(painter: _StatusHaloPainter(_pulse, tokens)),
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                final double radius = constraints.biggest.shortestSide / 2;
+                return ValueListenableBuilder<double>(
+                  valueListenable: _pulse,
+                  // Retain the circle while its scale and opacity change.
+                  child: RepaintBoundary(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: tokens.znn,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const SizedBox.expand(),
+                    ),
+                  ),
+                  builder: (_, double pulse, Widget? child) {
+                    final double remaining = 1 - tokens.ease.transform(pulse);
+                    return Opacity(
+                      opacity: 0.6 * remaining,
+                      child: Transform.scale(
+                        scale: (radius - halo * remaining) / radius,
+                        child: child,
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ),
@@ -120,28 +145,4 @@ class _StatusDotState extends State<StatusDot> {
       ],
     );
   }
-}
-
-class _StatusHaloPainter extends CustomPainter {
-  _StatusHaloPainter(this.pulse, this.tokens) : super(repaint: pulse);
-
-  final ValueNotifier<double> pulse;
-  final AppTokens tokens;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final double progress = tokens.ease.transform(pulse.value);
-    if (progress == 1) return;
-    final double remaining = 1 - progress;
-    // The halo uses brand green for every connection state.
-    canvas.drawCircle(
-      size.center(Offset.zero),
-      size.shortestSide / 2 - tokens.statusDotHalo * remaining,
-      Paint()..color = tokens.znn.withValues(alpha: 0.6 * remaining),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_StatusHaloPainter oldDelegate) =>
-      oldDelegate.pulse != pulse || oldDelegate.tokens != tokens;
 }

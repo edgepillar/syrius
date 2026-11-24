@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart' show PictureLayer, RenderRepaintBoundary;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
@@ -24,22 +25,30 @@ Widget _app(Widget child, {bool dark = true, bool disabled = false}) =>
       ),
     );
 
-Finder get _haloPaint => find.descendant(
+Finder get _haloBoundary => find.descendant(
   of: find.byType(StatusDot),
-  matching: find.byType(CustomPaint),
+  matching: find.byType(RepaintBoundary),
 );
 
 ({double radius, Color color})? _halo(WidgetTester tester) {
-  final CustomPaint widget = tester.widget<CustomPaint>(_haloPaint);
-  final TestRecordingCanvas canvas = TestRecordingCanvas();
-  widget.painter!.paint(canvas, tester.getSize(_haloPaint));
-  if (canvas.invocations.isEmpty) return null;
-  final Invocation call = canvas.invocations.single.invocation;
-  expect(call.memberName, #drawCircle);
-  expect(call.positionalArguments[0], const Offset(11, 11));
+  final Finder dot = find.byType(StatusDot);
+  final Opacity opacity = tester.widget<Opacity>(
+    find.descendant(of: dot, matching: find.byType(Opacity)),
+  );
+  if (opacity.opacity == 0) return null;
+  final Transform scale = tester.widget<Transform>(
+    find.descendant(of: dot, matching: find.byType(Transform)),
+  );
+  expect(scale.alignment, Alignment.center);
+  final DecoratedBox circle = tester.widget<DecoratedBox>(
+    find.descendant(of: _haloBoundary, matching: find.byType(DecoratedBox)),
+  );
+  final BoxDecoration decoration = circle.decoration as BoxDecoration;
+  expect(decoration.shape, BoxShape.circle);
   return (
-    radius: call.positionalArguments[1] as double,
-    color: (call.positionalArguments[2] as Paint).color,
+    radius: tester.getSize(_haloBoundary).shortestSide / 2 *
+        scale.transform.entry(0, 0),
+    color: decoration.color!.withValues(alpha: opacity.opacity),
   );
 }
 
@@ -72,12 +81,15 @@ void main() {
             _app(StatusDot(color: AppTokens.dark.znn), disabled: disabled),
           );
           await tester.pump();
-          final CustomPaint originalHalo = tester.widget<CustomPaint>(
-            _haloPaint,
-          );
+          final RenderRepaintBoundary halo =
+              tester.renderObject<RenderRepaintBoundary>(_haloBoundary);
+          final PictureLayer originalPaint =
+              halo.debugLayer!.firstChild! as PictureLayer;
+          final Object? originalPicture = originalPaint.picture;
+          expect(originalPicture, isNotNull);
           final Element dot = tester.element(find.byType(StatusDot));
           expect(StatusDot.haloPhaseOf(dot), 0);
-          expect(tester.getSize(_haloPaint), const Size.square(22));
+          expect(tester.getSize(_haloBoundary), const Size.square(22));
           expect(_halo(tester)!.radius, 4);
           expect(_halo(tester)!.color.a, closeTo(0.6, 0.001));
           expect(
@@ -91,7 +103,9 @@ void main() {
           const Curve cssEase = Cubic(0.4, 0, 0.2, 1);
           final double halfway = cssEase.transform(0.5);
           expect(StatusDot.haloPhaseOf(dot), closeTo(0.5, 0.001));
-          expect(tester.widget<CustomPaint>(_haloPaint), same(originalHalo));
+          final PictureLayer halfwayPaint =
+              halo.debugLayer!.firstChild! as PictureLayer;
+          expect(halfwayPaint.picture, same(originalPicture));
           expect(_halo(tester)!.radius, closeTo(4 + 7 * halfway, 0.001));
           expect(_halo(tester)!.color.a, closeTo(0.6 * (1 - halfway), 0.001));
           expect(tester.binding.transientCallbackCount, greaterThan(0));
