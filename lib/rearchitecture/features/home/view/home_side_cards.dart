@@ -308,6 +308,7 @@ class _CollectCard extends StatelessWidget {
               ),
             ),
           ),
+          Divider(height: 1, thickness: 1, color: tokens.line),
           if (notice case final String message)
             Padding(
               padding: EdgeInsetsDirectional.only(

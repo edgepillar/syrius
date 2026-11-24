@@ -253,6 +253,17 @@ void main() {
         );
         expect(tester.getSize(button).height, 30);
         expect(tester.widget<OutlinedButton>(button).onPressed, isNotNull);
+        final Finder collectCard = find.byKey(const Key('home_collect_card'));
+        final Finder rule = find.descendant(
+          of: collectCard,
+          matching: find.byType(Divider),
+        );
+        expect(tester.getSize(rule).height, 1);
+        expect(tester.getRect(rule).bottom, tester.getRect(collectCard).bottom);
+        expect(
+          tester.widget<Divider>(rule).color,
+          AppTokens.of(tester.element(rule)).line,
+        );
         await tester.tap(button);
         expect(collections, 1);
 
