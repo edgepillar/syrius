@@ -82,13 +82,16 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
       }
       if (!zenon.wsClient.isClosed()) {
         final T data = await fetch();
+        if (isClosed) return;
         emit(state.copyWith(data: data, status: TimerStatus.success) as S);
       } else {
         throw noConnectionException;
       }
     } on SyriusException catch (e) {
+      if (isClosed) return;
       emit(state.copyWith(status: TimerStatus.failure, error: e) as S);
     } on Object catch (e, stackTrace) {
+      if (isClosed) return;
       emit(
         state.copyWith(
               status: TimerStatus.failure,
@@ -100,7 +103,7 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
       addError(e, stackTrace);
     } finally {
       /// Ensure that the auto-refresher is restarted if it's not active.
-      if (!isTimerActive) {
+      if (!isClosed && !isTimerActive) {
         _startAutoRefresh();
       }
     }

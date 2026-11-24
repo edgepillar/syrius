@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -151,5 +153,35 @@ void main() {
         ),
       ],
     );
+
+    for (final Object result in <Object>[
+      1,
+      FailureException(),
+      StateError('late'),
+    ]) {
+      test(
+        'closing during a fetch retires its result (${result.runtimeType})',
+        () async {
+          final Completer<int> pending = Completer<int>();
+          final TestTimerCubit cubit = TestTimerCubit(
+            zenon: mockZenon,
+            fetchCallback: () => pending.future,
+          );
+
+          final Future<void> fetch = cubit.fetchDataPeriodically();
+          expect(cubit.state.status, TimerStatus.loading);
+          await cubit.close();
+          if (result is int) {
+            pending.complete(result);
+          } else {
+            pending.completeError(result);
+          }
+
+          await fetch;
+          expect(cubit.state.status, TimerStatus.loading);
+          expect(cubit.isTimerActive, isFalse);
+        },
+      );
+    }
   });
 }
