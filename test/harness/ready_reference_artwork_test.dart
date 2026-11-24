@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/rendering.dart'
-    show RenderPhysicalShape, RenderRepaintBoundary;
+    show RenderBox, RenderPhysicalShape;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lottie/lottie.dart';
@@ -328,64 +328,56 @@ void main() {
     }
 
     const Color green = Color(0xFF00D557);
-    for (final (Color marker, Color? sibling, String clip, String enclosing)
-        in <(Color, Color?, String, String)>[
-      (green, null, 'present', 'present'),
-      (Colors.white, null, 'absent', 'absent'),
-      (Colors.white, green, 'absent', 'present'),
+    Widget mark(double x, double y, Color color) => Positioned(
+      left: x,
+      top: y,
+      width: 2,
+      height: 24,
+      child: RepaintBoundary(child: ColoredBox(color: color)),
+    );
+    for (final String placement in <String>[
+      'inside clip', 'beside clip', 'outside boundary', 'nowhere',
     ]) {
+      final bool insideClip = placement == 'inside clip';
+      final bool besideClip = placement == 'beside clip';
+      final bool outsideBoundary = placement == 'outside boundary';
+      final Widget pane = Positioned(
+        left: 20,
+        top: 20,
+        width: 120,
+        height: 60,
+        child: PhysicalShape(
+          key: const ValueKey<String>('pillar_create_pane'),
+          clipper: const ShapeBorderClipper(shape: RoundedRectangleBorder()),
+          color: Colors.black,
+          clipBehavior: Clip.antiAlias,
+          child: Stack(children: <Widget>[
+            mark(44, 4, insideClip ? green : Colors.white),
+          ]),
+        ),
+      );
       await tester.pumpWidget(Directionality(
         textDirection: TextDirection.ltr,
-        child: Stack(
-          children: <Widget>[
-            Positioned(
-              left: 20,
-              top: 12,
-              width: 180,
-              height: 100,
-              child: RepaintBoundary(
-                child: Stack(
-                  children: <Widget>[
-                    Positioned(
-                      left: 20,
-                      top: 20,
-                      width: 120,
-                      height: 60,
-                      child: PhysicalShape(
-                        key: const ValueKey<String>('pillar_create_pane'),
-                        clipper: const ShapeBorderClipper(
-                          shape: RoundedRectangleBorder(),
-                        ),
-                        color: Colors.black,
-                        clipBehavior: Clip.antiAlias,
-                        child: Stack(
-                          children: <Widget>[
-                            Positioned(
-                              left: 44,
-                              top: 4,
-                              width: 2,
-                              height: 24,
-                              child: RepaintBoundary(
-                                child: ColoredBox(color: marker),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    if (sibling != null)
-                      Positioned(
-                        left: 64,
-                        top: 24,
-                        width: 2,
-                        height: 24,
-                        child: ColoredBox(color: sibling),
-                      ),
-                  ],
+        child: RepaintBoundary(
+          child: Stack(
+            children: <Widget>[
+              Positioned(
+                left: 20,
+                top: 12,
+                width: 180,
+                height: 100,
+                child: RepaintBoundary(
+                  child: Stack(
+                    children: <Widget>[
+                      pane,
+                      if (besideClip) mark(64, 24, green),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+              if (outsideBoundary) mark(84, 36, green),
+            ],
+          ),
         ),
       ));
       await tester.runAsync(() async {
@@ -394,14 +386,25 @@ void main() {
             tester.binding.rootElement,
             (RenderPhysicalShape pane) => pane.debugLayer,
           ),
-          clip,
+          insideClip ? 'present' : 'absent',
+          reason: placement,
         );
         expect(
           await observePillarEnclosingPaintMark(
             tester.binding.rootElement,
-            (RenderRepaintBoundary boundary) => boundary.debugLayer,
+            (RenderBox boundary) => boundary.debugLayer,
           ),
-          enclosing,
+          insideClip || besideClip ? 'present' : 'absent',
+          reason: placement,
+        );
+        expect(
+          await observePillarEnclosingPaintMark(
+            tester.binding.rootElement,
+            (RenderBox boundary) => boundary.debugLayer,
+            outsideNearest: true,
+          ),
+          placement != 'nowhere' ? 'present' : 'absent',
+          reason: placement,
         );
       });
     }

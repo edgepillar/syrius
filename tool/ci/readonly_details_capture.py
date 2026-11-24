@@ -375,7 +375,7 @@ def capture_receipt(value):
         expected['pillar_header_caret'] = carets
     if schema == PILLAR_DONE_SCHEMA:
         for key in ('pillar_header_layer_mark', 'pillar_pane_clip_mark',
-                    'pillar_enclosing_paint_mark'):
+                    'pillar_enclosing_paint_mark', 'pillar_outer_paint_mark'):
             if key in value:
                 marks = value[key]
                 need(type(marks) is dict and set(marks) == set(THEMES)
@@ -651,7 +651,8 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id,
         result['images'] = {row['file']: row['sha256'] for row in captures}
     if schema == PILLAR_DONE_SCHEMA:
         for key in ('pillar_header_caret', 'pillar_header_layer_mark',
-                    'pillar_pane_clip_mark', 'pillar_enclosing_paint_mark'):
+                    'pillar_pane_clip_mark', 'pillar_enclosing_paint_mark',
+                    'pillar_outer_paint_mark'):
             if key in value['capture']:
                 result[key] = value['capture'][key]
     if schema == FAMILY_SCHEMAS['home-zap-preview']:

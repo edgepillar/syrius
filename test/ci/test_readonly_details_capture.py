@@ -97,10 +97,12 @@ class DetailsCatalogTests(unittest.TestCase):
         marks = dict(dark='present', light='absent')
         pane = dict(dark='absent', light='unavailable')
         enclosing = dict(dark='present', light='present')
+        outer = dict(dark='unavailable', light='present')
         measured.update(pillar_header_layer_mark=marks, pillar_pane_clip_mark=pane,
-                        pillar_enclosing_paint_mark=enclosing)
+                        pillar_enclosing_paint_mark=enclosing,
+                        pillar_outer_paint_mark=outer)
         for key in ('pillar_header_layer_mark', 'pillar_pane_clip_mark',
-                    'pillar_enclosing_paint_mark'):
+                    'pillar_enclosing_paint_mark', 'pillar_outer_paint_mark'):
             for invalid in ({'dark': 'present'}, {'dark': 'present', 'light': [0, 213, 87]}):
                 with self.subTest(field=key, observation=invalid), self.assertRaises(details.Refused):
                     details.capture_receipt(dict(measured, **{key: invalid}))
@@ -117,6 +119,7 @@ class DetailsCatalogTests(unittest.TestCase):
         self.assertEqual(inspected['pillar_header_layer_mark'], marks)
         self.assertEqual(inspected['pillar_pane_clip_mark'], pane)
         self.assertEqual(inspected['pillar_enclosing_paint_mark'], enclosing)
+        self.assertEqual(inspected['pillar_outer_paint_mark'], outer)
 
     def test_holder_receipt_requires_positive_non_owner_state(self):
         schema = details.RESTORED_FAMILIES['token-holder']

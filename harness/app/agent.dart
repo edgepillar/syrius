@@ -6256,7 +6256,14 @@ class HarnessAgent {
     final Future<String>? pillarEnclosingPaintMark = observePillarCaret
         ? observePillarEnclosingPaintMark(
             WidgetsBinding.instance.rootElement,
-            (RenderRepaintBoundary boundary) => boundary.layer,
+            (RenderBox boundary) => boundary.layer,
+          )
+        : null;
+    final Future<String>? pillarOuterPaintMark = observePillarCaret
+        ? observePillarEnclosingPaintMark(
+            WidgetsBinding.instance.rootElement,
+            (RenderBox boundary) => boundary.layer,
+            outsideNearest: true,
           )
         : null;
     _lockShotPhase('layer');
@@ -6279,6 +6286,7 @@ class HarnessAgent {
       final String? headerMark = await pillarHeaderLayerMark;
       final String? paneMark = await pillarPaneClipMark;
       final String? enclosingMark = await pillarEnclosingPaintMark;
+      final String? outerMark = await pillarOuterPaintMark;
       _lockShotPhase('png');
       if (guarded &&
           (image.width != c['width'] || image.height != c['height'])) {
@@ -6316,6 +6324,7 @@ class HarnessAgent {
         'pillarHeaderCaret': ?pillarHeaderCaret,
         'pillarHeaderLayerMark': ?headerMark,
         'pillarEnclosingPaintMark': ?enclosingMark,
+        'pillarOuterPaintMark': ?outerMark,
         'pillarPaneClipMark': ?paneMark,
         if (layoutBefore != null)
           'layoutObservation': pairReadonlyShotLayout(

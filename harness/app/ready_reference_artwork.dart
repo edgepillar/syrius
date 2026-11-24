@@ -230,11 +230,12 @@ Future<String> observePillarPaneClipMark(
 }
 
 /// Checks the nearest existing repaint boundary enclosing the Pillar pane.
+/// With [outsideNearest], it searches up to four more enclosing boundaries.
 Future<String> observePillarEnclosingPaintMark(
   Element? root,
-  Layer? Function(RenderRepaintBoundary) paintedLayer,
-) async {
-  ui.Image? image;
+  Layer? Function(RenderBox) paintedLayer, {
+  bool outsideNearest = false,
+}) async {
   try {
     final RenderPhysicalShape? pane =
         _pillarPaintTarget<RenderPhysicalShape>(root, 'pillar_create_pane');
@@ -243,9 +244,40 @@ Future<String> observePillarEnclosingPaintMark(
       ancestor = ancestor.parent;
     }
     if (ancestor is! RenderRepaintBoundary) return 'unavailable';
-    final Rect? mark = _localPillarMark(ancestor);
-    final Layer? layer = paintedLayer(ancestor);
-    if (mark == null || layer is! OffsetLayer) return 'unavailable';
+    if (!outsideNearest) {
+      return await _readPillarBoundary(ancestor, paintedLayer);
+    }
+
+    final List<RenderBox> boundaries = <RenderBox>[];
+    for (RenderObject? next = ancestor.parent;
+        next != null;
+        next = next.parent) {
+      if (next is! RenderBox || !next.isRepaintBoundary) continue;
+      if (boundaries.length == 4) return 'unavailable';
+      boundaries.add(next);
+    }
+    final List<String> results = await Future.wait(<Future<String>>[
+      for (final RenderBox boundary in boundaries)
+        _readPillarBoundary(boundary, paintedLayer),
+    ]);
+    if (results.contains('present')) return 'present';
+    return results.isNotEmpty && !results.contains('unavailable')
+        ? 'absent'
+        : 'unavailable';
+  } on Object {
+    return 'unavailable';
+  }
+}
+
+Future<String> _readPillarBoundary(
+  RenderBox boundary,
+  Layer? Function(RenderBox) paintedLayer,
+) async {
+  final Rect? mark = _localPillarMark(boundary);
+  final Layer? layer = paintedLayer(boundary);
+  if (mark == null || layer is! OffsetLayer) return 'unavailable';
+  ui.Image? image;
+  try {
     image = await layer.toImage(mark);
     return await _readPillarMark(image, Offset.zero & mark.size);
   } on Object {
