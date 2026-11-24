@@ -279,12 +279,39 @@ RenderRepaintBoundary? _nextPillarBoundary(RenderObject? object) {
   return null;
 }
 
+Set<Layer> _pillarEditorPaintLayers(
+  Element? root,
+  Layer? Function(RenderBox) paintedLayer,
+) {
+  final Set<Layer> layers = Set<Layer>.identity();
+  int visited = 0;
+  void visit(Element element) {
+    if (++visited > 16384) throw StateError('Editor observation limit');
+    if (element case RenderObjectElement(
+        renderObject: final RenderEditable editor,
+      ) when editor.attached) {
+      editor.visitChildren((RenderObject child) {
+        if (child is RenderBox && child.attached && child.isRepaintBoundary) {
+          final Layer? layer = paintedLayer(child);
+          if (layer != null) layers.add(layer);
+        }
+      });
+    }
+    // A retained editor can have an old layer even when it is not onstage.
+    // Only layers that are also traversed in the captured scene can match.
+    element.visitChildren(visit);
+  }
+
+  if (root != null) visit(root);
+  return layers;
+}
+
 /// Searches translated pictures for the exact mark before clipping or opacity.
 /// Call immediately after building the original scene.
 Future<String> observePillarRecordedMark(
   Element? elements,
   ContainerLayer scene,
-  Layer? Function(RenderRepaintBoundary) paintedLayer, {
+  Layer? Function(RenderBox) paintedLayer, {
   required double devicePixelRatio,
 }) async {
   try {
@@ -303,6 +330,8 @@ Future<String> observePillarRecordedMark(
             identical(transition, page)
         ? null
         : paintedLayer(transition);
+    final Set<Layer> editorLayers =
+        _pillarEditorPaintLayers(elements, paintedLayer);
     final double pixelScale = 1 / devicePixelRatio;
     final List<(Layer, Matrix4, String)> pending = <(Layer, Matrix4, String)>[
       (scene, Matrix4.diagonal3Values(pixelScale, pixelScale, 1), 'outside'),
@@ -335,6 +364,7 @@ Future<String> observePillarRecordedMark(
         };
       }
       if (identical(layer, pane)) scope = 'inside';
+      if (editorLayers.contains(layer)) scope = 'in_editor_paint';
       if (layer is ContainerLayer) {
         for (Layer? child = layer.firstChild;
             child != null;

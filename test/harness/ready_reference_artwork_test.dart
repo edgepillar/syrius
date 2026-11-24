@@ -5,8 +5,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/rendering.dart'
-    show ContainerLayer, RenderBox, RenderPhysicalShape,
-        RenderRepaintBoundary, RenderView;
+    show ContainerLayer, RenderBox, RenderEditable, RenderEditablePainter,
+        RenderPhysicalShape, RenderView;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lottie/lottie.dart';
@@ -24,6 +24,20 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film
 
 import '../../harness/app/capture_frame.dart';
 import '../../harness/app/ready_reference_artwork.dart';
+
+class _EditorMarkPainter extends RenderEditablePainter {
+  @override
+  bool shouldRepaint(RenderEditablePainter? oldDelegate) =>
+      oldDelegate is! _EditorMarkPainter;
+
+  @override
+  void paint(ui.Canvas canvas, ui.Size size, RenderEditable renderEditable) {
+    canvas.drawRect(
+      const ui.Rect.fromLTWH(0, 0, 2, 24),
+      ui.Paint()..color = const ui.Color(0xFF00D557),
+    );
+  }
+}
 
 class _Bundle extends CachingAssetBundle {
   Future<void>? filmReady;
@@ -472,13 +486,83 @@ void main() {
           await observePillarRecordedMark(
             tester.binding.rootElement,
             layer,
-            (RenderRepaintBoundary boundary) => boundary.debugLayer,
+            (RenderBox boundary) => boundary.debugLayer,
             devicePixelRatio: view.configuration.devicePixelRatio,
           ),
           recordedScope,
           reason: placement,
         );
       });
+    }
+    final TextEditingController retainedEditor = TextEditingController();
+    final FocusNode retainedFocus = FocusNode();
+    final _EditorMarkPainter editorPaint = _EditorMarkPainter();
+    try {
+      for (final bool offstage in <bool>[false, true]) {
+        await tester.pumpWidget(MaterialApp(
+          home: Scaffold(
+            body: RepaintBoundary(
+              key: const ValueKey<String>('shell_page_paint'),
+              child: Stack(children: <Widget>[
+                const Positioned.fill(
+                  child: RepaintBoundary(
+                    child: PhysicalShape(
+                      key: ValueKey<String>('pillar_create_pane'),
+                      clipper: ShapeBorderClipper(
+                        shape: RoundedRectangleBorder(),
+                      ),
+                      color: Colors.black,
+                      child: SizedBox.expand(),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 84,
+                  top: 36,
+                  width: 100,
+                  child: Offstage(
+                    offstage: offstage,
+                    child: EditableText(
+                      controller: retainedEditor,
+                      focusNode: retainedFocus,
+                      style: const TextStyle(fontSize: 16),
+                      minLines: 2,
+                      maxLines: 2,
+                      cursorColor: Colors.transparent,
+                      backgroundCursorColor: Colors.transparent,
+                    ),
+                  ),
+                ),
+              ]),
+            ),
+          ),
+        ));
+        final EditableTextState field = tester.state(
+          find.byType(EditableText, skipOffstage: false),
+        );
+        field.renderEditable.foregroundPainter = editorPaint;
+        await tester.pump();
+        expect(retainedFocus.hasFocus, isFalse);
+        await tester.runAsync(() async {
+          final RenderView view = tester.binding.renderViews.single;
+          final ContainerLayer layer = view.debugLayer!;
+          layer.buildScene(ui.SceneBuilder()).dispose();
+          expect(
+            await observePillarRecordedMark(
+              tester.binding.rootElement,
+              layer,
+              (RenderBox boundary) => boundary.debugLayer,
+              devicePixelRatio: view.configuration.devicePixelRatio,
+            ),
+            offstage ? 'no_picture' : 'in_editor_paint',
+          );
+        });
+      }
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      editorPaint.dispose();
+      retainedFocus.dispose();
+      retainedEditor.dispose();
     }
   });
 

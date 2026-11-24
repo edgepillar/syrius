@@ -389,7 +389,7 @@ def capture_receipt(value):
                  and all(type(status) is str and status in (
                      'inside', 'outside', 'in_shell_page', 'outside_shell_page',
                      'in_pane_transition', 'in_shell_follower',
-                     'in_pane_transition_follower',
+                     'in_pane_transition_follower', 'in_editor_paint',
                      'no_picture', 'multiple_pictures', 'unavailable')
                          for status in marks.values()), 'CAPTURE_REFUSED')
             expected['pillar_recorded_mark'] = marks

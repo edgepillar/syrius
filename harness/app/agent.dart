@@ -6267,7 +6267,7 @@ class HarnessAgent {
         ? observePillarRecordedMark(
             WidgetsBinding.instance.rootElement,
             layer,
-            (RenderRepaintBoundary boundary) => boundary.layer,
+            (RenderBox boundary) => boundary.layer,
             devicePixelRatio: metrics.devicePixelRatio,
           )
         : null;

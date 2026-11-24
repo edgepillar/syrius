@@ -1525,7 +1525,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
           final String mark when const <String>{
             'inside', 'outside', 'in_shell_page', 'outside_shell_page',
             'in_pane_transition', 'in_shell_follower',
-            'in_pane_transition_follower',
+            'in_pane_transition_follower', 'in_editor_paint',
             'no_picture', 'multiple_pictures',
           }.contains(mark) => mark,
           _ => 'unavailable',

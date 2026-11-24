@@ -103,7 +103,7 @@ class DetailsCatalogTests(unittest.TestCase):
         self.assertEqual(details.capture_receipt(dict(capture,
             pillar_recorded_mark=previous))['pillar_recorded_mark'], previous)
         for option in ('in_pane_transition', 'in_shell_follower',
-                       'in_pane_transition_follower'):
+                       'in_pane_transition_follower', 'in_editor_paint'):
             linked = dict(dark=option, light=option)
             self.assertEqual(details.capture_receipt(dict(capture,
                 pillar_recorded_mark=linked))['pillar_recorded_mark'], linked)
