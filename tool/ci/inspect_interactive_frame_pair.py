@@ -46,14 +46,19 @@ def split_phase_diagnostics(windows):
     """Keep observed motion boundaries in their own bounded notice."""
     phases = {}
     for name, timing in windows.get('current', {}).items():
+        fields = {}
         if 'observed_post_frame_offsets_from_tap_us' in timing:
-            phases[name] = {
+            fields.update({
                 key: timing.pop(key) for key in (
                     'observed_post_frame_offsets_from_tap_us',
                     'raster_start_groups_by_observed_phase',
                     'post_boundary_raster_groups_by_build_start',
                 )
-            }
+            })
+        if 'reported_raster_coverage_us' in timing:
+            fields['reported_raster_coverage_us'] = timing.pop('reported_raster_coverage_us')
+        if fields:
+            phases[name] = fields
     return phases
 
 
@@ -268,6 +273,26 @@ def _frame_gaps_by_previous_raster(window):
     return result
 
 
+def _reported_raster_coverage(rows, starts, end_us, tap_us, motion_us, settled_us):
+    """Count the union of observed raster intervals within each time range."""
+    intervals = []
+    for start, end in sorted((starts[row[0]], starts[row[0]] + row[3]) for row in rows):
+        if intervals and start <= intervals[-1][1]:
+            intervals[-1] = (intervals[-1][0], max(end, intervals[-1][1]))
+        else:
+            intervals.append((start, end))
+
+    def covered(begin, end):
+        return sum(max(0, min(end, finish) - max(begin, start))
+                   for start, finish in intervals)
+
+    result = dict(window=covered(0, end_us),
+                  nominal_motion=covered(tap_us, min(end_us, tap_us + motion_us)))
+    if settled_us is not None:
+        result['after_settlement'] = covered(settled_us, end_us)
+    return result
+
+
 def _window_diagnostics(window, tap_release_us, motion_us, observed_phases=None,
                         pointer_phases=None):
     result = cold.window_diagnostics(window, peak_starts=True)
@@ -277,6 +302,9 @@ def _window_diagnostics(window, tap_release_us, motion_us, observed_phases=None,
         raster_starts = cold.recorded_raster_starts(rows, window)
         if raster_starts:
             result['raster_start_timestamps_observed'] = True
+            result['reported_raster_coverage_us'] = _reported_raster_coverage(
+                rows, raster_starts, window['windowUs'], tap_release_us,
+                motion_us, (observed_phases or {}).get('settled'))
         result['tap_release_us'] = tap_release_us
         result['peak_raster_start_bounds_from_tap_us'] = {
             name: offset - tap_release_us

@@ -349,6 +349,18 @@ class InteractiveFramePairTests(unittest.TestCase):
             with self.assertRaises(pair.shared.launch.startup.Failure):
                 pair.shared.launch.frame_timing_rows(dict(window, peakBuildWaitUs=refusal))
 
+    def test_exact_raster_coverage_unions_intervals_and_clips_at_window_end(self):
+        window = dict(schema=1, scope='harness_frame_window', windowUs=20000,
+                      frames=[[0, 1000, 1000, 6000, 10000],
+                              [1, 3000, 2000, 6000, 13000],
+                              [2, 12000, 2000, 9000, 18000]])
+        expected = dict(window=12500, nominal_motion=9000, after_settlement=4000)
+        observed = dict(window, rasterStartsUs=[2500, 6000, 17000])
+        timing = inspect._window_diagnostics(observed, 4000, 14000, {'settled': 11000})
+        self.assertEqual(timing['reported_raster_coverage_us'], expected)
+        older = inspect._window_diagnostics(window, 4000, 14000, {'settled': 11000})
+        self.assertNotIn('reported_raster_coverage_us', older)
+
     def test_retained_raster_starts_resolve_interaction_boundaries(self):
         window = dict(schema=1, scope='harness_frame_window', windowUs=100000,
                       frames=[[0, 1000, 1000, 2000, 5000],
@@ -1574,6 +1586,17 @@ class InteractiveFramePairTests(unittest.TestCase):
         pointer = inspect.split_pointer_diagnostics(diagnostics)
         self.assertEqual(set(pointer), set(pair.WINDOWS))
         self.assertEqual(inspect.split_pointer_diagnostics(diagnostics), {})
+        # Check the notice ceiling with exact starts independently of the
+        # manifest ceiling. Raw timestamps already have their own field cap.
+        start_us = pair.actions.MAX_WINDOW_US - 1 + 20000000
+        for name, window in offered['samples']['current']['observation']['windows'].items():
+            observed = dict(window, rasterStartsUs=[start_us] * len(window['frames']))
+            timing = inspect._window_diagnostics(
+                observed, pair.actions.MAX_WINDOW_US - 1, inspect.MOTION_US[name],
+                {'settled': pair.actions.MAX_WINDOW_US - 1})
+            self.assertEqual(timing['reported_raster_coverage_us']['window'], 0)
+            diagnostics['current'][name]['reported_raster_coverage_us'] = (
+                timing['reported_raster_coverage_us'])
         phases = inspect.split_phase_diagnostics(diagnostics)
         self.assertEqual(set(phases), set(pair.WINDOWS))
         self.assertEqual(inspect.split_phase_diagnostics(diagnostics), {})
