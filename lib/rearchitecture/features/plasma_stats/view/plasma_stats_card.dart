@@ -255,7 +255,7 @@ class _Figures extends StatelessWidget {
                 style: estimateStyle,
                 child: Text(
                   sendsCovered > 0
-                      ? context.l10n.homePlasmaSends(sendsCovered)
+                      ? context.l10n.plasmaPageSends(sendsCovered)
                       : context.l10n.homePlasmaNeedsWork,
                   textAlign: TextAlign.end,
                   style: estimateStyle,

@@ -116,7 +116,7 @@ void main() {
           );
           final Finder mark = find.byKey(const Key('plasma_page_mark'));
           final Finder fused = find.text('Fused ');
-          final Finder sends = find.text('Enough for about 3 sends');
+          final Finder sends = find.text('About 3 sends');
           final State<PlasmaGlow> glow = tester.state<State<PlasmaGlow>>(mark);
           final Finder disclosure = find.byKey(
             const Key('plasma_other_addresses'),

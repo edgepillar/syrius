@@ -1750,6 +1750,15 @@
   "@plasmaPageFused": {
     "description": "Title of the list on the Plasma page: the fusions the selected address has made, one row each. A number beside it says how many."
   },
+  "plasmaPageSends": "{count, plural, =1{About 1 send} other{About {count} sends}}",
+  "@plasmaPageSends": {
+    "description": "Compact estimate beside the selected address’s fused QSR on the Plasma page.",
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "plasmaPageThisAddress": "this",
+  "@plasmaPageThisAddress": {
+    "description": "Short badge next to the current address in the Plasma beneficiary column."
+  },
   "plasmaPageOtherAddresses": "Other addresses",
   "@plasmaPageOtherAddresses": {
     "description": "Title of a section on the Plasma page that opens to show the plasma level of the wallet's addresses other than the selected one. A number beside it says how many."

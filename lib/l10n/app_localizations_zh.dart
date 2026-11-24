@@ -2226,6 +2226,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plasmaPageFused => 'Fused';
 
   @override
+  String plasmaPageSends(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'About $count sends',
+      one: 'About 1 send',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plasmaPageThisAddress => 'this';
+
+  @override
   String get plasmaPageOtherAddresses => 'Other addresses';
 
   @override

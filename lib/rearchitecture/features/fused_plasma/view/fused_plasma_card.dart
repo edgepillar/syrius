@@ -565,11 +565,15 @@ class _Beneficiary extends StatelessWidget {
                 child: Align(
                   widthFactor: 1,
                   heightFactor: 1,
-                  child: Text(
-                    context.l10n.tokensThisAddress,
-                    style: tokens.captionText,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  child: Semantics(
+                    label: context.l10n.tokensThisAddress,
+                    excludeSemantics: true,
+                    child: Text(
+                      context.l10n.plasmaPageThisAddress,
+                      style: tokens.captionText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ),
               ),

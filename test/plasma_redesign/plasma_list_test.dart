@@ -262,7 +262,7 @@ void main() {
             );
             expect(tester.getSize(row).height, 44);
             expect(
-              find.descendant(of: row, matching: find.text('This address')),
+              find.descendant(of: row, matching: find.text('this')),
               id == 1 ? findsOneWidget : findsNothing,
             );
             final Color fill = (id == 1 ? tokens.znn : tokens.qsr).withValues(

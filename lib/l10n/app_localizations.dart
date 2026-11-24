@@ -3635,6 +3635,18 @@ abstract class AppLocalizations {
   /// **'Fused'**
   String get plasmaPageFused;
 
+  /// Compact estimate beside the selected address’s fused QSR on the Plasma page.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{About 1 send} other{About {count} sends}}'**
+  String plasmaPageSends(int count);
+
+  /// Short badge next to the current address in the Plasma beneficiary column.
+  ///
+  /// In en, this message translates to:
+  /// **'this'**
+  String get plasmaPageThisAddress;
+
   /// Title of a section on the Plasma page that opens to show the plasma level of the wallet's addresses other than the selected one. A number beside it says how many.
   ///
   /// In en, this message translates to:
