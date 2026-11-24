@@ -613,6 +613,15 @@ void main() {
     await tester.pump();
     expect(galleryFrame.restored, isTrue);
     expect(tester.renderObject(mapPaint), same(galleryRenderer));
+    final RenderRepaintBoundary mapBoundary = tester.renderObject(
+      find.ancestor(of: mapPaint, matching: find.byType(RepaintBoundary)).first,
+    );
+    final OffsetLayer mapLayer = mapBoundary.debugLayer! as OffsetLayer;
+    final Layer? originalPaint = mapLayer.firstChild;
+    expect(originalPaint, isNotNull);
+    galleryClock.value = 0.2501;
+    await tester.pump();
+    expect(mapLayer.firstChild, same(originalPaint));
 
     await tester.pumpWidget(MaterialApp(
       theme: AppTheme.darkTheme,

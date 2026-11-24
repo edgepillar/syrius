@@ -552,18 +552,33 @@ class _GalleryMapState extends State<_GalleryMap> {
     widget.frameRate,
   );
 
+  void _advance() => _raster.advance(widget.progress.value);
+
+  @override
+  void initState() {
+    super.initState();
+    widget.progress.addListener(_advance);
+    _advance();
+  }
+
   @override
   void didUpdateWidget(_GalleryMap oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.progress != widget.progress) {
+      oldWidget.progress.removeListener(_advance);
+      widget.progress.addListener(_advance);
+    }
     if (oldWidget.composition != widget.composition ||
         oldWidget.frameRate != widget.frameRate) {
       _raster.dispose();
       _raster = _GalleryMapRaster(widget.composition, widget.frameRate);
     }
+    _advance();
   }
 
   @override
   void dispose() {
+    widget.progress.removeListener(_advance);
     _raster.dispose();
     super.dispose();
   }
@@ -571,49 +586,56 @@ class _GalleryMapState extends State<_GalleryMap> {
   @override
   Widget build(BuildContext context) => RepaintBoundary(
     child: CustomPaint(
-      painter: _GalleryMapPainter(_raster, widget.progress),
+      painter: _GalleryMapPainter(_raster),
       child: const SizedBox.expand(),
     ),
   );
 }
 
 class _GalleryMapPainter extends CustomPainter {
-  _GalleryMapPainter(this.raster, this.progress) : super(repaint: progress);
+  _GalleryMapPainter(this.raster) : super(repaint: raster);
 
   final _GalleryMapRaster raster;
-  final Animation<double> progress;
 
   @override
-  void paint(ui.Canvas canvas, ui.Size size) =>
-      raster.paint(canvas, size, progress.value);
+  void paint(ui.Canvas canvas, ui.Size size) => raster.paint(canvas, size);
 
   @override
   bool shouldRepaint(_GalleryMapPainter oldDelegate) =>
-      raster != oldDelegate.raster || progress != oldDelegate.progress;
+      raster != oldDelegate.raster;
 }
 
 // Render subpixel vector dots into one bounded 2x image, then filter it into
 // the authored tile. Retain only the current frame, including after playback.
-class _GalleryMapRaster {
+class _GalleryMapRaster extends ChangeNotifier {
   _GalleryMapRaster(LottieComposition composition, FrameRate? frameRate)
     : _drawable = LottieDrawable(composition, frameRate: frameRate);
 
   final LottieDrawable _drawable;
   ui.Size? _size;
   ui.Image? _image;
+  bool _frameChanged = false;
 
-  void paint(ui.Canvas canvas, ui.Size size, double progress) {
-    final bool changed = _drawable.setProgress(progress);
+  void advance(double progress) {
+    // Lottie quantizes the clock to the original composition frame rate.
+    // Keep the paint layer when multiple display ticks resolve to one frame.
+    if (_drawable.setProgress(progress)) {
+      _frameChanged = true;
+      notifyListeners();
+    }
+  }
+
+  void paint(ui.Canvas canvas, ui.Size size) {
     if (size.isEmpty) return;
     final int width = size.width.ceil() * 2;
     final int height = size.height.ceil() * 2;
     final ui.Rect destination = ui.Offset.zero & size;
     if (width * height > 512 * 1024) {
-      dispose();
+      _releaseImage();
       _drawable.draw(canvas, destination, fit: BoxFit.contain);
       return;
     }
-    if (_image == null || _size != size || changed) {
+    if (_image == null || _size != size || _frameChanged) {
       final ui.PictureRecorder recorder = ui.PictureRecorder();
       final ui.Canvas sample = ui.Canvas(recorder)
         ..scale(width / size.width, height / size.height);
@@ -624,6 +646,7 @@ class _GalleryMapRaster {
         _image?.dispose();
         _size = size;
         _image = next;
+        _frameChanged = false;
       } finally {
         picture.dispose();
       }
@@ -636,10 +659,16 @@ class _GalleryMapRaster {
     );
   }
 
-  void dispose() {
+  void _releaseImage() {
     _image?.dispose();
     _image = null;
     _size = null;
+  }
+
+  @override
+  void dispose() {
+    _releaseImage();
+    super.dispose();
   }
 }
 
