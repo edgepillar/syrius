@@ -74,7 +74,8 @@ class RiseSwitcher extends StatefulWidget {
 
 // The Material fade-through curves and zoom, shared by the single page fade.
 const double _exitEnd = 0.3;
-const Interval _fadeIn = Interval(_exitEnd, 1, curve: Cubic(0, 0, .2, 1));
+const Cubic _entranceEase = Cubic(0, 0, .2, 1);
+const Interval _fadeIn = Interval(_exitEnd, 1, curve: _entranceEase);
 const Interval _fadeOut = Interval(0, _exitEnd, curve: Cubic(.4, 0, 1, 1));
 final Tween<double> _zoom = Tween<double>(begin: .92, end: 1);
 
@@ -123,9 +124,15 @@ class _SwitchEntry {
       CurveTween(curve: _fadeIn),
     );
     opacity = _PageOpacity(incoming, exit.drive(CurveTween(curve: _fadeOut)));
-    scale = incoming.drive(_zoom);
     visible = ValueNotifier<bool>(initial);
     riseProgress = ValueNotifier<double>(initial ? 1 : 0);
+    // Like the rise, the zoom keeps its initial transform until the incoming
+    // page is visible. The notifier skips ticks that leave progress at zero.
+    scale = Animation<double>.fromValueListenable(
+      riseProgress,
+      transformer: (double progress) =>
+          _zoom.transform(_entranceEase.transform(progress)),
+    );
     entrance.addListener(_updateEntrance);
   }
 

@@ -133,9 +133,16 @@ void main() {
       expect(RiseSwitcher.isSettled(switcher, destination), isFalse);
       // Native fade-through includes its scale; this is the added translation.
       final Transform firstRise = _riseTransform(tester, _page(1));
-      final ScaleTransition zoom = tester.widget(
-        find.ancestor(of: _page(1), matching: find.byType(ScaleTransition)),
+      final Finder zoomFinder = find.ancestor(
+        of: _page(1),
+        matching: find.byType(ScaleTransition),
       );
+      final ScaleTransition zoom = tester.widget(zoomFinder);
+      final Finder scaleTransform = find.descendant(
+        of: zoomFinder,
+        matching: find.byType(Transform),
+      ).first;
+      final Transform firstScale = tester.widget(scaleTransform);
       expect(zoom.scale.value, .92);
       expect(_rise(tester, _page(1)), 6);
       expect(tester.getTopLeft(_page(0)).dy, 0);
@@ -144,6 +151,7 @@ void main() {
       expect(_opacity(tester, _page(1)), 0);
       expect(_rise(tester, _page(1)), 6);
       expect(_riseTransform(tester, _page(1)), same(firstRise));
+      expect(tester.widget(scaleTransform), same(firstScale));
       expect(tester.getTopLeft(_page(0)).dy, 0);
 
       await tester.pump(const Duration(milliseconds: 46));
