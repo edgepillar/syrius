@@ -1,5 +1,6 @@
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
@@ -143,6 +144,20 @@ void main() {
               find.descendant(of: row, matching: find.byType(Row)),
             );
             expect((content.children[1] as SizedBox).width, 10);
+            final SvgPicture symbol = tester.widget<SvgPicture>(
+              find.descendant(of: row, matching: find.byType(SvgPicture)),
+            );
+            final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
+            expect(
+              (symbol.bytesLoader as SvgStringLoader).theme?.currentColor,
+              tokens.dim,
+            );
+            expect(
+              symbol.colorFilter,
+              section == SettingsSectionId.addresses
+                  ? ColorFilter.mode(tokens.znnInk, BlendMode.srcIn)
+                  : isNull,
+            );
             for (final WidgetState state in <WidgetState>[
               WidgetState.hovered,
               WidgetState.pressed,
@@ -336,6 +351,16 @@ void main() {
         expect(
           IconTheme.of(tester.element(apps)).color,
           Color.lerp(AppTokens.dark.dim, AppTokens.dark.znnInk, middle),
+        );
+        final SvgPicture changingSymbol = tester.widget<SvgPicture>(
+          find.descendant(of: apps, matching: find.byType(SvgPicture)),
+        );
+        expect(
+          changingSymbol.colorFilter,
+          ColorFilter.mode(
+            Color.lerp(AppTokens.dark.dim, AppTokens.dark.znnInk, middle)!,
+            BlendMode.srcIn,
+          ),
         );
         expect(
           DefaultTextStyle.of(tester.element(find.text('Apps'))).style.color,

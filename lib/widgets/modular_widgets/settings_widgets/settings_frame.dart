@@ -171,6 +171,11 @@ class _SectionItemState extends State<_SectionItem>
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
     final BorderRadius radius = BorderRadius.circular(tokens.compactRadius);
+    // Use a fixed source color per theme so the selection and theme clocks
+    // can still tint the same picture without decoding each intermediate ink.
+    final Color sourceInk = Theme.of(context).brightness == Brightness.light
+        ? AppTokens.light.dim
+        : AppTokens.dark.dim;
     return Semantics(
       selected: widget.selected,
       child: AnimatedBuilder(
@@ -214,6 +219,7 @@ class _SectionItemState extends State<_SectionItem>
                         widget.section.symbol,
                         size: tokens.settingsIconSize,
                         color: IconTheme.of(context).color,
+                        sourceInk: sourceInk,
                       ),
                     ),
                     SizedBox(width: tokens.cardGap),

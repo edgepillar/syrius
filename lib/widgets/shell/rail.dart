@@ -94,10 +94,12 @@ const Map<String, String> _symbols = <String, String>{
 };
 
 /// Draws the original symbols used by shell and page controls.
+/// An opaque [sourceInk] lets a common foreground draw directly from the SVG.
 Widget buildShellSymbol(
   BuildContext context,
   String symbol, {
   Color? color,
+  Color? sourceInk,
   double? size,
   bool directional = false,
 }) {
@@ -106,13 +108,18 @@ Widget buildShellSymbol(
   if (contents == null) {
     throw ArgumentError.value(symbol, 'symbol', 'Unknown shell symbol');
   }
+  assert(sourceInk == null || sourceInk.a == 1, 'The source ink is opaque.');
+  final Color ink = color ?? tokens.dim;
   return SvgPicture.string(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" '
     'fill="none" stroke="currentColor" stroke-width="1.8" '
     'stroke-linecap="round" stroke-linejoin="round">$contents</svg>',
     width: size ?? tokens.railIconSize,
     height: size ?? tokens.railIconSize,
-    colorFilter: ColorFilter.mode(color ?? tokens.dim, BlendMode.srcIn),
+    theme: sourceInk == null ? null : SvgTheme(currentColor: sourceInk),
+    colorFilter: ink == sourceInk
+        ? null
+        : ColorFilter.mode(ink, BlendMode.srcIn),
     matchTextDirection: directional,
     excludeFromSemantics: true,
   );
