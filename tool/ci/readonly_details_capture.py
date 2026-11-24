@@ -387,7 +387,8 @@ def capture_receipt(value):
             marks = value['pillar_recorded_mark']
             need(type(marks) is dict and set(marks) == set(THEMES)
                  and all(type(status) is str and status in (
-                     'inside', 'outside', 'no_picture', 'multiple_pictures', 'unavailable')
+                     'inside', 'outside', 'in_shell_page', 'outside_shell_page',
+                     'no_picture', 'multiple_pictures', 'unavailable')
                          for status in marks.values()), 'CAPTURE_REFUSED')
             expected['pillar_recorded_mark'] = marks
     if schema == FAMILY_SCHEMAS['home-zap-preview'] and 'spark_paint' in value:

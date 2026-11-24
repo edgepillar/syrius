@@ -91,6 +91,7 @@ class _ShellFrameState extends State<ShellFrame> {
                     id: _ShellSurface.page,
                     // Retain the rounded clip with the page's paint.
                     child: RepaintBoundary(
+                      key: const ValueKey<String>('shell_page_paint'),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(tokens.cardRadius),
                         clipBehavior: locked ? Clip.none : Clip.antiAlias,

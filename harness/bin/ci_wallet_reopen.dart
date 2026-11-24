@@ -1523,7 +1523,8 @@ Future<Map<String, Object>> _captureSeededCatalog(
         );
         pillarRecordedMarks[theme] = switch (result['pillarRecordedMark']) {
           final String mark when const <String>{
-            'inside', 'outside', 'no_picture', 'multiple_pictures',
+            'inside', 'outside', 'in_shell_page', 'outside_shell_page',
+            'no_picture', 'multiple_pictures',
           }.contains(mark) => mark,
           _ => 'unavailable',
         };

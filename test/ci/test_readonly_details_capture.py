@@ -98,7 +98,10 @@ class DetailsCatalogTests(unittest.TestCase):
         pane = dict(dark='absent', light='unavailable')
         enclosing = dict(dark='present', light='present')
         outer = dict(dark='unavailable', light='present')
-        recorded = dict(dark='outside', light='no_picture')
+        recorded = dict(dark='in_shell_page', light='outside_shell_page')
+        previous = dict(dark='outside', light='no_picture')
+        self.assertEqual(details.capture_receipt(dict(capture,
+            pillar_recorded_mark=previous))['pillar_recorded_mark'], previous)
         measured.update(pillar_header_layer_mark=marks, pillar_pane_clip_mark=pane,
                         pillar_enclosing_paint_mark=enclosing,
                         pillar_outer_paint_mark=outer,

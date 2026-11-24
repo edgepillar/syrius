@@ -337,12 +337,18 @@ void main() {
       height: 24,
       child: RepaintBoundary(child: ColoredBox(color: color)),
     );
-    for (final String placement in <String>[
-      'inside clip', 'beside clip', 'outside boundary', 'nowhere',
+    for (final (String placement, String recordedScope) in <(String, String)>[
+      ('inside clip', 'inside'),
+      ('beside clip', 'inside'),
+      ('in shell page', 'in_shell_page'),
+      ('outside shell page', 'outside_shell_page'),
+      ('without shell marker', 'outside'),
+      ('nowhere', 'no_picture'),
     ]) {
       final bool insideClip = placement == 'inside clip';
       final bool besideClip = placement == 'beside clip';
-      final bool outsideBoundary = placement == 'outside boundary';
+      final bool outsidePage = placement == 'outside shell page' ||
+          placement == 'without shell marker';
       final Widget pane = Positioned(
         left: 20,
         top: 20,
@@ -363,21 +369,32 @@ void main() {
         child: RepaintBoundary(
           child: Stack(
             children: <Widget>[
-              Positioned(
-                left: 20,
-                top: 12,
-                width: 180,
-                height: 100,
+              Positioned.fill(
                 child: RepaintBoundary(
+                  key: placement == 'without shell marker'
+                      ? null : const ValueKey<String>('shell_page_paint'),
                   child: Stack(
                     children: <Widget>[
-                      pane,
-                      if (besideClip) mark(64, 24, green),
+                      Positioned(
+                        left: 20,
+                        top: 12,
+                        width: 180,
+                        height: 100,
+                        child: RepaintBoundary(
+                          child: Stack(
+                            children: <Widget>[
+                              pane,
+                              if (besideClip) mark(64, 24, green),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (placement == 'in shell page') mark(84, 36, green),
                     ],
                   ),
                 ),
               ),
-              if (outsideBoundary) mark(84, 36, green),
+              if (outsidePage) mark(84, 36, green),
             ],
           ),
         ),
@@ -418,9 +435,7 @@ void main() {
             (RenderRepaintBoundary boundary) => boundary.debugLayer,
             devicePixelRatio: view.configuration.devicePixelRatio,
           ),
-          insideClip || besideClip
-              ? 'inside'
-              : outsideBoundary ? 'outside' : 'no_picture',
+          recordedScope,
           reason: placement,
         );
       });

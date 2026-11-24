@@ -289,24 +289,34 @@ Future<String> observePillarRecordedMark(
     if (pane == null || !devicePixelRatio.isFinite || devicePixelRatio <= 0) {
       return 'unavailable';
     }
+    final RenderRepaintBoundary? page =
+        _pillarPaintTarget<RenderRepaintBoundary>(elements, 'shell_page_paint');
+    final Layer? pageLayer = page == null ? null : paintedLayer(page);
     final double pixelScale = 1 / devicePixelRatio;
-    final List<(Layer, Matrix4, bool)> pending = <(Layer, Matrix4, bool)>[
-      (scene, Matrix4.diagonal3Values(pixelScale, pixelScale, 1), false),
+    final List<(Layer, Matrix4, String)> pending = <(Layer, Matrix4, String)>[
+      (scene, Matrix4.diagonal3Values(pixelScale, pixelScale, 1), 'outside'),
     ];
-    final List<(ui.Picture, Rect, bool)> crops = <(ui.Picture, Rect, bool)>[];
+    final List<(ui.Picture, Rect, String)> crops =
+        <(ui.Picture, Rect, String)>[];
+    bool pageIsInScene = false;
     int visited = 0;
     while (pending.isNotEmpty) {
       if (++visited > 1024) return 'unavailable';
-      final (Layer layer, Matrix4 transform, bool inside) =
+      final (Layer layer, Matrix4 transform, String parentScope) =
           pending.removeLast();
-      final bool inPane = inside || identical(layer, pane);
+      String scope = parentScope;
+      if (identical(layer, pageLayer)) {
+        pageIsInScene = true;
+        scope = 'in_shell_page';
+      }
+      if (identical(layer, pane)) scope = 'inside';
       if (layer is ContainerLayer) {
         for (Layer? child = layer.firstChild;
             child != null;
             child = child.nextSibling) {
           final Matrix4 childTransform = Matrix4.copy(transform);
           layer.applyTransform(child, childTransform);
-          pending.add((child, childTransform, inPane));
+          pending.add((child, childTransform, scope));
           if (pending.length > 1024) return 'unavailable';
         }
       }
@@ -321,7 +331,7 @@ Future<String> observePillarRecordedMark(
       final Rect mark = _pillarHeaderMark.shift(-origin);
       if (layer.canvasBounds.overlaps(mark)) {
         if (crops.length == 32) return 'unavailable';
-        crops.add((layer.picture!, mark, inPane));
+        crops.add((layer.picture!, mark, scope));
       }
     }
     if (crops.isEmpty) return 'unavailable';
@@ -335,7 +345,8 @@ Future<String> observePillarRecordedMark(
         if (mark == 'present') index,
     ];
     if (hits.length == 1) {
-      return crops[hits.single].$3 ? 'inside' : 'outside';
+      final String scope = crops[hits.single].$3;
+      return scope == 'outside' && pageIsInScene ? 'outside_shell_page' : scope;
     }
     return hits.isEmpty ? 'no_picture' : 'multiple_pictures';
   } on Object {
