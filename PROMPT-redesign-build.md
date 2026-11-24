@@ -7774,19 +7774,19 @@ whole-image acceptance.
 | 06 | `home-zap` | X827 | X828 |
 | 07 | `send-rest` | X829 | X830 |
 | 08 | `send-warn` | X889 | X890 |
-| 09 | `receive` | [match](#receive-at-rest-at-06eda3f7) | [match](#receive-at-rest-at-06eda3f7) |
+| 09 | `receive` | [match](docs/review/source-2fc14228-navigation-verdicts.json) | [match](docs/review/source-2fc14228-navigation-verdicts.json) |
 | 10 | `receive-qr` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
 | 11 | `zap-form` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
 | 12 | `send-confirm` | X837 | X838 |
 | 13 | `staking` | X1285 | X1286 |
 | 14 | `staking-new` | X893 | X894 |
 | 15 | `staking-empty` | X895 | X896 |
-| 16 | `pillars` | X625 | X626 |
+| 16 | `pillars` | X1735 | X1736 |
 | 17 | `pillar-mine` | X839 | X840 |
 | 18 | `sentinels` | X897 | X898 |
 | 19 | `spawn` | X1150 | X1151 |
 | 20 | `pillar-done` | X1152 | X1153 |
-| 21 | `plasma` | X845 | X846 |
+| 21 | `plasma` | X1737 | X1738 |
 | 22 | `plasma-fuse` | [review](#details-at-59a1f859) | [review](#details-at-59a1f859) |
 | 23 | `tokens` | X1324 | X1325 |
 | 24 | `token-mine` | X1287 | X1288 |
@@ -11809,3 +11809,8 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1731 | review | 2026-11-24 | The Plasma fusion ledger identifies rows whose beneficiary is the selected address, matching the reference's current-address indicator. The badge uses the original owner address and the existing localized label. The copy control remains available on every row. The existing light and dark ledger tests check the indicator on an owned row and its absence on a different beneficiary. A new native comparison remains pending. |
 | X1732 | review | 2026-11-24 | The Pillars delegation strip uses the original Rewards and overflow symbols at the compact action size, as the Sentinels strip does. The controls keep their original handlers and labels. Strict Dart analysis of the changed strip passes. The two-theme Windows comparison remains open. |
 | X1733 | review | 2026-11-24 | [Linux at `2fc14228`](https://github.com/edgepillar/syrius/actions/runs/45436091218/job/138594185273) passes application and integration analysis, strict selected analysis, the original P06 overlay check and generated-file verification. All 5,142 non-chain tests pass with one skip. The two Plasma ledger cases exercise the selected-beneficiary indicator in light and dark. The [native Navigation producer](https://github.com/edgepillar/syrius/actions/runs/45436090596/job/138594175097) targets this Plasma revision. X1732 changes the Pillars strip in a later source and retains its separate analysis result. |
+| X1734 | review | 2026-11-24 | The [native Navigation producer](https://github.com/edgepillar/syrius/actions/runs/45436090596/job/138594175097) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45440750031/job/138610882076) verify [14 original PNGs](docs/review/source-2fc14228-navigation-captures.json), 91 producer source files and normal parent closure at `2fc14228`. All six designated [pairs](docs/review/source-2fc14228-navigation-verdicts.json) were viewed from one 623,684-byte archive without extracting PNGs. Receive matches in both themes. The other eight originals remain diagnostic. |
+| X1735 | review | 2026-11-24 | Dark Pillars at `2fc14228` has the expanded first row and table structure. The isolated capture has three rows and no delegation or collectible reward. APR estimates are unavailable. [Verdict](docs/review/source-2fc14228-navigation-verdicts.json). |
+| X1736 | review | 2026-11-24 | Light Pillars at `2fc14228` has the expanded first row. The capture retains the same delegation, reward and APR differences as dark. The strip icons changed at the later X1732 source. [Verdict](docs/review/source-2fc14228-navigation-verdicts.json). |
+| X1737 | review | 2026-11-24 | Dark Plasma at `2fc14228` shows the current-address badge on the two matching beneficiary rows and copy controls on all three. The full meter, three cancellable fuses and idle status still differ from the reference. [Verdict](docs/review/source-2fc14228-navigation-verdicts.json). |
+| X1738 | review | 2026-11-24 | Light Plasma at `2fc14228` shows the same badge placement. The capture has three cancellable fuses and a full meter. The reference has four entries with mixed expiry states and a generating status. [Verdict](docs/review/source-2fc14228-navigation-verdicts.json). |

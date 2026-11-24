@@ -1,0 +1,52 @@
+{
+  "reviews": {
+    "09-receive-dark": {
+      "actual_sha256": "b2d1c51c713a56190547324b6944ebac7c05b263f91b9c92e9475a33b90f59ba",
+      "expected_sha256": "29833553d03b3cb5a7906cfa755389b3b918feca4000684ae79cc2b0f0ab2353",
+      "note": "The tab and address selector, primary action, QR action, request disclosure and empty queue align. The fixture address, live status and approved palette account for the visible variations.",
+      "reviewed_at": "2026-11-24T16:50:44Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "09-receive-light": {
+      "actual_sha256": "8c23c1718edff8fb4095e80e0fafc8fb8633adc6bea1035ba52f532083522272",
+      "expected_sha256": "941606d6662bc1a0dce5b6715be83a5c95fd3b9158844ab0e59fb27f4f4c7d35",
+      "note": "The tab and address selector, primary action, QR action, request disclosure and empty queue align. The fixture address, live status and approved palette account for the visible variations.",
+      "reviewed_at": "2026-11-24T16:50:44Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "16-pillars-dark": {
+      "actual_sha256": "3811d6d1a657cfc3316ff40068d7d64ac4fc8b0ebee9172060e60bfe289e152a",
+      "expected_sha256": "2cc96ba5d5e143ec6b96dce6bfdd5bf0dd2d1950f647871f2e950f30b3991869",
+      "note": "The first expanded row and table structure align. The live fixture has no delegation or collectible reward, three rows and unavailable APR estimates. The reference shows a delegated row, six rows and populated values.",
+      "reviewed_at": "2026-11-24T16:50:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "16-pillars-light": {
+      "actual_sha256": "e0b2464dd2cfd226478014b094c4ffe5706c53f0a794074d06d4919668853097",
+      "expected_sha256": "d8a635852cfe165f21d62ce1445484859f8f4ab529af53ade636a360db082c86",
+      "note": "The first expanded row and table structure align. The live fixture has no delegation or collectible reward, three rows and unavailable APR estimates. The reference shows a delegated row, six rows and populated values.",
+      "reviewed_at": "2026-11-24T16:50:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "21-plasma-dark": {
+      "actual_sha256": "3e17c0f7abade7ef0949d1fa7ed147a3f9043d21bb98701e9bd790e051e08532",
+      "expected_sha256": "00bf1d72858ad59603775e8a36a68b326446902e6c52f54756389729da6778bf",
+      "note": "The selected-address badge appears on both matching beneficiary rows and the third row retains its copy control. The live fixture fills the meter and shows three cancellable rows. The reference has four rows including timed locks, a partial meter and a generating indicator.",
+      "reviewed_at": "2026-11-24T16:50:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "21-plasma-light": {
+      "actual_sha256": "e057eba952e10021d4db14060f1b76804d5d75e63226021f970b7123fa9c2a22",
+      "expected_sha256": "45f4e4b332c3f332601ad355d8ff5438b97dcea4984c5cffdb2cb35853d27f97",
+      "note": "The selected-address badge appears on both matching beneficiary rows and the third row retains its copy control. The live fixture fills the meter and shows three cancellable rows. The reference has four rows including timed locks, a partial meter and a generating indicator.",
+      "reviewed_at": "2026-11-24T16:50:44Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
