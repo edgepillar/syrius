@@ -233,9 +233,10 @@ def frame_timing_rows(value, *, allow_packed=False):
         need(type(rows) is list and 0 < len(rows) <= MAX_TIMING_FRAMES)
     elif allow_packed and value['schema'] == 2:
         required = set(PACKED_TIMING_FIELDS)
-        with_phases = required | {STARTUP_PHASE_FIELD}
-        with_diagnostics = with_phases | {STARTUP_AUTH_FIELD, STARTUP_STAGE_FIELD}
-        need(set(value) == required or with_phases <= set(value) <= with_diagnostics)
+        allowed = required | {RASTER_STARTS_FIELD, STARTUP_PHASE_FIELD}
+        if STARTUP_PHASE_FIELD in value:
+            allowed |= {STARTUP_AUTH_FIELD, STARTUP_STAGE_FIELD}
+        need(required <= set(value) <= allowed)
         if STARTUP_PHASE_FIELD in value:
             phases = value[STARTUP_PHASE_FIELD]
             need(type(phases) is list and len(phases) == 4
@@ -261,7 +262,7 @@ def frame_timing_rows(value, *, allow_packed=False):
         need(startup.integer(value[PEAK_BUILD_WAIT_FIELD], 0, total - build - raster))
     if RASTER_STARTS_FIELD in value:
         starts = value[RASTER_STARTS_FIELD]
-        need(type(starts) is list and len(starts) == len(rows))
+        need(type(starts) is list and len(starts) == len(rows) <= MAX_TIMING_FRAMES)
         need(all(startup.integer(raster_start, start + build, start + total - raster)
                  for (_, start, build, raster, total), raster_start in zip(rows, starts)))
     if RASTER_CACHE_FIELD in value:
@@ -463,7 +464,8 @@ class LaunchProcess(startup.StartupProbe):
         raw = timing_reply('frame_window', *self._exchange(dict(cmd='stalls', frameWindow='end'),
                            until=min(self.deadline, self.started + (100 if paired else 60))))
         fields = (*PACKED_TIMING_FIELDS, *(field for field in (
-            STARTUP_PHASE_FIELD, STARTUP_AUTH_FIELD, STARTUP_STAGE_FIELD) if field in raw))
+            RASTER_STARTS_FIELD, STARTUP_PHASE_FIELD, STARTUP_AUTH_FIELD,
+            STARTUP_STAGE_FIELD) if field in raw))
         need(set(raw) == {'ok', *fields} and raw['schema'] == 2)
         window = {field: raw[field] for field in fields}
         if paired:

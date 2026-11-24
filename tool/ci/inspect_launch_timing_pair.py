@@ -269,6 +269,8 @@ def window_diagnostics(window, *, peak_starts=False):
         build_us=percentiles(2), raster_us=percentiles(3), total_us=percentiles(4),
         quarter_frames=quarters, quarter_slow_raster=slow_raster,
         peak_raster_start_bounds_us=dict(earliest=earliest, latest=latest))
+    if peak_raster[0] in raster_starts and pair.launch.STARTUP_PHASE_FIELD in window:
+        summary['peak_raster_wait_after_build_us'] = earliest - peak_raster[1] - peak_raster[2]
     if peak_starts:
         _, start, build, raster, total = max(rows, key=lambda row: row[4])
         summary.update(
@@ -295,7 +297,7 @@ def window_diagnostics(window, *, peak_starts=False):
             build[phase] = max(build[phase], build_us)
             raster[phase] = max(raster[phase], raster_us)
             total[phase] = max(total[phase], total_us)
-            earliest, latest = raster_start_bounds(row)
+            earliest, latest = raster_start_bounds(row, observed_us=raster_starts.get(row[0]))
             if latest < settled:
                 counts = settled_raster['before']
             elif earliest >= settled:

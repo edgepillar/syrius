@@ -6990,6 +6990,7 @@ class HarnessAgent {
       final HarnessFrameWindow window = HarnessFrameWindow(
         startUs,
         packed: true,
+        retainRasterStarts: true,
       );
       _frameWindow = window;
       _observeStartupPhases(window, startUs);

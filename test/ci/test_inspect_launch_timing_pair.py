@@ -437,6 +437,21 @@ class PairInspectionTests(unittest.TestCase):
         self.assertEqual(overruns['worst'], dict(rank=1, baseline_us=16002,
             current_us=17000, excess_us=998, start_us=[10200, 10200]))
 
+        current['rasterStartsUs'] = [5000, 10500, 10200]
+        self.assertEqual(pair.compare_windows(baseline, current), value['comparison'])
+        exact = self.project(value, diagnostics=True)['window_diagnostics']
+        self.assertEqual(exact['windows']['current']['settled_raster_starts'], dict(
+            columns=['samples', 'slow_raster', 'max_raster_us'], before=[1, 0, 500],
+            crossing=[0, 0, 0], at_or_after=[2, 2, 17000]))
+        self.assertEqual(exact['raster_rank_overruns']['by_phase']['lock'], 2)
+        self.assertEqual(exact['windows']['current']['peak_raster_wait_after_build_us'], 0)
+
+        for invalid in ([5000, 10500], [5000, 9600, 10200], [5000, 11501, 10200]):
+            with self.subTest(invalid=invalid):
+                current['rasterStartsUs'] = invalid
+                with self.assertRaises(pair.launch.startup.Failure):
+                    pair.launch.frame_timing_rows(current, allow_packed=True)
+
     def test_packed_pair_preserves_all_frames_and_rejects_corrupt_payloads(self):
         count = pair.launch.MAX_PAIRED_TIMING_FRAMES
         rows = [[0 if index == 0 else 2**32 - count + index,

@@ -143,11 +143,14 @@ void main() {
     const int spacing = 28000;
     const int duration = 120000000;
     const int first = 42;
-    final HarnessFrameWindow window = HarnessFrameWindow(start, packed: true)
-      ..observe(<ui.FrameTiming>[
-        for (int i = 0; i < count; i++)
-          _frame(first + i + i ~/ 1000, start + i * spacing),
-      ]);
+    final HarnessFrameWindow window = HarnessFrameWindow(
+      start,
+      packed: true,
+      retainRasterStarts: true,
+    )..observe(<ui.FrameTiming>[
+      for (int i = 0; i < count; i++)
+        _frame(first + i + i ~/ 1000, start + i * spacing),
+    ]);
     final Future<Map<String, Object?>> result = window.finish(
       endUs: start + duration,
       requestFrame: () {},
@@ -185,6 +188,20 @@ void main() {
         <int>[i + i ~/ 1000, i * spacing, 10000, 5000, 17000],
       );
     }
+
+    final HarnessFrameWindow shortWindow = HarnessFrameWindow(
+      100000,
+      packed: true,
+      retainRasterStarts: true,
+    )..observe(<ui.FrameTiming>[_frame(3, 101000), _frame(4, 121000)]);
+    final Future<Map<String, Object?>> shortResult = shortWindow.finish(
+      endUs: 140000,
+      requestFrame: () {},
+    );
+    shortWindow.observe(<ui.FrameTiming>[_frame(5, 140000)]);
+    final Map<String, Object?> shortReceipt = await shortResult;
+    expect(shortReceipt['frameCount'], 2);
+    expect(shortReceipt['rasterStartsUs'], <int>[12000, 32000]);
   });
 
   test('the sample cap refuses rather than dropping retained frames', () async {

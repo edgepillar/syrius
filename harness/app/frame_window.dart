@@ -91,10 +91,12 @@ class HarnessFrameWindow {
   /// Begins collecting at a time on the engine's Dart timeline clock.
   ///
   /// Interactive measurements retain raster starts and the longest frame's
-  /// wait before build on the engine clock.
+  /// wait before build on the engine clock. `retainRasterStarts` adds exact
+  /// raster starts to packed receipts with at most [maxFrames] samples.
   HarnessFrameWindow(
     this._startUs, {
     this._packed = false,
+    this._retainRasterStarts = false,
     this._includeInteractiveDiagnostics = false,
   });
 
@@ -109,6 +111,7 @@ class HarnessFrameWindow {
 
   final int _startUs;
   final bool _packed;
+  final bool _retainRasterStarts;
   final bool _includeInteractiveDiagnostics;
   int get _windowLimitUs => _packed ? _maxPackedWindowUs : _maxWindowUs;
   final List<_Sample> _samples = <_Sample>[];
@@ -184,7 +187,7 @@ class HarnessFrameWindow {
         start: start,
         build: build,
         raster: raster,
-        rasterStart: _includeInteractiveDiagnostics
+        rasterStart: _includeInteractiveDiagnostics || _retainRasterStarts
             ? timing.timestampInMicroseconds(ui.FramePhase.rasterStart)
             : 0,
         total: total,
@@ -280,6 +283,10 @@ class HarnessFrameWindow {
       'windowUs': duration,
       'frameCount': _samples.length,
       'packedFrames': base64Encode(zlib.encode(rows.buffer.asUint8List())),
+      if (_retainRasterStarts && _samples.length <= maxFrames)
+        'rasterStartsUs': <int>[
+          for (final _Sample sample in _samples) sample.rasterStart - _startUs,
+        ],
     };
   }
 }
