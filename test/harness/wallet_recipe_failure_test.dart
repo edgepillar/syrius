@@ -570,36 +570,25 @@ void main() {
         elapsed - lastRevision!,
         greaterThanOrEqualTo(const Duration(seconds: 1)),
       );
-      for (final String phase in <String>[
-        'startup-before-initialization', 'welcome',
-      ]) {
-        elapsed = Duration.zero;
-        reads = 0;
-        lastRevision = null;
-        await pairedFrameWaitForWelcome(
-          (Map<String, Object?> command, Duration timeout) async {
-            expect(command['action'], 'observe');
-            expect(command.containsKey('value'), isFalse);
-            reads++;
-            if (reads == 7) lastRevision = elapsed;
-            return _pairedWelcomeView(
-              phase: reads == 1 ? 'unknown' : reads == 2
-                  ? 'startup-initialization-started' : phase,
-              revision: reads < 7 ? 1 : 2,
-              enabled: reads != 5,
-              control: phase == 'welcome'
-                  ? 'welcome_import'
-                  : 'launch_skip_hint',
-            );
-          },
-          wait: (Duration duration) async { elapsed += duration; },
-          elapsed: () => elapsed,
-          allowOriginalStartup: true,
-        );
-        expect(reads, greaterThan(8));
-        expect(elapsed - lastRevision!,
-          greaterThanOrEqualTo(const Duration(seconds: 1)));
-      }
+      elapsed = Duration.zero;
+      reads = 0;
+      await pairedFrameWaitForWelcome(
+        (Map<String, Object?> command, Duration timeout) async {
+          expect(command, <String, Object?>{
+            'cmd': 'wallet-recipe', 'action': 'observe',
+          });
+          reads++;
+          return reads <= 9
+              ? _pairedWelcomeView(
+                  phase: 'startup-before-initialization',
+                  control: 'launch_skip_hint',
+                )
+              : _pairedWelcomeView();
+        },
+        wait: (Duration duration) async { elapsed += duration; },
+        elapsed: () => elapsed,
+      );
+      expect(reads, greaterThan(16));
       elapsed = Duration.zero;
       await expectLater(pairedFrameWaitForWelcome(
         (Map<String, Object?> command, Duration timeout) async =>
@@ -1000,23 +989,6 @@ void main() {
       expect(waits, 0);
     }
 
-    int startupReads = 0;
-    await expectLater(pairedFrameWaitForWelcome(
-      (Map<String, Object?> command, Duration timeout) async {
-        startupReads++;
-        return _pairedWelcomeView(phase: 'startup-before-initialization')
-          ..['controls'] = <Map<String, dynamic>>[
-            <String, dynamic>{'key': 'launch_skip_hint', 'enabled': true},
-            <String, dynamic>{'key': 'launch_skip_hint', 'enabled': true},
-          ];
-      },
-      elapsed: () => Duration.zero,
-      allowOriginalStartup: true,
-    ), throwsA(isA<WalletRecipeRefused>().having(
-      (WalletRecipeRefused error) => error.code, 'code',
-      'wallet-recipe-control-ambiguous',
-    )));
-    expect(startupReads, 1);
 
     int reads = 0;
     int waits = 0;

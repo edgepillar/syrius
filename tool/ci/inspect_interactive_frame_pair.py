@@ -572,7 +572,11 @@ def inspect_run(client, *, head, run_id, lab, lab_summary, listing, run):
     archive.need(cold.source(client, 'tool/ci/windows_interactive_frame_pair.py', head)
         == Path(pair.__file__).read_bytes())
     entry = archive.sha(cold.source(client, pair.profile.ENTRY.as_posix(), head))
-    archive.need(entry == pair.profile.ENTRY_SHA256)
+    archive.need(entry in (
+        pair.profile.ENTRY_SHA256,
+        # Historical captures used the original startup skip control.
+        '9964efb8467c25596735b42c07719bb8fc0a71a1e83dcace3c82eca25bd26ad8',
+    ))
     old = client.json('/git/commits/' + pair.shared.P06_SOURCE)
     archive.need(old['sha'] == pair.shared.P06_SOURCE and old['tree']['sha'] == pair.shared.P06_TREE)
     location = client.read(archive.API + '/actions/artifacts/' + str(item['id']) + '/zip', redirect=True)

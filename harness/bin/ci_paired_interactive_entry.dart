@@ -55,14 +55,12 @@ Map<String, String>? pairedFrameRecipeDiagnostic(Object? failure) =>
 
 /// Observe empty entry readiness without sending its original action.
 ///
-/// The initial gate may also admit the original startup handoff control.
-/// The tap boundary retains the default Welcome-only requirement.
+/// The original startup film can finish before the import recipe begins.
 Future<void> pairedFrameWaitForWelcome(
   WalletRecipeSend send, {
   Future<void> Function(Duration)? wait,
   Duration Function()? elapsed,
   Duration budget = const Duration(seconds: 90),
-  bool allowOriginalStartup = false,
 }) async {
   if (budget <= Duration.zero || budget > const Duration(seconds: 90)) {
     throw const WalletRecipeRefused('wallet-recipe-deadline');
@@ -72,9 +70,9 @@ Future<void> pairedFrameWaitForWelcome(
   final Future<void> Function(Duration) pause = wait ?? Future<void>.delayed;
   Duration previous = Duration.zero;
   Duration? readySince;
-  (int, int, int, String)? readyContext;
+  (int, int, int)? readyContext;
   Object? phase;
-  String control = 'welcome_import';
+  const String control = 'welcome_import';
   String reason = 'wallet-recipe-control-absent';
 
   Never refuse(String code) => throw WalletRecipeRefused(
@@ -131,9 +129,6 @@ Future<void> pairedFrameWaitForWelcome(
       reason = 'wallet-recipe-refused';
       refuse('wallet-recipe-signing-policy-unavailable');
     }
-    final bool originalStartup = allowOriginalStartup &&
-        phase == 'startup-before-initialization';
-    control = originalStartup ? 'launch_skip_hint' : 'welcome_import';
     final List<Map<String, dynamic>> matches = controls
         .cast<Map<String, dynamic>>()
         .where((Map<String, dynamic> value) => value['key'] == control)
@@ -147,12 +142,11 @@ Future<void> pairedFrameWaitForWelcome(
         : matches.single['enabled'] != true
         ? 'wallet-recipe-control-disabled'
         : 'wallet-recipe-stage-unsettled';
-    if (phase is String &&
-        (phase == 'welcome' || originalStartup) && matches.isNotEmpty &&
+    if (phase == 'welcome' && matches.isNotEmpty &&
         matches.single['enabled'] == true) {
-      final (int, int, int, String) context = (
+      final (int, int, int) context = (
         view['owner'] as int, view['revision'] as int,
-        view['signingChainId'] as int, phase,
+        view['signingChainId'] as int,
       );
       if (context != readyContext) {
         readyContext = context;
@@ -339,7 +333,6 @@ Future<void> main(List<String> args) async {
     await pairedFrameWaitForWelcome(
       (Map<String, Object?> command, Duration timeout) =>
           instance.send(command, timeout: timeout),
-      allowOriginalStartup: true,
     );
     phase = _PreparationPhase.ownerBefore;
     await _owner(instance, pid);
