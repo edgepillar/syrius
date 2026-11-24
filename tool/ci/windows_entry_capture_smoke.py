@@ -277,6 +277,25 @@ def capture_progress_projection(value):
     return result
 
 
+def welcome_entrance_projection(value):
+    """Admit only elapsed frame times and three original action-row poses."""
+    if (type(value) is not list or not 1 <= len(value) <= 32
+            or any(type(row) is not list or len(row) != 7
+                   or any(type(n) is not int for n in row)
+                   or not 0 <= row[0] <= 2_000_000
+                   or not 1000 >= row[1] >= row[3] >= row[5] >= 0
+                   or any(not 0 <= row[phase + 1] <= 6000
+                          or abs(row[phase + 1] - 6 * (1000 - row[phase])) > 4
+                          for phase in (1, 3, 5))
+                   for row in value)):
+        return None
+    if value[0][0] != 0 or any(
+            a[0] >= b[0] or any(a[p] > b[p] or a[p + 1] < b[p + 1] for p in (1, 3, 5))
+            for a, b in zip(value, value[1:])):
+        return None
+    return value
+
+
 def transport_failure_projection(value):
     if (type(value) is not dict or set(value) != {'phase', 'kind'}
             or type(value['phase']) is not str or value['phase'] not in COMMAND_PHASES
@@ -321,6 +340,7 @@ class Report(bounded.Report):
         self.first_command_failure = None
         self.cleanup_failures = []
         self.capture_progress = None
+        self.welcome_entrance = None
         self.effect_trace = None
         self.transport_failure = None
 
@@ -360,6 +380,7 @@ class Report(bounded.Report):
                                      "bytes": item["bytes"], "width": 1280, "height": 780})
                     break
         capture_progress = capture_progress_projection(self.capture_progress)
+        welcome_entrance = welcome_entrance_projection(self.welcome_entrance)
         effect_trace = effect_trace_projection(self.effect_trace)
         transport_failure = transport_failure_projection(self.transport_failure)
         complete = (
@@ -395,6 +416,7 @@ class Report(bounded.Report):
             "first_command_failure": first_failure,
             "cleanup_failures": cleanup_failures,
             **({'capture_progress': capture_progress} if capture_progress is not None else {}),
+            **({'welcome_entrance': welcome_entrance} if welcome_entrance is not None else {}),
             **({'effect_trace': effect_trace} if effect_trace is not None else {}),
             **({'transport_failure': transport_failure} if transport_failure is not None else {}),
         }
@@ -769,6 +791,12 @@ class EntrySmoke(bounded.PresentationSmoke):
                     and remote in CAPTION_REFUSALS else "COMMAND_FAILED")
             self._retain_failure(code, category="REMOTE_ERROR", body=body)
             raise Failure(code)
+        if phase in ("entry_state", "entry_verify") and "welcomeEntrance" in body:
+            entrance = welcome_entrance_projection(body["welcomeEntrance"])
+            previous = self.report.welcome_entrance or []
+            if entrance is None or entrance[:len(previous)] != previous:
+                raise Failure("ENTRY_INVALID")
+            self.report.welcome_entrance = entrance
         return body
 
     def _entry(self, body, *, count):

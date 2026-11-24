@@ -219,10 +219,13 @@ def entry_projection(report, head, tree, run_id):
         and all(type(value) is dict and entry.failure_projection(value) == value
                 and value['phase'] in entry.CLEANUP_PHASES
                 for value in cleanup))
-    capture_progress = transport_failure = effect_trace = None
+    capture_progress = transport_failure = effect_trace = welcome_entrance = None
     if 'capture_progress' in report:
         capture_progress = entry.capture_progress_projection(report['capture_progress'])
         archive.need(capture_progress is not None and capture_progress == report['capture_progress'])
+    if 'welcome_entrance' in report:
+        welcome_entrance = entry.welcome_entrance_projection(report['welcome_entrance'])
+        archive.need(welcome_entrance is not None)
     if 'transport_failure' in report:
         transport_failure = entry.transport_failure_projection(report['transport_failure'])
         archive.need(transport_failure is not None and transport_failure == report['transport_failure']
@@ -245,6 +248,7 @@ def entry_projection(report, head, tree, run_id):
         output_bytes=report['output_bytes'], original_error_codes=errors, first_command_failure=first,
         cleanup_failures=cleanup,
         **({'capture_progress': capture_progress} if capture_progress is not None else {}),
+        **({'welcome_entrance': welcome_entrance} if welcome_entrance is not None else {}),
         **({'effect_trace': effect_trace} if effect_trace is not None else {}),
         **({'transport_failure': transport_failure} if transport_failure is not None else {}))
 
@@ -1118,11 +1122,19 @@ def inspect_entry(client, text, head, tree, run_id, job, *, item=None):
     welcome = summary.pop('welcome_text_bounds')
     comparisons = summary.pop('entry_pixel_comparisons')
     back = summary.pop('import_back_marks')
+    entrance = summary.pop('welcome_entrance', None)
     emit('Hosted entry inspection', summary)
     binding = dict(source_head=head, source_tree=tree, source_run_id=run_id,
         source_attempt=1, original_job_id=job['id'], original_job_conclusion=job['conclusion'],
         archive_sha256=summary['archive_sha256'], manifest_sha256=summary['manifest_sha256'],
         visual_matches=0)
+    if entrance is not None:
+        emit('Hosted Welcome action entrance', dict(
+            scope='retained_welcome_action_entrance', **binding, samples=entrance,
+            intermediate_observed=[any(0 < row[i] < 1000 for row in entrance)
+                                   for i in (1, 3, 5)],
+            stagger_observed=any(row[1] > row[3] or row[3] > row[5] for row in entrance),
+            rest_observed=entrance[-1][1:] == [1000, 0, 1000, 0, 1000, 0]))
     if any(band['status'] == 'observed' for band in connector.values()):
         emit('Hosted Import connector coverage', dict(
             scope='retained_import_connector_coverage', **binding,

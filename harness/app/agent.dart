@@ -580,6 +580,7 @@ class HarnessAgent {
   Element? _homeClockOwner;
   Element? _heightFlashOwner;
   Element? _activityEntranceOwner;
+  final List<List<int>> _welcomeEntrance = <List<int>>[];
   bool _stakingArtworkRefused = false;
   bool _originalsArtworkRefused = false;
   PillarReferenceArtwork? _pillarArtwork;
@@ -718,6 +719,9 @@ class HarnessAgent {
         );
       },
     );
+    if (Platform.environment['SYRIUS_CI_ENTRY_EFFECT_TRACE'] == 'true') {
+      _observeWelcomeEntrance();
+    }
     if (launchQuizCatalog) {
       _nativeQuiz = NativeQuizCatalog(window: window, readView: () => _view);
     } else if (launchTheme != null && launchLockCatalog) {
@@ -1478,6 +1482,7 @@ class HarnessAgent {
       return <String, Object?>{
         'available': entry != null,
         ...?entry?.snapshot(),
+        if (_welcomeEntrance.isNotEmpty) 'welcomeEntrance': _welcomeEntrance,
       };
     }
     if (entry == null) {
@@ -1492,6 +1497,7 @@ class HarnessAgent {
         return <String, Object?>{
           'available': true,
           ...await entry.verifyCurrent(),
+          if (_welcomeEntrance.isNotEmpty) 'welcomeEntrance': _welcomeEntrance,
         };
       }
       if (command.keys.any(
@@ -6466,6 +6472,92 @@ class HarnessAgent {
     return match;
   }
 
+  static (int, int)? _entrancePose(Element owner) {
+    final RenderObject? fade = _findTimingChild(
+      owner, (Widget widget) => widget is Opacity,
+    )?.findRenderObject();
+    final RenderObject? rise = _findTimingChild(
+      owner, (Widget widget) => widget is Transform,
+    )?.findRenderObject();
+    if (fade is! RenderOpacity ||
+        rise is! RenderTransform ||
+        !fade.attached ||
+        !rise.attached ||
+        rise.child == null) {
+      return null;
+    }
+    final Matrix4 transform = Matrix4.identity();
+    rise.applyPaintTransform(rise.child!, transform);
+    return (
+      (fade.opacity * 1000).round(),
+      (transform.getTranslation().y * 1000).round(),
+    );
+  }
+
+  void _observeWelcomeEntrance() {
+    final Stopwatch launch = Stopwatch()..start();
+    final WidgetsBinding binding = WidgetsBinding.instance;
+    EntryWelcomeReceipt? source;
+    Duration? start;
+    List<Element>? original;
+    void sample(Duration stamp) {
+      if (launch.elapsed >= const Duration(minutes: 2)) return;
+      final EntryWelcomeReceipt? current =
+          EntryCaptureRegistry.instance.welcome;
+      final Element? root = binding.rootElement;
+      final Element? welcome = root == null ? null : _findTimingChild(
+        root, (Widget widget) => widget is WelcomeSurface,
+      );
+      if (source != null && !identical(source, current)) return;
+      if (current != null && current.isAttached && welcome != null &&
+          identical(ModalRoute.of(welcome), current.route) &&
+          current.route.isCurrent) {
+        final List<Element> mounted = <Element>[];
+        void visit(Element element) {
+          if (element.widget is ListEntranceItem) {
+            mounted.add(element);
+          } else {
+            element.debugVisitOnstageChildren(visit);
+          }
+        }
+
+        welcome.debugVisitOnstageChildren(visit);
+        if (mounted.length == 3) {
+          source ??= current;
+          original ??= mounted;
+          if (Iterable<int>.generate(3).any(
+            (int i) => !identical(original![i], mounted[i]),
+          )) {
+            return;
+          }
+          final List<(int, int)?> poses = mounted.map(_entrancePose).toList();
+          if (poses.every(((int, int)? pose) => pose != null)) {
+            start ??= stamp;
+            final int elapsed = (stamp - start!).inMicroseconds;
+            if (elapsed > 2000000 || _welcomeEntrance.length == 32) return;
+            if (_welcomeEntrance.isEmpty ||
+                elapsed > _welcomeEntrance.last[0]) {
+              _welcomeEntrance.add(<int>[
+                elapsed,
+                for (final (int, int)? pose in poses) ...<int>[
+                  pose!.$1, pose.$2,
+                ],
+              ]);
+            }
+            if (poses.every(((int, int)? pose) => pose == (1000, 0))) return;
+          }
+        } else if (original != null) {
+          return;
+        }
+      } else if (original != null) {
+        return;
+      }
+      // Only observe frames scheduled by the original app.
+      binding.addPostFrameCallback(sample);
+    }
+    binding.addPostFrameCallback(sample);
+  }
+
   Set<ui.Picture>? _captureStatusFramePictures(Set<ui.Picture>? scene) {
     final Element? root = WidgetsBinding.instance.rootElement;
     if (root == null || scene == null || kCurrentPage != Tabs.settings) {
@@ -6562,26 +6654,13 @@ class HarnessAgent {
     final Widget? row = _findTimingChild(
       owner, (Widget widget) => widget is ActivityRow,
     )?.widget;
-    final RenderObject? fade = _findTimingChild(
-      owner, (Widget widget) => widget is Opacity,
-    )?.findRenderObject();
-    final RenderObject? rise = _findTimingChild(
-      owner, (Widget widget) => widget is Transform,
-    )?.findRenderObject();
-    if (row is! ActivityRow ||
-        fade is! RenderOpacity ||
-        rise is! RenderTransform ||
-        !fade.attached ||
-        !rise.attached ||
-        rise.child == null) {
+    final (int, int)? pose = _entrancePose(owner);
+    if (row is! ActivityRow || pose == null) {
       return <String, Object?>{'activityEntrance': null};
     }
-    final Matrix4 transform = Matrix4.identity();
-    rise.applyPaintTransform(rise.child!, transform);
-    final double y = transform.getTranslation().y;
     return <String, Object?>{
       'activityEntrance': <int>[
-        (fade.opacity * 1000).round(), (y * 1000).round(),
+        pose.$1, pose.$2,
         if (row.entry.incoming) 1 else 0,
       ],
     };

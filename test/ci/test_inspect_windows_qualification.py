@@ -782,6 +782,20 @@ def failed_entry_progress_report():
 
 
 class EntryProgressInspectionTests(unittest.TestCase):
+    def test_welcome_stagger_retains_only_ordered_original_row_poses(self):
+        report = failed_entry_progress_report()
+        stagger = [[0, 100, 5400, 0, 6000, 0, 6000],
+                   [70_000, 600, 2400, 200, 4800, 80, 5520],
+                   [390_000, 1000, 0, 1000, 0, 1000, 0]]
+        parsed = inspect.entry_projection(dict(report, welcome_entrance=stagger), HEAD, TREE, RUN)
+        self.assertEqual(parsed['welcome_entrance'], stagger)
+        self.assertFalse(parsed['artifact_reported_success'])
+        for invalid in ([], stagger[:1] + [[70_000, 200, 4800, 600, 2400, 80, 5520]],
+                        [[0, 100, 5390, 0, 6000, 0, 6000]],
+                        [stagger[0], stagger[0]], [[0, True, 6000, 0, 6000, 0, 6000]]):
+            with self.subTest(samples=len(invalid)), self.assertRaises(inspect.archive.Refused):
+                inspect.entry_projection(dict(report, welcome_entrance=invalid), HEAD, TREE, RUN)
+
     def test_fixed_pipe_trace_cannot_heal_the_original_failed_entry(self):
         report = failed_entry_progress_report()
         event = dict(schema=1, screen='welcome', theme='dark', scopes=1, effects=1,
