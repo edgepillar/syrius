@@ -189,9 +189,16 @@ void main() {
               matching: find.byType(SingleChildScrollView),
             ),
           );
+          final Finder done = find.widgetWithText(OutlinedButton, 'Done');
+          expect(tester.getSize(done).height, tokens.buttonHeight);
+          final double doneLabelWidth = tester.getSize(find.text('Done')).width;
+          expect(
+            tester.getSize(done).width - doneLabelWidth,
+            closeTo(34, .01),
+          );
           final Rect actions = tester.getRect(
             find.ancestor(
-              of: find.widgetWithText(OutlinedButton, 'Done'),
+              of: done,
               matching: find.byType(Wrap),
             ),
           );

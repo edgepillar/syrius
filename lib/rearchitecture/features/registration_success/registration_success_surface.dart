@@ -404,7 +404,19 @@ class RegistrationSuccessSurface extends StatelessWidget {
                             child: Text(viewLabel),
                           ),
                         OutlinedButton(
-                          style: secondaryButtonStyle(context),
+                          style: secondaryButtonStyle(context).copyWith(
+                            minimumSize: WidgetStatePropertyAll<Size>(
+                              Size(0, tokens.buttonHeight),
+                            ),
+                            // The one-pixel outline sits inside Flutter's
+                            // box. Keep the reference's 16 px label inset.
+                            padding: const WidgetStatePropertyAll<EdgeInsets>(
+                              EdgeInsets.symmetric(horizontal: 17),
+                            ),
+                            textStyle: WidgetStatePropertyAll<TextStyle>(
+                              tokens.buttonText,
+                            ),
+                          ),
                           onPressed: onView,
                           child: Text(context.l10n.registrationDone),
                         ),
