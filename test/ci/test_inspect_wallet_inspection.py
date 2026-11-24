@@ -997,7 +997,8 @@ class ReaderTests(unittest.TestCase):
         # The original workflow blob is read separately from its pinned Git tree.
         required = (set(reader.SOURCE_FILES) | set(reader.SURFACE_SEAM_SOURCES)
             | set(reader.READY_ARTWORK_SOURCES)
-            | set(reader.HOME_GOTO_CONTACT_SOURCES) | {reader.HOME_FIELD_SOURCE})
+            | set(reader.HOME_GOTO_CONTACT_SOURCES) | {reader.HOME_FIELD_SOURCE}
+            | set(reader.HEIGHT_FLASH_SOURCES))
         required.remove(reader.WORKFLOW_SOURCE)
         missing = sorted(name for name in required
             if not any(name == path or name.startswith(path + '/') for path in paths))

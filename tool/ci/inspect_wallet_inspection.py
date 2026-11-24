@@ -29,6 +29,10 @@ MAX_WORKFLOW_SOURCE = 128 * 1024
 MAX_WORKFLOW_RESPONSE = 2 * MAX_WORKFLOW_SOURCE
 CAPTURE_AGENT_SOURCE = 'harness/app/agent.dart'
 HOME_FIELD_SOURCE = 'lib/rearchitecture/utils/widgets/hero_field.dart'
+HEIGHT_FLASH_SOURCES = (
+    'lib/widgets/shell/status_strip.dart',
+    'lib/rearchitecture/utils/widgets/motion/value_flash.dart',
+)
 HOME_GOTO_CONTACT_FIXTURE = 'harness/app/fixtures/home_goto_contact.dart'
 MAX_CAPTURE_AGENT_SOURCE = 288 * 1024
 MAX_VERSIONED_BLOB_RESPONSE = 2 * MAX_CAPTURE_AGENT_SOURCE
@@ -77,6 +81,7 @@ VERSIONED_INPUTS = frozenset((
     'lib/widgets/reusable_widgets/launch_film.dart',
     'lib/widgets/reusable_widgets/app_lottie.dart',
     CAPTURE_AGENT_SOURCE, HOME_FIELD_SOURCE, HOME_GOTO_CONTACT_FIXTURE,
+    *HEIGHT_FLASH_SOURCES,
 ))
 JOB = 'Windows readonly inspection with owned chain-321'
 PREFLIGHT = ('Test all isolated controllers before SDK allocation',
@@ -2126,9 +2131,7 @@ def main(parent=None):
                     files=('lib/widgets/shell/strip/status_dot.dart',)))
             if 'height_flash' in catalog:
                 source_digests.update(source_files(repo, producer_tree, tree,
-                    read_versioned_blob=read_blob,
-                    files=('lib/widgets/shell/status_strip.dart',
-                           'lib/rearchitecture/utils/widgets/motion/value_flash.dart')))
+                    read_versioned_blob=read_blob, files=HEIGHT_FLASH_SOURCES))
             if 'segment_motion' in catalog:
                 source_digests.update(source_files(repo, producer_tree, tree,
                     read_versioned_blob=read_blob,
