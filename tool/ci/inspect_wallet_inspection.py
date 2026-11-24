@@ -82,6 +82,7 @@ VERSIONED_INPUTS = frozenset((
     'lib/widgets/modular_widgets/p2p_swap_widgets/modals/start_native_swap_modal.dart',
     'lib/widgets/modular_widgets/p2p_swap_widgets/modals/swap_action_surface.dart',
     'lib/widgets/modular_widgets/settings_widgets/node_settings_view.dart',
+    'lib/widgets/modular_widgets/settings_widgets/security_settings_view.dart',
     'lib/widgets/shell/rail.dart',
     'lib/widgets/shell/strip/status_dot.dart',
     'lib/widgets/modular_widgets/settings_widgets/wallet_settings_view.dart',
