@@ -18,6 +18,7 @@ from functools import cache
 from . import inspect_chain321 as archive
 from . import inspect_windows_qualification as windows
 from . import windows_wallet_inspection as producer
+from .hosted_chain321 import NAVIGATION_PLASMA_GENESIS
 
 
 MAX_ARCHIVE = producer.MAX_CAPTURE_TOTAL + producer.MAX_MANIFEST + 65536
@@ -2192,6 +2193,12 @@ def main(parent=None):
                  and holdings_fixture['token_standards']
                      == list(producer.HOME_FIXTURE_TOKEN_STANDARDS))
             catalog['holdings_genesis'] = holdings_fixture
+        navigation_fixture = lab.get('navigation_plasma_genesis')
+        if navigation_fixture is not None:
+            need(navigation_reference is not None
+                 and navigation_fixture == NAVIGATION_PLASMA_GENESIS
+                 and navigation_fixture['genesis_sha256'] == lab.get('genesis_sha256'))
+            catalog['navigation_plasma_genesis'] = navigation_fixture
         catalog_index = dict(artifact_id=item['id'], archive_bytes=item['size_in_bytes'],
             images=catalog_image_pins(catalog_archive, catalog))
         if catalog_comparisons:

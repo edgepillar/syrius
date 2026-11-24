@@ -407,6 +407,31 @@ HOME_FIXTURE_TOKEN_STANDARDS = (
     'zts19d76xks8c2fg7enc2yyauu',
 )
 
+NAVIGATION_PLASMA_GENESIS = {
+    'base_genesis_sha256': '83d11a5031073c8caaf55ff4eda47631e8c9d2a0b06776b64857fd4ddfd53ca7',
+    'genesis_sha256': '1163a71d860702da6a78c046e7effa2f0d1db224e1bcd09bbf1f7993b084c20a',
+    'fusion_count': 4,
+    'locked_until_heights': [3001, 3201],
+}
+
+
+def navigation_plasma_genesis(raw):
+    """Split one pinned fuse for the readonly Navigation catalog."""
+    fixture = NAVIGATION_PLASMA_GENESIS
+    need(digest(raw) == fixture['base_genesis_sha256'], 'CONFIG_REFUSED')
+    genesis = json.loads(raw)
+    fusions = genesis['PlasmaConfig']['Fusions']
+    original = fusions[0]
+    split = original['amount'] // 2
+    original['amount'] -= split
+    first_height, second_height = fixture['locked_until_heights']
+    original['withdrawHeight'] = first_height
+    split_id = digest(('navigation-plasma:' + original['id']).encode('ascii'))
+    fusions.append(dict(original, id=split_id, amount=split, withdrawHeight=second_height))
+    prepared = (json.dumps(genesis, separators=(',', ':')) + '\n').encode()
+    need(digest(prepared) == fixture['genesis_sha256'], 'CONFIG_REFUSED')
+    return prepared
+
 
 def holder_catalog_genesis(raw, *, home_catalog=False):
     """Allocate fixed holdings for the isolated token and Home catalogs."""
@@ -1377,6 +1402,7 @@ def run(backend):
     send_warning = inspection and readonly_catalog_family(parent) == send_warning_window.FAMILY
     holder_catalog = wallet_tour and parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == TOKEN_HOLDER_FAMILY
     home_holdings = inspection and parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == 'home-catalog'
+    navigation_plasma = inspection and parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == 'navigation'
     stack_debug = backend == "native" and parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") == "true"
     node_source = parent.get("SYRIUS_LAB_NODE_SOURCE", "original")
     node_sha, node_tree = selected_node_source(node_source)
@@ -1474,6 +1500,9 @@ def run(backend):
                 base_genesis_sha256=base_genesis_sha256,
                 genesis_sha256=digest(genesis),
                 token_standards=list(HOME_FIXTURE_TOKEN_STANDARDS))
+        if navigation_plasma:
+            genesis = navigation_plasma_genesis(genesis)
+            report['navigation_plasma_genesis'] = NAVIGATION_PLASMA_GENESIS
         report["genesis_sha256"] = digest(genesis)
         configs, pins, keyfile_pins = {}, {}, {}
         report["keyfile_relocations"] = []

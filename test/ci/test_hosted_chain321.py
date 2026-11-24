@@ -89,6 +89,29 @@ class ClosedCheckpointAuthorityTests(unittest.TestCase):
 
 
 class AssetGenerationTests(unittest.TestCase):
+    def test_navigation_plasma_preserves_fused_amounts_and_other_genesis_entries(self):
+        rows = [dict(owner='fixture-owner', beneficiaryAddress=beneficiary,
+                     amount=10_000, id=f'{index:064x}', withdrawHeight=1)
+                for index, beneficiary in enumerate(('self', 'self', 'other'), 1)]
+        base = dict(ChainIdentifier=321, ExtraData='SYRIUS LAB',
+                    PlasmaConfig=dict(Fusions=rows), GenesisBlocks=dict(Blocks=[]))
+        raw = json.dumps(base).encode()
+        expected = copy.deepcopy(base)
+        fusions = expected['PlasmaConfig']['Fusions']
+        fusions[0].update(amount=5_000, withdrawHeight=3001)
+        split_id = lab.digest(('navigation-plasma:' + rows[0]['id']).encode())
+        fusions.append(dict(fusions[0], id=split_id, withdrawHeight=3201))
+        prepared = (json.dumps(expected, separators=(',', ':')) + '\n').encode()
+        pins = dict(lab.NAVIGATION_PLASMA_GENESIS,
+                    base_genesis_sha256=lab.digest(raw), genesis_sha256=lab.digest(prepared))
+        with mock.patch.object(lab, 'NAVIGATION_PLASMA_GENESIS', pins):
+            self.assertEqual(lab.navigation_plasma_genesis(raw), prepared)
+            with self.assertRaises(lab.Failure):
+                lab.navigation_plasma_genesis(prepared)
+        self.assertEqual({sum(row['amount'] for row in source if row['beneficiaryAddress'] == 'self')
+                          for source in (rows, fusions)}, {20_000})
+        self.assertEqual(len({row['id'] for row in fusions}), 4)
+
     def test_holder_catalog_allocates_two_tokens_without_moving_native_balances(self):
         original = dict(ChainIdentifier=321, ExtraData='SYRIUS LAB',
             TokenConfig=dict(Tokens=[dict(tokenSymbol=symbol, tokenStandard=symbol)
