@@ -2008,6 +2008,8 @@ class ReaderTests(unittest.TestCase):
         cancel = b'\0' + background * 1187 + mark_blue * 61 + background * 32
         rows[264:290] = [batch] * 26
         rows[343:369] = rows[388:414] = rows[433:459] = [cancel] * 26
+        rows[356] = rows[399] = (b'\0' + background * 230
+            + bytes((140, 140, 140, 255)) + rows[356][1 + 231 * 4:])
         rows[422] = b'\0' + background * 203 + mark_blue * 67 + background * 1010
         bolt = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                 + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
@@ -2017,6 +2019,13 @@ class ReaderTests(unittest.TestCase):
         bounds = dict(left=211, top=94, right=246, bottom=140)
         self.assertEqual(reader.plasma_bolt_bounds(packed.getvalue(), '22-plasma-fuse'),
                          dict(dark=bounds, light=bounds))
+        with mock.patch.object(reader.producer, 'read_original', return_value=bolt):
+            self.assertEqual(reader.plasma_other_rules(packed.getvalue(), Path('references')),
+                dict(column=230, scan_rows=[350, 404], themes={
+                    theme: dict(actual=[[356, 140, 140, 140], [399, 140, 140, 140]],
+                                reference=[[356, 140, 140, 140], [399, 140, 140, 140]])
+                    for theme in ('dark', 'light')
+                }))
         with zipfile.ZipFile(packed, 'a') as zipped:
             for theme, level in (('dark', 120), ('light', 80)):
                 ink = bytes((level, level, level, 255))

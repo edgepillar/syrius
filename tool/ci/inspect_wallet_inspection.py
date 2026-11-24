@@ -1795,6 +1795,35 @@ def _details_originals_footer_rows(zipped):
     return dict(column=column, scan_rows=[top, bottom], themes=themes)
 
 
+PLASMA_OTHER_RULE_SCAN = (230, 350, 404)
+
+
+def _plasma_other_rule_rows(data):
+    """Read the two rules and any blended edge rows through the header."""
+    column, top, bottom = PLASMA_OTHER_RULE_SCAN
+    encoded = base64.b64encode(data).decode('ascii')
+    rows, channels = windows._png_crop(encoded, (column, column + 1), (top, bottom))
+    if not windows._opaque(rows, channels) or rows[-1] != rows[0]:
+        return None
+    painted = [[top + index, *pixel[:3]] for index, pixel in enumerate(rows)
+               if pixel != rows[0]]
+    return painted if len(painted) <= 8 else None
+
+
+def plasma_other_rules(raw, reference_dir):
+    column, top, bottom = PLASMA_OTHER_RULE_SCAN
+    themes = {}
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        for theme in producer.details.THEMES:
+            name = f'22-plasma-fuse-{theme}.png'
+            reference = producer.read_original(
+                reference_dir / name, producer.debug.entry.MAX_PNG)
+            themes[theme] = dict(
+                actual=_plasma_other_rule_rows(zipped.read(name)),
+                reference=_plasma_other_rule_rows(reference))
+    return dict(column=column, scan_rows=[top, bottom], themes=themes)
+
+
 def _details_plasma_fuse_geometry(zipped):
     distances = (22, 38, 54, 66)
     center = 230
@@ -2139,6 +2168,10 @@ def main(parent=None):
                 catalog['transfer_address_chip_rows'] = details_transfer_chip_rows(catalog_archive)
             if '22-plasma-fuse-dark.png' in catalog['filenames']:
                 catalog['plasma_bolt_bounds'] = plasma_bolt_bounds(catalog_archive, '22-plasma-fuse')
+                if reference_head is not None:
+                    need(digest(reference_head, 40))
+                    catalog['plasma_other_rules'] = plasma_other_rules(
+                        catalog_archive, repo / 'mockups/redesign/shots')
             if '37-set-licences-dark.png' in catalog['filenames']:
                 catalog['licence_header_chevrons'] = details_licence_header_chevrons(catalog_archive)
             if (producer.details.family_matches('node-verified', schema)
@@ -2385,6 +2418,7 @@ def main(parent=None):
         home_field_minimize = catalog.pop('home_field_minimize', None)
         expiry_badge_ink = catalog.pop('plasma_expiry_badge_ink', None)
         plasma_table_edges = catalog.pop('plasma_table_edges', None)
+        plasma_other_rules_observation = catalog.pop('plasma_other_rules', None)
         emit(f'Retained readonly {family} catalog', catalog)
         sampling_scope = summary.get('sampling_scope')
         capture_family = (sampling_scope.removesuffix('-only')
@@ -2402,6 +2436,13 @@ def main(parent=None):
                 archive_sha256=catalog['archive_sha256'],
                 manifest_sha256=catalog['manifest_sha256'],
                 **plasma_table_edges))
+        if plasma_other_rules_observation is not None:
+            emit('Retained Plasma Other addresses rules', dict(
+                scope='retained_plasma_other_address_rules', source_head=head,
+                source_run_id=run_id, reference_head=reference_head,
+                archive_sha256=catalog['archive_sha256'],
+                manifest_sha256=catalog['manifest_sha256'],
+                **plasma_other_rules_observation))
         if expiry_badge_ink is not None:
             emit('Retained readonly Plasma expiry badge ink', dict(
                 source_head=head, source_run_id=run_id,
