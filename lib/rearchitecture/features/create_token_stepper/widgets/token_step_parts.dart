@@ -67,6 +67,7 @@ class TokenStepFrame extends StatefulWidget {
     this.onSubmit,
     this.onBack,
     this.outlinedBack = false,
+    this.actionGap = _kActionsGap,
     this.busy = false,
     this.focusPrimaryOnOpen = true,
     super.key,
@@ -90,6 +91,9 @@ class TokenStepFrame extends StatefulWidget {
 
   /// Uses the outlined Back pill in the shell's compact registration draft.
   final bool outlinedBack;
+
+  /// Vertical spacing between the fields and the action row.
+  final double actionGap;
 
   /// Whether the step is sending. Back is disabled meanwhile.
   final bool busy;
@@ -293,12 +297,13 @@ class _TokenStepFrameState extends State<TokenStepFrame>
 
   Widget _buildFrame(BuildContext context) {
     final double? card = TokenStepViewport.maybeOf(context);
+    final double actionGap = widget.actionGap;
     final double room = card != null && card.isFinite
         ? card
         : MediaQuery.sizeOf(context).height;
     final double bodyMax = math.max(
       _kLeastBody,
-      room - _kStepHeader - _kActionsGap - _kActionsHeight - _kActionsClearance,
+      room - _kStepHeader - actionGap - _kActionsHeight - _kActionsClearance,
     );
     return FocusTraversalGroup(
       // A message that appears under a field makes the step taller after it
@@ -327,13 +332,18 @@ class _TokenStepFrameState extends State<TokenStepFrame>
               ),
               Padding(
                 key: _actionsKey,
-                padding: const EdgeInsetsDirectional.only(top: _kActionsGap),
+                padding: EdgeInsetsDirectional.only(top: actionGap),
                 child: Row(
                   children: <Widget>[
                     if (widget.onBack != null) ...<Widget>[
                       if (widget.outlinedBack)
                         OutlinedButton(
-                          style: secondaryButtonStyle(context),
+                          style: secondaryButtonStyle(context).copyWith(
+                            // Flutter paints the outline inside the button.
+                            padding: const WidgetStatePropertyAll<EdgeInsets>(
+                              EdgeInsets.symmetric(horizontal: 17),
+                            ),
+                          ),
                           onPressed: widget.busy ? null : widget.onBack,
                           child: Text(context.l10n.tokenCreateBack),
                         )

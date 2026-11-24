@@ -258,6 +258,15 @@ void main() {
       );
     }
     expect(tester.getSize(reward).height, closeTo(tokens.fieldHeight, .01));
+    expect(
+      tester.getTopLeft(detailsNext).dy - tester.getBottomLeft(reward).dy,
+      closeTo(22, .01),
+    );
+    final OutlinedButton backButton = tester.widget(back);
+    expect(
+      backButton.style?.padding?.resolve(<WidgetState>{}),
+      const EdgeInsets.symmetric(horizontal: 17),
+    );
 
     await tester.tap(detailsNext);
     await tester.pumpAndSettle();

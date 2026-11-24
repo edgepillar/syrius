@@ -209,6 +209,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
       busy: _isSending,
       onBack: widget.onBackPressed,
       outlinedBack: true,
+      actionGap: tokens.registrationActionGap + tokens.inlineGap,
       onSubmit: next,
       body: Theme(
         data: theme.copyWith(
