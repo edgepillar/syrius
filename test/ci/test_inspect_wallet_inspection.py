@@ -1328,6 +1328,27 @@ class ReaderTests(unittest.TestCase):
                         read_versioned_blob=remote, files=(path,)),
                         {path: reader.archive.sha(historical)})
                     remote.assert_called_once_with(original_sha)
+            agent_path = reader.CAPTURE_AGENT_SOURCE
+            for size in (264179, reader.MAX_CAPTURE_AGENT_SOURCE + 1):
+                agent = b'a' * size
+                agent_sha = reader.git_blob(agent)
+                agent_reader = mock.Mock(return_value=dict(
+                    sha=agent_sha, encoding='base64', size=size,
+                    content=base64.b64encode(agent).decode('ascii')))
+                producer_tree = dict(tree, tree=[dict(path=agent_path,
+                    mode='100644', type='blob', sha=agent_sha)])
+                with self.subTest(versioned_agent_bytes=size):
+                    if size <= reader.MAX_CAPTURE_AGENT_SOURCE:
+                        self.assertEqual(reader.source_files(
+                            Path('/fixture'), producer_tree, 'b' * 40,
+                            read_versioned_blob=agent_reader, files=(agent_path,)),
+                            {agent_path: reader.archive.sha(agent)})
+                    else:
+                        with self.assertRaises(reader.archive.Refused):
+                            reader.source_files(Path('/fixture'), producer_tree,
+                                'b' * 40, read_versioned_blob=agent_reader,
+                                files=(agent_path,))
+                    agent_reader.assert_called_once_with(agent_sha)
             read.reset_mock()
             self.assertEqual(reader.ready_artwork_sources(Path('/fixture'), tree, 'b' * 40), {})
             read.assert_not_called()

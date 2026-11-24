@@ -30,7 +30,7 @@ MAX_WORKFLOW_RESPONSE = 2 * MAX_WORKFLOW_SOURCE
 CAPTURE_AGENT_SOURCE = 'harness/app/agent.dart'
 HOME_FIELD_SOURCE = 'lib/rearchitecture/utils/widgets/hero_field.dart'
 HOME_GOTO_CONTACT_FIXTURE = 'harness/app/fixtures/home_goto_contact.dart'
-MAX_CAPTURE_AGENT_SOURCE = 256 * 1024
+MAX_CAPTURE_AGENT_SOURCE = 288 * 1024
 MAX_VERSIONED_BLOB_RESPONSE = 2 * MAX_CAPTURE_AGENT_SOURCE
 VERSIONED_INPUTS = frozenset((
     'pubspec.yaml', 'pubspec.lock',
