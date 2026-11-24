@@ -5,11 +5,11 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:cryptography/dart.dart';
-import 'package:flutter/material.dart' show Theme;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hex/hex.dart';
 import 'package:lottie/lottie.dart';
+import 'package:material_ui/material_ui.dart' show Theme;
 import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 
 /// The animations the wallet ships, and every Lottie the wallet draws.
