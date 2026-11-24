@@ -315,7 +315,7 @@ void main() {
         await tester.pump();
         final InkWell originalLink = tester.widget<InkWell>(apps);
         final Color off = AppTokens.dark.card2.withValues(alpha: 0);
-        expect(_surface(tester, SettingsSectionId.apps).color, off);
+        expect(_surface(tester, SettingsSectionId.apps).color, isNull);
         await tester.pump(const Duration(milliseconds: 75));
         final double middle = AppTokens.dark.ease.transform(0.5);
         expect(tester.widget<InkWell>(apps), same(originalLink));
@@ -341,6 +341,7 @@ void main() {
           _surface(tester, SettingsSectionId.apps).color,
           AppTokens.dark.card2,
         );
+        expect(_surface(tester, SettingsSectionId.addresses).color, isNull);
         await tester.pumpAndSettle();
       },
     );

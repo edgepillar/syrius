@@ -229,11 +229,14 @@ class _SectionItemState extends State<_SectionItem>
           // The menu's panel supplies the Material for all these rows.
           return DecoratedBox(
             decoration: BoxDecoration(
-              color: Color.lerp(
-                tokens.card2.withValues(alpha: 0),
-                tokens.card2,
-                t,
-              ),
+              // At rest an unselected row has no background paint.
+              color: t == 0
+                  ? null
+                  : Color.lerp(
+                      tokens.card2.withValues(alpha: 0),
+                      tokens.card2,
+                      t,
+                    ),
               borderRadius: radius,
             ),
             child: IconTheme.merge(
