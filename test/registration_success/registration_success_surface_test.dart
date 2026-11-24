@@ -116,6 +116,13 @@ void main() {
           expect(checks, findsNWidgets(4));
           if (pillar) {
             expect(find.text('View pillar'), findsOneWidget);
+            final Finder transforms = find.ancestor(
+              of: caption,
+              matching: find.byType(Transform),
+            );
+            final Transform captionPaint = tester.widget(transforms.first);
+            expect(captionPaint.transform.getTranslation().y, -1);
+            expect(captionPaint.transformHitTests, isFalse);
             expect(
               find.byKey(const Key('registration_another')),
               findsNothing,

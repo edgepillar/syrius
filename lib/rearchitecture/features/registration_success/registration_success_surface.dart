@@ -383,11 +383,20 @@ class RegistrationSuccessSurface extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   if (confirmed && caption != null)
-                    Text(
-                      caption!,
-                      key: const Key('registration_confirmation_caption'),
-                      style: tokens.registrationCaptionText,
-                      textAlign: TextAlign.center,
+                    Transform.translate(
+                      // Align the Pillar reference's caption ink without
+                      // moving its layout box or the capture's tap target.
+                      offset: Offset(
+                        0,
+                        asset == AppLottieAsset.pillar ? -1 : 0,
+                      ),
+                      transformHitTests: false,
+                      child: Text(
+                        caption!,
+                        key: const Key('registration_confirmation_caption'),
+                        style: tokens.registrationCaptionText,
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   Padding(
                     padding: EdgeInsets.only(top: tokens.registrationActionGap),
