@@ -1,0 +1,52 @@
+{
+  "reviews": {
+    "09-receive-dark": {
+      "actual_sha256": "89ad422035452a069392e307bee3792b2f494d450cdac80395b1e729810b2c31",
+      "expected_sha256": "29833553d03b3cb5a7906cfa755389b3b918feca4000684ae79cc2b0f0ab2353",
+      "note": "The original content above the status strip is pixel-identical to the reviewed 31323092 match. The live network status shows the isolated lab values.",
+      "reviewed_at": "2026-11-24T23:41:29Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "09-receive-light": {
+      "actual_sha256": "6b043914f54328634a09b44c9ca50949d4d1a03ed9722a4960180339db42ad8e",
+      "expected_sha256": "941606d6662bc1a0dce5b6715be83a5c95fd3b9158844ab0e59fb27f4f4c7d35",
+      "note": "The original content above the status strip is pixel-identical to the reviewed 31323092 match. The live network status shows the isolated lab values.",
+      "reviewed_at": "2026-11-24T23:41:29Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "16-pillars-dark": {
+      "actual_sha256": "51b9442a7f837b26fec8ba4f10ef09ce69c7d4433f140a7c8cec2f1c9332d58f",
+      "expected_sha256": "2cc96ba5d5e143ec6b96dce6bfdd5bf0dd2d1950f647871f2e950f30b3991869",
+      "note": "The selected pillar name has the reference 39-pixel ink width after the type change. The fixture shows three rows, no reward to collect and unavailable APR and registration values.",
+      "reviewed_at": "2026-11-24T23:41:29Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "16-pillars-light": {
+      "actual_sha256": "7bd491b004dc00a8fe843386a30ec383fc945a28dedd7f699cc22bdcce0d74ba",
+      "expected_sha256": "d8a635852cfe165f21d62ce1445484859f8f4ab529af53ade636a360db082c86",
+      "note": "The selected pillar name has the reference 39-pixel ink width after the type change. The fixture shows three rows, no reward to collect and unavailable APR and registration values.",
+      "reviewed_at": "2026-11-24T23:41:29Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "21-plasma-dark": {
+      "actual_sha256": "f34c1328cc5db567de769a2a5f4ecd6a804f1e1b5d8cea610a312635211a4775",
+      "expected_sha256": "00bf1d72858ad59603775e8a36a68b326446902e6c52f54756389729da6778bf",
+      "note": "The compact estimate, selected-beneficiary badge and rounded meter remain visible. The original capture shows an idle generation strip and starts with two cancellable fuses. The reference shows active generation, a different fuse order and a low-address summary.",
+      "reviewed_at": "2026-11-24T23:41:29Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "21-plasma-light": {
+      "actual_sha256": "a285d1e049d0dbc8299a429a6e27a4ad2c3702e3cde34124e0acf267317f261d",
+      "expected_sha256": "45f4e4b332c3f332601ad355d8ff5438b97dcea4984c5cffdb2cb35853d27f97",
+      "note": "The compact estimate, selected-beneficiary badge and rounded meter remain visible. The original capture shows an idle generation strip and starts with two cancellable fuses. The reference shows active generation, a different fuse order and a low-address summary.",
+      "reviewed_at": "2026-11-24T23:41:29Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
