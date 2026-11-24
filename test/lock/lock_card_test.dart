@@ -3,6 +3,8 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart'
+    show Layer, OffsetLayer, RenderRepaintBoundary;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -590,6 +592,15 @@ void main() {
       // A late first frame must still start the shake at rest.
       await tester.pump(const Duration(milliseconds: 120));
       expect(_shakeX(tester), 0);
+      final RenderRepaintBoundary fieldBoundary = tester.renderObject(
+        find.ancestor(
+          of: find.byKey(_password),
+          matching: find.byType(RepaintBoundary),
+        ).first,
+      );
+      final OffsetLayer fieldLayer = fieldBoundary.debugLayer! as OffsetLayer;
+      final Layer? fieldPaint = fieldLayer.firstChild;
+      expect(fieldPaint, isNotNull);
       for (final (int milliseconds, double x) in <(int, double)>[
         (25, 4),
         (50, -4),
@@ -599,6 +610,7 @@ void main() {
       ]) {
         await tester.pump(Duration(milliseconds: milliseconds));
         expect(_shakeX(tester), closeTo(x, 0.00001));
+        expect(fieldLayer.firstChild, same(fieldPaint));
       }
       await tester.pumpWidget(
         _host(
