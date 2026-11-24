@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/gestures.dart' show PointerDeviceKind;
-import 'package:flutter/rendering.dart' show RenderPhysicalShape;
+import 'package:flutter/rendering.dart'
+    show RenderPhysicalShape, RenderRepaintBoundary;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lottie/lottie.dart';
@@ -326,9 +327,12 @@ void main() {
       editor.dispose();
     }
 
-    for (final (Color marker, String expected) in <(Color, String)>[
-      (const Color(0xFF00D557), 'present'),
-      (Colors.white, 'absent'),
+    const Color green = Color(0xFF00D557);
+    for (final (Color marker, Color? sibling, String clip, String enclosing)
+        in <(Color, Color?, String, String)>[
+      (green, null, 'present', 'present'),
+      (Colors.white, null, 'absent', 'absent'),
+      (Colors.white, green, 'absent', 'present'),
     ]) {
       await tester.pumpWidget(Directionality(
         textDirection: TextDirection.ltr,
@@ -369,6 +373,14 @@ void main() {
                         ),
                       ),
                     ),
+                    if (sibling != null)
+                      Positioned(
+                        left: 64,
+                        top: 24,
+                        width: 2,
+                        height: 24,
+                        child: ColoredBox(color: sibling),
+                      ),
                   ],
                 ),
               ),
@@ -382,7 +394,14 @@ void main() {
             tester.binding.rootElement,
             (RenderPhysicalShape pane) => pane.debugLayer,
           ),
-          expected,
+          clip,
+        );
+        expect(
+          await observePillarEnclosingPaintMark(
+            tester.binding.rootElement,
+            (RenderRepaintBoundary boundary) => boundary.debugLayer,
+          ),
+          enclosing,
         );
       });
     }

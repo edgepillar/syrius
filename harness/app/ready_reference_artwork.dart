@@ -3,8 +3,9 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart'
-    show ClipPathLayer, Layer, MatrixUtils, RenderBox, RenderEditable,
-        RenderPhysicalShape, RenderRepaintBoundary;
+    show ClipPathLayer, Layer, MatrixUtils, OffsetLayer, RenderBox,
+        RenderEditable, RenderObject, RenderPhysicalShape,
+        RenderRepaintBoundary;
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surface.dart';
@@ -225,6 +226,32 @@ Future<String> observePillarPaneClipMark(
   } finally {
     image?.dispose();
     scene?.dispose();
+  }
+}
+
+/// Checks the nearest existing repaint boundary enclosing the Pillar pane.
+Future<String> observePillarEnclosingPaintMark(
+  Element? root,
+  Layer? Function(RenderRepaintBoundary) paintedLayer,
+) async {
+  ui.Image? image;
+  try {
+    final RenderPhysicalShape? pane =
+        _pillarPaintTarget<RenderPhysicalShape>(root, 'pillar_create_pane');
+    RenderObject? ancestor = pane?.parent;
+    while (ancestor != null && ancestor is! RenderRepaintBoundary) {
+      ancestor = ancestor.parent;
+    }
+    if (ancestor is! RenderRepaintBoundary) return 'unavailable';
+    final Rect? mark = _localPillarMark(ancestor);
+    final Layer? layer = paintedLayer(ancestor);
+    if (mark == null || layer is! OffsetLayer) return 'unavailable';
+    image = await layer.toImage(mark);
+    return await _readPillarMark(image, Offset.zero & mark.size);
+  } on Object {
+    return 'unavailable';
+  } finally {
+    image?.dispose();
   }
 }
 

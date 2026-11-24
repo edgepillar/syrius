@@ -1475,6 +1475,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
   final Map<String, String> pillarHeaderCarets = <String, String>{};
   final Map<String, String> pillarHeaderLayerMarks = <String, String>{};
   final Map<String, String> pillarPaneClipMarks = <String, String>{};
+  final Map<String, String> pillarEnclosingPaintMarks = <String, String>{};
   final ScreenCapture capture = ScreenCapture(
     repository: Directory(cli.repo),
     restoredSeeded: true,
@@ -1512,6 +1513,9 @@ Future<Map<String, Object>> _captureSeededCatalog(
           result['pillarHeaderLayerMark'],
         );
         pillarPaneClipMarks[theme] = markStatus(result['pillarPaneClipMark']);
+        pillarEnclosingPaintMarks[theme] = markStatus(
+          result['pillarEnclosingPaintMark'],
+        );
       }
       return result;
     },
@@ -1670,6 +1674,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
       'pillar_header_caret': pillarHeaderCarets,
       'pillar_header_layer_mark': pillarHeaderLayerMarks,
       'pillar_pane_clip_mark': pillarPaneClipMarks,
+      'pillar_enclosing_paint_mark': pillarEnclosingPaintMarks,
     },
   };
 }
