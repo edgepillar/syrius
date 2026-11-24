@@ -32,6 +32,10 @@ SKIPPED_BASELINE_JOB = (
 WINDOWS_READER_NAME = 'Inspect retained Windows qualification'
 ENTRY_JOB_NAME = 'Ordinary Windows entry captures'
 ENTRY_ARTIFACT_PREFIX = 'windows-entry-capture-'
+PLASMA_FIXTURE_STEP = 'Observe the Plasma meter in an isolated Windows fixture'
+PLASMA_FIXTURE_CASE = (
+    '✅ the desktop Plasma meter and status bolt paint during fixture generation'
+).encode()
 QUIZ_ENTRY_REQUESTS = 14
 READONLY_INSPECTOR_STEPS = {
     'Inspect retained chain-321 evidence': (
@@ -72,6 +76,22 @@ def numbers(value, names):
     archive.need(type(value) is dict and set(value) == set(names)
         and all(type(item) is int and 0 <= item <= 10**7 for item in value.values()))
     return dict(value)
+
+
+def plasma_fixture_observation(job, raw):
+    """Keep the original desktop fixture result separate from baseline builds."""
+    steps = [step for step in job['steps'] if step.get('name') == PLASMA_FIXTURE_STEP]
+    if not steps:
+        return None
+    archive.need(len(steps) == 1 and steps[0].get('status') == 'completed')
+    outcome = steps[0].get('conclusion')
+    archive.need(outcome in ('success', 'failure', 'skipped', 'cancelled'))
+    if outcome == 'skipped':
+        return None
+    passing = [line for line in raw.splitlines() if line.endswith(b' ' + PLASMA_FIXTURE_CASE)]
+    return dict(original_fixture_step_conclusion=outcome,
+                reported_passing_case=len(passing) == 1,
+                fixture_verified=outcome == job['conclusion'] == 'success' and len(passing) == 1)
 
 
 def log_report(raw, scope):
@@ -1426,6 +1446,14 @@ def main():
                            log_sha256=archive.sha(raw), log_bytes=len(raw), producer_sources_equal=True)
             PHASE = 'baseline_notice'
             emit('Hosted baseline inspection', summary)
+            fixture = plasma_fixture_observation(job, raw)
+            if fixture is not None:
+                emit('Hosted Windows Plasma fixture inspection', dict(
+                    scope='retained_windows_plasma_fixture', inspection_only=True,
+                    runtime_started=False, wallet_qualified=False, source_head=head,
+                    source_tree=tree, source_run_id=run_id, source_attempt=1,
+                    original_job_id=job['id'], log_sha256=summary['log_sha256'],
+                    **fixture))
         entry_job = jobs[ENTRY_JOB_NAME]
         if entry_job['conclusion'] == 'skipped':
             emit('Hosted entry not selected', dict(scope='retained_windows_entry_not_selected',

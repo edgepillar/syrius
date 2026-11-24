@@ -656,6 +656,20 @@ class WindowsQualificationTests(unittest.TestCase):
             entry_qualified=False, entry_artifacts_read=0))
         self.assertNotIn('synthetic-private-context', output)
 
+    def test_plasma_fixture_observation_requires_the_original_job_and_passing_case(self):
+        step = dict(name=inspect.PLASMA_FIXTURE_STEP, status='completed',
+                    conclusion='success')
+        job = dict(steps=[step], conclusion='success')
+        passing = b'2026-11-24T23:35:47.2930422Z ' + inspect.PLASMA_FIXTURE_CASE + b'\n'
+        self.assertEqual(inspect.plasma_fixture_observation(job, passing),
+                         dict(original_fixture_step_conclusion='success',
+                              reported_passing_case=True, fixture_verified=True))
+        for raw in (b'', passing * 2):
+            self.assertFalse(inspect.plasma_fixture_observation(job, raw)['fixture_verified'])
+        failed = dict(job, conclusion='failure')
+        self.assertFalse(inspect.plasma_fixture_observation(failed, passing)['fixture_verified'])
+        self.assertIsNone(inspect.plasma_fixture_observation(dict(job, steps=[]), passing))
+
     def test_skipped_entry_requires_one_original_completed_source_bound_job(self):
         for options in (dict(entry_count=0), dict(entry_count=2),
                 dict(entry_change=dict(conclusion='skipped', head_sha='c' * 40)),
