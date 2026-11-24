@@ -1616,6 +1616,29 @@ def _nodes_table_edges(zipped, screen):
     return dict(column=column, scan_rows=[top, bottom], themes=themes)
 
 
+def plasma_expiry_badge_ink(data):
+    """Count the blue and green expiry ink in the four visible ledger rows."""
+    column_start, column_end = 910, 1008
+    first_row, stride, badge_height = 204, 45, 25
+    row_count = 4
+    last_row = first_row + stride * (row_count - 1) + badge_height
+    encoded = base64.b64encode(data).decode('ascii')
+    rows, channels = windows._png_crop(encoded, (column_start, column_end),
+                                      (first_row, last_row))
+    if not windows._opaque(rows, channels):
+        return None
+    bands = []
+    for start in range(0, row_count * stride, stride):
+        blue = green = 0
+        for row in rows[start:start + badge_height]:
+            for x in range(0, len(row), channels):
+                r, g, b = row[x:x + 3]
+                blue += b - r >= 8 and b - g >= 6
+                green += g - r >= 8 and g - b >= 6
+        bands.append(dict(blue_pixels=blue, green_pixels=green))
+    return bands
+
+
 def navigation_component_geometry(raw):
     """Measure strip boundaries, the Pillars table and its expanded row."""
     column, top, bottom = 900, 100, 125
@@ -2199,6 +2222,10 @@ def main(parent=None):
                  and navigation_fixture == NAVIGATION_PLASMA_GENESIS
                  and navigation_fixture['genesis_sha256'] == lab.get('genesis_sha256'))
             catalog['navigation_plasma_genesis'] = navigation_fixture
+            with zipfile.ZipFile(io.BytesIO(catalog_archive)) as zipped:
+                catalog['plasma_expiry_badge_ink'] = {
+                    theme: plasma_expiry_badge_ink(zipped.read(f'21-plasma-{theme}.png'))
+                    for theme in producer.navigation.THEMES}
         catalog_index = dict(artifact_id=item['id'], archive_bytes=item['size_in_bytes'],
             images=catalog_image_pins(catalog_archive, catalog))
         if catalog_comparisons:
@@ -2277,6 +2304,7 @@ def main(parent=None):
         home_field_drift = catalog.pop('home_field_drift', None)
         home_field_occlusion = catalog.pop('home_field_occlusion', None)
         home_field_minimize = catalog.pop('home_field_minimize', None)
+        expiry_badge_ink = catalog.pop('plasma_expiry_badge_ink', None)
         emit(f'Retained readonly {family} catalog', catalog)
         sampling_scope = summary.get('sampling_scope')
         capture_family = (sampling_scope.removesuffix('-only')
@@ -2288,6 +2316,12 @@ def main(parent=None):
             manifest_sha256=catalog['manifest_sha256'],
             catalog_family=capture_family, sampling_scope=sampling_scope,
             **catalog_index))
+        if expiry_badge_ink is not None:
+            emit('Retained readonly Plasma expiry badge ink', dict(
+                source_head=head, source_run_id=run_id,
+                archive_sha256=catalog['archive_sha256'],
+                manifest_sha256=catalog['manifest_sha256'],
+                themes=expiry_badge_ink))
         if rail_motion is not None:
             emit('Retained readonly rail motion', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],

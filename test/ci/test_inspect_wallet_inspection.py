@@ -556,6 +556,11 @@ class ReaderTests(unittest.TestCase):
                     blue = bytes((74, 148, 255, 255))
                     meter = b'\0' + bytes(background) * 76 + blue * 222 + bytes(background) * 982
                     rows[257:263] = [meter] * 6
+                    for start, color in ((204, blue), (249, bytes(ink)), (339, blue)):
+                        patch = b'\0' + bytes(background) * 910 + color * 98 + bytes(background) * 272
+                        for y in range(start, start + 25):
+                            if not 257 <= y < 263:
+                                rows[y] = patch
                 else:
                     rows[36:106] = [surface] * 70
                     rows[118:150] = [surface] * 32
@@ -575,8 +580,14 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(geometry['pillar_table_edges']['themes'], dict(dark=nodes, light=nodes))
         with zipfile.ZipFile(io.BytesIO(archive)) as zipped:
             for theme in ('dark', 'light'):
-                self.assertEqual(reader._plasma_meter_fill(zipped.read(f'21-plasma-{theme}.png')),
-                                 [76, 257, 298, 263])
+                plasma = zipped.read(f'21-plasma-{theme}.png')
+                self.assertEqual(reader._plasma_meter_fill(plasma), [76, 257, 298, 263])
+                self.assertEqual(reader.plasma_expiry_badge_ink(plasma), [
+                    dict(blue_pixels=2450, green_pixels=0),
+                    dict(blue_pixels=0, green_pixels=1862),
+                    dict(blue_pixels=0, green_pixels=0),
+                    dict(blue_pixels=2450, green_pixels=0),
+                ])
             self.assertEqual(reader._nodes_table_edges(zipped, '18-sentinels'),
                              dict(column=900, scan_rows=[100, 181], themes=dict(dark=nodes, light=None)))
         self.assertEqual(geometry['pillar_owned_badge_bounds'], dict.fromkeys(
