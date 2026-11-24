@@ -211,13 +211,19 @@ class _ViewState extends State<_View> {
             query: _search.text,
             sort: _sort,
           );
+          final AppTokens tokens = AppTokens.of(context);
           void refresh() => refreshPillarList(context);
           final Widget panel = Panel(
             title: context.l10n.pillars,
             heading: widget.heading,
-            headingMinHeight: AppTokens.of(context).tabHeaderHeight,
+            headingMinHeight: tokens.tabHeaderHeight,
             actions: <Widget>[
-              _buildSearch(context),
+              Padding(
+                padding: EdgeInsetsDirectional.only(
+                  end: widget.showRefreshButton ? 0 : tokens.inlineGap,
+                ),
+                child: _buildSearch(context),
+              ),
               _buildSort(context),
               if (widget.showRefreshButton) RefreshButton(onPressed: refresh),
             ],

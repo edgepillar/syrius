@@ -569,6 +569,11 @@ void main() {
         find.byTooltip('Refresh'),
         visible ? findsOneWidget : findsNothing,
       );
+      final Rect search = tester.getRect(
+        find.byKey(const Key('pillars_search')),
+      );
+      final Rect sort = tester.getRect(find.byKey(const Key('pillars_sort')));
+      expect(sort.left - search.right, visible ? 0 : AppTokens.dark.inlineGap);
       refresh.refresh();
       verify(
         () => pillars.add(InfiniteListRefreshRequested(address: emptyAddress)),
