@@ -1,0 +1,116 @@
+{
+  "reviews": {
+    "30-set-node-dark": {
+      "actual_sha256": "20dbc078f8cba430f2b9a2a7dd6d81e76a94022779751fc51d2cce6af3b5b310",
+      "expected_sha256": "05d7211c092f7415b542294e254a86765fa57b7d7953fb2f9af5b1170ef7d003",
+      "note": "The ordinary node list selects the isolated chain and shows unchecked reachability. The embedded node card shows the release check and source editor. The reference shows a verified download and different node states. The prepared update is reviewed separately.",
+      "reviewed_at": "2026-11-24T15:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "30-set-node-light": {
+      "actual_sha256": "d1e22c3cf23c954db54a100b78c382bf8c6cfc0af3b6c9bad12a2b79f49f3a86",
+      "expected_sha256": "a11078a238b2ab2107174698b0c1c1409d7545a22eac994608e57ea113c6faeb",
+      "note": "The ordinary node list selects the isolated chain and shows unchecked reachability. The embedded node card shows the release check and source editor. The reference shows a verified download and different node states. The prepared update is reviewed separately.",
+      "reviewed_at": "2026-11-24T15:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "31-set-security-dark": {
+      "actual_sha256": "243879817bcc82009fd2a572ea4d4538d340f465ee73d8b0f63743ba66dc0665",
+      "expected_sha256": "1c3a735e770863e501cc898830ca699abb20ea01593643c263fad41f00a4f411",
+      "note": "The selected timing and lockout controls, Backup rows and disclosures align. The current warning explicitly includes shared application data. The segmented controls and disclosure chevrons also have slight differences in width or position.",
+      "reviewed_at": "2026-11-24T15:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "31-set-security-light": {
+      "actual_sha256": "8120140759f19c2f20a4e496f9d221185412cbc4787d121cd5fe8dcf23e08467",
+      "expected_sha256": "eb4cd651d0e487c080e8a0cc5c10289c14a35dff9dcdbe68a38cf12af58c26db",
+      "note": "The selected timing and lockout controls, Backup rows and disclosures align. The current warning explicitly includes shared application data. The segmented controls and disclosure chevrons also have slight differences in width or position.",
+      "reviewed_at": "2026-11-24T15:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "32-set-display-dark": {
+      "actual_sha256": "04e4c1b6116110242190ced8af0956b2a26131c06f2c7a852cdcdab8d69f030a",
+      "expected_sha256": "f68b82b91f04df6c535c512da740e980026e8d980b0f68f8593fe4a070897c45",
+      "note": "The seven row boundaries and controls align. The Explorer selector is disabled on the isolated chain, while the reference shows enabled text. The switch uses the approved green and the status strip has the isolated runtime values.",
+      "reviewed_at": "2026-11-24T15:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "32-set-display-light": {
+      "actual_sha256": "0c18b3d3b143e13c82ea9a50f8247492ea38ca0a7ee4cac947cc8167d32d366f",
+      "expected_sha256": "64977a34163f03e4ef2f5d9f59027d124e6e02788b08970f2c2d5c635a4e723e",
+      "note": "The seven row boundaries and controls align. The Explorer selector is disabled on the isolated chain, while the reference shows enabled text. The switch uses the approved green and the status strip has the isolated runtime values. The live theme selector correctly selects Light. The light reference highlights Dark.",
+      "reviewed_at": "2026-11-24T15:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "33-set-wallet-dark": {
+      "actual_sha256": "7d52e2302e4ae71494a816044c27ea73464965e6b9c1af7eae3e63f17bfd39e6",
+      "expected_sha256": "938c775e7ef2b578c1d3a21698e13e5baff96bd01001bbb0d73aafd81d0030c8",
+      "note": "The isolated wallet has auto-receive and desktop notifications off, while both reference switches are painted on. The wallet count is absent and the current screen includes Maintenance and different cache and notification copy.",
+      "reviewed_at": "2026-11-24T15:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "33-set-wallet-light": {
+      "actual_sha256": "53ea8fef2a565f80867eb65d3b51f597c61aa35ba0abc95aed7abd1b32ff5379",
+      "expected_sha256": "82e2bc826d854d0764317b498db9a47cbe5aaaf3fcacf34e277db3dc3f90feba",
+      "note": "The isolated wallet has auto-receive and desktop notifications off, while both reference switches are painted on. The wallet count is absent and the current screen includes Maintenance and different cache and notification copy.",
+      "reviewed_at": "2026-11-24T15:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "34-set-apps-dark": {
+      "actual_sha256": "41523a1b3cc8a821171676b75d5d86458f4fedaac10fdeda31380f049b0c7f62",
+      "expected_sha256": "76efab8f738858389426bbff88f3935efc5610d64052b9f3946fda9af5086e48",
+      "note": "The connected-app table is empty and the WalletConnect disclosure reports zero sessions and pairings. The reference has two populated rows with disconnect actions and a nonzero summary.",
+      "reviewed_at": "2026-11-24T15:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "34-set-apps-light": {
+      "actual_sha256": "80d165fc4728d08f2d5362f6eed31bddd9ea00c662c8cb31d409c1af10602a06",
+      "expected_sha256": "21b9bdac58c975afa405e0ed1bceb6491b42743e30015f786240bdd562e1ad22",
+      "note": "The connected-app table is empty and the WalletConnect disclosure reports zero sessions and pairings. The reference has two populated rows with disconnect actions and a nonzero summary.",
+      "reviewed_at": "2026-11-24T15:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "35-set-addresses-dark": {
+      "actual_sha256": "e743272b1620a857d6abeabb22528cd9564508ccd4efc9ea94718b33a4e2da14",
+      "expected_sha256": "500bab8c74c963bfee8d958d9fb06a647b04924da963a75db7caa98e7f241cad",
+      "note": "Four owned-address rows and two contact rows are visible. The selected indicator is a circle, and the balances, contact history and selected account chain count differ from the reference. The prepared address label is reviewed separately.",
+      "reviewed_at": "2026-11-24T15:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "35-set-addresses-light": {
+      "actual_sha256": "2ad62aceaa63d9e5d02f6660b77df7c82fbdb8e4797eecd4756a0b25ccb78257",
+      "expected_sha256": "b4705b0f43a7f5382e383dfce6f19574622719f620ef1190b6976f10932ee98c",
+      "note": "Four owned-address rows and two contact rows are visible. The selected indicator is a circle, and the balances, contact history and selected account chain count differ from the reference. The prepared address label is reviewed separately.",
+      "reviewed_at": "2026-11-24T15:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "36-set-about-dark": {
+      "actual_sha256": "63997e4a9f722cf975036c5038f9424fb78121f53335c7edf2b602bf5b29271f",
+      "expected_sha256": "ad7fba54bc95a111744164a264efef237e7c3ebea8fca8cb087cebc04f0d831b",
+      "note": "All three disclosures and the two update actions are visible. The package, bundled node and build fields use the actual build data. The reference presents a numeric embedded-node version, a different release badge and a different Links count.",
+      "reviewed_at": "2026-11-24T15:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "36-set-about-light": {
+      "actual_sha256": "4854fe3f4918299699a3dcb6323244eb121604e367d72e88e9ce0c21c18a865f",
+      "expected_sha256": "a8a8cf66e49fa88a25522dc8e759538b321f2f53c1f83d5d0d31edd3f8dd2072",
+      "note": "All three disclosures and the two update actions are visible. The package, bundled node and build fields use the actual build data. The reference presents a numeric embedded-node version, a different release badge and a different Links count.",
+      "reviewed_at": "2026-11-24T15:16:12Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
