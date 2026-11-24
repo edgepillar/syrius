@@ -365,6 +365,17 @@ class InteractiveFramePairTests(unittest.TestCase):
             with self.assertRaises(pair.shared.launch.startup.Failure):
                 pair.shared.launch.frame_timing_rows(dict(window, rasterStartsUs=starts))
 
+        pictures = dict(before=14, after=15, shared=12)
+        idle = dict(window, windowUs=pair.actions.IDLE_WINDOW_US,
+                    retainedPictures=pictures)
+        self.assertEqual(inspect._idle_summary(dict(status='measured', window=idle))
+                         ['retained_pictures'], pictures)
+        for invalid in (dict(before=14, after=15, shared=16),
+                        dict(before=True, after=15, shared=1),
+                        dict(before=4097, after=15, shared=10)):
+            with self.assertRaises(pair.shared.launch.startup.Failure):
+                pair.shared.launch.frame_timing_rows(dict(window, retainedPictures=invalid))
+
         gap_window = dict(window, frames=[
             [0, 1000, 100, 1000, 20000],
             [3, 15000, 100, 17000, 24000],

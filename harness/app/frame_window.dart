@@ -4,6 +4,48 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/rendering.dart' show ContainerLayer, Layer, PictureLayer;
+
+/// Reads picture identities from a painted scene without building a new scene.
+///
+/// At most 4,096 layers are visited. The identities stay inside the harness
+/// and describe only the two observed scenes, including any retained paint.
+Set<ui.Picture>? captureFramePictures(Layer? root) {
+  if (root == null) return null;
+  final Set<ui.Picture> pictures = Set<ui.Picture>.identity();
+  final List<Layer> pending = <Layer>[root];
+  int visited = 0;
+  while (pending.isNotEmpty) {
+    if (++visited > 4096) return null;
+    final Layer current = pending.removeLast();
+    final Layer? sibling = identical(current, root)
+        ? null
+        : current.nextSibling;
+    if (sibling != null) pending.add(sibling);
+    if (current is ContainerLayer) {
+      final Layer? first = current.firstChild;
+      if (first != null) pending.add(first);
+    }
+    if (current is PictureLayer) {
+      final ui.Picture? picture = current.picture;
+      if (picture != null) pictures.add(picture);
+    }
+  }
+  return pictures;
+}
+
+/// Counts shared pictures without returning layer or picture identities.
+Map<String, int>? retainedFramePictures(
+  Set<ui.Picture>? before,
+  Set<ui.Picture>? after,
+) => before == null || after == null
+    ? null
+    : <String, int>{
+        'before': before.length,
+        'after': after.length,
+        'shared': after.where(before.contains).length,
+      };
+
 typedef _Sample = ({
   int number,
   int start,

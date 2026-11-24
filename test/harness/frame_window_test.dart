@@ -4,6 +4,8 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/rendering.dart'
+    show ContainerLayer, LayerHandle, PictureLayer;
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../harness/app/frame_window.dart';
@@ -24,6 +26,29 @@ ui.FrameTiming _frame(int number, int start) => ui.FrameTiming(
 
 void main() {
   test('late timings use build time and need a later frame', () async {
+    final ContainerLayer scene = ContainerLayer();
+    final LayerHandle<ContainerLayer> owner =
+        LayerHandle<ContainerLayer>(scene);
+    PictureLayer paint() {
+      final ui.PictureRecorder recorder = ui.PictureRecorder();
+      ui.Canvas(recorder);
+      return PictureLayer(ui.Rect.zero)..picture = recorder.endRecording();
+    }
+
+    try {
+      scene.append(paint());
+      final Set<ui.Picture>? before = captureFramePictures(scene);
+      final PictureLayer extra = paint();
+      scene.append(extra);
+      expect(
+        retainedFramePictures(before, captureFramePictures(scene)),
+        <String, int>{'before': 1, 'after': 2, 'shared': 1},
+      );
+      expect(retainedFramePictures(before, null), isNull);
+    } finally {
+      owner.layer = null;
+    }
+
     final HarnessFrameWindow window = HarnessFrameWindow(
       100000,
       includeInteractiveDiagnostics: true,

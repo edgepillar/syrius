@@ -6361,6 +6361,7 @@ class HarnessAgent {
   static bool get _isLaunchTiming =>
       _frameTimingMode == 'launch' || _frameTimingMode == _pairedLaunchTiming;
   HarnessFrameWindow? _frameWindow;
+  Set<ui.Picture>? _frameWindowPictures;
   int? _interactiveStartUs;
   int? _pageSettledUs;
   final List<int> _startupPhaseUs = <int>[];
@@ -6646,6 +6647,7 @@ class HarnessAgent {
         if (_frameTimingMode != 'interactive' || window != null) {
           throw HarnessError(refusal);
         }
+        _frameWindowPictures = captureFramePictures(_view.layer);
         final int started = dev.Timeline.now;
         _frameWindow = HarnessFrameWindow(
           started,
@@ -6677,10 +6679,21 @@ class HarnessAgent {
               _startupPhaseUs.length == 4 && !EntryCaptureRegistry.instance.held
               ? List<int>.of(_startupPhaseUs)
               : null;
+          final int ended = dev.Timeline.now;
+          final Set<ui.Picture>? before = _frameWindowPictures;
+          final Map<String, int>? retainedPictures = before == null
+              ? null
+              : retainedFramePictures(
+                  before,
+                  captureFramePictures(_view.layer),
+                );
           final Map<String, Object?> result = await window.finish(
-            endUs: dev.Timeline.now,
+            endUs: ended,
             requestFrame: SchedulerBinding.instance.scheduleFrame,
           );
+          if (retainedPictures != null) {
+            result['retainedPictures'] = retainedPictures;
+          }
           if (phases != null && !EntryCaptureRegistry.instance.held) {
             result['startupPhaseUs'] = phases;
             final int? stageLaidOut = _startupStageLaidOutUs;
@@ -6711,6 +6724,7 @@ class HarnessAgent {
           throw refused(error.reason.name);
         } finally {
           _frameWindow = null;
+          _frameWindowPictures = null;
           _pageSettledUs = null;
           _disclosurePhasesUs.clear();
         }

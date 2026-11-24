@@ -70,11 +70,15 @@ def _idle_summary(sample):
         raise archive.Refused('INSPECTION_REFUSED') from None
     archive.need(pair.actions.IDLE_WINDOW_US <= window['windowUs'] <= pair.actions.MAX_WINDOW_US
         and len(frames) <= pair.actions.MAX_IDLE_FRAMES)
-    return dict(status='measured', window_us=window['windowUs'], frames=len(frames),
+    result = dict(status='measured', window_us=window['windowUs'], frames=len(frames),
         frame_number_gaps=frames[-1][0] + 1 - len(frames),
         longest_raster_us=max(frame[3] for frame in frames),
         slow_rasters=sum(frame[3] > pair.shared.FRAME_BUDGET_US for frame in frames),
         **_retained_raster_details(window))
+    field = pair.shared.launch.RETAINED_PICTURES_FIELD
+    if field in window:
+        result['retained_pictures'] = window[field]
+    return result
 
 
 def _retained_raster_details(window):
