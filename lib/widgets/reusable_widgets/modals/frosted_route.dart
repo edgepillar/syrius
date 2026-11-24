@@ -88,10 +88,11 @@ class FrostedBarrier extends StatelessWidget {
         child: child ?? const SizedBox.expand(),
         builder: (BuildContext context, Widget? child) {
           final double t = animation.value.clamp(0.0, 1.0);
+          final double blur = sigma * t;
           return BackdropFilter(
             // A zero blur is still a saved layer and a copy of the window.
-            enabled: t > 0,
-            filter: ui.ImageFilter.blur(sigmaX: sigma * t, sigmaY: sigma * t),
+            enabled: blur > 0,
+            filter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
             child: ColoredBox(
               color: tint.withValues(alpha: tint.a * t),
               child: child,

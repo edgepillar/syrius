@@ -167,6 +167,20 @@ void main() {
         expect(tester.getSize(find.byKey(const Key('bell_panel'))).width, 380);
         expect(find.text('Stored event'), findsOneWidget);
         expect(find.byType(FrostedSurface), findsOneWidget);
+        final BackdropFilter barrierFilter = tester.widget<BackdropFilter>(
+          find.descendant(
+            of: find.byType(FrostedBarrier),
+            matching: find.byType(BackdropFilter),
+          ),
+        );
+        final BackdropFilter panelFilter = tester.widget<BackdropFilter>(
+          find.descendant(
+            of: find.byType(FrostedSurface),
+            matching: find.byType(BackdropFilter),
+          ),
+        );
+        expect(barrierFilter.enabled, isFalse);
+        expect(panelFilter.enabled, isTrue);
         expect(controller.hasUnseen.value, isFalse);
         await tester.tap(find.byKey(const Key('bell_close')));
         await tester.pumpAndSettle();
