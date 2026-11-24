@@ -1578,7 +1578,7 @@ def plasma_bolt_bounds(raw, screen):
 
 
 def _plasma_meter_fill(data):
-    """Measure the Plasma page's blue or pink fill in the original viewport."""
+    """Return fill bounds and each row's exclusive right edge at 1280 × 780."""
     left, right, top, bottom = 72, 397, 227, 290
     rows, channels = windows._png_crop(
         base64.b64encode(data).decode('ascii'), (left, right), (top, bottom))
@@ -1599,7 +1599,8 @@ def _plasma_meter_fill(data):
     width_start, ys, width_end = zip(*extents)
     if not 4 <= len(ys) <= 8 or len(ys) != ys[-1] - ys[0] + 1:
         return None
-    return [min(width_start), ys[0], max(width_end), ys[-1] + 1]
+    return dict(bounds=[min(width_start), ys[0], max(width_end), ys[-1] + 1],
+                row_ends=list(width_end))
 
 
 def _nodes_table_edges(zipped, screen):
@@ -2129,9 +2130,15 @@ def main(parent=None):
                 navigation_reference, pins)
             catalog['plasma_bolt_bounds'] = plasma_bolt_bounds(catalog_archive, '21-plasma')
             with zipfile.ZipFile(io.BytesIO(catalog_archive)) as zipped:
-                catalog['plasma_meter_fill_bounds'] = {
+                meter = {
                     theme: _plasma_meter_fill(zipped.read(f'21-plasma-{theme}.png'))
                     for theme in producer.navigation.THEMES}
+            catalog['plasma_meter_fill_bounds'] = {
+                theme: reading['bounds'] if reading is not None else None
+                for theme, reading in meter.items()}
+            catalog['plasma_meter_fill_row_ends'] = {
+                theme: reading['row_ends'] if reading is not None else None
+                for theme, reading in meter.items()}
             catalog['component_geometry'] = navigation_component_geometry(catalog_archive)
         elif settings_reference is not None:
             PHASE = 'settings_catalog_artifact'

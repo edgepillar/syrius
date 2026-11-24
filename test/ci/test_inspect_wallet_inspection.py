@@ -556,6 +556,9 @@ class ReaderTests(unittest.TestCase):
                     blue = bytes((74, 148, 255, 255))
                     meter = b'\0' + bytes(background) * 76 + blue * 222 + bytes(background) * 982
                     rows[257:263] = [meter] * 6
+                    if theme == 'light':
+                        tip = b'\0' + bytes(background) * 76 + blue * 220 + bytes(background) * 984
+                        rows[257] = rows[262] = tip
                     for start, color in ((204, blue), (249, bytes(ink)), (339, blue)):
                         patch = b'\0' + bytes(background) * 910 + color * 98 + bytes(background) * 272
                         for y in range(start, start + 25):
@@ -581,7 +584,9 @@ class ReaderTests(unittest.TestCase):
         with zipfile.ZipFile(io.BytesIO(archive)) as zipped:
             for theme in ('dark', 'light'):
                 plasma = zipped.read(f'21-plasma-{theme}.png')
-                self.assertEqual(reader._plasma_meter_fill(plasma), [76, 257, 298, 263])
+                row_ends = [298] * 6 if theme == 'dark' else [296, 298, 298, 298, 298, 296]
+                self.assertEqual(reader._plasma_meter_fill(plasma),
+                                 dict(bounds=[76, 257, 298, 263], row_ends=row_ends))
                 self.assertEqual(reader.plasma_expiry_badge_ink(plasma), [
                     dict(blue_pixels=2450, green_pixels=0),
                     dict(blue_pixels=0, green_pixels=1862),
