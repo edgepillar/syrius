@@ -39,7 +39,7 @@ Widget _host(Widget child) => DefaultAssetBundle(
 ReferenceArtworkSource _source(WidgetTester tester) =>
     tester.allStates.whereType<ReferenceArtworkSource>().single;
 
-Future<void> _loaded(WidgetTester tester) async {
+Future<void> _loaded(WidgetTester tester, {bool galleryMap = false}) async {
   final Future<Object?>? original = _source(tester).referenceArtworkReadiness;
   expect(original, isNotNull);
   final EntryCaptureCompletion observed = EntryCaptureCompletion(original!);
@@ -52,7 +52,7 @@ Future<void> _loaded(WidgetTester tester) async {
   }
   expect(observed.status, EntryCaptureStatus.succeeded);
   await tester.pump();
-  expect(find.byType(Lottie), findsOneWidget);
+  expect(find.byType(Lottie), galleryMap ? findsNothing : findsOneWidget);
 }
 
 Future<Uint8List> _pixels(WidgetTester tester) async {
@@ -582,6 +582,37 @@ void main() {
       expect(completed, isTrue);
       expect(canceled, isFalse);
     }
+
+    final AnimationController galleryClock = AnimationController(
+      vsync: tester,
+      value: 0.25,
+    );
+    addTearDown(galleryClock.dispose);
+    await tester.pumpWidget(_host(AppLottie(
+      AppLottieAsset.map,
+      size: 64,
+      controller: galleryClock,
+      originalsReferenceProgress: 0.5,
+    )));
+    await _loaded(tester, galleryMap: true);
+    final Finder mapPaint = find.descendant(
+      of: find.byType(AppLottie),
+      matching: find.byType(CustomPaint),
+    );
+    expect(mapPaint, findsOneWidget);
+    final RenderObject galleryRenderer = tester.renderObject(mapPaint);
+    final ReferenceArtworkFrame galleryFrame =
+        _source(tester).captureReferenceArtwork()!;
+    await tester.pump();
+    expect(galleryFrame.observed, isTrue);
+    expect(galleryFrame.observation, <String, Object>{
+      'kind': 'originals_map', 'frame': 60, 'frame_count': 120,
+    });
+    expect(galleryClock.value, 0.25);
+    expect(galleryFrame.restore(), isTrue);
+    await tester.pump();
+    expect(galleryFrame.restored, isTrue);
+    expect(tester.renderObject(mapPaint), same(galleryRenderer));
 
     await tester.pumpWidget(MaterialApp(
       theme: AppTheme.darkTheme,

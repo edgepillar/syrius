@@ -492,10 +492,22 @@ class _PlayerState extends State<_Player>
     final Animation<double> paintedController =
         _referenceProgress ?? _configuration.controller ?? _clock;
     _paintedController = paintedController;
+    final FrameRate? frameRate = _referenceProgress == null
+        ? null
+        : FrameRate.max;
+    if (_configuration.asset == AppLottieAsset.map &&
+        _configuration.originalsReferenceProgress != null &&
+        MediaQuery.devicePixelRatioOf(context) < 2) {
+      return _GalleryMap(
+        composition: composition,
+        progress: paintedController,
+        frameRate: frameRate,
+      );
+    }
     final Widget animation = Lottie(
       composition: composition,
       controller: paintedController,
-      frameRate: _referenceProgress == null ? null : FrameRate.max,
+      frameRate: frameRate,
       width: _configuration.size,
       height: _configuration.size,
       // Playback belongs to the preserving clock above. A second internal
@@ -516,6 +528,118 @@ class _PlayerState extends State<_Player>
       );
     }
     return animation;
+  }
+}
+
+class _GalleryMap extends StatefulWidget {
+  const _GalleryMap({
+    required this.composition,
+    required this.progress,
+    required this.frameRate,
+  });
+
+  final LottieComposition composition;
+  final Animation<double> progress;
+  final FrameRate? frameRate;
+
+  @override
+  State<_GalleryMap> createState() => _GalleryMapState();
+}
+
+class _GalleryMapState extends State<_GalleryMap> {
+  late _GalleryMapRaster _raster = _GalleryMapRaster(
+    widget.composition,
+    widget.frameRate,
+  );
+
+  @override
+  void didUpdateWidget(_GalleryMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.composition != widget.composition ||
+        oldWidget.frameRate != widget.frameRate) {
+      _raster.dispose();
+      _raster = _GalleryMapRaster(widget.composition, widget.frameRate);
+    }
+  }
+
+  @override
+  void dispose() {
+    _raster.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => RepaintBoundary(
+    child: CustomPaint(
+      painter: _GalleryMapPainter(_raster, widget.progress),
+      child: const SizedBox.expand(),
+    ),
+  );
+}
+
+class _GalleryMapPainter extends CustomPainter {
+  _GalleryMapPainter(this.raster, this.progress) : super(repaint: progress);
+
+  final _GalleryMapRaster raster;
+  final Animation<double> progress;
+
+  @override
+  void paint(ui.Canvas canvas, ui.Size size) =>
+      raster.paint(canvas, size, progress.value);
+
+  @override
+  bool shouldRepaint(_GalleryMapPainter oldDelegate) =>
+      raster != oldDelegate.raster || progress != oldDelegate.progress;
+}
+
+// Render subpixel vector dots into one bounded 2x image, then filter it into
+// the authored tile. Retain only the current frame, including after playback.
+class _GalleryMapRaster {
+  _GalleryMapRaster(LottieComposition composition, FrameRate? frameRate)
+    : _drawable = LottieDrawable(composition, frameRate: frameRate);
+
+  final LottieDrawable _drawable;
+  ui.Size? _size;
+  ui.Image? _image;
+
+  void paint(ui.Canvas canvas, ui.Size size, double progress) {
+    final bool changed = _drawable.setProgress(progress);
+    if (size.isEmpty) return;
+    final int width = size.width.ceil() * 2;
+    final int height = size.height.ceil() * 2;
+    final ui.Rect destination = ui.Offset.zero & size;
+    if (width * height > 512 * 1024) {
+      dispose();
+      _drawable.draw(canvas, destination, fit: BoxFit.contain);
+      return;
+    }
+    if (_image == null || _size != size || changed) {
+      final ui.PictureRecorder recorder = ui.PictureRecorder();
+      final ui.Canvas sample = ui.Canvas(recorder)
+        ..scale(width / size.width, height / size.height);
+      _drawable.draw(sample, destination, fit: BoxFit.contain);
+      final ui.Picture picture = recorder.endRecording();
+      try {
+        final ui.Image next = picture.toImageSync(width, height);
+        _image?.dispose();
+        _size = size;
+        _image = next;
+      } finally {
+        picture.dispose();
+      }
+    }
+    canvas.drawImageRect(
+      _image!,
+      ui.Rect.fromLTWH(0, 0, width.toDouble(), height.toDouble()),
+      destination,
+      ui.Paint()..filterQuality = ui.FilterQuality.low,
+    );
+  }
+
+  void dispose() {
+    _image?.dispose();
+    _image = null;
+    _size = null;
   }
 }
 
