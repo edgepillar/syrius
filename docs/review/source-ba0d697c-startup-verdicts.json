@@ -1,0 +1,52 @@
+{
+  "reviews": {
+    "41-lock-screen-dark": {
+      "actual_sha256": "1bce90b13f0b31e57ba2f4c3f8651a2eecc44eab6ef7109074fbe4228ed7bd68",
+      "expected_sha256": "0423e793f7fc3a7dde6cef6cae3e34570aadbad6ddffeb74628ebf1cd8094d27",
+      "note": "The centered card, film wordmark, masked input, Unlock pill and auxiliary actions align. The illustrative wallet address, node status and release notice differ. The approved palette and font hinting account for the remaining appearance differences.",
+      "reviewed_at": "2026-11-24T21:53:10Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "41-lock-screen-light": {
+      "actual_sha256": "4f87b26b3c5747f72135818af203e467c6120540c2c89bb15e792477c46b87c6",
+      "expected_sha256": "7ade4369fb44fd27dd79cde415d4c2616778a5015936dd032b10224a61d0e4fd",
+      "note": "The centered card, film wordmark, masked input, Unlock pill and auxiliary actions align. The illustrative wallet address, node status and release notice differ. The approved palette and font hinting account for the remaining appearance differences.",
+      "reviewed_at": "2026-11-24T21:53:10Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "42-lock-wrong-dark": {
+      "actual_sha256": "018dd64db92403f22592effac988bc476d5c342f9c97f9b36ba9fb0501abcbba",
+      "expected_sha256": "4ab7a113c2ddbfae98cf37b044fb7ae1eb95d1c303f9b55b5a2c7086473761d1",
+      "note": "The replay mark, field border, two-line warning and action placement align. The settled field shows no extra caret. The reference wallet address is illustrative, and the accent colors and text rasterization vary as in the normal Lock view. Both PNG digests match the earlier reviewed pair at 6ee46f55.",
+      "reviewed_at": "2026-11-24T14:57:18Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "42-lock-wrong-light": {
+      "actual_sha256": "a5ea0282ffc236b7c1bc5540c644f5916d6cb2deddafd234d289160723770502",
+      "expected_sha256": "08227212a1640dc33ef7b6d5de8385cf6637a6ceb2e7302728d05ffc40ac239e",
+      "note": "The replay mark, field border, two-line warning and action placement align. The settled field shows no extra caret. The reference wallet address is illustrative, and the accent colors and text rasterization vary as in the normal Lock view. Both PNG digests match the earlier reviewed pair at 6ee46f55.",
+      "reviewed_at": "2026-11-24T14:57:18Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "43-lock-pick-dark": {
+      "actual_sha256": "e38bda92a34c65b6f31dbc9d3a840687231952d9b3fbc669507b8af2d1800fc0",
+      "expected_sha256": "c151673f42b879a452d17e929f8f3c562108986752233f528c759ff24fef5b6a",
+      "note": "The expanded picker shares the reference bounds, row pitch and divider. The disabled field and Unlock pill align. Address text and wallet identifiers differ in the isolated fixture. The approved palette and font hinting account for the remaining appearance differences.",
+      "reviewed_at": "2026-11-24T21:53:10Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "43-lock-pick-light": {
+      "actual_sha256": "91896f872c8a1f23f014f6e20f8d8f305353e2b5acb6f404e40584bc3a9b40da",
+      "expected_sha256": "74f5e23c6c1262e8e28d2409bb538b9751b6b81c12b60ca68b2090e3be1f505b",
+      "note": "The expanded menu, its row spacing and divider, the disabled field and the Unlock pill align. The selected wallet and other address labels come from the isolated fixture. The approved accent colors and font rasterization account for the remaining appearance differences. Both PNG digests match the earlier reviewed pair at 6ee46f55.",
+      "reviewed_at": "2026-11-24T14:57:18Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    }
+  }
+}
