@@ -297,6 +297,29 @@ void main() {
     },
   );
 
+  test('an accepted receive updates Activity in place', () async {
+    final _Latest latest = _Latest();
+    final _Pending pending = _Pending();
+    app.sl.registerSingleton<LatestTransactionsBloc>(latest);
+    app.sl.registerSingleton<PendingTransactionsBloc>(pending);
+
+    final AccountBlockTemplate? block = await worker.autoReceiveTransactionHash(
+      hash,
+    );
+    await receiveTurnsUntil(() => !worker.running);
+
+    expect(worker.originals.single.result!.block, same(block));
+    verify(
+      () => latest.add(InfiniteListRequested(address: emptyAddress)),
+    ).called(1);
+    verifyNever(
+      () => latest.add(InfiniteListRefreshRequested(address: emptyAddress)),
+    );
+    verify(
+      () => pending.add(InfiniteListRefreshRequested(address: emptyAddress)),
+    ).called(1);
+  });
+
   test('a reentrant original refresh revokes later observers', () async {
     final _Balances balances = _Balances();
     final _Latest latest = _Latest();

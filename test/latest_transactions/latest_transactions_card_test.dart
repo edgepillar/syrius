@@ -246,25 +246,38 @@ void main() {
     },
   );
 
-  testWidgets('keyed row state survives a newer block arriving ahead of it', (
+  testWidgets('only the newly received Activity row animates', (
     WidgetTester tester,
   ) async {
     final AccountBlock first = activityBlock();
+    final AccountBlock received = activityReceive();
     await mount(tester, _loaded(<AccountBlock>[first]));
     final Finder oldRow = find.byWidgetPredicate(
       (Widget widget) =>
           widget is ActivityRow && widget.entry.hash == first.hash.toString(),
     );
-    final State<ActivityRow> before = tester.state<State<ActivityRow>>(oldRow);
-    states.add(
-      _loaded(<AccountBlock>[
-        activityBlock(hash: ''.padLeft(64, 'c')),
-        first,
-      ]),
+    final Finder newRow = find.byWidgetPredicate(
+      (Widget widget) =>
+          widget is ActivityRow &&
+          widget.entry.hash == received.hash.toString(),
     );
+    double opacity(Finder row) => tester
+        .widget<Opacity>(
+          find.ancestor(of: row, matching: find.byType(Opacity)).first,
+        )
+        .opacity;
+    final State<ActivityRow> before = tester.state<State<ActivityRow>>(oldRow);
+    states.add(_loaded(<AccountBlock>[received, first]));
+    await tester.pump();
     await tester.pump();
     expect(tester.state<State<ActivityRow>>(oldRow), same(before));
-    await tester.pump(const Duration(milliseconds: 600));
+    expect(opacity(oldRow), 1);
+    expect(opacity(newRow), 0);
+    await tester.pump(const Duration(milliseconds: 160));
+    expect(opacity(newRow), inExclusiveRange(0, 1));
+    expect(opacity(oldRow), 1);
+    await tester.pump(const Duration(milliseconds: 160));
+    expect(opacity(newRow), 1);
     expect(tester.takeException(), isNull);
   });
 

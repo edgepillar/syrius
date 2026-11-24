@@ -769,9 +769,8 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
     final Address selected = Address.parse(origin.selectedAddress);
     final LatestTransactionsBloc? latest = observers.latest;
     if (latest != null) {
-      latest.add(
-        InfiniteListRefreshRequested(address: selected),
-      );
+      // Keep the current Activity rows mounted while the new history arrives.
+      latest.add(InfiniteListRequested(address: selected));
     }
     if (!_ownsOrigin(origin) || !observers.isCurrent) return;
     _refreshPending(origin);
