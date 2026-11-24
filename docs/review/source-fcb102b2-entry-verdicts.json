@@ -1,0 +1,36 @@
+{
+  "reviews": {
+    "44-welcome-dark": {
+      "actual_sha256": "cc66add2b6a03153aa81de1e7cad57822dc20908435dab83d70b45d549af5279",
+      "expected_sha256": "4ffec4db314a53d10ea672cc57e7f7e931b0824bea34ca410522811b679c2181",
+      "note": "The original globe phase, introduction, three cards, badges, action positions and footer align. The glow and Create badge use the approved palette, and the label edges reflect native text rasterization.",
+      "reviewed_at": "2026-11-24T11:13:00Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "44-welcome-light": {
+      "actual_sha256": "6146ebfed050d978c393ffe228e6e0ca1d2430be3a03cb8f1e6105367744e8f1",
+      "expected_sha256": "4698832240fb65ae6880c1b0a38bbfd777e3670721239828a1738bbf6d91b08c",
+      "note": "The globe and the three light cards align, including badges, text placement, trailing chevrons and footer. The approved colors and the native raster edges explain the small visible variations.",
+      "reviewed_at": "2026-11-24T11:13:00Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "45-import-dark": {
+      "actual_sha256": "6f2daefd5bad32031d266a4d918f24533f0ccfd30709f66514f620e2428038f8",
+      "expected_sha256": "b2e9fcf95e68b7e244864184772082ddc6ac9108a7142f374bf0e9ecad3312de",
+      "note": "The aligned stepper, the drop outline within tolerance and the disabled Continue are visible. The editable draft stops at the last entered word, while the reference shows an ellipsis. The field text and word selector retain visible weight and edge differences.",
+      "reviewed_at": "2026-11-24T11:13:00Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "45-import-light": {
+      "actual_sha256": "cb3b516cf8e5c7686ee79a7fa52dd1c4c7bc40f5aa79f8693f1ef4ce06c7827b",
+      "expected_sha256": "40a00f9f9fda41b1b8bd0337679a67be665436c994fcf9d35c64c130374f8c0d",
+      "note": "The drop outline passes the modeled tolerance and the numbered steps share the reference rows. The editable draft omits the illustrative ellipsis. The field text and selected segment edges still differ in the full comparison.",
+      "reviewed_at": "2026-11-24T11:13:00Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
