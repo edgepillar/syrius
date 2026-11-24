@@ -6104,16 +6104,7 @@ class HarnessAgent {
     try {
       return await artwork.capture<Map<String, Object?>>(
         frames: _captureFrames,
-        readback: () async {
-          final String caret = observePillarHeaderCaret(
-            WidgetsBinding.instance.rootElement,
-            _focusedEditable(),
-          );
-          return <String, Object?>{
-            ...await _readShot(command),
-            'pillarHeaderCaret': caret,
-          };
-        },
+        readback: () => _readShot(command, observePillarCaret: true),
       );
     } on PillarReferenceArtworkRefused catch (error) {
       _pillarArtworkRefused = true;
@@ -6197,7 +6188,10 @@ class HarnessAgent {
     throw HarnessError('Go To caret was unavailable');
   }
 
-  Future<Map<String, Object?>> _readShot(Map<String, dynamic> c) async {
+  Future<Map<String, Object?>> _readShot(
+    Map<String, dynamic> c, {
+    bool observePillarCaret = false,
+  }) async {
     _lockShotPhase('readback');
     final RenderView view = _view;
     final ClientMetrics metrics = _clientMetrics();
@@ -6241,6 +6235,14 @@ class HarnessAgent {
     final List<Map<String, Object?>>? layoutBefore = _readonlyNative == null
         ? null
         : observeReadonlyShotLayout(WidgetsBinding.instance.rootElement);
+    // Sample after the window checks and immediately before snapshotting the
+    // layer. A native window query can yield long enough for a caret to blink.
+    final String? pillarHeaderCaret = observePillarCaret
+        ? observePillarHeaderCaret(
+            WidgetsBinding.instance.rootElement,
+            _focusedEditable(),
+          )
+        : null;
     _lockShotPhase('layer');
     final ui.Image image = await captureLogicalView(view, layer);
     _lockShotPhase('image');
@@ -6292,6 +6294,7 @@ class HarnessAgent {
         if (guarded) 'theme': theme,
         if (guarded) 'asserted': true,
         'artwork_seconds': ?artworkSeconds,
+        'pillarHeaderCaret': ?pillarHeaderCaret,
         if (layoutBefore != null)
           'layoutObservation': pairReadonlyShotLayout(
             layoutBefore,
