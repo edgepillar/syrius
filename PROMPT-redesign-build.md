@@ -7774,19 +7774,19 @@ tracks whole-image acceptance for the final source.
 | 06 | `home-zap` | X827 | X828 |
 | 07 | `send-rest` | X829 | X830 |
 | 08 | `send-warn` | X889 | X890 |
-| 09 | `receive` | [match](docs/review/source-3638a6d7-navigation-verdicts.json) | [match](docs/review/source-3638a6d7-navigation-verdicts.json) |
+| 09 | `receive` | [match](docs/review/source-fb6f0c6b-navigation-verdicts.json) | [match](docs/review/source-fb6f0c6b-navigation-verdicts.json) |
 | 10 | `receive-qr` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 11 | `zap-form` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 12 | `send-confirm` | X837 | X838 |
 | 13 | `staking` | X1285 | X1286 |
 | 14 | `staking-new` | X893 | X894 |
 | 15 | `staking-empty` | X895 | X896 |
-| 16 | `pillars` | X1756 | X1757 |
+| 16 | `pillars` | X1763 | X1763 |
 | 17 | `pillar-mine` | X839 | X840 |
 | 18 | `sentinels` | X897 | X898 |
 | 19 | `spawn` | X1150 | X1151 |
 | 20 | `pillar-done` | X1152 | X1153 |
-| 21 | `plasma` | X1758 | X1759 |
+| 21 | `plasma` | X1764 | X1764 |
 | 22 | `plasma-fuse` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 23 | `tokens` | X1324 | X1325 |
 | 24 | `token-mine` | X1287 | X1288 |
@@ -11836,3 +11836,7 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1758 | review | 2026-11-24 | Dark Plasma at `3638a6d7` retains four rows with two cancelable fusions and two timed locks. The displayed meter is full, the generation strip is idle and the expiry states are grouped. [Verdict](docs/review/source-3638a6d7-navigation-verdicts.json). |
 | X1759 | review | 2026-11-24 | Light Plasma at `3638a6d7` retains the same four rows and disabled cancellation for the two locks. Its full meter and idle generation status differ from the reference. [Verdict](docs/review/source-3638a6d7-navigation-verdicts.json). |
 | X1760 | review | 2026-11-24 | The Plasma page shows the estimated number of plain sends beside the fused balance. It uses the same current-plasma calculation and localized copy as Home. The balance visibility control masks the estimate, and opening Fuse hides the whole caption. The existing layout cases check both behaviors in both themes. Hosted test and native capture evidence remain open. |
+| X1761 | review | 2026-11-24 | The [Windows Navigation producer at `fb6f0c6b`](https://github.com/edgepillar/syrius/actions/runs/45482794051/job/138760106717) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45486798636/job/138774234478) verify the 90 QSR fixture, 14 [original PNGs](docs/review/source-fb6f0c6b-navigation-captures.json), 91 producer source files and normal parent closure. In both themes the original meter fill spans columns 76 through 306 and rows 258 through 263. The reference spans columns 76 through 297 and rows 257 through 262. This producer precedes X1760. |
+| X1762 | review | 2026-11-24 | All six designated [pairs at `fb6f0c6b`](docs/review/source-fb6f0c6b-navigation-verdicts.json) were viewed from one verified 638,342-byte archive without extracting PNGs. Receive matches in both themes. |
+| X1763 | review | 2026-11-24 | The two X1762 Pillars captures confirm the X1751 adjustment. At row 132 the original and reference search bounds share the same column transitions in both themes. The selected delegation is visible. The isolated data still differs in row count, collectible reward, APR and registration. |
+| X1764 | review | 2026-11-24 | The two X1762 Plasma captures confirm the X1761 partial fill. Both retain two cancelable rows and two locked rows, grouped by their expiration height. The active generation strip, Plasma level and fused amounts differ from the reference. |
