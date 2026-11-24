@@ -199,6 +199,19 @@ void main() {
     expect(tester.widget<Text>(find.byKey(_node)).data, 'ws://127.0.0.1:35998');
     expect(_drawn(_chain), isTrue);
     expect(tester.widget<Text>(find.byKey(_peers)).data, '23');
+    for (final Key key in <Key>[_height, _node, _chain, _peers]) {
+      expect(
+        find.ancestor(
+          of: find.byKey(key),
+          matching: find.byWidgetPredicate(
+            (Widget widget) => widget is Transform &&
+                !widget.transformHitTests &&
+                widget.transform.getTranslation().y == -1,
+          ),
+        ),
+        findsOneWidget,
+      );
+    }
     expect(_dot(tester), AppTokens.dark.znn);
     expect(find.byKey(_plasma), findsNothing);
     expect(find.byKey(_behind), findsNothing);

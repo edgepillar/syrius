@@ -96,8 +96,17 @@ class StatusStrip extends StatelessWidget {
     final ValueListenable<int?>? peers = this.peers;
     final Widget? plasma = this.plasma;
     final Widget? trailing = this.trailing;
-    final Widget node = _buildNode(dim, mono);
-    final Widget height = RepaintBoundary(
+    // The unlocked reference places the status facts one pixel higher than
+    // their centered layout boxes. Keep the hover and layout bounds in place.
+    Widget fact(Widget child) => locked
+        ? child
+        : Transform.translate(
+            offset: const Offset(0, -1),
+            transformHitTests: false,
+            child: child,
+          );
+    final Widget node = fact(_buildNode(dim, mono));
+    final Widget height = fact(RepaintBoundary(
       child: BlocSelector<NodeSyncStatusCubit, NodeSyncStatusState, int>(
         bloc: syncCubit,
         selector: (NodeSyncStatusState state) =>
@@ -105,7 +114,7 @@ class StatusStrip extends StatelessWidget {
         builder: (BuildContext context, int height) =>
             _buildHeight(height, mono, locked ? 0 : tokens.cardGap, context),
       ),
-    );
+    ));
     final double dotTargetWidth = tokens.statusDotSize * 2;
     // The leading-aligned dot still has a padded hover target.
     final double afterDot = locked
@@ -183,7 +192,7 @@ class StatusStrip extends StatelessWidget {
                 ),
               Prioritized(
                 priority: 7,
-                child: _onNodeChange<int>(
+                child: fact(_onNodeChange<int>(
                   getChainIdentifier,
                   (BuildContext context, int chainId) {
                     return Row(
@@ -203,12 +212,12 @@ class StatusStrip extends StatelessWidget {
                       ],
                     );
                   },
-                ),
+                )),
               ),
               if (peers != null)
                 Prioritized(
                   priority: 8,
-                  child: ValueListenableBuilder<int?>(
+                  child: fact(ValueListenableBuilder<int?>(
                     valueListenable: peers,
                     builder: (BuildContext context, int? count, _) =>
                         count == null
@@ -226,7 +235,7 @@ class StatusStrip extends StatelessWidget {
                               ),
                             ],
                           ),
-                  ),
+                  )),
                 ),
               Prioritized(
                 priority: 5,
