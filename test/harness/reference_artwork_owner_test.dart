@@ -588,11 +588,17 @@ void main() {
       value: 0.25,
     );
     addTearDown(galleryClock.dispose);
-    await tester.pumpWidget(_host(AppLottie(
-      AppLottieAsset.map,
-      size: 64,
-      controller: galleryClock,
-      originalsReferenceProgress: 0.5,
+    final ValueNotifier<Size?> viewport = ValueNotifier<Size?>(null);
+    addTearDown(viewport.dispose);
+    await tester.pumpWidget(_host(ValueListenableBuilder<Size?>(
+      valueListenable: viewport,
+      builder: (_, Size? size, _) => AppLottie(
+        AppLottieAsset.map,
+        size: 64,
+        controller: galleryClock,
+        originalsReferenceProgress: 0.5,
+        originalsViewport: size,
+      ),
     )));
     await _loaded(tester, galleryMap: true);
     final Finder mapPaint = find.descendant(
@@ -622,6 +628,13 @@ void main() {
     galleryClock.value = 0.2501;
     await tester.pump();
     expect(mapLayer.firstChild, same(originalPaint));
+
+    viewport.value = const Size(40, 42);
+    await tester.pump();
+    expect(tester.renderObject(mapPaint), same(galleryRenderer));
+    expect(mapBoundary.debugLayer, same(mapLayer));
+    expect(mapLayer.firstChild, isNot(same(originalPaint)));
+    expect(galleryClock.value, 0.2501);
 
     await tester.pumpWidget(MaterialApp(
       theme: AppTheme.darkTheme,

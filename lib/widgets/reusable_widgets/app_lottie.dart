@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:cryptography/dart.dart';
@@ -113,6 +114,7 @@ class AppLottie extends StatelessWidget {
     this.fit,
     this.onLoaded,
     this.originalsReferenceProgress,
+    this.originalsViewport,
     super.key,
   }) : assert(
          originalsReferenceProgress == null ||
@@ -145,6 +147,9 @@ class AppLottie extends StatelessWidget {
 
   /// The authored gallery still, applied only during a reference capture.
   final double? originalsReferenceProgress;
+
+  /// The centered clip when the Originals tile crops the larger Map artwork.
+  final Size? originalsViewport;
 
   /// Loads, in the background, what the main pages draw: the coin and the
   /// two nodes at their small size, and the eye. A megabyte of files and
@@ -502,6 +507,7 @@ class _PlayerState extends State<_Player>
         composition: composition,
         progress: paintedController,
         frameRate: frameRate,
+        viewport: _configuration.originalsViewport,
       );
     }
     final Widget animation = Lottie(
@@ -536,11 +542,13 @@ class _GalleryMap extends StatefulWidget {
     required this.composition,
     required this.progress,
     required this.frameRate,
+    required this.viewport,
   });
 
   final LottieComposition composition;
   final Animation<double> progress;
   final FrameRate? frameRate;
+  final Size? viewport;
 
   @override
   State<_GalleryMap> createState() => _GalleryMapState();
@@ -586,23 +594,25 @@ class _GalleryMapState extends State<_GalleryMap> {
   @override
   Widget build(BuildContext context) => RepaintBoundary(
     child: CustomPaint(
-      painter: _GalleryMapPainter(_raster),
+      painter: _GalleryMapPainter(_raster, widget.viewport),
       child: const SizedBox.expand(),
     ),
   );
 }
 
 class _GalleryMapPainter extends CustomPainter {
-  _GalleryMapPainter(this.raster) : super(repaint: raster);
+  _GalleryMapPainter(this.raster, this.viewport) : super(repaint: raster);
 
   final _GalleryMapRaster raster;
+  final Size? viewport;
 
   @override
-  void paint(ui.Canvas canvas, ui.Size size) => raster.paint(canvas, size);
+  void paint(ui.Canvas canvas, ui.Size size) =>
+      raster.paint(canvas, size, viewport);
 
   @override
   bool shouldRepaint(_GalleryMapPainter oldDelegate) =>
-      raster != oldDelegate.raster;
+      raster != oldDelegate.raster || viewport != oldDelegate.viewport;
 }
 
 // Sample the original vector paths before minifying subpixel dots into the
@@ -613,9 +623,13 @@ class _GalleryMapRaster extends ChangeNotifier {
 
   static const int _preferredScale = 3;
   static const int _maxPixels = 512 * 1024;
+  // The sampler uses the first two mip levels at 2x or 3x. Keep their source
+  // grid aligned to the full image and retain a block beyond the tile clip.
+  static const int _mipBlock = 4;
 
   final LottieDrawable _drawable;
   ui.Size? _size;
+  ui.Rect? _sample;
   ui.Image? _image;
   bool _frameChanged = false;
 
@@ -628,8 +642,11 @@ class _GalleryMapRaster extends ChangeNotifier {
     }
   }
 
-  void paint(ui.Canvas canvas, ui.Size size) {
-    if (size.isEmpty) return;
+  void paint(ui.Canvas canvas, ui.Size size, Size? viewport) {
+    if (size.isEmpty || (viewport?.isEmpty ?? false)) {
+      _releaseImage();
+      return;
+    }
     final int tileWidth = size.width.ceil();
     final int tileHeight = size.height.ceil();
     final int tilePixels = tileWidth * tileHeight;
@@ -645,16 +662,33 @@ class _GalleryMapRaster extends ChangeNotifier {
       _drawable.draw(canvas, destination, fit: BoxFit.contain);
       return;
     }
-    if (_image == null || _size != size || _frameChanged) {
+    final double scaleX = width / size.width;
+    final double scaleY = height / size.height;
+    final Rect visible = viewport == null
+        ? destination
+        : Alignment.center.inscribe(viewport, destination);
+    final Rect clip = visible.intersect(destination);
+    final Rect sample = Rect.fromLTRB(
+      _sampleStart(clip.left * scaleX),
+      _sampleStart(clip.top * scaleY),
+      _sampleEnd(clip.right * scaleX, width),
+      _sampleEnd(clip.bottom * scaleY, height),
+    );
+    if (_image == null || _size != size || _sample != sample || _frameChanged) {
       final ui.PictureRecorder recorder = ui.PictureRecorder();
-      final ui.Canvas sample = ui.Canvas(recorder)
-        ..scale(width / size.width, height / size.height);
-      _drawable.draw(sample, destination, fit: BoxFit.contain);
+      final ui.Canvas raster = ui.Canvas(recorder)
+        ..translate(-sample.left, -sample.top)
+        ..scale(scaleX, scaleY);
+      _drawable.draw(raster, destination, fit: BoxFit.contain);
       final ui.Picture picture = recorder.endRecording();
       try {
-        final ui.Image next = picture.toImageSync(width, height);
+        final ui.Image next = picture.toImageSync(
+          sample.width.toInt(),
+          sample.height.toInt(),
+        );
         _image?.dispose();
         _size = size;
+        _sample = sample;
         _image = next;
         _frameChanged = false;
       } finally {
@@ -663,16 +697,28 @@ class _GalleryMapRaster extends ChangeNotifier {
     }
     canvas.drawImageRect(
       _image!,
-      ui.Rect.fromLTWH(0, 0, width.toDouble(), height.toDouble()),
-      destination,
+      Offset.zero & sample.size,
+      Rect.fromLTRB(
+        sample.left / scaleX,
+        sample.top / scaleY,
+        sample.right / scaleX,
+        sample.bottom / scaleY,
+      ),
       ui.Paint()..filterQuality = ui.FilterQuality.medium,
     );
   }
+
+  double _sampleStart(double edge) =>
+      math.max(0, ((edge / _mipBlock).floor() - 1) * _mipBlock).toDouble();
+
+  double _sampleEnd(double edge, int limit) =>
+      math.min(limit, ((edge / _mipBlock).ceil() + 1) * _mipBlock).toDouble();
 
   void _releaseImage() {
     _image?.dispose();
     _image = null;
     _size = null;
+    _sample = null;
   }
 
   @override
