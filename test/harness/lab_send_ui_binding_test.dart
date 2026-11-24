@@ -15,6 +15,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_sync_st
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/model/send_intent.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_confirmation.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
 import 'package:zenon_syrius_wallet_flutter/services/contacts_store.dart';
 import 'package:zenon_syrius_wallet_flutter/services/price_feed.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
@@ -292,13 +293,17 @@ void main() {
       final TextEditingController beneficiary =
           TextEditingController(text: members[1]);
       final FocusNode focus = FocusNode();
+      final DisclosureController disclosure = DisclosureController(open: true);
       int submissions = 0;
       bool editOnDown = false;
+      DisclosureReveal? opening;
+      bool? menuDownAfterSettlement;
       addTearDown(() async {
         await tester.pumpWidget(const SizedBox.shrink());
         amount.dispose();
         beneficiary.dispose();
         focus.dispose();
+        disclosure.dispose();
       });
       await tester.pumpWidget(MaterialApp(
         theme: AppTheme.darkTheme,
@@ -307,41 +312,52 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(body: Center(child: Listener(
           onPointerDown: (_) {
+            if (opening case final DisclosureReveal reveal) {
+              menuDownAfterSettlement = reveal.isSettled;
+            }
             if (editOnDown) amount.text = (terms.qsr + 1).toString();
           },
-          child: FusePlasmaForm(
-            amountController: amount,
-            beneficiaryController: beneficiary,
-            amountFocusNode: focus,
-            buttonKey: GlobalKey<LoadingButtonState>(),
-            beneficiaries: <FusePlasmaBeneficiary>[
-              for (final String member in members)
-                FusePlasmaBeneficiary(address: member, label: member),
-            ],
-            amount: terms.units,
-            decimals: 8,
-            amountEnabled: true,
-            inputValid: true,
-            amountError: null,
-            beneficiaryError: null,
-            isCurrent: () => true,
-            onMax: () {},
-            onSubmit: () {
-              submissions++;
-            },
+          child: Disclosure.bare(
+            controller: disclosure,
+            keepAlive: true,
+            child: FusePlasmaForm(
+              amountController: amount,
+              beneficiaryController: beneficiary,
+              amountFocusNode: focus,
+              buttonKey: GlobalKey<LoadingButtonState>(),
+              beneficiaries: <FusePlasmaBeneficiary>[
+                for (final String member in members)
+                  FusePlasmaBeneficiary(address: member, label: member),
+              ],
+              amount: terms.units,
+              decimals: 8,
+              amountEnabled: true,
+              inputValid: true,
+              amountError: null,
+              beneficiaryError: null,
+              isCurrent: () => true,
+              onMax: () {},
+              onSubmit: () {
+                submissions++;
+              },
+            ),
           ),
         ))),
       ));
       await tester.pumpAndSettle();
 
-      Future<void> tap(String key, {String? expectedBeneficiary}) async {
+      Future<void> tap(String key, {
+        String? expectedBeneficiary,
+        bool preparation = false,
+      }) async {
         final Map<String, Object?> reply = await agent.commandForTest(
           <String, dynamic>{'cmd': 'assert', 'key': key, 'exact': true},
         );
         final Map<dynamic, dynamic> target =
             reply['target']! as Map<dynamic, dynamic>;
         await _drive(tester, agent.captureSeedTapForTest(target['ref'] as int,
-            fuseBeneficiary: expectedBeneficiary, fuseTarget: terms)(() {}));
+            fuseBeneficiary: expectedBeneficiary, fuseTarget: terms,
+            preparation: preparation)(() {}));
       }
 
       Future<void> submit() => tap('fuse_plasma_submit_button',
@@ -351,7 +367,16 @@ void main() {
         'reason', 'original-fuse-terms-mismatch',
       ));
       await expectLater(submit(), mismatch);
-      await tap('fuse_plasma_beneficiary_selector');
+      disclosure.close();
+      await tester.pumpAndSettle();
+      disclosure.open();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      opening = tester.widget<DisclosureReveal>(find.byType(DisclosureReveal));
+      expect(opening.isSettled, isFalse);
+      await tap('fuse_plasma_beneficiary_selector', preparation: true);
+      expect(menuDownAfterSettlement, isTrue);
+      opening = null;
       await tester.pumpAndSettle();
       await tap(terms.optionKey);
       await tester.pumpAndSettle();

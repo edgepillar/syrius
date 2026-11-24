@@ -2369,11 +2369,25 @@ class HarnessAgent {
     return (VoidCallback admission) async {
       await observeSeedPreparation(
         preparation: preparation,
-        original: () => _tap(
-          selector,
-          requireAdmission: admission,
-          originalNode: original,
-        ),
+        original: () async {
+          VoidCallback requireCurrent = admission;
+          if (preparation &&
+              original.key == 'fuse_plasma_beneficiary_selector') {
+            // The form can expose its menu before the disclosure stops moving.
+            final _Node ready = await _labControl(
+              'fuse_plasma_beneficiary_selector', original.kind, admission,
+            );
+            if (!identical(ready.element, original.element)) {
+              throw const SeedRefused('original-ui-control-changed');
+            }
+            requireCurrent = () => _labSame(ready, admission);
+          }
+          return _tap(
+            selector,
+            requireAdmission: requireCurrent,
+            originalNode: original,
+          );
+        },
         classify: _seedPreparationUiFailure,
       );
     };
@@ -2384,6 +2398,7 @@ class HarnessAgent {
   SeedTap captureSeedTapForTest(int reference, {
     String? fuseBeneficiary,
     SeedFuseTarget fuseTarget = SeedFuseTarget.restoredSecondary,
+    bool preparation = false,
   }) => _captureSeedTap(
     <String, dynamic>{
       'ref': reference,
@@ -2393,7 +2408,7 @@ class HarnessAgent {
         'seedFuseBeneficiary': fuseBeneficiary,
       },
     },
-    preparation: false,
+    preparation: preparation,
   );
 
   SeedDepositEntry _captureSeedDepositEntry(String owner) {
