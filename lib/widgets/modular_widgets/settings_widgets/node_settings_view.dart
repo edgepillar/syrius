@@ -51,6 +51,8 @@ class _NodeSettingsViewState extends State<NodeSettingsView>
     with WidgetsBindingObserver {
   final TextEditingController _endpoint = TextEditingController();
   final TextEditingController _chain = TextEditingController();
+  String _endpointText = '';
+  String _chainText = '';
   final DisclosureController _nodeForm = DisclosureController();
   StreamSubscription<NodeSettingsState>? _subscription;
   String? _editing;
@@ -74,8 +76,8 @@ class _NodeSettingsViewState extends State<NodeSettingsView>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _endpoint.addListener(_changed);
-    _chain.addListener(_changed);
+    _endpoint.addListener(_formTextChanged);
+    _chain.addListener(_formTextChanged);
     _nodeForm.addListener(_formChanged);
     _listen();
   }
@@ -95,6 +97,17 @@ class _NodeSettingsViewState extends State<NodeSettingsView>
     if (mounted) {
       setState(() {});
     }
+  }
+
+  void _formTextChanged() {
+    final String endpoint = _endpoint.text;
+    final String chain = _chain.text;
+    // Selection and composing changes belong to the editors. Only the text
+    // can change the surrounding validation and Save controls.
+    if (endpoint == _endpointText && chain == _chainText) return;
+    _endpointText = endpoint;
+    _chainText = chain;
+    _changed();
   }
 
   void _formChanged() {

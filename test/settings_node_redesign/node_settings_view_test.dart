@@ -551,6 +551,15 @@ void main() {
       _button(tester, 'node_settings_endpoint_save').onPressed,
       isNotNull,
     );
+    final Finder nodes = find.byKey(const Key('node_settings_nodes'));
+    final Widget panel = tester.widget(nodes);
+    final TextEditingController editor =
+        tester.widget<TextField>(input).controller!;
+    const TextSelection selection = TextSelection.collapsed(offset: 2);
+    editor.selection = selection;
+    await tester.pump();
+    expect(editor.selection, selection);
+    expect(tester.widget(nodes), same(panel));
     final Completer<void> gate = Completer<void>();
     source.gates['catalog'] = gate;
     final VoidCallback save = _button(
