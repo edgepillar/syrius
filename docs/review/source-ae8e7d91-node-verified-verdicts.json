@@ -1,0 +1,36 @@
+{
+  "reviews": {
+    "30-set-node-dark": {
+      "actual_sha256": "f6d4398e3d1d4e3e67c6559cd3e6201b3f66355f3f0c663f888109a95dadd8fb",
+      "expected_sha256": "05d7211c092f7415b542294e254a86765fa57b7d7953fb2f9af5b1170ef7d003",
+      "note": "The checksum and release digest confirmations are visible. The reference shows a different connected row, reachability indicators and release metadata. The primary action and accompanying controls also differ from the reference.",
+      "reviewed_at": "2026-11-24T15:05:08Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "30-set-node-light": {
+      "actual_sha256": "8e173f18188cca8434edfed1499d0399a2cf510251a4a3c33254db764ff0db1f",
+      "expected_sha256": "a11078a238b2ab2107174698b0c1c1409d7545a22eac994608e57ea113c6faeb",
+      "note": "The checksum and release digest confirmations are visible. The reference shows a different connected row, reachability indicators and release metadata. The primary action and accompanying controls also differ from the reference.",
+      "reviewed_at": "2026-11-24T15:05:08Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "35-set-addresses-dark": {
+      "actual_sha256": "d375aed1092b7de26a07171b69083df2e0a8c4c83cdde8094acb48fd09432d64",
+      "expected_sha256": "500bab8c74c963bfee8d958d9fb06a647b04924da963a75db7caa98e7f241cad",
+      "note": "The four owned rows and two visible contact rows align structurally. Owned balances, the selected account chain count and contact history differ with the isolated fixture. The left-hand selection circles also differ from the reference markers.",
+      "reviewed_at": "2026-11-24T15:05:08Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "35-set-addresses-light": {
+      "actual_sha256": "c13d878bdfaa4e1db9c261876f630cdb1075d5fac3e9fef886c7ee74a7e48a57",
+      "expected_sha256": "b4705b0f43a7f5382e383dfce6f19574622719f620ef1190b6976f10932ee98c",
+      "note": "The four owned rows and two visible contact rows align structurally. Owned balances, the selected account chain count and contact history differ with the isolated fixture. The left-hand selection circles also differ from the reference markers.",
+      "reviewed_at": "2026-11-24T15:05:08Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
