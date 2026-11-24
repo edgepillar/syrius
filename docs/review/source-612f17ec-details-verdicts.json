@@ -1,0 +1,84 @@
+{
+  "reviews": {
+    "10-receive-qr-dark": {
+      "actual_sha256": "a1da0f76716413d05e3f67cf07e768a70ed56635c70f840b130744539cde80d3",
+      "expected_sha256": "7d0f473f9e93235a7032dbb227ceff6e683c91e92446565dee1bf037df78fad6",
+      "note": "The Receive tab, QR tile, copy actions and expanded amount fields align. The live QR encodes the selected test account and draws the token mark. The reference contains an illustrative pattern. The amount hint and wallet state also differ.",
+      "reviewed_at": "2026-11-24T16:03:43Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "10-receive-qr-light": {
+      "actual_sha256": "7dc62d9e2c31d8064b28ababcf7f052d7041ae4430ac9657836bf9257140a846",
+      "expected_sha256": "d3e867ff847f5c80f20afc1a8999441acfe57d9a6cbecad20d7633c8dcd62b17",
+      "note": "The Receive tab, QR tile, copy actions and expanded amount fields align. The live QR encodes the selected test account and draws the token mark. The reference contains an illustrative pattern. The amount hint and wallet state also differ.",
+      "reviewed_at": "2026-11-24T16:03:43Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-dark": {
+      "actual_sha256": "2f3b867bafd28741079d9e515c7f3355faa2d4920ce8c01f47c2251cd477f49a",
+      "expected_sha256": "b58f5d7ea3ac3da980689c744d8d8a37b6ad70a5eae6a7542f4992f7dbba089c",
+      "note": "The Zap form and primary action align. The isolated chain provides no eligible recipient, leaving the address and candidate count absent. The fiat estimate and brand gradient differ.",
+      "reviewed_at": "2026-11-24T16:03:43Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-light": {
+      "actual_sha256": "d6bad8179380622cbc04d394334be0e6ec457985553b50f3b982bd196474852c",
+      "expected_sha256": "b3ab27949ed86fa2e78af721bd198fe7e258f9da5537ec914ae9ce3ccf753be8",
+      "note": "The Zap form and primary action align. The isolated chain provides no eligible recipient, leaving the address and candidate count absent. The fiat estimate and brand gradient differ.",
+      "reviewed_at": "2026-11-24T16:03:43Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-dark": {
+      "actual_sha256": "8a2c313c7634cf1390cd6742af4e01071a14a1b95b52130540053a924df472eb",
+      "expected_sha256": "bce0133d1e1586247a874af23a72c340f73261174a296f4d690b7c6c3c334360",
+      "note": "The bolt, open form, other-address list and two selected rows align. The isolated ledger has three cancelable fuses. The reference includes a locked row, different meter values and a longer explanation.",
+      "reviewed_at": "2026-11-24T16:03:43Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-light": {
+      "actual_sha256": "25dfbc868777d00108f389cea96811f4244a9457f38ecbdb0d3477a68a7463f2",
+      "expected_sha256": "01ba9333c42b94249580c6c67789f19527d113e7861b9fd19e3c1e900f8f6c7f",
+      "note": "The bolt, open form, other-address list and two selected rows align. The isolated ledger has three cancelable fuses. The reference includes a locked row, different meter values and a longer explanation.",
+      "reviewed_at": "2026-11-24T16:03:43Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-dark": {
+      "actual_sha256": "8428c78f88803baf9bb8564f5b01ae68fe0040160c336486abbc9a12e3414a56",
+      "expected_sha256": "057765aba7cc2e027010869bdfe14eff0beee921cbef85777efa3f7fa96ec991",
+      "note": "The expanded licence header, row divisions, scrollbar and blank footer field align. The installed licence inventory differs from the reference and changes the visible names and badges.",
+      "reviewed_at": "2026-11-24T16:03:43Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-light": {
+      "actual_sha256": "147b75441cd440197fa19d79461a1471e13be9a761ec9baa4f4b630e1dde0fa5",
+      "expected_sha256": "4faec94b7502216de2bceb52b1e8ded1254a74a150014f5399d1dc85a19ac1d4",
+      "note": "The expanded licence header, row divisions, scrollbar and blank footer field align. The installed licence inventory differs from the reference and changes the visible names and badges.",
+      "reviewed_at": "2026-11-24T16:03:43Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-dark": {
+      "actual_sha256": "abd88ae43ef08699292afa2a9a6a2a0dfe1fc83e89a9b72e29e8f2352ef6bd5e",
+      "expected_sha256": "b852ac9fcbdbea159856c6c3b30ac5ca2e25f55f1137655c4b689dc4a89a504f",
+      "note": "The gallery bounds, six tiles and footer align. The discovery field is empty after reveal as authored. The globe and small-artwork paints differ from their reference samples.",
+      "reviewed_at": "2026-11-24T16:03:43Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-light": {
+      "actual_sha256": "508daf4f516562df4db2d1cd109218dea0a50bc6073fc32fba45806e8ad37cf5",
+      "expected_sha256": "b82600455634b306377ea7626f2e0ee80c7977c60c1ae1a7e23243dcace9d3ed",
+      "note": "The gallery bounds, six tiles and footer align. The discovery field is empty after reveal as authored. The globe and small-artwork paints differ from their reference samples. The Map dots are stronger than in the previous capture and remain lighter than the reference. The cleared field still has a visible caret in this frame.",
+      "reviewed_at": "2026-11-24T16:03:43Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
