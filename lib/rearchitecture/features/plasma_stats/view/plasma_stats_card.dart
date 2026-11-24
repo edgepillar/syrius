@@ -225,6 +225,9 @@ class _Figures extends StatelessWidget {
     final AppTokens tokens = AppTokens.of(context);
     final DisclosureController? form = fuseForm;
     final int sendsCovered = (r?.current ?? 0) ~/ kPlasmaPerSend;
+    final TextStyle estimateStyle = tokens.compactText.copyWith(
+      color: tokens.dim,
+    );
     final Widget addressFused = Row(
       children: <Widget>[
         Text('${context.l10n.plasmaPageFused} ', style: tokens.dollarText),
@@ -249,14 +252,13 @@ class _Figures extends StatelessWidget {
               padding: EdgeInsetsDirectional.only(start: tokens.plasmaLevelGap),
               child: HiddenAmount(
                 alignment: AlignmentDirectional.centerEnd,
-                style: tokens.dollarText,
+                style: estimateStyle,
                 child: Text(
                   sendsCovered > 0
                       ? context.l10n.homePlasmaSends(sendsCovered)
                       : context.l10n.homePlasmaNeedsWork,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: tokens.dollarText,
+                  textAlign: TextAlign.end,
+                  style: estimateStyle,
                 ),
               ),
             ),

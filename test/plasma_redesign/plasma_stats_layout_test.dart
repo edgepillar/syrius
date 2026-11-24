@@ -1,4 +1,5 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -127,6 +128,10 @@ void main() {
           expect(fused, findsOneWidget);
           expect(sends.hitTestable(), findsOneWidget);
           expect(tester.getTopLeft(sends).dx, greaterThan(card.center.dx));
+          expect(
+            tester.renderObject<RenderParagraph>(sends).didExceedMaxLines,
+            isFalse,
+          );
           BalanceVisibility.instance.toggle();
           await tester.pump();
           expect(sends.hitTestable(), findsNothing);

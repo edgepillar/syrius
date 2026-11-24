@@ -7774,19 +7774,19 @@ tracks whole-image acceptance for the final source.
 | 06 | `home-zap` | X827 | X828 |
 | 07 | `send-rest` | X829 | X830 |
 | 08 | `send-warn` | X889 | X890 |
-| 09 | `receive` | [match](docs/review/source-fb6f0c6b-navigation-verdicts.json) | [match](docs/review/source-fb6f0c6b-navigation-verdicts.json) |
+| 09 | `receive` | [match](docs/review/source-61e0e851-navigation-verdicts.json) | [match](docs/review/source-61e0e851-navigation-verdicts.json) |
 | 10 | `receive-qr` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 11 | `zap-form` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 12 | `send-confirm` | X837 | X838 |
 | 13 | `staking` | X1285 | X1286 |
 | 14 | `staking-new` | X893 | X894 |
 | 15 | `staking-empty` | X895 | X896 |
-| 16 | `pillars` | X1763 | X1763 |
+| 16 | `pillars` | X1777 | X1777 |
 | 17 | `pillar-mine` | X839 | X840 |
 | 18 | `sentinels` | X897 | X898 |
 | 19 | `spawn` | X1150 | X1151 |
 | 20 | `pillar-done` | X1152 | X1153 |
-| 21 | `plasma` | X1764 | X1764 |
+| 21 | `plasma` | X1778 | X1778 |
 | 22 | `plasma-fuse` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 23 | `tokens` | X1324 | X1325 |
 | 24 | `token-mine` | X1287 | X1288 |
@@ -11851,3 +11851,7 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1773 | review | 2026-11-24 | The [paired Windows dispatch at `72f0eb10`](https://github.com/edgepillar/syrius/actions/runs/45491095085) passes source admission. The same admission check locally verifies all seven P06 input object IDs at that source. The original 16 ms measurements remain pending. |
 | X1774 | review | 2026-11-24 | The verified X1762 Plasma images and [Plasma Fuse images at `612f17ec`](docs/review/source-612f17ec-details-verdicts.json) show the strip ending at row 107 instead of 106 in both themes. At rest the Fused panel starts at 119 instead of 118, and its 44 px title places the divider at 163 instead of 161. The open Fuse form starts one pixel late and ends on the reference row. Plasma now uses the existing compact strip inset, a 43 px resting title, and one more pixel below the Fuse note to preserve the open form's bottom edge. The existing geometry cases retain both heading modes. Strict Dart analysis passes. Fresh Windows pixels remain pending. |
 | X1775 | review | 2026-11-24 | The comparison summary groups missing exact-source pairs by eligible capture family from the supplied indexes, and marks pairs without a known route. It leaves the source, PNG and verdict checks intact. Eleven in-memory tests pass. The retained `2c8fd31c` gallery still reports all 94 pairs with 20 matches and 74 differences. With `ba0d697c` as the target, the same indexes assign all 94 missing pairs to 24 catalog families without granting capture coverage. The [startup catalog at `ba0d697c`](https://github.com/edgepillar/syrius/actions/runs/45492217460) batches launch, Lock, quiz and settled handoff within one Release build. Original output and independent verification are pending. |
+| X1776 | review | 2026-11-24 | The [Windows Navigation producer at `61e0e851`](https://github.com/edgepillar/syrius/actions/runs/45488743148/job/138781056170) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45492427148/job/138793982772) verify 14 [original PNGs](docs/review/source-61e0e851-navigation-captures.json), 91 producer source files and normal parent closure. In both themes the six Plasma rows still end at column 307. This revision adds the estimated sends label and precedes the rounded fill and adjusted section boundaries. |
+| X1777 | review | 2026-11-24 | All six designated [pairs at `61e0e851`](docs/review/source-61e0e851-navigation-verdicts.json) were viewed directly from the verified 639,002-byte archive. The two Receive pairs match. Both Pillars pairs show the selected delegation and aligned search and sort, with different row counts, rewards and registration data. |
+| X1778 | review | 2026-11-24 | Both X1777 Plasma images show the estimate beside the fused balance. The number is visible and the final word is clipped in both themes. The status strip is idle and the expiry order still differs. The caption now uses the supporting sans style and can wrap so localized text remains readable. The widget check also checks the paragraph's overflow result and retains its existing masking and Fuse guards. Fresh Windows pixels remain open. |
+| X1779 | review | 2026-11-24 | [Linux at `ba0d697c`](https://github.com/edgepillar/syrius/actions/runs/45491536374/job/138790893574) verifies the X1774 Fused geometry, analysis, generated files, 5,143 non-chain tests with one skip and all 1,534 selected tour cases. This source precedes the X1778 caption correction. |
