@@ -7469,6 +7469,17 @@ The acceptance checklist records 77 of 80 rows. V01, V02 and V06 remain open.
 The acceptance checklist stays at 77 of 80 rows. Visual corrections,
 running motion and the final acceptance check remain open.
 
+### End-state audit at `f6dd3efb` (2026-11-24)
+
+| End-state item | Verified evidence and remaining check |
+| --- | --- |
+| Windows Debug, Release, analysis and tests | The [Windows baseline reader](https://github.com/edgepillar/syrius/actions/runs/45422674989/job/138546151453) verifies all twelve original checks at `0d9a0d16`, including both builds, library correspondence, 5,142 non-chain passes with one skip and generated localization. Only the progress document and review records changed through this audit source. |
+| All 47 screens in both themes | The five capture indexes from X1695 and X1697–X1701 cover 40 distinct catalog pairs on four producer revisions whose application, asset, runner, locked dependency and reference inputs match this audit revision. The prepared Node and Addresses images replace their ordinary diagnostic counterparts in this count. Exact original and reference digests bind 10 match and 14 mismatch verdicts. Sixteen indexed pairs await review, and 54 still need captures covering the current inputs. Each run retains its original source pin. |
+| Running motion, shaders and P06 timing | The [new interactive comparison](https://github.com/edgepillar/syrius/actions/runs/45422054653) is measuring page change and disclosure. The earlier completed comparisons, runtime observations and remaining motion requirements are retained under V02. |
+| Seam refusals | X1693 ties the current seam registry, shared guard, shortcuts and Go To catalog to the executed V03 coverage. The current application and runner inputs match that audit source. |
+
+V01, V02 and V06 remain open at 77 of 80 accepted rows.
+
 ### Rows
 
 | Row | State | Updated (UTC) | Note |
@@ -11769,3 +11780,4 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1702 | review | 2026-11-24 | The [Windows producer at `0d9a0d16`](https://github.com/edgepillar/syrius/actions/runs/45418376410/job/138530781205) and [independent log reader at `c4cfc1ed`](https://github.com/edgepillar/syrius/actions/runs/45422674989/job/138546151453) verify all twelve original baseline checks. Debug and Release build successfully. All library hashes agree and the export maps pass. The non-chain suite records 5,142 passes and one skip. Application analysis reports zero errors and warnings with 1,303 infos, vendored analysis is clean, and generated localization matches. Only the progress document and review records differ between the two source revisions. The full end-state review remains open. |
 | X1703 | review | 2026-11-24 | All fourteen ordinary Settings pairs from X1701 were reviewed at full resolution in memory from the single 817,627-byte verified archive. The [individual mismatch verdicts](docs/review/source-3b7e4fa7-settings-verdicts.json) pin all original and reference digests. Security and Display are close in layout. The Security warning describes the current operation, and Display correctly disables the Explorer selector on the isolated chain. The light Display reference highlights Dark. Wallet, Apps and About retain differences in state and content. Ordinary Node and Addresses remain separate from the prepared variants. |
 | X1704 | review | 2026-11-24 | The [first Windows Navigation dispatch at `d4cc9f30`](https://github.com/edgepillar/syrius/actions/runs/45423269713/job/138548276876) was refused before SDK allocation because the mandatory native diagnostics flag was false. A [corrected dispatch on the same revision](https://github.com/edgepillar/syrius/actions/runs/45423630637) supplies that flag. Image acquisition, verification and whole-screen review remain open. |
+| X1705 | review | 2026-11-24 | The [Windows Home catalog at `f6dd3efb`](https://github.com/edgepillar/syrius/actions/runs/45423983208) starts the original rest, open, hidden and Go To captures in both themes on the owned native lab. The independently verified catalog at `574781d0` remains bound to its earlier source. |
