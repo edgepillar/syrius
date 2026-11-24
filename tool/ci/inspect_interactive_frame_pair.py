@@ -80,6 +80,10 @@ def _idle_summary(sample):
         longest_raster_us=max(frame[3] for frame in frames),
         slow_rasters=sum(frame[3] > pair.shared.FRAME_BUDGET_US for frame in frames),
         **_retained_raster_details(window))
+    starts = cold.recorded_raster_starts(frames, window)
+    if starts:
+        result['reported_raster_coverage_us'] = _reported_raster_coverage(
+            frames, starts, window=(0, window['windowUs']))['window']
     field = pair.shared.launch.RETAINED_PICTURES_FIELD
     if field in window:
         result['retained_pictures'] = window[field]
@@ -273,7 +277,7 @@ def _frame_gaps_by_previous_raster(window):
     return result
 
 
-def _reported_raster_coverage(rows, starts, end_us, tap_us, motion_us, settled_us):
+def _reported_raster_coverage(rows, starts, **ranges):
     """Count the union of observed raster intervals within each time range."""
     intervals = []
     for start, end in sorted((starts[row[0]], starts[row[0]] + row[3]) for row in rows):
@@ -286,11 +290,7 @@ def _reported_raster_coverage(rows, starts, end_us, tap_us, motion_us, settled_u
         return sum(max(0, min(end, finish) - max(begin, start))
                    for start, finish in intervals)
 
-    result = dict(window=covered(0, end_us),
-                  nominal_motion=covered(tap_us, min(end_us, tap_us + motion_us)))
-    if settled_us is not None:
-        result['after_settlement'] = covered(settled_us, end_us)
-    return result
+    return {name: covered(*bounds) for name, bounds in ranges.items()}
 
 
 def _window_diagnostics(window, tap_release_us, motion_us, observed_phases=None,
@@ -301,10 +301,15 @@ def _window_diagnostics(window, tap_release_us, motion_us, observed_phases=None,
         rows = pair.shared.launch.frame_timing_rows(window, allow_packed=True)
         raster_starts = cold.recorded_raster_starts(rows, window)
         if raster_starts:
+            end_us = window['windowUs']
+            ranges = dict(window=(0, end_us),
+                          nominal_motion=(tap_release_us, min(end_us, tap_release_us + motion_us)))
+            settled_us = (observed_phases or {}).get('settled')
+            if settled_us is not None:
+                ranges['after_settlement'] = (settled_us, end_us)
             result['raster_start_timestamps_observed'] = True
             result['reported_raster_coverage_us'] = _reported_raster_coverage(
-                rows, raster_starts, window['windowUs'], tap_release_us,
-                motion_us, (observed_phases or {}).get('settled'))
+                rows, raster_starts, **ranges)
         result['tap_release_us'] = tap_release_us
         result['peak_raster_start_bounds_from_tap_us'] = {
             name: offset - tap_release_us

@@ -360,6 +360,10 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(timing['reported_raster_coverage_us'], expected)
         older = inspect._window_diagnostics(window, 4000, 14000, {'settled': 11000})
         self.assertNotIn('reported_raster_coverage_us', older)
+        idle = dict(status='measured', window=dict(observed, windowUs=1_100_000))
+        self.assertEqual(inspect._idle_summary(idle)['reported_raster_coverage_us'], 18500)
+        del idle['window']['rasterStartsUs']
+        self.assertNotIn('reported_raster_coverage_us', inspect._idle_summary(idle))
 
     def test_retained_raster_starts_resolve_interaction_boundaries(self):
         window = dict(schema=1, scope='harness_frame_window', windowUs=100000,
