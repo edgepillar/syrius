@@ -110,7 +110,8 @@ class ReaderTests(unittest.TestCase):
                 side_effect=lambda path, _: path.name.encode()) as read, \
                 mock.patch.object(reader.windows, 'pixel_comparison',
                     side_effect=lambda actual, reference, _, **options:
-                        measurements if actual == reference else None):
+                        measurements if actual == reference else None), \
+                mock.patch.object(reader, '_home_collect_edge', return_value=None) as collect:
             comparisons = list(reader.home_pixel_comparisons(raw, reference_dir))
         self.assertEqual([row['screen'] for row in comparisons], list(screens))
         self.assertEqual([call.args[0] for call in read.call_args_list],
@@ -122,6 +123,24 @@ class ReaderTests(unittest.TestCase):
             self.assertEqual(row['region_bounds']['rail'][1], 32)
         self.assertTrue(all(row['pairs'] == {'dark': measurements, 'light': measurements}
                             for row in comparisons))
+        self.assertEqual(collect.call_count, 12)
+        self.assertEqual(comparisons[0]['collect_card_edge'], dict(column=1248,
+            themes={theme: dict(actual=None, reference=None) for theme in ('dark', 'light')}))
+        self.assertNotIn('collect_card_edge', comparisons[-1])
+
+        for theme in ('dark', 'light'):
+            background, card, line = map(bytes, reader.HOME_COLLECT_COLOURS[theme])
+            bands = [(195, background), (201, card), (253, line),
+                     (254, background), (266, card)]
+            with mock.patch.object(reader, '_image_vertical_bands', return_value=bands):
+                self.assertEqual(reader._home_collect_edge(b'', theme),
+                                 dict(top=201, bottom_exclusive=254, divider_row=253))
+                bands.pop(2)
+                self.assertEqual(reader._home_collect_edge(b'', theme),
+                                 dict(top=201, bottom_exclusive=254, divider_row=None))
+                bands[-1] = (259, card)
+                self.assertIsNone(reader._home_collect_edge(b'', theme))
+
         summary = reader.catalog_pixel_summary(
             'Home', 'a' * 40, 123, 'b' * 64, 'c' * 40, comparisons)
         self.assertIn('actions/runs/123', summary)

@@ -720,6 +720,32 @@ def _image_vertical_bands(data, column, top, bottom):
     return bands
 
 
+HOME_COLLECT_SCREENS = ('01-home-rest', '02-home-open', '03-home-hidden')
+HOME_COLLECT_SCAN = (1248, 195, 288)
+HOME_COLLECT_COLOURS = {
+    'dark': ((27, 28, 27), (38, 39, 38), (56, 58, 56)),
+    'light': ((234, 234, 234), (246, 247, 246), (213, 216, 213)),
+}
+
+
+def _home_collect_edge(data, theme):
+    """Find the first side card's edge above the gap to the Tokens card."""
+    bands = _image_vertical_bands(data, *HOME_COLLECT_SCAN)
+    background, card, divider = map(bytes, HOME_COLLECT_COLOURS[theme])
+    if len(bands) < 3 or bands[0][1][:3] != background:
+        return None
+    top, fill = bands[1]
+    if top > 210 or fill[:3] != card:
+        return None
+    for (previous, color), (end, gap), (next_card, fill) in zip(
+            bands[1:], bands[2:], bands[3:]):
+        if gap[:3] == background and next_card - end >= 8 and fill[:3] == card:
+            return dict(top=top, bottom_exclusive=end,
+                        divider_row=previous if color[:3] == divider
+                        and previous == end - 1 else None)
+    return None
+
+
 SETTINGS_MENU_SELECTION_SCAN = (236, 37, 321)
 SETTINGS_MENU_SELECTION_FILL = {
     'dark': bytes((46, 48, 46)),
@@ -1163,6 +1189,7 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
     token_actions = {}
     about_download = {}
     menu_selection = {}
+    collect_edges = {}
     has_settings_menu = 'settings_menu_labels' in regions
     for theme in producer.THEMES:
         name = f'{screen}-{theme}.png'
@@ -1174,6 +1201,9 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
         if has_settings_menu:
             menu_selection[theme] = dict(actual=_settings_menu_selection_rows(actual, theme),
                                          reference=_settings_menu_selection_rows(reference, theme))
+        if screen in HOME_COLLECT_SCREENS:
+            collect_edges[theme] = dict(actual=_home_collect_edge(actual, theme),
+                                        reference=_home_collect_edge(reference, theme))
         if screen == '25-token-new':
             token_fields[theme] = dict(actual=_token_draft_fields(actual, theme),
                                        reference=_token_draft_fields(reference, theme))
@@ -1193,6 +1223,8 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
             counterparty[theme] = dict(actual=_swap_counterparty_geometry(actual, theme),
                                        reference=_swap_counterparty_geometry(reference, theme))
     result = dict(screen=screen, region_bounds=regions, pairs=pairs)
+    if collect_edges:
+        result['collect_card_edge'] = dict(column=HOME_COLLECT_SCAN[0], themes=collect_edges)
     if token_fields:
         result['token_fields'] = token_fields
         result['token_actions'] = token_actions
