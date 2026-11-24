@@ -124,6 +124,20 @@ void main() {
           final Element originalDisclosure = tester.element(disclosure);
           expect(tester.getSize(mark), const Size.square(120));
           expect(tester.getTopLeft(mark).dy - card.top, 22);
+          final Rect amount = tester.getRect(
+            find.byKey(const Key('plasma_page_available')),
+          );
+          final Rect level = tester.getRect(
+            find.ancestor(
+              of: find.text('PLASMA · '),
+              matching: find.byType(Row),
+            ).first,
+          );
+          final Rect mainMeter = tester.getRect(
+            find.byType(PlasmaLevelMeter).first,
+          );
+          expect(level.top - amount.bottom, closeTo(4, .01));
+          expect(mainMeter.top - level.bottom, closeTo(15, .01));
           expect(tester.getBottomRight(toggle).dy, card.bottom);
           expect(fused, findsOneWidget);
           expect(sends.hitTestable(), findsOneWidget);

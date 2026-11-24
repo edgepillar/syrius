@@ -228,9 +228,11 @@ void main() {
           expect(tester.widget<Checkbox>(eligible).onChanged, isNotNull);
           expect(tester.widget<Checkbox>(locked).onChanged, isNull);
           final Finder list = find.byKey(const Key('plasma_fused_list'));
-          final Finder divider = find.descendant(
-            of: list, matching: find.byType(Divider),
-          ).first;
+          final Finder dividers = find.descendant(
+            of: list,
+            matching: find.byType(Divider),
+          );
+          final Finder divider = dividers.first;
           expect(
             tester.getTopLeft(divider).dy - tester.getTopLeft(list).dy,
             dark ? 44 : 43,
@@ -254,6 +256,11 @@ void main() {
             tester.getTopLeft(find.text('EXPIRES')).dy -
                 tester.getRect(divider).bottom,
             7,
+          );
+          expect(
+            tester.getTopLeft(dividers.at(1)).dy -
+                tester.getRect(find.text('EXPIRES')).bottom,
+            dark ? 8 : 9,
           );
           final AppTokens tokens = dark ? AppTokens.dark : AppTokens.light;
           for (final int id in <int>[1, 2]) {

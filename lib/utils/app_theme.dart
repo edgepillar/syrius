@@ -702,8 +702,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
   double get plasmaCheckboxStrokeWidth => 1.5;
 
   /// Aligns ledger labels and the first separator with the Plasma reference.
-  EdgeInsetsDirectional get plasmaHeadingPadding =>
-      const EdgeInsetsDirectional.fromSTEB(16, 7, 16, 8);
+  EdgeInsetsDirectional plasmaHeadingPadding({required bool fuseFormOpen}) =>
+      EdgeInsetsDirectional.fromSTEB(16, 7, 16, fuseFormOpen ? 8 : 9);
 
   /// The resting Plasma list's title before its column headings.
   double get plasmaFusedHeaderHeight => 43;
@@ -718,7 +718,13 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The beneficiary's plasma remains an exact mono number.
   TextStyle get plasmaAmountText => dataText.copyWith(fontSize: 30);
 
-  /// Separates the glow, exact figure and level label.
+  /// Places the level below the exact plasma balance.
+  double get plasmaAmountToLevelGap => 4;
+
+  /// The level label and meter have separate spacing in the reference.
+  double get plasmaLevelToMeterGap => 15;
+
+  /// Separates the selected address's meter and amounts below it.
   double get plasmaLevelGap => 8;
 
   /// Keeps the Fused list useful before the page scrolls.

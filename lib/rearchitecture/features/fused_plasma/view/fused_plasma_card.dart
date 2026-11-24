@@ -198,7 +198,9 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
               _ => Column(
                 children: <Widget>[
                   Padding(
-                    padding: tokens.plasmaHeadingPadding,
+                    padding: tokens.plasmaHeadingPadding(
+                      fuseFormOpen: widget.fuseFormOpen,
+                    ),
                     child: _columns(
                       check: const SizedBox.shrink(),
                       amount: Text(

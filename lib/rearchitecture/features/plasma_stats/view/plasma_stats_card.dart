@@ -287,7 +287,7 @@ class _Figures extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(height: tokens.plasmaLevelGap),
+        SizedBox(height: tokens.plasmaAmountToLevelGap),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -298,7 +298,7 @@ class _Figures extends StatelessWidget {
             PlasmaLevelLabel(plasma: r?.current),
           ],
         ),
-        SizedBox(height: tokens.pageGap),
+        SizedBox(height: tokens.plasmaLevelToMeterGap),
         _WithPlasmaGeneration(
           builder: ({required bool generating}) =>
               PlasmaLevelMeter(plasma: r?.current ?? 0, generating: generating),
