@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import '../app/readonly_native_commands.dart'
-    show readonlyActivityMessageSeamCommand, readonlyAgedFuseFixtureCommand,
+    show readonlyActivityEntranceCommand, readonlyActivityMessageSeamCommand,
+        readonlyAgedFuseFixtureCommand,
         readonlyEyeMotionCommand,
         readonlyHomeZapPreviewCommand,
         readonlySeamPointerCommand,
@@ -59,6 +60,7 @@ class ReadonlyInspectionSession {
     readonlyHomeZapPreviewCommand,
     readonlySendWarningSyncCommand,
     readonlySyncPulseCommand,
+    readonlyActivityEntranceCommand,
     readonlySegmentMotionCommand,
     readonlyEyeMotionCommand,
     readonlySheenHoverCommand,
@@ -103,6 +105,7 @@ class ReadonlyInspectionSession {
               name == readonlyAgedFuseFixtureCommand ||
               name == readonlySendWarningSyncCommand ||
               name == readonlySyncPulseCommand ||
+              name == readonlyActivityEntranceCommand ||
               name == readonlySegmentMotionCommand ||
               name == readonlyEyeMotionCommand ||
               name == readonlySheenHoverCommand) &&
@@ -506,7 +509,9 @@ class ReadonlyInspectionSession {
   }
 
   /// Observes the original thumb after an ordinary segment tap on each page.
-  Future<Map<String, Object>> observeSegmentMotion() async {
+  Future<Map<String, Object>> observeSegmentMotion({
+    List<List<int>>? activityEntrance,
+  }) async {
     await _requireScreenHome();
     final Map<String, Object> result = <String, Object>{};
     const Duration budget = Duration(seconds: 2);
@@ -565,9 +570,42 @@ class ReadonlyInspectionSession {
         'before': before.take(2).toList(), 'samples': samples,
       };
     }
-    await tap(<String, Object?>{'tab': 'dashboard'});
+    await tap(<String, Object?>{
+      'tab': 'dashboard',
+      if (activityEntrance != null) 'settleMs': 0,
+    });
+    if (activityEntrance != null) {
+      activityEntrance.addAll(await _readActivityEntrance());
+    }
     await _requireScreenHome();
     return result;
+  }
+
+  Future<List<List<int>>> _readActivityEntrance() async {
+    const Duration budget = Duration(seconds: 2);
+    const Duration interval = Duration(milliseconds: 40);
+    final Stopwatch clock = Stopwatch()..start();
+    final List<List<int>> rows = <List<int>>[];
+    for (int i = 0; i < 16 && clock.elapsed + interval < budget; i++) {
+      final Map<String, dynamic> reply = await send(
+        <String, Object?>{'cmd': readonlyActivityEntranceCommand},
+        budget - clock.elapsed,
+      );
+      if (reply['ok'] != true) _refuse(ReadonlyInspectionReason.reply);
+      final Object? sample = reply['activityEntrance'];
+      if (clock.elapsed > budget) break;
+      if (sample case [final int phase, final int offset, final int received]
+          when phase >= 0 && phase <= 1000 &&
+              offset >= 0 && offset <= 6000 &&
+              (received == 0 || received == 1)) {
+        rows.add(<int>[clock.elapsedMicroseconds, phase, offset, received]);
+        if (phase == 1000 && offset == 0) break;
+      } else if (sample != null) {
+        _refuse(ReadonlyInspectionReason.reply);
+      }
+      await Future<void>.delayed(interval);
+    }
+    return rows;
   }
 
   Future<(String, List<int>)> _readSegment(Duration timeout) async {

@@ -163,7 +163,7 @@ def home_capture_receipt(value):
                     else dict(screens=list(home_catalog_screens(schema))))
     optional = {'rail_motion', 'sync_pulse', 'segment_motion', 'eye_motion',
         'home_field_occlusion', 'home_field_minimize', 'fixture_holdings',
-        'sheen_hover', 'height_flash'} if schema == 4 else set()
+        'sheen_hover', 'height_flash', 'activity_entrance'} if schema == 4 else set()
     need(set(expected) <= set(value) <= set(expected) | optional
          and all(type(value[k]) is type(v) and value[k] == v
                  for k, v in expected.items()), 'CAPTURE_REFUSED')
@@ -173,6 +173,8 @@ def home_capture_receipt(value):
         sync_pulse_receipt(value['sync_pulse'])
     if 'height_flash' in value:
         height_flash_receipt(value['height_flash'], value.get('sync_pulse', []))
+    if 'activity_entrance' in value:
+        activity_entrance_receipt(value['activity_entrance'])
     if 'home_field_occlusion' in value:
         home_field_occlusion_receipt(value['home_field_occlusion'])
     if 'home_field_minimize' in value:
@@ -285,6 +287,21 @@ def height_flash_receipt(value, pulse):
                  and (row[2] != 0 or row[3] == 1000)
                  for row in value)
          and all(a[1] < b[0] and (a[2], a[3]) <= (b[2], b[3])
+                 for a, b in zip(value, value[1:])), 'CAPTURE_REFUSED')
+    return value
+
+
+def activity_entrance_receipt(value):
+    """Admit bounded offsets and opacity from one original visible row."""
+    need(type(value) is list and 1 <= len(value) <= 16
+         and all(type(row) is list and len(row) == 4
+                 and all(type(item) is int for item in row)
+                 and 0 <= row[0] <= 2_000_000
+                 and 0 <= row[1] <= 1000 and 0 <= row[2] <= 6000
+                 and abs(row[2] - 6 * (1000 - row[1])) <= 4
+                 and row[3] in (0, 1)
+                 for row in value)
+         and all(a[0] < b[0] and a[1] <= b[1] and a[2] >= b[2] and a[3] == b[3]
                  for a, b in zip(value, value[1:])), 'CAPTURE_REFUSED')
     return value
 

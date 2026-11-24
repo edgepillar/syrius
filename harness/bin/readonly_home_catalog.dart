@@ -302,7 +302,13 @@ Future<Map<String, Object>> captureReadonlyHomeGotoStates({
     final Map<String, Object?>? minimize =
         await session.observeHomeFieldMinimize();
     if (minimize != null) receipt['home_field_minimize'] = minimize;
-    receipt['segment_motion'] = await session.observeSegmentMotion();
+    final List<List<int>> activityEntrance = <List<int>>[];
+    receipt['segment_motion'] = await session.observeSegmentMotion(
+      activityEntrance: activityEntrance,
+    );
+    if (activityEntrance.isNotEmpty) {
+      receipt['activity_entrance'] = activityEntrance;
+    }
     receipt['eye_motion'] = await session.observeEyeMotion();
     final List<List<int>>? sheen = await session.observeSheenHover();
     if (sheen != null) receipt['sheen_hover'] = sheen;

@@ -35,6 +35,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
     show DeployPillarStep, NodeSyncStatusCubit, NodeSyncStatusState,
         PillarQsrManagementStep, PillarRegisteredSuccess, sendMomentumsBehind;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/fuse_plasma/view/fuse_plasma_form.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/latest_transactions/view/activity_row.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_update/node_update.dart'
     show NodeUpdateCard;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/plasma_owner/plasma_session.dart'
@@ -578,6 +579,7 @@ class HarnessAgent {
   bool _homeArtworkRefused = false;
   Element? _homeClockOwner;
   Element? _heightFlashOwner;
+  Element? _activityEntranceOwner;
   bool _stakingArtworkRefused = false;
   bool _originalsArtworkRefused = false;
   PillarReferenceArtwork? _pillarArtwork;
@@ -883,6 +885,9 @@ class HarnessAgent {
     }
     if (command['cmd'] == readonlySegmentMotionCommand) {
       return _observeReadonlySegment();
+    }
+    if (command['cmd'] == readonlyActivityEntranceCommand) {
+      return _observeReadonlyActivityEntrance();
     }
     if (command['cmd'] == readonlySheenHoverCommand) {
       return _observeReadonlySheen();
@@ -6531,6 +6536,54 @@ class HarnessAgent {
     return <String, Object?>{
       'hidden': hidden,
       'frameMilli': (phase * EyeToggle.frames * 1000).round(),
+    };
+  }
+
+  Map<String, Object?> _observeReadonlyActivityEntrance() {
+    final Element? root = WidgetsBinding.instance.rootElement;
+    if (!_readonlyHomeCatalog ||
+        root == null ||
+        kCurrentPage != Tabs.dashboard) {
+      throw const ReadonlyNativeCommandRefused();
+    }
+    _requireCaptureFrameIdle();
+    _readonlyNative!.requireCurrentWallet();
+    final Element? list = _findTimingChild(
+      root, (Widget widget) => widget.key == const Key('activity_list'),
+    );
+    final Element? owner = list == null ? null : _findTimingChild(
+      list, (Widget widget) => widget is ListEntranceItem,
+    );
+    if (owner == null) return <String, Object?>{'activityEntrance': null};
+    _activityEntranceOwner ??= owner;
+    if (!identical(_activityEntranceOwner, owner)) {
+      return <String, Object?>{'activityEntrance': null};
+    }
+    final Widget? row = _findTimingChild(
+      owner, (Widget widget) => widget is ActivityRow,
+    )?.widget;
+    final RenderObject? fade = _findTimingChild(
+      owner, (Widget widget) => widget is Opacity,
+    )?.findRenderObject();
+    final RenderObject? rise = _findTimingChild(
+      owner, (Widget widget) => widget is Transform,
+    )?.findRenderObject();
+    if (row is! ActivityRow ||
+        fade is! RenderOpacity ||
+        rise is! RenderTransform ||
+        !fade.attached ||
+        !rise.attached ||
+        rise.child == null) {
+      return <String, Object?>{'activityEntrance': null};
+    }
+    final Matrix4 transform = Matrix4.identity();
+    rise.applyPaintTransform(rise.child!, transform);
+    final double y = transform.getTranslation().y;
+    return <String, Object?>{
+      'activityEntrance': <int>[
+        (fade.opacity * 1000).round(), (y * 1000).round(),
+        if (row.entry.incoming) 1 else 0,
+      ],
     };
   }
 

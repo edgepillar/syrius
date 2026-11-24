@@ -675,6 +675,14 @@ class InspectionTests(unittest.TestCase):
                                                      height_flash=invalid))
         with self.assertRaises(inspection.Refused):
             inspection.home_capture_receipt(dict(catalog, height_flash=flash))
+        entrance = [[50_000, 250, 4500, 1], [380_000, 1000, 0, 1]]
+        self.assertIs(inspection.home_capture_receipt(
+            dict(catalog, activity_entrance=entrance))['activity_entrance'], entrance)
+        for invalid in ([[50_000, True, 4500, 1]], [[50_000, 250, 4000, 1]],
+                        [[50_000, 250, 4500, 1], [380_000, 1000, 0, 0]],
+                        [[50_000, 500, 3000, 1], [70_000, 250, 4500, 1]]):
+            with self.subTest(activity_entrance=invalid), self.assertRaises(inspection.Refused):
+                inspection.home_capture_receipt(dict(catalog, activity_entrance=invalid))
         for invalid in ([[10, 20, 1001]], [[10, 20, True]],
                         [[10, 30, 1000], [20, 40, 0]], [[0, 6_000_001, 0]],
                         [[10, 20, 950, True]], [[10, 20, 950, 1_000_001]]):

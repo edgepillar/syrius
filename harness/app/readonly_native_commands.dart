@@ -10,6 +10,9 @@ const String readonlySendWarningSyncCommand = 'readonly-send-warning-sync';
 /// Reads only the original Home status halo's animation phase.
 const String readonlySyncPulseCommand = 'readonly-sync-pulse';
 
+/// Samples the first original Activity row after Home is reopened.
+const String readonlyActivityEntranceCommand = 'readonly-activity-entrance';
+
 /// Reads only the current Transfer or Tokens segment's thumb geometry.
 const String readonlySegmentMotionCommand = 'readonly-segment-motion';
 
@@ -80,6 +83,7 @@ class ReadonlyNativeCommands {
     readonlyHomeZapPreviewCommand,
     readonlySendWarningSyncCommand,
     readonlySyncPulseCommand,
+    readonlyActivityEntranceCommand,
     readonlySegmentMotionCommand,
     readonlyEyeMotionCommand,
     readonlySheenHoverCommand,
@@ -171,6 +175,7 @@ class ReadonlyNativeCommands {
             name == readonlyAgedFuseFixtureCommand ||
             name == readonlySendWarningSyncCommand ||
             name == readonlySyncPulseCommand ||
+            name == readonlyActivityEntranceCommand ||
             name == readonlySegmentMotionCommand ||
             name == readonlyEyeMotionCommand ||
             name == readonlySheenHoverCommand) &&

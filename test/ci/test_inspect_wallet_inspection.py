@@ -817,6 +817,13 @@ class ReaderTests(unittest.TestCase):
             scope='original_status_strip_height_flash', sample_count=3,
             observed_changes=1, intermediate_observed=True,
             intermediate_and_rest_observed=True))
+        arrival = [[55_000, 150, 5100, 1], [106_000, 450, 3300, 1],
+                   [345_000, 1000, 0, 1]]
+        states['capture']['activity_entrance'] = arrival
+        with_arrival = [('manifest.json', encode(states), stat.S_IFREG), *state_files[1:]]
+        self.assertEqual(inspect_states(with_arrival)['activity_entrance'], dict(
+            scope='original_home_list_entrance', samples=arrival, incoming_row=True,
+            intermediate_observed=True, rest_observed=True))
         states['capture']['sync_pulse'][0].append(28)
         states['capture']['sync_pulse'][-1].append(110)
         with_drift = [('manifest.json', encode(states), stat.S_IFREG), *state_files[1:]]
@@ -998,7 +1005,7 @@ class ReaderTests(unittest.TestCase):
         required = (set(reader.SOURCE_FILES) | set(reader.SURFACE_SEAM_SOURCES)
             | set(reader.READY_ARTWORK_SOURCES)
             | set(reader.HOME_GOTO_CONTACT_SOURCES) | {reader.HOME_FIELD_SOURCE}
-            | set(reader.HEIGHT_FLASH_SOURCES))
+            | set(reader.HEIGHT_FLASH_SOURCES) | set(reader.ACTIVITY_ENTRANCE_SOURCES))
         required.remove(reader.WORKFLOW_SOURCE)
         missing = sorted(name for name in required
             if not any(name == path or name.startswith(path + '/') for path in paths))

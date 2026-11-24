@@ -33,6 +33,10 @@ HEIGHT_FLASH_SOURCES = (
     'lib/widgets/shell/status_strip.dart',
     'lib/rearchitecture/utils/widgets/motion/value_flash.dart',
 )
+ACTIVITY_ENTRANCE_SOURCES = (
+    'lib/rearchitecture/utils/widgets/list_entrance.dart',
+    'lib/rearchitecture/features/latest_transactions/view/latest_transactions_card.dart',
+)
 HOME_GOTO_CONTACT_FIXTURE = 'harness/app/fixtures/home_goto_contact.dart'
 MAX_CAPTURE_AGENT_SOURCE = 288 * 1024
 MAX_VERSIONED_BLOB_RESPONSE = 2 * MAX_CAPTURE_AGENT_SOURCE
@@ -64,7 +68,6 @@ VERSIONED_INPUTS = frozenset((
     'harness/app/readonly_native_commands.dart',
     'harness/app/readonly_native_mode.dart',
     'lib/rearchitecture/utils/widgets/entry_field.dart',
-    'lib/rearchitecture/features/latest_transactions/view/latest_transactions_card.dart',
     'lib/rearchitecture/features/pillars/view/pillars_card.dart',
     'lib/rearchitecture/utils/widgets/eye_toggle.dart',
     'lib/rearchitecture/utils/widgets/segment.dart',
@@ -82,6 +85,7 @@ VERSIONED_INPUTS = frozenset((
     'lib/widgets/reusable_widgets/app_lottie.dart',
     CAPTURE_AGENT_SOURCE, HOME_FIELD_SOURCE, HOME_GOTO_CONTACT_FIXTURE,
     *HEIGHT_FLASH_SOURCES,
+    *ACTIVITY_ENTRANCE_SOURCES,
 ))
 JOB = 'Windows readonly inspection with owned chain-321'
 PREFLIGHT = ('Test all isolated controllers before SDK allocation',
@@ -556,6 +560,14 @@ def unpack_home_catalog(raw, expected_sha, expected_size, head, tree, run_id,
             observed_changes=flash[-1][2] - flash[0][2],
             intermediate_observed=bool(intermediate),
             intermediate_and_rest_observed=bool(intermediate & settled),
+        )
+    if 'activity_entrance' in value['capture']:
+        rows = producer.activity_entrance_receipt(value['capture']['activity_entrance'])
+        result['activity_entrance'] = dict(
+            scope='original_home_list_entrance', samples=rows,
+            incoming_row=bool(rows[0][3]),
+            intermediate_observed=any(0 < row[1] < 1000 and row[2] > 0 for row in rows),
+            rest_observed=rows[-1][1:3] == [1000, 0],
         )
     for field, scope, prefix in (
             ('home_field_occlusion', 'original_home_field_go_to', 'covered'),
@@ -2132,6 +2144,9 @@ def main(parent=None):
             if 'height_flash' in catalog:
                 source_digests.update(source_files(repo, producer_tree, tree,
                     read_versioned_blob=read_blob, files=HEIGHT_FLASH_SOURCES))
+            if 'activity_entrance' in catalog:
+                source_digests.update(source_files(repo, producer_tree, tree,
+                    read_versioned_blob=read_blob, files=ACTIVITY_ENTRANCE_SOURCES))
             if 'segment_motion' in catalog:
                 source_digests.update(source_files(repo, producer_tree, tree,
                     read_versioned_blob=read_blob,
@@ -2244,6 +2259,7 @@ def main(parent=None):
         rail_motion = catalog.pop('rail_motion', None)
         sync_pulse = catalog.pop('sync_pulse', None)
         height_flash = catalog.pop('height_flash', None)
+        activity_entrance = catalog.pop('activity_entrance', None)
         segment_motion = catalog.pop('segment_motion', None)
         sheen_hover = catalog.pop('sheen_hover', None)
         eye_motion = catalog.pop('eye_motion', None)
@@ -2273,6 +2289,10 @@ def main(parent=None):
             emit('Retained readonly momentum height flash', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
                 manifest_sha256=catalog['manifest_sha256'], **height_flash))
+        if activity_entrance is not None:
+            emit('Retained readonly Home list entrance', dict(source_head=head,
+                source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
+                manifest_sha256=catalog['manifest_sha256'], **activity_entrance))
         if home_field_drift is not None:
             emit('Retained readonly Home field drift', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],
