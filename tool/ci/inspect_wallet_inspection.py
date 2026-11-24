@@ -990,8 +990,11 @@ def _map_dot_comparison(actual, reference):
         name: None if pixels is None else round(1000 * sum(pixels) / (3 * len(pixels)))
         for name, pixels in (('actual', observed), ('reference', expected))
     }
+    deviation['mean_pixel_error'] = None
     if observed is None or expected is None:
         return deviation, None
+    pixel_error = sum(abs(a - b) for a, b in zip(observed, expected))
+    deviation['mean_pixel_error'] = round(1000 * pixel_error / (3 * len(observed)))
     counts = []
     for threshold in MAP_DOT_THRESHOLDS:
         limit = 3 * threshold

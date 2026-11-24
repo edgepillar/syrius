@@ -258,7 +258,7 @@ class ReaderTests(unittest.TestCase):
             self.assertEqual(row['pairs'], {'dark': True, 'light': True})
         self.assertEqual(comparisons[-1]['map_gray_deviation_milli'], {
             'bounds': (616, 319, 758, 423),
-            'themes': {theme: {'actual': 85000, 'reference': 85000}
+            'themes': {theme: {'actual': 85000, 'reference': 85000, 'mean_pixel_error': 0}
                        for theme in ('dark', 'light')},
         })
         self.assertEqual(comparisons[-1]['map_dot_coverage'], {
@@ -269,7 +269,8 @@ class ReaderTests(unittest.TestCase):
         })
         with mock.patch.object(reader, '_map_gray_plane',
                                side_effect=([0, 10, 0, 192], [10, 0, 192, 192])):
-            _, coverage = reader._map_dot_comparison(b'actual', b'reference')
+            deviation, coverage = reader._map_dot_comparison(b'actual', b'reference')
+        self.assertEqual(deviation['mean_pixel_error'], 17667)
         self.assertEqual(coverage, [dict(actual=2, reference=3, overlap=1),
                                     dict(actual=1, reference=2, overlap=1),
                                     dict(actual=1, reference=2, overlap=1)])
