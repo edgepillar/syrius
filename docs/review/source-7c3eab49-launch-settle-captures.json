@@ -1,0 +1,20 @@
+{
+  "actual": {
+    "40-launch-settle-dark": {
+      "archive_member": "40-launch-settle-dark.png",
+      "archive_sha256": "a6e6f90b942eae6f1d76ca53a4f6f85dcb0a34e8a2d75d2a1038404037f177b0",
+      "catalog_family": "launch-settle",
+      "path": "a6e6f90b942eae6f1d76ca53a4f6f85dcb0a34e8a2d75d2a1038404037f177b0",
+      "sha256": "a1c2fa85a3d2e830cdd654dd06f1cf6eeff9fd9ed582d51ad5097ae3e89597aa",
+      "source_sha": "7c3eab49b7bda0705c6aa378d28d16f083ecf76d"
+    },
+    "40-launch-settle-light": {
+      "archive_member": "40-launch-settle-light.png",
+      "archive_sha256": "a6e6f90b942eae6f1d76ca53a4f6f85dcb0a34e8a2d75d2a1038404037f177b0",
+      "catalog_family": "launch-settle",
+      "path": "a6e6f90b942eae6f1d76ca53a4f6f85dcb0a34e8a2d75d2a1038404037f177b0",
+      "sha256": "e198c4bf3efc0381249095fcd3ff8583039c762e1f617271b04a0cdb1577b1d4",
+      "source_sha": "7c3eab49b7bda0705c6aa378d28d16f083ecf76d"
+    }
+  }
+}
