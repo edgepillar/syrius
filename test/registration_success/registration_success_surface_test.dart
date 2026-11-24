@@ -186,7 +186,23 @@ void main() {
             AppLottieAsset.sentinel => 'Sentinel registered',
             _ => 'Token created',
           };
-          final Text title = tester.widget<Text>(find.text(heading));
+          final Finder titleFinder = find.text(heading);
+          final Text title = tester.widget<Text>(titleFinder);
+          final Finder titleLayout = pillar
+              ? find.ancestor(of: titleFinder, matching: find.byType(Transform))
+                  .first
+              : titleFinder;
+          if (pillar) {
+            expect(
+              tester.widget<Transform>(titleLayout).transformHitTests,
+              isFalse,
+            );
+          }
+          expect(
+            tester.getTopLeft(titleFinder).dy -
+                tester.getTopLeft(titleLayout).dy,
+            closeTo(pillar ? -2 : 0, .01),
+          );
           expect(title.style!.fontSize, 22);
           expect(title.style!.fontWeight, FontWeight.w600);
           final Finder artwork = find.byType(AppLottie);
@@ -220,7 +236,7 @@ void main() {
             ),
           );
           expect(
-            tester.getTopLeft(find.text(heading)).dy - artTop,
+            tester.getTopLeft(titleLayout).dy - artTop,
             closeTo(
               tokens.registrationArtSize +
                   tokens.registrationGap +

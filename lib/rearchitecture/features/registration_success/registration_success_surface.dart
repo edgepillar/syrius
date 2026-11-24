@@ -339,6 +339,11 @@ class RegistrationSuccessSurface extends StatelessWidget {
     AppTokens tokens, {
     required bool confirmed,
   }) {
+    final Text headingText = Text(
+      confirmed ? heading : context.l10n.registrationWaiting,
+      style: tokens.registrationHeadingText,
+      textAlign: TextAlign.center,
+    );
     return Column(
       key: confirmed ? confirmedKey : const Key('registration_waiting'),
       mainAxisAlignment: MainAxisAlignment.center,
@@ -377,11 +382,15 @@ class RegistrationSuccessSurface extends StatelessWidget {
               child: Column(
                 spacing: tokens.registrationGap,
                 children: <Widget>[
-                  Text(
-                    confirmed ? heading : context.l10n.registrationWaiting,
-                    style: tokens.registrationHeadingText,
-                    textAlign: TextAlign.center,
-                  ),
+                  if (confirmed && asset == AppLottieAsset.pillar)
+                    Transform.translate(
+                      // Align the confirmed heading without moving the receipt.
+                      offset: const Offset(0, -2),
+                      transformHitTests: false,
+                      child: headingText,
+                    )
+                  else
+                    headingText,
                   if (confirmed && caption != null)
                     Transform.translate(
                       // Align the Pillar reference's caption ink without
