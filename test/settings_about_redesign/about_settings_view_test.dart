@@ -568,6 +568,20 @@ void main() {
       await _tapVisible(tester, toggle);
       await tester.pump();
       expect(tester.widget<Disclosure>(disclosure), same(originalDisclosure));
+      final Finder headerBoundary = find
+          .ancestor(
+            of: toggle,
+            matching: find.byType(RepaintBoundary),
+          )
+          .first;
+      expect(
+        find.descendant(of: panel, matching: headerBoundary),
+        findsOneWidget,
+      );
+      final RenderRepaintBoundary header = tester.renderObject(headerBoundary);
+      final OffsetLayer headerLayer = header.debugLayer! as OffsetLayer;
+      final Layer? headerPaint = headerLayer.firstChild;
+      expect(headerPaint, isNotNull);
       final List<OffsetLayer> precedingLayers = <OffsetLayer>[];
       for (final String key in <String>[
         'about_strip',
@@ -590,6 +604,7 @@ void main() {
       ];
       expect(precedingPaint, everyElement(isNotNull));
       void expectRetainedPaint() {
+        expect(headerLayer.firstChild, same(headerPaint));
         for (int index = 0; index < precedingLayers.length; index++) {
           expect(
             precedingLayers[index].firstChild,

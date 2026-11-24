@@ -190,6 +190,7 @@ class _AboutCardState extends State<AboutCard> {
                       keyPrefix: 'about_licences',
                       headerPadding: tokens.aboutGroupHeaderPadding,
                       showDividerWhenOpen: true,
+                      isolateHeaderPaint: true,
                       keepAlive: true,
                       onChanged: (bool open) {
                         if (open) _licencesOpened.value = true;

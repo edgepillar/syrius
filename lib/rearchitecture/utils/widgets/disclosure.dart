@@ -130,6 +130,7 @@ class Disclosure extends StatefulWidget {
     this.headerMinHeight = _kHeaderHeight,
     this.showDividerWhenOpen = false,
     this.titleStyle,
+    this.isolateHeaderPaint = false,
     this.isolateChevronPaint = true,
     super.key,
   }) : assert(
@@ -157,6 +158,7 @@ class Disclosure extends StatefulWidget {
        keyPrefix = null,
        titleStyle = null,
        showDividerWhenOpen = false,
+       isolateHeaderPaint = false,
        isolateChevronPaint = false,
        headerPadding = _kHeaderPadding;
 
@@ -221,6 +223,9 @@ class Disclosure extends StatefulWidget {
 
   /// Optional title style for disclosures embedded in a form.
   final TextStyle? titleStyle;
+
+  /// Retains the header's paint when a revealing body repaints the panel.
+  final bool isolateHeaderPaint;
 
   /// Gives the chevron a layer when its parent row has no paint boundary.
   final bool isolateChevronPaint;
@@ -348,6 +353,30 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final bool closed = !_open && (!_hasMotion || _body.isDismissed);
     final String? title = widget.title;
+    Widget? header;
+    if (title != null) {
+      header = _DisclosureHeader(
+        toggleKey: widget.keyPrefix == null
+            ? null
+            : ValueKey<String>('${widget.keyPrefix}_toggle'),
+        title: title,
+        titleStyle: widget.titleStyle,
+        minHeight: widget.headerMinHeight,
+        padding: widget.headerPadding,
+        count: widget.count,
+        summary: widget.summary,
+        summaryStyle: widget.summaryStyle,
+        summaryColumnPercent: widget.summaryColumnPercent,
+        turned: _hasMotion ? _turned : kAlwaysDismissedAnimation,
+        isolateChevronPaint: widget.isolateChevronPaint,
+        showDivider: _open && widget.showDividerWhenOpen,
+        open: _open,
+        onToggle: () => _setOpen(!_open),
+      );
+      if (widget.isolateHeaderPaint) {
+        header = RepaintBoundary(child: header);
+      }
+    }
 
     Widget? body;
     if (!closed || widget.keepAlive) {
@@ -388,25 +417,7 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          if (title != null)
-            _DisclosureHeader(
-              toggleKey: widget.keyPrefix == null
-                  ? null
-                  : ValueKey<String>('${widget.keyPrefix}_toggle'),
-              title: title,
-              titleStyle: widget.titleStyle,
-              minHeight: widget.headerMinHeight,
-              padding: widget.headerPadding,
-              count: widget.count,
-              summary: widget.summary,
-              summaryStyle: widget.summaryStyle,
-              summaryColumnPercent: widget.summaryColumnPercent,
-              turned: _hasMotion ? _turned : kAlwaysDismissedAnimation,
-              isolateChevronPaint: widget.isolateChevronPaint,
-              showDivider: _open && widget.showDividerWhenOpen,
-              open: _open,
-              onToggle: () => _setOpen(!_open),
-            ),
+          ?header,
           ?body,
         ],
       ),
