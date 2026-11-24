@@ -44,7 +44,9 @@ class WalletUpdateSlot extends StatelessWidget {
             // The strip and Settings both use the mockup's .i.s symbol size.
             width: tokens.settingsIconSize,
             height: tokens.settingsIconSize,
-            colorFilter: ColorFilter.mode(tokens.warn, BlendMode.srcIn),
+            // Resolve the stroke when decoding the symbol so each repaint
+            // can draw it without a color-filter layer.
+            theme: SvgTheme(currentColor: tokens.warn),
             excludeFromSemantics: true,
           ),
           SizedBox(width: tokens.statusDotSize),

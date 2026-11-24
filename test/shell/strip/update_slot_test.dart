@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
@@ -26,6 +27,14 @@ void main() {
         expect(find.text('Wallet updates'), findsOneWidget);
         expect(find.text('Update'), findsOneWidget);
         expect(find.textContaining('is out'), findsNothing);
+        final SvgPicture symbol = tester.widget<SvgPicture>(
+          find.byType(SvgPicture),
+        );
+        expect(symbol.colorFilter, isNull);
+        expect(
+          (symbol.bytesLoader as SvgStringLoader).theme?.currentColor,
+          (dark ? AppTokens.dark : AppTokens.light).warn,
+        );
         expect(find.byType(SeamGate), findsOneWidget);
         expect(
           tester.widget<SeamGate>(find.byType(SeamGate)).seam,
