@@ -553,29 +553,32 @@ class WindowsQualificationTests(unittest.TestCase):
             status = inspect.main()
         return status, calls, output.getvalue()
 
-    def test_standalone_handoff_routes_verified_pixels_to_the_reference_reader(self):
-        job = dict(id=8, name=inspect.startup.JOB_NAME, run_id=RUN, head_sha=HEAD,
-            status='completed', conclusion='success', labels=['windows-latest'],
-            steps=[dict(name=inspect.startup.launch.SETTLE_JOB_STEP,
-                        status='completed', conclusion='success')])
-        file = '40-launch-settle-dark.png'
+    def test_standalone_handoff_and_lock_route_pixels_to_the_reference_reader(self):
         reference_head = 'c' * 40
 
-        def read(client, **options):
-            self.assertTrue(options['settle'])
-            self.assertIs(options['compare_png'], inspect.startup_pixel_comparison)
-            return dict(source_head=HEAD, source_run_id=RUN, archive_sha256='d' * 64,
-                        pixel_comparisons={file: dict(changed_pixels=17)})
+        for step, file, mode in (
+            (inspect.startup.launch.SETTLE_JOB_STEP, '40-launch-settle-dark.png', 'settle'),
+            (inspect.startup.lock_catalog.JOB_STEP, '41-lock-screen-dark.png', 'lock'),
+        ):
+            job = dict(id=8, name=inspect.startup.JOB_NAME, run_id=RUN, head_sha=HEAD,
+                status='completed', conclusion='success', labels=['windows-latest'],
+                steps=[dict(name=step, status='completed', conclusion='success')])
 
-        with mock.patch.object(inspect.startup, 'inspect_launch_run', side_effect=read):
-            status, _, output = self._read_original(quiz_job=job,
-                baseline_conclusion='skipped', entry_change=dict(conclusion='skipped'),
-                reference_head=reference_head)
-        self.assertEqual(status, 0, output)
-        rows = [json.loads(line) for line in output.splitlines() if line.startswith('{')]
-        self.assertEqual(rows[1], dict(scope='retained_startup_pixel_comparison', file=file,
-            source_head=HEAD, source_run_id=RUN, reference_head=reference_head,
-            archive_sha256='d' * 64, visual_matches=0, changed_pixels=17))
+            summary = dict(source_head=HEAD, source_run_id=RUN, archive_sha256='d' * 64,
+                           pixel_comparisons={file: dict(changed_pixels=17)})
+            with self.subTest(mode=mode), mock.patch.object(
+                    inspect.startup, 'inspect_launch_run', return_value=summary) as read:
+                status, _, output = self._read_original(quiz_job=job,
+                    baseline_conclusion='skipped', entry_change=dict(conclusion='skipped'),
+                    reference_head=reference_head)
+                self.assertEqual(status, 0, output)
+                self.assertTrue(read.call_args.kwargs[mode])
+                self.assertIs(read.call_args.kwargs['compare_png'],
+                              inspect.startup_pixel_comparison)
+                rows = [json.loads(line) for line in output.splitlines() if line.startswith('{')]
+                self.assertEqual(rows[1], dict(scope='retained_startup_pixel_comparison', file=file,
+                    source_head=HEAD, source_run_id=RUN, reference_head=reference_head,
+                    archive_sha256='d' * 64, visual_matches=0, changed_pixels=17))
 
     def test_quiz_and_entry_share_one_artifact_listing_and_keep_both_receipts(self):
         def step(name):

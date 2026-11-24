@@ -1353,7 +1353,8 @@ def main():
                         timing=name == startup.launch.TIMING_JOB_STEP,
                         lock_seams=name == startup.lock_catalog.SEAM_STEP,
                         compare_png=(startup_pixel_comparison if reference_head and
-                                     name == startup.launch.SETTLE_JOB_STEP else None),
+                                     name in (startup.launch.SETTLE_JOB_STEP,
+                                              startup.lock_catalog.JOB_STEP) else None),
                         **({'motion': True} if motion else {}))
                 emit_startup_comparison(launch_titles[name], summary, reference_head)
                 if gap_context is not None:
