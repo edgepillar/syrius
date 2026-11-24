@@ -7786,19 +7786,19 @@ tracks whole-image acceptance for the final source.
 | 06 | `home-zap` | X827 | X828 |
 | 07 | `send-rest` | X829 | X830 |
 | 08 | `send-warn` | X889 | X890 |
-| 09 | `receive` | [match](docs/review/source-79f80434-navigation-verdicts.json) | [match](docs/review/source-79f80434-navigation-verdicts.json) |
+| 09 | `receive` | [match](docs/review/source-26a10b2b-navigation-verdicts.json) | [match](docs/review/source-26a10b2b-navigation-verdicts.json) |
 | 10 | `receive-qr` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 11 | `zap-form` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 12 | `send-confirm` | X837 | X838 |
 | 13 | `staking` | X1285 | X1286 |
 | 14 | `staking-new` | X893 | X894 |
 | 15 | `staking-empty` | X895 | X896 |
-| 16 | `pillars` | X1789 | X1789 |
+| 16 | `pillars` | X1802 | X1802 |
 | 17 | `pillar-mine` | X839 | X840 |
 | 18 | `sentinels` | X897 | X898 |
 | 19 | `spawn` | X1150 | X1151 |
 | 20 | `pillar-done` | X1152 | X1153 |
-| 21 | `plasma` | X1789 | X1789 |
+| 21 | `plasma` | X1802 | X1802 |
 | 22 | `plasma-fuse` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 23 | `tokens` | X1324 | X1325 |
 | 24 | `token-mine` | X1287 | X1288 |
@@ -11889,3 +11889,4 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1799 | review | 2026-11-25 | The [corrected Navigation reader](https://github.com/edgepillar/syrius/actions/runs/45503764370/job/138833527531) verifies all 14 [original PNGs](docs/review/source-26a10b2b-navigation-captures.json) and normal required parent closure at `26a10b2b`. Its separate note reports the resting column rule at row 193 in both themes. This capture precedes the X1794 spacing changes. |
 | X1800 | review | 2026-11-25 | The [cold-lock producer at `655560f9`](https://github.com/edgepillar/syrius/actions/runs/45500780929/job/138823183064) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45503765541/job/138833533100) verify 94 redesign frames, 2,049 P06 frames and five normal actor exits. The full reported-frame 16 ms comparisons pass. The windows retain 18 and 1,216 frame-key gaps. The 49.122 ms peak raster starts 1.020 ms after first observed handoff motion and 1.188 ms after build completion. The common 3.193 s prefix contains 38 and 94 reported over-budget rasters, with peaks of 49.122 and 47.892 ms. Continuous frame coverage and V02 remain open. |
 | X1801 | review | 2026-11-25 | The [ordinary Windows producer at `31323092`](https://github.com/edgepillar/syrius/actions/runs/45503019699/job/138830941448) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45504154411/job/138834879403) verify all four [original Welcome and Import PNGs](docs/review/source-31323092-entry-captures.json), restoration checks and normal process exit. The exact images await whole-screen review. |
+| X1802 | review | 2026-11-25 | The six designated [Navigation comparisons at `26a10b2b`](docs/review/source-26a10b2b-navigation-verdicts.json) retain two Receive matches and four differences. Both Plasma screens show the compact estimate and selected-beneficiary badge. The generation strip is idle and the fuse order, low-address summary and column rule still differ. Pillars retains the selected delegation, aligned search and sort, and differences in the available rows and rewards. |

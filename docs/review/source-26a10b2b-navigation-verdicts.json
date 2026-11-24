@@ -1,0 +1,52 @@
+{
+  "reviews": {
+    "09-receive-dark": {
+      "actual_sha256": "028c4a10cc3420ebf1bc47fc001b4f7e0bcd2f66ecf30919da108b0d5e14eaec",
+      "expected_sha256": "29833553d03b3cb5a7906cfa755389b3b918feca4000684ae79cc2b0f0ab2353",
+      "note": "The tab and address selector, copy and QR actions, request disclosure, and empty queue align. The isolated address, live status, and approved palette differ from the reference.",
+      "reviewed_at": "2026-11-24T22:50:00Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "09-receive-light": {
+      "actual_sha256": "a8dd51c5d15c290039a30c70852514616fdedded2e414581a699b37e76353a34",
+      "expected_sha256": "941606d6662bc1a0dce5b6715be83a5c95fd3b9158844ab0e59fb27f4f4c7d35",
+      "note": "The tab and address selector, copy and QR actions, request disclosure, and empty queue align. The isolated address, live status, and approved palette differ from the reference.",
+      "reviewed_at": "2026-11-24T22:50:00Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "16-pillars-dark": {
+      "actual_sha256": "ec99ea05e614209296044f3f8809e3d9da91e8e5149edc2623c2cde24c44474c",
+      "expected_sha256": "2cc96ba5d5e143ec6b96dce6bfdd5bf0dd2d1950f647871f2e950f30b3991869",
+      "note": "The selected delegation, Change action, expanded row, and search and sort alignment are visible. The isolated lab shows three rows, no collectible reward, and unavailable APR and registration values.",
+      "reviewed_at": "2026-11-24T22:50:00Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "16-pillars-light": {
+      "actual_sha256": "c0641d97372780caa8d0cce6fe7dcbcd24f01926c61bedb1308d6d63f71f0574",
+      "expected_sha256": "d8a635852cfe165f21d62ce1445484859f8f4ab529af53ade636a360db082c86",
+      "note": "The selected delegation, Change action, expanded row, and search and sort alignment are visible. The isolated lab shows three rows, no collectible reward, and unavailable APR and registration values.",
+      "reviewed_at": "2026-11-24T22:50:00Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "21-plasma-dark": {
+      "actual_sha256": "e433f3226675d52c2ef1b5b84be9bcca6c33fa62bc9606b3b8bc1959194726af",
+      "expected_sha256": "00bf1d72858ad59603775e8a36a68b326446902e6c52f54756389729da6778bf",
+      "note": "The compact estimate and selected-beneficiary badge are visible beside the rounded meter. The generation strip is idle, the two cancelable fusions precede the locked fusions, and the low-address summary is absent. The column rule is one pixel above the reference.",
+      "reviewed_at": "2026-11-24T22:50:00Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "21-plasma-light": {
+      "actual_sha256": "e583e583b0d4202427dcbb3c167ebc42f4b4a99ee9e60e1c54ff008269e4b388",
+      "expected_sha256": "45f4e4b332c3f332601ad355d8ff5438b97dcea4984c5cffdb2cb35853d27f97",
+      "note": "The compact estimate and selected-beneficiary badge are visible beside the rounded meter. The generation strip is idle, the two cancelable fusions precede the locked fusions, and the low-address summary is absent. The column rule is one pixel above the reference.",
+      "reviewed_at": "2026-11-24T22:50:00Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
