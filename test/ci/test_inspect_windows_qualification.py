@@ -357,6 +357,14 @@ class WindowsQualificationTests(unittest.TestCase):
                          probe_row=142, columns=[817, 825])],
             reference=[dict(rows=[132, 172], rgb=[60, 60, 60],
                             probe_row=140, columns=[817, 825])]))
+        self.assertEqual(comparison['spawn_continue_bounds'],
+                         dict(actual=None, reference=None))
+        background = bytes((40, 40, 40))
+        primary = bytes((0, 213, 87))
+        rows = [background * 1280] * 475
+        rows[400:438] = [background * 463 + primary * 94 + background * 723] * 38
+        self.assertEqual(inspect.pillar_spawn_continue_bounds(rows, 3),
+                         [463, 400, 557, 438])
 
     def test_entry_digest_missing_extra_and_invalid_pixels_are_refused(self):
         data = pixels()

@@ -686,6 +686,15 @@ def pillar_spawn_field_runs(rows, channels):
     return result
 
 
+def pillar_spawn_continue_bounds(rows, channels):
+    """Measure the Continue gradient in the action band, after the Back label."""
+    from .inspect_wallet_inspection import _primary_ink_bounds
+
+    left, right, top, bottom = 440, 640, 388, 475
+    crop = [line[left * channels:right * channels] for line in rows[top:bottom]]
+    return _primary_ink_bounds(crop, channels, left, top)
+
+
 def welcome_action_alignment(actual, a_channels, expected, e_channels):
     """Measure small text offsets inside the three reference action rows."""
     def ink(rows, channels, top, bottom):
@@ -891,6 +900,10 @@ def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
             column=820,
             actual=pillar_spawn_field_runs(actual, a_channels),
             reference=pillar_spawn_field_runs(expected, e_channels),
+        )
+        result['spawn_continue_bounds'] = dict(
+            actual=pillar_spawn_continue_bounds(actual, a_channels),
+            reference=pillar_spawn_continue_bounds(expected, e_channels),
         )
     if align_settings_labels:
         result['settings_label_alignment'] = settings_label_alignment(
