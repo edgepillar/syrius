@@ -76,6 +76,8 @@ class ImportSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    final double towardStart =
+        Directionality.of(context) == TextDirection.ltr ? -1 : 1;
     // The reference snaps fractional border widths to whole device pixels.
     final double pixelRatio = MediaQuery.devicePixelRatioOf(context);
     final double deviceStrokeWidth =
@@ -115,6 +117,11 @@ class ImportSurface extends StatelessWidget {
                     value: count,
                     label: context.l10n.seedChoiceWordsLabel(count),
                     labelStyle: tokens.compactText,
+                    // Align both labels to the settled reference.
+                    labelPaintOffset: Offset(
+                      (count == 12 ? 2 : 1) * towardStart,
+                      -1,
+                    ),
                   ),
               ],
               selected: draft.expectedWords,

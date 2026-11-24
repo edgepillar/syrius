@@ -46,6 +46,7 @@ class SegmentItem<T> {
     this.enabled = true,
     this.seam,
     this.labelStyle,
+    this.labelPaintOffset,
   });
 
   /// What [Segment.onChanged] is given when this is picked.
@@ -68,6 +69,9 @@ class SegmentItem<T> {
 
   /// Numeric preferences use the same mono role as the values they select.
   final TextStyle? labelStyle;
+
+  /// Places the label without moving the thumb or changing the input bounds.
+  final Offset? labelPaintOffset;
 }
 
 /// A choice between a few values, with one thumb that slides to whichever
@@ -376,6 +380,7 @@ class _SegmentState<T> extends State<Segment<T>>
       selected: item.value == widget.selected,
       enabled: item.enabled && item.seam == null,
       labelStyle: item.labelStyle,
+      labelPaintOffset: item.labelPaintOffset,
       pillPadding: widget.pillPadding,
       slide: _slide,
       ink: () => _inkAt(item.value, widget.selected, _slide.value),
@@ -434,6 +439,7 @@ class _SegmentCell extends StatefulWidget {
     required this.selected,
     required this.enabled,
     required this.labelStyle,
+    required this.labelPaintOffset,
     required this.pillPadding,
     required this.slide,
     required this.ink,
@@ -448,6 +454,7 @@ class _SegmentCell extends StatefulWidget {
   final bool selected;
   final bool enabled;
   final TextStyle? labelStyle;
+  final Offset? labelPaintOffset;
   final EdgeInsetsGeometry? pillPadding;
 
   /// Ticks while the thumb moves, which is when [ink] changes.
@@ -485,6 +492,16 @@ class _SegmentCellState extends State<_SegmentCell> {
         : theme.textTheme.titleMedium?.color ?? tokens.faint;
     final IconData? icon = widget.icon;
     final int? count = widget.count;
+    Widget paintLabel(Widget label) {
+      final Offset? offset = widget.labelPaintOffset;
+      return offset == null
+          ? label
+          : Transform.translate(
+              offset: offset,
+              transformHitTests: false,
+              child: label,
+            );
+    }
 
     return Semantics(
       container: true,
@@ -535,19 +552,19 @@ class _SegmentCellState extends State<_SegmentCell> {
                       color: Color.lerp(dim, lit, widget.ink()),
                     );
                     if (icon == null && count == null) {
-                      return Text(
+                      return paintLabel(Text(
                         widget.label,
                         style: inked,
                         maxLines: 1,
                         softWrap: false,
                         overflow: TextOverflow.ellipsis,
-                      );
+                      ));
                     }
                     // One paragraph and not a Row: a paragraph narrower
                     // than its icon is clipped, a Row reports an overflow.
                     // The paragraph also puts the icon on the leading side
                     // by itself under a right-to-left interface.
-                    return Text.rich(
+                    return paintLabel(Text.rich(
                       TextSpan(
                         children: <InlineSpan>[
                           if (icon != null)
@@ -598,7 +615,7 @@ class _SegmentCellState extends State<_SegmentCell> {
                       maxLines: 1,
                       softWrap: false,
                       overflow: TextOverflow.ellipsis,
-                    );
+                    ));
                   },
                 ),
               ),

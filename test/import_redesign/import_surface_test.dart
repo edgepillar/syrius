@@ -269,6 +269,18 @@ void main() {
                 .text.style!.letterSpacing,
             0,
           );
+          final Transform paintOffset = tester.widget<Transform>(
+            find.ancestor(
+              of: choice,
+              matching: find.byWidgetPredicate(
+                (Widget widget) =>
+                    widget is Transform && !widget.transformHitTests,
+              ),
+            ),
+          );
+          final bool first = choice == words12;
+          expect(paintOffset.transform.getTranslation().x, first ? -2 : -1);
+          expect(paintOffset.transform.getTranslation().y, -1);
         }
         final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
         expect(tokens.importWordChoicePadding,
