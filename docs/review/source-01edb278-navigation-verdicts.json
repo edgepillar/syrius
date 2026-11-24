@@ -1,0 +1,52 @@
+{
+  "reviews": {
+    "09-receive-dark": {
+      "actual_sha256": "655a569cc9a8260ff8a0da202f2418c80352f3907950e6bb9d9a602dc77c79bf",
+      "expected_sha256": "29833553d03b3cb5a7906cfa755389b3b918feca4000684ae79cc2b0f0ab2353",
+      "note": "The address panel, tab and address selector, Copy and QR controls, request row and empty queue align. The approved Copy gradient and live address and footer values differ from the reference.",
+      "reviewed_at": "2026-11-24T16:12:15Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "09-receive-light": {
+      "actual_sha256": "dea8c6c7185a0d231bf4a13df42e65be17ae9d25c5723f539cef81b627103522",
+      "expected_sha256": "941606d6662bc1a0dce5b6715be83a5c95fd3b9158844ab0e59fb27f4f4c7d35",
+      "note": "The address panel, tab and address selector, Copy and QR controls, request row and empty queue align. The approved Copy gradient and live address and footer values differ from the reference.",
+      "reviewed_at": "2026-11-24T16:12:15Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "16-pillars-dark": {
+      "actual_sha256": "18d346e96f6c4b0345e8bd23c88783266e9ad5d71b0c4f85e867a1778113136a",
+      "expected_sha256": "2cc96ba5d5e143ec6b96dce6bfdd5bf0dd2d1950f647871f2e950f30b3991869",
+      "note": "The first row is expanded and the table geometry aligns. The live fixture shows no delegation or collectible reward, three rows, and unavailable APR estimates. The reference shows a delegated row, six rows, populated rewards and APR values.",
+      "reviewed_at": "2026-11-24T16:12:15Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "16-pillars-light": {
+      "actual_sha256": "8def9293dfa9c21cc62452e2cfe6938501c8bf5c29da736aa4a164ebd1ee6513",
+      "expected_sha256": "d8a635852cfe165f21d62ce1445484859f8f4ab529af53ade636a360db082c86",
+      "note": "The first row is expanded and the table geometry aligns. The live fixture shows no delegation or collectible reward, three rows, and unavailable APR estimates. The reference shows a delegated row, six rows, populated rewards and APR values.",
+      "reviewed_at": "2026-11-24T16:12:15Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "21-plasma-dark": {
+      "actual_sha256": "7b0864477c8a932d3590092a5c7a0a7e1b6c4f22bcda55ce733550e1c06c0cf5",
+      "expected_sha256": "00bf1d72858ad59603775e8a36a68b326446902e6c52f54756389729da6778bf",
+      "note": "The form is closed and the two-column layout aligns. The isolated state fills the meter and shows three cancellable rows. The reference has four rows with timed locks, a partial meter and a generating status.",
+      "reviewed_at": "2026-11-24T16:12:15Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "21-plasma-light": {
+      "actual_sha256": "c2bcc93d1ebf2fb04caeccbb7e0ee8bb0174b91923fddaee9d8a70f4e240315a",
+      "expected_sha256": "45f4e4b332c3f332601ad355d8ff5438b97dcea4984c5cffdb2cb35853d27f97",
+      "note": "The form is closed and the two-column layout aligns. The isolated state fills the meter and shows three cancellable rows. The reference has four rows with timed locks, a partial meter and a generating status.",
+      "reviewed_at": "2026-11-24T16:12:15Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
