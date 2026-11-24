@@ -130,14 +130,22 @@ class _Results extends StatelessWidget {
 /// The existing list with the Nodes action scope rather than a local sender.
 class NodesDelegationList extends StatelessWidget {
   /// Creates the list under a [NodesDelegationScope] and [PillarsBloc].
-  const NodesDelegationList({this.heading, super.key});
+  const NodesDelegationList({
+    this.heading,
+    this.showRefreshButton = true,
+    super.key,
+  });
 
   /// Common Nodes tabs occupy the list card's heading.
   final Widget? heading;
 
+  /// Whether refresh is available directly in the list heading.
+  final bool showRefreshButton;
+
   @override
   Widget build(BuildContext context) => PillarsCard(
     heading: heading,
+    showRefreshButton: showRefreshButton,
     delegationBloc: context.read<DelegationBloc>(),
     delegationBlocked: watchNodesDelegationBusy(context),
   );

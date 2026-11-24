@@ -14,6 +14,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/row_detail.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_refresh.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class _Pillars
@@ -204,6 +205,7 @@ void main() {
     bool light = false,
     bool rtl = false,
     bool blocked = false,
+    bool showRefreshButton = true,
     Locale? locale,
     double textScale = 1,
   }) => MaterialApp(
@@ -232,6 +234,7 @@ void main() {
           child: PillarsCard(
             delegationBloc: delegate,
             delegationBlocked: blocked,
+            showRefreshButton: showRefreshButton,
           ),
         ),
       ),
@@ -537,6 +540,40 @@ void main() {
     await _frames(tester);
     expect(find.byKey(const Key('pillar_alpha_detail')), findsNothing);
     verifyNever(() => delegate.add(any()));
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('shortcut refreshes once with or without the header button', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1280, 780);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final PageRefreshController refresh = PageRefreshController();
+    addTearDown(refresh.dispose);
+    whenListen(
+      pillars,
+      pillarStates.stream,
+      initialState: _loaded(<PillarInfo>[_pillar('alpha')]),
+    );
+    for (final bool visible in <bool>[false, true]) {
+      await tester.pumpWidget(
+        PageRefreshScope(
+          controller: refresh,
+          child: host(showRefreshButton: visible),
+        ),
+      );
+      await _frames(tester);
+      expect(
+        find.byTooltip('Refresh'),
+        visible ? findsOneWidget : findsNothing,
+      );
+      refresh.refresh();
+      verify(
+        () => pillars.add(InfiniteListRefreshRequested(address: emptyAddress)),
+      ).called(1);
+    }
     await tester.pumpWidget(const SizedBox.shrink());
   });
 

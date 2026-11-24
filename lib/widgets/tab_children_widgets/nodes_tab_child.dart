@@ -209,8 +209,10 @@ class _NodesOwnerContentState extends State<_NodesOwnerContent> {
               ),
               pillars: const NodesDelegationList(),
               sentinels: const SentinelsCard(),
-              pillarsBuilder: (Widget tabs) =>
-                  NodesDelegationList(heading: tabs),
+              pillarsBuilder: (Widget tabs) => NodesDelegationList(
+                heading: tabs,
+                showRefreshButton: _ownerOpen,
+              ),
               sentinelsBuilder: (Widget tabs) {
                 final NodesSentinelReaders? readers = widget.sentinelReaders;
                 Future<void> openOwner() => _showSentinelOwner(

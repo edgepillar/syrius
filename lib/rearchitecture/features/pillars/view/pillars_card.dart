@@ -13,11 +13,21 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/row_det
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_refresh.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
     show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'pillars_table.dart';
+
+/// Refreshes the loaded Pillars for the current selection.
+void refreshPillarList(BuildContext context) {
+  final String? address = kSelectedAddress;
+  if (address == null) return;
+  context.read<PillarsBloc>().add(
+    InfiniteListRefreshRequested(address: Address.parse(address)),
+  );
+}
 
 /// Loaded pillars, with their network weight and production.
 ///
@@ -29,6 +39,7 @@ class PillarsCard extends StatelessWidget {
     this.delegationBloc,
     this.delegationBlocked = false,
     this.heading,
+    this.showRefreshButton = true,
     super.key,
   });
 
@@ -41,6 +52,9 @@ class PillarsCard extends StatelessWidget {
   /// A shared Nodes heading; null keeps the list's own title.
   final Widget? heading;
 
+  /// Whether the caller leaves pointer access to refresh in the table header.
+  final bool showRefreshButton;
+
   @override
   Widget build(BuildContext context) {
     final DelegationBloc? shared = delegationBloc;
@@ -48,6 +62,7 @@ class PillarsCard extends StatelessWidget {
       sharedDelegation: shared != null,
       delegationBlocked: delegationBlocked,
       heading: heading,
+      showRefreshButton: showRefreshButton,
     );
     if (shared != null) {
       return BlocProvider<DelegationBloc>.value(value: shared, child: view);
@@ -67,11 +82,13 @@ class _View extends StatefulWidget {
     required this.sharedDelegation,
     required this.delegationBlocked,
     required this.heading,
+    required this.showRefreshButton,
   });
 
   final bool sharedDelegation;
   final bool delegationBlocked;
   final Widget? heading;
+  final bool showRefreshButton;
 
   @override
   State<_View> createState() => _ViewState();
@@ -194,20 +211,15 @@ class _ViewState extends State<_View> {
             query: _search.text,
             sort: _sort,
           );
-          return Panel(
+          void refresh() => refreshPillarList(context);
+          final Widget panel = Panel(
             title: context.l10n.pillars,
             heading: widget.heading,
             headingMinHeight: AppTokens.of(context).tabHeaderHeight,
             actions: <Widget>[
               _buildSearch(context),
               _buildSort(context),
-              RefreshButton(
-                onPressed: () => context.read<PillarsBloc>().add(
-                  InfiniteListRefreshRequested(
-                    address: Address.parse(kSelectedAddress!),
-                  ),
-                ),
-              ),
+              if (widget.showRefreshButton) RefreshButton(onPressed: refresh),
             ],
             child: RowDetailGroup(
               // These scopes survive loading, errors and empty filters.
@@ -232,6 +244,11 @@ class _ViewState extends State<_View> {
                 },
               ),
             ),
+          );
+          return PageRefreshAction(
+            onRefresh: refresh,
+            enabled: !widget.showRefreshButton,
+            child: panel,
           );
         },
       ),

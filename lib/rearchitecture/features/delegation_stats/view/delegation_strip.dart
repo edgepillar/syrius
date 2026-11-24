@@ -130,7 +130,7 @@ class DelegationStrip extends StatelessWidget {
   }
 }
 
-enum _MoreAction { owner, undelegate }
+enum _MoreAction { owner, undelegate, refresh }
 
 class _View extends StatelessWidget {
   const _View({
@@ -189,6 +189,14 @@ class _View extends StatelessWidget {
                             ).pop(_MoreAction.undelegate),
                       child: Text(context.l10n.nodesUndelegate),
                     ),
+                  if (onOpenOwner != null)
+                    TextButton(
+                      key: const Key('nodes_pillar_refresh'),
+                      style: quietButtonStyle(menuContext),
+                      onPressed: () =>
+                          Navigator.of(menuContext).pop(_MoreAction.refresh),
+                      child: Text(context.l10n.commonRefresh),
+                    ),
                 ],
               ),
             );
@@ -234,6 +242,8 @@ class _View extends StatelessWidget {
         if (pillarName != null) {
           await requestNodesUndelegation(context, pillarName: pillarName);
         }
+      case _MoreAction.refresh:
+        refreshPillarList(context);
     }
   }
 
