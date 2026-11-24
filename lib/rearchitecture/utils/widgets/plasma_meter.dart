@@ -26,6 +26,7 @@ class PlasmaMeter extends StatefulWidget {
     required this.value,
     required this.trackColor,
     this.active = false,
+    this.useFlowShader = true,
     this.height = 6,
     super.key,
   });
@@ -38,6 +39,9 @@ class PlasmaMeter extends StatefulWidget {
 
   /// Whether plasma is being generated. An idle meter holds its light.
   final bool active;
+
+  /// Whether this meter paints the flow effect instead of a solid fill.
+  final bool useFlowShader;
 
   /// The bar's thickness. Its ends are rounded to half of it.
   final double height;
@@ -85,8 +89,10 @@ class _PlasmaMeterState extends State<PlasmaMeter>
   }
 
   void _sync() {
-    _clock.active = _changing || (_shaderReady && widget.active && _target > 0);
+    _clock.active = _changing || (_flowActive && _target > 0);
   }
+
+  bool get _flowActive => widget.useFlowShader && widget.active && _shaderReady;
 
   void _onTick() {
     final double now = _clock.value;
@@ -104,8 +110,7 @@ class _PlasmaMeterState extends State<PlasmaMeter>
         _changing = false;
       }
     }
-    final double seconds =
-        _frame.value.seconds + (widget.active && _shaderReady ? delta : 0);
+    final double seconds = _frame.value.seconds + (_flowActive ? delta : 0);
     if (level != _frame.value.level || seconds != _frame.value.seconds) {
       _frame.value = _MeterFrame(level, seconds);
     }
@@ -127,15 +132,21 @@ class _PlasmaMeterState extends State<PlasmaMeter>
     return Semantics(
       value: '${(widget.value.clamp(0, 1) * 100).round()}%',
       child: RepaintBoundary(
-        child: ShaderBuilder(
-          assetKey: kPlasmaFlowShader,
-          (BuildContext context, ui.FragmentShader shader, Widget? child) {
-            _shaderReady = true;
-            _sync();
-            return _buildBar(shader, direction);
-          },
-          child: _buildBar(null, direction),
-        ),
+        child: widget.useFlowShader
+            ? ShaderBuilder(
+                assetKey: kPlasmaFlowShader,
+                (
+                  BuildContext context,
+                  ui.FragmentShader shader,
+                  Widget? child,
+                ) {
+                  _shaderReady = true;
+                  _sync();
+                  return _buildBar(shader, direction);
+                },
+                child: _buildBar(null, direction),
+              )
+            : _buildBar(null, direction),
       ),
     );
   }

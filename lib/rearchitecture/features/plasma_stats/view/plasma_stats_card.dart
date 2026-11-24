@@ -699,7 +699,10 @@ class _LevelRow extends StatelessWidget {
             ),
             SizedBox(
               width: onPage ? tokens.plasmaOtherMeterWidth : _kRowMeterWidth,
-              child: PlasmaLevelMeter(plasma: plasma),
+              child: PlasmaLevelMeter(
+                plasma: plasma,
+                useFlowShader: !onPage,
+              ),
             ),
             SizedBox(
               width: onPage ? tokens.plasmaOtherLevelWidth : _kRowLevelWidth,

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/plasma_meter.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 
 const Key _surface = Key('meter_surface');
@@ -14,6 +15,7 @@ Widget _host(
   double value, {
   TextDirection direction = TextDirection.ltr,
   bool active = false,
+  bool useFlowShader = true,
 }) => MaterialApp(
   theme: AppTheme.darkTheme,
   home: Directionality(
@@ -27,6 +29,7 @@ Widget _host(
           child: PlasmaMeter(
             value: value,
             active: active,
+            useFlowShader: useFlowShader,
             trackColor: AppTokens.dark.line,
           ),
         ),
@@ -122,6 +125,24 @@ void main() {
       await tester.pump(const Duration(seconds: 5));
       expect(await _filledPixels(tester), closeTo(50, 1));
     }
+
+    await tester.pumpWidget(_host(0.25, active: true, useFlowShader: false));
+    await tester.pump();
+    final ByteData solid = await _barPixels(tester);
+    final int blue = AppColors.qsrColor.toARGB32();
+    for (final int x in <int>[16, 36]) {
+      final int offset = (3 * 200 + x) * 4;
+      expect(
+        Color.fromARGB(
+          solid.getUint8(offset + 3),
+          solid.getUint8(offset),
+          solid.getUint8(offset + 1),
+          solid.getUint8(offset + 2),
+        ).toARGB32(),
+        blue,
+      );
+    }
+    expect(tester.binding.transientCallbackCount, 0);
   });
 
   testWidgets('one ticker retains the 500 ms level easing, then stops', (

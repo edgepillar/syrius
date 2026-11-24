@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_shaders/flutter_shaders.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
@@ -178,6 +179,17 @@ void main() {
           expect(rowBounds.height, 30);
           expect(meter.left - card.left, closeTo(143, .01));
           expect(meter.width, 90);
+          expect(
+            find.descendant(of: row, matching: find.byType(ShaderBuilder)),
+            findsNothing,
+          );
+          expect(
+            find.descendant(
+              of: find.byType(PlasmaLevelMeter).first,
+              matching: find.byType(ShaderBuilder),
+            ),
+            findsOneWidget,
+          );
           expect(tester.state<State<PlasmaGlow>>(mark), same(glow));
           final Size openMark = tester.getSize(mark);
           expect(openMark.width, inInclusiveRange(96, 120));

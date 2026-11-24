@@ -70,6 +70,7 @@ class PlasmaLevelMeter extends StatelessWidget {
   const PlasmaLevelMeter({
     required this.plasma,
     this.generating = false,
+    this.useFlowShader = true,
     super.key,
   });
 
@@ -79,6 +80,9 @@ class PlasmaLevelMeter extends StatelessWidget {
   /// Only genuine owned proof-of-work makes the meter's light flow.
   final bool generating;
 
+  /// The secondary meters on the Plasma page use the solid fill.
+  final bool useFlowShader;
+
   @override
   Widget build(BuildContext context) {
     // The fill is QSR's brand blue, the same in both themes; [PlasmaMeter]
@@ -86,6 +90,7 @@ class PlasmaLevelMeter extends StatelessWidget {
     return PlasmaMeter(
       value: plasmaMeterValue(plasma),
       active: generating,
+      useFlowShader: useFlowShader,
       trackColor: cardLineColor(context),
     );
   }
