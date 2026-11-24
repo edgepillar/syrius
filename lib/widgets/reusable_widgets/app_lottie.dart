@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:cryptography/dart.dart';
+import 'package:flutter/material.dart' show Theme;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hex/hex.dart';
@@ -508,6 +509,7 @@ class _PlayerState extends State<_Player>
         progress: paintedController,
         frameRate: frameRate,
         viewport: _configuration.originalsViewport,
+        light: Theme.brightnessOf(context) == Brightness.light,
       );
     }
     final Widget animation = Lottie(
@@ -543,12 +545,14 @@ class _GalleryMap extends StatefulWidget {
     required this.progress,
     required this.frameRate,
     required this.viewport,
+    required this.light,
   });
 
   final LottieComposition composition;
   final Animation<double> progress;
   final FrameRate? frameRate;
   final Size? viewport;
+  final bool light;
 
   @override
   State<_GalleryMap> createState() => _GalleryMapState();
@@ -594,25 +598,49 @@ class _GalleryMapState extends State<_GalleryMap> {
   @override
   Widget build(BuildContext context) => RepaintBoundary(
     child: CustomPaint(
-      painter: _GalleryMapPainter(_raster, widget.viewport),
+      painter: _GalleryMapPainter(
+        _raster,
+        widget.viewport,
+        light: widget.light,
+      ),
       child: const SizedBox.expand(),
     ),
   );
 }
 
 class _GalleryMapPainter extends CustomPainter {
-  _GalleryMapPainter(this.raster, this.viewport) : super(repaint: raster);
+  _GalleryMapPainter(this.raster, this.viewport, {required this.light})
+    : _paint = ui.Paint()
+        ..filterQuality = ui.FilterQuality.medium
+        ..colorFilter = light ? _lightDotCoverage : null,
+      super(repaint: raster);
+
+  // Compensate for the light tile's lost dot coverage after mip sampling.
+  // Apply this to the sampled image alone, leaving the source paths and clock
+  // intact. The dark tile already matches the original dot intensity closely.
+  static const ui.ColorFilter _lightDotCoverage = ui.ColorFilter.matrix(
+    <double>[
+      1, 0, 0, 0, 0,
+      0, 1, 0, 0, 0,
+      0, 0, 1, 0, 0,
+      0, 0, 0, 1.2, 0,
+    ],
+  );
 
   final _GalleryMapRaster raster;
   final Size? viewport;
+  final bool light;
+  final ui.Paint _paint;
 
   @override
   void paint(ui.Canvas canvas, ui.Size size) =>
-      raster.paint(canvas, size, viewport);
+      raster.paint(canvas, size, viewport, _paint);
 
   @override
   bool shouldRepaint(_GalleryMapPainter oldDelegate) =>
-      raster != oldDelegate.raster || viewport != oldDelegate.viewport;
+      raster != oldDelegate.raster ||
+      viewport != oldDelegate.viewport ||
+      light != oldDelegate.light;
 }
 
 // Sample the original vector paths before minifying subpixel dots into the
@@ -642,7 +670,7 @@ class _GalleryMapRaster extends ChangeNotifier {
     }
   }
 
-  void paint(ui.Canvas canvas, ui.Size size, Size? viewport) {
+  void paint(ui.Canvas canvas, ui.Size size, Size? viewport, ui.Paint paint) {
     if (size.isEmpty || (viewport?.isEmpty ?? false)) {
       _releaseImage();
       return;
@@ -704,7 +732,7 @@ class _GalleryMapRaster extends ChangeNotifier {
         sample.right / scaleX,
         sample.bottom / scaleY,
       ),
-      ui.Paint()..filterQuality = ui.FilterQuality.medium,
+      paint,
     );
   }
 

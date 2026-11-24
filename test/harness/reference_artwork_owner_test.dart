@@ -588,16 +588,21 @@ void main() {
       value: 0.25,
     );
     addTearDown(galleryClock.dispose);
-    final ValueNotifier<Size?> viewport = ValueNotifier<Size?>(null);
+    final ValueNotifier<(Size?, Brightness)> viewport =
+        ValueNotifier<(Size?, Brightness)>((null, Brightness.dark));
     addTearDown(viewport.dispose);
-    await tester.pumpWidget(_host(ValueListenableBuilder<Size?>(
+    await tester.pumpWidget(_host(ValueListenableBuilder<(Size?, Brightness)>(
       valueListenable: viewport,
-      builder: (_, Size? size, _) => AppLottie(
-        AppLottieAsset.map,
-        size: 64,
-        controller: galleryClock,
-        originalsReferenceProgress: 0.5,
-        originalsViewport: size,
+      builder: (_, (Size?, Brightness) presentation, _) => Theme(
+        data: presentation.$2 == Brightness.dark
+            ? AppTheme.darkTheme : AppTheme.lightTheme,
+        child: AppLottie(
+          AppLottieAsset.map,
+          size: 64,
+          controller: galleryClock,
+          originalsReferenceProgress: 0.5,
+          originalsViewport: presentation.$1,
+        ),
       ),
     )));
     await _loaded(tester, galleryMap: true);
@@ -629,11 +634,28 @@ void main() {
     await tester.pump();
     expect(mapLayer.firstChild, same(originalPaint));
 
-    viewport.value = const Size(40, 42);
+    viewport.value = (const Size(40, 42), Brightness.dark);
     await tester.pump();
     expect(tester.renderObject(mapPaint), same(galleryRenderer));
     expect(mapBoundary.debugLayer, same(mapLayer));
     expect(mapLayer.firstChild, isNot(same(originalPaint)));
+    expect(galleryClock.value, 0.2501);
+
+    List<Object?> drawMap() {
+      final CustomPaint paint = tester.widget<CustomPaint>(mapPaint);
+      final TestRecordingCanvas canvas = TestRecordingCanvas();
+      paint.painter!.paint(canvas, tester.getSize(mapPaint));
+      return canvas.invocations.single.invocation.positionalArguments;
+    }
+
+    final List<Object?> darkMap = drawMap();
+    viewport.value = (const Size(40, 42), Brightness.light);
+    await tester.pump();
+    final List<Object?> lightMap = drawMap();
+    expect(lightMap.take(3), orderedEquals(darkMap.take(3)));
+    expect((darkMap.last! as ui.Paint).colorFilter, isNull);
+    expect((lightMap.last! as ui.Paint).colorFilter, isNotNull);
+    expect(tester.renderObject(mapPaint), same(galleryRenderer));
     expect(galleryClock.value, 0.2501);
 
     await tester.pumpWidget(MaterialApp(
