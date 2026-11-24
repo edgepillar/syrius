@@ -13,7 +13,6 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:animations/animations.dart' show FadeThroughTransition;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
@@ -3192,7 +3191,6 @@ class HarnessAgent {
     // between pointer admissions. Read each original entrance clock without
     // changing ordinary input or waiting on unrelated hover animations.
     Element child = element;
-    FadeThroughTransition? switchEntrance;
     Animation<double>? entranceFade;
     bool settled = true;
     element.visitAncestorElements((Element ancestor) {
@@ -3215,16 +3213,9 @@ class HarnessAgent {
         }
         entranceFade = null;
       }
-      if (widget is FadeThroughTransition) switchEntrance = widget;
-      if (widget is RiseSwitcher) {
-        final FadeThroughTransition? transition = switchEntrance;
-        if (transition == null ||
-            !transition.animation.isCompleted ||
-            !transition.secondaryAnimation.isDismissed) {
-          settled = false;
-          return false;
-        }
-        switchEntrance = null;
+      if (widget is RiseSwitcher && !RiseSwitcher.isSettled(ancestor)) {
+        settled = false;
+        return false;
       }
       if (widget is ListEntranceItem) {
         final Widget built = child.widget;

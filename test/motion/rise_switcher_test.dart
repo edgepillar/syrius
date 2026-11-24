@@ -1,6 +1,5 @@
 import 'dart:ui' show SemanticsAction;
 
-import 'package:animations/animations.dart';
 import 'package:flutter/rendering.dart'
     show Layer, OffsetLayer, RenderRepaintBoundary;
 import 'package:flutter/semantics.dart' show SemanticsNode, SemanticsOwner;
@@ -134,6 +133,10 @@ void main() {
       expect(RiseSwitcher.isSettled(switcher, destination), isFalse);
       // Native fade-through includes its scale; this is the added translation.
       final Transform firstRise = _riseTransform(tester, _page(1));
+      final ScaleTransition zoom = tester.widget(
+        find.ancestor(of: _page(1), matching: find.byType(ScaleTransition)),
+      );
+      expect(zoom.scale.value, .92);
       expect(_rise(tester, _page(1)), 6);
       expect(tester.getTopLeft(_page(0)).dy, 0);
 
@@ -148,7 +151,9 @@ void main() {
       expect(_rise(tester, _page(1)), closeTo(6, 1e-9));
 
       await tester.pump(const Duration(milliseconds: 24));
-      expect(_opacity(tester, _page(1)), greaterThan(0));
+      final double entrance = const Cubic(0, 0, .2, 1).transform(24 / 224);
+      expect(_opacity(tester, _page(1)), closeTo(entrance, 1e-9));
+      expect(zoom.scale.value, closeTo(.92 + .08 * entrance, 1e-9));
       final double rising = _rise(tester, _page(1));
       expect(rising, greaterThan(0));
       expect(rising, lessThan(6));
@@ -254,10 +259,10 @@ void main() {
         return boundary.debugLayer! as OffsetLayer;
       }
 
-      FadeThroughTransition transitionFor(int index) => tester.widget(
+      FadeTransition transitionFor(int index) => tester.widget(
         find.ancestor(
           of: _page(index),
-          matching: find.byType(FadeThroughTransition),
+          matching: find.byType(FadeTransition),
         ),
       );
 
@@ -281,13 +286,16 @@ void main() {
       expect(shellPaints, greaterThan(0));
       await tester.pumpWidget(host(1, Colors.green));
       final int shellPaintsAtStart = shellPaints;
-      expect(find.byType(FadeThroughTransition), findsNWidgets(2));
+      expect(find.byType(FadeTransition), findsNWidgets(2));
       expect(_opacity(tester, _page(0)), 1);
       expect(_opacity(tester, _page(1)), 0);
-      final FadeThroughTransition exitTransition = transitionFor(0);
-      final FadeThroughTransition hiddenTransition = transitionFor(1);
+      final FadeTransition exitTransition = transitionFor(0);
+      final FadeTransition hiddenTransition = transitionFor(1);
       await tester.pump(const Duration(milliseconds: 80));
-      expect(_opacity(tester, _page(0)), greaterThan(0));
+      expect(
+        _opacity(tester, _page(0)),
+        closeTo(1 - const Cubic(.4, 0, 1, 1).transform(80 / 96), 1e-9),
+      );
       expect(_opacity(tester, _page(1)), 0);
       expect(transitionFor(0), same(exitTransition));
       expect(transitionFor(1), same(hiddenTransition));
@@ -305,7 +313,7 @@ void main() {
       expect(_opacity(tester, _page(1)), lessThan(1));
       final OffsetLayer arriving = layerFor(1);
       final Layer? arrivingPaint = arriving.firstChild;
-      final FadeThroughTransition visibleTransition = transitionFor(1);
+      final FadeTransition visibleTransition = transitionFor(1);
       expect(arrivingPaint, isNotNull);
       await tester.pump(const Duration(milliseconds: 160));
       expect(_opacity(tester, _page(1)), 1);

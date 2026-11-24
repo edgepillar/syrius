@@ -1,4 +1,3 @@
-import 'package:animations/animations.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 
@@ -58,10 +57,13 @@ class RiseSwitcher extends StatefulWidget {
   /// isolates the whole page can share its boundary with the stack.
   final bool isolateTransitionPaint;
 
-  /// Whether the switcher at [context] has finished both fades for [childKey].
-  static bool isSettled(BuildContext context, Key childKey) {
+  /// Whether the switcher at [context] has finished both fades.
+  ///
+  /// If supplied, [childKey] identifies the expected current page.
+  static bool isSettled(BuildContext context, [Key? childKey]) {
     if (context case StatefulElement(:final _RiseSwitcherState state)) {
-      return state._current.child.key == childKey && state._settled;
+      return state._settled &&
+          (childKey == null || state._current.child.key == childKey);
     }
     return false;
   }
@@ -70,8 +72,20 @@ class RiseSwitcher extends StatefulWidget {
   State<RiseSwitcher> createState() => _RiseSwitcherState();
 }
 
-// FadeThroughTransition's outgoing fade occupies the first 30 percent.
+// The Material fade-through curves and zoom, shared by the single page fade.
 const double _exitEnd = 0.3;
+const Interval _fadeIn = Interval(_exitEnd, 1, curve: Cubic(0, 0, .2, 1));
+const Interval _fadeOut = Interval(0, _exitEnd, curve: Cubic(.4, 0, 1, 1));
+final Tween<double> _zoom = Tween<double>(begin: .92, end: 1);
+
+class _PageOpacity extends CompoundAnimation<double> {
+  _PageOpacity(Animation<double> entrance, Animation<double> exit)
+    : super(first: entrance, next: exit);
+
+  // An interrupted entrance keeps its current opacity through the exit.
+  @override
+  double get value => first.value * (1 - next.value);
+}
 
 class _SwitchEntry {
   _SwitchEntry({
@@ -105,6 +119,11 @@ class _SwitchEntry {
       vsync: vsync,
       animationBehavior: AnimationBehavior.preserve,
     );
+    final Animation<double> incoming = primary.drive(
+      CurveTween(curve: _fadeIn),
+    );
+    opacity = _PageOpacity(incoming, exit.drive(CurveTween(curve: _fadeOut)));
+    scale = incoming.drive(_zoom);
     visible = ValueNotifier<bool>(initial);
     riseProgress = ValueNotifier<double>(initial ? 1 : 0);
     entrance.addListener(_updateEntrance);
@@ -120,6 +139,8 @@ class _SwitchEntry {
   late final AnimationController entrance;
   late final Animation<double> primary;
   late final AnimationController exit;
+  late final Animation<double> opacity;
+  late final Animation<double> scale;
   late final ValueNotifier<bool> visible;
   late final ValueNotifier<double> riseProgress;
   bool outgoing = false;
@@ -284,14 +305,15 @@ class _RiseSwitcherState extends State<RiseSwitcher>
                       onFocusChange: (_) => entry.clearBlockedFocus(),
                       child: ValueListenableBuilder<double>(
                         valueListenable: entry.riseProgress,
-                        child: FadeThroughTransition(
-                          animation: entry.primary,
-                          secondaryAnimation: entry.exit,
-                          fillColor: Colors.transparent,
-                          child: TickerMode(
-                            // Child tickers follow the page's visibility.
-                            enabled: visible,
-                            child: child!,
+                        child: FadeTransition(
+                          opacity: entry.opacity,
+                          child: ScaleTransition(
+                            scale: entry.scale,
+                            child: TickerMode(
+                              // Child tickers follow the page's visibility.
+                              enabled: visible,
+                              child: child!,
+                            ),
                           ),
                         ),
                         builder: (_, double progress, Widget? child) {
