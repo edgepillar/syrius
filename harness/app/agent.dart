@@ -6926,6 +6926,10 @@ class HarnessAgent {
             endUs: ended,
             requestFrame: SchedulerBinding.instance.scheduleFrame,
           );
+          final NativeWindowOwner? native = _nativeWindow;
+          if (_frameTimingMode == 'interactive' && native != null) {
+            result['graphicsAdapterKind'] = await native.graphicsAdapterKind();
+          }
           if (retainedPictures != null) {
             result['retainedPictures'] = retainedPictures;
           }

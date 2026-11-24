@@ -54,9 +54,14 @@ void main() {
       final Completer<Object?> native = Completer<Object?>();
       NativeWindowCall<NativeWindowStartupReceipt>? reentered;
       int calls = 0;
+      Object? adapterKind = 'dxgi-software';
       binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (
         MethodCall method,
       ) {
+        if (method.method == 'graphicsAdapterKind') {
+          expect(method.arguments, <String, Object>{'protocol': 1});
+          return Future<Object?>.value(adapterKind);
+        }
         calls++;
         expect(method.method, 'startup');
         expect(method.arguments, <String, Object>{'protocol': 1});
@@ -88,6 +93,14 @@ void main() {
       expect(receipt.firstFrameCallback, 1);
       expect(owner.isCurrent(receipt), isTrue);
       expect(owner.heldUnknown, isFalse);
+      expect(await owner.graphicsAdapterKind(), 'dxgi-software');
+      adapterKind = 'dxgi-non-software';
+      expect(await owner.graphicsAdapterKind(), 'dxgi-non-software');
+      adapterKind = 'private adapter name';
+      expect(await owner.graphicsAdapterKind(), 'unavailable');
+      binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, null);
+      expect(await owner.graphicsAdapterKind(), 'unavailable');
+      expect(owner.isCurrent(receipt), isTrue);
     },
   );
 
