@@ -1,7 +1,4 @@
-import 'dart:ui' show Picture;
-
 import 'package:flutter/foundation.dart' as foundation;
-import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -12,8 +9,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dar
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
-
-import '../../harness/app/frame_window.dart' show captureFramePictures;
 
 double _rise(WidgetTester tester) => tester
     .widget<Transform>(
@@ -79,23 +74,12 @@ void main() {
     await tester.tap(find.text('Open'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 40));
-    final Finder captionPaint = find.byKey(
-      const ValueKey<String>('window-caption-paint'),
-    );
-    final RenderRepaintBoundary boundary = tester
-        .renderObject<RenderRepaintBoundary>(captionPaint);
-    final Set<Picture>? pictures = captureFramePictures(boundary.debugLayer);
-    expect(pictures, isNotEmpty);
     final Finder frost = find.byKey(
       const ValueKey<String>('window-caption-frost'),
     );
     final Color tint = tester.widget<ColoredBox>(frost).color;
     await tester.pump(const Duration(milliseconds: 40));
     expect(tester.widget<ColoredBox>(frost).color.a, greaterThan(tint.a));
-    expect(
-      captureFramePictures(boundary.debugLayer),
-      unorderedEquals(pictures!),
-    );
     await tester.pumpAndSettle();
     expect(tester.getCenter(find.byKey(probe)), const Offset(640, 390));
     await tester.pumpWidget(const SizedBox.shrink());

@@ -354,11 +354,7 @@ class AppWindowFrameState extends State<AppWindowFrame> {
 
   Widget _buildCaptionFrost(Widget caption) => ListenableBuilder(
     listenable: _captionFrostRevision,
-    // The animated filter can reuse the caption's existing paint.
-    child: RepaintBoundary(
-      key: const ValueKey<String>('window-caption-paint'),
-      child: caption,
-    ),
+    child: caption,
     builder: (BuildContext context, Widget? child) {
       final List<_CaptionFrost> frosts = _captionFrosts.values.toList();
       return ListenableBuilder(
