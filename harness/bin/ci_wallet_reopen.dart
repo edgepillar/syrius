@@ -1497,7 +1497,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
         pillarHeaderCarets[theme] = switch (status) {
           final String value when const <String>{
             'no_focused_editor', 'caret_inactive', 'caret_overlaps',
-            'caret_elsewhere',
+            'caret_elsewhere', 'unfocused_caret_overlaps',
           }.contains(value) => value,
           _ => 'unavailable',
         };

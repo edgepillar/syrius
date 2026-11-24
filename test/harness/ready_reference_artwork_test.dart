@@ -267,6 +267,60 @@ void main() {
     expect(clear, isTrue);
     expect(tester.element(lottie), same(renderer));
     expect(tester.widget<Lottie>(lottie).controller, same(original));
+
+    final TextEditingController editor = TextEditingController.fromValue(
+      const TextEditingValue(
+        text: 'Fixture',
+        selection: TextSelection.collapsed(offset: 0),
+      ),
+    );
+    final FocusNode focus = FocusNode();
+    try {
+      Widget probe({required bool offstage}) => MaterialApp(
+        home: Scaffold(
+          body: Stack(
+            children: <Widget>[
+              Positioned(
+                left: 84,
+                top: 36,
+                width: 100,
+                child: Offstage(
+                  offstage: offstage,
+                  child: EditableText(
+                    controller: editor,
+                    focusNode: focus,
+                    style: const TextStyle(fontSize: 16),
+                    cursorColor: Colors.green,
+                    backgroundCursorColor: Colors.transparent,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpWidget(probe(offstage: false));
+      final EditableTextState field = tester.state(find.byType(EditableText));
+      expect(focus.hasFocus, isFalse);
+      expect(
+        observePillarHeaderCaret(tester.binding.rootElement, null),
+        'no_focused_editor',
+      );
+      field.renderEditable.showCursor.value = true;
+      expect(
+        observePillarHeaderCaret(tester.binding.rootElement, null),
+        'unfocused_caret_overlaps',
+      );
+      await tester.pumpWidget(probe(offstage: true));
+      expect(
+        observePillarHeaderCaret(tester.binding.rootElement, null),
+        'no_focused_editor',
+      );
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      focus.dispose();
+      editor.dispose();
+    }
   });
 
   testWidgets('Originals samples the film and its eight animation sources', (

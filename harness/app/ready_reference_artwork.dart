@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/rendering.dart' show MatrixUtils, RenderEditable;
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surface.dart';
@@ -110,6 +111,57 @@ class PillarReferenceArtworkRefused implements Exception {
 
   /// The phase at which the original art became unavailable.
   final ReferenceArtworkFailureStage stage;
+}
+
+/// Observes caret geometry at the known Pillar receipt header mark.
+///
+/// Returns a finite status without editor identity, text or selection.
+String observePillarHeaderCaret(Element? root, EditableTextState? focused) {
+  if (root == null) return 'unavailable';
+  const Rect mark = Rect.fromLTWH(84, 36, 2, 24);
+
+  String status(EditableTextState editor) {
+    final RenderEditable render = editor.renderEditable;
+    if (!render.attached || !render.hasSize) return 'unavailable';
+    final TextSelection? selection = render.selection;
+    if (!render.showCursor.value ||
+        (render.cursorColor?.a ?? 0) == 0 ||
+        selection == null ||
+        !selection.isValid ||
+        !selection.isCollapsed) {
+      return 'caret_inactive';
+    }
+    final Rect caret = MatrixUtils.transformRect(
+      render.getTransformTo(null),
+      render.getLocalRectForCaret(selection.extent),
+    );
+    if (!caret.isFinite || caret.isEmpty) return 'unavailable';
+    return caret.overlaps(mark) ? 'caret_overlaps' : 'caret_elsewhere';
+  }
+
+  try {
+    int visited = 0;
+    bool overlap = false;
+    bool unavailable = false;
+    void visit(Element element) {
+      if (overlap) return;
+      if (++visited > 16384) throw StateError('Caret observation limit');
+      if (element case StatefulElement(:final EditableTextState state)
+          when !identical(state, focused)) {
+        final String observed = status(state);
+        overlap = observed == 'caret_overlaps';
+        unavailable |= observed == 'unavailable';
+      }
+      element.debugVisitOnstageChildren(visit);
+    }
+
+    visit(root);
+    if (overlap) return 'unfocused_caret_overlaps';
+    if (unavailable) return 'unavailable';
+    return focused == null ? 'no_focused_editor' : status(focused);
+  } on Object {
+    return 'unavailable';
+  }
 }
 
 /// Samples the original Pillar player inside one admitted receipt.

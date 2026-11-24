@@ -83,7 +83,7 @@ class DetailsCatalogTests(unittest.TestCase):
             scope='restored_native_seeded_catalog_capture', screens=screens,
             files=files)
         self.assertEqual(details.capture_receipt(capture), capture)
-        carets = dict(dark='no_focused_editor', light='caret_elsewhere')
+        carets = dict(dark='no_focused_editor', light='unfocused_caret_overlaps')
         measured = dict(capture, pillar_header_caret=carets)
         for invalid in (
             {'dark': 'caret_inactive'},

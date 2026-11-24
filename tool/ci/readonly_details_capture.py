@@ -369,7 +369,8 @@ def capture_receipt(value):
         need(type(carets) is dict and set(carets) == set(THEMES)
              and all(type(status) is str and status in (
                  'no_focused_editor', 'caret_inactive', 'caret_overlaps',
-                 'caret_elsewhere', 'unavailable') for status in carets.values()),
+                 'caret_elsewhere', 'unfocused_caret_overlaps',
+                 'unavailable') for status in carets.values()),
              'CAPTURE_REFUSED')
         expected['pillar_header_caret'] = carets
     if schema == FAMILY_SCHEMAS['home-zap-preview'] and 'spark_paint' in value:
