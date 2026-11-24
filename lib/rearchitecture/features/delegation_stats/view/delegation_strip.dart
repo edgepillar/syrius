@@ -288,8 +288,13 @@ class _View extends StatelessWidget {
             value: delegation != null
                 ? Row(
                     mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
                     children: <Widget>[
-                      Text(delegation.name, style: tokens.dataText),
+                      Text(
+                        delegation.name,
+                        style: tokens.pillarDelegationNameText,
+                      ),
                       SizedBox(width: tokens.inlineGap),
                       ValueFlash(
                         key: ValueKey<String>(delegation.name),

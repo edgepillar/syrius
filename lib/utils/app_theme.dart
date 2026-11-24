@@ -2192,6 +2192,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The value type in the Pillar ownership grid.
   TextStyle get pillarOwnerFactText => dataText.copyWith(fontSize: 13.5);
 
+  /// The delegated Pillar name leads the strip's smaller weight.
+  TextStyle get pillarDelegationNameText => dataText.copyWith(fontSize: 17);
+
   /// An owner name is a heading rather than an amount.
   TextStyle get pillarOwnerNameText => bodyText.copyWith(fontSize: 17);
 
