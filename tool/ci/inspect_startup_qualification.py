@@ -41,6 +41,7 @@ PRE_AUTH_PHASE_LAUNCH_PRODUCER_SHA = '7dfdc17484942d61429e0bca2f48085ef9964d7041
 PRE_STAGE_LAYOUT_LAUNCH_PRODUCER_SHA = 'dc0c379a8abaa7b0e2ab39f1ff445a7325a5c29e804add276e646c5a6b7e1982'
 PRE_RASTER_STARTS_LAUNCH_PRODUCER_SHA = '0c726ce6e6b7bfc5de9ce77702782366d489b7215815d1cd6b8833a03996a2df'
 PRE_RASTER_CACHE_LAUNCH_PRODUCER_SHA = '5f45d05a139fb1a8931cf18b91e508d13c0eda5eaeac86d8c8c50e0e8df77563'
+PRE_RETAINED_PICTURES_LAUNCH_PRODUCER_SHA = 'b1f1a80acda2888fc33270fc97eb018e41669c680ea6c04f2b6cbb81f9147400'
 # The timing lane preserves earlier launch, lock and quiz producers.
 PRE_TIMING_LAUNCH_PRODUCER_SHA = 'e579d76e178e69189069f5269a0ba8981f3e435a10e0f80f69bb2d559b4761a2'
 FIRST_TIMING_LAUNCH_PRODUCER_SHA = '6880559d501bc59bff26865155af96efe56322a61a587a04edccc37b41a487a5'
@@ -654,8 +655,12 @@ def _inspect_launch_artifact(client, head, tree, run_id, *, settle=False, lock=F
             prior_lock = ((lock or lock_seams)
                           and name == 'tool/ci/windows_lock_catalog.py'
                           and archive.sha(body) in PRIOR_LOCK_PRODUCER_SHAS)
+            # The standalone Lock catalog uses no frame-window timings.
+            prior_lock_launch = (lock and name == 'tool/ci/windows_launch_catalog.py'
+                                 and archive.sha(body) == PRE_RETAINED_PICTURES_LAUNCH_PRODUCER_SHA)
             archive.need(body == current or before_auth_phase or compatible_raster_diagnostics
-                         or prior_lock or motion_theme == launch.TIMING_THEME and legacy)
+                         or prior_lock or prior_lock_launch
+                         or motion_theme == launch.TIMING_THEME and legacy)
         else:
             pins[key] = archive.sha(body)
     if item is None:
