@@ -283,11 +283,12 @@ class SeededPixelComparisonTests(unittest.TestCase):
                 self.assertEqual(comparison['region_bounds'][region], bounds)
                 if screen == '20-pillar-done':
                     result_bands = [comparison['region_bounds'][key] for key in (
-                        'above_art', 'artwork_band', 'confirmation_and_actions',
-                        'below_actions')]
+                        'above_art', 'artwork_band', 'confirmation_heading',
+                        'confirmation_caption', 'confirmation_actions', 'below_actions')]
                     self.assertEqual(result_bands, [
                         (360, 85, 1280, 180), (360, 180, 1280, 490),
-                        (360, 490, 1280, 625), (360, 625, 1280, 724)])
+                        (360, 490, 1280, 528), (360, 528, 1280, 560),
+                        (360, 560, 1280, 625), (360, 625, 1280, 724)])
                 pair = {'matched': True}
                 if screen in ('19-spawn', '20-pillar-done'):
                     self.assertEqual(rectangles.call_count, 4)
