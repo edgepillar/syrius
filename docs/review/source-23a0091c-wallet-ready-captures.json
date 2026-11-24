@@ -1,0 +1,20 @@
+{
+  "actual": {
+    "47-wallet-ready-dark": {
+      "archive_member": "47-wallet-ready-dark.png",
+      "archive_sha256": "0d252e0b5f2ddbaae72055ab1312299663d9c4427b98832523586f5ad6d45f48",
+      "catalog_family": "wallet-ready",
+      "path": "0d252e0b5f2ddbaae72055ab1312299663d9c4427b98832523586f5ad6d45f48",
+      "sha256": "88cc4ab70dbce080d782dcbe7fd484fd40b32ba285bdabca9828e699593b2cfb",
+      "source_sha": "23a0091cb1266213bb6f3c4fc21a19c99fec9745"
+    },
+    "47-wallet-ready-light": {
+      "archive_member": "47-wallet-ready-light.png",
+      "archive_sha256": "0d252e0b5f2ddbaae72055ab1312299663d9c4427b98832523586f5ad6d45f48",
+      "catalog_family": "wallet-ready",
+      "path": "0d252e0b5f2ddbaae72055ab1312299663d9c4427b98832523586f5ad6d45f48",
+      "sha256": "7c9dc7151606a73429b5aa2ab6ee50a0202bd91ef1456a70027d1959b620f75a",
+      "source_sha": "23a0091cb1266213bb6f3c4fc21a19c99fec9745"
+    }
+  }
+}
