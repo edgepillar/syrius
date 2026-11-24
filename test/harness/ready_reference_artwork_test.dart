@@ -345,6 +345,7 @@ void main() {
     );
     final _Frames frames = _Frames();
     Object? capturedFilm;
+    Object? capturedMap;
     final List<Lottie> sampled = await _finish<List<Lottie>>(
       tester,
       frames,
@@ -352,7 +353,7 @@ void main() {
         frames: frames.gate,
         readback: () async {
           capturedFilm = (pictureElement.widget as RawImage).image;
-          expect(mapElement.renderObject, same(originalMapRenderer));
+          capturedMap = mapElement.renderObject;
           return <Lottie>[
             for (final State<StatefulWidget> original in originalStates)
               original.widget as Lottie,
@@ -362,6 +363,7 @@ void main() {
     );
     const List<int> expectedFrames = <int>[48, 118, 118, 118, 54, 48, 24];
     expect(capturedFilm, same(previewImage));
+    expect(capturedMap, same(originalMapRenderer));
     expect(tester.widget<RawImage>(picture).image, isNot(same(previewImage)));
     expect(sampled, hasLength(expectedFrames.length));
     expect(tester.stateList(players), orderedEquals(originalStates));
