@@ -659,15 +659,30 @@ def pillar_caption_alignment(actual, a_channels, expected, e_channels):
 
 
 def pillar_spawn_field_runs(rows, channels):
-    """Measure solid input fills at a column clear of the reference address ink."""
-    x = 820 * channels
+    """Measure input fill near its upper edge, away from the address ink."""
+    column = 820
+    x = column * channels
     background = rows[105][x:x + 3]
     result = []
     for rgb, run in groupby(range(105, 390), key=lambda y: rows[y][x:x + 3]):
         if rgb != background:
             positions = list(run)
             if len(positions) >= 16:
-                result.append(dict(rows=[positions[0], positions[-1] + 1], rgb=list(rgb)))
+                probe_row = positions[0] + 8
+                pixels = rows[probe_row]
+
+                def pixel(x):
+                    start = x * channels
+                    return pixels[start:start + 3]
+
+                left = right = column
+                while left > 0 and pixel(left - 1) == rgb:
+                    left -= 1
+                while right < len(pixels) // channels and pixel(right) == rgb:
+                    right += 1
+                result.append(dict(rows=[positions[0], positions[-1] + 1],
+                                   rgb=list(rgb), probe_row=probe_row,
+                                   columns=[left, right]))
     return result
 
 
