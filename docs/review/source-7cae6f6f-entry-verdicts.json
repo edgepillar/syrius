@@ -1,0 +1,36 @@
+{
+  "reviews": {
+    "44-welcome-dark": {
+      "actual_sha256": "cc66add2b6a03153aa81de1e7cad57822dc20908435dab83d70b45d549af5279",
+      "expected_sha256": "4ffec4db314a53d10ea672cc57e7f7e931b0824bea34ca410522811b679c2181",
+      "note": "This original and its reference have the same digests as the earlier dark Welcome match. The phase, three action cards and footer retain their reviewed layout and palette.",
+      "reviewed_at": "2026-11-24T13:10:04Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "44-welcome-light": {
+      "actual_sha256": "a08c75cc7d854d62695582a81d4aaedd090533326f85bb876a5ef8b42a2fc96f",
+      "expected_sha256": "4698832240fb65ae6880c1b0a38bbfd777e3670721239828a1738bbf6d91b08c",
+      "note": "The globe phase, three action cards, badges and footer align in the full original. The background and first badge use the approved palette. Text edges reflect native font hinting.",
+      "reviewed_at": "2026-11-24T13:10:04Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "45-import-dark": {
+      "actual_sha256": "1c42f255e0d40e556308c2709366572004101b62627e4b3a4d62626cc0994b2c",
+      "expected_sha256": "b2e9fcf95e68b7e244864184772082ddc6ac9108a7142f374bf0e9ecad3312de",
+      "note": "The three steps, dashed drop zone, editor, count selector and disabled Continue align. The example in the reference has an illustrative ellipsis. The original retains the editable draft and uses the approved palette and native text rasterization.",
+      "reviewed_at": "2026-11-24T13:10:04Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "45-import-light": {
+      "actual_sha256": "5ad3c658895b45e6fcb75ecb199e13ac8cc22e6c3f63bdb278d79b790266e285",
+      "expected_sha256": "40a00f9f9fda41b1b8bd0337679a67be665436c994fcf9d35c64c130374f8c0d",
+      "note": "The card and field bounds, numbered steps, drop target, selected word-count control and disabled Continue align. The reference adds an ellipsis to the sample. The original uses the approved palette, with native font hinting on the draft and count.",
+      "reviewed_at": "2026-11-24T13:10:04Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    }
+  }
+}
