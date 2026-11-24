@@ -12,6 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/security_settings_presenter.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/security_settings_rows.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/security_settings_view.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 
@@ -180,6 +181,31 @@ void main() {
           ).first,
         );
         final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
+        final EdgeInsets rowPadding = tokens.settingsRowPadding;
+        for (final String key in <String>[
+          'security_settings_biometric_gate',
+          'security_settings_show_seed',
+        ]) {
+          final SecuritySettingRow row = tester.widget<SecuritySettingRow>(
+            find.byWidgetPredicate(
+              (Widget widget) =>
+                  widget is SecuritySettingRow &&
+                  widget.control.key == Key(key),
+              skipOffstage: false,
+            ),
+          );
+          expect(
+            row.padding,
+            rowPadding.copyWith(bottom: rowPadding.bottom + 1),
+          );
+        }
+        final Panel backupPanel = tester.widget<Panel>(
+          find.byKey(
+            const Key('security_settings_backup'),
+            skipOffstage: false,
+          ),
+        );
+        expect(backupPanel.headingMinHeight, tokens.panelPlainHeaderHeight - 1);
         if (scaled) {
           expect(action.left, closeTo(
             policies.left + tokens.settingsRowPadding.left, .5,

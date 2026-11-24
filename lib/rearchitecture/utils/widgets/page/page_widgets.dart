@@ -104,8 +104,8 @@ class Panel extends StatelessWidget {
   /// A custom heading, such as the Nodes tabs, replaces the plain title.
   final Widget? heading;
 
-  /// Minimum height of the custom [heading] row. Text can grow beyond it.
-  /// Null keeps the shared tab-header minimum.
+  /// Minimum height of the heading row. Text can grow beyond it.
+  /// Null keeps the shared minimum for the heading style.
   final double? headingMinHeight;
 
   /// Small controls at the right of the title row.
@@ -230,9 +230,10 @@ class Panel extends StatelessWidget {
     if (heading == null) {
       return ConstrainedBox(
         constraints: BoxConstraints(
-          minHeight: actions.isEmpty
-              ? tokens.panelPlainHeaderHeight
-              : tokens.panelHeaderHeight,
+          minHeight: headingMinHeight ??
+              (actions.isEmpty
+                  ? tokens.panelPlainHeaderHeight
+                  : tokens.panelHeaderHeight),
         ),
         child: IntrinsicHeight(child: header),
       );

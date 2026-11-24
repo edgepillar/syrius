@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buil
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/dump_mnemonic_screen.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/export/export_wallet_info_screen.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 
@@ -37,9 +38,11 @@ class SecurityBackupPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppTokens tokens = AppTokens.of(context);
     return Panel(
       key: const Key('security_settings_backup'),
       title: context.l10n.securitySettingsBackup,
+      headingMinHeight: tokens.panelPlainHeaderHeight - 1,
       shrinkWrap: true,
       child: SettingsList(
         children: <Widget>[
@@ -48,6 +51,9 @@ class SecurityBackupPanel extends StatelessWidget {
             hint: hardware
                 ? context.l10n.securitySettingsHardwareBackupHint
                 : context.l10n.securitySettingsSeedPhraseHint,
+            padding: tokens.settingsRowPadding.copyWith(
+              bottom: tokens.settingsRowPadding.bottom + 1,
+            ),
             control: SecuritySettingsButton(
               key: const Key('security_settings_show_seed'),
               label: context.l10n.securitySettingsShow,

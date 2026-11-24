@@ -386,6 +386,9 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
           SecuritySettingRow(
             label: context.l10n.securitySettingsBiometricUnlock(method),
             hint: context.l10n.securitySettingsBiometricHint,
+            padding: tokens.settingsRowPadding.copyWith(
+              bottom: tokens.settingsRowPadding.bottom + 1,
+            ),
             control: SeamGate(
               seam: Seam.biometricUnlock,
               key: const Key('security_settings_biometric_gate'),

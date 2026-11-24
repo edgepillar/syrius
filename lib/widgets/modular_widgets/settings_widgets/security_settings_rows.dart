@@ -10,6 +10,7 @@ class SecuritySettingRow extends StatelessWidget {
     required this.label,
     required this.control,
     this.hint,
+    this.padding,
     super.key,
   });
 
@@ -18,6 +19,9 @@ class SecuritySettingRow extends StatelessWidget {
 
   /// One short localized explanation, if needed.
   final String? hint;
+
+  /// Insets for rows whose spacing differs from the shared Settings layout.
+  final EdgeInsetsGeometry? padding;
 
   /// The choice or action, aligned to the reading end.
   final Widget control;
@@ -34,7 +38,7 @@ class SecuritySettingRow extends StatelessWidget {
       ],
     );
     return Padding(
-      padding: tokens.settingsRowPadding,
+      padding: padding ?? tokens.settingsRowPadding,
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           if (constraints.maxWidth < 760 ||
