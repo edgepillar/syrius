@@ -302,11 +302,14 @@ void main() {
       await tester.pumpWidget(probe(offstage: false));
       final EditableTextState field = tester.state(find.byType(EditableText));
       expect(focus.hasFocus, isFalse);
+      field.renderEditable.showCursor.value = false;
       expect(
         observePillarHeaderCaret(tester.binding.rootElement, null),
         'no_focused_editor',
       );
-      field.renderEditable.showCursor.value = true;
+      field.renderEditable
+        ..cursorColor = Colors.green
+        ..showCursor.value = true;
       expect(
         observePillarHeaderCaret(tester.binding.rootElement, null),
         'unfocused_caret_overlaps',
