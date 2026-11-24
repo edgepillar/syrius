@@ -33,13 +33,25 @@ void main() {
   // Distance from the end the bar fills from, in bar heights, so the bands
   // are the same size on a short meter and on a long one.
   float along = u_dir > 0.0 ? px.x : u_size.x - px.x;
-  float x = along / u_size.y;
-  float level = u_fill * u_size.x / u_size.y;
+  float fillWidth = u_fill * u_size.x;
 
   // The track needs no lighting, including while the fill edge is moving.
-  // Keep the one-pixel softening on samples that overlap the fill.
-  float inside = clamp(level * u_size.y - along + 0.5, 0.0, 1.0);
   vec4 track = vec4(u_track.rgb * u_track.a, u_track.a);
+  if (along >= fillWidth + 0.5) {
+    fragColor = track;
+    return;
+  }
+
+  // Only the ends of a partly filled bar need rounded-edge coverage.
+  float radius = min(u_size.y, fillWidth) * 0.5;
+  float inside = 1.0;
+  if (u_fill < 1.0 && (along < radius + 0.5
+      || along > fillWidth - radius - 0.5)) {
+    vec2 center = vec2(fillWidth, u_size.y) * 0.5;
+    vec2 q = abs(vec2(along, px.y) - center) - (center - radius);
+    float distance = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - radius;
+    inside = clamp(0.5 - distance, 0.0, 1.0);
+  }
   if (inside == 0.0) {
     fragColor = track;
     return;
@@ -47,6 +59,8 @@ void main() {
 
   // Two bands at different speeds; each wraps a little past the level so it
   // leaves the fill before it comes back in.
+  float x = along / u_size.y;
+  float level = fillWidth / u_size.y;
   float span = level + 12.0;
   float a = band(x, mod(u_time * 5.0, span) - 6.0, 4.5);
   float b = band(x, mod(u_time * 2.2 + 0.5 * span, span) - 6.0, 7.0);

@@ -194,12 +194,13 @@ class _PlasmaMeterPainter extends CustomPainter {
       final Rect fill = direction == TextDirection.ltr
           ? Rect.fromLTWH(0, 0, width, size.height)
           : Rect.fromLTWH(size.width - width, 0, width, size.height);
-      canvas
-        ..save()
-        ..clipRRect(bar)
-        ..drawRect(Offset.zero & size, Paint()..color = trackColor)
-        ..drawRect(fill, Paint()..color = AppColors.qsrColor)
-        ..restore();
+      if (value < 1) {
+        canvas.drawRRect(bar, Paint()..color = trackColor);
+      }
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(fill, Radius.circular(size.height / 2)),
+        Paint()..color = AppColors.qsrColor,
+      );
       return;
     }
     // Floats in the order the shader declares them.

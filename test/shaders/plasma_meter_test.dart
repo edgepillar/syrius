@@ -113,6 +113,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 501));
       await tester.pump();
       expect(await _filledPixels(tester), closeTo(50, 1));
+      final ByteData partial = await _barPixels(tester);
+      final int cap = direction == TextDirection.ltr ? 49 : 150;
+      final int topBlue = partial.getUint8(cap * 4 + 2);
+      final int middleBlue = partial.getUint8((3 * 200 + cap) * 4 + 2);
+      expect(middleBlue - topBlue, greaterThan(30));
       expect(tester.binding.transientCallbackCount, 0);
       await tester.pump(const Duration(seconds: 5));
       expect(await _filledPixels(tester), closeTo(50, 1));
