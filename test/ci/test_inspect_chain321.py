@@ -261,7 +261,7 @@ class SeededPixelComparisonTests(unittest.TestCase):
             (inspect.catalog.PILLAR_SPAWN_SCHEMA, '19-spawn',
              'name_and_addresses', (360, 85, 970, 460), None),
             (inspect.catalog.PILLAR_DONE_SCHEMA, '20-pillar-done',
-             'registration_result', (360, 85, 1280, 724),
+             'artwork_band', (360, 180, 1280, 490),
              dict(header_mark=(84, 48), header_above=(84, 35),
                   header_below=(84, 60), header_left=(83, 48), header_right=(86, 48))),
         ):
@@ -281,6 +281,13 @@ class SeededPixelComparisonTests(unittest.TestCase):
                         buffer.getvalue(), schema, Path('references'))
                 self.assertEqual(comparison['screen'], screen)
                 self.assertEqual(comparison['region_bounds'][region], bounds)
+                if screen == '20-pillar-done':
+                    result_bands = [comparison['region_bounds'][key] for key in (
+                        'above_art', 'artwork_band', 'confirmation_and_actions',
+                        'below_actions')]
+                    self.assertEqual(result_bands, [
+                        (360, 85, 1280, 180), (360, 180, 1280, 490),
+                        (360, 490, 1280, 625), (360, 625, 1280, 724)])
                 pair = {'matched': True}
                 if screen in ('19-spawn', '20-pillar-done'):
                     self.assertEqual(rectangles.call_count, 4)

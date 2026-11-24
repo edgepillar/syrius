@@ -887,9 +887,14 @@ def seeded_catalog_pixel_comparisons(raw, schema, references, *, companion_holdi
         '19-spawn': dict(pane_header=(60, 32, 1280, 85),
                          steps_and_balances=(60, 85, 360, 724),
                          name_and_addresses=(360, 85, 970, 460)),
+        # Reference artwork ends before row 476 in both themes. Confirmation
+        # text and actions start at row 500 and end before row 610.
         '20-pillar-done': dict(pane_header=(60, 32, 1280, 85),
                                steps_and_facts=(60, 85, 360, 724),
-                               registration_result=(360, 85, 1280, 724)),
+                               above_art=(360, 85, 1280, 180),
+                               artwork_band=(360, 180, 1280, 490),
+                               confirmation_and_actions=(360, 490, 1280, 625),
+                               below_actions=(360, 625, 1280, 724)),
         '23-tokens': dict(token_summary=(60, 32, 1280, 120),
                           token_controls=(60, 120, 1280, 190),
                           token_table=(60, 190, 1280, 724)),
