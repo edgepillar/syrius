@@ -264,17 +264,26 @@ void main() {
       of: switcher,
       matching: find.byType(RepaintBoundary),
     );
+    final Finder fades = find.descendant(
+      of: switcher,
+      matching: find.byType(FadeTransition),
+    );
+    Iterable<bool> retainsPaint() => tester
+        .renderObjectList<RenderAnimatedOpacity>(fades)
+        .map((RenderAnimatedOpacity fade) => fade.isRepaintBoundary);
     expect(
       tester.widget<RiseSwitcher>(switcher).isolateTransitionPaint,
       isFalse,
     );
-    expect(boundaries, findsOneWidget);
+    expect(boundaries, findsNothing);
+    expect(retainsPaint(), <bool>[true]);
     final Offset oldAction = tester.getCenter(
       find.byKey(const Key('action_addresses')),
     );
     await tester.tap(_section(SettingsSectionId.apps));
     await tester.pump();
-    expect(boundaries, findsNWidgets(2));
+    expect(boundaries, findsNothing);
+    expect(retainsPaint(), <bool>[true, false]);
     final Widget? movingMenuPaint = tester.widget<SizedBox>(menu).child;
     expect(tester.element(find.byWidget(movingMenuPaint!)), same(retainedMenu));
     expect(find.text('Page addresses'), findsOneWidget);
@@ -282,7 +291,8 @@ void main() {
     await tester.pump();
     expect(actions, isEmpty);
     await tester.pumpAndSettle();
-    expect(boundaries, findsOneWidget);
+    expect(boundaries, findsNothing);
+    expect(retainsPaint(), <bool>[true]);
     expect(find.text('Page addresses'), findsNothing);
     await tester.tap(find.byKey(const Key('action_apps')));
     expect(actions, <SettingsSectionId>[SettingsSectionId.apps]);
