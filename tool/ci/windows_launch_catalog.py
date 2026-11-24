@@ -418,8 +418,10 @@ class LaunchProcess(startup.StartupProbe):
             self.sleep(min(self.limits.poll, max(0, until - self.clock())))
         raise startup.Failure('STARTUP_DEADLINE')
 
-    def wait_for_timing_lock(self, until):
+    def wait_for_timing_lock(self, until, *, poll_interval=None):
         """Wait for the original enabled Lock field at the measured size."""
+        if poll_interval is None:
+            poll_interval = self.limits.poll
         window_pending = False
         # A zero-wait original predicate leaves time for its HTTP reply.
         # P06 and the current agent use different fixed pending messages.
@@ -446,7 +448,7 @@ class LaunchProcess(startup.StartupProbe):
                 if size == list(TIMING_SIZE):
                     break
                 window_pending = True
-            self.sleep(min(self.limits.poll, max(0, until - self.clock())))
+            self.sleep(min(poll_interval, max(0, until - self.clock())))
         else:
             raise startup.Failure('WINDOW_INVALID' if window_pending else 'STARTUP_DEADLINE')
 

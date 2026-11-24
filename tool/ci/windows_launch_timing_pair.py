@@ -270,7 +270,9 @@ class _P06Warmup(launch.LaunchProcess):
         # Let the original app finish its normal startup before it saves the
         # warm profile on exit. The subsequent process owns the cold window.
         try:
-            self.wait_for_timing_lock(self.deadline - 5)
+            # Readiness traverses the widget tree. Reduce that load while the
+            # old film is still rendering during unmeasured preparation.
+            self.wait_for_timing_lock(self.deadline - 5, poll_interval=0.5)
         except launch.startup.Failure as error:
             if error.code == 'STARTUP_DEADLINE':
                 # Allow five seconds for the passive diagnostic after failure,

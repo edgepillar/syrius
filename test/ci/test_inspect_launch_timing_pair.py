@@ -223,6 +223,7 @@ class PairInspectionTests(unittest.TestCase):
             mock.call(wait, until=115), mock.call(wait, until=115),
             mock.call(dict(cmd='state'), until=115),
         ])
+        warmup.sleep.assert_called_once_with(0.5)
 
         with mock.patch.object(pair.launch.entry, 'new_profile', return_value=profile), \
              mock.patch.object(pair.launch.bounded, 'plain', return_value=mock.Mock(st_dev=1, st_ino=2)), \
@@ -265,7 +266,7 @@ class PairInspectionTests(unittest.TestCase):
         with mock.patch.object(pair.launch.LaunchProcess, '_prepare_theme'), \
              mock.patch.object(pair.launch.LaunchProcess, 'run_launch', side_effect=run_prepare):
             warmup.run_launch(pair.launch.TIMING_THEME, capture=False, settle=False)
-        warmup.wait_for_timing_lock.assert_called_once_with(115)
+        warmup.wait_for_timing_lock.assert_called_once_with(115, poll_interval=0.5)
         warmup._lock_diagnostic.assert_called_once_with()
         self.assertEqual(warmup.deadline, 125)
         result = self.project(value)
