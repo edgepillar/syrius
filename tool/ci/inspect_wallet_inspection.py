@@ -1149,7 +1149,8 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
         actual = zipped.read(name)
         reference = producer.read_original(reference_dir / name, producer.debug.entry.MAX_PNG)
         pairs[theme] = windows.pixel_comparison(actual, reference, regions,
-                                                sample_points=sample_points)
+                                                sample_points=sample_points,
+                                                align_settings_labels=screen == '32-set-display')
         if has_settings_menu:
             menu_selection[theme] = dict(actual=_settings_menu_selection_rows(actual, theme),
                                          reference=_settings_menu_selection_rows(reference, theme))
@@ -1760,9 +1761,24 @@ def catalog_pixel_frames(family, comparison, pins):
     overview = dict(comparison)
     panes = overview.pop('amount_pane_fill_rows', None)
     counterparty = overview.pop('counterparty_geometry', None)
+    label_alignment = {}
+    if family == 'Settings' and comparison['screen'] == '32-set-display':
+        overview['pairs'] = {}
+        for theme, pair in comparison['pairs'].items():
+            overview['pairs'][theme] = None if pair is None else dict(pair)
+            if pair is not None:
+                label_alignment[theme] = dict(
+                    actual_sha256=pair['actual_sha256'],
+                    reference_sha256=pair['reference_sha256'],
+                    labels=overview['pairs'][theme].pop('settings_label_alignment'))
     frames = [(f'Retained {family} pixel comparison', dict(
         scope=f'retained_{family.lower()}_pixel_comparison', visual_matches=0,
         **pins, **overview))]
+    if label_alignment:
+        for theme, labels in label_alignment.items():
+            frames.append(('Retained Settings label alignment', dict(
+                scope='retained_settings_label_alignment', screen=comparison['screen'],
+                theme=theme, **pins, **labels)))
     if panes is not None:
         frames.append(('Retained Swap amount pane geometry', dict(
             scope='retained_swap_amount_pane_geometry', screen=comparison['screen'],

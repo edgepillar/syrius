@@ -608,6 +608,16 @@ ENTRY_REGIONS = {
 }
 
 
+def _ink_shift(captured, reference):
+    if not captured or not reference:
+        return None
+    candidates = [(len(reference ^ {(x + dx, y + dy) for x, y in captured}), dx, dy)
+                  for dx in range(-2, 3) for dy in range(-2, 3)]
+    error, dx, dy = min(candidates, key=lambda value: (value[0], abs(value[1]) + abs(value[2])))
+    return dict(shift_to_reference=[dx, dy],
+                original_difference=len(reference ^ captured), shifted_difference=error)
+
+
 def welcome_action_alignment(actual, a_channels, expected, e_channels):
     """Measure small text offsets inside the three reference action rows."""
     def ink(rows, channels, top, bottom):
@@ -621,13 +631,38 @@ def welcome_action_alignment(actual, a_channels, expected, e_channels):
             start, end = top + index * 82, bottom + index * 82
             captured = ink(actual, a_channels, start, end)
             reference = ink(expected, e_channels, start, end)
-            if not captured or not reference:
-                continue
-            candidates = [(len(reference ^ {(x + dx, y + dy) for x, y in captured}), dx, dy)
-                          for dx in range(-2, 3) for dy in range(-2, 3)]
-            error, dx, dy = min(candidates, key=lambda value: (value[0], abs(value[1]) + abs(value[2])))
-            results[name + '_' + part] = dict(shift_to_reference=[dx, dy],
-                original_difference=len(reference ^ captured), shifted_difference=error)
+            shift = _ink_shift(captured, reference)
+            if shift is not None:
+                results[name + '_' + part] = shift
+    return results
+
+
+def settings_label_alignment(actual, a_channels, expected, e_channels):
+    """Measure label masks and colour-channel spread in the Display menu."""
+    def ink(rows, channels, top, bottom):
+        mask = set()
+        channel_spread = 0
+        for y in range(top, bottom):
+            row = rows[y]
+            background = row[236 * channels:236 * channels + 3]
+            for x in range(100, 200):
+                pixel = row[x * channels:x * channels + 3]
+                delta = [value - base for value, base in zip(pixel, background)]
+                if max(map(abs, delta)) >= 16:
+                    mask.add((x, y))
+                    channel_spread += max(delta) - min(delta) >= 16
+        return mask, channel_spread
+
+    bounds = (44, 82, 121, 159, 197, 235, 274, 312)
+    names = ('addresses', 'node', 'security', 'display', 'wallet', 'apps', 'about')
+    results = {}
+    for name, top, bottom in zip(names, bounds, bounds[1:]):
+        captured, a_spread = ink(actual, a_channels, top, bottom)
+        reference, e_spread = ink(expected, e_channels, top, bottom)
+        results[name] = dict(actual_ink_pixels=len(captured), reference_ink_pixels=len(reference),
+                             actual_channel_spread_pixels=a_spread,
+                             reference_channel_spread_pixels=e_spread,
+                             alignment=_ink_shift(captured, reference))
     return results
 
 
@@ -695,7 +730,8 @@ def entry_pixel_comparison(data, reference, screen, *, theme=None):
 
 
 def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
-                     sample_points=None, import_background_theme=None):
+                     sample_points=None, import_background_theme=None,
+                     align_settings_labels=False):
     """Compare original opaque client images in the supplied fixed regions."""
     def decode(png):
         encoded = base64.b64encode(png).decode('ascii')
@@ -731,6 +767,9 @@ def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
                 mean_rgb_error_milli=round(1000 * total / (1280 * 780 * 3)))
     if align_welcome_actions:
         result['action_alignment'] = welcome_action_alignment(actual, a_channels, expected, e_channels)
+    if align_settings_labels:
+        result['settings_label_alignment'] = settings_label_alignment(
+            actual, a_channels, expected, e_channels)
     if import_background_theme is not None:
         result['backdrop_palette_model'] = import_backdrop_palette_model(
             actual, a_channels, expected, e_channels, import_background_theme)

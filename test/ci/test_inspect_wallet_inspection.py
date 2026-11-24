@@ -385,8 +385,30 @@ class ReaderTests(unittest.TestCase):
             dollar_values_thumb=(1237, 339), dollar_values_track=(1222, 339)))
         self.assertEqual(compare.call_args_list[5].kwargs['sample_points'],
                          compare.call_args_list[4].kwargs['sample_points'])
+        self.assertEqual([index for index, call in enumerate(compare.call_args_list)
+                          if call.kwargs['align_settings_labels']], [4, 5])
         self.assertEqual(compare.call_args_list[10].kwargs['sample_points']['contact_gap'],
                          (700, 482))
+
+        shots = Path(__file__).resolve().parents[2] / 'mockups' / 'redesign' / 'shots'
+        region = comparisons[2]['region_bounds']
+        pairs = {}
+        for theme in ('dark', 'light'):
+            raw = (shots / f'32-set-display-{theme}.png').read_bytes()
+            pairs[theme] = reader.windows.pixel_comparison(
+                raw, raw, region, align_settings_labels=True)
+        comparison = dict(comparisons[2], pairs=pairs)
+        overview, *labels = reader.catalog_pixel_frames('Settings', comparison, {})
+        self.assertNotIn('settings_label_alignment', overview[1]['pairs']['dark'])
+        self.assertEqual([notice['theme'] for _, notice in labels], ['dark', 'light'])
+        for _, notice in labels:
+            self.assertLessEqual(len(reader.encode_notice(notice)), reader.MAX_NOTICE_BYTES)
+            self.assertEqual(notice['actual_sha256'], notice['reference_sha256'])
+            self.assertEqual(len(notice['labels']), 7)
+            for row in notice['labels'].values():
+                self.assertGreater(row['reference_channel_spread_pixels'], 0)
+                self.assertEqual(row['alignment'], dict(
+                    shift_to_reference=[0, 0], original_difference=0, shifted_difference=0))
 
     def test_verified_node_notice_compares_actual_and_reference_fill_rows(self):
         def image(fill, background, start, end, *, ink_row=None):
