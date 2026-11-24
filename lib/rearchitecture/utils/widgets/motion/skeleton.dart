@@ -57,6 +57,15 @@ const List<double> _kStops = <double>[
   1,
 ];
 
+ui.Gradient _sweepGradient(double band, List<Color> colors) =>
+    ui.Gradient.linear(
+      Offset(band, 0),
+      Offset(band + _kWavelength, 0),
+      colors,
+      _kStops,
+      TileMode.repeated,
+    );
+
 /// The one clock behind every [Skeleton] on screen.
 ///
 /// Each bar places the band from this clock and from where the bar is in
@@ -74,6 +83,8 @@ class _SweepClock extends ChangeNotifier {
 
   Ticker? _ticker;
   int _holders = 0;
+  final Map<(double, Color, Color), ui.Gradient> _gradients =
+      <(double, Color, Color), ui.Gradient>{};
 
   /// How far the light has come since the clock started, less the whole
   /// wavelengths in it.
@@ -99,12 +110,30 @@ class _SweepClock extends ChangeNotifier {
       _ticker?.dispose();
       _ticker = null;
       _travel = 0;
+      _gradients.clear();
     }
   }
 
   void _onTick(Duration elapsed) {
     _travel = elapsed.inMicroseconds / 1000 * _kSpeed % _kWavelength;
+    _gradients.clear();
     notifyListeners();
+  }
+
+  ui.Gradient gradient(
+    double band,
+    Color color,
+    Color highlight,
+    List<Color> colors,
+  ) {
+    // Rows with the same leading position and ink use the same shader for
+    // this tick, even if their widths differ. Bound the cache for wide lists.
+    final (double, Color, Color) key = (band, color, highlight);
+    final ui.Gradient? cached = _gradients[key];
+    if (cached != null) return cached;
+    final ui.Gradient shader = _sweepGradient(band, colors);
+    if (_gradients.length < 32) _gradients[key] = shader;
+    return shader;
   }
 }
 
@@ -244,13 +273,9 @@ class _BarPainter extends CustomPainter {
     } else {
       // One wavelength of the wave, repeated, so a bar wider than a
       // wavelength shows the next band as well.
-      paint.shader = ui.Gradient.linear(
-        Offset(band, 0),
-        Offset(band + _kWavelength, 0),
-        _colors,
-        _kStops,
-        TileMode.repeated,
-      );
+      paint.shader =
+          clock?.gradient(band, color, highlight, _colors) ??
+          _sweepGradient(band, _colors);
     }
     canvas.drawRRect(
       RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius)),

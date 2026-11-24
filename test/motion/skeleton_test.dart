@@ -429,8 +429,28 @@ void main() {
     ) async {
       const Rect first = Rect.fromLTWH(40, 100, 600, 12);
       const Rect second = Rect.fromLTWH(140, 200, 600, 12);
-      await tester.pumpWidget(_host(_bars(<Rect>[first, second])));
+      const Rect aligned = Rect.fromLTWH(40, 250, 500, 12);
+      await tester.pumpWidget(_host(_bars(<Rect>[first, second, aligned])));
       await tester.pump(const Duration(milliseconds: 500));
+
+      ui.Shader? shaderAt(int index) {
+        final Finder bar = find.descendant(
+          of: find.byType(Skeleton).at(index),
+          matching: find.byType(CustomPaint),
+        );
+        final TestRecordingCanvas canvas = TestRecordingCanvas();
+        tester
+            .widget<CustomPaint>(bar)
+            .painter!
+            .paint(canvas, tester.getSize(bar));
+        final Invocation call = canvas.invocations.single.invocation;
+        return (call.positionalArguments[1] as Paint).shader;
+      }
+
+      final ui.Shader? firstShader = shaderAt(0);
+      expect(firstShader, isNotNull);
+      expect(shaderAt(2), same(firstShader));
+      expect(shaderAt(1), isNot(same(firstShader)));
 
       final ByteData frame = await _frame(tester);
       final double onFirst = _read(frame, first).centre!;
@@ -446,6 +466,14 @@ void main() {
         first.left + onFirst,
         moreOrLessEquals(_centreAt(500), epsilon: 2),
       );
+      expect(
+        _read(frame, aligned).centre,
+        moreOrLessEquals(onFirst, epsilon: 2),
+      );
+
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(shaderAt(0), isNot(same(firstShader)));
+      expect(shaderAt(2), same(shaderAt(0)));
     });
 
     testWidgets('a bar further along is lit later', (
