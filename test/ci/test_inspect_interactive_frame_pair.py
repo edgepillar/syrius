@@ -168,12 +168,27 @@ class InteractiveFramePairTests(unittest.TestCase):
     def test_shutdown_trace_runs_after_original_cleanup_and_cannot_qualify_failed_exit(self):
         profile = pair.profile
         row = profile.SHUTDOWN_PREFIX + b'{"phase":"exitRequested","failed":false}\n'
+        markers = [profile.RUNNER_SHUTDOWN_PREFIX + phase.encode('ascii') + b'\n'
+                   for phase in profile.RUNNER_SHUTDOWN_PHASES]
+        cases = ((b'', None), (markers[0], 'messageLoopExited'),
+                 (b''.join(markers), 'runnerObjectsDestroyed'),
+                 (markers[0] + markers[1][:-1], 'messageLoopExited'),
+                 (markers[1], None), (markers[0] * 2, None),
+                 (markers[0] + profile.RUNNER_SHUTDOWN_PREFIX + b'synthetic private\n', None))
+        for raw, phase in cases:
+            self.assertEqual(profile.observe_runner_shutdown(raw, output_overflow=False,
+                                                            cap=131072), phase)
+        self.assertIsNone(profile.observe_runner_shutdown(markers[0], output_overflow=True,
+                                                         cap=131072))
+        self.assertIsNone(profile.observe_runner_shutdown(markers[0], output_overflow=False,
+                                                         cap=10))
         for parent_error, parser_error in ((False, False), (True, False), (True, True)):
             actor = profile.InteractiveSession.__new__(profile.InteractiveSession)
             actor.report = SimpleNamespace(output_complete=True, output_overflow=False)
             actor.drain = SimpleNamespace(data=bytearray())
             actor.limits = SimpleNamespace(output_bytes=131072)
             actor.shutdown_trace = {}
+            actor.runner_shutdown = {}
             actor.process = mock.Mock()
             actor._rpc = mock.Mock()
             original = profile.launch.startup.Failure('EXIT_TIMEOUT')
@@ -181,7 +196,7 @@ class InteractiveFramePairTests(unittest.TestCase):
 
             def finish(*args, **kwargs):
                 actor.report.output_complete = False
-                actor.drain.data.extend(row)
+                actor.drain.data.extend(row + markers[0])
                 if parent_error:
                     raise original
                 return receipt
@@ -204,6 +219,8 @@ class InteractiveFramePairTests(unittest.TestCase):
             self.assertNotIn('synthetic private', json.dumps(actor.shutdown_trace))
             self.assertEqual(actor.shutdown_trace['status'],
                              'unavailable' if parser_error else 'observed')
+            self.assertEqual(actor.runner_shutdown,
+                             dict(runner_shutdown_phase='messageLoopExited'))
 
         offered = fixture()
         current = offered['samples']['current']
@@ -214,12 +231,14 @@ class InteractiveFramePairTests(unittest.TestCase):
         trace = dict(status='observed', phase='exitRequested', failed=False,
                      event_count=2, output_complete=False)
         current['shutdown_trace'] = trace
+        current['runner_shutdown_phase'] = 'runnerObjectsDestroyed'
         current['shutdown_observation'] = dict(status='unavailable', error_code='HTTP_FAILED')
         offered.update(phase='current_interactive', success=False, comparisons=None,
             samples=dict(current=current), same_fixture_address=False, commands=[],
             p06=dict(cold.P06_IDENTITY, overlay_verified=False), error_codes=['FRAME_REFUSED'])
         result = self.project(offered)
         self.assertEqual(result['shutdown_traces'], dict(current=trace))
+        self.assertEqual(result['runner_shutdown_phases'], dict(current='runnerObjectsDestroyed'))
         self.assertEqual(result['shutdown_observations'],
                          dict(current=current['shutdown_observation']))
         self.assertEqual(result['normal_wallet_exits'], 0)

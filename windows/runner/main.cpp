@@ -2,9 +2,31 @@
 #include <flutter/flutter_view_controller.h>
 #include <windows.h>
 
+#include <string_view>
+
 #include "flutter_window.h"
 #include "utils.h"
 #include "app_links/app_links_plugin_c_api.h"
+
+namespace {
+
+void TraceInteractiveShutdown(std::string_view line) {
+  constexpr std::wstring_view interactive = L"interactive";
+  wchar_t mode[interactive.size() + 1];
+  if (::GetEnvironmentVariableW(L"SYRIUS_HARNESS_FRAME_TIMING", mode,
+                               static_cast<DWORD>(interactive.size() + 1)) !=
+          interactive.size() ||
+      std::wstring_view(mode, interactive.size()) != interactive) {
+    return;
+  }
+
+  DWORD written;
+  // Emit directly to the inherited runner pipe even if cleanup stalls later.
+  ::WriteFile(::GetStdHandle(STD_OUTPUT_HANDLE), line.data(),
+              static_cast<DWORD>(line.size()), &written, nullptr);
+}
+
+}  // namespace
 
 bool SendAppLinkToInstance(const std::wstring& title) {
   // Find our exact window
@@ -57,27 +79,33 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   // plugins.
   ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
 
-  flutter::DartProject project(L"data");
+  {
+    flutter::DartProject project(L"data");
 
-  std::vector<std::string> command_line_arguments =
-      GetCommandLineArguments();
+    std::vector<std::string> command_line_arguments =
+        GetCommandLineArguments();
 
-  project.set_dart_entrypoint_arguments(std::move(command_line_arguments));
+    project.set_dart_entrypoint_arguments(std::move(command_line_arguments));
 
-  FlutterWindow window(project);
-  Win32Window::Point origin(10, 10);
-  Win32Window::Size size(1280, 720);
-  if (!window.Create(L"s y r i u s", origin, size)) {
-    return EXIT_FAILURE;
+    FlutterWindow window(project);
+    Win32Window::Point origin(10, 10);
+    Win32Window::Size size(1280, 720);
+    if (!window.Create(L"s y r i u s", origin, size)) {
+      return EXIT_FAILURE;
+    }
+    window.SetQuitOnClose(true);
+
+    ::MSG msg;
+    while (::GetMessage(&msg, nullptr, 0, 0)) {
+      ::TranslateMessage(&msg);
+      ::DispatchMessage(&msg);
+    }
+    TraceInteractiveShutdown("SYRIUS_RUNNER_SHUTDOWN messageLoopExited\n");
+
+    ::CoUninitialize();
+    TraceInteractiveShutdown("SYRIUS_RUNNER_SHUTDOWN comUninitialized\n");
   }
-  window.SetQuitOnClose(true);
 
-  ::MSG msg;
-  while (::GetMessage(&msg, nullptr, 0, 0)) {
-    ::TranslateMessage(&msg);
-    ::DispatchMessage(&msg);
-  }
-
-  ::CoUninitialize();
+  TraceInteractiveShutdown("SYRIUS_RUNNER_SHUTDOWN runnerObjectsDestroyed\n");
   return EXIT_SUCCESS;
 }

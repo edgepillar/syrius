@@ -96,7 +96,7 @@ def sample_receipts(value, *, allow_tap_release=False):
     archive.need(type(value) is dict
         and required <= set(value) <= required | {
             'shutdown_observation', 'shutdown_trace', 'navigation_observation',
-            'startup_observation'}
+            'startup_observation', 'runner_shutdown_phase'}
         and type(value['success']) is type(value['profile_stable']) is bool)
     attempt = value['attempt']
     closed = completed = False
@@ -117,6 +117,10 @@ def sample_receipts(value, *, allow_tap_release=False):
         trace = value['shutdown_trace']
         archive.need(attempt is not None and pair.profile.valid_shutdown_trace(trace)
             and trace['output_complete'] is attempt['output_complete'])
+    if 'runner_shutdown_phase' in value:
+        phase = value['runner_shutdown_phase']
+        archive.need(attempt is not None and not attempt['output_overflow']
+            and type(phase) is str and phase in pair.profile.RUNNER_SHUTDOWN_PHASES)
     observation = value['observation']
     if 'navigation_observation' in value:
         archive.need(attempt is not None
@@ -471,6 +475,9 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
                                if 'shutdown_observation' in sample},
         shutdown_traces={label: sample['shutdown_trace'] for label, sample in samples.items()
                          if 'shutdown_trace' in sample},
+        runner_shutdown_phases={label: sample['runner_shutdown_phase']
+                                for label, sample in samples.items()
+                                if 'runner_shutdown_phase' in sample},
         navigation_observations={label: sample['navigation_observation']
                                  for label, sample in samples.items()
                                  if 'navigation_observation' in sample},
