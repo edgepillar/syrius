@@ -929,8 +929,9 @@ def seeded_catalog_pixel_comparisons(raw, schema, references, *, companion_holdi
                 reference = stream.read(catalog.debug.entry.MAX_PNG + 1)
             need(0 < len(reference) <= catalog.debug.entry.MAX_PNG)
             actual = zipped.read(name)
-            comparison = pixel_comparison(actual, reference, regions,
-                                          sample_points=samples.get(screen))
+            comparison = pixel_comparison(
+                actual, reference, regions, sample_points=samples.get(screen),
+                align_pillar_caption=screen == '20-pillar-done')
             need(comparison is not None)
             if screen in ('19-spawn', '20-pillar-done'):
                 comparison['header_rectangles'] = dict(

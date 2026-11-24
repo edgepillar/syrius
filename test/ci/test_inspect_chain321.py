@@ -299,6 +299,9 @@ class SeededPixelComparisonTests(unittest.TestCase):
                 self.assertEqual(comparison['pairs'], {'dark': pair, 'light': pair})
                 self.assertEqual([call.kwargs['sample_points']
                                   for call in compare.call_args_list], [samples, samples])
+                self.assertTrue(all(call.kwargs['align_pillar_caption'] ==
+                                    (screen == '20-pillar-done')
+                                    for call in compare.call_args_list))
 
         rows = [bytearray([32] * 262 * 3) for _ in range(53)]
         green = bytes((0, 213, 87))
