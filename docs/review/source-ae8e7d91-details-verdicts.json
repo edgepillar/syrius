@@ -1,0 +1,84 @@
+{
+  "reviews": {
+    "10-receive-qr-dark": {
+      "actual_sha256": "5e3d9693c83cd81cebd470b38ca695f8d0c4a4c6e3781ff88c47ef049bd9605e",
+      "expected_sha256": "7d0f473f9e93235a7032dbb227ceff6e683c91e92446565dee1bf037df78fad6",
+      "note": "The selected Receive tab, QR tile, copy controls and expanded QSR amount field align. The wallet generates a real QR pattern with the token mark in the centre and displays the selected account. The reference uses a patterned illustration. The amount hint also differs.",
+      "reviewed_at": "2026-11-24T15:21:26Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "10-receive-qr-light": {
+      "actual_sha256": "35ee9a8846e2947812aa84af328e7ea78bdc76a2b2b17f277ba2d87c19951358",
+      "expected_sha256": "d3e867ff847f5c80f20afc1a8999441acfe57d9a6cbecad20d7633c8dcd62b17",
+      "note": "The selected Receive tab, QR tile, copy controls and expanded QSR amount field align. The wallet generates a real QR pattern with the token mark in the centre and displays the selected account. The reference uses a patterned illustration. The amount hint also differs.",
+      "reviewed_at": "2026-11-24T15:21:26Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-dark": {
+      "actual_sha256": "53c3acf8c13b0c6b8bc5fe580e7841e6f40f045d2aa2dc405e7253268df1bec2",
+      "expected_sha256": "b58f5d7ea3ac3da980689c744d8d8a37b6ad70a5eae6a7542f4992f7dbba089c",
+      "note": "The card, fields, two amount boxes and primary action align. The isolated node provides no eligible recipient, so the address and candidate count are absent. The fiat estimate and authored brand gradient also differ.",
+      "reviewed_at": "2026-11-24T15:21:26Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-light": {
+      "actual_sha256": "c790c30e892469d694bd7e92c1fe6adcb957e72a4f12c36ceda63d71640a02fd",
+      "expected_sha256": "b3ab27949ed86fa2e78af721bd198fe7e258f9da5537ec914ae9ce3ccf753be8",
+      "note": "The card, fields, two amount boxes and primary action align. The isolated node provides no eligible recipient, so the address and candidate count are absent. The fiat estimate and authored brand gradient also differ.",
+      "reviewed_at": "2026-11-24T15:21:26Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-dark": {
+      "actual_sha256": "92037b0f4441e59b4e25f1bd5da3671af0747a668ae0f2a78d3507e539f578a3",
+      "expected_sha256": "bce0133d1e1586247a874af23a72c340f73261174a296f4d690b7c6c3c334360",
+      "note": "The Plasma bolt, open form, three other-address rows and two selected fuses are present. The actual balances, meter levels and three cancelable rows reflect the isolated ledger. The reference has a locked row and different fuse amounts and copy.",
+      "reviewed_at": "2026-11-24T15:21:26Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-light": {
+      "actual_sha256": "c4cfa609742d311e2a054b3e6250beb6a2df419e9c26f653b42dec009ff9859b",
+      "expected_sha256": "01ba9333c42b94249580c6c67789f19527d113e7861b9fd19e3c1e900f8f6c7f",
+      "note": "The Plasma bolt, open form, three other-address rows and two selected fuses are present. The actual balances, meter levels and three cancelable rows reflect the isolated ledger. The reference has a locked row and different fuse amounts and copy.",
+      "reviewed_at": "2026-11-24T15:21:26Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-dark": {
+      "actual_sha256": "7f0a5659b87fae4725c89c87cf29653308a01ed2e010e878d546482cc9638b7a",
+      "expected_sha256": "057765aba7cc2e027010869bdfe14eff0beee921cbef85777efa3f7fa96ec991",
+      "note": "The expanded header, eleven visible row slots, scrollbar and empty footer field align. The actual licence inventory places different packages and some different badge values in those slots. The Links count and connection indicator also differ.",
+      "reviewed_at": "2026-11-24T15:21:26Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-light": {
+      "actual_sha256": "0d9de80d938359bfb3996ddc0a9e66300b2bff87b0f1fc6f8b6e6290c4424589",
+      "expected_sha256": "4faec94b7502216de2bceb52b1e8ded1254a74a150014f5399d1dc85a19ac1d4",
+      "note": "The expanded header, eleven visible row slots, scrollbar and empty footer field align. The actual licence inventory places different packages and some different badge values in those slots. The Links count and connection indicator also differ.",
+      "reviewed_at": "2026-11-24T15:21:26Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-dark": {
+      "actual_sha256": "4a3169330d35de1f949d5567655244dfad57cc9705bcb7f110a5121f31698552",
+      "expected_sha256": "b852ac9fcbdbea159856c6c3b30ac5ca2e25f55f1137655c4b689dc4a89a504f",
+      "note": "The two licence rows, gallery grid, six art tiles and footer are visible. The discovery field is correctly cleared. The globe frame and captions differ slightly from the reference.",
+      "reviewed_at": "2026-11-24T15:21:26Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-light": {
+      "actual_sha256": "194f2810f75bc2c5b6062e643d6936eacb4cbbb875b399b24967131404515e8e",
+      "expected_sha256": "b82600455634b306377ea7626f2e0ee80c7977c60c1ae1a7e23243dcace9d3ed",
+      "note": "The two licence rows, gallery grid, six art tiles and footer are visible. The discovery field is correctly cleared. The globe frame and captions differ slightly from the reference. The Map dot contrast is lower than in the light reference.",
+      "reviewed_at": "2026-11-24T15:21:26Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
