@@ -267,6 +267,7 @@ class _PlasmaStrip extends StatelessWidget {
               return PageStrip(
                 key: const Key('plasma_strip'),
                 minimumContentHeight: kStripTextContentHeight,
+                padding: tokens.compactStripPadding,
                 figures: <StripFigure>[
                   StripFigure(
                     label: context.l10n.cardAvailableLabel,

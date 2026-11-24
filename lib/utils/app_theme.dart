@@ -705,6 +705,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   EdgeInsetsDirectional get plasmaHeadingPadding =>
       const EdgeInsetsDirectional.fromSTEB(16, 7, 16, 8);
 
+  /// The resting Plasma list's title before its column headings.
+  double get plasmaFusedHeaderHeight => 43;
+
   /// Separates the available and aggregate owner-fused figures.
   double get plasmaStripGap => 28;
 
@@ -783,7 +786,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// The eligibility note sits directly below the Fuse fields.
   EdgeInsetsDirectional get plasmaFuseNotePadding =>
-      const EdgeInsetsDirectional.fromSTEB(18, 0, 18, 12);
+      const EdgeInsetsDirectional.fromSTEB(18, 0, 18, 13);
 
   /// The entered QSR remains exact mono data.
   TextStyle get plasmaFuseAmountText => dataText.copyWith(fontSize: 18);

@@ -233,7 +233,7 @@ void main() {
           ).first;
           expect(
             tester.getTopLeft(divider).dy - tester.getTopLeft(list).dy,
-            44,
+            dark ? 44 : 43,
           );
           expect(
             tester.getTopLeft(find.text('Fused')).dx -

@@ -113,7 +113,9 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
         return Panel(
           key: const Key('plasma_fused_list'),
           headingMinHeight: owner.selected.isEmpty
-              ? tokens.panelPlainHeaderHeight
+              ? widget.fuseFormOpen
+                    ? tokens.panelPlainHeaderHeight
+                    : tokens.plasmaFusedHeaderHeight
               : tokens.panelHeaderHeight,
           heading: Padding(
             padding: EdgeInsetsDirectional.only(
