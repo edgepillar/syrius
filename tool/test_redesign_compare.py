@@ -131,6 +131,7 @@ class ArchiveReadCacheTests(unittest.TestCase):
         first_dark = first.stem("dark")
         first_light = first.stem("light")
         second_dark = second.stem("dark")
+        second_light = second.stem("light")
         with io.BytesIO() as data, Image.new("RGBA", (4, 3)) as image:
             image.save(data, format="PNG")
             png = data.getvalue()
@@ -156,12 +157,18 @@ class ArchiveReadCacheTests(unittest.TestCase):
                     path, png_digest if stem != second_dark else "0" * 64,
                     "a" * 40, f"{stem}.png", digest,
                 )
+        missing_archive = root / "c.zip"
+        captures[second_light] = Capture(
+            missing_archive, png_digest, "a" * 40, f"{second_light}.png", "c" * 64,
+        )
         stat_result = SimpleNamespace(
             st_dev=1, st_ino=2, st_size=3, st_mtime_ns=4, st_ctime_ns=5,
         )
         gallery = ReportGallery()
 
         def read(path: Path, _: int) -> bytes:
+            if path == missing_archive:
+                raise FileNotFoundError()
             if path in archives:
                 return archives[path]
             return changed_png if path.name == f"{first_light}.png" else png
@@ -184,6 +191,11 @@ class ArchiveReadCacheTests(unittest.TestCase):
         self.assertEqual([pair["state"] for pair in report["pairs"]],
                          ["unreviewed", "unreviewed", "invalid", "missing"])
         self.assertEqual(report["summary"]["target_pairs"]["available"], 2)
+        self.assertEqual(report["summary"]["remaining_capture_routes"], {
+            "by_family": {},
+            "unassigned": [second_dark],
+            "indexed_archives_missing": {"c" * 64: [second_light]},
+        })
         self.assertEqual(report["pairs"][0]["score"]["changed_pixels"], 0)
         self.assertEqual(report["pairs"][0]["score"]["changed_pixels_at_least_16"], 0)
         self.assertEqual(report["pairs"][1]["score"]["changed_pixels"], 3)
@@ -391,6 +403,7 @@ class CaptureCatalogTests(unittest.TestCase):
             self.assertEqual(diagnostic["summary"]["remaining_capture_routes"], {
                 "by_family": {"send-confirm": [stem]},
                 "unassigned": [screen.stem("light")],
+                "indexed_archives_missing": {},
             })
             unknown = report(unclassified, older)
             self.assertEqual(unknown["pairs"][0]["state"], "diagnostic-capture")
@@ -404,6 +417,7 @@ class CaptureCatalogTests(unittest.TestCase):
             self.assertEqual(selected["summary"]["remaining_capture_routes"], {
                 "by_family": {},
                 "unassigned": [screen.stem("light")],
+                "indexed_archives_missing": {},
             })
             self.assertEqual(report(prepared, restored_old)["pairs"][0]["actual"][
                 "catalog_family"], "send-confirm")

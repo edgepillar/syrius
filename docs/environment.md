@@ -67,8 +67,11 @@ revision. Include verified indexes from both the candidate and prior
 revisions. The summary lists the missing pairs under the eligible catalog
 families found in those indexes. A pair can appear under more than one
 family. Pairs with no eligible family in the indexes appear under
-`unassigned`. Only original images verified at the candidate revision count
-toward its coverage.
+`unassigned`. When the candidate has an eligible archive entry and the
+archive file is missing locally, the summary lists its digest and pairs
+under `indexed_archives_missing` so the existing archive can be retrieved.
+Only original images verified at the candidate revision count toward its
+coverage.
 
 ## Current qualification status (2026-11-23)
 

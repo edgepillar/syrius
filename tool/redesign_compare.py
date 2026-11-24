@@ -956,13 +956,28 @@ def generate_report(
             if pair["state"] not in ("unreviewed", "reviewed-match", "reviewed-mismatch")
         ]
         summary["target_pairs"] = {"available": len(pairs) - len(remaining), "remaining": remaining}
+        missing_archives: dict[str, list[str]] = defaultdict(list)
+        for pair in pairs:
+            stem = pair["id"]
+            capture = actuals.get(stem)
+            if (
+                capture is not None
+                and capture.source_sha == target_source
+                and capture.archive_sha256 is not None
+                and pair["actual"]["state"] == "missing"
+                and not capture.is_diagnostic(stem, require_catalog_family=True)
+            ):
+                missing_archives[capture.archive_sha256].append(stem)
+        indexed = {stem for group in missing_archives.values() for stem in group}
         by_family: dict[str, list[str]] = defaultdict(list)
-        for stem in remaining:
+        to_capture = [stem for stem in remaining if stem not in indexed]
+        for stem in to_capture:
             for family in known_families.get(stem, ()):
                 by_family[family].append(stem)
         summary["remaining_capture_routes"] = {
             "by_family": dict(sorted(by_family.items())),
-            "unassigned": [stem for stem in remaining if stem not in known_families],
+            "unassigned": [stem for stem in to_capture if stem not in known_families],
+            "indexed_archives_missing": dict(sorted(missing_archives.items())),
         }
     manifest = {
         "schema_version": 1,
