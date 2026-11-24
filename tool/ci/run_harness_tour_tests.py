@@ -37,7 +37,8 @@ except ImportError:
 # Includes the confirmed Pillar reference frame and restoration case.
 # Includes the repeated launch frame and retained image case.
 # Includes the offscreen Settings panel paint case.
-EXPECTED_DART_CASES = 1533
+# Includes the single Pillars refresh shortcut case.
+EXPECTED_DART_CASES = 1534
 LAUNCH_ASSET_DART_CASES = 2
 LAUNCH_ASSET_TEST = 'test/launch_film/launch_asset_test.dart'
 TOUR_TEST_PATHS = (
