@@ -15,6 +15,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/notifiers/balance_visibility.d
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Whether a known reward has anything for the existing Collect action.
@@ -329,14 +331,14 @@ class _View extends StatelessWidget {
             key: const Key('nodes_pillar_rewards'),
             style: nodesQuietButtonStyle(context),
             onPressed: () => _openRewards(context),
-            icon: const Icon(Icons.bar_chart_rounded, size: 16),
+            icon: ShellSymbol('chart', size: tokens.smallActionGlyphSize),
             label: Text(context.l10n.nodesRewards),
           ),
           IconButton(
             key: const Key('nodes_pillar_more'),
             tooltip: context.l10n.nodesMore,
             onPressed: () => _openMore(context, pillarName: delegation?.name),
-            icon: const Icon(Icons.more_horiz, size: 18),
+            icon: ShellSymbol('more', size: tokens.smallActionGlyphSize),
           ),
         ],
       ),
