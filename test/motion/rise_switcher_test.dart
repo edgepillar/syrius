@@ -131,19 +131,18 @@ void main() {
       expect(RiseSwitcher.isSettled(switcher, destination), isFalse);
       await tester.pumpWidget(_host(1));
       expect(RiseSwitcher.isSettled(switcher, destination), isFalse);
-      // Native fade-through includes its scale; this is the added translation.
       final Transform firstRise = _riseTransform(tester, _page(1));
-      final Finder zoomFinder = find.ancestor(
+      final Finder pageTransforms = find.ancestor(
         of: _page(1),
-        matching: find.byType(ScaleTransition),
+        matching: find.descendant(
+          of: find.byType(RiseSwitcher),
+          matching: find.byType(Transform),
+        ),
       );
-      final ScaleTransition zoom = tester.widget(zoomFinder);
-      final Finder scaleTransform = find.descendant(
-        of: zoomFinder,
-        matching: find.byType(Transform),
-      ).first;
-      final Transform firstScale = tester.widget(scaleTransform);
-      expect(zoom.scale.value, .92);
+      expect(pageTransforms, findsOneWidget);
+      expect(firstRise.alignment, Alignment.center);
+      expect(firstRise.transform.storage[0], .92);
+      expect(firstRise.transform.storage[5], .92);
       expect(_rise(tester, _page(1)), 6);
       expect(tester.getTopLeft(_page(0)).dy, 0);
 
@@ -151,7 +150,6 @@ void main() {
       expect(_opacity(tester, _page(1)), 0);
       expect(_rise(tester, _page(1)), 6);
       expect(_riseTransform(tester, _page(1)), same(firstRise));
-      expect(tester.widget(scaleTransform), same(firstScale));
       expect(tester.getTopLeft(_page(0)).dy, 0);
 
       await tester.pump(const Duration(milliseconds: 46));
@@ -161,13 +159,22 @@ void main() {
       await tester.pump(const Duration(milliseconds: 24));
       final double entrance = const Cubic(0, 0, .2, 1).transform(24 / 224);
       expect(_opacity(tester, _page(1)), closeTo(entrance, 1e-9));
-      expect(zoom.scale.value, closeTo(.92 + .08 * entrance, 1e-9));
+      final double scale =
+          _riseTransform(tester, _page(1)).transform.storage[0];
+      expect(scale, closeTo(.92 + .08 * entrance, 1e-9));
       final double rising = _rise(tester, _page(1));
       expect(rising, greaterThan(0));
       expect(rising, lessThan(6));
       expect(
         rising,
         closeTo(6 * (1 - AppTokens.light.spring.transform(24 / 224)), 1e-6),
+      );
+      final Size pageSize = tester.getSize(_page(1));
+      final Offset topLeft = tester.getTopLeft(_page(1));
+      expect(topLeft.dx, closeTo(pageSize.width * (1 - scale) / 2, 1e-6));
+      expect(
+        topLeft.dy,
+        closeTo(pageSize.height * (1 - scale) / 2 + rising, 1e-6),
       );
       expect(_page(0), findsNothing);
 

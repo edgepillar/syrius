@@ -126,13 +126,6 @@ class _SwitchEntry {
     opacity = _PageOpacity(incoming, exit.drive(CurveTween(curve: _fadeOut)));
     visible = ValueNotifier<bool>(initial);
     riseProgress = ValueNotifier<double>(initial ? 1 : 0);
-    // Like the rise, the zoom keeps its initial transform until the incoming
-    // page is visible. The notifier skips ticks that leave progress at zero.
-    scale = Animation<double>.fromValueListenable(
-      riseProgress,
-      transformer: (double progress) =>
-          _zoom.transform(_entranceEase.transform(progress)),
-    );
     entrance.addListener(_updateEntrance);
   }
 
@@ -147,7 +140,6 @@ class _SwitchEntry {
   late final Animation<double> primary;
   late final AnimationController exit;
   late final Animation<double> opacity;
-  late final Animation<double> scale;
   late final ValueNotifier<bool> visible;
   late final ValueNotifier<double> riseProgress;
   bool outgoing = false;
@@ -314,21 +306,23 @@ class _RiseSwitcherState extends State<RiseSwitcher>
                         valueListenable: entry.riseProgress,
                         child: FadeTransition(
                           opacity: entry.opacity,
-                          child: ScaleTransition(
-                            scale: entry.scale,
-                            child: TickerMode(
-                              // Child tickers follow the page's visibility.
-                              enabled: visible,
-                              child: child!,
-                            ),
+                          child: TickerMode(
+                            // Child tickers follow the page's visibility.
+                            enabled: visible,
+                            child: child!,
                           ),
                         ),
                         builder: (_, double progress, Widget? child) {
-                          return Transform.translate(
-                            offset: Offset(
-                              0,
-                              entry.rise * (1 - spring.transform(progress)),
-                            ),
+                          final double rise =
+                              entry.rise * (1 - spring.transform(progress));
+                          final double scale = _zoom.transform(
+                            _entranceEase.transform(progress),
+                          );
+                          // Apply the centered zoom before the vertical rise.
+                          return Transform(
+                            alignment: Alignment.center,
+                            transform: Matrix4.translationValues(0, rise, 0)
+                              ..scaleByDouble(scale, scale, 1, 1),
                             child: child,
                           );
                         },
