@@ -318,6 +318,22 @@ void main() {
       tester.getSize(find.byKey(const Key('home_collect_card'))).height,
       lessThan(60),
     );
+    await show(tester, width: 380);
+    final Rect narrowAmount = tester.getRect(
+      find.byKey(const Key('home_collect_znn')),
+    );
+    final Rect estimate = tester.getRect(
+      find.byKey(const Key('home_collect_dollars')),
+    );
+    expect(estimate.top, greaterThanOrEqualTo(narrowAmount.bottom));
+    final Rect narrowTitle = tester.getRect(find.text('To collect'));
+    final Rect narrowAction = tester.getRect(find.byKey(_collect));
+    expect(narrowTitle.center.dy, closeTo(narrowAction.center.dy, .01));
+    expect(tester.widget<OutlinedButton>(find.byKey(_collect)).onPressed,
+        isNotNull);
+    expect(find.text('3.214', findRichText: true), findsOneWidget);
+    expect(find.text('18.4', findRichText: true), findsOneWidget);
+    expect(find.text(r'≈ $2.56'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

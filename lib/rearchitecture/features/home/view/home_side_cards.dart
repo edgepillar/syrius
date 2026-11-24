@@ -193,6 +193,7 @@ class _CollectCard extends StatelessWidget {
             visibility: visibility,
             priceFeed: priceFeed,
           );
+    final Widget rewards = any ? summary : _HorizontalSummary(child: summary);
     final Widget button = Semantics(
       value: busy ? context.l10n.homeLoading : null,
       child: OutlinedButton(
@@ -285,7 +286,7 @@ class _CollectCard extends StatelessWidget {
                         SizedBox(height: tokens.homeTokenRowGap),
                         Align(
                           alignment: AlignmentDirectional.centerEnd,
-                          child: _HorizontalSummary(child: summary),
+                          child: rewards,
                         ),
                       ],
                     );
@@ -297,7 +298,7 @@ class _CollectCard extends StatelessWidget {
                       Expanded(
                         child: Align(
                           alignment: AlignmentDirectional.centerEnd,
-                          child: _HorizontalSummary(child: summary),
+                          child: rewards,
                         ),
                       ),
                       SizedBox(width: tokens.inlineGap),
@@ -384,43 +385,53 @@ class _CollectAmounts extends StatelessWidget {
       builder: (BuildContext context, Widget? child) => ListenableBuilder(
         listenable: visibility,
         builder: (BuildContext context, Widget? child) => Ltr(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+          child: Wrap(
+            spacing: tokens.inlineGap,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: <Widget>[
-              if (znn > BigInt.zero)
-                _SideAmount(
-                  key: const Key('home_collect_znn'),
-                  amount: znn,
-                  decimals: kZnnCoin.decimals,
-                  symbol: kZnnCoin.symbol,
-                  visibility: visibility,
+              // Keep each coin with its amount. The estimate can move below
+              // both coins when the expanded rail narrows the side card.
+              _HorizontalSummary(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    if (znn > BigInt.zero)
+                      _SideAmount(
+                        key: const Key('home_collect_znn'),
+                        amount: znn,
+                        decimals: kZnnCoin.decimals,
+                        symbol: kZnnCoin.symbol,
+                        visibility: visibility,
+                      ),
+                    if (znn > BigInt.zero && qsr > BigInt.zero)
+                      Padding(
+                        padding: EdgeInsetsDirectional.symmetric(
+                          horizontal: tokens.homeTokenRowGap,
+                        ),
+                        child: Text('·', style: tokens.homeSideAmountText),
+                      ),
+                    if (qsr > BigInt.zero)
+                      _SideAmount(
+                        key: const Key('home_collect_qsr'),
+                        amount: qsr,
+                        decimals: kQsrCoin.decimals,
+                        symbol: kQsrCoin.symbol,
+                        visibility: visibility,
+                      ),
+                  ],
                 ),
-              if (znn > BigInt.zero && qsr > BigInt.zero)
-                Padding(
-                  padding: EdgeInsetsDirectional.symmetric(
-                    horizontal: tokens.homeTokenRowGap,
-                  ),
-                  child: Text('·', style: tokens.homeSideAmountText),
-                ),
-              if (qsr > BigInt.zero)
-                _SideAmount(
-                  key: const Key('home_collect_qsr'),
-                  amount: qsr,
-                  decimals: kQsrCoin.decimals,
-                  symbol: kQsrCoin.symbol,
-                  visibility: visibility,
-                ),
+              ),
               if (amounts.every(
                 (CoinAmount part) => priceFeed.priceOf(part.coin!) != null,
-              )) ...<Widget>[
-                SizedBox(width: tokens.inlineGap),
-                DollarText.sum(
-                  amounts,
-                  key: const Key('home_collect_dollars'),
-                  hidden: visibility.hidden,
-                  feed: priceFeed,
+              ))
+                _HorizontalSummary(
+                  child: DollarText.sum(
+                    amounts,
+                    key: const Key('home_collect_dollars'),
+                    hidden: visibility.hidden,
+                    feed: priceFeed,
+                  ),
                 ),
-              ],
             ],
           ),
         ),
