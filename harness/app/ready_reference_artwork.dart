@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart'
-    show ClipPathLayer, ContainerLayer, Layer, MatrixUtils, OffsetLayer,
-        PictureLayer, RenderBox, RenderEditable, RenderObject,
+    show ClipPathLayer, ContainerLayer, FollowerLayer, Layer, MatrixUtils,
+        OffsetLayer, PictureLayer, RenderBox, RenderEditable, RenderObject,
         RenderPhysicalShape, RenderRepaintBoundary;
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
@@ -267,7 +267,11 @@ Future<String> observePillarEnclosingPaintMark(
 RenderRepaintBoundary? _enclosingPillarBoundary(Element? root) {
   final RenderPhysicalShape? pane =
       _pillarPaintTarget<RenderPhysicalShape>(root, 'pillar_create_pane');
-  for (RenderObject? parent = pane?.parent;
+  return _nextPillarBoundary(pane);
+}
+
+RenderRepaintBoundary? _nextPillarBoundary(RenderObject? object) {
+  for (RenderObject? parent = object?.parent;
       parent != null;
       parent = parent.parent) {
     if (parent is RenderRepaintBoundary) return parent;
@@ -292,6 +296,13 @@ Future<String> observePillarRecordedMark(
     final RenderRepaintBoundary? page =
         _pillarPaintTarget<RenderRepaintBoundary>(elements, 'shell_page_paint');
     final Layer? pageLayer = page == null ? null : paintedLayer(page);
+    // MaterialPageRoute puts its transitions around a second repaint
+    // boundary. If the page is the next boundary, there is no separate one.
+    final RenderRepaintBoundary? transition = _nextPillarBoundary(enclosing);
+    final Layer? transitionLayer = transition == null ||
+            identical(transition, page)
+        ? null
+        : paintedLayer(transition);
     final double pixelScale = 1 / devicePixelRatio;
     final List<(Layer, Matrix4, String)> pending = <(Layer, Matrix4, String)>[
       (scene, Matrix4.diagonal3Values(pixelScale, pixelScale, 1), 'outside'),
@@ -308,6 +319,20 @@ Future<String> observePillarRecordedMark(
       if (identical(layer, pageLayer)) {
         pageIsInScene = true;
         scope = 'in_shell_page';
+      }
+      if (identical(layer, transitionLayer)) {
+        scope = switch (scope) {
+          'in_shell_page' => 'in_pane_transition',
+          'in_shell_follower' => 'in_pane_transition_follower',
+          _ => scope,
+        };
+      }
+      if (layer is FollowerLayer && layer.link.leader != null) {
+        scope = switch (scope) {
+          'in_shell_page' => 'in_shell_follower',
+          'in_pane_transition' => 'in_pane_transition_follower',
+          _ => scope,
+        };
       }
       if (identical(layer, pane)) scope = 'inside';
       if (layer is ContainerLayer) {

@@ -6259,6 +6259,18 @@ class HarnessAgent {
             _focusedEditable(),
           )
         : null;
+    // Freeze the complete scene and its linked transforms before any
+    // diagnostics build scenes from individual subtrees.
+    _lockShotPhase('layer');
+    final Future<ui.Image> originalFrame = captureLogicalView(view, layer);
+    final Future<String>? pillarRecordedMark = observePillarCaret
+        ? observePillarRecordedMark(
+            WidgetsBinding.instance.rootElement,
+            layer,
+            (RenderRepaintBoundary boundary) => boundary.layer,
+            devicePixelRatio: metrics.devicePixelRatio,
+          )
+        : null;
     final Future<String>? pillarHeaderLayerMark = observePillarCaret
         ? observePillarHeaderLayerMark(WidgetsBinding.instance.rootElement)
         : null;
@@ -6279,16 +6291,6 @@ class HarnessAgent {
             WidgetsBinding.instance.rootElement,
             (RenderBox boundary) => boundary.layer,
             outsideNearest: true,
-          )
-        : null;
-    _lockShotPhase('layer');
-    final Future<ui.Image> originalFrame = captureLogicalView(view, layer);
-    final Future<String>? pillarRecordedMark = observePillarCaret
-        ? observePillarRecordedMark(
-            WidgetsBinding.instance.rootElement,
-            layer,
-            (RenderRepaintBoundary boundary) => boundary.layer,
-            devicePixelRatio: metrics.devicePixelRatio,
           )
         : null;
     final ui.Image image = await originalFrame;

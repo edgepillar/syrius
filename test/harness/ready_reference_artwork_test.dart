@@ -337,10 +337,37 @@ void main() {
       height: 24,
       child: RepaintBoundary(child: ColoredBox(color: color)),
     );
+    Widget linkedMark(double x, double y) {
+      final LayerLink link = LayerLink();
+      return Positioned.fill(
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: x,
+              top: y,
+              child: CompositedTransformTarget(
+                link: link,
+                child: const SizedBox.shrink(),
+              ),
+            ),
+            Positioned.fill(
+              child: CompositedTransformFollower(
+                link: link,
+                showWhenUnlinked: false,
+                child: Stack(children: <Widget>[mark(0, 0, green)]),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     for (final (String placement, String recordedScope) in <(String, String)>[
       ('inside clip', 'inside'),
       ('beside clip', 'inside'),
+      ('in pane transition', 'in_pane_transition'),
+      ('in pane transition follower', 'in_pane_transition_follower'),
       ('in shell page', 'in_shell_page'),
+      ('in shell follower', 'in_shell_follower'),
       ('outside shell page', 'outside_shell_page'),
       ('without shell marker', 'outside'),
       ('nowhere', 'no_picture'),
@@ -383,13 +410,26 @@ void main() {
                         child: RepaintBoundary(
                           child: Stack(
                             children: <Widget>[
-                              pane,
-                              if (besideClip) mark(64, 24, green),
+                              Positioned.fill(
+                                child: RepaintBoundary(
+                                  child: Stack(
+                                    children: <Widget>[
+                                      pane,
+                                      if (besideClip) mark(64, 24, green),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              if (placement == 'in pane transition')
+                                mark(64, 24, green),
+                              if (placement == 'in pane transition follower')
+                                linkedMark(64, 24),
                             ],
                           ),
                         ),
                       ),
                       if (placement == 'in shell page') mark(84, 36, green),
+                      if (placement == 'in shell follower') linkedMark(84, 36),
                     ],
                   ),
                 ),
