@@ -259,7 +259,7 @@ class SeededPixelComparisonTests(unittest.TestCase):
              dict(amount_center=(700, 188), amount_trailing=(980, 188),
                   form_background=(1000, 188), action_leading=(1120, 188))),
             (inspect.catalog.PILLAR_SPAWN_SCHEMA, '19-spawn',
-             'name_and_addresses', (360, 85, 970, 460), None),
+             'name_field', (360, 85, 970, 204), None),
             (inspect.catalog.PILLAR_DONE_SCHEMA, '20-pillar-done',
              'artwork_band', (360, 180, 1280, 490),
              dict(header_mark=(84, 48), header_above=(84, 35),
@@ -281,6 +281,12 @@ class SeededPixelComparisonTests(unittest.TestCase):
                         buffer.getvalue(), schema, Path('references'))
                 self.assertEqual(comparison['screen'], screen)
                 self.assertEqual(comparison['region_bounds'][region], bounds)
+                if screen == '19-spawn':
+                    form_bands = [comparison['region_bounds'][key] for key in (
+                        'name_field', 'producer_field', 'reward_field', 'form_actions')]
+                    self.assertEqual(form_bands, [
+                        (360, 85, 970, 204), (360, 204, 970, 306),
+                        (360, 306, 970, 388), (360, 388, 970, 460)])
                 if screen == '20-pillar-done':
                     result_bands = [comparison['region_bounds'][key] for key in (
                         'above_art', 'artwork_band', 'confirmation_heading',

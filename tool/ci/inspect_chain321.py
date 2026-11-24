@@ -886,7 +886,10 @@ def seeded_catalog_pixel_comparisons(raw, schema, references, *, companion_holdi
                                stake_table=(60, 210, 1280, 724)),
         '19-spawn': dict(pane_header=(60, 32, 1280, 85),
                          steps_and_balances=(60, 85, 360, 724),
-                         name_and_addresses=(360, 85, 970, 460)),
+                         name_field=(360, 85, 970, 204),
+                         producer_field=(360, 204, 970, 306),
+                         reward_field=(360, 306, 970, 388),
+                         form_actions=(360, 388, 970, 460)),
         # Split the result at the gaps between the reference artwork, heading,
         # caption and action row in both themes.
         '20-pillar-done': dict(pane_header=(60, 32, 1280, 85),
