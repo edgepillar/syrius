@@ -7786,19 +7786,19 @@ tracks whole-image acceptance for the final source.
 | 06 | `home-zap` | X827 | X828 |
 | 07 | `send-rest` | X829 | X830 |
 | 08 | `send-warn` | X889 | X890 |
-| 09 | `receive` | [match](docs/review/source-61e0e851-navigation-verdicts.json) | [match](docs/review/source-61e0e851-navigation-verdicts.json) |
+| 09 | `receive` | [match](docs/review/source-79f80434-navigation-verdicts.json) | [match](docs/review/source-79f80434-navigation-verdicts.json) |
 | 10 | `receive-qr` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 11 | `zap-form` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 12 | `send-confirm` | X837 | X838 |
 | 13 | `staking` | X1285 | X1286 |
 | 14 | `staking-new` | X893 | X894 |
 | 15 | `staking-empty` | X895 | X896 |
-| 16 | `pillars` | X1777 | X1777 |
+| 16 | `pillars` | X1789 | X1789 |
 | 17 | `pillar-mine` | X839 | X840 |
 | 18 | `sentinels` | X897 | X898 |
 | 19 | `spawn` | X1150 | X1151 |
 | 20 | `pillar-done` | X1152 | X1153 |
-| 21 | `plasma` | X1778 | X1778 |
+| 21 | `plasma` | X1789 | X1789 |
 | 22 | `plasma-fuse` | [mismatch](docs/review/source-612f17ec-details-verdicts.json) | [mismatch](docs/review/source-612f17ec-details-verdicts.json) |
 | 23 | `tokens` | X1324 | X1325 |
 | 24 | `token-mine` | X1287 | X1288 |
@@ -11874,3 +11874,6 @@ gates, full 72/80 acceptance and zero accepted whole-image matches remain open.
 | X1784 | review | 2026-11-24 | The independent paired reader reports the wait from build completion to raster start in the settled Windows views when exact timestamps are retained. It records the maximum wait, the count above 16 ms and the wait on the longest raster frame. The existing cases cover overlaps, waits on both sides of the budget and legacy receipts without timestamps. All 17 paired reader tests pass. No producer, P06 input or comparison rule changes. |
 | X1785 | review | 2026-11-24 | Reader-only replays of [X1781](https://github.com/edgepillar/syrius/actions/runs/45496164663/job/138807134541) and [X1711](https://github.com/edgepillar/syrius/actions/runs/45496165556/job/138807136190) separate the wait after build completion from raster duration. In X1781 that wait exceeds 16 ms in 10 of 17 settled Node Settings frames and 23 of 23 settled About frames. The maxima are 162.612 and 52.746 ms. In X1711 the counts are 16 of 16 and 7 of 12, with maxima of 71.017 and 55.178 ms. Both pairs retain raster overruns and failed 16 ms comparisons. The original P06 idle records do not include exact raster starts. The measurements leave the cause of the wait open. |
 | X1786 | review | 2026-11-24 | The exact-source comparison summary now separates missing local archives with eligible capture indexes from pairs that still need capture. At `ba0d697c` it reports six accepted local Lock pairs, six indexed pairs in three missing startup archives, and 82 other pairs across twenty catalog families. Missing archive files still fail the local coverage gate. Eleven in-memory comparison tests pass. |
+| X1787 | review | 2026-11-24 | The [Windows Navigation producer at `79f80434`](https://github.com/edgepillar/syrius/actions/runs/45493601538/job/138798116039) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/45497630816/job/138812220111) verify all 14 [original PNGs](docs/review/source-79f80434-navigation-captures.json) and normal parent closure. In both themes the top and bottom Plasma fill rows end one pixel before the middle rows, as in the reference. The preceding X1776 captures have six equal row ends. This establishes the rounded tip's captured shape and leaves the whole-image verdicts separate. |
+| X1788 | review | 2026-11-24 | The X1787 reader also verifies four original viewport images. Home appears at 1200 × 600 in English and at 1280 × 780 in Arabic right-to-left layout, each in both themes. The original rendered locale, theme, window and rail are restored. |
+| X1789 | review | 2026-11-25 | Direct comparison of the six designated [Navigation pairs](docs/review/source-79f80434-navigation-verdicts.json) at `79f80434` records both Receive matches. Both Pillars pairs differ in row and reward data. The complete Plasma estimate is visible in both themes, and the rounded meter is present. The idle generation strip and the fusion row order still differ in both Plasma pairs. |
