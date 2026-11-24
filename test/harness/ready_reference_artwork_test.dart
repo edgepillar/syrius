@@ -337,7 +337,8 @@ void main() {
       of: find.byKey(const ValueKey<String>('originals_tile_map')),
       matching: find.byType(CustomPaint),
     );
-    final Object originalMapRenderer = tester.renderObject(mapPaint);
+    final Element mapElement = tester.element(mapPaint);
+    final Object originalMapRenderer = mapElement.renderObject!;
     final OriginalsReferenceArtwork artwork = OriginalsReferenceArtwork(
       root: WidgetsBinding.instance.rootElement,
       admitted: () => true,
@@ -351,7 +352,7 @@ void main() {
         frames: frames.gate,
         readback: () async {
           capturedFilm = (pictureElement.widget as RawImage).image;
-          expect(tester.renderObject(mapPaint), same(originalMapRenderer));
+          expect(mapElement.renderObject, same(originalMapRenderer));
           return <Lottie>[
             for (final State<StatefulWidget> original in originalStates)
               original.widget as Lottie,
