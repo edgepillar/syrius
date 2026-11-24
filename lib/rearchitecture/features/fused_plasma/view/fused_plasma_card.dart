@@ -351,7 +351,10 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
             ),
           ),
         ),
-        beneficiary: _Beneficiary(address: entry.beneficiary),
+        beneficiary: _Beneficiary(
+          address: entry.beneficiary,
+          isSelectedAddress: entry.beneficiary == owner.address,
+        ),
         expires: Align(
           alignment: AlignmentDirectional.centerStart,
           child: _Expiry(
@@ -526,8 +529,9 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
 }
 
 class _Beneficiary extends StatelessWidget {
-  const _Beneficiary({required this.address});
+  const _Beneficiary({required this.address, required this.isSelectedAddress});
   final String address;
+  final bool isSelectedAddress;
 
   @override
   Widget build(BuildContext context) {
@@ -546,6 +550,29 @@ class _Beneficiary extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          if (isSelectedAddress) ...<Widget>[
+            const SizedBox(width: 6),
+            Flexible(
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 22),
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                decoration: BoxDecoration(
+                  border: Border.all(color: tokens.line),
+                  borderRadius: BorderRadius.circular(tokens.pillRadius),
+                ),
+                child: Align(
+                  widthFactor: 1,
+                  heightFactor: 1,
+                  child: Text(
+                    context.l10n.tokensThisAddress,
+                    style: tokens.captionText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ),
+          ],
           IconButtonTheme(
             data: IconButtonThemeData(
               style: IconButton.styleFrom(

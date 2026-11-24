@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/plasma_owner
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/balance_visibility.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart' show pillarAddress;
 
 import '../helpers/hydrated_bloc.dart';
 import '../helpers/mockup_symbol.dart';
@@ -208,7 +209,9 @@ void main() {
       'ledger alignment and expiry controls in ${dark ? 'dark' : 'light'}',
       (WidgetTester tester) async {
         await _withFixture(tester, (PlasmaFixture fixture) async {
-          fixture.rows[1].expirationHeight = 11;
+          fixture.rows[1]
+            ..expirationHeight = 11
+            ..beneficiary = pillarAddress;
           await _prepare(
             tester,
             fixture,
@@ -258,6 +261,10 @@ void main() {
               ValueKey<String>('plasma_row_${plasmaTestHash(id)}'),
             );
             expect(tester.getSize(row).height, 44);
+            expect(
+              find.descendant(of: row, matching: find.text('This address')),
+              id == 1 ? findsOneWidget : findsNothing,
+            );
             final Color fill = (id == 1 ? tokens.znn : tokens.qsr).withValues(
               alpha: 0.14,
             );
