@@ -334,6 +334,11 @@ class WindowsQualificationTests(unittest.TestCase):
         comparison = inspect.entry_pixel_comparison(actual, reference, 'welcome')
         self.assertEqual(comparison['action_alignment'], dict(create_label=dict(
             shift_to_reference=[1, -2], original_difference=32, shifted_difference=0)))
+        actual = pixels(opaque=True, welcome_rows=(10, 11), welcome_x=15)
+        reference = pixels(opaque=True, welcome_rows=(11, 12), welcome_x=15)
+        comparison = inspect.entry_pixel_comparison(actual, reference, 'welcome')
+        self.assertEqual(comparison['caption_wordmark_alignment'], dict(
+            shift_to_reference=[0, 1], original_difference=16, shifted_difference=0))
 
     def test_entry_digest_missing_extra_and_invalid_pixels_are_refused(self):
         data = pixels()

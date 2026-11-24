@@ -618,6 +618,22 @@ def _ink_shift(captured, reference):
                 original_difference=len(reference ^ captured), shifted_difference=error)
 
 
+def caption_wordmark_alignment(actual, a_channels, expected, e_channels):
+    """Compare wordmark ink with nearby caption fill and test small shifts."""
+    def ink(rows, channels):
+        result = set()
+        for y in range(6, 24):
+            row = rows[y]
+            background = row[102 * channels:102 * channels + 3]
+            for x in range(6, 100):
+                offset = x * channels
+                if max(abs(a - b) for a, b in zip(row[offset:offset + 3], background)) >= 16:
+                    result.add((x, y))
+        return result
+
+    return _ink_shift(ink(actual, a_channels), ink(expected, e_channels))
+
+
 def welcome_action_alignment(actual, a_channels, expected, e_channels):
     """Measure small text offsets inside the three reference action rows."""
     def ink(rows, channels, top, bottom):
@@ -726,12 +742,13 @@ def entry_pixel_comparison(data, reference, screen, *, theme=None):
     """Summarize original RGB differences without writing or grading an image."""
     return pixel_comparison(data, reference, ENTRY_REGIONS[screen],
                             align_welcome_actions=screen == 'welcome',
-                            import_background_theme=theme if screen == 'import' else None)
+                            import_background_theme=theme if screen == 'import' else None,
+                            align_caption=True)
 
 
 def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
                      sample_points=None, import_background_theme=None,
-                     align_settings_labels=False):
+                     align_settings_labels=False, align_caption=False):
     """Compare original opaque client images in the supplied fixed regions."""
     def decode(png):
         encoded = base64.b64encode(png).decode('ascii')
@@ -767,6 +784,10 @@ def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
                 mean_rgb_error_milli=round(1000 * total / (1280 * 780 * 3)))
     if align_welcome_actions:
         result['action_alignment'] = welcome_action_alignment(actual, a_channels, expected, e_channels)
+    if align_caption:
+        alignment = caption_wordmark_alignment(actual, a_channels, expected, e_channels)
+        if alignment is not None:
+            result['caption_wordmark_alignment'] = alignment
     if align_settings_labels:
         result['settings_label_alignment'] = settings_label_alignment(
             actual, a_channels, expected, e_channels)
@@ -812,7 +833,8 @@ def startup_pixel_comparison(name, data):
         points.update(film=(300, 240), form=(450, 520),
                       unlock_left=(510, 533), unlock_right=(730, 533),
                       above_unlock=(510, 500), below_unlock=(510, 565))
-    result = pixel_comparison(data, reference, regions, sample_points=points)
+    result = pixel_comparison(data, reference, regions, sample_points=points,
+                              align_caption=True)
     archive.need(result is not None)
     result['region_bounds'] = regions
     if name in startup.launch.SETTLE_FILES:
@@ -992,6 +1014,13 @@ def inspect_entry(client, text, head, tree, run_id, job, *, item=None):
             **binding, columns=BACK_MARK_COLUMNS, rows=BACK_MARK_ROWS['import'],
             minimum_channel_contrast=BACK_MARK_CONTRAST, marks=back))
     if any(value is not None for value in comparisons.values()):
+        caption = {name: value.pop('caption_wordmark_alignment')
+                   for name, value in comparisons.items()
+                   if value is not None and 'caption_wordmark_alignment' in value}
+        if caption:
+            emit('Hosted caption wordmark alignment', dict(
+                scope='retained_caption_wordmark_alignment', **binding,
+                reference_head=reference_head, alignment=caption))
         alignment = {name: value.pop('action_alignment', {}) for name, value in comparisons.items()
                      if value is not None and name.startswith('welcome-')}
         if any(alignment.values()):
