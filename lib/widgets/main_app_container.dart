@@ -69,7 +69,7 @@ class MainAppContainer extends StatefulWidget {
     this.redirectedFromWalletSuccess = false,
   });
 
-  /// Starts the auto-lock timer when setup enters the shell directly.
+  /// Starts background status and auto-lock when setup enters the shell.
   final bool redirectedFromWalletSuccess;
 
   /// The route retained when locking dismisses an open dialog.
@@ -164,6 +164,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   final NodeSyncStatusCubit _nodeSyncStatusCubit = NodeSyncStatusCubit(
     zenon: zenon!,
   );
+  bool _nodeStatusStarted = false;
 
   @override
   void initState() {
@@ -214,6 +215,7 @@ class _MainAppContainerState extends State<MainAppContainer>
       unawaited(_peers.refresh());
     });
     unawaited(_peers.refresh());
+    if (widget.redirectedFromWalletSuccess) _startNodeStatus();
 
     super.initState();
   }
@@ -1074,7 +1076,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   void _afterAppInitCallback() {
     if (!mounted) return;
     _receiveReady = true;
-    unawaited(_nodeSyncStatusCubit.fetchDataPeriodically());
+    _startNodeStatus();
     _startAutoLockTimer();
     if (kLastWalletConnectUriNotifier.value != null) {
       _navigateTo(Tabs.walletConnect);
@@ -1083,6 +1085,12 @@ class _MainAppContainerState extends State<MainAppContainer>
     }
 
     _receiveContextChanged();
+  }
+
+  void _startNodeStatus() {
+    if (_nodeStatusStarted) return;
+    _nodeStatusStarted = true;
+    unawaited(_nodeSyncStatusCubit.fetchDataPeriodically());
   }
 
   void _listenToAutoReceiveTxWorkerNotifications() {
