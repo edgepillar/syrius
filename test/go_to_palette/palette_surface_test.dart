@@ -230,11 +230,25 @@ void main() {
             await tester.pumpWidget(
               _host(light: light, direction: direction, windowFrame: true),
             );
+            final Finder caption = find.byKey(
+              const ValueKey<String>('window-caption'),
+            );
+            final Finder captionClip = find.ancestor(
+              of: caption,
+              matching: find.byType(ClipRect),
+            ).first;
+            final Element originalClip = tester.element(captionClip);
+            expect(
+              tester.widget<ClipRect>(captionClip).clipBehavior,
+              Clip.none,
+            );
             await tester.tap(find.text('Open'));
             await tester.pumpAndSettle();
+            expect(caption, findsOneWidget);
+            expect(tester.element(captionClip), same(originalClip));
             expect(
-              find.byKey(const ValueKey<String>('window-caption')),
-              findsOneWidget,
+              tester.widget<ClipRect>(captionClip).clipBehavior,
+              Clip.hardEdge,
             );
             final Finder captionFrost = find.byKey(
               const ValueKey<String>('window-caption-frost'),
@@ -242,9 +256,6 @@ void main() {
             expect(
               tester.getRect(captionFrost),
               const Rect.fromLTWH(0, 0, 1200, 32),
-            );
-            final Finder caption = find.byKey(
-              const ValueKey<String>('window-caption'),
             );
             final ImageFiltered captionFilter = tester.widget<ImageFiltered>(
               find.ancestor(of: caption, matching: find.byType(ImageFiltered)),
@@ -280,6 +291,11 @@ void main() {
             await tester.sendKeyEvent(LogicalKeyboardKey.escape);
             await tester.pumpAndSettle();
             expect(captionFrost, findsNothing);
+            expect(tester.element(captionClip), same(originalClip));
+            expect(
+              tester.widget<ClipRect>(captionClip).clipBehavior,
+              Clip.none,
+            );
             expect(
               tester.widget<ImageFiltered>(
                 find.ancestor(
@@ -289,8 +305,16 @@ void main() {
               ).enabled,
               isFalse,
             );
+            tester.platformDispatcher.textScaleFactorTestValue = 2;
+            await tester.pumpAndSettle();
+            expect(tester.element(captionClip), same(originalClip));
+            expect(
+              tester.widget<ClipRect>(captionClip).clipBehavior,
+              Clip.hardEdge,
+            );
             expect(tester.takeException(), isNull);
           } finally {
+            tester.platformDispatcher.clearTextScaleFactorTestValue();
             await tester.pumpWidget(const SizedBox.shrink());
             messenger.setMockMethodCallHandler(channel, null);
             foundation.debugDefaultTargetPlatformOverride = previousPlatform;

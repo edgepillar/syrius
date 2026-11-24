@@ -377,7 +377,13 @@ class AppWindowFrameState extends State<AppWindowFrame> {
             );
           }
           final double sigma = math.sqrt(variance);
+          // Scaled wordmark ink can reach beyond the fixed caption height.
+          final bool clipCaption =
+              sigma > 0 ||
+              tint.a > 0 ||
+              MediaQuery.textScalerOf(context) != TextScaler.noScaling;
           return ClipRect(
+            clipBehavior: clipCaption ? Clip.hardEdge : Clip.none,
             child: Stack(
               children: <Widget>[
                 ImageFiltered(
