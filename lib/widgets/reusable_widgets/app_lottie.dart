@@ -605,11 +605,14 @@ class _GalleryMapPainter extends CustomPainter {
       raster != oldDelegate.raster;
 }
 
-// Render subpixel vector dots into one bounded 2x image, then filter it into
-// the authored tile. Retain only the current frame, including after playback.
+// Sample the original vector paths before minifying subpixel dots into the
+// authored tile. Retain only the current frame, including after playback.
 class _GalleryMapRaster extends ChangeNotifier {
   _GalleryMapRaster(LottieComposition composition, FrameRate? frameRate)
     : _drawable = LottieDrawable(composition, frameRate: frameRate);
+
+  static const int _preferredScale = 3;
+  static const int _maxPixels = 512 * 1024;
 
   final LottieDrawable _drawable;
   ui.Size? _size;
@@ -627,10 +630,17 @@ class _GalleryMapRaster extends ChangeNotifier {
 
   void paint(ui.Canvas canvas, ui.Size size) {
     if (size.isEmpty) return;
-    final int width = size.width.ceil() * 2;
-    final int height = size.height.ceil() * 2;
+    final int tileWidth = size.width.ceil();
+    final int tileHeight = size.height.ceil();
+    final int tilePixels = tileWidth * tileHeight;
+    final int scale =
+        tilePixels * _preferredScale * _preferredScale <= _maxPixels
+        ? _preferredScale
+        : 2;
+    final int width = tileWidth * scale;
+    final int height = tileHeight * scale;
     final ui.Rect destination = ui.Offset.zero & size;
-    if (width * height > 512 * 1024) {
+    if (width * height > _maxPixels) {
       _releaseImage();
       _drawable.draw(canvas, destination, fit: BoxFit.contain);
       return;
@@ -655,7 +665,7 @@ class _GalleryMapRaster extends ChangeNotifier {
       _image!,
       ui.Rect.fromLTWH(0, 0, width.toDouble(), height.toDouble()),
       destination,
-      ui.Paint()..filterQuality = ui.FilterQuality.low,
+      ui.Paint()..filterQuality = ui.FilterQuality.medium,
     );
   }
 
