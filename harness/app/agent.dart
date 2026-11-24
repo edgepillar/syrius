@@ -6246,6 +6246,12 @@ class HarnessAgent {
     final Future<String>? pillarHeaderLayerMark = observePillarCaret
         ? observePillarHeaderLayerMark(WidgetsBinding.instance.rootElement)
         : null;
+    final Future<String>? pillarPaneClipMark = observePillarCaret
+        ? observePillarPaneClipMark(
+            WidgetsBinding.instance.rootElement,
+            (RenderPhysicalShape pane) => pane.layer,
+          )
+        : null;
     _lockShotPhase('layer');
     final ui.Image image = await captureLogicalView(view, layer);
     _lockShotPhase('image');
@@ -6264,6 +6270,7 @@ class HarnessAgent {
         height: image.height,
       );
       final String? headerMark = await pillarHeaderLayerMark;
+      final String? paneMark = await pillarPaneClipMark;
       _lockShotPhase('png');
       if (guarded &&
           (image.width != c['width'] || image.height != c['height'])) {
@@ -6300,6 +6307,7 @@ class HarnessAgent {
         'artwork_seconds': ?artworkSeconds,
         'pillarHeaderCaret': ?pillarHeaderCaret,
         'pillarHeaderLayerMark': ?headerMark,
+        'pillarPaneClipMark': ?paneMark,
         if (layoutBefore != null)
           'layoutObservation': pairReadonlyShotLayout(
             layoutBefore,

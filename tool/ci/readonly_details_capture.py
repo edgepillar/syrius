@@ -373,13 +373,15 @@ def capture_receipt(value):
                  'unavailable') for status in carets.values()),
              'CAPTURE_REFUSED')
         expected['pillar_header_caret'] = carets
-    if schema == PILLAR_DONE_SCHEMA and 'pillar_header_layer_mark' in value:
-        marks = value['pillar_header_layer_mark']
-        need(type(marks) is dict and set(marks) == set(THEMES)
-             and all(type(status) is str and status in (
-                 'present', 'absent', 'unavailable') for status in marks.values()),
-             'CAPTURE_REFUSED')
-        expected['pillar_header_layer_mark'] = marks
+    if schema == PILLAR_DONE_SCHEMA:
+        for key in ('pillar_header_layer_mark', 'pillar_pane_clip_mark'):
+            if key in value:
+                marks = value[key]
+                need(type(marks) is dict and set(marks) == set(THEMES)
+                     and all(type(status) is str and status in (
+                         'present', 'absent', 'unavailable') for status in marks.values()),
+                     'CAPTURE_REFUSED')
+                expected[key] = marks
     if schema == FAMILY_SCHEMAS['home-zap-preview'] and 'spark_paint' in value:
         paint = value['spark_paint']
         need(type(paint) is dict and set(paint) == set(THEMES), 'CAPTURE_REFUSED')
@@ -647,7 +649,7 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id,
     if include_image_pins:
         result['images'] = {row['file']: row['sha256'] for row in captures}
     if schema == PILLAR_DONE_SCHEMA:
-        for key in ('pillar_header_caret', 'pillar_header_layer_mark'):
+        for key in ('pillar_header_caret', 'pillar_header_layer_mark', 'pillar_pane_clip_mark'):
             if key in value['capture']:
                 result[key] = value['capture'][key]
     if schema == FAMILY_SCHEMAS['home-zap-preview']:

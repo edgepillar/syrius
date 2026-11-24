@@ -95,12 +95,14 @@ class DetailsCatalogTests(unittest.TestCase):
         with self.assertRaises(details.Refused):
             details.capture_receipt(dict(receipt(), pillar_header_caret=carets))
         marks = dict(dark='present', light='absent')
-        measured['pillar_header_layer_mark'] = marks
-        for invalid in ({'dark': 'present'}, {'dark': 'present', 'light': [0, 213, 87]}):
-            with self.subTest(observation=invalid), self.assertRaises(details.Refused):
-                details.capture_receipt(dict(measured, pillar_header_layer_mark=invalid))
-        with self.assertRaises(details.Refused):
-            details.capture_receipt(dict(receipt(), pillar_header_layer_mark=marks))
+        pane = dict(dark='absent', light='unavailable')
+        measured.update(pillar_header_layer_mark=marks, pillar_pane_clip_mark=pane)
+        for key in ('pillar_header_layer_mark', 'pillar_pane_clip_mark'):
+            for invalid in ({'dark': 'present'}, {'dark': 'present', 'light': [0, 213, 87]}):
+                with self.subTest(field=key, observation=invalid), self.assertRaises(details.Refused):
+                    details.capture_receipt(dict(measured, **{key: invalid}))
+            with self.assertRaises(details.Refused):
+                details.capture_receipt(dict(receipt(), **{key: marks}))
         value.update(schema=schema, capture=measured, script_sha256_by_screen=pins,
             seed_receipts_sha256='6' * 64, scope='restored_native_seeded_catalog_capture_bundle',
             captures=[dict(row, file=name)
@@ -110,6 +112,7 @@ class DetailsCatalogTests(unittest.TestCase):
             HEAD, TREE, RUN, reference, pins)
         self.assertEqual(inspected['pillar_header_caret'], carets)
         self.assertEqual(inspected['pillar_header_layer_mark'], marks)
+        self.assertEqual(inspected['pillar_pane_clip_mark'], pane)
 
     def test_holder_receipt_requires_positive_non_owner_state(self):
         schema = details.RESTORED_FAMILIES['token-holder']

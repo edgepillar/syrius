@@ -3,7 +3,8 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart'
-    show MatrixUtils, RenderEditable, RenderRepaintBoundary;
+    show ClipPathLayer, Layer, MatrixUtils, RenderBox, RenderEditable,
+        RenderPhysicalShape, RenderRepaintBoundary;
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surface.dart';
@@ -118,72 +119,112 @@ class PillarReferenceArtworkRefused implements Exception {
 
 const Rect _pillarHeaderMark = Rect.fromLTWH(84, 36, 2, 24);
 
+T? _pillarPaintTarget<T extends RenderBox>(Element? root, String key) {
+  if (root == null) return null;
+  T? target;
+  int visited = 0;
+  void visit(Element element) {
+    if (++visited > 16384) throw StateError('Pane observation limit');
+    if (element.widget.key == ValueKey<String>(key)) {
+      final RenderObject? render = element.findRenderObject();
+      if (target != null || render is! T) {
+        throw StateError('Unexpected Pillar paint target');
+      }
+      target = render;
+      return;
+    }
+    element.debugVisitOnstageChildren(visit);
+  }
+
+  visit(root);
+  return target;
+}
+
+Rect? _localPillarMark(RenderBox? box) {
+  if (box == null || !box.attached || !box.hasSize) return null;
+  final Offset origin = box.localToGlobal(Offset.zero);
+  if (!origin.isFinite ||
+      origin != Offset(origin.dx.roundToDouble(), origin.dy.roundToDouble()) ||
+      box.localToGlobal(const Offset(1, 0)) != origin + const Offset(1, 0) ||
+      box.localToGlobal(const Offset(0, 1)) != origin + const Offset(0, 1)) {
+    return null;
+  }
+  final Rect mark = _pillarHeaderMark.shift(-origin);
+  return mark.left < 0 ||
+          mark.top < 0 ||
+          mark.right > box.size.width ||
+          mark.bottom > box.size.height
+      ? null
+      : mark;
+}
+
+Future<String> _readPillarMark(ui.Image image, Rect mark) async {
+  final ByteData? rgba = await image.toByteData(
+    format: ui.ImageByteFormat.rawStraightRgba,
+  );
+  if (rgba == null || image.colorSpace != ui.ColorSpace.sRGB) {
+    return 'unavailable';
+  }
+  final int first = rgba.getUint32(
+    (mark.top.toInt() * image.width + mark.left.toInt()) * 4,
+  );
+  if (first != 0x00D557FF && first != 0x168A35FF) return 'absent';
+  for (int y = mark.top.toInt(); y < mark.bottom.toInt(); y++) {
+    for (int x = mark.left.toInt(); x < mark.right.toInt(); x++) {
+      if (rgba.getUint32((y * image.width + x) * 4) != first) return 'absent';
+    }
+  }
+  return 'present';
+}
+
 /// Checks whether the observed mark is entirely painted by the pane header.
 Future<String> observePillarHeaderLayerMark(Element? root) async {
-  if (root == null) return 'unavailable';
   ui.Image? image;
   try {
-    RenderRepaintBoundary? header;
-    int visited = 0;
-    void visit(Element element) {
-      if (++visited > 16384) throw StateError('Header observation limit');
-      if (element.widget.key ==
-          const ValueKey<String>('pillar_create_header')) {
-        final RenderObject? render = element.findRenderObject();
-        if (header != null || render is! RenderRepaintBoundary) {
-          throw StateError('Unexpected Pillar header');
-        }
-        header = render;
-        return;
-      }
-      element.debugVisitOnstageChildren(visit);
-    }
-
-    visit(root);
-    final RenderRepaintBoundary? boundary = header;
-    if (boundary == null || !boundary.attached || !boundary.hasSize) {
-      return 'unavailable';
-    }
-    final Offset origin = boundary.localToGlobal(Offset.zero);
-    if (!origin.isFinite ||
-        origin !=
-            Offset(origin.dx.roundToDouble(), origin.dy.roundToDouble()) ||
-        boundary.localToGlobal(const Offset(1, 0)) !=
-            origin + const Offset(1, 0) ||
-        boundary.localToGlobal(const Offset(0, 1)) !=
-            origin + const Offset(0, 1)) {
-      return 'unavailable';
-    }
-    final Rect mark = _pillarHeaderMark.shift(-origin);
-    if (mark.left < 0 ||
-        mark.top < 0 ||
-        mark.right > boundary.size.width ||
-        mark.bottom > boundary.size.height) {
-      return 'unavailable';
-    }
-
-    image = await boundary.toImage();
-    final ByteData? rgba = await image.toByteData(
-      format: ui.ImageByteFormat.rawStraightRgba,
-    );
-    if (rgba == null || image.colorSpace != ui.ColorSpace.sRGB) {
-      return 'unavailable';
-    }
-    // Only export whether the original rectangle is present in this layer.
-    final int first = rgba.getUint32(
-      (mark.top.toInt() * image.width + mark.left.toInt()) * 4,
-    );
-    if (first != 0x00D557FF && first != 0x168A35FF) return 'absent';
-    for (int y = mark.top.toInt(); y < mark.bottom.toInt(); y++) {
-      for (int x = mark.left.toInt(); x < mark.right.toInt(); x++) {
-        if (rgba.getUint32((y * image.width + x) * 4) != first) return 'absent';
-      }
-    }
-    return 'present';
+    final RenderRepaintBoundary? header =
+        _pillarPaintTarget<RenderRepaintBoundary>(root, 'pillar_create_header');
+    final Rect? mark = _localPillarMark(header);
+    if (mark == null) return 'unavailable';
+    image = await header!.toImage();
+    return await _readPillarMark(image, mark);
   } on Object {
     return 'unavailable';
   } finally {
     image?.dispose();
+  }
+}
+
+/// Reads only the 48 pixels of the mark from the pane's existing content clip.
+Future<String> observePillarPaneClipMark(
+  Element? root,
+  Layer? Function(RenderPhysicalShape) paintedLayer,
+) async {
+  ui.Scene? scene;
+  ui.Image? image;
+  try {
+    final RenderPhysicalShape? pane =
+        _pillarPaintTarget<RenderPhysicalShape>(root, 'pillar_create_pane');
+    final Rect? mark = _localPillarMark(pane);
+    if (mark == null) return 'unavailable';
+    final Layer? layer = paintedLayer(pane!);
+    if (layer is! ClipPathLayer) return 'unavailable';
+    final Rect? clip = layer.clipPath?.getBounds();
+    if (clip == null || !clip.isFinite || clip.size != pane.size) {
+      return 'unavailable';
+    }
+
+    // PhysicalShape offsets this path and its clipped children together.
+    final Offset corner = mark.topLeft + clip.topLeft;
+    final ui.SceneBuilder builder = ui.SceneBuilder()
+      ..pushOffset(-corner.dx, -corner.dy);
+    scene = layer.buildScene(builder);
+    image = await scene.toImage(mark.width.toInt(), mark.height.toInt());
+    return await _readPillarMark(image, Offset.zero & mark.size);
+  } on Object {
+    return 'unavailable';
+  } finally {
+    image?.dispose();
+    scene?.dispose();
   }
 }
 
