@@ -1,7 +1,7 @@
 import 'dart:ui' show SemanticsAction;
 
 import 'package:flutter/rendering.dart'
-    show Layer, OffsetLayer, RenderRepaintBoundary;
+    show Layer, OpacityLayer, RenderAnimatedOpacity;
 import 'package:flutter/semantics.dart' show SemanticsNode, SemanticsOwner;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -261,25 +261,18 @@ void main() {
           child: const SizedBox.expand(),
         ),
       );
-      OffsetLayer layerFor(int index) {
-        final RenderRepaintBoundary boundary = tester.renderObject(
-          find.ancestor(
-            of: _page(index),
-            matching: find.byWidgetPredicate(
-              (Widget widget) =>
-                  widget is RepaintBoundary && widget.child is KeyedSubtree,
-            ),
-          ),
-        );
-        return boundary.debugLayer! as OffsetLayer;
+      Finder fadeFor(int index) => find.ancestor(
+        of: _page(index),
+        matching: find.byType(FadeTransition),
+      );
+
+      OpacityLayer layerFor(int index) {
+        final RenderAnimatedOpacity fade = tester.renderObject(fadeFor(index));
+        expect(fade.isRepaintBoundary, isTrue);
+        return fade.debugLayer! as OpacityLayer;
       }
 
-      FadeTransition transitionFor(int index) => tester.widget(
-        find.ancestor(
-          of: _page(index),
-          matching: find.byType(FadeTransition),
-        ),
-      );
+      FadeTransition transitionFor(int index) => tester.widget(fadeFor(index));
 
       Widget host(int index, Color color) => _host(
         index,
@@ -293,9 +286,9 @@ void main() {
           of: find.byType(RiseSwitcher),
           matching: find.byType(RepaintBoundary),
         ),
-        findsOneWidget,
+        findsNothing,
       );
-      final OffsetLayer leaving = layerFor(0);
+      final OpacityLayer leaving = layerFor(0);
       final Layer? leavingPaint = leaving.firstChild;
       expect(leavingPaint, isNotNull);
       expect(shellPaints, greaterThan(0));
@@ -326,7 +319,7 @@ void main() {
       await tester.pump(const Duration(microseconds: 63999));
       expect(_opacity(tester, _page(1)), greaterThan(0));
       expect(_opacity(tester, _page(1)), lessThan(1));
-      final OffsetLayer arriving = layerFor(1);
+      final OpacityLayer arriving = layerFor(1);
       final Layer? arrivingPaint = arriving.firstChild;
       final FadeTransition visibleTransition = transitionFor(1);
       expect(arrivingPaint, isNotNull);

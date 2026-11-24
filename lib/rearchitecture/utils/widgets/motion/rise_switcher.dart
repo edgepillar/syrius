@@ -287,8 +287,8 @@ class _RiseSwitcherState extends State<RiseSwitcher>
             // Focus and child tickers only need the visibility edge.
             child: ValueListenableBuilder<bool>(
               valueListenable: entry.visible,
-              // The transform and fade can reuse each page's paint.
-              child: RepaintBoundary(child: entry.child),
+              // FadeTransition retains the visible page's paint.
+              child: entry.child,
               builder: (BuildContext context, bool visible, Widget? child) {
                 final bool interactive = entry.interactive;
                 return IgnorePointer(
