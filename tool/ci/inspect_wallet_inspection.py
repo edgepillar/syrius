@@ -18,7 +18,9 @@ from functools import cache
 from . import inspect_chain321 as archive
 from . import inspect_windows_qualification as windows
 from . import windows_wallet_inspection as producer
-from .hosted_chain321 import NAVIGATION_CATALOG_GENESIS, NAVIGATION_PLASMA_GENESIS
+from .hosted_chain321 import (
+    NAVIGATION_CATALOG_GENESIS, NAVIGATION_METER_GENESIS, NAVIGATION_PLASMA_GENESIS,
+)
 
 
 MAX_ARCHIVE = producer.MAX_CAPTURE_TOTAL + producer.MAX_MANIFEST + 65536
@@ -2219,6 +2221,7 @@ def main(parent=None):
         navigation_fixtures = (
             ('navigation_plasma_genesis', NAVIGATION_PLASMA_GENESIS),
             ('navigation_catalog_genesis', NAVIGATION_CATALOG_GENESIS),
+            ('navigation_meter_genesis', NAVIGATION_METER_GENESIS),
         )
         supplied = [(name, pins) for name, pins in navigation_fixtures if name in lab]
         need(len(supplied) <= 1)

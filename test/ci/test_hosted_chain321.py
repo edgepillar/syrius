@@ -89,6 +89,27 @@ class ClosedCheckpointAuthorityTests(unittest.TestCase):
 
 
 class AssetGenerationTests(unittest.TestCase):
+    def test_navigation_meter_changes_only_fuse_amounts_and_preserves_the_total(self):
+        units = 100_000_000
+        rows = [dict(owner='selected', beneficiaryAddress=beneficiary, amount=amount * units,
+                     withdrawHeight=height)
+                for beneficiary, amount, height in (
+                    ('selected', 5_000, 3001), ('selected', 10_000, 1),
+                    ('other', 10_000, 1), ('selected', 5_000, 3201))]
+        base = dict(PlasmaConfig=dict(Fusions=rows), PillarConfig=dict(Delegations=[]))
+        expected = copy.deepcopy(base)
+        expected_rows = expected['PlasmaConfig']['Fusions']
+        for entry, amount in zip(expected_rows, (15, 60, 29_910, 15)):
+            entry['amount'] = amount * units
+        prepared = (json.dumps(expected, separators=(',', ':')) + '\n').encode()
+        pins = dict(lab.NAVIGATION_METER_GENESIS, genesis_sha256=lab.digest(prepared))
+        with mock.patch.object(lab, 'navigation_catalog_genesis',
+                               return_value=json.dumps(base).encode()), \
+                mock.patch.object(lab, 'NAVIGATION_METER_GENESIS', pins):
+            self.assertEqual(lab.navigation_meter_genesis(b'fixture'), prepared)
+        self.assertEqual(sum(row['amount'] for row in expected_rows),
+                         sum(row['amount'] for row in rows))
+
     def test_navigation_plasma_preserves_fused_amounts_and_other_genesis_entries(self):
         rows = [dict(owner='fixture-owner', beneficiaryAddress=beneficiary,
                      amount=10_000, id=f'{index:064x}', withdrawHeight=1)

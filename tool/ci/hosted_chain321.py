@@ -418,6 +418,11 @@ NAVIGATION_CATALOG_GENESIS = dict(
     genesis_sha256='36766559b406a2731c7fe97f96eff06363a5c03ac55a4d6e30d6170d79c0e7a0',
     delegated_pillar='dev1',
 )
+NAVIGATION_METER_GENESIS = dict(
+    NAVIGATION_CATALOG_GENESIS,
+    genesis_sha256='7e34e05a5140282919e3b4c8bbc81ac116c2f79332f1282f83d05df9115fc9ca',
+    selected_fused_qsr=90,
+)
 
 
 def navigation_plasma_genesis(raw):
@@ -447,6 +452,25 @@ def navigation_catalog_genesis(raw):
         dict(Backer=fusions[0]['owner'], Name=fixture['delegated_pillar']))
     prepared = (json.dumps(genesis, separators=(',', ':')) + '\n').encode()
     need(digest(prepared) == fixture['genesis_sha256'], 'CONFIG_REFUSED')
+    return prepared
+
+
+def navigation_meter_genesis(raw):
+    """Redistribute only the test fusions to exercise a partially filled meter."""
+    genesis = json.loads(navigation_catalog_genesis(raw))
+    fusions = genesis['PlasmaConfig']['Fusions']
+    owner = fusions[0]['owner']
+    self_fusions = [entry for entry in fusions if entry['beneficiaryAddress'] == owner]
+    external_fusion, = (entry for entry in fusions if entry['beneficiaryAddress'] != owner)
+    amounts = (15, 60, 15)
+    need(len(self_fusions) == len(amounts), 'CONFIG_REFUSED')
+    total = sum(entry['amount'] for entry in fusions)
+    units = 100_000_000
+    for entry, amount in zip(self_fusions, amounts):
+        entry['amount'] = amount * units
+    external_fusion['amount'] = total - sum(amounts) * units
+    prepared = (json.dumps(genesis, separators=(',', ':')) + '\n').encode()
+    need(digest(prepared) == NAVIGATION_METER_GENESIS['genesis_sha256'], 'CONFIG_REFUSED')
     return prepared
 
 
@@ -1518,8 +1542,8 @@ def run(backend):
                 genesis_sha256=digest(genesis),
                 token_standards=list(HOME_FIXTURE_TOKEN_STANDARDS))
         if navigation_catalog:
-            genesis = navigation_catalog_genesis(genesis)
-            report['navigation_catalog_genesis'] = NAVIGATION_CATALOG_GENESIS
+            genesis = navigation_meter_genesis(genesis)
+            report['navigation_meter_genesis'] = NAVIGATION_METER_GENESIS
         report["genesis_sha256"] = digest(genesis)
         configs, pins, keyfile_pins = {}, {}, {}
         report["keyfile_relocations"] = []
