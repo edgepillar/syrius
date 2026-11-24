@@ -12,7 +12,10 @@ const String seedHttpOrigin = 'http://127.0.0.1:45997';
 const String labSendRecipeId = 'lab-send';
 const String pillarDepositRecipeId = 'pillar-qsr';
 const String pillarRegistrationRecipeId = 'pillar-register';
-const String labPillarRegistrationName = 'LabPillar';
+
+/// The reference fixture name for Spawn and Pillar Done. The isolated
+/// registration still checks availability before submitting the form.
+const String labPillarRegistrationName = 'dev4';
 const Set<String> seedRecipeIds = <String>{
   'stake',
   'fuse',
