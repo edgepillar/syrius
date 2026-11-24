@@ -224,10 +224,11 @@ class _Figures extends StatelessWidget {
     final _Reading? r = reading;
     final AppTokens tokens = AppTokens.of(context);
     final DisclosureController? form = fuseForm;
+    final int sendsCovered = (r?.current ?? 0) ~/ kPlasmaPerSend;
     final Widget addressFused = Row(
       children: <Widget>[
         Text('${context.l10n.plasmaPageFused} ', style: tokens.dollarText),
-        Flexible(
+        Expanded(
           child: HiddenAmount(
             style: tokens.dataText,
             child: r == null
@@ -241,6 +242,25 @@ class _Figures extends StatelessWidget {
                   ),
           ),
         ),
+        if (r != null)
+          Expanded(
+            flex: 2,
+            child: Padding(
+              padding: EdgeInsetsDirectional.only(start: tokens.plasmaLevelGap),
+              child: HiddenAmount(
+                alignment: AlignmentDirectional.centerEnd,
+                style: tokens.dollarText,
+                child: Text(
+                  sendsCovered > 0
+                      ? context.l10n.homePlasmaSends(sendsCovered)
+                      : context.l10n.homePlasmaNeedsWork,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: tokens.dollarText,
+                ),
+              ),
+            ),
+          ),
       ],
     );
     return Column(
@@ -340,8 +360,8 @@ class _OtherAddresses extends StatelessWidget {
                 source.hasCurrentRead;
             final InfiniteListState<PlasmaInfoWrapper> listState =
                 loaded || state.status == InfiniteListStatus.failure
-                    ? state
-                    : const InfiniteListState<PlasmaInfoWrapper>.initial();
+                ? state
+                : const InfiniteListState<PlasmaInfoWrapper>.initial();
             final List<PlasmaInfoWrapper> others = <PlasmaInfoWrapper>[
               for (final PlasmaInfoWrapper w in source.currentReadings)
                 if (w.address != selected) w,

@@ -53,7 +53,7 @@ void main() {
           when(() => stats.currentReadings).thenReturn(
             <PlasmaInfoWrapper>[other],
           );
-          when(() => stats.currentReading(any())).thenReturn(null);
+          when(() => stats.currentReading(any())).thenReturn(other);
           BalanceVisibility.debugReset();
           tester.view.physicalSize = const Size(1280, 780);
           tester.view.devicePixelRatio = 1;
@@ -115,6 +115,7 @@ void main() {
           );
           final Finder mark = find.byKey(const Key('plasma_page_mark'));
           final Finder fused = find.text('Fused ');
+          final Finder sends = find.text('Enough for about 3 sends');
           final State<PlasmaGlow> glow = tester.state<State<PlasmaGlow>>(mark);
           final Finder disclosure = find.byKey(
             const Key('plasma_other_addresses'),
@@ -124,6 +125,13 @@ void main() {
           expect(tester.getTopLeft(mark).dy - card.top, 22);
           expect(tester.getBottomRight(toggle).dy, card.bottom);
           expect(fused, findsOneWidget);
+          expect(sends.hitTestable(), findsOneWidget);
+          expect(tester.getTopLeft(sends).dx, greaterThan(card.center.dx));
+          BalanceVisibility.instance.toggle();
+          await tester.pump();
+          expect(sends.hitTestable(), findsNothing);
+          BalanceVisibility.instance.toggle();
+          await tester.pump();
           final double restingTop = tester.getTopLeft(toggle).dy;
 
           await tester.tap(toggle);
@@ -163,6 +171,7 @@ void main() {
           fuseForm.open();
           await tester.pump();
           expect(fused, findsNothing);
+          expect(sends, findsNothing);
           expect(tester.getRect(mark), openMarkBounds);
           expect(tester.getTopLeft(toggle).dy, openTop);
           expect(tester.state<State<PlasmaGlow>>(mark), same(glow));
