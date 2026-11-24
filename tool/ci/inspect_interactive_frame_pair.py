@@ -574,7 +574,8 @@ def inspect_run(client, *, head, run_id, lab, lab_summary, listing, run):
     entry = archive.sha(cold.source(client, pair.profile.ENTRY.as_posix(), head))
     archive.need(entry in (
         pair.profile.ENTRY_SHA256,
-        # Historical captures used the original startup skip control.
+        # Historical Welcome and original Skip preparation sources.
+        'bbd2c42a646c19fb48908cd132cb01b0640a421011b833a7e3402d9f3140f1a0',
         '9964efb8467c25596735b42c07719bb8fc0a71a1e83dcace3c82eca25bd26ad8',
     ))
     old = client.json('/git/commits/' + pair.shared.P06_SOURCE)

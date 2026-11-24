@@ -330,15 +330,8 @@ Future<void> main(List<String> args) async {
     phase = _PreparationPhase.emptyProfile;
     await _emptyProfile(instance);
     phase = _PreparationPhase.importWallet;
-    await pairedFrameWaitForWelcome(
-      (Map<String, Object?> command, Duration timeout) =>
-          instance.send(command, timeout: timeout),
-    );
-    phase = _PreparationPhase.ownerBefore;
-    await _owner(instance, pid);
-    phase = _PreparationPhase.emptyProfile;
-    await _emptyProfile(instance);
-    phase = _PreparationPhase.importWallet;
+    // The recipe owns the original startup handoff. Wait for Welcome only
+    // after that handoff so an active film can receive its original Skip.
     final _OwnedInstance importer = _OwnedInstance(
       instance.read(),
       pairedFrameWelcomeSend(
