@@ -267,6 +267,14 @@ class _View extends StatelessWidget {
     final bool empty =
         state is FetchFailure<DelegationInfo> &&
         state.exception is NoDelegationStatsException;
+    final ButtonStyle quiet = nodesQuietButtonStyle(context);
+    final ButtonStyle delegationButton = delegation == null
+        ? quiet
+        : secondaryButtonStyle(context).copyWith(
+            minimumSize: quiet.minimumSize,
+            padding: quiet.padding,
+            textStyle: quiet.textStyle,
+          );
     return ListenableBuilder(
       listenable: BalanceVisibility.instance,
       builder: (BuildContext context, Widget? child) => PageStrip(
@@ -321,7 +329,7 @@ class _View extends StatelessWidget {
                   ),
             action: TextButton(
               key: const Key('nodes_delegate'),
-              style: nodesQuietButtonStyle(context),
+              style: delegationButton,
               onPressed: busy ? null : () => showDelegationChooser(context),
               child: Text(
                 delegation == null
@@ -339,7 +347,7 @@ class _View extends StatelessWidget {
         actions: <Widget>[
           TextButton.icon(
             key: const Key('nodes_pillar_rewards'),
-            style: nodesQuietButtonStyle(context),
+            style: quiet,
             onPressed: () => _openRewards(context),
             icon: ShellSymbol('chart', size: tokens.smallActionGlyphSize),
             label: Text(context.l10n.nodesRewards),

@@ -94,7 +94,8 @@ class AssetGenerationTests(unittest.TestCase):
                      amount=10_000, id=f'{index:064x}', withdrawHeight=1)
                 for index, beneficiary in enumerate(('self', 'self', 'other'), 1)]
         base = dict(ChainIdentifier=321, ExtraData='SYRIUS LAB',
-                    PlasmaConfig=dict(Fusions=rows), GenesisBlocks=dict(Blocks=[]))
+                    PlasmaConfig=dict(Fusions=rows), GenesisBlocks=dict(Blocks=[]),
+                    PillarConfig=dict(Delegations=[]))
         raw = json.dumps(base).encode()
         expected = copy.deepcopy(base)
         fusions = expected['PlasmaConfig']['Fusions']
@@ -108,6 +109,12 @@ class AssetGenerationTests(unittest.TestCase):
             self.assertEqual(lab.navigation_plasma_genesis(raw), prepared)
             with self.assertRaises(lab.Failure):
                 lab.navigation_plasma_genesis(prepared)
+            expected['PillarConfig']['Delegations'] = [
+                dict(Backer=rows[0]['owner'], Name='dev1')]
+            catalog = (json.dumps(expected, separators=(',', ':')) + '\n').encode()
+            catalog_pins = dict(pins, delegated_pillar='dev1', genesis_sha256=lab.digest(catalog))
+            with mock.patch.object(lab, 'NAVIGATION_CATALOG_GENESIS', catalog_pins):
+                self.assertEqual(lab.navigation_catalog_genesis(raw), catalog)
         self.assertEqual({sum(row['amount'] for row in source if row['beneficiaryAddress'] == 'self')
                           for source in (rows, fusions)}, {20_000})
         self.assertEqual(len({row['id'] for row in fusions}), 4)

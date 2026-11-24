@@ -413,6 +413,11 @@ NAVIGATION_PLASMA_GENESIS = {
     'fusion_count': 4,
     'locked_until_heights': [3001, 3201],
 }
+NAVIGATION_CATALOG_GENESIS = dict(
+    NAVIGATION_PLASMA_GENESIS,
+    genesis_sha256='36766559b406a2731c7fe97f96eff06363a5c03ac55a4d6e30d6170d79c0e7a0',
+    delegated_pillar='dev1',
+)
 
 
 def navigation_plasma_genesis(raw):
@@ -428,6 +433,18 @@ def navigation_plasma_genesis(raw):
     original['withdrawHeight'] = first_height
     split_id = digest(('navigation-plasma:' + original['id']).encode('ascii'))
     fusions.append(dict(original, id=split_id, amount=split, withdrawHeight=second_height))
+    prepared = (json.dumps(genesis, separators=(',', ':')) + '\n').encode()
+    need(digest(prepared) == fixture['genesis_sha256'], 'CONFIG_REFUSED')
+    return prepared
+
+
+def navigation_catalog_genesis(raw):
+    """Give the original Navigation wallet a real genesis delegation."""
+    genesis = json.loads(navigation_plasma_genesis(raw))
+    fusions = genesis['PlasmaConfig']['Fusions']
+    fixture = NAVIGATION_CATALOG_GENESIS
+    genesis['PillarConfig']['Delegations'].append(
+        dict(Backer=fusions[0]['owner'], Name=fixture['delegated_pillar']))
     prepared = (json.dumps(genesis, separators=(',', ':')) + '\n').encode()
     need(digest(prepared) == fixture['genesis_sha256'], 'CONFIG_REFUSED')
     return prepared
@@ -1402,7 +1419,7 @@ def run(backend):
     send_warning = inspection and readonly_catalog_family(parent) == send_warning_window.FAMILY
     holder_catalog = wallet_tour and parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == TOKEN_HOLDER_FAMILY
     home_holdings = inspection and parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == 'home-catalog'
-    navigation_plasma = inspection and parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == 'navigation'
+    navigation_catalog = inspection and parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == 'navigation'
     stack_debug = backend == "native" and parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") == "true"
     node_source = parent.get("SYRIUS_LAB_NODE_SOURCE", "original")
     node_sha, node_tree = selected_node_source(node_source)
@@ -1500,9 +1517,9 @@ def run(backend):
                 base_genesis_sha256=base_genesis_sha256,
                 genesis_sha256=digest(genesis),
                 token_standards=list(HOME_FIXTURE_TOKEN_STANDARDS))
-        if navigation_plasma:
-            genesis = navigation_plasma_genesis(genesis)
-            report['navigation_plasma_genesis'] = NAVIGATION_PLASMA_GENESIS
+        if navigation_catalog:
+            genesis = navigation_catalog_genesis(genesis)
+            report['navigation_catalog_genesis'] = NAVIGATION_CATALOG_GENESIS
         report["genesis_sha256"] = digest(genesis)
         configs, pins, keyfile_pins = {}, {}, {}
         report["keyfile_relocations"] = []

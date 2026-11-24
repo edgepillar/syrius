@@ -18,7 +18,7 @@ from functools import cache
 from . import inspect_chain321 as archive
 from . import inspect_windows_qualification as windows
 from . import windows_wallet_inspection as producer
-from .hosted_chain321 import NAVIGATION_PLASMA_GENESIS
+from .hosted_chain321 import NAVIGATION_CATALOG_GENESIS, NAVIGATION_PLASMA_GENESIS
 
 
 MAX_ARCHIVE = producer.MAX_CAPTURE_TOTAL + producer.MAX_MANIFEST + 65536
@@ -2216,12 +2216,19 @@ def main(parent=None):
                  and holdings_fixture['token_standards']
                      == list(producer.HOME_FIXTURE_TOKEN_STANDARDS))
             catalog['holdings_genesis'] = holdings_fixture
-        navigation_fixture = lab.get('navigation_plasma_genesis')
-        if navigation_fixture is not None:
+        navigation_fixtures = (
+            ('navigation_plasma_genesis', NAVIGATION_PLASMA_GENESIS),
+            ('navigation_catalog_genesis', NAVIGATION_CATALOG_GENESIS),
+        )
+        supplied = [(name, pins) for name, pins in navigation_fixtures if name in lab]
+        need(len(supplied) <= 1)
+        if supplied:
+            (name, pins), = supplied
+            navigation_fixture = lab[name]
             need(navigation_reference is not None
-                 and navigation_fixture == NAVIGATION_PLASMA_GENESIS
+                 and navigation_fixture == pins
                  and navigation_fixture['genesis_sha256'] == lab.get('genesis_sha256'))
-            catalog['navigation_plasma_genesis'] = navigation_fixture
+            catalog[name] = navigation_fixture
             with zipfile.ZipFile(io.BytesIO(catalog_archive)) as zipped:
                 catalog['plasma_expiry_badge_ink'] = {
                     theme: plasma_expiry_badge_ink(zipped.read(f'21-plasma-{theme}.png'))
