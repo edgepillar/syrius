@@ -1,0 +1,18 @@
+{
+  "actual": {
+    "46-seed-quiz-dark": {
+      "archive_member": "46-seed-quiz-dark.png",
+      "archive_sha256": "22b6f1b377320f34d2e5811ba82a1eafb0be965355a0bfb00df2130d97ac9256",
+      "path": "22b6f1b377320f34d2e5811ba82a1eafb0be965355a0bfb00df2130d97ac9256",
+      "sha256": "cf58965ff929984c00d62eb06e0a975ea82ef33700e5a2b0a9c758308c62323f",
+      "source_sha": "1933ca9e81ec006be457db71b63304e2b292493e"
+    },
+    "46-seed-quiz-light": {
+      "archive_member": "46-seed-quiz-light.png",
+      "archive_sha256": "22b6f1b377320f34d2e5811ba82a1eafb0be965355a0bfb00df2130d97ac9256",
+      "path": "22b6f1b377320f34d2e5811ba82a1eafb0be965355a0bfb00df2130d97ac9256",
+      "sha256": "ebc2047db13b471caaca21d33027e9578ecc4beb3cec951bdc5b298a8e14bdbc",
+      "source_sha": "1933ca9e81ec006be457db71b63304e2b292493e"
+    }
+  }
+}

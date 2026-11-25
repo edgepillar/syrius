@@ -1,0 +1,20 @@
+{
+  "reviews": {
+    "46-seed-quiz-dark": {
+      "actual_sha256": "cf58965ff929984c00d62eb06e0a975ea82ef33700e5a2b0a9c758308c62323f",
+      "expected_sha256": "fd960ea2486c0f41005139ca068375a8f6e8ac0635ee951bcd3cc7e1280f00b5",
+      "note": "The word labels and compact choice text use the reference interface type. Card bounds, steps, separators and actions align. Synthetic fixture text changes the choice widths. Approved palette and rasterization differences remain.",
+      "reviewed_at": "2026-11-25T06:24:33Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "46-seed-quiz-light": {
+      "actual_sha256": "ebc2047db13b471caaca21d33027e9578ecc4beb3cec951bdc5b298a8e14bdbc",
+      "expected_sha256": "045b9ce86746cd3663959877ed84e45c289d8e1f132740c4894a94be5ef47a81",
+      "note": "The word labels and compact choice text use the reference interface type. Card bounds, steps, separators and actions align. Synthetic fixture text changes the choice widths. Approved palette and rasterization differences remain.",
+      "reviewed_at": "2026-11-25T06:24:33Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    }
+  }
+}
