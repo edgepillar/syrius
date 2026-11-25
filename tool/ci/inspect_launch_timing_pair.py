@@ -153,7 +153,8 @@ def raster_start_bounds(row, origin_us=0, *, observed_us=None):
     return relative_start + build, relative_start + total - raster
 
 
-def raster_rank_overruns(baseline_window, current_window, *, phase_boundaries=None):
+def raster_rank_overruns(baseline_window, current_window, *, phase_boundaries=None,
+                         settlement_us=None):
     """Locate the original raster samples that exceed their paired duration."""
     budget = pair.FRAME_BUDGET_US
     baseline = sorted((row[3] for row in pair.launch.frame_timing_rows(
@@ -167,6 +168,7 @@ def raster_rank_overruns(baseline_window, current_window, *, phase_boundaries=No
     else:
         offsets, phase_names = phase_boundaries
     phases = dict.fromkeys(phase_names, 0) if offsets is not None else None
+    after_settlement = dict(built_before=0, built_at_or_after=0)
     count, unpaired, worst = 0, 0, None
     for index, row in enumerate(current):
         before = baseline[index] if index < len(baseline) else None
@@ -180,10 +182,17 @@ def raster_rank_overruns(baseline_window, current_window, *, phase_boundaries=No
             first, last = bisect_right(offsets, earliest), bisect_right(offsets, latest)
             phase = phase_names[first] if first == last else 'crossing'
             phases[phase] += 1
+        # A raster beginning after settlement can still carry an earlier build.
+        if settlement_us is not None and earliest >= settlement_us:
+            build_phase = 'built_before' if row[1] < settlement_us else 'built_at_or_after'
+            after_settlement[build_phase] += 1
         if worst is None or excess > worst['excess_us']:
             worst = dict(rank=index + 1, baseline_us=before, current_us=row[3],
                          excess_us=excess, start_us=[earliest, latest])
-    return dict(count=count, unpaired=unpaired, by_phase=phases, worst=worst)
+    result = dict(count=count, unpaired=unpaired, by_phase=phases, worst=worst)
+    if settlement_us is not None:
+        result['after_settlement_by_build_start'] = after_settlement
+    return result
 
 
 def largest_frame_gap(rows, raster_starts):

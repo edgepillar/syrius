@@ -474,22 +474,22 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
     if complete:
         observation = samples['current']['observation']
         releases = observation.get('tap_release_us', {})
-        settlement = observation.get('disclosure_phases_us', {}).get('settled')
-        page_settlement = observation.get('page_settled_us')
         for name in pair.WINDOWS:
             if 'raster' not in comparisons[name]['exceeded']:
                 continue
             boundaries = None
+            settlement = (observed_phases.get(name) or {}).get('settled')
             if name == 'disclosure' and settlement is not None:
                 boundaries = ([settlement], ('before_settlement', 'after_settlement', 'crossing'))
-            elif name == 'page_change' and page_settlement is not None:
-                boundaries = ([releases[name], page_settlement],
+            elif name == 'page_change' and settlement is not None:
+                boundaries = ([releases[name], settlement],
                               ('before_release', 'before_settlement', 'after_settlement', 'crossing'))
             elif name == 'page_change' and name in releases:
                 release = releases[name]
                 boundaries = ([release, release + MOTION_US[name]],
                               ('before_release', 'during_nominal_motion', 'after_nominal_motion', 'crossing'))
-            overrun = cold.raster_rank_overruns(old[name], windows[name], phase_boundaries=boundaries)
+            overrun = cold.raster_rank_overruns(
+                old[name], windows[name], phase_boundaries=boundaries, settlement_us=settlement)
             if overrun['by_phase'] is None:
                 del overrun['by_phase']
             if name in releases:

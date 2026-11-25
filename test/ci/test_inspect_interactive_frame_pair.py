@@ -522,6 +522,8 @@ class InteractiveFramePairTests(unittest.TestCase):
         projected = self.project(measured_disclosure)
         self.assertEqual(projected['verified_raster_rank_overruns']['disclosure']['by_phase'],
                          dict(before_settlement=0, after_settlement=2, crossing=1))
+        self.assertEqual(projected['verified_raster_rank_overruns']['disclosure'][
+            'after_settlement_by_build_start'], dict(built_before=1, built_at_or_after=1))
         diagnosed = projected['verified_window_diagnostics']
         self.assertEqual(diagnosed['current']['disclosure']['raster_start_groups_by_observed_phase'], {
             'columns': ['samples', 'slow_raster', 'max_raster_us'],
@@ -579,6 +581,8 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(settled['page_settled_us'], 300_000)
         self.assertEqual(settled['verified_raster_rank_overruns']['page_change']['by_phase'],
                          dict(before_release=0, before_settlement=1, after_settlement=1, crossing=1))
+        self.assertEqual(settled['verified_raster_rank_overruns']['page_change'][
+            'after_settlement_by_build_start'], dict(built_before=0, built_at_or_after=1))
         page_settlement = settled['verified_window_diagnostics']['current']['page_change']
         self.assertEqual(page_settlement['observed_post_frame_offsets_from_tap_us'],
                          {'settled': 295_000})
