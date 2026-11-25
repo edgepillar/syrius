@@ -899,6 +899,32 @@ def _rgb_changes(actual, expected):
                 yield index // 3, red, green, blue
 
 
+def _launch_mark_comparison(actual, a_channels, expected, e_channels, bounds):
+    left, top, right, bottom = bounds
+
+    def mark(rows, channels):
+        points = set()
+        for y in range(top, bottom):
+            row = rows[y]
+            for x in range(left, right):
+                offset = x * channels
+                red, green, blue = row[offset:offset + 3]
+                if green - red >= 16 and green - blue >= 16:
+                    points.add((x, y))
+        return points
+
+    def summary(points):
+        if not points:
+            return dict(pixels=0, bounds=None)
+        x, y = zip(*points)
+        return dict(pixels=len(points), bounds=[min(x), min(y), max(x), max(y)])
+
+    actual_mark = mark(actual, a_channels)
+    reference_mark = mark(expected, e_channels)
+    return dict(actual=summary(actual_mark), reference=summary(reference_mark),
+                shared_pixels=len(actual_mark & reference_mark))
+
+
 def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
                      sample_points=None, import_background_theme=None,
                      align_settings_labels=False, align_caption=False,
@@ -993,6 +1019,9 @@ def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
         result['unlock_fill_rows'] = dict(
             actual=_handoff_unlock_fill_rows(actual, a_channels),
             reference=_handoff_unlock_fill_rows(expected, e_channels))
+    if 'launch_tile' in regions:
+        result['launch_mark_comparison'] = _launch_mark_comparison(
+            actual, a_channels, expected, e_channels, regions['launch_tile'])
     return result
 
 

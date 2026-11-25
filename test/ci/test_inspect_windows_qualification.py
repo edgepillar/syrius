@@ -45,7 +45,8 @@ def log(report):
         '2026-10-26T12:00:01.0000000Z ' + json.dumps(report) + '\n').encode()
 
 
-def pixels(*connector_rows, opaque=False, welcome_rows=(), welcome_x=710, rgba=True):
+def pixels(*connector_rows, opaque=False, welcome_rows=(), welcome_x=710,
+           rgba=True, launch_x=None):
     def chunk(kind, data):
         return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data))
     alpha = bytes((255 if opaque else 0,)) if rgba else b''
@@ -54,9 +55,13 @@ def pixels(*connector_rows, opaque=False, welcome_rows=(), welcome_x=710, rgba=T
     blank = b'\x00' + fill * 1280
     connector = b'\x00' + fill * 482 + ink * 108 + fill * (1280 - 590)
     text = b'\x00' + fill * welcome_x + ink * 8 + fill * (1280 - welcome_x - 8)
-    scanlines = b''.join(
-        connector if y in connector_rows else text if y in welcome_rows else blank
-        for y in range(780))
+    def scanline(y):
+        if y == 350 and launch_x is not None:
+            green = bytes((0, 213, 87)) + alpha
+            return b'\x00' + fill * launch_x + green * 4 + fill * (1276 - launch_x)
+        return connector if y in connector_rows else text if y in welcome_rows else blank
+
+    scanlines = b''.join(scanline(y) for y in range(780))
     return (b'\x89PNG\r\n\x1a\n'
         + chunk(b'IHDR', struct.pack('>IIBBBBB', 1280, 780, 8, 6 if rgba else 2, 0, 0, 0))
         + chunk(b'IDAT', zlib.compress(scanlines))
@@ -342,6 +347,19 @@ class WindowsQualificationTests(unittest.TestCase):
         self.assertEqual(comparison['changed_pixels_at_least_16'], 24)
         self.assertEqual(comparison['pixels_at_least_16_by_region'],
                          dict(first=8, later=8, outside_crops=8))
+
+    def test_originals_launch_mark_reports_overlap_and_absent_ink(self):
+        actual = pixels(opaque=True, launch_x=345)
+        bounds = dict(launch_tile=(260, 315, 444, 427))
+        for reference_x in (347, None):
+            with self.subTest(reference_x=reference_x):
+                reference = pixels(rgba=False, launch_x=reference_x)
+                comparison = inspect.pixel_comparison(actual, reference, bounds)
+                expected = (dict(pixels=4, bounds=[347, 350, 350, 350])
+                            if reference_x is not None else dict(pixels=0, bounds=None))
+                self.assertEqual(comparison['launch_mark_comparison'], dict(
+                    actual=dict(pixels=4, bounds=[345, 350, 348, 350]),
+                    reference=expected, shared_pixels=2 if reference_x is not None else 0))
 
     def test_welcome_action_alignment_finds_the_shift_to_the_reference(self):
         actual = pixels(opaque=True, welcome_rows=(340, 341), welcome_x=763)
