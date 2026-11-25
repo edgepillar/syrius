@@ -1,0 +1,84 @@
+{
+  "actual": {
+    "10-receive-qr-dark": {
+      "archive_member": "10-receive-qr-dark.png",
+      "archive_sha256": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "catalog_family": "details",
+      "path": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "sha256": "d79c89ef00952f413c67d9fc9f173cb707b6e62f6a1aa99aa3abf2d93f8a86d3",
+      "source_sha": "cb35bc43a3d97a8aacb0d6f195851fdff099fe9f"
+    },
+    "10-receive-qr-light": {
+      "archive_member": "10-receive-qr-light.png",
+      "archive_sha256": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "catalog_family": "details",
+      "path": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "sha256": "5036370021f9020b02b65ee812c1a77a3c01fc32e7b90160aab5efa6c5befa8b",
+      "source_sha": "cb35bc43a3d97a8aacb0d6f195851fdff099fe9f"
+    },
+    "11-zap-form-dark": {
+      "archive_member": "11-zap-form-dark.png",
+      "archive_sha256": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "catalog_family": "details",
+      "path": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "sha256": "2f10a64b8a95bfe26118704299d52c77ca0617019a6b1037bc5e17d30356c2c1",
+      "source_sha": "cb35bc43a3d97a8aacb0d6f195851fdff099fe9f"
+    },
+    "11-zap-form-light": {
+      "archive_member": "11-zap-form-light.png",
+      "archive_sha256": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "catalog_family": "details",
+      "path": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "sha256": "79ea75e68b28a25046d609fc6255afc342a55f7304dcd5b4358c2572108ee31e",
+      "source_sha": "cb35bc43a3d97a8aacb0d6f195851fdff099fe9f"
+    },
+    "22-plasma-fuse-dark": {
+      "archive_member": "22-plasma-fuse-dark.png",
+      "archive_sha256": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "catalog_family": "details",
+      "path": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "sha256": "bec30b1a38bfcb8765ca42df1764fea8ce5358a52a82d78acbc8965ba7db6eec",
+      "source_sha": "cb35bc43a3d97a8aacb0d6f195851fdff099fe9f"
+    },
+    "22-plasma-fuse-light": {
+      "archive_member": "22-plasma-fuse-light.png",
+      "archive_sha256": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "catalog_family": "details",
+      "path": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "sha256": "d382e4cad27d7a263153657e074c8ced8a979263e67f287c0fa12c5cc7fb865e",
+      "source_sha": "cb35bc43a3d97a8aacb0d6f195851fdff099fe9f"
+    },
+    "37-set-licences-dark": {
+      "archive_member": "37-set-licences-dark.png",
+      "archive_sha256": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "catalog_family": "details",
+      "path": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "sha256": "24e0c933862055f87e44f9f983dbb49350990828a4a7fdd77b487aa9fc6b1de8",
+      "source_sha": "cb35bc43a3d97a8aacb0d6f195851fdff099fe9f"
+    },
+    "37-set-licences-light": {
+      "archive_member": "37-set-licences-light.png",
+      "archive_sha256": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "catalog_family": "details",
+      "path": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "sha256": "083447fb22643a9e3a9d79b5bf2ff96fb3ae69f4db098e011ed4a094690effeb",
+      "source_sha": "cb35bc43a3d97a8aacb0d6f195851fdff099fe9f"
+    },
+    "38-set-originals-dark": {
+      "archive_member": "38-set-originals-dark.png",
+      "archive_sha256": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "catalog_family": "details",
+      "path": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "sha256": "3c4a46fe03e6139230081379a2074dca003fdfb134e74ee884ad0ee3add56548",
+      "source_sha": "cb35bc43a3d97a8aacb0d6f195851fdff099fe9f"
+    },
+    "38-set-originals-light": {
+      "archive_member": "38-set-originals-light.png",
+      "archive_sha256": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "catalog_family": "details",
+      "path": "f17b51530a858907c4466c4bb523f242af5f1b474d4eadd773fbdd52dddeedab",
+      "sha256": "efedce8f374f7c39a399b85f8df7bdfac5dc7bb9892b7e00d711eb0934dfdd12",
+      "source_sha": "cb35bc43a3d97a8aacb0d6f195851fdff099fe9f"
+    }
+  }
+}
