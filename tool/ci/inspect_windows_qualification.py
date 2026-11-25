@@ -454,22 +454,18 @@ def handoff_unlock_palette_delta(point):
     return [round(1000 * HANDOFF_OPACITY * (a - b)) for a, b in zip(approved, original)]
 
 
-def handoff_unlock_palette_band(data, reference):
+def _handoff_unlock_palette_band(actual, a_channels, expected, e_channels):
     """Measure two strips of fill away from the label and rounded ends."""
     left, right = 482, 798
     top, bottom = 528, 540
     columns = tuple(range(left, 581)) + tuple(range(703, right))
 
-    def decode(png):
-        return _png_crop(base64.b64encode(png).decode('ascii'), (left, right), (top, bottom))
-
-    actual, a_channels = decode(data)
-    expected, e_channels = decode(reference)
     raw_differences = residual_differences = max_residual = 0
-    for y, (a_row, e_row) in enumerate(zip(actual, expected), top):
+    for y in range(top, bottom):
+        a_row, e_row = actual[y], expected[y]
         for x in columns:
-            actual_offset = (x - left) * a_channels
-            reference_offset = (x - left) * e_channels
+            actual_offset = x * a_channels
+            reference_offset = x * e_channels
             actual_rgb = a_row[actual_offset:actual_offset + 3]
             reference_rgb = e_row[reference_offset:reference_offset + 3]
             change = [1000 * (a_value - e_value)
@@ -485,23 +481,22 @@ def handoff_unlock_palette_band(data, reference):
                 max_residual_milli=max_residual)
 
 
-def handoff_unlock_fill_rows(data):
+def _handoff_unlock_fill_rows(rows, channels):
     """Measure the vertical fill edges at two solid parts of the pill."""
     top, bottom = 501, 567
-    encoded = base64.b64encode(data).decode('ascii')
     edges = {}
     for name, left, right, channel in (
         ('green', 502, 550, 1),
         ('blue', 742, 782, 2),
     ):
-        rows, channels = _png_crop(encoded, (left, right), (top, bottom))
         filled = []
-        if _opaque(rows, channels):
-            for y, row in enumerate(rows, top):
-                count = sum(row[offset + channel] - row[offset] >= 28
-                            for offset in range(0, len(row), channels))
-                if count * 10 >= (right - left) * 9:
-                    filled.append(y)
+        offsets = range(left * channels, right * channels, channels)
+        for y in range(top, bottom):
+            row = rows[y]
+            count = sum(row[offset + channel] - row[offset] >= 28
+                        for offset in offsets)
+            if count * 10 >= (right - left) * 9:
+                filled.append(y)
         if (filled and top < filled[0] <= filled[-1] < bottom - 1
                 and len(filled) == filled[-1] - filled[0] + 1):
             edges[name] = [filled[0], filled[-1] + 1]
@@ -907,7 +902,8 @@ def _rgb_changes(actual, expected):
 def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
                      sample_points=None, import_background_theme=None,
                      align_settings_labels=False, align_caption=False,
-                     align_pillar_receipt=False, sample_spawn_fields=False):
+                     align_pillar_receipt=False, sample_spawn_fields=False,
+                     measure_handoff_unlock=False):
     """Compare original opaque client images in the supplied fixed regions."""
     def decode(png):
         encoded = base64.b64encode(png).decode('ascii')
@@ -991,6 +987,12 @@ def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
                        reference=list(expected[y][x * e_channels:x * e_channels + 3]))
             for name, (x, y) in sample_points.items()
         }
+    if measure_handoff_unlock:
+        result['unlock_palette_band'] = _handoff_unlock_palette_band(
+            actual, a_channels, expected, e_channels)
+        result['unlock_fill_rows'] = dict(
+            actual=_handoff_unlock_fill_rows(actual, a_channels),
+            reference=_handoff_unlock_fill_rows(expected, e_channels))
     return result
 
 
@@ -1021,7 +1023,8 @@ def startup_pixel_comparison(name, data):
                       unlock_left=(510, 533), unlock_right=(730, 533),
                       above_unlock=(510, 500), below_unlock=(510, 565))
     result = pixel_comparison(data, reference, regions, sample_points=points,
-                              align_caption=True)
+                              align_caption=True,
+                              measure_handoff_unlock=name in startup.launch.SETTLE_FILES)
     archive.need(result is not None)
     result['region_bounds'] = regions
     if name in startup.launch.SETTLE_FILES:
@@ -1035,9 +1038,6 @@ def startup_pixel_comparison(name, data):
                         for a, b, delta in zip(sample['actual'], sample['reference'], change)]
             palette[key] = dict(model_delta_milli=change, residual_delta_milli=residual)
         result['unlock_palette_samples'] = palette
-        result['unlock_palette_band'] = handoff_unlock_palette_band(data, reference)
-        result['unlock_fill_rows'] = dict(actual=handoff_unlock_fill_rows(data),
-                                          reference=handoff_unlock_fill_rows(reference))
     return result
 
 

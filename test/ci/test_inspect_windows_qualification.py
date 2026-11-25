@@ -294,8 +294,10 @@ class WindowsQualificationTests(unittest.TestCase):
                          [284, None, 284])
 
         handoff = pixels(520, 744, opaque=True, welcome_rows=(14, 240), welcome_x=300)
-        with mock.patch.object(Path, 'open', return_value=io.BytesIO(pixels(opaque=True))):
+        with (mock.patch.object(Path, 'open', return_value=io.BytesIO(pixels(rgba=False))),
+              mock.patch.object(inspect, '_png_crop', wraps=inspect._png_crop) as crop):
             comparison = inspect.startup_pixel_comparison('40-launch-settle-dark.png', handoff)
+        self.assertEqual(crop.call_count, 2)
         self.assertEqual(comparison['pixels_at_least_16_by_region'], dict(
             caption_wordmark=0, caption_background=8, caption_controls=0,
             stage=8, above_unlock=0, unlock_band=108, below_unlock=0,
@@ -312,6 +314,9 @@ class WindowsQualificationTests(unittest.TestCase):
         self.assertEqual(comparison['unlock_palette_band'], dict(sample_count=2328,
             raw_pixels_at_least_16=0, residual_pixels_at_least_16=881,
             max_residual_milli=27473))
+        self.assertEqual(comparison['unlock_fill_rows'],
+                         dict(actual=dict(green=None, blue=None),
+                              reference=dict(green=None, blue=None)))
         with mock.patch.object(Path, 'open', return_value=io.BytesIO(pixels(opaque=True))):
             settled = inspect.startup_pixel_comparison('41-lock-screen-dark.png', handoff)
         self.assertEqual(settled['sample_rgb']['left_of_stage'],
@@ -323,10 +328,11 @@ class WindowsQualificationTests(unittest.TestCase):
         for theme in ('dark', 'light'):
             with self.subTest(theme=theme):
                 data = (references / f'40-launch-settle-{theme}.png').read_bytes()
-                self.assertEqual(inspect.handoff_unlock_fill_rows(data),
-                                 dict(green=[511, 557], blue=[511, 557]))
-        self.assertEqual(inspect.handoff_unlock_fill_rows(pixels(opaque=True)),
-                         dict(green=None, blue=None))
+                observation = inspect.startup_pixel_comparison(
+                    f'40-launch-settle-{theme}.png', data)
+                expected = dict(green=[511, 557], blue=[511, 557])
+                self.assertEqual(observation['unlock_fill_rows'],
+                                 dict(actual=expected, reference=expected))
 
     def test_overlapping_pixel_regions_keep_the_first_region_priority(self):
         actual = pixels(opaque=True, welcome_rows=(340, 341, 342))
