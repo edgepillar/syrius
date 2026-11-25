@@ -640,6 +640,8 @@ void main() {
     expect(preview.observation, <String, Object>{
       'kind': 'originals_launch', 'frame': 3, 'frame_count': 8,
     });
+    await tester.pump(Duration.zero, EnginePhase.layout);
+    expect(preview.observed, isFalse);
     await tester.pump();
     expect(preview.observed, isTrue);
     final Object? previewImage = tester.widget<RawImage>(picture).image;

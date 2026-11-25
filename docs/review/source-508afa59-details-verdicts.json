@@ -75,7 +75,7 @@
     "38-set-originals-light": {
       "actual_sha256": "c8b8a91a6616c3dcc02add90a63aa2203fe9829a57780dc46b6dd6141106446c",
       "expected_sha256": "b82600455634b306377ea7626f2e0ee80c7977c60c1ae1a7e23243dcace9d3ed",
-      "note": "The gallery and footer align. The discovery field is cleared on reveal and the reference retains the typed code. The Globe and Map art differ. The original Launch tile is on a black frame at the capture point.",
+      "note": "The gallery and footer align. The discovery field is cleared on reveal and the reference retains the typed code. The Globe and Map art differ. The original Launch tile shows its green mark in both themes.",
       "reviewed_at": "2026-11-25T05:15:43Z",
       "reviewer": "Codex",
       "verdict": "mismatch"

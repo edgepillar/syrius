@@ -387,6 +387,22 @@ class _OriginalsFilmArtwork implements ReferenceArtworkSource {
   }
 }
 
+class _OriginalsFilmPaint extends CustomPainter {
+  const _OriginalsFilmPaint(this.film, this.artwork);
+
+  final _LaunchFilmState film;
+  final _OriginalsFilmArtwork? artwork;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    film._paintedArtwork = artwork;
+  }
+
+  @override
+  bool shouldRepaint(_OriginalsFilmPaint oldDelegate) =>
+      !identical(artwork, oldDelegate.artwork);
+}
+
 class _LaunchFilmState extends State<LaunchFilm>
     with SingleTickerProviderStateMixin<LaunchFilm> {
   late final Ticker _ticker = createTicker(_tick);
@@ -505,7 +521,8 @@ class _LaunchFilmState extends State<LaunchFilm>
 
   void _play(int from, {bool skip = false}) {
     final int run = _run += 1;
-    final bool clearingSample = _paintedArtwork != null;
+    final bool clearingSample =
+        _paintedArtwork != null || _originalsArtwork?.sampledImage != null;
     _originalsArtwork?.dispose();
     final double? progress = widget.originalsReferenceProgress;
     _originalsArtwork = progress == null
@@ -806,12 +823,24 @@ class _LaunchFilmState extends State<LaunchFilm>
   @override
   Widget build(BuildContext context) {
     final ui.Image? sample = _originalsArtwork?.sampledImage;
-    _paintedArtwork = sample == null ? null : _originalsArtwork;
     final ui.Image? frame = sample ?? _shown;
+    Widget image = RawImage(
+      image: frame,
+      fit: widget.retainImageLayout ? null : widget.fit,
+    );
+    if (widget.originalsReferenceProgress != null) {
+      // Record a sample only after its image has participated in painting.
+      image = CustomPaint(
+        foregroundPainter: _OriginalsFilmPaint(
+          this,
+          sample == null ? null : _originalsArtwork,
+        ),
+        child: image,
+      );
+    }
     if (widget.retainImageLayout) {
       // The launch stage resizes during the handoff. Fit the original image
       // layer at paint time so the held frame keeps its decoded layout size.
-      final Widget image = RawImage(image: frame);
       return FittedBox(
         fit: widget.fit,
         clipBehavior: Clip.hardEdge,
@@ -823,7 +852,7 @@ class _LaunchFilmState extends State<LaunchFilm>
     return RepaintBoundary(
       child: ColoredBox(
         color: const Color(0xFF000000),
-        child: SizedBox.expand(child: RawImage(image: frame, fit: widget.fit)),
+        child: SizedBox.expand(child: image),
       ),
     );
   }
