@@ -375,6 +375,14 @@ void main() {
         ),
       );
     }
+    Widget unlinkedMark(double x, double y, {required bool show}) =>
+        Positioned.fill(
+          child: CompositedTransformFollower(
+            link: LayerLink(),
+            showWhenUnlinked: show,
+            child: Stack(children: <Widget>[mark(x, y, green)]),
+          ),
+        );
     for (final (String placement, String recordedScope) in <(String, String)>[
       ('inside clip', 'inside'),
       ('beside clip', 'inside'),
@@ -383,6 +391,9 @@ void main() {
       ('above pane in shell', 'above_pane_in_shell'),
       ('below pane in shell', 'below_pane_in_shell'),
       ('in shell follower', 'in_shell_follower'),
+      ('in unlinked shell follower', 'in_unlinked_shell_follower'),
+      ('in unlinked pane follower', 'in_unlinked_pane_transition_follower'),
+      ('in hidden follower', 'no_picture'),
       ('outside shell page', 'outside_shell_page'),
       ('without shell marker', 'outside'),
       ('nowhere', 'no_picture'),
@@ -441,6 +452,8 @@ void main() {
                                 mark(64, 24, green),
                               if (placement == 'in pane transition follower')
                                 linkedMark(64, 24),
+                              if (placement == 'in unlinked pane follower')
+                                unlinkedMark(64, 24, show: true),
                             ],
                           ),
                         ),
@@ -448,6 +461,10 @@ void main() {
                       if (placement == 'above pane in shell')
                         mark(84, 36, green),
                       if (placement == 'in shell follower') linkedMark(84, 36),
+                      if (placement == 'in unlinked shell follower')
+                        unlinkedMark(84, 36, show: true),
+                      if (placement == 'in hidden follower')
+                        unlinkedMark(84, 36, show: false),
                     ],
                   ),
                 ),
@@ -480,7 +497,7 @@ void main() {
             (RenderBox boundary) => boundary.debugLayer,
             outsideNearest: true,
           ),
-          placement == 'nowhere' || placement == 'below pane in shell'
+          recordedScope == 'no_picture' || placement == 'below pane in shell'
               ? 'absent'
               : 'present',
           reason: placement,

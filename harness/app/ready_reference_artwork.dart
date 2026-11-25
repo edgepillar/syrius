@@ -357,10 +357,18 @@ Future<String> observePillarRecordedMark(
           _ => scope,
         };
       }
-      if (layer is FollowerLayer && layer.link.leader != null) {
-        scope = switch (scope) {
-          'in_shell_page' => 'in_shell_follower',
-          'in_pane_transition' => 'in_pane_transition_follower',
+      if (layer is FollowerLayer) {
+        // A hidden follower can retain children that addToScene skips.
+        if (layer.link.leader == null && layer.showWhenUnlinked == false) {
+          continue;
+        }
+        final bool linked = layer.getLastTransform() != null;
+        scope = switch ((scope, linked)) {
+          ('in_shell_page', true) => 'in_shell_follower',
+          ('in_shell_page', false) => 'in_unlinked_shell_follower',
+          ('in_pane_transition', true) => 'in_pane_transition_follower',
+          ('in_pane_transition', false) =>
+            'in_unlinked_pane_transition_follower',
           _ => scope,
         };
       }
