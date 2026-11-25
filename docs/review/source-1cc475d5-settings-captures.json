@@ -1,0 +1,116 @@
+{
+  "actual": {
+    "30-set-node-dark": {
+      "archive_member": "30-set-node-dark.png",
+      "archive_sha256": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "catalog_family": "settings",
+      "path": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "sha256": "81b914306d8d9840a0359cd9a70b5769dd4e0b75a27d851f969284a325b4ae6d",
+      "source_sha": "1cc475d5566048bf547e5218d7a2bf409ba877e9"
+    },
+    "30-set-node-light": {
+      "archive_member": "30-set-node-light.png",
+      "archive_sha256": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "catalog_family": "settings",
+      "path": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "sha256": "2fb34ff9f42778d54459dc07d321c1856a4d098434f7d1a5f489d2e740d51e7f",
+      "source_sha": "1cc475d5566048bf547e5218d7a2bf409ba877e9"
+    },
+    "31-set-security-dark": {
+      "archive_member": "31-set-security-dark.png",
+      "archive_sha256": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "catalog_family": "settings",
+      "path": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "sha256": "9a10f8d566cd0b77dd93037321dfe0222fde6d014a3d1a588a95b8720df7650f",
+      "source_sha": "1cc475d5566048bf547e5218d7a2bf409ba877e9"
+    },
+    "31-set-security-light": {
+      "archive_member": "31-set-security-light.png",
+      "archive_sha256": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "catalog_family": "settings",
+      "path": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "sha256": "c28cb6ae52d04b90d1274ac06f4592b02b94739bae54668a9666f1905df3fe2a",
+      "source_sha": "1cc475d5566048bf547e5218d7a2bf409ba877e9"
+    },
+    "32-set-display-dark": {
+      "archive_member": "32-set-display-dark.png",
+      "archive_sha256": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "catalog_family": "settings",
+      "path": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "sha256": "c2d7887a1b726c49fe0b4d5099e0af38c7732782ab98aa1a17db6c59344ab4c8",
+      "source_sha": "1cc475d5566048bf547e5218d7a2bf409ba877e9"
+    },
+    "32-set-display-light": {
+      "archive_member": "32-set-display-light.png",
+      "archive_sha256": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "catalog_family": "settings",
+      "path": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "sha256": "40628b5a62cc183ffb4bdd24f2cba52296c02cfae6ad6b569865b875d5c4fefe",
+      "source_sha": "1cc475d5566048bf547e5218d7a2bf409ba877e9"
+    },
+    "33-set-wallet-dark": {
+      "archive_member": "33-set-wallet-dark.png",
+      "archive_sha256": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "catalog_family": "settings",
+      "path": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "sha256": "72a2a5c5106704971307bcf5ec02adc7b8e6e4e28dda3c60dc49e12a930825a6",
+      "source_sha": "1cc475d5566048bf547e5218d7a2bf409ba877e9"
+    },
+    "33-set-wallet-light": {
+      "archive_member": "33-set-wallet-light.png",
+      "archive_sha256": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "catalog_family": "settings",
+      "path": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "sha256": "cf4ed4105eb3a0fe209705b449d7bbba701436be0c527527590730102e687fe5",
+      "source_sha": "1cc475d5566048bf547e5218d7a2bf409ba877e9"
+    },
+    "34-set-apps-dark": {
+      "archive_member": "34-set-apps-dark.png",
+      "archive_sha256": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "catalog_family": "settings",
+      "path": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "sha256": "961fe16791f4daf9ca45632d85627af404dd0a02ed449ffb4f929a0d87a94db9",
+      "source_sha": "1cc475d5566048bf547e5218d7a2bf409ba877e9"
+    },
+    "34-set-apps-light": {
+      "archive_member": "34-set-apps-light.png",
+      "archive_sha256": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "catalog_family": "settings",
+      "path": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "sha256": "bdf98a65aab6903480f1f4d4be72a1e1cf207ce215960e625546bb5006538ff8",
+      "source_sha": "1cc475d5566048bf547e5218d7a2bf409ba877e9"
+    },
+    "35-set-addresses-dark": {
+      "archive_member": "35-set-addresses-dark.png",
+      "archive_sha256": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "catalog_family": "settings",
+      "path": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "sha256": "4ecc803fc44b347e0aaaf94a620b2cc9457b0a6b0606884c6b7c04c45e909eb5",
+      "source_sha": "1cc475d5566048bf547e5218d7a2bf409ba877e9"
+    },
+    "35-set-addresses-light": {
+      "archive_member": "35-set-addresses-light.png",
+      "archive_sha256": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "catalog_family": "settings",
+      "path": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "sha256": "29b779443b3287e4e2c9075067e756ed88be06fcd3421a9003ebb9f6eac41763",
+      "source_sha": "1cc475d5566048bf547e5218d7a2bf409ba877e9"
+    },
+    "36-set-about-dark": {
+      "archive_member": "36-set-about-dark.png",
+      "archive_sha256": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "catalog_family": "settings",
+      "path": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "sha256": "e9151f5b4be8dd7d8cdcfa993947f81d781a35747de700d737c30da05eda961b",
+      "source_sha": "1cc475d5566048bf547e5218d7a2bf409ba877e9"
+    },
+    "36-set-about-light": {
+      "archive_member": "36-set-about-light.png",
+      "archive_sha256": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "catalog_family": "settings",
+      "path": "997cf2287873d8f2047cbaa333cdae3b4ed5afa9b832ce3cf6b1ea03d1e38ab9",
+      "sha256": "2619f2938b06224e0fa4ef9ac7096b120b3c171015cd9c87e558ce2ad79e82eb",
+      "source_sha": "1cc475d5566048bf547e5218d7a2bf409ba877e9"
+    }
+  }
+}
