@@ -879,6 +879,30 @@ def entry_pixel_comparison(data, reference, screen, *, theme=None):
                             align_caption=True)
 
 
+def _packed_rgb(row, channels):
+    if channels == 3:
+        return row
+    rgb = bytearray(len(row) // channels * 3)
+    for channel in range(3):
+        rgb[channel::3] = row[channel::channels]
+    return rgb
+
+
+def _rgb_changes(actual, expected):
+    """Return exact channel deltas, skipping byte-identical spans."""
+    block_bytes = 64 * 3
+    for start in range(0, len(actual), block_bytes):
+        end = min(start + block_bytes, len(actual))
+        if actual[start:end] == expected[start:end]:
+            continue
+        for index in range(start, end, 3):
+            red = abs(actual[index] - expected[index])
+            green = abs(actual[index + 1] - expected[index + 1])
+            blue = abs(actual[index + 2] - expected[index + 2])
+            if red or green or blue:
+                yield index // 3, red, green, blue
+
+
 def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
                      sample_points=None, import_background_theme=None,
                      align_settings_labels=False, align_caption=False,
@@ -899,19 +923,16 @@ def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
         active_regions = [(name, left, right)
                           for name, (left, top, right, bottom) in regions.items()
                           if top <= y < bottom]
-        for x, (a, e) in enumerate(zip(range(0, len(actual_row), a_channels),
-                                      range(0, len(expected_row), e_channels))):
-            red = abs(actual_row[a] - expected_row[e])
-            green = abs(actual_row[a + 1] - expected_row[e + 1])
-            blue = abs(actual_row[a + 2] - expected_row[e + 2])
-            difference = red + green + blue
-            changed += difference != 0
+        actual_rgb = _packed_rgb(actual_row, a_channels)
+        expected_rgb = _packed_rgb(expected_row, e_channels)
+        for x, red, green, blue in _rgb_changes(actual_rgb, expected_rgb):
+            changed += 1
             if red >= 16 or green >= 16 or blue >= 16:
                 high_contrast += 1
                 region = next((name for name, left, right in active_regions
                                if left <= x < right), 'outside_crops')
                 by_region[region] += 1
-            total += difference
+            total += red + green + blue
     result = dict(reference_sha256=archive.sha(reference), actual_sha256=archive.sha(data),
                 changed_pixels=changed, changed_pixels_at_least_16=high_contrast,
                 pixels_at_least_16_by_region=by_region,

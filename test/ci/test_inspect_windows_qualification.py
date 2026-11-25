@@ -45,12 +45,12 @@ def log(report):
         '2026-10-26T12:00:01.0000000Z ' + json.dumps(report) + '\n').encode()
 
 
-def pixels(*connector_rows, opaque=False, welcome_rows=(), welcome_x=710):
+def pixels(*connector_rows, opaque=False, welcome_rows=(), welcome_x=710, rgba=True):
     def chunk(kind, data):
         return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data))
-    alpha = 255 if opaque else 0
-    fill = bytes((20, 20, 20, alpha))
-    ink = bytes((60, 60, 60, alpha))
+    alpha = bytes((255 if opaque else 0,)) if rgba else b''
+    fill = bytes((20, 20, 20)) + alpha
+    ink = bytes((60, 60, 60)) + alpha
     blank = b'\x00' + fill * 1280
     connector = b'\x00' + fill * 482 + ink * 108 + fill * (1280 - 590)
     text = b'\x00' + fill * welcome_x + ink * 8 + fill * (1280 - welcome_x - 8)
@@ -58,7 +58,7 @@ def pixels(*connector_rows, opaque=False, welcome_rows=(), welcome_x=710):
         connector if y in connector_rows else text if y in welcome_rows else blank
         for y in range(780))
     return (b'\x89PNG\r\n\x1a\n'
-        + chunk(b'IHDR', struct.pack('>IIBBBBB', 1280, 780, 8, 6, 0, 0, 0))
+        + chunk(b'IHDR', struct.pack('>IIBBBBB', 1280, 780, 8, 6 if rgba else 2, 0, 0, 0))
         + chunk(b'IDAT', zlib.compress(scanlines))
         + chunk(b'IEND', b''))
 
@@ -261,7 +261,7 @@ class WindowsQualificationTests(unittest.TestCase):
 
     def test_entry_rgb_comparison_binds_both_originals(self):
         actual = pixels(280, opaque=True, welcome_rows=(234, 340))
-        reference = pixels(280, opaque=True, welcome_rows=(235,))
+        reference = pixels(280, welcome_rows=(235,), rgba=False)
         comparison = inspect.entry_pixel_comparison(actual, reference, 'welcome')
         self.assertEqual(comparison, dict(actual_sha256=inspect.archive.sha(actual),
             reference_sha256=inspect.archive.sha(reference), changed_pixels=24,
