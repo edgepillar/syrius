@@ -46,7 +46,7 @@ def log(report):
 
 
 def pixels(*connector_rows, opaque=False, welcome_rows=(), welcome_x=710,
-           rgba=True, launch_x=None):
+           rgba=True, launch_x=None, pillar_rail=False):
     def chunk(kind, data):
         return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data))
     alpha = bytes((255 if opaque else 0,)) if rgba else b''
@@ -55,10 +55,16 @@ def pixels(*connector_rows, opaque=False, welcome_rows=(), welcome_x=710,
     blank = b'\x00' + fill * 1280
     connector = b'\x00' + fill * 482 + ink * 108 + fill * (1280 - 590)
     text = b'\x00' + fill * welcome_x + ink * 8 + fill * (1280 - welcome_x - 8)
+    green = bytes((0, 213, 87)) + alpha
+
     def scanline(y):
         if y == 350 and launch_x is not None:
-            green = bytes((0, 213, 87)) + alpha
             return b'\x00' + fill * launch_x + green * 4 + fill * (1276 - launch_x)
+        if pillar_rail:
+            if y == 261:
+                return b'\x00' + fill * 80 + ink * 260 + fill * 940
+            if any(start <= y < start + 22 for start in (109, 145, 181, 217)):
+                return b'\x00' + fill * 80 + green * 22 + fill * 1178
         return connector if y in connector_rows else text if y in welcome_rows else blank
 
     scanlines = b''.join(scanline(y) for y in range(780))
@@ -373,9 +379,14 @@ class WindowsQualificationTests(unittest.TestCase):
         self.assertEqual(comparison['caption_wordmark_alignment'], dict(
             shift_to_reference=[0, 1], original_difference=16, shifted_difference=0))
         actual = pixels(opaque=True, welcome_rows=(503, 504, 538, 539, 576), welcome_x=702)
-        reference = pixels(opaque=True, welcome_rows=(505, 506, 537, 538, 572, 576), welcome_x=701)
+        reference = pixels(opaque=True, welcome_rows=(505, 506, 537, 538, 572, 576),
+                           welcome_x=701, pillar_rail=True)
         comparison = inspect.pixel_comparison(
             actual, reference, {}, align_pillar_receipt=True)
+        self.assertEqual(comparison['pillar_rail_geometry'], dict(
+            actual=dict(step_rows=None, divider_row=None),
+            reference=dict(step_rows=[[109, 131], [145, 167], [181, 203], [217, 239]],
+                           divider_row=261)))
         self.assertEqual(comparison['pillar_caption_alignment'], dict(
             shift_to_reference=[-1, -1], original_difference=18,
             shifted_difference=0, actual_bounds=[702, 538, 710, 540],

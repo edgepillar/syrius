@@ -660,6 +660,32 @@ def caption_wordmark_alignment(actual, a_channels, expected, e_channels):
     return _ink_shift(ink(actual, a_channels), ink(expected, e_channels))
 
 
+def _pillar_receipt_rail_geometry(rows, channels):
+    """Measure the four green step bands and the rule above the fact grid."""
+    marks = []
+    for y in range(100, 250):
+        row = rows[y]
+        for offset in range(80 * channels, 106 * channels, channels):
+            red, green, blue = row[offset:offset + 3]
+            if green - red > 45 and green - blue > 30:
+                if marks and marks[-1][1] == y:
+                    marks[-1][1] += 1
+                else:
+                    marks.append([y, y + 1])
+                break
+
+    left, right = 200 * channels, 320 * channels
+    dividers = []
+    for y in range(250, 280):
+        band = rows[y][left:right]
+        if (band == band[:channels] * 120
+                and rows[y - 1][left:right] == rows[y + 1][left:right]
+                and band != rows[y - 1][left:right]):
+            dividers.append(y)
+    return dict(step_rows=marks if len(marks) == 4 else None,
+                divider_row=dividers[0] if len(dividers) == 1 else None)
+
+
 def pillar_receipt_ink_alignment(actual, a_channels, expected, e_channels, bounds):
     """Compare a result region against the plain fill at the left of its row."""
     left, top, right, bottom = bounds
@@ -975,6 +1001,9 @@ def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
         if alignment is not None:
             result['caption_wordmark_alignment'] = alignment
     if align_pillar_receipt:
+        result['pillar_rail_geometry'] = dict(
+            actual=_pillar_receipt_rail_geometry(actual, a_channels),
+            reference=_pillar_receipt_rail_geometry(expected, e_channels))
         for name, bounds in (
             ('heading', (500, 490, 1140, 528)),
             ('caption', (500, 528, 1140, 560)),

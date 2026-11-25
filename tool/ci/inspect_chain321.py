@@ -956,7 +956,7 @@ def pillar_receipt_alignment_pairs(pairs):
     for theme, pair in pairs.items():
         measurements = {}
         for key in ('pillar_heading_alignment', 'pillar_view_action_alignment',
-                    'pillar_done_action_alignment'):
+                    'pillar_done_action_alignment', 'pillar_rail_geometry'):
             if key in pair:
                 measurements[key] = pair.pop(key)
         if measurements:
