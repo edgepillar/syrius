@@ -1,0 +1,84 @@
+{
+  "reviews": {
+    "10-receive-qr-dark": {
+      "actual_sha256": "7f3ad815abcd84ac91daf693d5920c86d5e4913c60ca8f32eba607d6871b6e7b",
+      "expected_sha256": "7d0f473f9e93235a7032dbb227ceff6e683c91e92446565dee1bf037df78fad6",
+      "note": "The request layout and QSR amount align. The functioning QR has finder marks and a token mark where the reference uses an illustrative pattern. This capture still shows the earlier request hint.",
+      "reviewed_at": "2026-11-25T03:35:32Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "10-receive-qr-light": {
+      "actual_sha256": "09d650ccc4b9793613af30b2288f6ddbfa33a3a29e4724aca7d95c8792720aa7",
+      "expected_sha256": "d3e867ff847f5c80f20afc1a8999441acfe57d9a6cbecad20d7633c8dcd62b17",
+      "note": "The card, amount controls and image actions align. The encoded QR has finder marks and a token mark, and this capture still uses the earlier, shorter hint.",
+      "reviewed_at": "2026-11-25T03:35:32Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-dark": {
+      "actual_sha256": "7beee315bea0a39756bfc46e9624c3a1f92fb3136076d9f0d2500473a1c6537a",
+      "expected_sha256": "b58f5d7ea3ac3da980689c744d8d8a37b6ad70a5eae6a7542f4992f7dbba089c",
+      "note": "The amount fields, memo and aligned notice are visible. The isolated wallet cannot resolve a recipient, leaving the summary and estimate different from the reference.",
+      "reviewed_at": "2026-11-25T03:35:32Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-light": {
+      "actual_sha256": "937af264c09226ee2830d319255256e641b80f3a9ee199151156c266a5e831a2",
+      "expected_sha256": "b3ab27949ed86fa2e78af721bd198fe7e258f9da5537ec914ae9ce3ccf753be8",
+      "note": "The amount fields, memo and notice align. Recipient discovery is unavailable in this isolated profile, and the estimate and primary gradient differ from the reference.",
+      "reviewed_at": "2026-11-25T03:35:32Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-dark": {
+      "actual_sha256": "03b897a111edf6700033c5bca0eb1269995c72d172937dc62e5b7585d4606c16",
+      "expected_sha256": "bce0133d1e1586247a874af23a72c340f73261174a296f4d690b7c6c3c334360",
+      "note": "The primary blue fill is one pixel shorter than the reference. The two checked cancelable rows precede the locked row. The visible amount, level, secondary meters and beneficiary controls differ.",
+      "reviewed_at": "2026-11-25T03:35:32Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-light": {
+      "actual_sha256": "3242537b0916627da3cc738a679a0a8b488450f4d3fd2bfc29354a0e04084cfb",
+      "expected_sha256": "01ba9333c42b94249580c6c67789f19527d113e7861b9fd19e3c1e900f8f6c7f",
+      "note": "The primary fill start and height align and its width differs by one pixel. The locked row follows the two selected rows. Amounts, secondary meter states and copy controls still differ.",
+      "reviewed_at": "2026-11-25T03:35:32Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-dark": {
+      "actual_sha256": "787c898605191000b7e7911f8b909d4fdf49609692d663b16862927f4ec2eb22",
+      "expected_sha256": "057765aba7cc2e027010869bdfe14eff0beee921cbef85777efa3f7fa96ec991",
+      "note": "The opened registry aligns with the surrounding About groups. The genuine package inventory and some notice labels differ from the reference list.",
+      "reviewed_at": "2026-11-25T03:35:32Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-light": {
+      "actual_sha256": "d028611f70ff12ff058e82ceb2c3ac8c08089e75febd6419d78668d3f725e550",
+      "expected_sha256": "4faec94b7502216de2bceb52b1e8ded1254a74a150014f5399d1dc85a19ac1d4",
+      "note": "The Licences disclosure and notice column occupy the expected positions. The installed package order and the available notice labels differ.",
+      "reviewed_at": "2026-11-25T03:35:32Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-dark": {
+      "actual_sha256": "8bb7a2e1e5c2edf93f094cfec995a48de65aa71e9397ae69e80e24c13d696fa2",
+      "expected_sha256": "b852ac9fcbdbea159856c6c3b30ac5ca2e25f55f1137655c4b689dc4a89a504f",
+      "note": "All six tiles and the replay and footer controls are present. The discovery field clears on reveal as specified. Globe outlines and Map dot coverage differ from the reference.",
+      "reviewed_at": "2026-11-25T03:35:32Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-light": {
+      "actual_sha256": "c7fc3a51de6eec4eefa2ec4265cc9aa0ba469b9ead23d3a49fb0a0b7f2fb3727",
+      "expected_sha256": "b82600455634b306377ea7626f2e0ee80c7977c60c1ae1a7e23243dcace9d3ed",
+      "note": "The gallery and footer align. The field clears on reveal as specified. The light Map coverage and Globe outlines retain visible differences.",
+      "reviewed_at": "2026-11-25T03:35:32Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
