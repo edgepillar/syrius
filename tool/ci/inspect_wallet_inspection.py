@@ -2480,6 +2480,7 @@ def main(parent=None):
         home_field_occlusion = catalog.pop('home_field_occlusion', None)
         home_field_minimize = catalog.pop('home_field_minimize', None)
         expiry_badge_ink = catalog.pop('plasma_expiry_badge_ink', None)
+        details_fuse_fixture = catalog.pop('details_fuse_genesis', None)
         plasma_table_edges = catalog.pop('plasma_table_edges', None)
         plasma_other_rules_observation = catalog.pop('plasma_other_rules', None)
         emit(f'Retained readonly {family} catalog', catalog)
@@ -2507,12 +2508,14 @@ def main(parent=None):
                 manifest_sha256=catalog['manifest_sha256'],
                 **plasma_other_rules_observation))
         if expiry_badge_ink is not None:
-            emit('Retained readonly Plasma expiry badge ink', dict(
+            expiry = dict(
                 source_head=head, source_run_id=run_id,
                 archive_sha256=catalog['archive_sha256'],
                 manifest_sha256=catalog['manifest_sha256'],
-                screen='22-plasma-fuse' if 'details_fuse_genesis' in catalog else '21-plasma',
-                themes=expiry_badge_ink))
+                screen='21-plasma', themes=expiry_badge_ink)
+            if details_fuse_fixture is not None:
+                expiry.update(screen='22-plasma-fuse', details_fuse_genesis=details_fuse_fixture)
+            emit('Retained readonly Plasma expiry badge ink', expiry)
         if rail_motion is not None:
             emit('Retained readonly rail motion', dict(source_head=head,
                 source_run_id=run_id, archive_sha256=catalog['archive_sha256'],

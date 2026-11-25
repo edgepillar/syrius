@@ -2006,8 +2006,12 @@ class ReaderTests(unittest.TestCase):
         seeded_catalog, = [json.loads(line.split('::', 2)[-1])
                            for line in seeded_text.splitlines()
                            if line.startswith('::notice title=Retained readonly Details catalog::')]
-        self.assertEqual(seeded_catalog['details_fuse_genesis'], fixture)
-        self.assertIn('"screen":"22-plasma-fuse"', seeded_text)
+        self.assertNotIn('details_fuse_genesis', seeded_catalog)
+        expiry, = [json.loads(line.split('::', 2)[-1])
+                   for line in seeded_text.splitlines()
+                   if line.startswith('::notice title=Retained readonly Plasma expiry badge ink::')]
+        self.assertEqual(expiry['details_fuse_genesis'], fixture)
+        self.assertEqual(expiry['screen'], '22-plasma-fuse')
         with self.assertRaises(reader.archive.Refused):
             self.run_main(details_catalog=True,
                 details_fuse=dict(fixture, locked_until_height=1))
