@@ -576,10 +576,7 @@ class _LicenceRow extends StatelessWidget {
               : package.name,
           titleStyle: tokens.bodyText,
           summary: package.identifier,
-          summaryStyle: tokens.bodyText.copyWith(
-            fontSize: 15,
-            color: tokens.dim,
-          ),
+          summaryStyle: tokens.bodyText.copyWith(color: tokens.dim),
           summaryColumnPercent: summaryColumnPercent,
           keyPrefix: 'about_licence_${package.name}',
           headerMinHeight: headerHeight,

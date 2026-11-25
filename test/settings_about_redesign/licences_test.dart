@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/licences.dart';
 
 import 'support.dart';
@@ -386,7 +387,9 @@ void main() {
         matching: find.text(identifiers[name]!),
       );
       expect(summary, findsOneWidget);
-      expect(tester.widget<Text>(summary).style?.fontSize, 15);
+      final TextStyle? summaryStyle = tester.widget<Text>(summary).style;
+      expect(summaryStyle?.fontSize, 14);
+      expect(summaryStyle?.color, AppTokens.of(tester.element(summary)).dim);
     }
     expect(tester.takeException(), isNull);
   });
