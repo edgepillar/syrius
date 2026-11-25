@@ -1243,6 +1243,7 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
     about_download = {}
     zap_note_icon = {}
     licence_summary_ink = {}
+    licence_trailing_summary_ink = {}
     menu_selection = {}
     collect_edges = {}
     has_settings_menu = 'settings_menu_labels' in regions
@@ -1278,8 +1279,11 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
             zap_note_icon[theme] = dict(actual=_zap_note_icon_bounds(actual),
                                         reference=_zap_note_icon_bounds(reference))
         if screen == '37-set-licences':
-            licence_summary_ink[theme] = dict(actual=_licence_summary_bounds(actual),
-                reference=_licence_summary_bounds(reference))
+            actual_ink, actual_trailing = _licence_summary_bounds(actual)
+            reference_ink, reference_trailing = _licence_summary_bounds(reference)
+            licence_summary_ink[theme] = dict(actual=actual_ink, reference=reference_ink)
+            licence_trailing_summary_ink[theme] = dict(
+                actual=actual_trailing, reference=reference_trailing)
         if screen == '38-set-originals':
             map_gray[theme], map_coverage[theme] = _map_dot_comparison(actual, reference)
         if screen == '27-swap-start':
@@ -1307,6 +1311,7 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
         result['zap_note_icon'] = zap_note_icon
     if licence_summary_ink:
         result['licence_summary_ink'] = licence_summary_ink
+        result['licence_trailing_summary_ink'] = licence_trailing_summary_ink
     if menu_selection:
         column, top, bottom = SETTINGS_MENU_SELECTION_SCAN
         result['menu_selection_rows'] = dict(column=column, scan_rows=[top, bottom],
@@ -1560,16 +1565,19 @@ def _zap_note_icon_bounds(raw):
 def _licence_summary_bounds(raw):
     columns = (820, 960)
     bands = ((515, 542), (554, 581))
+    trailing_band = (593, 624)
     origin = bands[0][0]
     encoded = base64.b64encode(raw).decode('ascii')
-    rows, channels = windows._png_crop(encoded, columns, (origin, bands[-1][1]))
-    # Measure the two visible cells without assigning names to registry rows.
-    return [
-        _crop_ink_bounds(rows[top - origin:bottom - origin], channels, columns,
-            (top, bottom), lambda red, green, blue: max(red, green, blue) >= 25,
+    rows, channels = windows._png_crop(encoded, columns, (origin, trailing_band[1]))
+
+    def bounds(top, bottom, contrast):
+        return _crop_ink_bounds(rows[top - origin:bottom - origin], channels,
+            columns, (top, bottom), lambda *rgb: max(rgb) >= contrast,
             relative_to_background=True)
-        for top, bottom in bands
-    ]
+
+    # The package inventory can differ. Measure the visible cells by position.
+    return ([bounds(top, bottom, contrast=25) for top, bottom in bands],
+            bounds(*trailing_band, contrast=48))
 
 
 def _selection_ink(red, green, blue):

@@ -164,12 +164,13 @@ class ReaderTests(unittest.TestCase):
                 blank = background * 18
                 mark = background + ink * 12 + background * 5
                 return [blank] * 7 + [mark] * 12 + [blank] * 8, 3
-            if columns == (820, 960) and rows == (515, 581):
+            if columns == (820, 960) and rows == (515, 624):
                 background = bytes((38, 39, 38))
                 ink = bytes((64, 65, 64))
                 blank = background * 140
                 mark = background * 32 + ink * 24 + background * 84
-                return [blank] * 9 + [mark] * 11 + [blank] * 46, 3
+                trailing = background * 32 + bytes((86, 87, 86)) * 92 + background * 16
+                return [blank] * 9 + [mark] * 11 + [blank] * 83 + [trailing] * 4 + [blank] * 2, 3
             return [swatch], 3
 
         with mock.patch.object(reader.producer, 'read_original',
@@ -187,6 +188,9 @@ class ReaderTests(unittest.TestCase):
         summary = [dict(left=852, top=524, right=875, bottom=534), None]
         self.assertEqual(comparisons[4]['licence_summary_ink'], {
             theme: dict(actual=summary, reference=summary) for theme in ('dark', 'light')})
+        trailing = dict(left=852, top=618, right=943, bottom=621)
+        self.assertEqual(comparisons[4]['licence_trailing_summary_ink'], {
+            theme: dict(actual=trailing, reference=trailing) for theme in ('dark', 'light')})
         send = comparisons[0]['region_bounds']
         self.assertEqual(send['recipient_and_warning'], (320, 80, 1000, 374))
         self.assertEqual(send['amount_and_action'], (320, 374, 1000, 550))
