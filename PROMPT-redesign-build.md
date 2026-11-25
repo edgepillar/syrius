@@ -385,6 +385,14 @@ repository; `features/` is `lib/rearchitecture/features/`, `tabs/` is
 
 ## Progress
 
+### Code delivery scope (2026-11-25)
+
+PR #6 is ready for maintainer review against `dev`. This delivery includes the desktop implementation and the verification already run. The delivery scope excludes the remaining full-gallery visual acceptance (V01), the running Windows motion and frame-time acceptance (V02), and the corresponding final acceptance audit (V06). The original checklist retains 77 of 80 accepted rows and the original outcomes for the three open rows.
+
+- At `1933ca9e`, Linux passed application and strict analysis, 5,143 non-chain tests with one skip, and generated-file verification. Windows built the Release harness and produced the independently verified quiz captures. Later publication commits change only progress and review records. [Linux validation](https://github.com/edgepillar/syrius/actions/runs/45557589468/job/139013279337) · [Windows capture verification](https://github.com/edgepillar/syrius/actions/runs/45559487820/job/139019487649)
+- The full Windows Debug and Release baseline passed at `91071144` with zero analysis errors or warnings. The later quiz typography change has its own Windows Release evidence. [Independent Windows baseline reader](https://github.com/edgepillar/syrius/actions/runs/45557182848/job/139011967683)
+- The Windows paired interaction at `bf416f1d` retained failures against the original 16 ms frame criteria on page change and disclosure. The historical 94-pair gallery and later scoped visual verdicts remain available for maintainers. [Independent timing reader](https://github.com/edgepillar/syrius/actions/runs/45558425595/job/139016011421)
+
 - Windows close now lets the native runner exit its message loop after application cleanup. Source844 passes all Linux stages and builds Windows Release. The current wallet records fourteen page-change and seventeen disclosure frames, then exceeds the exit deadline after reaching the exit request. P06 does not start. Both original manifests pass independent verification. Fresh Windows closure and timing evidence remain open. Acceptance stays at 76/80. [Windows runner exit](docs/review/source814-fixed-close-events.md#windows-runner-exit).
 
 - The first Licences open now rebuilds its own panel. Source843 passed strict analysis and the original P06 Git check, then the compact test observed the version strip repaint at 80 ms. The same assertions remain for the localized update. The full test directory and generation were skipped on Source843. Acceptance stays at 76/80. [First-open update](docs/review/source840-status-pulse-idle.md#first-open-update).
