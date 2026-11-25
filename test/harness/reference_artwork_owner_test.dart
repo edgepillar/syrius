@@ -654,7 +654,15 @@ void main() {
     final List<Object?> lightMap = drawMap();
     expect(lightMap.take(3), orderedEquals(darkMap.take(3)));
     expect((darkMap.last! as ui.Paint).colorFilter, isNull);
-    expect((lightMap.last! as ui.Paint).colorFilter, isNotNull);
+    expect(
+      (lightMap.last! as ui.Paint).colorFilter,
+      const ui.ColorFilter.matrix(<double>[
+        1, 0, 0, 0, 0,
+        0, 1, 0, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 0, 1.5, 0,
+      ]),
+    );
     expect(tester.renderObject(mapPaint), same(galleryRenderer));
     expect(galleryClock.value, 0.2501);
 
