@@ -1,0 +1,84 @@
+{
+  "reviews": {
+    "10-receive-qr-dark": {
+      "actual_sha256": "790fd70533a7166082718a19ad85a85c3bbc3a3684c1f95c32c46365b500270e",
+      "expected_sha256": "7d0f473f9e93235a7032dbb227ceff6e683c91e92446565dee1bf037df78fad6",
+      "note": "The live request QR, Copy image, Save and QSR amount are visible. The reference uses an illustrative mark and a longer amount hint.",
+      "reviewed_at": "2026-11-25T00:15:14Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "10-receive-qr-light": {
+      "actual_sha256": "ea702d62953e629a59dd9a9fec83571f3cc4478ac110cb2b56d42ced434cf987",
+      "expected_sha256": "d3e867ff847f5c80f20afc1a8999441acfe57d9a6cbecad20d7633c8dcd62b17",
+      "note": "The live request QR, Copy image, Save and QSR amount are visible. The reference uses an illustrative mark and a longer amount hint.",
+      "reviewed_at": "2026-11-25T00:15:14Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-dark": {
+      "actual_sha256": "9c229288ccf950324c69ae35adea139b3456cb3ae351106ea2868aee3c14c319",
+      "expected_sha256": "b58f5d7ea3ac3da980689c744d8d8a37b6ad70a5eae6a7542f4992f7dbba089c",
+      "note": "The amount fields, memo and action are present. The isolated panel has no eligible recipient, and its text and estimate differ from the prepared reference.",
+      "reviewed_at": "2026-11-25T00:15:14Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-light": {
+      "actual_sha256": "3423ad246a9579e8ccc9d70dc67b6649f8405f0c5ff32757d9acc129a4e86f63",
+      "expected_sha256": "b3ab27949ed86fa2e78af721bd198fe7e258f9da5537ec914ae9ce3ccf753be8",
+      "note": "The amount fields, memo and action are present. The isolated panel has no eligible recipient, and its text and estimate differ from the prepared reference.",
+      "reviewed_at": "2026-11-25T00:15:14Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-dark": {
+      "actual_sha256": "5d25fa30c49090119f909bd4fc8a99521556dc682a9347b21037fb906d323dfb",
+      "expected_sha256": "bce0133d1e1586247a874af23a72c340f73261174a296f4d690b7c6c3c334360",
+      "note": "Both Other addresses rules and the solid secondary meter match the measured reference geometry and approved palette. The reference shows a locked fusion and a different beneficiary, while this prepared selection shows three cancellable entries. Address copy controls remain visible.",
+      "reviewed_at": "2026-11-25T00:15:14Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-light": {
+      "actual_sha256": "acc96e3affdc29b7a0e09a044057d521502d51d8bf1742433f2f226bec66624b",
+      "expected_sha256": "01ba9333c42b94249580c6c67789f19527d113e7861b9fd19e3c1e900f8f6c7f",
+      "note": "Both Other addresses rules and the solid secondary meter match the measured reference geometry and approved palette. The reference shows a locked fusion and a different beneficiary, while this prepared selection shows three cancellable entries. Address copy controls remain visible.",
+      "reviewed_at": "2026-11-25T00:15:14Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-dark": {
+      "actual_sha256": "7f0a5659b87fae4725c89c87cf29653308a01ed2e010e878d546482cc9638b7a",
+      "expected_sha256": "057765aba7cc2e027010869bdfe14eff0beee921cbef85777efa3f7fa96ec991",
+      "note": "The expanded list reaches the bottom field and retains the row dividers. The original Windows registry contains different package rows and notice labels.",
+      "reviewed_at": "2026-11-25T00:15:14Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-light": {
+      "actual_sha256": "5941924efba5d27744432b192e6f7efacdaa619fcbbb36ccb0c8939e231b012c",
+      "expected_sha256": "4faec94b7502216de2bceb52b1e8ded1254a74a150014f5399d1dc85a19ac1d4",
+      "note": "The expanded list reaches the bottom field and retains the row dividers. The original Windows registry contains different package rows and notice labels.",
+      "reviewed_at": "2026-11-25T00:15:14Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-dark": {
+      "actual_sha256": "b76fc91e8349d93e2ab559b3f890ec9821e3828c281ab083b81ff04552a1bb0c",
+      "expected_sha256": "b852ac9fcbdbea159856c6c3b30ac5ca2e25f55f1137655c4b689dc4a89a504f",
+      "note": "All six tiles and the replay and footer controls are visible. The discovery field is empty with a caret after opening, the reference retains the example digits, and the Map and globe previews differ in appearance.",
+      "reviewed_at": "2026-11-25T00:15:14Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-light": {
+      "actual_sha256": "e3bec235a51f1e54f0e5216ebcd42d66a45f13020e8414b69d29ebf21ff62869",
+      "expected_sha256": "b82600455634b306377ea7626f2e0ee80c7977c60c1ae1a7e23243dcace9d3ed",
+      "note": "All six tiles and the replay and footer controls are visible. The discovery field is empty with a caret after opening, the reference retains the example digits, and the Map and globe previews differ in appearance.",
+      "reviewed_at": "2026-11-25T00:15:14Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
