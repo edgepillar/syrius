@@ -1354,8 +1354,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
   EdgeInsetsDirectional get seedQuizChoicePadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 3);
 
-  /// Seed choices retain the mono data role.
-  TextStyle get seedQuizChoiceText => dataText.copyWith(fontSize: 12);
+  /// Seed choices use the reference's compact interface text.
+  TextStyle get seedQuizChoiceText => bodyText.copyWith(fontSize: 12);
 
   /// One quiet line beneath an entry action.
   TextStyle get entryFooterText =>

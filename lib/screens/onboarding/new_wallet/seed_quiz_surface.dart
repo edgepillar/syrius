@@ -129,17 +129,15 @@ class SeedQuizSurface extends StatelessWidget {
           );
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        final Widget label = Text(
-          context.l10n.seedQuizWord(question.position + 1),
-          style: tokens.dataText.copyWith(
-            color: enabled ? tokens.foreground : tokens.dim,
-          ),
+        final String wordLabel = context.l10n.seedQuizWord(
+          question.position + 1,
         );
+        final TextStyle labelStyle = tokens.bodyText.copyWith(
+          color: enabled ? tokens.foreground : tokens.dim,
+        );
+        final Widget label = Text(wordLabel, style: labelStyle);
         final TextPainter labelMeasure = TextPainter(
-          text: TextSpan(
-            text: context.l10n.seedQuizWord(question.position + 1),
-            style: tokens.dataText,
-          ),
+          text: TextSpan(text: wordLabel, style: labelStyle),
           textDirection: Directionality.of(context),
           textScaler: MediaQuery.textScalerOf(context),
         )..layout();

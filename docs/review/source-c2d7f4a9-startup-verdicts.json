@@ -1,5 +1,37 @@
 {
   "reviews": {
+    "39-launch-dark": {
+      "actual_sha256": "ba404e1f7f1bd58e5e64d0e65321444f58082fb8c93a6234169240bcad831b0a",
+      "expected_sha256": "595e587b7c5c34083d0b05371e94bc641603af6ce5546f01c7ad34ab36ffcea2",
+      "note": "The centered film mark, frame crop and skip hint align. The window caption and film edges retain small rasterization differences.",
+      "reviewed_at": "2026-11-25T06:01:25Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "39-launch-light": {
+      "actual_sha256": "ba404e1f7f1bd58e5e64d0e65321444f58082fb8c93a6234169240bcad831b0a",
+      "expected_sha256": "595e587b7c5c34083d0b05371e94bc641603af6ce5546f01c7ad34ab36ffcea2",
+      "note": "The centered film mark, frame crop and skip hint align. The window caption and film edges retain small rasterization differences.",
+      "reviewed_at": "2026-11-25T06:01:25Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "40-launch-settle-dark": {
+      "actual_sha256": "a1c2fa85a3d2e830cdd654dd06f1cf6eeff9fd9ed582d51ad5097ae3e89597aa",
+      "expected_sha256": "d015cb3c2505c97b0035ac4f906ef78cedaaa737c2aa49658d7ce0b1835eb20d",
+      "note": "The film panel, wordmark and action bounds align. The password field outline is less apparent below the moving panel, and the unlock band retains the visible color difference.",
+      "reviewed_at": "2026-11-25T06:01:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "40-launch-settle-light": {
+      "actual_sha256": "e198c4bf3efc0381249095fcd3ff8583039c762e1f617271b04a0cdb1577b1d4",
+      "expected_sha256": "7733d47632878c9d7ce989f9aa869abbe90a0aeca236663218253e1b2c52f8f6",
+      "note": "The film panel, wordmark and action bounds align. The password field outline is less apparent below the moving panel, and the unlock band retains the visible color difference.",
+      "reviewed_at": "2026-11-25T06:01:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
     "41-lock-screen-dark": {
       "actual_sha256": "4db11aeef0d8508124e3449d3478c1e0758c6c47fa7016978260cccad061a3ef",
       "expected_sha256": "0423e793f7fc3a7dde6cef6cae3e34570aadbad6ddffeb74628ebf1cd8094d27",
@@ -47,6 +79,22 @@
       "reviewed_at": "2026-11-24T14:57:18Z",
       "reviewer": "Codex",
       "verdict": "match"
+    },
+    "46-seed-quiz-dark": {
+      "actual_sha256": "e3f1128418203cde86df36a66b0c64744e29e995aada1b92516762484cae4b3c",
+      "expected_sha256": "fd960ea2486c0f41005139ca068375a8f6e8ac0635ee951bcd3cc7e1280f00b5",
+      "note": "The card, steps, separators and controls align. The word labels and selectable chips use a monospace typeface where the reference uses the interface sans serif. Fixture wording changes the choice widths.",
+      "reviewed_at": "2026-11-25T06:01:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "46-seed-quiz-light": {
+      "actual_sha256": "21da76e989ba2b8fa135030f6ea24faf7cb3ef00ec619776345ff7d3fb726c9f",
+      "expected_sha256": "045b9ce86746cd3663959877ed84e45c289d8e1f132740c4894a94be5ef47a81",
+      "note": "The card, steps, separators and controls align. The word labels and selectable chips use a monospace typeface where the reference uses the interface sans serif. Fixture wording changes the choice widths.",
+      "reviewed_at": "2026-11-25T06:01:25Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
     }
   }
 }

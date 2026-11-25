@@ -107,8 +107,23 @@ void main() {
               .width,
           620,
         );
+        final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
+        final Text wordLabel = tester.widget<Text>(
+          find.text('Word ${quiz.questions.first.position + 1}'),
+        );
+        expect(wordLabel.style?.fontFamily, tokens.bodyText.fontFamily);
         for (final String word in quiz.questions.first.choices) {
-          expect(_choice(quiz, 0, word), findsOneWidget);
+          final OutlinedButton choice = tester.widget<OutlinedButton>(
+            find.descendant(
+              of: _choice(quiz, 0, word),
+              matching: find.byType(OutlinedButton),
+            ),
+          );
+          final TextStyle? textStyle = choice.style?.textStyle?.resolve(
+            <WidgetState>{},
+          );
+          expect(textStyle?.fontFamily, tokens.bodyText.fontFamily);
+          expect(textStyle?.fontSize, 12);
         }
         final Finder completedStep = find.descendant(
           of: find.byType(EntryStepPosition),
