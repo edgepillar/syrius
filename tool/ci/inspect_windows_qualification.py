@@ -285,6 +285,11 @@ IMPORT_DROP_TOLERANCE_PPM = 25000
 
 
 def _paeth(left, up, corner):
+    # Common in flat UI regions. The predictor and tie order are identical.
+    if left == up or up == corner:
+        return left
+    if left == corner:
+        return up
     target = left + up - corner
     a, b, c = abs(target - left), abs(target - up), abs(target - corner)
     if a <= b and a <= c:
