@@ -1,5 +1,21 @@
 {
   "reviews": {
+    "41-lock-screen-dark": {
+      "actual_sha256": "4db11aeef0d8508124e3449d3478c1e0758c6c47fa7016978260cccad061a3ef",
+      "expected_sha256": "0423e793f7fc3a7dde6cef6cae3e34570aadbad6ddffeb74628ebf1cd8094d27",
+      "note": "The centered card, settled film wordmark, wallet selector, masked field, action and bottom strip align. The isolated fixture supplies the wallet and node status, and the action and backdrop use the approved brand palette. Small text rasterization differences remain.",
+      "reviewed_at": "2026-11-25T05:51:29Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
+    "41-lock-screen-light": {
+      "actual_sha256": "c525651547d3992508027b1ae44616875f45aa8b271817fe012b2ea17d570462",
+      "expected_sha256": "7ade4369fb44fd27dd79cde415d4c2616778a5015936dd032b10224a61d0e4fd",
+      "note": "The centered card, settled film wordmark, wallet selector, masked field, action and bottom strip align. The isolated fixture supplies the wallet and node status, and the action and backdrop use the approved brand palette. Small text rasterization differences remain.",
+      "reviewed_at": "2026-11-25T05:51:29Z",
+      "reviewer": "Codex",
+      "verdict": "match"
+    },
     "42-lock-wrong-dark": {
       "actual_sha256": "018dd64db92403f22592effac988bc476d5c342f9c97f9b36ba9fb0501abcbba",
       "expected_sha256": "4ab7a113c2ddbfae98cf37b044fb7ae1eb95d1c303f9b55b5a2c7086473761d1",
