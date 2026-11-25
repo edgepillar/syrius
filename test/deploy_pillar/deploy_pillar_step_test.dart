@@ -271,6 +271,11 @@ void main() {
     await tester.tap(detailsNext);
     await tester.pumpAndSettle();
     expect(slider.hitTestable(), findsOneWidget);
+    final Element originalSlider = tester.element(slider);
+    expect(
+      SliderTheme.of(originalSlider).showValueIndicator,
+      isNot(ShowValueIndicator.never),
+    );
     expect(register.hitTestable(), findsNothing);
     await tester.tap(back);
     await tester.pumpAndSettle();
@@ -289,6 +294,15 @@ void main() {
     expect(register.hitTestable(), findsOneWidget);
     expect(name.hitTestable(), findsNothing);
     expect(slider.hitTestable(), findsNothing);
+    final Element hiddenSlider = tester.element(find.byKey(
+      const Key('pillar_momentum_reward_slider'),
+      skipOffstage: false,
+    ));
+    expect(hiddenSlider, same(originalSlider));
+    expect(
+      SliderTheme.of(hiddenSlider).showValueIndicator,
+      ShowValueIndicator.never,
+    );
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     await tester.pump();
     expect(requests, isEmpty);

@@ -203,6 +203,11 @@ class _CustomSliderState extends State<CustomSlider> {
         SliderTheme(
           data: theme.sliderTheme.copyWith(
             trackHeight: 2,
+            // The value indicator lives in an overlay. A retained step can
+            // stop painting its slider while that overlay is still mounted.
+            showValueIndicator: TickerMode.valuesOf(context).enabled
+                ? theme.sliderTheme.showValueIndicator
+                : ShowValueIndicator.never,
             activeTrackColor: widget.activeColor,
             inactiveTrackColor: theme.colorScheme.onSurface.withOpacity(0.5),
             activeTickMarkColor: theme.colorScheme.onSurface.withOpacity(0.7),
