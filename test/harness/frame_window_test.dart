@@ -49,18 +49,19 @@ void main() {
       owner.layer = null;
     }
 
-    final HarnessFrameWindow window = HarnessFrameWindow(
-      100000,
-      includeInteractiveDiagnostics: true,
-    );
-    window.observeStatusHalo(2, transparent: true);
-    window.observeStatusHalo(3, transparent: false);
-    window.observeStatusHalo(4, transparent: true);
-    window.observe(<ui.FrameTiming>[
-      _frame(2, 90000),
-      _frame(3, 100000),
-      _frame(4, 125000),
-    ]);
+    final HarnessFrameWindow window =
+        HarnessFrameWindow(
+            100000,
+            includeInteractiveDiagnostics: true,
+          )
+          ..observeStatusHalo(2, transparent: true)
+          ..observeStatusHalo(3, transparent: false)
+          ..observeStatusHalo(4, transparent: true)
+          ..observe(<ui.FrameTiming>[
+            _frame(2, 90000),
+            _frame(3, 100000),
+            _frame(4, 125000),
+          ]);
     bool requested = false;
     bool delivered = false;
     final Future<Map<String, Object?>> result = window.finish(
@@ -71,8 +72,9 @@ void main() {
       delivered = true;
     }));
     expect(requested, isTrue);
-    window.observeStatusHalo(6, transparent: true);
-    window.observe(<ui.FrameTiming>[_frame(6, 149999)]);
+    window
+      ..observeStatusHalo(6, transparent: true)
+      ..observe(<ui.FrameTiming>[_frame(6, 149999)]);
     await Future<void>.value();
     expect(delivered, isFalse);
 
