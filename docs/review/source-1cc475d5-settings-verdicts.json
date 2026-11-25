@@ -1,0 +1,116 @@
+{
+  "reviews": {
+    "30-set-node-dark": {
+      "actual_sha256": "81b914306d8d9840a0359cd9a70b5769dd4e0b75a27d851f969284a325b4ae6d",
+      "expected_sha256": "05d7211c092f7415b542294e254a86765fa57b7d7953fb2f9af5b1170ef7d003",
+      "note": "The isolated lab endpoint is selected and the other endpoints are unchecked. The embedded node card shows release check and source controls. The reference shows a verified release with install actions and different endpoint states.",
+      "reviewed_at": "2026-11-25T04:17:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "30-set-node-light": {
+      "actual_sha256": "2fb34ff9f42778d54459dc07d321c1856a4d098434f7d1a5f489d2e740d51e7f",
+      "expected_sha256": "a11078a238b2ab2107174698b0c1c1409d7545a22eac994608e57ea113c6faeb",
+      "note": "The isolated lab endpoint is selected and the other endpoints are unchecked. The embedded node card shows release check and source controls. The reference shows a verified release with install actions and different endpoint states.",
+      "reviewed_at": "2026-11-25T04:17:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "31-set-security-dark": {
+      "actual_sha256": "9a10f8d566cd0b77dd93037321dfe0222fde6d014a3d1a588a95b8720df7650f",
+      "expected_sha256": "1c3a735e770863e501cc898830ca699abb20ea01593643c263fad41f00a4f411",
+      "note": "The policy and backup rows occupy the same columns. The wrong-password copy mentions shared data, and the selected digits and wallet-removal hint differ in appearance.",
+      "reviewed_at": "2026-11-25T04:17:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "31-set-security-light": {
+      "actual_sha256": "c28cb6ae52d04b90d1274ac06f4592b02b94739bae54668a9666f1905df3fe2a",
+      "expected_sha256": "eb4cd651d0e487c080e8a0cc5c10289c14a35dff9dcdbe68a38cf12af58c26db",
+      "note": "The policy and backup rows occupy the same columns. The wrong-password copy mentions shared data, and the selected digits and wallet-removal hint differ in appearance.",
+      "reviewed_at": "2026-11-25T04:17:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "32-set-display-dark": {
+      "actual_sha256": "c2d7887a1b726c49fe0b4d5099e0af38c7732782ab98aa1a17db6c59344ab4c8",
+      "expected_sha256": "f68b82b91f04df6c535c512da740e980026e8d980b0f68f8593fe4a070897c45",
+      "note": "The seven rows align. The isolated chain disables Explorer, and the status strip reports the lab session.",
+      "reviewed_at": "2026-11-25T04:17:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "32-set-display-light": {
+      "actual_sha256": "40628b5a62cc183ffb4bdd24f2cba52296c02cfae6ad6b569865b875d5c4fefe",
+      "expected_sha256": "64977a34163f03e4ef2f5d9f59027d124e6e02788b08970f2c2d5c635a4e723e",
+      "note": "The seven rows align. The isolated chain disables Explorer, and the status strip reports the lab session. The capture selects Light and the reference selects Dark.",
+      "reviewed_at": "2026-11-25T04:17:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "33-set-wallet-dark": {
+      "actual_sha256": "72a2a5c5106704971307bcf5ec02adc7b8e6e4e28dda3c60dc49e12a930825a6",
+      "expected_sha256": "938c775e7ef2b578c1d3a21698e13e5baff96bd01001bbb0d73aafd81d0030c8",
+      "note": "Auto-receive and desktop notifications are disabled in the capture and enabled in the reference. The capture includes the Maintenance disclosure and different cache deletion copy.",
+      "reviewed_at": "2026-11-25T04:17:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "33-set-wallet-light": {
+      "actual_sha256": "cf4ed4105eb3a0fe209705b449d7bbba701436be0c527527590730102e687fe5",
+      "expected_sha256": "82e2bc826d854d0764317b498db9a47cbe5aaaf3fcacf34e277db3dc3f90feba",
+      "note": "Auto-receive and desktop notifications are disabled in the capture and enabled in the reference. The capture includes the Maintenance disclosure and different cache deletion copy.",
+      "reviewed_at": "2026-11-25T04:17:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "34-set-apps-dark": {
+      "actual_sha256": "961fe16791f4daf9ca45632d85627af404dd0a02ed449ffb4f929a0d87a94db9",
+      "expected_sha256": "76efab8f738858389426bbff88f3935efc5610d64052b9f3946fda9af5086e48",
+      "note": "The capture has an empty connection table and zero WalletConnect sessions or pairings. The reference has two connected apps with session and pairing counts.",
+      "reviewed_at": "2026-11-25T04:17:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "34-set-apps-light": {
+      "actual_sha256": "bdf98a65aab6903480f1f4d4be72a1e1cf207ce215960e625546bb5006538ff8",
+      "expected_sha256": "21b9bdac58c975afa405e0ed1bceb6491b42743e30015f786240bdd562e1ad22",
+      "note": "The capture has an empty connection table and zero WalletConnect sessions or pairings. The reference has two connected apps with session and pairing counts.",
+      "reviewed_at": "2026-11-25T04:17:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "35-set-addresses-dark": {
+      "actual_sha256": "4ecc803fc44b347e0aaaf94a620b2cc9457b0a6b0606884c6b7c04c45e909eb5",
+      "expected_sha256": "500bab8c74c963bfee8d958d9fb06a647b04924da963a75db7caa98e7f241cad",
+      "note": "Address selection uses radio markers. The reference uses narrow vertical indicators. Balances, contact activity and account-chain counts also differ.",
+      "reviewed_at": "2026-11-25T04:17:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "35-set-addresses-light": {
+      "actual_sha256": "29b779443b3287e4e2c9075067e756ed88be06fcd3421a9003ebb9f6eac41763",
+      "expected_sha256": "b4705b0f43a7f5382e383dfce6f19574622719f620ef1190b6976f10932ee98c",
+      "note": "Address selection uses radio markers. The reference uses narrow vertical indicators. Balances, contact activity and account-chain counts also differ.",
+      "reviewed_at": "2026-11-25T04:17:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "36-set-about-dark": {
+      "actual_sha256": "e9151f5b4be8dd7d8cdcfa993947f81d781a35747de700d737c30da05eda961b",
+      "expected_sha256": "ad7fba54bc95a111744164a264efef237e7c3ebea8fca8cb087cebc04f0d831b",
+      "note": "The version card and three disclosure rows align. Build metadata, the embedded node version and the update badge differ.",
+      "reviewed_at": "2026-11-25T04:17:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "36-set-about-light": {
+      "actual_sha256": "2619f2938b06224e0fa4ef9ac7096b120b3c171015cd9c87e558ce2ad79e82eb",
+      "expected_sha256": "a8a8cf66e49fa88a25522dc8e759538b321f2f53c1f83d5d0d31edd3f8dd2072",
+      "note": "The version card and three disclosure rows align. Build metadata, the embedded node version and the update badge differ.",
+      "reviewed_at": "2026-11-25T04:17:36Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
