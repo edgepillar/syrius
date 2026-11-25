@@ -328,6 +328,15 @@ class WindowsQualificationTests(unittest.TestCase):
         self.assertEqual(inspect.handoff_unlock_fill_rows(pixels(opaque=True)),
                          dict(green=None, blue=None))
 
+    def test_overlapping_pixel_regions_keep_the_first_region_priority(self):
+        actual = pixels(opaque=True, welcome_rows=(340, 341, 342))
+        reference = pixels(rgba=False)
+        comparison = inspect.pixel_comparison(actual, reference, dict(
+            first=(711, 340, 715, 342), later=(713, 341, 719, 343)))
+        self.assertEqual(comparison['changed_pixels_at_least_16'], 24)
+        self.assertEqual(comparison['pixels_at_least_16_by_region'],
+                         dict(first=8, later=8, outside_crops=8))
+
     def test_welcome_action_alignment_finds_the_shift_to_the_reference(self):
         actual = pixels(opaque=True, welcome_rows=(340, 341), welcome_x=763)
         reference = pixels(opaque=True, welcome_rows=(338, 339), welcome_x=764)

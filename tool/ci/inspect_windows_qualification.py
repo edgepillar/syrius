@@ -310,16 +310,17 @@ def _png_crop(encoded, columns, lines):
         start = y * (stride + 1)
         filter_type = scanlines[start]
         row = bytearray(scanlines[start + 1:start + 1 + prefix])
-        if filter_type:
+        if filter_type == 1:
+            for i in range(channels, prefix):
+                row[i] = (row[i] + row[i - channels]) & 255
+        elif filter_type == 2:
+            row = bytearray((value + up) & 255 for value, up in zip(row, previous))
+        elif filter_type:
             for i in range(prefix):
                 left = row[i - channels] if i >= channels else 0
                 up = previous[i]
                 corner = previous[i - channels] if i >= channels else 0
-                if filter_type == 1:
-                    offset = left
-                elif filter_type == 2:
-                    offset = up
-                elif filter_type == 3:
+                if filter_type == 3:
                     offset = (left + up) // 2
                 else:
                     offset = _paeth(left, up, corner)
@@ -331,7 +332,7 @@ def _png_crop(encoded, columns, lines):
 
 
 def _opaque(rows, channels):
-    return channels == 3 or all(alpha == 255 for row in rows for alpha in row[3::4])
+    return channels == 3 or all(row[3::4].count(255) == len(row) // 4 for row in rows)
 
 
 BACK_MARK_COLUMNS = (367, 388)
@@ -919,19 +920,27 @@ def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
     by_region = dict.fromkeys(regions, 0)
     by_region['outside_crops'] = 0
     changed = high_contrast = total = 0
+    previous_regions = None
     for y, (actual_row, expected_row) in enumerate(zip(actual, expected)):
         active_regions = [(name, left, right)
                           for name, (left, top, right, bottom) in regions.items()
                           if top <= y < bottom]
+        if active_regions != previous_regions:
+            region_by_column = ['outside_crops'] * 1280
+            # Write the first matching region last so overlaps retain the
+            # original priority. Adjacent rows reuse the same column map.
+            for name, left, right in reversed(active_regions):
+                start, end = max(0, left), min(1280, right)
+                if start < end:
+                    region_by_column[start:end] = [name] * (end - start)
+            previous_regions = active_regions
         actual_rgb = _packed_rgb(actual_row, a_channels)
         expected_rgb = _packed_rgb(expected_row, e_channels)
         for x, red, green, blue in _rgb_changes(actual_rgb, expected_rgb):
             changed += 1
             if red >= 16 or green >= 16 or blue >= 16:
                 high_contrast += 1
-                region = next((name for name, left, right in active_regions
-                               if left <= x < right), 'outside_crops')
-                by_region[region] += 1
+                by_region[region_by_column[x]] += 1
             total += red + green + blue
     result = dict(reference_sha256=archive.sha(reference), actual_sha256=archive.sha(data),
                 changed_pixels=changed, changed_pixels_at_least_16=high_contrast,
