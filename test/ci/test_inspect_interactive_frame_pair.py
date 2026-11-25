@@ -571,7 +571,7 @@ class InteractiveFramePairTests(unittest.TestCase):
         measured = grouped['samples']['current']['observation']
         measured['tap_release_us'] = {'page_change': 5000}
         measured['windows']['page_change'] = dict(
-            measured['windows']['page_change'], frames=[
+            measured['windows']['page_change'], statusHaloStates='??aat', frames=[
                 [0, 1000, 100, 16000, 16100],
                 [1, 4000, 100, 21000, 23000],
                 [2, 4900, 100, 17000, 17100],
@@ -596,6 +596,13 @@ class InteractiveFramePairTests(unittest.TestCase):
                          dict(before_release=0, before_settlement=1, after_settlement=1, crossing=1))
         self.assertEqual(settled['verified_raster_rank_overruns']['page_change'][
             'after_settlement_by_build_start'], dict(built_before=0, built_at_or_after=1))
+        halo = settled['verified_status_halo_raster']['page_change']
+        self.assertEqual(halo['after_settlement'], dict(
+            visible=dict(samples=1, slow_raster=1, max_raster_us=24_000),
+            transparent=dict(samples=1, slow_raster=0, max_raster_us=12_000),
+            unknown=dict(samples=0, slow_raster=0, max_raster_us=0),
+        ))
+        self.assertEqual(settled['verified_comparisons'], projected['verified_comparisons'])
         page_settlement = settled['verified_window_diagnostics']['current']['page_change']
         self.assertEqual(page_settlement['observed_post_frame_offsets_from_tap_us'],
                          {'settled': 295_000})
