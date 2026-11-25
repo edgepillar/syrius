@@ -381,10 +381,12 @@ void main() {
         100,
         scrollable: scroll,
       );
-      expect(
-        find.descendant(of: row, matching: find.text(identifiers[name]!)),
-        findsOneWidget,
+      final Finder summary = find.descendant(
+        of: row,
+        matching: find.text(identifiers[name]!),
       );
+      expect(summary, findsOneWidget);
+      expect(tester.widget<Text>(summary).style?.fontSize, 15);
     }
     expect(tester.takeException(), isNull);
   });
