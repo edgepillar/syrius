@@ -1,0 +1,84 @@
+{
+  "reviews": {
+    "10-receive-qr-dark": {
+      "actual_sha256": "c26fda3bef1e32234601aa3dd8d6f815954162c66309f5de4e56fa558882d24b",
+      "expected_sha256": "7d0f473f9e93235a7032dbb227ceff6e683c91e92446565dee1bf037df78fad6",
+      "note": "The working request QR, amount, Copy image and Save are visible. The reference uses an illustrative mark, a different address and a longer amount hint.",
+      "reviewed_at": "2026-11-25T00:47:13Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "10-receive-qr-light": {
+      "actual_sha256": "9ec96b71dde823edc42d66686b22883417ab5222ac427dae7ce730e33f83816f",
+      "expected_sha256": "d3e867ff847f5c80f20afc1a8999441acfe57d9a6cbecad20d7633c8dcd62b17",
+      "note": "The working request QR, amount, Copy image and Save are visible. The reference uses an illustrative mark, a different address and a longer amount hint.",
+      "reviewed_at": "2026-11-25T00:47:13Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-dark": {
+      "actual_sha256": "e7afad8fe58b39beed7be8f50ad3bb809909513a2339f26350d1238968955130",
+      "expected_sha256": "b58f5d7ea3ac3da980689c744d8d8a37b6ad70a5eae6a7542f4992f7dbba089c",
+      "note": "Both amount fields, the memo and the action are visible. The isolated panel shows recipients unavailable, while the reference has a prepared recipient. The estimate also differs.",
+      "reviewed_at": "2026-11-25T00:47:13Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-light": {
+      "actual_sha256": "24c4856c35e4954d22d2ff0f0ba41f66970fd08d2fbf9acad7e93975501fe5ce",
+      "expected_sha256": "b3ab27949ed86fa2e78af721bd198fe7e258f9da5537ec914ae9ce3ccf753be8",
+      "note": "Both amount fields, the memo and the action are visible. The isolated panel shows recipients unavailable, while the reference has a prepared recipient. The estimate also differs.",
+      "reviewed_at": "2026-11-25T00:47:13Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-dark": {
+      "actual_sha256": "acee3af16857028e7dec247b592d0c3a932297572d24865a56e904e3960eb1d4",
+      "expected_sha256": "bce0133d1e1586247a874af23a72c340f73261174a296f4d690b7c6c3c334360",
+      "note": "The two Other addresses rules and the solid blue secondary meter remain visible. Prepared balances, meter fills, beneficiaries and expiry states differ. The isolated capture shows cancellable rows where the reference includes a locked row.",
+      "reviewed_at": "2026-11-25T00:47:13Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-light": {
+      "actual_sha256": "cab32104f17ac8e9d85aa58476b828a20efc2c76fddcc5b577d6f6871d7087fc",
+      "expected_sha256": "01ba9333c42b94249580c6c67789f19527d113e7861b9fd19e3c1e900f8f6c7f",
+      "note": "The two Other addresses rules and the solid blue secondary meter remain visible. Prepared balances, meter fills, beneficiaries and expiry states differ. The isolated capture shows cancellable rows where the reference includes a locked row.",
+      "reviewed_at": "2026-11-25T00:47:13Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-dark": {
+      "actual_sha256": "1623acb6d31e8302722b2f28378299a3f70192ddb17af9423ad0661cbebaff18",
+      "expected_sha256": "057765aba7cc2e027010869bdfe14eff0beee921cbef85777efa3f7fa96ec991",
+      "note": "The list reaches the blank discovery field and retains the row dividers. Package order and notice labels from the Windows registry differ from the reference.",
+      "reviewed_at": "2026-11-25T00:47:13Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-light": {
+      "actual_sha256": "dc84fd7456d4f98d8d0fd60ce539bfd8d39cb554f189760c129cb2eb1383f03b",
+      "expected_sha256": "4faec94b7502216de2bceb52b1e8ded1254a74a150014f5399d1dc85a19ac1d4",
+      "note": "The list reaches the blank discovery field and retains the row dividers. Package order and notice labels from the Windows registry differ from the reference.",
+      "reviewed_at": "2026-11-25T00:47:13Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-dark": {
+      "actual_sha256": "f59cc0e27508d826648388cbae0be5bda14a072d3d18e60fc911397dcdcfdd1a",
+      "expected_sha256": "b852ac9fcbdbea159856c6c3b30ac5ca2e25f55f1137655c4b689dc4a89a504f",
+      "note": "All six tiles and the replay and footer controls are visible. The discovery field is empty with a caret while the reference retains the example digits. The dark Map preview is close and the globe grid lines are more pronounced in the capture.",
+      "reviewed_at": "2026-11-25T00:47:13Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-light": {
+      "actual_sha256": "062263526a9b8a83697244470d6fae9a37e434fb21a37bc5cd16b6752266db22",
+      "expected_sha256": "b82600455634b306377ea7626f2e0ee80c7977c60c1ae1a7e23243dcace9d3ed",
+      "note": "All six tiles and the replay and footer controls are visible. Map dots are closer to the reference contrast, with remaining coverage and tone differences. The field clears after discovery while the reference retains the example digits.",
+      "reviewed_at": "2026-11-25T00:47:13Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
