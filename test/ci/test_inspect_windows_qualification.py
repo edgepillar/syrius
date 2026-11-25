@@ -378,8 +378,9 @@ class WindowsQualificationTests(unittest.TestCase):
         comparison = inspect.entry_pixel_comparison(actual, reference, 'welcome')
         self.assertEqual(comparison['caption_wordmark_alignment'], dict(
             shift_to_reference=[0, 1], original_difference=16, shifted_difference=0))
-        actual = pixels(opaque=True, welcome_rows=(503, 504, 538, 539, 576), welcome_x=702)
-        reference = pixels(opaque=True, welcome_rows=(505, 506, 537, 538, 572, 576),
+        actual = pixels(opaque=True, welcome_rows=(300, 301, 503, 504, 538, 539, 576),
+                        welcome_x=702)
+        reference = pixels(opaque=True, welcome_rows=(301, 302, 505, 506, 537, 538, 572, 576),
                            welcome_x=701, pillar_rail=True)
         comparison = inspect.pixel_comparison(
             actual, reference, {}, align_pillar_receipt=True)
@@ -387,6 +388,10 @@ class WindowsQualificationTests(unittest.TestCase):
             actual=dict(step_rows=None, divider_row=None),
             reference=dict(step_rows=[[109, 131], [145, 167], [181, 203], [217, 239]],
                            divider_row=261)))
+        self.assertEqual(comparison['pillar_artwork_alignment'], dict(
+            shift_to_reference=[-1, 1], original_difference=18,
+            shifted_difference=0, actual_bounds=[702, 300, 710, 302],
+            reference_bounds=[701, 301, 709, 303]))
         self.assertEqual(comparison['pillar_caption_alignment'], dict(
             shift_to_reference=[-1, -1], original_difference=18,
             shifted_difference=0, actual_bounds=[702, 538, 710, 540],

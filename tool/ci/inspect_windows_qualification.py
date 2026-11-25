@@ -1005,6 +1005,7 @@ def pixel_comparison(data, reference, regions, *, align_welcome_actions=False,
             actual=_pillar_receipt_rail_geometry(actual, a_channels),
             reference=_pillar_receipt_rail_geometry(expected, e_channels))
         for name, bounds in (
+            ('artwork', (550, 180, 1080, 490)),
             ('heading', (500, 490, 1140, 528)),
             ('caption', (500, 528, 1140, 560)),
             ('view_action', (690, 560, 829, 625)),

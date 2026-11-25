@@ -312,10 +312,12 @@ class SeededPixelComparisonTests(unittest.TestCase):
         hashes = {'actual_sha256': 'a' * 64, 'reference_sha256': 'b' * 64}
         heading = {'shift_to_reference': [0, -1]}
         view_action = {'shift_to_reference': [1, 0]}
+        artwork = {'shift_to_reference': [0, 0]}
         rail = {'actual': {'divider_row': 261}, 'reference': {'divider_row': 261}}
         pairs = {
             'dark': dict(hashes, pillar_heading_alignment=heading,
                          pillar_rail_geometry=rail,
+                         pillar_artwork_alignment=artwork,
                          pillar_view_action_alignment=view_action,
                          pillar_caption_alignment={'shift_to_reference': [0, 0]}),
             'light': hashes.copy(),
@@ -323,6 +325,7 @@ class SeededPixelComparisonTests(unittest.TestCase):
         self.assertEqual(inspect.pillar_receipt_alignment_pairs(pairs), {
             'dark': dict(hashes, pillar_heading_alignment=heading,
                          pillar_rail_geometry=rail,
+                         pillar_artwork_alignment=artwork,
                          pillar_view_action_alignment=view_action),
         })
         self.assertEqual(pairs, {
