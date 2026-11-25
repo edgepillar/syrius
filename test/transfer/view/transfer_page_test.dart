@@ -499,7 +499,10 @@ void main() {
       ));
       expect(find.byKey(const Key('receive_amount_field')).hitTestable(),
         findsOneWidget);
-      expect(find.text('The QR carries the amount.'), findsNothing);
+      final Finder amountHint = find.text(
+        'The QR carries the amount and the selected token.',
+      );
+      expect(amountHint, findsNothing);
       await _driveReceiveCommand(tester, agent.commandForTest(
         <String, dynamic>{
           'cmd': 'type', 'key': 'receive_amount_field', 'value': '100',
@@ -530,7 +533,7 @@ void main() {
       expect(payload, startsWith('qsr:'));
       expect(payload, contains('zts=${kQsrCoin.tokenStandard}'));
       expect(payload, endsWith('&amount=10000000000'));
-      expect(find.text('The QR carries the amount.'), findsOneWidget);
+      expect(amountHint, findsOneWidget);
       expect(find.byKey(const Key('receive_share_image')), findsOneWidget);
       expect(find.byKey(const Key('receive_save_image')), findsOneWidget);
       expect(tester.takeException(), isNull);
