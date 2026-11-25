@@ -1241,6 +1241,7 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
     token_actions = {}
     about_download = {}
     zap_note_icon = {}
+    licence_summary_ink = {}
     menu_selection = {}
     collect_edges = {}
     has_settings_menu = 'settings_menu_labels' in regions
@@ -1275,6 +1276,9 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
         if screen == '11-zap-form':
             zap_note_icon[theme] = dict(actual=_zap_note_icon_bounds(actual),
                                         reference=_zap_note_icon_bounds(reference))
+        if screen == '37-set-licences':
+            licence_summary_ink[theme] = dict(actual=_licence_summary_bounds(actual),
+                reference=_licence_summary_bounds(reference))
         if screen == '38-set-originals':
             map_gray[theme], map_coverage[theme] = _map_dot_comparison(actual, reference)
         if screen == '27-swap-start':
@@ -1300,6 +1304,8 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
         result['about_download'] = about_download
     if zap_note_icon:
         result['zap_note_icon'] = zap_note_icon
+    if licence_summary_ink:
+        result['licence_summary_ink'] = licence_summary_ink
     if menu_selection:
         column, top, bottom = SETTINGS_MENU_SELECTION_SCAN
         result['menu_selection_rows'] = dict(column=column, scan_rows=[top, bottom],
@@ -1500,11 +1506,17 @@ def staking_empty_bands(raw):
 
 def _image_ink_bounds(raw, columns, lines, matches, *, minimum_fill=0,
                       relative_to_background=False):
-    left, right = columns
-    top, bottom = lines
     encoded = base64.b64encode(raw).decode('ascii')
     rows, channels = windows._png_crop(encoded, columns, lines)
-    if not windows._opaque(rows, channels):
+    return _crop_ink_bounds(rows, channels, columns, lines, matches,
+        minimum_fill=minimum_fill, relative_to_background=relative_to_background)
+
+
+def _crop_ink_bounds(rows, channels, columns, lines, matches, *, minimum_fill=0,
+                     relative_to_background=False):
+    left, right = columns
+    top, bottom = lines
+    if not rows or not windows._opaque(rows, channels):
         return None
     background = rows[0][:3] if relative_to_background else None
     points = []
@@ -1542,6 +1554,21 @@ def _zap_note_icon_bounds(raw):
     return _image_ink_bounds(raw, (362, 380), (361, 388),
         lambda red, green, blue: max(red, green, blue) >= 18,
         relative_to_background=True)
+
+
+def _licence_summary_bounds(raw):
+    columns = (820, 960)
+    bands = ((515, 542), (554, 581))
+    origin = bands[0][0]
+    encoded = base64.b64encode(raw).decode('ascii')
+    rows, channels = windows._png_crop(encoded, columns, (origin, bands[-1][1]))
+    # Measure the two visible cells without assigning names to registry rows.
+    return [
+        _crop_ink_bounds(rows[top - origin:bottom - origin], channels, columns,
+            (top, bottom), lambda red, green, blue: max(red, green, blue) >= 25,
+            relative_to_background=True)
+        for top, bottom in bands
+    ]
 
 
 def _selection_ink(red, green, blue):
