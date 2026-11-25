@@ -1984,6 +1984,7 @@ void main() {
       int returned = 0;
       int closedFuse = 0;
       final Set<int> checkedFusions = <int>{};
+      const Set<int> selectableFusions = <int>{0, 1};
       bool tappedFuseAmount = false;
       bool clearedFuseHover = false;
       final List<String> hoveredScreens = <String>[];
@@ -2067,7 +2068,7 @@ void main() {
           if (name == 'tap' && command['type'] == 'Checkbox') {
             expect(selected, 'plasma-fuse');
             final int row = command['nth']! as int;
-            expect(row, anyOf(1, 2));
+            expect(selectableFusions, contains(row));
             expect(command, <String, Object?>{
               'cmd': 'tap', 'type': 'Checkbox', 'kind': 'toggle', 'nth': row,
             });
@@ -2087,7 +2088,7 @@ void main() {
             if (targetKey == 'fuse_plasma_amount_field') {
               expect(selected, 'plasma-fuse');
               expect(command['kind'], 'field');
-              expect(checkedFusions, <int>{1, 2});
+              expect(checkedFusions, selectableFusions);
               expect(afterShot, isFalse);
               tappedFuseAmount = true;
             }
@@ -2202,7 +2203,7 @@ void main() {
             expect(tab, routes[shots ~/ 2]);
             expect(selected, screens[shots ~/ 2]);
             if (selected == 'plasma-fuse') {
-              expect(checkedFusions, <int>{1, 2});
+              expect(checkedFusions, selectableFusions);
               expect(tappedFuseAmount, isTrue);
               expect(clearedFuseHover, isTrue);
               tappedFuseAmount = false;
