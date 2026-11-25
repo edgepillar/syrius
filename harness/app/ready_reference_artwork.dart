@@ -336,9 +336,10 @@ Future<String> observePillarRecordedMark(
     final List<(Layer, Matrix4, String)> pending = <(Layer, Matrix4, String)>[
       (scene, Matrix4.diagonal3Values(pixelScale, pixelScale, 1), 'outside'),
     ];
-    final List<(ui.Picture, Rect, String)> crops =
-        <(ui.Picture, Rect, String)>[];
+    final List<(ui.Picture, Rect, String, bool)> crops =
+        <(ui.Picture, Rect, String, bool)>[];
     bool pageIsInScene = false;
+    bool paneIsInScene = false;
     int visited = 0;
     while (pending.isNotEmpty) {
       if (++visited > 1024) return 'unavailable';
@@ -363,7 +364,10 @@ Future<String> observePillarRecordedMark(
           _ => scope,
         };
       }
-      if (identical(layer, pane)) scope = 'inside';
+      if (identical(layer, pane)) {
+        paneIsInScene = true;
+        scope = 'inside';
+      }
       if (editorLayers.contains(layer)) scope = 'in_editor_paint';
       if (layer is ContainerLayer) {
         for (Layer? child = layer.firstChild;
@@ -386,12 +390,13 @@ Future<String> observePillarRecordedMark(
       final Rect mark = _pillarHeaderMark.shift(-origin);
       if (layer.canvasBounds.overlaps(mark)) {
         if (crops.length == 32) return 'unavailable';
-        crops.add((layer.picture!, mark, scope));
+        // The stack visits later-painted siblings first.
+        crops.add((layer.picture!, mark, scope, paneIsInScene));
       }
     }
     if (crops.isEmpty) return 'unavailable';
     final List<String> results = await Future.wait(<Future<String>>[
-      for (final (ui.Picture picture, Rect mark, _) in crops)
+      for (final (ui.Picture picture, Rect mark, _, _) in crops)
         _readRecordedPillarMark(picture, mark),
     ]);
     if (results.contains('unavailable')) return 'unavailable';
@@ -400,7 +405,10 @@ Future<String> observePillarRecordedMark(
         if (mark == 'present') index,
     ];
     if (hits.length == 1) {
-      final String scope = crops[hits.single].$3;
+      final (_, _, String scope, bool paneVisited) = crops[hits.single];
+      if (scope == 'in_shell_page' && paneIsInScene) {
+        return paneVisited ? 'below_pane_in_shell' : 'above_pane_in_shell';
+      }
       return scope == 'outside' && pageIsInScene ? 'outside_shell_page' : scope;
     }
     return hits.isEmpty ? 'no_picture' : 'multiple_pictures';

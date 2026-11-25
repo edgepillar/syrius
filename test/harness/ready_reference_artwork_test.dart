@@ -380,7 +380,8 @@ void main() {
       ('beside clip', 'inside'),
       ('in pane transition', 'in_pane_transition'),
       ('in pane transition follower', 'in_pane_transition_follower'),
-      ('in shell page', 'in_shell_page'),
+      ('above pane in shell', 'above_pane_in_shell'),
+      ('below pane in shell', 'below_pane_in_shell'),
       ('in shell follower', 'in_shell_follower'),
       ('outside shell page', 'outside_shell_page'),
       ('without shell marker', 'outside'),
@@ -416,6 +417,8 @@ void main() {
                       ? null : const ValueKey<String>('shell_page_paint'),
                   child: Stack(
                     children: <Widget>[
+                      if (placement == 'below pane in shell')
+                        mark(84, 36, green),
                       Positioned(
                         left: 20,
                         top: 12,
@@ -442,7 +445,8 @@ void main() {
                           ),
                         ),
                       ),
-                      if (placement == 'in shell page') mark(84, 36, green),
+                      if (placement == 'above pane in shell')
+                        mark(84, 36, green),
                       if (placement == 'in shell follower') linkedMark(84, 36),
                     ],
                   ),
@@ -476,7 +480,9 @@ void main() {
             (RenderBox boundary) => boundary.debugLayer,
             outsideNearest: true,
           ),
-          placement != 'nowhere' ? 'present' : 'absent',
+          placement == 'nowhere' || placement == 'below pane in shell'
+              ? 'absent'
+              : 'present',
           reason: placement,
         );
         final RenderView view = tester.binding.renderViews.single;
