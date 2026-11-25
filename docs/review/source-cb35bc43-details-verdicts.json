@@ -1,0 +1,84 @@
+{
+  "reviews": {
+    "10-receive-qr-dark": {
+      "actual_sha256": "d79c89ef00952f413c67d9fc9f173cb707b6e62f6a1aa99aa3abf2d93f8a86d3",
+      "expected_sha256": "7d0f473f9e93235a7032dbb227ceff6e683c91e92446565dee1bf037df78fad6",
+      "note": "The working request QR, QSR amount, Copy image and Save are visible. The reference uses an illustrative QR and a longer amount hint.",
+      "reviewed_at": "2026-11-25T02:41:23Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "10-receive-qr-light": {
+      "actual_sha256": "5036370021f9020b02b65ee812c1a77a3c01fc32e7b90160aab5efa6c5befa8b",
+      "expected_sha256": "d3e867ff847f5c80f20afc1a8999441acfe57d9a6cbecad20d7633c8dcd62b17",
+      "note": "The working request QR, QSR amount, Copy image and Save are visible. The reference uses an illustrative QR and a longer amount hint.",
+      "reviewed_at": "2026-11-25T02:41:23Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-dark": {
+      "actual_sha256": "2f10a64b8a95bfe26118704299d52c77ca0617019a6b1037bc5e17d30356c2c1",
+      "expected_sha256": "b58f5d7ea3ac3da980689c744d8d8a37b6ad70a5eae6a7542f4992f7dbba089c",
+      "note": "The note icon matches the reference bounds. The original form shows recipient discovery unavailable and a different estimate, with both amount fields, the memo and the action in place.",
+      "reviewed_at": "2026-11-25T02:41:23Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "11-zap-form-light": {
+      "actual_sha256": "79ea75e68b28a25046d609fc6255afc342a55f7304dcd5b4358c2572108ee31e",
+      "expected_sha256": "b3ab27949ed86fa2e78af721bd198fe7e258f9da5537ec914ae9ce3ccf753be8",
+      "note": "The note icon matches the reference bounds. The original form shows recipient discovery unavailable and a different estimate, with both amount fields, the memo and the action in place.",
+      "reviewed_at": "2026-11-25T02:41:23Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-dark": {
+      "actual_sha256": "bec30b1a38bfcb8765ca42df1764fea8ce5358a52a82d78acbc8965ba7db6eec",
+      "expected_sha256": "bce0133d1e1586247a874af23a72c340f73261174a296f4d690b7c6c3c334360",
+      "note": "Both selected rows are cancelable and the third row is locked. The reference puts the locked row first. The isolated selected meter is full, and the balances, beneficiaries and copy controls differ from the reference.",
+      "reviewed_at": "2026-11-25T02:41:23Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "22-plasma-fuse-light": {
+      "actual_sha256": "d382e4cad27d7a263153657e074c8ced8a979263e67f287c0fa12c5cc7fb865e",
+      "expected_sha256": "01ba9333c42b94249580c6c67789f19527d113e7861b9fd19e3c1e900f8f6c7f",
+      "note": "Both selected rows are cancelable and the third row is locked. The reference puts the locked row first. The isolated selected meter is full, and the balances, beneficiaries and copy controls differ from the reference.",
+      "reviewed_at": "2026-11-25T02:41:23Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-dark": {
+      "actual_sha256": "24e0c933862055f87e44f9f983dbb49350990828a4a7fdd77b487aa9fc6b1de8",
+      "expected_sha256": "057765aba7cc2e027010869bdfe14eff0beee921cbef85777efa3f7fa96ec991",
+      "note": "The notice type column keeps its position and the updated text size. The expanded list shows the genuine package order and notices, which differ from the reference list.",
+      "reviewed_at": "2026-11-25T02:41:23Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "37-set-licences-light": {
+      "actual_sha256": "083447fb22643a9e3a9d79b5bf2ff96fb3ae69f4db098e011ed4a094690effeb",
+      "expected_sha256": "4faec94b7502216de2bceb52b1e8ded1254a74a150014f5399d1dc85a19ac1d4",
+      "note": "The notice type column keeps its position and the updated text size. The expanded list shows the genuine package order and notices, which differ from the reference list.",
+      "reviewed_at": "2026-11-25T02:41:23Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-dark": {
+      "actual_sha256": "3c4a46fe03e6139230081379a2074dca003fdfb134e74ee884ad0ee3add56548",
+      "expected_sha256": "b852ac9fcbdbea159856c6c3b30ac5ca2e25f55f1137655c4b689dc4a89a504f",
+      "note": "All six tiles, replay and footer are visible. The discovery field is empty after revealing Originals. The reference retains the example digits and draws softer globe grid lines.",
+      "reviewed_at": "2026-11-25T02:41:23Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    },
+    "38-set-originals-light": {
+      "actual_sha256": "efedce8f374f7c39a399b85f8df7bdfac5dc7bb9892b7e00d711eb0934dfdd12",
+      "expected_sha256": "b82600455634b306377ea7626f2e0ee80c7977c60c1ae1a7e23243dcace9d3ed",
+      "note": "All six tiles, replay and footer are visible. The discovery field is empty after revealing Originals. The reference retains the example digits and the Map dot coverage still differs.",
+      "reviewed_at": "2026-11-25T02:41:23Z",
+      "reviewer": "Codex",
+      "verdict": "mismatch"
+    }
+  }
+}
