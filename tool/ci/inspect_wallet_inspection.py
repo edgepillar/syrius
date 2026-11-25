@@ -1240,6 +1240,7 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
     token_fields = {}
     token_actions = {}
     about_download = {}
+    zap_note_icon = {}
     menu_selection = {}
     collect_edges = {}
     has_settings_menu = 'settings_menu_labels' in regions
@@ -1271,6 +1272,9 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
         if screen == '36-set-about':
             about_download[theme] = dict(actual=_about_download_action(actual),
                                         reference=_about_download_action(reference))
+        if screen == '11-zap-form':
+            zap_note_icon[theme] = dict(actual=_zap_note_icon_bounds(actual),
+                                        reference=_zap_note_icon_bounds(reference))
         if screen == '38-set-originals':
             map_gray[theme], map_coverage[theme] = _map_dot_comparison(actual, reference)
         if screen == '27-swap-start':
@@ -1294,6 +1298,8 @@ def _catalog_pixel_pair(zipped, reference_dir, screen, regions, *, sample_points
                                            themes=security_dividers)
     if about_download:
         result['about_download'] = about_download
+    if zap_note_icon:
+        result['zap_note_icon'] = zap_note_icon
     if menu_selection:
         column, top, bottom = SETTINGS_MENU_SELECTION_SCAN
         result['menu_selection_rows'] = dict(column=column, scan_rows=[top, bottom],
@@ -1492,36 +1498,50 @@ def staking_empty_bands(raw):
     return dict(column=column, scan_rows=[top, bottom], themes=themes)
 
 
-def _ink_bounds(zipped, screen, columns, lines, matches, *, minimum_fill=0,
-                relative_to_background=False):
+def _image_ink_bounds(raw, columns, lines, matches, *, minimum_fill=0,
+                      relative_to_background=False):
     left, right = columns
     top, bottom = lines
-    themes = {}
-    for theme in producer.settings.THEMES:
-        name = f'{screen}-{theme}.png'
-        encoded = base64.b64encode(zipped.read(name)).decode('ascii')
-        rows, channels = windows._png_crop(encoded, columns, lines)
-        points = []
-        if windows._opaque(rows, channels):
-            background = rows[0][:3] if relative_to_background else None
-            for y, row in enumerate(rows, top):
-                for index in range(0, len(row), channels):
-                    color = tuple(row[index:index + 3])
-                    channels_to_match = color if background is None else tuple(
-                        abs(channel - base) for channel, base in zip(color, background))
-                    if matches(*channels_to_match):
-                        points.append((color, left + index // channels, y))
-        themes[theme] = None
-        if points and minimum_fill:
-            # Isolate the solid tint from pink text and anti-aliased edges.
-            color, count = Counter(color for color, _, _ in points).most_common(1)[0]
-            points = [point for point in points if point[0] == color] if count >= minimum_fill else []
-        if points:
-            _, xs, ys = zip(*points)
-            x1, x2, y1, y2 = min(xs), max(xs), min(ys), max(ys)
-            if left < x1 <= x2 < right - 1 and top < y1 <= y2 < bottom - 1:
-                themes[theme] = dict(left=x1, top=y1, right=x2, bottom=y2)
-    return themes
+    encoded = base64.b64encode(raw).decode('ascii')
+    rows, channels = windows._png_crop(encoded, columns, lines)
+    if not windows._opaque(rows, channels):
+        return None
+    background = rows[0][:3] if relative_to_background else None
+    points = []
+    for y, row in enumerate(rows, top):
+        for index in range(0, len(row), channels):
+            color = tuple(row[index:index + 3])
+            channels_to_match = color if background is None else tuple(
+                abs(channel - base) for channel, base in zip(color, background))
+            if matches(*channels_to_match):
+                points.append((color, left + index // channels, y))
+    if points and minimum_fill:
+        # Isolate the solid tint from pink text and anti-aliased edges.
+        color, count = Counter(color for color, _, _ in points).most_common(1)[0]
+        points = [point for point in points if point[0] == color] if count >= minimum_fill else []
+    if not points:
+        return None
+    _, xs, ys = zip(*points)
+    x1, x2, y1, y2 = min(xs), max(xs), min(ys), max(ys)
+    if left < x1 <= x2 < right - 1 and top < y1 <= y2 < bottom - 1:
+        return dict(left=x1, top=y1, right=x2, bottom=y2)
+    return None
+
+
+def _ink_bounds(zipped, screen, columns, lines, matches, *, minimum_fill=0,
+                relative_to_background=False):
+    return {
+        theme: _image_ink_bounds(zipped.read(f'{screen}-{theme}.png'),
+            columns, lines, matches, minimum_fill=minimum_fill,
+            relative_to_background=relative_to_background)
+        for theme in producer.settings.THEMES
+    }
+
+
+def _zap_note_icon_bounds(raw):
+    return _image_ink_bounds(raw, (362, 380), (361, 388),
+        lambda red, green, blue: max(red, green, blue) >= 18,
+        relative_to_background=True)
 
 
 def _selection_ink(red, green, blue):

@@ -156,15 +156,28 @@ class ReaderTests(unittest.TestCase):
         raw = packed([(name, name.encode(), stat.S_IFREG) for name in names])
         reference_dir = Path('references')
         swatch = bytes([255, 255, 255, 255, 255, 255, 0, 0, 0])
+
+        def crop(_encoded, columns, rows):
+            if columns == (362, 380) and rows == (361, 388):
+                background = bytes((38, 39, 38))
+                ink = bytes((60, 61, 60))
+                blank = background * 18
+                mark = background + ink * 12 + background * 5
+                return [blank] * 7 + [mark] * 12 + [blank] * 8, 3
+            return [swatch], 3
+
         with mock.patch.object(reader.producer, 'read_original',
                 side_effect=lambda path, _: path.name.encode()) as read, \
                 mock.patch.object(reader.windows, 'pixel_comparison',
                     side_effect=lambda actual, reference, _, **options: actual == reference) as compare, \
-                mock.patch.object(reader.windows, '_png_crop', return_value=([swatch], 3)):
+                mock.patch.object(reader.windows, '_png_crop', side_effect=crop):
             comparisons = list(reader.details_pixel_comparisons(raw, reference_dir, files=names))
         self.assertEqual([row['screen'] for row in comparisons], list(screens))
         self.assertEqual([call.args[0] for call in read.call_args_list],
                          [reference_dir / name for name in names])
+        mark = dict(left=363, top=368, right=374, bottom=379)
+        self.assertEqual(comparisons[2]['zap_note_icon'], {
+            theme: dict(actual=mark, reference=mark) for theme in ('dark', 'light')})
         send = comparisons[0]['region_bounds']
         self.assertEqual(send['recipient_and_warning'], (320, 80, 1000, 374))
         self.assertEqual(send['amount_and_action'], (320, 374, 1000, 550))
