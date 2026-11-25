@@ -240,11 +240,6 @@ class _LicencesState extends State<Licences> {
         finish();
         return;
       }
-      // Keep the bounded observations: a lazy extent can look final early.
-      if (corrections == 4) {
-        finish();
-        return;
-      }
       final double target = position.maxScrollExtent;
       if (!target.isFinite) {
         finish();
@@ -261,7 +256,8 @@ class _LicencesState extends State<Licences> {
         revision = expected;
       }
       corrections++;
-      if (!current()) {
+      // A lazy extent can look final early. Check at most four frames.
+      if (corrections == 4 || !current()) {
         finish();
         return;
       }
