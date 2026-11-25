@@ -2942,7 +2942,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get receiveRequestAmount => 'Request a specific amount';
 
   @override
-  String get receiveRequestAmountHint => 'The QR carries the amount.';
+  String get receiveRequestAmountHint =>
+      'The QR carries the amount and the selected token.';
 
   @override
   String get receiveCopyImage => 'Copy image';

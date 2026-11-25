@@ -4843,7 +4843,7 @@ abstract class AppLocalizations {
   /// No description provided for @receiveRequestAmountHint.
   ///
   /// In en, this message translates to:
-  /// **'The QR carries the amount.'**
+  /// **'The QR carries the amount and the selected token.'**
   String get receiveRequestAmountHint;
 
   /// No description provided for @receiveCopyImage.

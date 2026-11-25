@@ -489,7 +489,9 @@ void main() {
           (well.decoration! as BoxDecoration).borderRadius,
           BorderRadius.circular(8),
         );
-        final Finder hint = find.text('The QR carries the amount.');
+        final Finder hint = find.text(
+          'The QR carries the amount and the selected token.',
+        );
         final TextStyle hintStyle = tester.widget<Text>(hint).style!;
         expect(hintStyle.fontSize, 12.5);
         expect(hintStyle.color, tokens.faint);
@@ -652,7 +654,10 @@ void main() {
       );
       await tester.pump();
       expect(find.byType(ReceiveQrImage), findsNothing, reason: amount);
-      expect(find.text('The QR carries the amount.'), findsNothing);
+      expect(
+        find.text('The QR carries the amount and the selected token.'),
+        findsNothing,
+      );
       expect(find.byKey(const Key('receive_share_image')), findsNothing);
       expect(find.byKey(const Key('receive_save_image')), findsNothing);
     }
@@ -810,6 +815,10 @@ void main() {
     expect(
       request,
       'qsr:$_second?zts=${kQsrCoin.tokenStandard}&amount=10050000000',
+    );
+    expect(
+      find.text('The QR carries the amount and the selected token.'),
+      findsOneWidget,
     );
     await _toggleRequest(tester);
     expect(find.byKey(const Key('receive_amount_field')), findsNothing);
