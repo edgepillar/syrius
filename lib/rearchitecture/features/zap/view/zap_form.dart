@@ -286,10 +286,13 @@ class _ZapFormState extends State<ZapForm> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      buildShellSymbol(
-                        context,
-                        'info',
-                        size: tokens.zapSmallGlyphSize,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: buildShellSymbol(
+                          context,
+                          'info',
+                          size: tokens.zapSmallGlyphSize,
+                        ),
                       ),
                       SizedBox(width: tokens.inlineGap),
                       Expanded(

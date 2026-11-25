@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
@@ -208,6 +209,15 @@ void main() {
         expect(area.bottom - counter.bottom, closeTo(11, .01));
         final Finder notice = _key('zap_node_notice');
         final Finder action = _key('zap_submit_button');
+        final Finder noticeRow = find
+            .ancestor(of: notice, matching: find.byType(Row))
+            .first;
+        final Rect noticeIcon = tester.getRect(
+          find.descendant(of: noticeRow, matching: find.byType(SvgPicture)),
+        );
+        final Rect noticeText = tester.getRect(notice);
+        expect(noticeIcon.top - noticeText.top, 2);
+        expect(noticeText.left - noticeIcon.right, 8);
         expect(
           tester.widget<Text>(notice).data,
           'Picked from what your node reports, so the node can steer it. '
