@@ -6576,6 +6576,30 @@ class HarnessAgent {
     return pictures != null && scene.containsAll(pictures) ? pictures : null;
   }
 
+  void _observeStatusHaloFrames(HarnessFrameWindow window, Element dot) {
+    final WidgetsBinding binding = WidgetsBinding.instance;
+    void sample(Duration _) {
+      if (!identical(_frameWindow, window) ||
+          _interactiveStartUs == null ||
+          !dot.mounted) {
+        return;
+      }
+      if (kCurrentPage == Tabs.settings) {
+        final double? phase = StatusDot.haloPhaseOf(dot);
+        if (phase != null && phase >= 0 && phase <= 1) {
+          window.observeStatusHalo(
+            binding.platformDispatcher.frameData.frameNumber,
+            transparent: phase == 1,
+          );
+        }
+      }
+      // The observation follows frames the wallet already schedules.
+      binding.addPostFrameCallback(sample);
+    }
+
+    binding.addPostFrameCallback(sample);
+  }
+
   Map<String, Object?> _observeReadonlySheen() {
     final ReadonlyNativeCommands? native = _readonlyNative;
     final Element? root = WidgetsBinding.instance.rootElement;
@@ -6875,12 +6899,23 @@ class HarnessAgent {
         _frameWindowStatusPictures = _captureStatusFramePictures(
           _frameWindowPictures,
         );
+        final Element? root = WidgetsBinding.instance.rootElement;
+        final Element? dot = root == null
+            ? null
+            : _findTimingChild(
+                root,
+                (Widget widget) =>
+                    widget is StatusDot &&
+                    widget.fillKey == const Key('strip_sync'),
+              );
         final int started = dev.Timeline.now;
-        _frameWindow = HarnessFrameWindow(
+        final HarnessFrameWindow collecting = HarnessFrameWindow(
           started,
           includeInteractiveDiagnostics: true,
         );
+        _frameWindow = collecting;
         _interactiveStartUs = started;
+        if (dot != null) _observeStatusHaloFrames(collecting, dot);
         _pageSettledUs = null;
         _disclosurePhasesUs.clear();
         return <String, Object?>{'frameWindow': 'collecting'};

@@ -99,6 +99,8 @@ def _idle_summary(sample):
     field = pair.shared.launch.RETAINED_STATUS_PICTURES_FIELD
     if field in window:
         result['retained_status_pictures'] = window[field]
+    if pair.shared.launch.STATUS_HALO_STATES_FIELD in window:
+        result['status_halo_raster'] = _status_halo_raster(window)['all']
     return result
 
 
@@ -253,6 +255,20 @@ def _record_raster(group, raster):
     group['samples'] += 1
     group['slow_raster'] += raster > pair.shared.FRAME_BUDGET_US
     group['max_raster_us'] = max(group['max_raster_us'], raster)
+
+
+def _status_halo_raster(window, settled_us=None):
+    rows = pair.shared.launch.frame_timing_rows(window)
+    phases = {'a': 'visible', 't': 'transparent', '?': 'unknown'}
+    result = {'all': _raster_groups(*phases.values())}
+    if settled_us is not None:
+        result['after_settlement'] = _raster_groups(*phases.values())
+    for row, state in zip(rows, window[pair.shared.launch.STATUS_HALO_STATES_FIELD]):
+        phase = phases[state]
+        _record_raster(result['all'][phase], row[3])
+        if settled_us is not None and row[1] >= settled_us:
+            _record_raster(result['after_settlement'][phase], row[3])
+    return result
 
 
 def _frame_gaps_by_previous_raster(window):
@@ -562,6 +578,11 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
             if 'idle_after_disclosure' in samples[label]['observation']
         },
         verified_raster_rank_overruns=raster_overruns,
+        verified_status_halo_raster={
+            name: _status_halo_raster(window, (observed_phases.get(name) or {}).get('settled'))
+            for name, window in diagnostic_windows.get('current', {}).items()
+            if pair.shared.launch.STATUS_HALO_STATES_FIELD in window
+        },
         verified_gap_raster_states={
             label: {name: _frame_gaps_by_previous_raster(window)
                     for name, window in frame_windows.items()}

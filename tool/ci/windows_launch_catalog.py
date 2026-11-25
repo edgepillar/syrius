@@ -50,9 +50,11 @@ RASTER_CACHE_FIELD = 'rasterCacheAtPeak'
 GRAPHICS_ADAPTER_FIELD = 'graphicsAdapterKind'
 RETAINED_PICTURES_FIELD = 'retainedPictures'
 RETAINED_STATUS_PICTURES_FIELD = 'retainedStatusPictures'
+STATUS_HALO_STATES_FIELD = 'statusHaloStates'
 OPTIONAL_TIMING_FIELDS = (PEAK_BUILD_WAIT_FIELD, RASTER_STARTS_FIELD,
                           RASTER_CACHE_FIELD, GRAPHICS_ADAPTER_FIELD,
-                          RETAINED_PICTURES_FIELD, RETAINED_STATUS_PICTURES_FIELD)
+                          RETAINED_PICTURES_FIELD, RETAINED_STATUS_PICTURES_FIELD,
+                          STATUS_HALO_STATES_FIELD)
 PACKED_TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frameCount', 'packedFrames')
 STARTUP_PHASE_FIELD = 'startupPhaseUs'
 STARTUP_AUTH_FIELD = 'startupAuthInShellUs'
@@ -289,6 +291,11 @@ def frame_timing_rows(value, *, allow_packed=False):
              and all(startup.integer(status[field], 0, value[RETAINED_PICTURES_FIELD][field])
                      for field in ('before', 'after', 'shared'))
              and status['shared'] <= min(status['before'], status['after']))
+    if STATUS_HALO_STATES_FIELD in value:
+        states = value[STATUS_HALO_STATES_FIELD]
+        need(type(states) is str and len(states) == len(rows)
+             and all(state in 'at?' for state in states)
+             and any(state != '?' for state in states))
     if GRAPHICS_ADAPTER_FIELD in value:
         need(value[GRAPHICS_ADAPTER_FIELD] in (
             'dxgi-software', 'dxgi-non-software', 'unavailable'))

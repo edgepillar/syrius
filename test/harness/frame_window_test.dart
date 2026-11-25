@@ -52,7 +52,15 @@ void main() {
     final HarnessFrameWindow window = HarnessFrameWindow(
       100000,
       includeInteractiveDiagnostics: true,
-    )..observe(<ui.FrameTiming>[_frame(2, 90000), _frame(3, 100000)]);
+    );
+    window.observeStatusHalo(2, transparent: true);
+    window.observeStatusHalo(3, transparent: false);
+    window.observeStatusHalo(4, transparent: true);
+    window.observe(<ui.FrameTiming>[
+      _frame(2, 90000),
+      _frame(3, 100000),
+      _frame(4, 125000),
+    ]);
     bool requested = false;
     bool delivered = false;
     final Future<Map<String, Object?>> result = window.finish(
@@ -63,15 +71,17 @@ void main() {
       delivered = true;
     }));
     expect(requested, isTrue);
-    window.observe(<ui.FrameTiming>[_frame(4, 149999)]);
+    window.observeStatusHalo(6, transparent: true);
+    window.observe(<ui.FrameTiming>[_frame(6, 149999)]);
     await Future<void>.value();
     expect(delivered, isFalse);
 
-    window.observe(<ui.FrameTiming>[_frame(5, 150000), _frame(6, 160000)]);
+    window.observe(<ui.FrameTiming>[_frame(7, 150000), _frame(8, 160000)]);
     final Map<String, Object?> receipt = await result;
     expect(receipt['windowUs'], 50000);
     expect(receipt['peakBuildWaitUs'], 1000);
-    expect(receipt['rasterStartsUs'], <int>[11000, 60999]);
+    expect(receipt['rasterStartsUs'], <int>[11000, 36000, 60999]);
+    expect(receipt['statusHaloStates'], 'at?');
     expect(receipt['rasterCacheAtPeak'], <String, int>{
       'frame': 0,
       'layer_count': 3,
@@ -81,7 +91,8 @@ void main() {
     });
     expect(receipt['frames'], <List<int>>[
       <int>[0, 0, 10000, 5000, 17000],
-      <int>[1, 49999, 10000, 5000, 17000],
+      <int>[1, 25000, 10000, 5000, 17000],
+      <int>[3, 49999, 10000, 5000, 17000],
     ]);
   });
 

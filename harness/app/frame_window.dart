@@ -115,11 +115,23 @@ class HarnessFrameWindow {
   final bool _includeInteractiveDiagnostics;
   int get _windowLimitUs => _packed ? _maxPackedWindowUs : _maxWindowUs;
   final List<_Sample> _samples = <_Sample>[];
+  final Map<int, bool> _statusHaloFrames = <int, bool>{};
   final Completer<void> _delivered = Completer<void>();
   int? _endUs;
   HarnessFrameWindowRefusal? _failure;
   int _peakRasterUs = -1;
   Map<String, int>? _peakRasterCache;
+
+  /// Associates a visible status dot's phase with the original engine frame.
+  void observeStatusHalo(int frame, {required bool transparent}) {
+    if (!_includeInteractiveDiagnostics ||
+        _endUs != null ||
+        frame <= 0 ||
+        _statusHaloFrames.length >= maxFrames) {
+      return;
+    }
+    _statusHaloFrames[frame] = transparent;
+  }
 
   /// Records only frames whose UI build began inside this window.
   void observe(List<ui.FrameTiming> timings) {
@@ -229,6 +241,15 @@ class HarnessFrameWindow {
     }
     final int first = _samples.first.number;
     if (_packed) return _packedReceipt(duration, first);
+    final String haloStates = _statusHaloFrames.isEmpty
+        ? ''
+        : _samples.map((_Sample sample) {
+            return switch (_statusHaloFrames[sample.number]) {
+              true => 't',
+              false => 'a',
+              null => '?',
+            };
+          }).join();
     return <String, Object?>{
       'schema': 1,
       'scope': 'harness_frame_window',
@@ -241,6 +262,8 @@ class HarnessFrameWindow {
         'rasterStartsUs': <int>[
           for (final _Sample sample in _samples) sample.rasterStart - _startUs,
         ],
+      if (haloStates.contains('a') || haloStates.contains('t'))
+        'statusHaloStates': haloStates,
       if (_peakRasterCache case final Map<String, int> peak)
         'rasterCacheAtPeak': <String, int>{
           ...peak,

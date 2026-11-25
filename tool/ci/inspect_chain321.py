@@ -1160,6 +1160,7 @@ def main():
         comparisons = interactive_result.pop('verified_comparisons', None)
         raster_overruns = interactive_result.pop('verified_raster_rank_overruns', {})
         diagnostics = interactive_result.pop('verified_window_diagnostics', None)
+        halo_raster = interactive_result.pop('verified_status_halo_raster', {})
         idle_windows = (
             ('on Node settings', 'on_node_settings',
              interactive_result.pop('verified_idle_on_node_settings', {})),
@@ -1220,6 +1221,13 @@ def main():
                 encoded_phases = json.dumps(phase_summary, sort_keys=True, separators=(',', ':'))
                 need(len(encoded_phases.encode('ascii')) <= 3800)
                 print('::notice title=Retained interactive motion phases::' + encoded_phases,
+                      flush=True)
+            if halo_raster:
+                halo_summary = dict(identity,
+                    scope='retained_interactive_status_halo_raster', windows=halo_raster)
+                encoded_halo = json.dumps(halo_summary, sort_keys=True, separators=(',', ':'))
+                need(len(encoded_halo.encode('ascii')) <= 3800)
+                print('::notice title=Retained interactive status halo raster::' + encoded_halo,
                       flush=True)
             if gap_raster_states:
                 gap_summary = dict(identity,

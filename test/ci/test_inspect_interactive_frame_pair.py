@@ -356,6 +356,16 @@ class InteractiveFramePairTests(unittest.TestCase):
                               [2, 12000, 2000, 9000, 18000]])
         expected = dict(window=12500, nominal_motion=9000, after_settlement=4000)
         observed = dict(window, rasterStartsUs=[2500, 6000, 17000])
+        halo = dict(observed, statusHaloStates='at?')
+        groups = inspect._status_halo_raster(halo, settled_us=3000)
+        self.assertEqual(groups['all']['visible'],
+                         dict(samples=1, slow_raster=0, max_raster_us=6000))
+        self.assertEqual(groups['after_settlement']['visible']['samples'], 0)
+        self.assertEqual(groups['after_settlement']['transparent']['samples'], 1)
+        self.assertEqual(groups['after_settlement']['unknown']['max_raster_us'], 9000)
+        for invalid in ('at', 'axt', '???', [0, 1, 2]):
+            with self.subTest(halo_states=invalid), self.assertRaises(pair.shared.launch.startup.Failure):
+                pair.shared.launch.frame_timing_rows(dict(halo, statusHaloStates=invalid))
         timing = inspect._window_diagnostics(observed, 4000, 14000, {'settled': 11000})
         self.assertEqual(timing['reported_raster_coverage_us'], expected)
         older = inspect._window_diagnostics(window, 4000, 14000, {'settled': 11000})
@@ -365,6 +375,9 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(summary['reported_raster_coverage_us'], 18500)
         self.assertEqual(summary['build_to_raster_us'],
                          dict(max=3000, samples_over_budget=0, at_peak_raster=3000))
+        self.assertEqual(inspect._idle_summary(dict(idle,
+            window=dict(idle['window'], statusHaloStates='at?')))['status_halo_raster'],
+            groups['all'])
         delayed = deepcopy(idle)
         delayed['window']['frames'][-1][-1] = 39000
         delayed['window']['rasterStartsUs'][-1] = 34000
