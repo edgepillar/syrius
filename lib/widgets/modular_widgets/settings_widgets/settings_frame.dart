@@ -1,7 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/rise_switcher.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
     show buildShellSymbol;
@@ -90,22 +89,28 @@ class SettingsFrame extends StatelessWidget {
           width: tokens.settingsMenuWidth,
           // A disclosure repaint in the section can reuse the menu's paint.
           child: RepaintBoundary(
-            child: Panel(
-              padding: EdgeInsets.all(tokens.inlineGap),
-              // Traverse all section links before entering page controls.
-              child: FocusTraversalGroup(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      for (final SettingsSectionId section
-                          in SettingsSectionId.values)
-                        _SectionItem(
-                          section: section,
-                          selected: section == selected,
-                          onTap: () => onSelected(section),
-                        ),
-                    ],
+            child: Material(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(tokens.cardRadius),
+              // The inset viewport clips the scrolling rows. Nothing in
+              // the viewport needs the outer rounded clip.
+              child: Padding(
+                padding: EdgeInsets.all(tokens.inlineGap),
+                // Traverse all section links before entering page controls.
+                child: FocusTraversalGroup(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        for (final SettingsSectionId section
+                            in SettingsSectionId.values)
+                          _SectionItem(
+                            section: section,
+                            selected: section == selected,
+                            onTap: () => onSelected(section),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),

@@ -111,9 +111,22 @@ void main() {
             const Key('settings_section_menu'),
           );
           final Rect menu = tester.getRect(menuView);
-          expect(
+          final Material surface = tester.widget<Material>(
             find.descendant(of: menuView, matching: find.byType(Material)),
-            findsOneWidget,
+          );
+          final Finder viewport = find.descendant(
+            of: menuView,
+            matching: find.byType(SingleChildScrollView),
+          );
+          expect(surface.clipBehavior, Clip.none);
+          expect(surface.borderRadius, BorderRadius.circular(8));
+          expect(
+            tester.widget<SingleChildScrollView>(viewport).clipBehavior,
+            Clip.hardEdge,
+          );
+          expect(
+            tester.getRect(viewport),
+            menu.deflate(8),
           );
           final Rect page = tester.getRect(
             find.byKey(const Key('settings_page')),
