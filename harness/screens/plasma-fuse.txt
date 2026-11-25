@@ -14,14 +14,15 @@ wait --key fuse_plasma_amount_field --timeout 30
 tap --key plasma_other_addresses_toggle
 assert --key fuse_plasma_beneficiary_selector
 wait --key plasma_cancel_selected --gone --timeout 5
-wait --type Checkbox --kind toggle --nth 2 --ready --timeout 10
+wait --type Checkbox --kind toggle --nth 0 --ready --timeout 10
+wait --type Checkbox --kind toggle --nth 1 --ready --timeout 10
+tap --type Checkbox --kind toggle --nth 0
 tap --type Checkbox --kind toggle --nth 1
-tap --type Checkbox --kind toggle --nth 2
 tap --key fuse_plasma_amount_field --kind field
 hover @0,0
 assert "Cancel 2 fuses" --key plasma_cancel_selected --kind button
-# after-capture: tap --type Checkbox --kind toggle --nth 2
 # after-capture: tap --type Checkbox --kind toggle --nth 1
+# after-capture: tap --type Checkbox --kind toggle --nth 0
 # after-capture: wait --key plasma_cancel_selected --gone --timeout 5
 # after-capture: tap --key plasma_close_fuse
 # after-capture: wait --key fuse_plasma_amount_field --gone --timeout 30

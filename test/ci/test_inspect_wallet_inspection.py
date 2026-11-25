@@ -1521,8 +1521,12 @@ class ReaderTests(unittest.TestCase):
                  settings_catalog=False, navigation_catalog=False,
                  details_catalog=False, catalog_only=None, extra_viewport=False,
                  surface_seams=False, home_seams=None, settings_seams=None,
-                 entry_failure=None, node_timing=False, aged_fuse=None):
+                 entry_failure=None, node_timing=False, aged_fuse=None,
+                 details_fuse=None):
         child, lab, files = pair(positive=positive)
+        if details_fuse is not None:
+            lab['details_fuse_genesis'] = copy.deepcopy(details_fuse)
+            lab['genesis_sha256'] = details_fuse['genesis_sha256']
         if node_timing:
             timed = lab_fixtures.MomentumLogTests.timed_report(include_stack=False)
             for original, observed in zip(lab['node_exits'][:2], timed['node_exits'][:2]):
@@ -1954,6 +1958,7 @@ class ReaderTests(unittest.TestCase):
         self.assertFalse(observed['wallet_qualified'])
         self.assertEqual(observed['visual_matches'], 0)
         self.assertEqual(observed['plasma_bolt_bounds'], dict(dark=None, light=None))
+        self.assertNotIn('details_fuse_genesis', observed)
         self.assertEqual(observed['component_geometry']['pillar_owned_badge_bounds'],
                          dict(dark=None, light=None))
         self.assertEqual(observed['component_geometry']['pillar_row_bands'],
@@ -1996,6 +2001,16 @@ class ReaderTests(unittest.TestCase):
                 themes={theme: dict(halo_rgb=[[0, 0, 0]] * 4,
                                     cancel_columns=[None] * 4, secondary_meter_rgb=None)
                         for theme in ('dark', 'light')})))
+        fixture = reader.DETAILS_FUSE_GENESIS
+        _, _, seeded_text = self.run_main(details_catalog=True, details_fuse=fixture)
+        seeded_catalog, = [json.loads(line.split('::', 2)[-1])
+                           for line in seeded_text.splitlines()
+                           if line.startswith('::notice title=Retained readonly Details catalog::')]
+        self.assertEqual(seeded_catalog['details_fuse_genesis'], fixture)
+        self.assertIn('"screen":"22-plasma-fuse"', seeded_text)
+        with self.assertRaises(reader.archive.Refused):
+            self.run_main(details_catalog=True,
+                details_fuse=dict(fixture, locked_until_height=1))
         packed = io.BytesIO()
         background = bytes((100, 100, 100, 255))
         ordinary = b'\0' + background * 1280
@@ -2033,8 +2048,20 @@ class ReaderTests(unittest.TestCase):
         rows[356] = rows[399] = (b'\0' + background * 230
             + bytes((140, 140, 140, 255)) + rows[356][1 + 231 * 4:])
         rows[422] = b'\0' + background * 203 + mark_blue * 67 + background * 1010
+        green = bytes((45, 180, 90, 255))
+        for top, color in ((345, green), (390, green), (435, mark_blue)):
+            left = 1 + 860 * 4
+            right = left + 80 * 4
+            for row_index in range(top, top + 20):
+                row = rows[row_index]
+                rows[row_index] = row[:left] + color * 80 + row[right:]
         bolt = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', HEADER)
                 + chunk(b'IDAT', zlib.compress(b''.join(rows))) + chunk(b'IEND', b''))
+        self.assertEqual(reader.plasma_expiry_badge_ink(bolt, fuse_form=True), [
+            dict(blue_pixels=0, green_pixels=1600),
+            dict(blue_pixels=0, green_pixels=1600),
+            dict(blue_pixels=1600, green_pixels=0),
+        ])
         with zipfile.ZipFile(packed, 'a') as zipped:
             for theme in ('dark', 'light'):
                 zipped.writestr(f'22-plasma-fuse-{theme}.png', bolt)

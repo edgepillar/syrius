@@ -19,7 +19,8 @@ from . import inspect_chain321 as archive
 from . import inspect_windows_qualification as windows
 from . import windows_wallet_inspection as producer
 from .hosted_chain321 import (
-    NAVIGATION_CATALOG_GENESIS, NAVIGATION_METER_GENESIS, NAVIGATION_PLASMA_GENESIS,
+    DETAILS_FUSE_GENESIS, NAVIGATION_CATALOG_GENESIS, NAVIGATION_METER_GENESIS,
+    NAVIGATION_PLASMA_GENESIS,
 )
 
 
@@ -1692,11 +1693,14 @@ def _nodes_table_edges(zipped, screen):
     return dict(column=column, scan_rows=[top, bottom], themes=themes)
 
 
-def plasma_expiry_badge_ink(data):
-    """Count the blue and green expiry ink in the four visible ledger rows."""
+def plasma_expiry_badge_ink(data, *, fuse_form=False):
+    """Count blue and green expiry ink in the visible ledger rows."""
     column_start, column_end = 910, 1008
     first_row, stride, badge_height = 204, 45, 25
     row_count = 4
+    if fuse_form:
+        column_start, column_end = 852, 960
+        first_row, badge_height, row_count = 343, 26, 3
     last_row = first_row + stride * (row_count - 1) + badge_height
     encoded = base64.b64encode(data).decode('ascii')
     rows, channels = windows._png_crop(encoded, (column_start, column_end),
@@ -2373,7 +2377,19 @@ def main(parent=None):
             ('navigation_meter_genesis', NAVIGATION_METER_GENESIS),
         )
         supplied = [(name, pins) for name, pins in navigation_fixtures if name in lab]
-        need(len(supplied) <= 1)
+        details_fixture = lab.get('details_fuse_genesis')
+        need(len(supplied) + ('details_fuse_genesis' in lab) <= 1)
+        if 'details_fuse_genesis' in lab:
+            need(details_reference is not None
+                 and details_reference['schema'] == producer.details.FAMILY_SCHEMAS['details']
+                 and details_fixture == DETAILS_FUSE_GENESIS
+                 and details_fixture['genesis_sha256'] == lab.get('genesis_sha256'))
+            catalog['details_fuse_genesis'] = details_fixture
+            with zipfile.ZipFile(io.BytesIO(catalog_archive)) as zipped:
+                catalog['plasma_expiry_badge_ink'] = {
+                    theme: plasma_expiry_badge_ink(zipped.read(f'22-plasma-fuse-{theme}.png'),
+                                                  fuse_form=True)
+                    for theme in producer.details.THEMES}
         if supplied:
             (name, pins), = supplied
             navigation_fixture = lab[name]
@@ -2495,6 +2511,7 @@ def main(parent=None):
                 source_head=head, source_run_id=run_id,
                 archive_sha256=catalog['archive_sha256'],
                 manifest_sha256=catalog['manifest_sha256'],
+                screen='22-plasma-fuse' if 'details_fuse_genesis' in catalog else '21-plasma',
                 themes=expiry_badge_ink))
         if rail_motion is not None:
             emit('Retained readonly rail motion', dict(source_head=head,

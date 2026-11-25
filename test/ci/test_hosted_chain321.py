@@ -89,6 +89,20 @@ class ClosedCheckpointAuthorityTests(unittest.TestCase):
 
 
 class AssetGenerationTests(unittest.TestCase):
+    def test_details_genesis_changes_only_one_fusion_expiry(self):
+        rows = [dict(amount=10_000, withdrawHeight=1) for _ in range(3)]
+        base = dict(ChainIdentifier=321, PlasmaConfig=dict(Fusions=rows))
+        raw = json.dumps(base).encode()
+        expected = copy.deepcopy(base)
+        expected['PlasmaConfig']['Fusions'][0]['withdrawHeight'] = 3001
+        prepared = (json.dumps(expected, separators=(',', ':')) + '\n').encode()
+        pins = dict(lab.DETAILS_FUSE_GENESIS, base_genesis_sha256=lab.digest(raw),
+                    genesis_sha256=lab.digest(prepared))
+        with mock.patch.object(lab, 'DETAILS_FUSE_GENESIS', pins):
+            self.assertEqual(lab.details_fuse_genesis(raw), prepared)
+            with self.assertRaises(lab.Failure):
+                lab.details_fuse_genesis(prepared)
+
     def test_navigation_meter_changes_only_fuse_amounts_and_preserves_the_total(self):
         units = 100_000_000
         rows = [dict(owner='selected', beneficiaryAddress=beneficiary, amount=amount * units,

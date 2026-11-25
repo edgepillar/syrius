@@ -423,6 +423,23 @@ NAVIGATION_METER_GENESIS = dict(
     genesis_sha256='7e34e05a5140282919e3b4c8bbc81ac116c2f79332f1282f83d05df9115fc9ca',
     selected_fused_qsr=90,
 )
+DETAILS_FUSE_GENESIS = {
+    'base_genesis_sha256': NAVIGATION_PLASMA_GENESIS['base_genesis_sha256'],
+    'genesis_sha256': 'f279612dd9fa88153d07646957d7cb609027a823a1be068c1537621491cb1459',
+    'fusion_count': 3,
+    'locked_until_height': 3001,
+}
+
+
+def details_fuse_genesis(raw):
+    """Keep one of the three test fusions locked in the Details catalog."""
+    fixture = DETAILS_FUSE_GENESIS
+    need(digest(raw) == fixture['base_genesis_sha256'], 'CONFIG_REFUSED')
+    genesis = json.loads(raw)
+    genesis['PlasmaConfig']['Fusions'][0]['withdrawHeight'] = fixture['locked_until_height']
+    prepared = (json.dumps(genesis, separators=(',', ':')) + '\n').encode()
+    need(digest(prepared) == fixture['genesis_sha256'], 'CONFIG_REFUSED')
+    return prepared
 
 
 def navigation_plasma_genesis(raw):
@@ -1444,6 +1461,7 @@ def run(backend):
     holder_catalog = wallet_tour and parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == TOKEN_HOLDER_FAMILY
     home_holdings = inspection and parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == 'home-catalog'
     navigation_catalog = inspection and parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == 'navigation'
+    details_catalog = inspection and readonly_catalog_family(parent) == 'details'
     stack_debug = backend == "native" and parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") == "true"
     node_source = parent.get("SYRIUS_LAB_NODE_SOURCE", "original")
     node_sha, node_tree = selected_node_source(node_source)
@@ -1544,6 +1562,9 @@ def run(backend):
         if navigation_catalog:
             genesis = navigation_meter_genesis(genesis)
             report['navigation_meter_genesis'] = NAVIGATION_METER_GENESIS
+        if details_catalog:
+            genesis = details_fuse_genesis(genesis)
+            report['details_fuse_genesis'] = DETAILS_FUSE_GENESIS
         report["genesis_sha256"] = digest(genesis)
         configs, pins, keyfile_pins = {}, {}, {}
         report["keyfile_relocations"] = []
