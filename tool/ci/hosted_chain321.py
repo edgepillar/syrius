@@ -429,14 +429,24 @@ DETAILS_FUSE_GENESIS = {
     'fusion_count': 3,
     'locked_until_height': 3001,
 }
+DETAILS_FUSE_METER_GENESIS = dict(
+    DETAILS_FUSE_GENESIS,
+    genesis_sha256='cc51d68c0148dfe5094534df03b8d1efc4e7ccdbc55c01a5ec04f76c9b2264a9',
+    selected_fused_qsr_units=8_650_000_000,
+)
 
 
 def details_fuse_genesis(raw):
-    """Keep one of the three test fusions locked in the Details catalog."""
-    fixture = DETAILS_FUSE_GENESIS
+    """Exercise a partially filled selected meter with one locked test fusion."""
+    fixture = DETAILS_FUSE_METER_GENESIS
     need(digest(raw) == fixture['base_genesis_sha256'], 'CONFIG_REFUSED')
     genesis = json.loads(raw)
-    genesis['PlasmaConfig']['Fusions'][0]['withdrawHeight'] = fixture['locked_until_height']
+    first, second, external = genesis['PlasmaConfig']['Fusions']
+    total = first['amount'] + second['amount'] + external['amount']
+    selected = fixture['selected_fused_qsr_units']
+    first['withdrawHeight'] = fixture['locked_until_height']
+    first['amount'] = second['amount'] = selected // 2
+    external['amount'] = total - selected
     prepared = (json.dumps(genesis, separators=(',', ':')) + '\n').encode()
     need(digest(prepared) == fixture['genesis_sha256'], 'CONFIG_REFUSED')
     return prepared
@@ -1564,7 +1574,7 @@ def run(backend):
             report['navigation_meter_genesis'] = NAVIGATION_METER_GENESIS
         if details_catalog:
             genesis = details_fuse_genesis(genesis)
-            report['details_fuse_genesis'] = DETAILS_FUSE_GENESIS
+            report['details_fuse_genesis'] = DETAILS_FUSE_METER_GENESIS
         report["genesis_sha256"] = digest(genesis)
         configs, pins, keyfile_pins = {}, {}, {}
         report["keyfile_relocations"] = []

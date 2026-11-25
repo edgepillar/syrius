@@ -2001,20 +2001,22 @@ class ReaderTests(unittest.TestCase):
                 themes={theme: dict(halo_rgb=[[0, 0, 0]] * 4,
                                     cancel_columns=[None] * 4, secondary_meter_rgb=None)
                         for theme in ('dark', 'light')})))
-        fixture = reader.DETAILS_FUSE_GENESIS
-        _, _, seeded_text = self.run_main(details_catalog=True, details_fuse=fixture)
-        seeded_catalog, = [json.loads(line.split('::', 2)[-1])
-                           for line in seeded_text.splitlines()
-                           if line.startswith('::notice title=Retained readonly Details catalog::')]
-        self.assertNotIn('details_fuse_genesis', seeded_catalog)
-        expiry, = [json.loads(line.split('::', 2)[-1])
-                   for line in seeded_text.splitlines()
-                   if line.startswith('::notice title=Retained readonly Plasma expiry badge ink::')]
-        self.assertEqual(expiry['details_fuse_genesis'], fixture)
-        self.assertEqual(expiry['screen'], '22-plasma-fuse')
+        for fixture in (reader.DETAILS_FUSE_GENESIS, reader.DETAILS_FUSE_METER_GENESIS):
+            _, _, seeded_text = self.run_main(details_catalog=True, details_fuse=fixture)
+            seeded_catalog, = [json.loads(line.split('::', 2)[-1])
+                               for line in seeded_text.splitlines()
+                               if line.startswith('::notice title=Retained readonly Details catalog::')]
+            self.assertNotIn('details_fuse_genesis', seeded_catalog)
+            self.assertNotIn('details_fuse_meter_fill', seeded_catalog)
+            expiry, = [json.loads(line.split('::', 2)[-1])
+                       for line in seeded_text.splitlines()
+                       if line.startswith('::notice title=Retained readonly Plasma expiry badge ink::')]
+            self.assertEqual(expiry['details_fuse_genesis'], fixture)
+            self.assertEqual(expiry['screen'], '22-plasma-fuse')
+            self.assertEqual(expiry['selected_meter_fill'], dict(dark=None, light=None))
         with self.assertRaises(reader.archive.Refused):
             self.run_main(details_catalog=True,
-                details_fuse=dict(fixture, locked_until_height=1))
+                details_fuse=dict(reader.DETAILS_FUSE_METER_GENESIS, locked_until_height=1))
         packed = io.BytesIO()
         background = bytes((100, 100, 100, 255))
         ordinary = b'\0' + background * 1280

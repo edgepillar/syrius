@@ -19,8 +19,8 @@ from . import inspect_chain321 as archive
 from . import inspect_windows_qualification as windows
 from . import windows_wallet_inspection as producer
 from .hosted_chain321 import (
-    DETAILS_FUSE_GENESIS, NAVIGATION_CATALOG_GENESIS, NAVIGATION_METER_GENESIS,
-    NAVIGATION_PLASMA_GENESIS,
+    DETAILS_FUSE_GENESIS, DETAILS_FUSE_METER_GENESIS, NAVIGATION_CATALOG_GENESIS,
+    NAVIGATION_METER_GENESIS, NAVIGATION_PLASMA_GENESIS,
 )
 
 
@@ -2382,14 +2382,17 @@ def main(parent=None):
         if 'details_fuse_genesis' in lab:
             need(details_reference is not None
                  and details_reference['schema'] == producer.details.FAMILY_SCHEMAS['details']
-                 and details_fixture == DETAILS_FUSE_GENESIS
+                 and details_fixture in (DETAILS_FUSE_GENESIS, DETAILS_FUSE_METER_GENESIS)
                  and details_fixture['genesis_sha256'] == lab.get('genesis_sha256'))
             catalog['details_fuse_genesis'] = details_fixture
             with zipfile.ZipFile(io.BytesIO(catalog_archive)) as zipped:
-                catalog['plasma_expiry_badge_ink'] = {
-                    theme: plasma_expiry_badge_ink(zipped.read(f'22-plasma-fuse-{theme}.png'),
-                                                  fuse_form=True)
-                    for theme in producer.details.THEMES}
+                expiry_ink, selected_meter = {}, {}
+                for theme in producer.details.THEMES:
+                    shot = zipped.read(f'22-plasma-fuse-{theme}.png')
+                    expiry_ink[theme] = plasma_expiry_badge_ink(shot, fuse_form=True)
+                    selected_meter[theme] = _plasma_meter_fill(shot)
+                catalog['plasma_expiry_badge_ink'] = expiry_ink
+                catalog['details_fuse_meter_fill'] = selected_meter
         if supplied:
             (name, pins), = supplied
             navigation_fixture = lab[name]
@@ -2481,6 +2484,7 @@ def main(parent=None):
         home_field_minimize = catalog.pop('home_field_minimize', None)
         expiry_badge_ink = catalog.pop('plasma_expiry_badge_ink', None)
         details_fuse_fixture = catalog.pop('details_fuse_genesis', None)
+        details_fuse_meter = catalog.pop('details_fuse_meter_fill', None)
         plasma_table_edges = catalog.pop('plasma_table_edges', None)
         plasma_other_rules_observation = catalog.pop('plasma_other_rules', None)
         emit(f'Retained readonly {family} catalog', catalog)
@@ -2514,7 +2518,8 @@ def main(parent=None):
                 manifest_sha256=catalog['manifest_sha256'],
                 screen='21-plasma', themes=expiry_badge_ink)
             if details_fuse_fixture is not None:
-                expiry.update(screen='22-plasma-fuse', details_fuse_genesis=details_fuse_fixture)
+                expiry.update(screen='22-plasma-fuse', details_fuse_genesis=details_fuse_fixture,
+                              selected_meter_fill=details_fuse_meter)
             emit('Retained readonly Plasma expiry badge ink', expiry)
         if rail_motion is not None:
             emit('Retained readonly rail motion', dict(source_head=head,

@@ -89,16 +89,22 @@ class ClosedCheckpointAuthorityTests(unittest.TestCase):
 
 
 class AssetGenerationTests(unittest.TestCase):
-    def test_details_genesis_changes_only_one_fusion_expiry(self):
-        rows = [dict(amount=10_000, withdrawHeight=1) for _ in range(3)]
+    def test_details_genesis_changes_one_expiry_and_preserves_fused_total(self):
+        units = 100_000_000
+        rows = [dict(owner='selected', beneficiaryAddress=beneficiary,
+                     amount=10_000 * units, withdrawHeight=1)
+                for beneficiary in ('selected', 'selected', 'other')]
         base = dict(ChainIdentifier=321, PlasmaConfig=dict(Fusions=rows))
         raw = json.dumps(base).encode()
         expected = copy.deepcopy(base)
-        expected['PlasmaConfig']['Fusions'][0]['withdrawHeight'] = 3001
+        first, second, external = expected['PlasmaConfig']['Fusions']
+        first.update(amount=4_325_000_000, withdrawHeight=3001)
+        second['amount'] = 4_325_000_000
+        external['amount'] = 30_000 * units - 8_650_000_000
         prepared = (json.dumps(expected, separators=(',', ':')) + '\n').encode()
-        pins = dict(lab.DETAILS_FUSE_GENESIS, base_genesis_sha256=lab.digest(raw),
+        pins = dict(lab.DETAILS_FUSE_METER_GENESIS, base_genesis_sha256=lab.digest(raw),
                     genesis_sha256=lab.digest(prepared))
-        with mock.patch.object(lab, 'DETAILS_FUSE_GENESIS', pins):
+        with mock.patch.object(lab, 'DETAILS_FUSE_METER_GENESIS', pins):
             self.assertEqual(lab.details_fuse_genesis(raw), prepared)
             with self.assertRaises(lab.Failure):
                 lab.details_fuse_genesis(prepared)
