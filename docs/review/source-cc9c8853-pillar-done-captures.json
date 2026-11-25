@@ -1,0 +1,20 @@
+{
+  "actual": {
+    "20-pillar-done-dark": {
+      "archive_member": "20-pillar-done-dark.png",
+      "archive_sha256": "557a5b8262511628d6c0a6b701fe691ad5e65eaa67e0fb22c3e13ae6470a6fdc",
+      "catalog_family": "pillar-done",
+      "path": "557a5b8262511628d6c0a6b701fe691ad5e65eaa67e0fb22c3e13ae6470a6fdc",
+      "sha256": "e0ff6423735ed372887869f5fd4834db6a84e78f8d400f926b9c0343089e7d17",
+      "source_sha": "cc9c885362f859482390f5dddc05a854930a4e84"
+    },
+    "20-pillar-done-light": {
+      "archive_member": "20-pillar-done-light.png",
+      "archive_sha256": "557a5b8262511628d6c0a6b701fe691ad5e65eaa67e0fb22c3e13ae6470a6fdc",
+      "catalog_family": "pillar-done",
+      "path": "557a5b8262511628d6c0a6b701fe691ad5e65eaa67e0fb22c3e13ae6470a6fdc",
+      "sha256": "dcd44160dd47849b2d5af228ede1c85d5a672dd25ae5109f186b5a935fb1f077",
+      "source_sha": "cc9c885362f859482390f5dddc05a854930a4e84"
+    }
+  }
+}
